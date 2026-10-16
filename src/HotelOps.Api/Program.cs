@@ -1,4 +1,11 @@
+using HotelOps.Api.Data;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddDbContext<HotelOpsDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("HotelOpsDb")));
 
 // Add services to the container.
 
