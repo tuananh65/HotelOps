@@ -16,6 +16,27 @@ public class IncidentsController : ControllerBase
         _incidentService = incidentService;
     }
 
+    [HttpPatch("{id:long}/triage")]
+    public async Task<ActionResult<IncidentDetailDto>> TriageIncident(
+        long id, TriageIncidentRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var incident = await _incidentService.TriageIncidentAsync(id, request, cancellationToken);
+            if (incident is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(incident);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Incident triage validation failed", detail: exception.Message);
+        }
+    }
+
     [HttpPost]
     public async Task<ActionResult<IncidentDetailDto>> CreateIncident(
         CreateIncidentRequest request, CancellationToken cancellationToken)

@@ -17,6 +17,89 @@ public sealed class IncidentService : IIncidentService
         _dbContext = dbContext;
     }
 
+    public async Task<IncidentDetailDto?> TriageIncidentAsync(long id, TriageIncidentRequest request, CancellationToken cancellationToken)
+    {
+        Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+
+        // Hold the target row's update lock through validation, change detection, and commit.
+        var incident = await _dbContext.Incidents
+            .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
+            .AsTracking()
+            .SingleOrDefaultAsync(cancellationToken);
+        if (incident is null)
+        {
+            return null;
+        }
+
+        if (!await _dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+            throw new ValidationException("ActorUserId does not exist.");
+        if (incident.Status is not ("OPEN" or "IN_PROGRESS"))
+            throw new ValidationException("Triage is allowed only for OPEN or IN_PROGRESS incidents.");
+
+        var severityChanged = incident.SeverityId != request.SeverityId;
+        var priorityChanged = incident.PriorityId != request.PriorityId;
+        if (severityChanged && !await _dbContext.ReferenceValues.AsNoTracking()
+            .AnyAsync(value => value.ReferenceId == request.SeverityId &&
+                value.GroupCode == "SEVERITY" && value.IsActive, cancellationToken))
+            throw new ValidationException("SeverityId must identify an active SEVERITY reference value.");
+        if (priorityChanged && !await _dbContext.ReferenceValues.AsNoTracking()
+            .AnyAsync(value => value.ReferenceId == request.PriorityId &&
+                value.GroupCode == "PRIORITY" && value.IsActive, cancellationToken))
+            throw new ValidationException("PriorityId must identify an active PRIORITY reference value.");
+
+        if (severityChanged || priorityChanged)
+        {
+            var occurredAt = DateTime.UtcNow;
+            var oldValues = JsonSerializer.Serialize(new
+            {
+                severity_id = incident.SeverityId,
+                priority_id = incident.PriorityId
+            });
+            var changedFields = new List<string>();
+            if (severityChanged)
+                changedFields.Add("severity_id");
+            if (priorityChanged)
+                changedFields.Add("priority_id");
+
+            incident.SeverityId = request.SeverityId!.Value;
+            incident.PriorityId = request.PriorityId!.Value;
+            _dbContext.IncidentEvents.Add(new IncidentEvent
+            {
+                IncidentId = incident.IncidentId,
+                EventType = "TRIAGED",
+                FromStatus = null,
+                ToStatus = null,
+                ActorId = request.ActorUserId,
+                Note = null,
+                OccurredAt = occurredAt
+            });
+            _dbContext.AuditLogs.Add(new AuditLog
+            {
+                BranchId = incident.BranchId,
+                ActorUserId = request.ActorUserId,
+                EntityType = "incidents",
+                EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
+                Action = "UPDATE",
+                OldValues = oldValues,
+                NewValues = JsonSerializer.Serialize(new
+                {
+                    severity_id = incident.SeverityId,
+                    priority_id = incident.PriorityId
+                }),
+                ChangedFields = JsonSerializer.Serialize(changedFields),
+                OccurredAt = occurredAt
+            });
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        var result = await GetIncidentAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("Triaged incident could not be read.");
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
     public async Task<IncidentDetailDto> CreateIncidentAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
