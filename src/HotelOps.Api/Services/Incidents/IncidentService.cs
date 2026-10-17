@@ -121,12 +121,43 @@ public sealed class IncidentService : IIncidentService
             throw new ValidationException("PriorityId must identify an active PRIORITY reference value.");
     }
 
-    public async Task<IReadOnlyList<IncidentListDto>> GetIncidentsAsync(CancellationToken cancellationToken)
+    public async Task<IncidentPagedResponse> GetIncidentsAsync(IncidentQueryRequest request, CancellationToken cancellationToken)
     {
-        return await _dbContext.Incidents
-            .AsNoTracking()
+        if (request.Page <= 0)
+            throw new ValidationException("Page must be greater than zero.");
+        if (request.PageSize <= 0 || request.PageSize > 100)
+            throw new ValidationException("PageSize must be between 1 and 100.");
+
+        var offset = ((long)request.Page - 1) * request.PageSize;
+        if (offset > int.MaxValue)
+            throw new ValidationException("Pagination offset exceeds the supported range.");
+
+        var status = request.Status?.Trim();
+        if (status is { Length: > 40 })
+            throw new ValidationException("Status must not exceed 40 characters.");
+        status = status?.ToUpperInvariant();
+        if (!string.IsNullOrEmpty(status) &&
+            status is not ("OPEN" or "IN_PROGRESS" or "RESOLVED" or "CLOSED" or "CANCELLED"))
+            throw new ValidationException("Status must be OPEN, IN_PROGRESS, RESOLVED, CLOSED, or CANCELLED.");
+
+        var query = _dbContext.Incidents.AsNoTracking();
+        if (request.BranchId is long branchId)
+            query = query.Where(incident => incident.BranchId == branchId);
+        if (!string.IsNullOrEmpty(status))
+            query = query.Where(incident => incident.Status == status);
+        if (request.PriorityId is long priorityId)
+            query = query.Where(incident => incident.PriorityId == priorityId);
+        if (request.SeverityId is long severityId)
+            query = query.Where(incident => incident.SeverityId == severityId);
+        if (request.RoomId is long roomId)
+            query = query.Where(incident => incident.RoomId == roomId);
+
+        var totalCount = await query.CountAsync(cancellationToken);
+        var items = await query
             .OrderByDescending(incident => incident.ReportedAt)
             .ThenByDescending(incident => incident.IncidentId)
+            .Skip((int)offset)
+            .Take(request.PageSize)
             .Select(incident => new IncidentListDto
             {
                 IncidentId = incident.IncidentId,
@@ -153,6 +184,15 @@ public sealed class IncidentService : IIncidentService
                 ClosedAt = incident.ClosedAt
             })
             .ToListAsync(cancellationToken);
+
+        return new IncidentPagedResponse
+        {
+            Items = items,
+            Page = request.Page,
+            PageSize = request.PageSize,
+            TotalCount = totalCount,
+            TotalPages = (int)(((long)totalCount + request.PageSize - 1) / request.PageSize)
+        };
     }
 
     public async Task<IncidentDetailDto?> GetIncidentAsync(long id, CancellationToken cancellationToken)

@@ -33,10 +33,19 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<IncidentListDto>>> GetIncidents(CancellationToken cancellationToken)
+    public async Task<ActionResult<IncidentPagedResponse>> GetIncidents(
+        [FromQuery] IncidentQueryRequest request, CancellationToken cancellationToken)
     {
-        var incidents = await _incidentService.GetIncidentsAsync(cancellationToken);
-        return Ok(incidents);
+        try
+        {
+            var incidents = await _incidentService.GetIncidentsAsync(request, cancellationToken);
+            return Ok(incidents);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Incident query validation failed", detail: exception.Message);
+        }
     }
 
     [HttpGet("{id:long}")]
