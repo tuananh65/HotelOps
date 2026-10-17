@@ -81,126 +81,64 @@ for (const s of manifest) {
   assert.equal(s.route, catalog.screens.find((r) => r.id === s.id).route);
 }
 const ucs = new Set(manifest.flatMap((s) => s.ucs));
-assert.equal(ucs.size, 140);
+assert.equal(ucs.size, 144);
+assert.equal(Object.keys(catalog.ucs).length, 144);
+const apiInventory = JSON.parse(
+  await readFile("docs/api-integration/screen-inventory.json", "utf8"),
+);
+assert.equal(apiInventory.length, 80);
+for (const screen of manifest) {
+  assert.deepEqual(
+    screen.ucs,
+    catalog.screens.find((row) => row.id === screen.id).ucs,
+  );
+  assert.ok(
+    apiInventory.some(
+      (row) => row.id === screen.id && row.route === screen.route,
+    ),
+  );
+}
 await mkdir(".test-output", { recursive: true });
 await build({
-  entryPoints: ["src/services.ts"],
+  entryPoints: ["src/api/endpoints.ts"],
   bundle: true,
   platform: "node",
   format: "esm",
-  outfile: ".test-output/demo-data.mjs",
+  outfile: ".test-output/verified-endpoints.mjs",
 });
-class Storage {
-  map = new Map();
-  getItem(k) {
-    return this.map.get(k) || null;
-  }
-  setItem(k, v) {
-    this.map.set(k, String(v));
-  }
-  removeItem(k) {
-    this.map.delete(k);
-  }
-}
-globalThis.localStorage = new Storage();
-globalThis.sessionStorage = new Storage();
-const service = await import("../.test-output/demo-data.mjs");
-const db = service.snapshot();
-const mappings = {
-  7: "notifications",
-  9: "users",
-  11: "roles",
-  14: "branches",
-  16: "locations",
-  18: "roomTypes",
-  20: "rooms",
-  22: "departments",
-  26: "cleaning",
-  29: "rework",
-  32: "checklists",
-  34: "inspections",
-  35: "inspections",
-  36: "inspections",
-  37: "inspections",
-  41: "incidents",
-  44: "occurrences",
-  46: "schedules",
-  49: "assets",
-  50: "assets",
-  52: "warehouses",
-  55: "items",
-  58: "transactions",
-  60: "stocktakes",
-  63: "materials",
-  65: "replenishments",
-  67: "tasks",
-  72: "shifts",
-  75: "handovers",
-  77: "requests",
-  80: "audit",
-};
-const rows = manifest.map((s) => {
-  const key = mappings[s.id];
-  const candidates = key ? db[key].filter((r) => r.branch === "Bui Vien") : [];
-  let row =
-    s.id === 36
-      ? candidates.find((r) => r.status === "Failed")
-      : s.id === 37
-        ? candidates.find(r => r.rework)
-      : s.id === 7
-        ? candidates.find(
-            (r) =>
-              r.recipient === db.users.find((u) => u.username === "admin").id,
-          )
-        : candidates.find((r) => /-BV-|^USR-DEMO/.test(r.id)) || candidates[0];
-  // Reinspection is a selector screen until a submitted rework is assigned an inspector.
-  const demo = s.route.replace(":id", row?.id || "select");
-  if (s.route.includes(":id") && s.id !== 37)
-    assert.ok(row, `No demo record for screen ${s.id}`);
-  return { ...s, demo };
-});
-await writeFile(
-  "docs/screen-routes.md",
-  "# HotelOps demo URLs\n\nOpen these relative routes on the current deployment origin. All screens are public; listed roles describe source requirements only. Synthetic data uses deterministic IDs and persists locally. /dev/screens resolves working detail links.\n\n" +
-    rows
-      .map(
-        (s) =>
-          `## ${String(s.id).padStart(2, "0")} ${s.name}\n\n- Route: \`${s.route}\`\n- Demo: [${s.demo}](${s.demo})\n- Roles: ${s.roles.join(", ")}\n`,
-      )
-      .join("\n"),
+const { actionContracts } =
+  await import("../.test-output/verified-endpoints.mjs");
+assert.equal(Object.keys(actionContracts).length, 103);
+assert.equal(
+  new Set(Object.values(actionContracts).map((action) => action.id)).size,
+  103,
 );
 await writeFile(
-  "docs/screen-matrix.md",
-  "# Required screen implementation matrix\n\nExactly 80 required screens; /dev/screens and /dev/design-system are public review utilities and are not counted. All 140 UC IDs are mapped; this is traceability, not independent acceptance of every alternative UC flow.\n\n| # | Screen | File | Route | Demo URL | FE | UC | Primary Role(s) | Status |\n|---|---|---|---|---|---|---|---|---|\n" +
-    rows
+  "docs/screen-routes.md",
+  "# HotelOps screen routes\n\nRoutes require an API-backed session except Login/Forgot Password. For detail routes, use identifiers returned by the API; no prototype record is generated.\n\n" +
+    manifest
       .map(
-        (s) =>
-          `| ${s.id} | ${s.name} | ${s.file} | ${s.route} | ${s.demo} | ${s.feature} | ${s.ucs.join(", ")} | ${s.roles.join(", ")} | Implemented |`,
+        (screen) =>
+          `- ${screen.id}. ${screen.name}: \`${screen.route}\` (${screen.ucs.join(", ")})`,
       )
       .join("\n") +
     "\n",
 );
 await writeFile(
-  "docs/verification/mock-counts.json",
-  JSON.stringify(
-    Object.fromEntries(Object.entries(db).map(([k, v]) => [k, v.length])),
-    null,
-    2,
-  ),
+  "docs/screen-matrix.md",
+  "# Required screen implementation matrix\n\n80 required screens and 144 mapped UCs. This verifies source traceability; it does not independently accept every alternative UC flow or prove a real server integration. Utility routes are outside the 80-screen count.\n\n| ID | Screen | File | Route | FE | UC | Actors from SRS | Implementation |\n|---|---|---|---|---|---|---|---|\n" +
+    manifest
+      .map(
+        (screen) =>
+          `|${screen.id}|${screen.name}|${screen.file}|${screen.route}|${screen.feature}|${screen.ucs.join(", ")}|${screen.roles.join(", ")}|API contract wired; real server pending|`,
+      )
+      .join("\n") +
+    "\n",
 );
 await writeFile(
   "docs/verification/screen-files.json",
-  JSON.stringify(screenFiles.sort(), null, 2),
+  JSON.stringify(screenFiles.sort(), null, 2) + "\n",
 );
 console.log(
-  `80 required screen files found; 80 route imports verified; ${ucs.size} UC IDs mapped. Demo URLs and matrix updated.`,
-);
-console.log(
-  JSON.stringify(
-    Object.fromEntries(
-      Object.entries(db)
-        .filter(([k]) => !k.startsWith("mock"))
-        .map(([k, v]) => [k, v.length]),
-    ),
-  ),
+  `80 screen files and route imports verified; ${ucs.size} UCs mapped; 103 unique business command contracts. No prototype database was loaded.`,
 );

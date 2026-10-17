@@ -40,8 +40,8 @@ export default function ReinspectionScreen() {
                 required: true,
               },
             ]}
-            onSubmit={(v) => {
-              const r = service.createReinspection(
+            onSubmit={async (v) => {
+              const r = await service.createReinspection(
                 db.rework.find((w) => w.id === work)!,
                 v.inspector,
               );

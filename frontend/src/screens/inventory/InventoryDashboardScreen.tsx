@@ -11,6 +11,7 @@ import {
   date,
   name,
   notify,
+  quantity,
   useDB,
 } from "../../ui";
 export default function InventoryDashboardScreen() {
@@ -83,7 +84,7 @@ export default function InventoryDashboardScreen() {
             label: "Available quantity",
             render: (r) => (
               <strong className={r.balance < r.minimum ? "overdue-text" : ""}>
-                {r.balance}
+                {quantity(r.balance)}
               </strong>
             ),
           },
@@ -95,7 +96,11 @@ export default function InventoryDashboardScreen() {
             render: (r) => (
               <StatusBadge
                 status={
-                  r.balance < Number(r.minimum) ? "Below minimum" : "Available"
+                  !Number.isFinite(r.balance) || r.minimum === undefined
+                    ? "N/A"
+                    : r.balance < Number(r.minimum)
+                      ? "Below minimum"
+                      : "Available"
                 }
               />
             ),
@@ -127,7 +132,9 @@ export default function InventoryDashboardScreen() {
                 key: "balance",
                 label: "Balance at movement",
                 render: (r) =>
-                  service.balance(db, r.warehouse, r.item, r.createdAt),
+                  quantity(
+                    service.balance(db, r.warehouse, r.item, r.createdAt),
+                  ),
               },
             ]}
             onOpen={(r) => {

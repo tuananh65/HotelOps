@@ -35,8 +35,8 @@ export default function ChangePasswordScreen() {
           },
         ]}
         label="Change password"
-        onSubmit={(values) => {
-          changePassword(values.current, values.next, values.confirm);
+        onSubmit={async (values) => {
+          await changePassword(values.current, values.next, values.confirm);
           notify("Password changed.");
           navigate("/profile");
         }}

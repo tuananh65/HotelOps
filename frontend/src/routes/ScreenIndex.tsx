@@ -2,7 +2,7 @@ import { ThemeToggle } from "../components/ThemeToggle";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { LanguageSwitcher, t, useLanguage, vi } from "../i18n";
-import { Logo, notify, useDB } from "../ui";
+import { Logo, notify, useDB, screenAllowed } from "../ui";
 import { demoPath } from "./demoPaths";
 import { requiredRoutes } from "./routeConfig";
 export function ScreenIndex() {
@@ -25,6 +25,7 @@ export function ScreenIndex() {
           : "List";
   const rows = requiredRoutes.filter(
     (s) =>
+      screenAllowed(s.id) &&
       (!feature || code(s.feature) === feature) &&
       (!type || kind(s.name) === type) &&
       (!module || s.feature === module) &&
@@ -56,12 +57,10 @@ export function ScreenIndex() {
       <header className="library-hero">
         <span className="eyebrow">HOTEL OPS · UI/UX SCREEN DIRECTORY</span>
         <h1>{t("Screen library")}</h1>
-        <p>
-          {t("Review all 80 screens with synthetic hotel operations data.")}
-        </p>
+        <p>{t("Review the HotelOps screens available to your account.")}</p>
         <div className="library-count">
           <strong>80 / 80</strong>
-          <span>{t("Public frontend prototype")} · 15 FE · 140 UC</span>
+          <span>{t("HotelOps")} · 15 FE · 144 UC</span>
         </div>
       </header>
       <section className="panel library-filters">

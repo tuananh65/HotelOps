@@ -40,7 +40,7 @@ export default function DashboardScreen() {
     <>
       <PageHeader id={5}>
         <span className="snapshot">
-          {t("Snapshot ·")} {date(new Date().toISOString())}
+          {t("Snapshot ·")} {date(service.serverSnapshot())}
         </span>
       </PageHeader>
       <Summary
@@ -48,13 +48,26 @@ export default function DashboardScreen() {
         items={[
           {
             label: "Ready rooms",
-            value: rooms.filter((r) => r.status === "Ready").length,
-            detail: rooms.length + " " + t("Total rooms"),
+            value: service.serverMetric("readyRooms"),
+            detail:
+              service.serverMetric("activeRooms") + " " + t("Total rooms"),
             to: "/room-readiness",
           },
-          { label: "Open incidents", value: critical.length, to: pathFor(39) },
-          { label: "Overdue tasks", value: overdue.length, to: pathFor(70) },
-          { label: "Items below minimum", value: low.length, to: pathFor(53) },
+          {
+            label: "Open incidents",
+            value: service.serverMetric("openIncidents"),
+            to: pathFor(39),
+          },
+          {
+            label: "Overdue tasks",
+            value: service.serverMetric("overdueTasks"),
+            to: pathFor(70),
+          },
+          {
+            label: "Items below minimum",
+            value: service.serverMetric("lowStockItems"),
+            to: pathFor(53),
+          },
         ]}
       />
       <nav className="daily-work" aria-label={t("Daily work")}>

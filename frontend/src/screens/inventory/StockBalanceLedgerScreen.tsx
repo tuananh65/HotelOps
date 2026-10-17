@@ -11,6 +11,7 @@ import {
   date,
   name,
   notify,
+  quantity,
   useDB,
 } from "../../ui";
 export default function StockBalanceLedgerScreen() {
@@ -94,7 +95,9 @@ export default function StockBalanceLedgerScreen() {
                 key: "balance",
                 label: "Balance at movement",
                 render: (r) =>
-                  service.balance(db, r.warehouse, r.item, r.createdAt),
+                  quantity(
+                    service.balance(db, r.warehouse, r.item, r.createdAt),
+                  ),
               },
             ]}
             onOpen={(r) => {
@@ -119,7 +122,7 @@ export default function StockBalanceLedgerScreen() {
             label: "Available quantity",
             render: (r) => (
               <strong className={r.balance < r.minimum ? "overdue-text" : ""}>
-                {r.balance}
+                {quantity(r.balance)}
               </strong>
             ),
           },
@@ -131,7 +134,11 @@ export default function StockBalanceLedgerScreen() {
             render: (r) => (
               <StatusBadge
                 status={
-                  r.balance < Number(r.minimum) ? "Below minimum" : "Available"
+                  !Number.isFinite(r.balance) || r.minimum === undefined
+                    ? "N/A"
+                    : r.balance < Number(r.minimum)
+                      ? "Below minimum"
+                      : "Available"
                 }
               />
             ),

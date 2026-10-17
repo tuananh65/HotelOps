@@ -34,8 +34,8 @@ export default function RequestReworkScreen() {
                 .join("\n"),
             }}
             label="Request rework"
-            onSubmit={(v) => {
-              const r = service.save(d, v);
+            onSubmit={async (v) => {
+              const r = await service.save(d, v);
               nav(pathFor(29, r.id));
               notify("Rework requested.");
             }}

@@ -1,196 +1,133 @@
-import { test, beforeEach } from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
-import { build } from "esbuild";
-import { mkdir } from "node:fs/promises";
-await mkdir(".test-output", { recursive: true });
-await build({
-  entryPoints: ["src/services.ts"],
-  bundle: true,
-  platform: "node",
-  format: "esm",
-  outfile: ".test-output/services.mjs",
+import { bundle, entity } from "./api-test-helpers.mjs";
+const a = await bundle("src/api/adapters.ts", "adapters");
+test("maps status codes without equating unsupported SQL room states with Ready", () => {
+  assert.equal(a.toLabel("PENDING_INSPECTION"), "Pending Inspection");
+  assert.equal(a.toLabel("AVAILABLE"), "AVAILABLE");
+  assert.equal(a.toLabel("OUT_OF_SERVICE"), "OUT_OF_SERVICE");
+  assert.equal(a.toCode("Rework Required"), "REWORK_REQUIRED");
 });
-class MemoryStorage {
-  data = new Map();
-  getItem(k) {
-    return this.data.get(k) || null;
-  }
-  setItem(k, v) {
-    this.data.set(k, String(v));
-  }
-  removeItem(k) {
-    this.data.delete(k);
-  }
-  clear() {
-    this.data.clear();
-  }
-}
-let service;
-beforeEach(async () => {
-  globalThis.localStorage = new MemoryStorage();
-  globalThis.sessionStorage = new MemoryStorage();
-  service = await import(`../.test-output/services.mjs?case=${Math.random()}`);
+test("SQL BIGINT string identities retain precision; unsafe JSON numbers fail visibly", () => {
+  assert.equal(a.asId("9223372036854775807"), "9223372036854775807");
+  assert.throws(() => a.asId(9223372036854775807), /unsafe identifier/);
 });
-const account = (username) => service.login(username, "HotelOps@2026");
-test("prototype browsing never requires credentials or permissions", () => {
-  assert.ok(service.currentUser());
-  service.login("arbitrary demo name", "arbitrary demo value");
-  assert.equal(sessionStorage.getItem("hotelops-session"), null);
-  service.logout();
-  assert.ok(service.currentUser());
-  assert.equal(service.can("UC-004"), true);
-  assert.equal(service.visible("rooms").length, 64);
-  assert.ok(
-    service.visible("rooms").some((room) => room.branch === "Cao Thang"),
-  );
-});
-
-test("prototype work starts directly; completion updates room readiness and audit", () => {
-  account("housekeeper");
-  const task = service.visible("cleaning").find((t) => t.status === "Assigned");
-  const d = { key: "cleaning" };
-  let r = service.perform(
-    d,
-    task,
+test("write adapter whitelists form fields and excludes server-owned status and stock balances", () => {
+  const body = a.entityToDto(
     {
-      label: "Start / resume",
-      uc: "UC-031",
-      from: ["Assigned"],
-      to: "In Progress",
-      own: true,
+      name: "101",
+      branch: "Bui Vien",
+      floor: "f1",
+      status: "Ready",
+      balance: 999,
+      version: 3,
+      rowVersion: "v1",
     },
-    { note: "Starting work" },
+    ["name", "branch", "floor", "status"],
+    () => "1",
   );
-  assert.equal(
-    service.snapshot().rooms.find((v) => v.id === r.room).status,
-    "Cleaning In Progress",
-  );
-  assert.throws(
-    () =>
-      service.perform(
-        d,
-        r,
-        {
-          label: "Submit for inspection",
-          uc: "UC-034",
-          from: ["In Progress"],
-          to: "Pending Inspection",
-          own: true,
-        },
-        { note: "Complete" },
-      ),
-    /mandatory/,
-  );
-  r = service.updateCriteria(d, r, r.criteria.split("\n"));
-  r = service.perform(
-    d,
-    r,
-    {
-      label: "Submit for inspection",
-      uc: "UC-034",
-      from: ["In Progress"],
-      to: "Pending Inspection",
-      own: true,
-    },
-    { note: "All cleaning checks completed" },
-  );
-  assert.equal(
-    service.snapshot().rooms.find((v) => v.id === r.room).status,
-    "Pending Inspection",
-  );
-  assert.equal(service.snapshot().intervals.filter((i) => !i.end).length, 0);
-  assert.ok(
-    service.snapshot().audit.some((a) => a.action === "Submit for inspection"),
-  );
-});
-test("a failed stock posting rolls back every movement and does not change draft", () => {
-  account("storekeeper");
-  const db = service.snapshot();
-  const d = {
-    key: "transactions",
-    createUC: "UC-079",
-    fields: [],
-    initial: "Draft",
-  };
-  const receipt = service.save(d, {
-    name: "Test receipt",
-    warehouse: db.warehouses[0].id,
-    type: "Receipt",
-    lines: [
-      { item: db.items[0].id, quantity: 5 },
-      { item: db.items[1].id, quantity: 5 },
-    ],
+  assert.deepEqual(body, {
+    name: "101",
+    code: undefined,
+    branchId: "1",
+    departmentId: undefined,
+    rowVersion: "v1",
+    attributes: { floorId: "f1" },
   });
-  const before = service.balance(
-    service.snapshot(),
-    receipt.warehouse,
-    db.items[0].id,
+});
+test("room adapter renders server-confirmed readiness only", () => {
+  const value = a.entityFromDto(
+    entity("room-1", {
+      statusCode: "BLOCKED",
+      attributes: { roomTypeId: "rt1", floorId: "f1" },
+    }),
   );
-  assert.throws(
-    () =>
-      service.perform(
-        d,
-        receipt,
-        { label: "Post receipt", uc: "UC-080", from: ["Draft"], to: "Posted" },
-        {
-          lines: [
-            { item: db.items[0].id, quantity: 5 },
-            { item: db.items[1].id, quantity: 4 },
-          ],
-        },
-      ),
-    /discrepancy/,
+  assert.equal(value.status, "Blocked");
+  assert.equal(value.floor, "f1");
+  assert.equal(value.roomType, "rt1");
+});
+test("uses UTC+7 for date-time input independently of browser timezone", () => {
+  assert.equal(
+    a.localDateTimeToUtc("2026-10-16T15:30"),
+    "2026-10-16T08:30:00.000Z",
   );
   assert.equal(
-    service.balance(service.snapshot(), receipt.warehouse, db.items[0].id),
-    before,
+    a.localDateTimeToUtc("2026-10-16T15:30:15"),
+    "2026-10-16T08:30:15.000Z",
   );
   assert.equal(
-    service.snapshot().transactions.find((v) => v.id === receipt.id).status,
-    "Draft",
+    a.localDateTimeToUtc("2026-10-16T08:30:00Z"),
+    "2026-10-16T08:30:00.000Z",
   );
 });
-test("stale row versions are rejected and secrets are excluded from audit", () => {
-  account("admin");
-  const user = service
-    .snapshot()
-    .users.find((u) => u.username === "housekeeper");
-  const d = { key: "users" };
-  service.perform(
-    d,
-    user,
-    { label: "Activate", uc: "UC-006", to: "Active", reason: true },
-    { reason: "Account details rechecked" },
-  );
-  assert.throws(
-    () =>
-      service.perform(
-        d,
-        user,
-        { label: "Activate", uc: "UC-006", to: "Active", reason: true },
-        { reason: "Account details rechecked" },
-      ),
-    /Record changed/,
-  );
-  assert.ok(
-    service
-      .snapshot()
-      .audit.every(
-        (a) =>
-          !JSON.stringify(a.before).includes("HotelOps@2026") &&
-          !JSON.stringify(a.after).includes("HotelOps@2026"),
-      ),
-  );
+test("actual incident DTO is adapted independently of SQL and proposed EntityDto", () => {
+  const value = a.incidentFromDto({
+    incidentId: 42,
+    incidentNo: "INC-42",
+    incidentTitle: "Leaking tap",
+    branchId: 1,
+    branchName: "Branch",
+    roomId: 2,
+    roomNumber: "101",
+    areaId: null,
+    assetId: null,
+    status: "PENDING_TRIAGE",
+    reportedBy: 5,
+    reportedAt: "2026-01-01T00:00:00Z",
+    discoveredAt: "2026-01-01T00:00:00Z",
+    resolvedAt: null,
+    closedAt: null,
+    severityName: null,
+    priorityName: null,
+  });
+  assert.equal(value.id, "42");
+  assert.equal(value.room, "2");
+  assert.equal(value.name, "Leaking tap");
+  assert.deepEqual(value.allowedActions, []);
+  assert.equal(value.canEdit, false);
 });
-test("ending a workday with an open interval is rejected", () => {
-  account("housekeeper");
-  service.workday(true, "Covering an operational shift");
-  const t = service.visible("cleaning").find((t) => t.status === "Assigned");
-  service.perform(
-    { key: "cleaning" },
-    t,
-    { label: "Start / resume", uc: "UC-031", to: "In Progress", own: true },
-    { note: "Starting" },
+test("ASP.NET field paths map to existing form controls including line errors", () => {
+  assert.equal(a.formFieldForApiPath("Attributes.RoomId"), "room");
+  assert.equal(a.formFieldForApiPath("NewPassword"), "next");
+  assert.equal(a.formFieldForApiPath("attributes.Lines[0].Quantity"), "lines");
+});
+test("uploaded attachments send server identifiers, never embedded data URLs", () => {
+  const dto = a.entityToDto(
+    { evidence: [{ id: "att1", data: "https://api.test/att1" }] },
+    ["evidence"],
+    () => "",
   );
-  assert.throws(() => service.workday(false, ""), /Pause or complete/);
+  assert.deepEqual(dto.attributes.attachmentIds, ["att1"]);
+});
+test("quantity commands send only the action input and retain separate server balances", () => {
+  const line = {
+    id: "line1",
+    item: "i1",
+    unit: "7",
+    quantity: 3,
+    approved: 8,
+    issued: 5,
+    factor: 99,
+  };
+  assert.deepEqual(a.commandLines("materials.approve", [line]), [
+    { lineId: "line1", approvedQuantity: 3 },
+  ]);
+  assert.deepEqual(a.commandLines("materials.partial-issue", [line]), [
+    { lineId: "line1", issuedQuantity: 3 },
+  ]);
+  assert.deepEqual(
+    a.commandLines("transactions.confirm-receipt", [
+      { ...line, damaged: 1, missing: 2 },
+    ]),
+    [
+      {
+        lineId: "line1",
+        receivedQuantity: 3,
+        damagedQuantity: 1,
+        missingQuantity: 2,
+      },
+    ],
+  );
+  assert.equal("issuedQuantity" in a.lineToDto(line), false);
+  assert.equal("conversionFactor" in a.lineToDto(line), false);
 });

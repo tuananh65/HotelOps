@@ -30,10 +30,14 @@ import {
   Wrench,
   X,
 } from "lucide-react";
-import React, { useEffect, useState, useSyncExternalStore } from "react";
+import React, {
+  useEffect,
+  useState,
+  useRef,
+  useSyncExternalStore,
+} from "react";
 import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  departments,
   domainFor,
   domains,
   pathFor,
@@ -45,9 +49,17 @@ import {
   type RecordData,
 } from "./domain";
 import { readEvidence } from "./evidence";
+import { ApiError } from "./api/http";
+import { formFieldForApiPath } from "./api/adapters";
 import { getLanguage, LanguageSwitcher, t, useLanguage } from "./i18n";
 import * as service from "./services";
 import "./styles.css";
+const cellText = (value: unknown) =>
+  typeof value === "number" && !Number.isFinite(value)
+    ? "N/A"
+    : String(value ?? "—");
+export const quantity = (value: number | null | undefined) =>
+  value != null && Number.isFinite(value) ? value : "N/A";
 export const date = (value: string) =>
   value
     ? new Date(value).toLocaleString(
@@ -120,8 +132,25 @@ export function Logo() {
     </div>
   );
 }
+export const showTemporaryPassword = (value: string, hours: number) =>
+  window.dispatchEvent(
+    new CustomEvent("hotelops-temporary-password", {
+      detail: { value, hours },
+    }),
+  );
 export function Toast() {
   const [text, setText] = useState("");
+  const [temporaryPassword, setTemporaryPassword] = useState<{
+    value: string;
+    hours: number;
+  }>();
+  useEffect(() => {
+    const handler = (event: Event) =>
+      setTemporaryPassword((event as CustomEvent).detail);
+    window.addEventListener("hotelops-temporary-password", handler);
+    return () =>
+      window.removeEventListener("hotelops-temporary-password", handler);
+  }, []);
   useEffect(() => {
     let timer: number;
     const handler = (event: Event) => {
@@ -135,14 +164,40 @@ export function Toast() {
       window.removeEventListener("hotelops-toast", handler);
     };
   }, []);
-  return text ? (
-    <div className="toast" role="status">
-      {t(text)}
-      <button aria-label={t("Dismiss message")} onClick={() => setText("")}>
-        <X size={16} />
-      </button>
-    </div>
-  ) : null;
+  return (
+    <>
+      {temporaryPassword && (
+        <Modal
+          title={t("Temporary password")}
+          onClose={() => setTemporaryPassword(undefined)}
+        >
+          <p>
+            {t("Temporary password:")} <code>{temporaryPassword.value}</code>
+          </p>
+          <p>
+            {t("It is shown only once and expires in {hours} hours.").replace(
+              "{hours}",
+              String(temporaryPassword.hours),
+            )}
+          </p>
+          <button
+            className="primary"
+            onClick={() => setTemporaryPassword(undefined)}
+          >
+            {t("Close dialog")}
+          </button>
+        </Modal>
+      )}
+      {text ? (
+        <div className="toast" role="status">
+          {t(text)}
+          <button aria-label={t("Dismiss message")} onClick={() => setText("")}>
+            <X size={16} />
+          </button>
+        </div>
+      ) : null}
+    </>
+  );
 }
 export function Modal({
   title,
@@ -250,6 +305,18 @@ export function FieldControl({
               : true,
       )
       .map((r) => ({ id: r.id, name: r.name }));
+  if (f.key === "branch")
+    options = (
+      db.branches.length ? db.branches : service.allowedBranches()
+    ).map((r) => ({ id: f.useIds ? r.id : r.name, name: r.name }));
+  if (["department", "receivingDepartment"].includes(f.key))
+    options = (
+      db.departments.length ? db.departments : service.allowedDepartments()
+    ).map((r) => ({ id: f.useIds ? r.id : r.name, name: r.name }));
+  if (f.key === "roles")
+    options = db.roles.map((r) => ({ id: r.name, name: r.name }));
+  if (f.key === "unit")
+    options = db.units.map((r) => ({ id: r.id, name: r.name }));
   const controlId = React.useId();
   const displayValue =
     f.type === "datetime-local" && value && String(value).endsWith("Z")
@@ -277,7 +344,13 @@ export function FieldControl({
                 onChange(
                   lines.map((v, j) =>
                     j === i
-                      ? { ...v, item: e.target.value, unit: undefined }
+                      ? {
+                          ...v,
+                          item: e.target.value,
+                          unit: db.items.find(
+                            (item) => item.id === e.target.value,
+                          )?.unit,
+                        }
                       : v,
                   ),
                 )
@@ -304,7 +377,7 @@ export function FieldControl({
                 onChange={(e) =>
                   onChange(
                     lines.map((v, j) =>
-                      j === i ? { ...v, quantity: e.target.value } : v,
+                      j === i ? { ...v, quantity: Number(e.target.value) } : v,
                     ),
                   )
                 }
@@ -331,7 +404,9 @@ export function FieldControl({
                 ]
                   .filter(Boolean)
                   .map((u) => (
-                    <option key={u}>{u}</option>
+                    <option key={u} value={u}>
+                      {name("units", u)}
+                    </option>
                   ))}
               </select>
             </div>
@@ -354,7 +429,9 @@ export function FieldControl({
                     onChange={(e) =>
                       onChange(
                         lines.map((v, j) =>
-                          j === i ? { ...v, damaged: e.target.value } : v,
+                          j === i
+                            ? { ...v, damaged: Number(e.target.value) }
+                            : v,
                         ),
                       )
                     }
@@ -370,7 +447,9 @@ export function FieldControl({
                     onChange={(e) =>
                       onChange(
                         lines.map((v, j) =>
-                          j === i ? { ...v, missing: e.target.value } : v,
+                          j === i
+                            ? { ...v, missing: Number(e.target.value) }
+                            : v,
                         ),
                       )
                     }
@@ -543,7 +622,15 @@ export function FieldControl({
           aria-describedby={errorMessage ? "field-error-" + f.key : undefined}
           required={f.required}
           value={value || ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) =>
+            onChange(
+              f.type === "number"
+                ? e.target.value === ""
+                  ? ""
+                  : Number(e.target.value)
+                : e.target.value,
+            )
+          }
         />
       ) : f.type === "file" ? (
         <>
@@ -598,73 +685,25 @@ export function FieldControl({
           step={f.type === "number" ? "any" : undefined}
           required={f.required}
           value={displayValue ?? ""}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) =>
+            onChange(
+              f.type === "number"
+                ? e.target.value === ""
+                  ? ""
+                  : Number(e.target.value)
+                : e.target.value,
+            )
+          }
         />
       )}
     </div>
   );
 }
 function sampleFieldValue(f: Field, record?: RecordData) {
-  const db = service.snapshot();
-  if (f.options?.length)
-    return f.type === "multiselect" ? [f.options[0]] : f.options[0];
-  const refs: Record<string, string> = {
-    room: "rooms",
-    location: "locations",
-    roomType: "roomTypes",
-    warehouse: "warehouses",
-    asset: "assets",
-    checklist: "checklists",
-    user: "users",
-    technician: "users",
-    housekeeper: "users",
-    inspector: "users",
-    replenishment: "replenishments",
-    transaction: "transactions",
-  };
-  if (refs[f.type || ""]) {
-    const role =
-      f.type === "housekeeper"
-        ? "Housekeeping Staff"
-        : f.type === "technician"
-          ? "Maintenance Staff"
-          : f.type === "inspector"
-            ? "Housekeeping Supervisor"
-            : "";
-    return (
-      db[refs[f.type!]].find(
-        (r) =>
-          r.status !== "Inactive" &&
-          (!role || r.roles?.includes(role)) &&
-          (!record || r.id !== record.assignee) &&
-          (f.type !== "checklist" || r.status === "Published") &&
-          (f.type !== "room" ||
-            !db.cleaning.some(
-              (c) =>
-                c.room === r.id &&
-                !["Completed", "Cancelled"].includes(c.status),
-            )),
-      )?.id || ""
-    );
-  }
-  if (f.type === "lines")
-    return [
-      { item: db.items[0].id, quantity: 5, unit: db.items[0].unit, factor: 1 },
-    ];
+  if (f.type === "lines") return [];
   if (f.type === "results") return record?.results || [];
-  if (f.type === "date") return new Date().toISOString().slice(0, 10);
-  if (f.type === "datetime-local")
-    return new Date(Date.now() + 86400000).toISOString().slice(0, 16);
-  if (f.type === "number") return 1;
-  if (f.type === "email") return "demo.viewer@hotelops.example";
-  if (f.type === "tel") return "+84 28 0000 0000";
-  if (f.type === "password") return "DemoOnly@2026";
-  if (["reason", "note", "notes", "description", "remediation"].includes(f.key))
-    return "Demo operations review: confirm quality, assignment and completion.";
-  if (f.key === "criteria")
-    return "Service quality checked\nWork area clean and safe";
-  if (["code", "name", "username"].includes(f.key))
-    return `Demo ${f.key} ${db.audit.length + 1}`;
+  if (["permissions", "employees", "multiselect"].includes(f.type || ""))
+    return [];
   return "";
 }
 export function Form({
@@ -686,20 +725,41 @@ export function Form({
     Object.fromEntries(
       fields.map((f) => [
         f.key,
-        initial[f.key] !== undefined
-          ? initial[f.key]
-          : sampleFieldValue(f, record),
+        ["branch", "department", "receivingDepartment"].includes(f.key) &&
+        initial[f.key + "Id"]
+          ? initial[f.key + "Id"]
+          : initial[f.key] !== undefined
+            ? ["branch", "department", "receivingDepartment"].includes(f.key) &&
+              initial[f.key]
+              ? service.resolveReference(
+                  f.key === "branch" ? "branches" : "departments",
+                  initial[f.key],
+                  initial.branchId || initial.branch,
+                )
+              : initial[f.key]
+            : sampleFieldValue(f, record),
       ]),
     ),
   );
   const [error, setError] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const submitting = useRef(false);
+  const [uncertain, setUncertain] = useState(false);
+  const [uploadsPending, setUploadsPending] = useState(0);
+  useEffect(() => {
+    const onUpload = (event: Event) =>
+      setUploadsPending((event as CustomEvent<number>).detail);
+    window.addEventListener("hotelops-upload", onUpload);
+    return () => window.removeEventListener("hotelops-upload", onUpload);
+  }, []);
   return (
     <form
       noValidate
       onSubmit={async (e) => {
         e.preventDefault();
+        if (submitting.current || uncertain || uploadsPending > 0) return;
+        submitting.current = true;
         const formElement = e.currentTarget;
         setBusy(true);
         setError("");
@@ -741,14 +801,21 @@ export function Form({
           await onSubmit(values);
         } catch (err) {
           setError((err as Error).message);
+          if (err instanceof ApiError) {
+            const mapped: Record<string, string> = {};
+            for (const [path, message] of Object.entries(err.fieldErrors)) {
+              const key = formFieldForApiPath(path);
+              mapped[key] = [mapped[key], message].filter(Boolean).join(" ");
+            }
+            setFieldErrors(mapped);
+            if (err.outcomeUnknown) setUncertain(true);
+          }
         } finally {
+          submitting.current = false;
           setBusy(false);
         }
       }}
     >
-      <p className="demo-form-note">
-        {t("Demo data is prefilled. You can edit it before saving.")}
-      </p>
       <div className="form-grid">
         {fields.map((f) => (
           <div
@@ -757,12 +824,18 @@ export function Form({
           >
             <FieldControl
               key={f.key}
-              field={f}
+              field={{ ...f, useIds: true }}
               errorMessage={fieldErrors[f.key]}
               value={values[f.key]}
               record={record}
               onChange={(v) => {
-                setValues({ ...values, [f.key]: v });
+                setValues({
+                  ...values,
+                  [f.key]: v,
+                  ...(f.key === "branch"
+                    ? { department: "", receivingDepartment: "" }
+                    : {}),
+                });
                 setFieldErrors((previous) => ({ ...previous, [f.key]: "" }));
               }}
             />
@@ -779,13 +852,25 @@ export function Form({
         ))}
       </div>
       <ErrorMessage message={error} />
+      {uncertain && (
+        <button
+          type="button"
+          className="secondary"
+          onClick={() => window.location.reload()}
+        >
+          {t("Reload screen")}
+        </button>
+      )}
       <div className="form-actions">
         {onCancel && (
           <button type="button" className="secondary" onClick={onCancel}>
             {t("Cancel")}
           </button>
         )}
-        <button className="primary" disabled={busy}>
+        <button
+          className="primary"
+          disabled={busy || uncertain || uploadsPending > 0}
+        >
           {t(busy ? "Saving…" : label)}
           <ArrowRight size={15} />
         </button>
@@ -816,7 +901,9 @@ const navGroups = [
 export function screenAllowed(id: number) {
   if ([1, 2].includes(id)) return true;
   const s = screenById(id);
-  return s.ucs.some((uc) => service.can(uc));
+  return (
+    [3, 4].includes(id) || service.screenUCs(id).some((uc) => service.can(uc))
+  );
 }
 export function Shell({
   children,
@@ -914,7 +1001,7 @@ export function Shell({
           })}
         </nav>
         <div className="sidebar-foot">
-          <span className="live-dot" /> {t("LOCAL DEMO WORKSPACE")}
+          <span className="live-dot" /> {t("HOTEL WORKSPACE")}
           <small>{t("Duc Vuong Group · HotelOps v1")}</small>
         </div>
       </aside>
@@ -974,7 +1061,12 @@ export function Shell({
               <span className="avatar">{user.name[0]}</span>
               <div>
                 {t(user.name)}
-                <small>{t("Public frontend prototype")}</small>
+                <small>
+                  {t(user.roles[0] || "") +
+                    (user.roles.length > 1
+                      ? " +" + (user.roles.length - 1)
+                      : "")}
+                </small>
               </div>
             </Link>
           </div>
@@ -984,7 +1076,7 @@ export function Shell({
         </main>
         <footer className="workspace-footer">
           {t("DUC VUONG GROUP")}
-          <span>{t("HotelOps · Asia/Ho_Chi_Minh · Local demo")}</span>
+          <span>{t("HotelOps · Asia/Ho_Chi_Minh")}</span>
         </footer>
       </div>
     </div>
@@ -1110,7 +1202,11 @@ export function Summary({
             <>
               <span className="metric-label">{t(item.label)}</span>
               <strong>
-                {typeof item.value === "string" ? t(item.value) : item.value}
+                {typeof item.value === "string"
+                  ? t(item.value)
+                  : typeof item.value === "number"
+                    ? quantity(item.value)
+                    : item.value}
               </strong>
               <small>{t(item.detail || "")}</small>
               <span className="metric-icon">
@@ -1516,9 +1612,7 @@ export function DataTable({
                               className="record-link"
                               onClick={() => onOpen(r)}
                             >
-                              {c.render
-                                ? c.render(r)
-                                : t(String(r[c.key] ?? "—"))}
+                              {c.render ? c.render(r) : t(cellText(r[c.key]))}
                             </button>
                           ) : c.render ? (
                             typeof c.render(r) === "string" ? (
@@ -1527,7 +1621,7 @@ export function DataTable({
                               c.render(r)
                             )
                           ) : (
-                            String(r[c.key] ?? "—")
+                            cellText(r[c.key])
                           )}
                         </td>
                       ))}
@@ -1580,36 +1674,52 @@ export function EntityForm({
   onCancel?: () => void;
 }) {
   const user = service.currentUser()!;
+  const selectedRoom = service
+    .visible("rooms")
+    .find(
+      (room) =>
+        room.id === new URLSearchParams(window.location.search).get("room"),
+    );
   return (
     <Form
-      fields={d.fields}
+      fields={
+        d.key === "users" && record
+          ? d.fields.filter((field) =>
+              ["name", "email", "phone"].includes(field.key),
+            )
+          : d.fields
+      }
       initial={
         record || {
-          branch: user.branch,
-          department: d.key === "users" ? "Housekeeping" : user.department,
+          room: selectedRoom?.id,
+          branch: selectedRoom?.branch || user.branch,
+          branchId: selectedRoom?.branchId || user.branchId,
+          department: user.department,
+          departmentId: user.departmentId,
           priority: "Normal",
           submission: "Submit",
-          lines: [
-            {
-              item: service.snapshot().items[0].id,
-              quantity: 5,
-              unit: service.snapshot().items[0].unit,
-              factor: 1,
-            },
-          ],
-          roles: ["Housekeeping Staff"],
+          lines: [],
+          roles: [],
         }
       }
       record={record}
       onCancel={onCancel}
       label={record ? "Save changes" : createLabel(d.key)}
-      onSubmit={(v) => {
-        const result = service.save(d, v, record);
+      onSubmit={async (v) => {
+        const result = await service.save(d, v, record);
+        if (result.temporaryPassword)
+          showTemporaryPassword(result.temporaryPassword, result.validForHours);
         notify("Record saved.");
         const source = new URLSearchParams(window.location.search).get(
           "source",
         );
-        if (source) service.linkWork(source, d.key, result.id);
+        if (source) {
+          try {
+            await service.linkWork(source, d.key, result.id);
+          } catch (error) {
+            notify("Record saved. Linking failed: " + (error as Error).message);
+          }
+        }
         onDone(result);
       }}
     />
@@ -1745,20 +1855,32 @@ export function DetailPage({
   const db = useDB();
   let d = domainFor(id);
   const params = useParams();
-  if (id === 44 && service.snapshot().incidents.some((r) => r.id === params.id))
-    d = domains.find((d) => d.key === "incidents")!;
+  const work =
+    id === 44
+      ? service.visible("maintenance").find((row) => row.id === params.id)
+      : undefined;
+  const sourceIncident = work?.incident
+    ? service.visible("incidents").find((row) => row.id === work.incident)
+    : undefined;
+  if (sourceIncident) d = domains.find((domain) => domain.key === "incidents")!;
   const nav = useNavigate();
-  const r = selected || service.visible(d.key).find((r) => r.id === params.id);
+  const r =
+    selected ||
+    sourceIncident ||
+    service.visible(d.key).find((r) => r.id === params.id);
   useEffect(() => {
     if (id === 7 && r?.status === "Unread") {
-      try {
-        service.perform(d, r, {
-          label: "Mark as read",
-          uc: "UC-130",
-          from: ["Unread"],
-          to: "Read",
-        });
-      } catch {}
+      if (
+        service.availableActions(d, r).some((a) => a.label === "Mark as read")
+      )
+        void service
+          .perform(d, r, {
+            label: "Mark as read",
+            uc: "UC-130",
+            from: ["Unread"],
+            to: "Read",
+          })
+          .catch((error) => notify((error as Error).message));
     }
   }, [id, r?.id]);
   const [editing, setEditing] = useState(false);
@@ -1822,12 +1944,12 @@ export function DetailPage({
               <ArrowRight size={16} />
             </button>
           )}
-        {d.updateUC && service.can(d.updateUC) && (
+        {d.updateUC && r.canEdit && service.can(d.updateUC, r) && (
           <button className="secondary" onClick={() => setEditing(true)}>
             {t("Edit information")}
           </button>
         )}
-        {assignedRoute && service.can(assignUC) && (
+        {assignedRoute && service.canAssign(d, r) && (
           <Link
             className={
               !r.assignee &&
@@ -2081,12 +2203,14 @@ export function DetailPage({
                         disabled={
                           !["cleaning", "tasks"].includes(d.key) ||
                           r.status !== "In Progress" ||
-                          false
+                          r.assignee !== service.currentUser()?.id ||
+                          !r.allowedActions?.includes(d.key + ".criteria") ||
+                          service.isPending(d.key + ":" + r.id)
                         }
                         checked={(r.completedItems || []).includes(c)}
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           try {
-                            service.updateCriteria(
+                            await service.updateCriteria(
                               d,
                               r,
                               e.target.checked
@@ -2152,7 +2276,9 @@ export function DetailPage({
                           <td>{l.quantity}</td>
                           <td>{l.approved ?? 0}</td>
                           <td>{l.issued ?? l.received ?? 0}</td>
-                          <td>{service.balance(db, r.warehouse, l.item)}</td>
+                          <td>
+                            {quantity(service.balance(db, r.warehouse, l.item))}
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -2340,7 +2466,7 @@ export function DetailPage({
             )}
             <p className="quiet">
               {t(
-                "Actions depend on the current record status. All screens are available in this demo.",
+                "Actions depend on your permissions and the current record status.",
               )}
             </p>
             <h3>{t("Recent activity")}</h3>
@@ -2367,7 +2493,9 @@ export function DetailPage({
             fields={[
               ...(action.fields || []),
               ...(action.reason ||
-              ["Post receipt", "Confirm receipt"].includes(action.label)
+              ["Post receipt", "Post return", "Confirm receipt"].includes(
+                action.label,
+              )
                 ? [
                     {
                       key: "reason",
@@ -2397,10 +2525,13 @@ export function DetailPage({
             record={r}
             label={action.label}
             onCancel={() => setAction(undefined)}
-            onSubmit={(v) => {
-              const result = service.perform(d, r, action, v);
+            onSubmit={async (v) => {
+              const result = await service.perform(d, r, action, v);
               if (action.label === "Reset password")
-                notify(`Temporary password (shown once): ${result.password}`);
+                showTemporaryPassword(
+                  result.temporaryPassword,
+                  result.validForHours,
+                );
               else notify("Action completed.");
               setAction(undefined);
             }}

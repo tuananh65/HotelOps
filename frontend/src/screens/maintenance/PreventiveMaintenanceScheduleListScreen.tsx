@@ -83,10 +83,13 @@ export default function PreventiveMaintenanceScheduleListScreen() {
         {service.can("UC-061") && (
           <button
             className="secondary"
-            onClick={() => {
+            disabled={service.isPending(
+              "/api/maintenance-schedules/generate-due",
+            )}
+            onClick={async () => {
               try {
                 notify(
-                  service.generateDueMaintenance() +
+                  (await service.generateDueMaintenance()) +
                     " due maintenance occurrences generated.",
                 );
               } catch (e) {

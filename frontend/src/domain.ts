@@ -16,6 +16,7 @@ export type Field = {
   options?: string[];
   required?: boolean;
   min?: number;
+  useIds?: boolean;
 };
 export type Domain = {
   key: string;

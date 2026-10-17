@@ -83,10 +83,11 @@ export default function TaskListScreen() {
         {service.can("UC-102") && (
           <button
             className="secondary"
-            onClick={() => {
+            disabled={service.isPending("/api/task-series/generate-due")}
+            onClick={async () => {
               try {
                 notify(
-                  service.generateRecurringTasks() +
+                  (await service.generateRecurringTasks()) +
                     " recurring tasks generated.",
                 );
               } catch (e) {

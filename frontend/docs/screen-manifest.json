@@ -169,7 +169,8 @@
     "description": "Searches and filters user accounts; creates and activates/deactivates accounts.",
     "ucs": [
       "UC-004",
-      "UC-006"
+      "UC-006",
+      "UC-141"
     ],
     "route": "/users",
     "roles": [
@@ -270,14 +271,7 @@
     "route": "/branches/:id",
     "roles": [
       "Administrator",
-      "Department Head",
-      "Housekeeping Staff",
-      "Housekeeping Supervisor",
-      "Maintenance Lead",
-      "Maintenance Staff",
-      "Operations Manager",
-      "Owner",
-      "Storekeeper"
+      "Operations Manager"
     ],
     "file": "src/screens/hotel/BranchDetailScreen.tsx",
     "component": "BranchDetailScreen"
@@ -319,7 +313,8 @@
     "feature": "Hotel Structure (FE-02)",
     "description": "Lists room types of a branch and creates a new room type.",
     "ucs": [
-      "UC-017"
+      "UC-017",
+      "UC-142"
     ],
     "route": "/room-types",
     "roles": [
@@ -685,7 +680,8 @@
     "feature": "Incident & Maintenance (FE-06)",
     "description": "Lists incidents by status, severity, location and deadline.",
     "ucs": [
-      "UC-049"
+      "UC-049",
+      "UC-143"
     ],
     "route": "/incidents",
     "roles": [
@@ -774,7 +770,8 @@
     "description": "Lists maintenance work from incidents and schedules; technicians see their own tasks.",
     "ucs": [
       "UC-054",
-      "UC-062"
+      "UC-062",
+      "UC-144"
     ],
     "route": "/maintenance/tasks",
     "roles": [

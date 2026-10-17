@@ -156,7 +156,8 @@
       "description": "Searches and filters user accounts; creates and activates/deactivates accounts.",
       "ucs": [
         "UC-004",
-        "UC-006"
+        "UC-006",
+        "UC-141"
       ],
       "route": "/users",
       "roles": [
@@ -288,7 +289,8 @@
       "feature": "Hotel Structure (FE-02)",
       "description": "Lists room types of a branch and creates a new room type.",
       "ucs": [
-        "UC-017"
+        "UC-017",
+        "UC-142"
       ],
       "route": "/room-types",
       "roles": [
@@ -610,7 +612,8 @@
       "feature": "Incident & Maintenance (FE-06)",
       "description": "Lists incidents by status, severity, location and deadline.",
       "ucs": [
-        "UC-049"
+        "UC-049",
+        "UC-143"
       ],
       "route": "/incidents",
       "roles": [
@@ -691,7 +694,8 @@
       "description": "Lists maintenance work from incidents and schedules; technicians see their own tasks.",
       "ucs": [
         "UC-054",
-        "UC-062"
+        "UC-062",
+        "UC-144"
       ],
       "route": "/maintenance/tasks",
       "roles": [
@@ -1517,6 +1521,18 @@
         "GBR-002"
       ]
     },
+    "UC-141": {
+      "id": "UC-141",
+      "name": "View User List",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015"
+      ]
+    },
     "UC-012": {
       "id": "UC-012",
       "name": "Update Branch Information",
@@ -1538,15 +1554,8 @@
       "id": "UC-013",
       "name": "View Branch Structure",
       "actors": [
-        "Operations Manager",
-        "Housekeeping Supervisor",
-        "Housekeeping Staff",
-        "Maintenance Lead",
-        "Maintenance Staff",
-        "Storekeeper",
-        "Department Head",
         "Administrator",
-        "Owner"
+        "Operations Manager"
       ],
       "rules": [
         "GBR-001",
@@ -1776,6 +1785,18 @@
         "GBR-009",
         "GBR-012",
         "GBR-042"
+      ]
+    },
+    "UC-142": {
+      "id": "UC-142",
+      "name": "View Room Types List",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015"
       ]
     },
     "UC-027": {
@@ -2474,6 +2495,35 @@
         "GBR-007",
         "GBR-008",
         "GBR-085"
+      ]
+    },
+    "UC-143": {
+      "id": "UC-143",
+      "name": "View Incidents List",
+      "actors": [
+        "Maintenance Lead",
+        "Maintenance Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-080",
+        "GBR-165"
+      ]
+    },
+    "UC-144": {
+      "id": "UC-144",
+      "name": "View Maintenance List",
+      "actors": [
+        "Maintenance Lead",
+        "Maintenance Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-165"
       ]
     },
     "UC-065": {
@@ -3633,8 +3683,8 @@
       "id": "UC-123",
       "name": "View Internal Request History",
       "actors": [
-        "Administrator",
         "Operations Manager",
+        "Administrator",
         "Housekeeping Supervisor",
         "Housekeeping Staff",
         "Maintenance Lead",
@@ -3981,7 +4031,7 @@
     "GBR-080": "An incident is overdue when it is not Closed/Cancelled and now is after its resolution deadline; response is overdue when it has not been accepted by the response deadline.",
     "GBR-081": "A preventive maintenance schedule targets one asset, room or area, has an interval greater than 0 (days, weeks or months), a first due date and a work description; an object cannot have two Active schedules with the same title.",
     "GBR-082": "Editing a schedule affects only future occurrences; deactivating it does not cancel occurrences already generated.",
-    "GBR-083": "The system generates a maintenance occurrence SYS-PAR-16 days before each due date; it is Assigned to the schedule's default assignee or Pending Assignment if none. The next due date is calculated from the scheduled due date, not from the completion date.",
+    "GBR-083": "The system generates a maintenance occurrence SYS-PAR-16 days before each due date; it is assigned to the schedule's default assignee or Pending Assignment if none. The next due date is calculated from the scheduled due date, not from the completion date.",
     "GBR-084": "Only the assignee can start and complete an occurrence; every mandatory check item needs a result. Problems found are reported as new incidents linked to the occurrence.",
     "GBR-085": "Reference codes (task categories, incident categories, blocker/pause reasons, request types, cleaning types, priorities) are unique within their group; used values can only be deactivated and keep their meaning in history. Priority codes LOW, NORMAL, HIGH, CRITICAL are fixed; only their labels and SLA targets can be changed.",
     "GBR-086": "Asset code is unique; an asset belongs to one branch, one category and has exactly one current location (room or area) and one custodian department at a time.",
@@ -4062,1121 +4112,1122 @@
     "GBR-161": "A dashboard or report uses one snapshot time for all figures, counts each record once by ID, shows its filters and snapshot time, never treats missing data as 0, and shows N/A when a denominator is 0. Period figures default to the last SYS-PAR-20 days.",
     "GBR-162": "Dashboards and reports are available to the Operations Manager and the Owner only, limited to the branches in their scope.",
     "GBR-163": "Preview and export use the same filters and snapshot; exports are CSV, XLSX or PDF, contain only permitted fields and at most SYS-PAR-12 data rows (larger results are refused, never truncated).",
-    "GBR-164": "Audit records are append-only, read-only for everyone and kept for SYS-PAR-13 days."
+    "GBR-164": "Audit records are append-only, read-only for everyone and kept for SYS-PAR-13 days.",
+    "GBR-165": "In the Incidents List and the Maintenance List, a Maintenance Lead sees all incidents and maintenance work of the branches in scope; Maintenance Staff see the maintenance work assigned to them and the incidents they reported or are assigned to."
   },
-  "parameters": [
-    [
-      "SYS-PAR-01",
-      "Login lock threshold",
-      "5",
-      "consecutive failed attempts"
-    ],
-    [
-      "SYS-PAR-02",
-      "Login lock duration",
-      "30",
-      "minutes"
-    ],
-    [
-      "SYS-PAR-03",
-      "Minimum password length",
-      "8",
-      "characters"
-    ],
-    [
-      "SYS-PAR-04",
-      "Password complexity",
-      "Uppercase + lowercase + digit + special character",
-      "required"
-    ],
-    [
-      "SYS-PAR-05",
-      "Temporary password validity",
-      "24",
-      "hours"
-    ],
-    [
-      "SYS-PAR-06",
-      "Session idle timeout",
-      "30",
-      "minutes (sliding)"
-    ],
-    [
-      "SYS-PAR-07",
-      "Attachment formats",
-      "JPG, PNG, PDF",
-      "file type (extension and content)"
-    ],
-    [
-      "SYS-PAR-08",
-      "Attachment maximum size",
-      "10",
-      "MB per file"
-    ],
-    [
-      "SYS-PAR-09",
-      "Attachments per upload",
-      "5",
-      "files"
-    ],
-    [
-      "SYS-PAR-10",
-      "System timezone",
-      "Asia/Ho_Chi_Minh",
-      "UTC+7 (storage in UTC)"
-    ],
-    [
-      "SYS-PAR-11",
-      "List page size",
-      "20 (maximum 100)",
-      "rows per page"
-    ],
-    [
-      "SYS-PAR-12",
-      "Export row limit",
-      "50,000",
-      "data rows per file"
-    ],
-    [
-      "SYS-PAR-13",
-      "Audit log retention",
-      "365",
-      "days"
-    ],
-    [
-      "SYS-PAR-14",
-      "Notification retention",
-      "365",
-      "days"
-    ],
-    [
-      "SYS-PAR-15",
-      "Alert scan interval (overdue, low stock)",
-      "5",
-      "minutes"
-    ],
-    [
-      "SYS-PAR-16",
-      "Preventive maintenance generation lead time",
-      "3",
-      "days before due date"
-    ],
-    [
-      "SYS-PAR-17",
-      "Recurring task generation lead time",
-      "1",
-      "day before due date"
-    ],
-    [
-      "SYS-PAR-18",
-      "Internal request reopen window",
-      "7",
-      "days after closing"
-    ],
-    [
-      "SYS-PAR-19",
-      "Incident reopen window",
-      "30",
-      "days after closing"
-    ],
-    [
-      "SYS-PAR-20",
-      "Default dashboard/report period",
-      "30",
-      "days"
-    ],
-    [
-      "SYS-PAR-21",
-      "At-risk threshold",
-      "80",
-      "% of the allowed time elapsed"
-    ]
-  ],
+  "parameters": {
+    "SYS-PAR-01": {
+      "Code": "SYS-PAR-01",
+      "Parameter": "Login lock threshold",
+      "Value": "5",
+      "Unit / Format": "consecutive failed attempts"
+    },
+    "SYS-PAR-02": {
+      "Code": "SYS-PAR-02",
+      "Parameter": "Login lock duration",
+      "Value": "30",
+      "Unit / Format": "minutes"
+    },
+    "SYS-PAR-03": {
+      "Code": "SYS-PAR-03",
+      "Parameter": "Minimum password length",
+      "Value": "8",
+      "Unit / Format": "characters"
+    },
+    "SYS-PAR-04": {
+      "Code": "SYS-PAR-04",
+      "Parameter": "Password complexity",
+      "Value": "Uppercase + lowercase + digit + special character",
+      "Unit / Format": "required"
+    },
+    "SYS-PAR-05": {
+      "Code": "SYS-PAR-05",
+      "Parameter": "Temporary password validity",
+      "Value": "24",
+      "Unit / Format": "hours"
+    },
+    "SYS-PAR-06": {
+      "Code": "SYS-PAR-06",
+      "Parameter": "Session idle timeout",
+      "Value": "30",
+      "Unit / Format": "minutes (sliding)"
+    },
+    "SYS-PAR-07": {
+      "Code": "SYS-PAR-07",
+      "Parameter": "Attachment formats",
+      "Value": "JPG, PNG, PDF",
+      "Unit / Format": "file type (extension and content)"
+    },
+    "SYS-PAR-08": {
+      "Code": "SYS-PAR-08",
+      "Parameter": "Attachment maximum size",
+      "Value": "10",
+      "Unit / Format": "MB per file"
+    },
+    "SYS-PAR-09": {
+      "Code": "SYS-PAR-09",
+      "Parameter": "Attachments per upload",
+      "Value": "5",
+      "Unit / Format": "files"
+    },
+    "SYS-PAR-10": {
+      "Code": "SYS-PAR-10",
+      "Parameter": "System timezone",
+      "Value": "Asia/Ho_Chi_Minh",
+      "Unit / Format": "UTC+7 (storage in UTC)"
+    },
+    "SYS-PAR-11": {
+      "Code": "SYS-PAR-11",
+      "Parameter": "List page size",
+      "Value": "20 (maximum 100)",
+      "Unit / Format": "rows per page"
+    },
+    "SYS-PAR-12": {
+      "Code": "SYS-PAR-12",
+      "Parameter": "Export row limit",
+      "Value": "50,000",
+      "Unit / Format": "data rows per file"
+    },
+    "SYS-PAR-13": {
+      "Code": "SYS-PAR-13",
+      "Parameter": "Audit log retention",
+      "Value": "365",
+      "Unit / Format": "days"
+    },
+    "SYS-PAR-14": {
+      "Code": "SYS-PAR-14",
+      "Parameter": "Notification retention",
+      "Value": "365",
+      "Unit / Format": "days"
+    },
+    "SYS-PAR-15": {
+      "Code": "SYS-PAR-15",
+      "Parameter": "Alert scan interval (overdue, low stock)",
+      "Value": "5",
+      "Unit / Format": "minutes"
+    },
+    "SYS-PAR-16": {
+      "Code": "SYS-PAR-16",
+      "Parameter": "Preventive maintenance generation lead time",
+      "Value": "3",
+      "Unit / Format": "days before due date"
+    },
+    "SYS-PAR-17": {
+      "Code": "SYS-PAR-17",
+      "Parameter": "Recurring task generation lead time",
+      "Value": "1",
+      "Unit / Format": "day before due date"
+    },
+    "SYS-PAR-18": {
+      "Code": "SYS-PAR-18",
+      "Parameter": "Internal request reopen window",
+      "Value": "7",
+      "Unit / Format": "days after closing"
+    },
+    "SYS-PAR-19": {
+      "Code": "SYS-PAR-19",
+      "Parameter": "Incident reopen window",
+      "Value": "30",
+      "Unit / Format": "days after closing"
+    },
+    "SYS-PAR-20": {
+      "Code": "SYS-PAR-20",
+      "Parameter": "Default dashboard/report period",
+      "Value": "30",
+      "Unit / Format": "days"
+    },
+    "SYS-PAR-21": {
+      "Code": "SYS-PAR-21",
+      "Parameter": "At-risk threshold",
+      "Value": "80",
+      "Unit / Format": "% of the allowed time elapsed"
+    }
+  },
   "statuses": [
-    [
-      "User",
-      "Active, Inactive",
-      "Active: Can log in (unless locked_until is in the future, shown as Temporarily Locked); Inactive: Cannot log in; history kept"
-    ],
-    [
-      "Branch / Location / RoomType / Department / Warehouse / Item / Role / TaskCategory / ReferenceValue",
-      "Active, Inactive",
-      "Active: Can be used for new records; Inactive: Kept for history only"
-    ],
-    [
-      "Room (operational_status, derived)",
-      "Ready, Pending Cleaning, Cleaning In Progress, Pending Inspection, Rework Required, Blocked, Inactive",
-      "Ready: Latest cleaning cycle completed and inspected, no effective block; Pending Cleaning: Cleaning task not started/on hold, or never inspected; Cleaning In Progress: Cleaning task In Progress; Pending Inspection: Cleaning or rework submitted, waiting for (re)inspection; Rework Required: Inspection failed, rework not yet submitted; Blocked: At least one effective block; Inactive: Room deactivated"
-    ],
-    [
-      "CleaningTask",
-      "Pending Assignment, Assigned, In Progress, On Hold, Pending Inspection, Rework Required, Completed*, Cancelled*",
-      "On Hold: Open blocker"
-    ],
-    [
-      "ChecklistVersion",
-      "Draft, Published, Retired*",
-      ""
-    ],
-    [
-      "Inspection",
-      "Assigned, Inspecting, Pending Conclusion, Passed*, Failed*",
-      ""
-    ],
-    [
-      "ReworkTask",
-      "Pending Acceptance, Accepted, In Progress, Pending Reinspection, Completed*, Failed*",
-      "Failed: a new rework task follows"
-    ],
-    [
-      "Incident",
-      "Pending Triage, Pending Assignment, Assigned, In Progress, On Hold, Pending Verification, Closed, Cancelled*",
-      "On Hold: SLA clock keeps running; Closed: Can be reopened within SYS-PAR-19 days; Cancelled: Duplicate/invalid"
-    ],
-    [
-      "RoomBlock",
-      "Effective, Removed*",
-      ""
-    ],
-    [
-      "Escalation",
-      "Open, Closed",
-      "Closed: Closed automatically with the source record"
-    ],
-    [
-      "MaintenanceSchedule",
-      "Active, Inactive",
-      "Inactive: No new occurrences"
-    ],
-    [
-      "MaintenanceOccurrence",
-      "Pending Assignment, Assigned, In Progress, Completed*, Cancelled*",
-      ""
-    ],
-    [
-      "Asset (lifecycle / condition)",
-      "Active, Retired*, In Use, Damaged, Under Repair",
-      "Active: lifecycle; Retired: lifecycle; In Use: condition; Damaged: condition; Under Repair: condition"
-    ],
-    [
-      "Handover (asset, request, shift)",
-      "Pending Acknowledgment, Acknowledged*, Rejected*",
-      "Rejected: a new version may be submitted"
-    ],
-    [
-      "StockDocument",
-      "Draft, Posted, In Transit, Partially Received, Received*, Reversed*, Cancelled*",
-      "Draft: Receipt, transfer, or return request (Pending Receipt); Posted: Receipt, issue, return, adjustment, reversal; In Transit: Transfer dispatched; Partially Received: Transfer partly confirmed; Received: Transfer fully confirmed; Reversed: Offset by a reversal; Cancelled: Draft cancelled"
-    ],
-    [
-      "Stocktake",
-      "In Progress, Counted, Pending Adjustment, Reconciled*, Cancelled*",
-      ""
-    ],
-    [
-      "MaterialRequest",
-      "Draft, Pending Approval, Needs Information, Approved, Partially Issued, Fully Issued*, Rejected*, Cancelled*, Remainder Closed*",
-      ""
-    ],
-    [
-      "Replenishment",
-      "Requested, Partially Received, Fully Received*, Closed*",
-      "Closed: Closed with remainder"
-    ],
-    [
-      "Task",
-      "Pending Assignment, Assigned, Accepted, In Progress, Paused, Pending Verification, Closed, Cancelled*",
-      "Closed: Can be reopened"
-    ],
-    [
-      "TaskSeries",
-      "Active, Inactive",
-      ""
-    ],
-    [
-      "InternalRequest",
-      "Pending Acceptance, Accepted, In Progress, Closed, Rejected*, Cancelled*",
-      "Closed: Can be reopened within SYS-PAR-18 days; Cancelled: Withdrawn"
-    ],
-    [
-      "Workday",
-      "Working, Ended*",
-      ""
-    ],
-    [
-      "ShiftAssignment",
-      "Scheduled, Cancelled",
-      ""
-    ],
-    [
-      "WorkInterval",
-      "Open, Closed",
-      ""
-    ],
-    [
-      "TimeCorrectionRequest",
-      "Pending, Applied, Rejected",
-      ""
-    ],
-    [
-      "Notification",
-      "Unread, Read, Acknowledged",
-      "Acknowledged: For alerts requiring acknowledgment"
-    ],
-    [
-      "NotificationOutbox",
-      "Pending, Sent, Failed",
-      "Failed: After the last retry"
-    ]
+    {
+      "Entity": "User",
+      "Statuses": "Active, Inactive",
+      "Notes": "Active: Can log in (unless locked_until is in the future, shown as Temporarily Locked); Inactive: Cannot log in; history kept"
+    },
+    {
+      "Entity": "Branch / Location / RoomType / Department / Warehouse / Item / Role / TaskCategory / ReferenceValue",
+      "Statuses": "Active, Inactive",
+      "Notes": "Active: Can be used for new records; Inactive: Kept for history only"
+    },
+    {
+      "Entity": "Room (operational_status, derived)",
+      "Statuses": "Ready, Pending Cleaning, Cleaning In Progress, Pending Inspection, Rework Required, Blocked, Inactive",
+      "Notes": "Ready: Latest cleaning cycle completed and inspected, no effective block; Pending Cleaning: Cleaning task not started/on hold, or never inspected; Cleaning In Progress: Cleaning task In Progress; Pending Inspection: Cleaning or rework submitted, waiting for (re)inspection; Rework Required: Inspection failed, rework not yet submitted; Blocked: At least one effective block; Inactive: Room deactivated"
+    },
+    {
+      "Entity": "CleaningTask",
+      "Statuses": "Pending Assignment, Assigned, In Progress, On Hold, Pending Inspection, Rework Required, Completed*, Cancelled*",
+      "Notes": "On Hold: Open blocker"
+    },
+    {
+      "Entity": "ChecklistVersion",
+      "Statuses": "Draft, Published, Retired*",
+      "Notes": ""
+    },
+    {
+      "Entity": "Inspection",
+      "Statuses": "Assigned, Inspecting, Pending Conclusion, Passed*, Failed*",
+      "Notes": ""
+    },
+    {
+      "Entity": "ReworkTask",
+      "Statuses": "Pending Acceptance, Accepted, In Progress, Pending Reinspection, Completed*, Failed*",
+      "Notes": "Failed: a new rework task follows"
+    },
+    {
+      "Entity": "Incident",
+      "Statuses": "Pending Triage, Pending Assignment, Assigned, In Progress, On Hold, Pending Verification, Closed, Cancelled*",
+      "Notes": "On Hold: SLA clock keeps running; Closed: Can be reopened within SYS-PAR-19 days; Cancelled: Duplicate/invalid"
+    },
+    {
+      "Entity": "RoomBlock",
+      "Statuses": "Effective, Removed*",
+      "Notes": ""
+    },
+    {
+      "Entity": "Escalation",
+      "Statuses": "Open, Closed",
+      "Notes": "Closed: Closed automatically with the source record"
+    },
+    {
+      "Entity": "MaintenanceSchedule",
+      "Statuses": "Active, Inactive",
+      "Notes": "Inactive: No new occurrences"
+    },
+    {
+      "Entity": "MaintenanceOccurrence",
+      "Statuses": "Pending Assignment, Assigned, In Progress, Completed*, Cancelled*",
+      "Notes": ""
+    },
+    {
+      "Entity": "Asset (lifecycle / condition)",
+      "Statuses": "Active, Retired*, In Use, Damaged, Under Repair",
+      "Notes": "Active: lifecycle; Retired: lifecycle; In Use: condition; Damaged: condition; Under Repair: condition"
+    },
+    {
+      "Entity": "Handover (asset, request, shift)",
+      "Statuses": "Pending Acknowledgment, Acknowledged*, Rejected*",
+      "Notes": "Rejected: a new version may be submitted"
+    },
+    {
+      "Entity": "StockDocument",
+      "Statuses": "Draft, Posted, In Transit, Partially Received, Received*, Reversed*, Cancelled*",
+      "Notes": "Draft: Receipt, transfer, or return request (Pending Receipt); Posted: Receipt, issue, return, adjustment, reversal; In Transit: Transfer dispatched; Partially Received: Transfer partly confirmed; Received: Transfer fully confirmed; Reversed: Offset by a reversal; Cancelled: Draft cancelled"
+    },
+    {
+      "Entity": "Stocktake",
+      "Statuses": "In Progress, Counted, Pending Adjustment, Reconciled*, Cancelled*",
+      "Notes": ""
+    },
+    {
+      "Entity": "MaterialRequest",
+      "Statuses": "Draft, Pending Approval, Needs Information, Approved, Partially Issued, Fully Issued*, Rejected*, Cancelled*, Remainder Closed*",
+      "Notes": ""
+    },
+    {
+      "Entity": "Replenishment",
+      "Statuses": "Requested, Partially Received, Fully Received*, Closed*",
+      "Notes": "Closed: Closed with remainder"
+    },
+    {
+      "Entity": "Task",
+      "Statuses": "Pending Assignment, Assigned, Accepted, In Progress, Paused, Pending Verification, Closed, Cancelled*",
+      "Notes": "Closed: Can be reopened"
+    },
+    {
+      "Entity": "TaskSeries",
+      "Statuses": "Active, Inactive",
+      "Notes": ""
+    },
+    {
+      "Entity": "InternalRequest",
+      "Statuses": "Pending Acceptance, Accepted, In Progress, Closed, Rejected*, Cancelled*",
+      "Notes": "Closed: Can be reopened within SYS-PAR-18 days; Cancelled: Withdrawn"
+    },
+    {
+      "Entity": "Workday",
+      "Statuses": "Working, Ended*",
+      "Notes": ""
+    },
+    {
+      "Entity": "ShiftAssignment",
+      "Statuses": "Scheduled, Cancelled",
+      "Notes": ""
+    },
+    {
+      "Entity": "WorkInterval",
+      "Statuses": "Open, Closed",
+      "Notes": ""
+    },
+    {
+      "Entity": "TimeCorrectionRequest",
+      "Statuses": "Pending, Applied, Rejected",
+      "Notes": ""
+    },
+    {
+      "Entity": "Notification",
+      "Statuses": "Unread, Read, Acknowledged",
+      "Notes": "Acknowledged: For alerts requiring acknowledgment"
+    },
+    {
+      "Entity": "NotificationOutbox",
+      "Statuses": "Pending, Sent, Failed",
+      "Notes": "Failed: After the last retry"
+    }
   ],
   "transitions": [
-    [
-      "User",
-      "ACTIVE",
-      "INACTIVE",
-      "UC-006",
-      "Administrator",
-      "GBR-026, GBR-027, GBR-028"
-    ],
-    [
-      "User",
-      "INACTIVE",
-      "ACTIVE",
-      "UC-006",
-      "Administrator",
-      "GBR-012"
-    ],
-    [
-      "CleaningTask",
-      "(new)",
-      "PENDING_ASSIGNMENT",
-      "UC-028",
-      "Housekeeping Supervisor",
-      "GBR-045"
-    ],
-    [
-      "CleaningTask",
-      "PENDING_ASSIGNMENT",
-      "ASSIGNED",
-      "UC-029",
-      "Housekeeping Supervisor",
-      "GBR-046"
-    ],
-    [
-      "CleaningTask",
-      "ASSIGNED / IN_PROGRESS / ON_HOLD",
-      "ASSIGNED",
-      "UC-030",
-      "Housekeeping Supervisor",
-      "GBR-047"
-    ],
-    [
-      "CleaningTask",
-      "ASSIGNED / ON_HOLD",
-      "IN_PROGRESS",
-      "UC-031",
-      "Housekeeping Staff",
-      "GBR-049, GBR-136, GBR-137"
-    ],
-    [
-      "CleaningTask",
-      "IN_PROGRESS",
-      "ON_HOLD",
-      "UC-033",
-      "Housekeeping Staff",
-      "GBR-051"
-    ],
-    [
-      "CleaningTask",
-      "IN_PROGRESS",
-      "PENDING_INSPECTION",
-      "UC-034",
-      "Housekeeping Staff",
-      "GBR-052"
-    ],
-    [
-      "CleaningTask",
-      "PENDING_ASSIGNMENT / ASSIGNED",
-      "CANCELLED",
-      "UC-037",
-      "Housekeeping Supervisor",
-      "GBR-048"
-    ],
-    [
-      "CleaningTask",
-      "PENDING_INSPECTION",
-      "COMPLETED",
-      "UC-044",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-062"
-    ],
-    [
-      "CleaningTask",
-      "PENDING_INSPECTION",
-      "REWORK_REQUIRED",
-      "UC-045",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-063"
-    ],
-    [
-      "CleaningTask",
-      "REWORK_REQUIRED",
-      "COMPLETED",
-      "UC-047",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-065"
-    ],
-    [
-      "ChecklistVersion",
-      "(new)",
-      "DRAFT",
-      "UC-039 / UC-040",
-      "Housekeeping Supervisor",
-      "GBR-056, GBR-057"
-    ],
-    [
-      "ChecklistVersion",
-      "DRAFT",
-      "PUBLISHED",
-      "UC-039 / UC-040",
-      "Housekeeping Supervisor",
-      "GBR-056"
-    ],
-    [
-      "ChecklistVersion",
-      "PUBLISHED",
-      "RETIRED",
-      "UC-040",
-      "Housekeeping Supervisor",
-      "GBR-057"
-    ],
-    [
-      "Inspection",
-      "(new)",
-      "ASSIGNED",
-      "UC-041",
-      "Housekeeping Supervisor",
-      "GBR-058, GBR-059"
-    ],
-    [
-      "Inspection",
-      "ASSIGNED",
-      "INSPECTING",
-      "UC-042",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-060"
-    ],
-    [
-      "Inspection",
-      "INSPECTING",
-      "PENDING_CONCLUSION",
-      "UC-042",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-060"
-    ],
-    [
-      "Inspection",
-      "PENDING_CONCLUSION",
-      "PASSED",
-      "UC-044",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-062"
-    ],
-    [
-      "Inspection",
-      "PENDING_CONCLUSION",
-      "FAILED",
-      "UC-045",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-063"
-    ],
-    [
-      "Inspection (reinspection)",
-      "ASSIGNED",
-      "PASSED / FAILED",
-      "UC-047",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-065"
-    ],
-    [
-      "ReworkTask",
-      "(new)",
-      "PENDING_ACCEPTANCE",
-      "UC-046",
-      "Housekeeping Supervisor",
-      "GBR-064, GBR-046"
-    ],
-    [
-      "ReworkTask",
-      "PENDING_ACCEPTANCE",
-      "ACCEPTED",
-      "UC-035",
-      "Housekeeping Staff",
-      "GBR-053"
-    ],
-    [
-      "ReworkTask",
-      "ACCEPTED",
-      "IN_PROGRESS",
-      "UC-035",
-      "Housekeeping Staff",
-      "GBR-053, GBR-136"
-    ],
-    [
-      "ReworkTask",
-      "IN_PROGRESS",
-      "PENDING_REINSPECTION",
-      "UC-036",
-      "Housekeeping Staff",
-      "GBR-054"
-    ],
-    [
-      "ReworkTask",
-      "PENDING_REINSPECTION",
-      "COMPLETED / FAILED",
-      "UC-047",
-      "Housekeeping Supervisor (inspector)",
-      "GBR-065"
-    ],
-    [
-      "Room",
-      "any",
-      "(recalculated)",
-      "UC-020, 022, 028, 030, 031, 033, 034, 036, 037, 044, 045, 047, 052, 056, 059",
-      "System",
-      "GBR-043, GBR-044"
-    ],
-    [
-      "Incident",
-      "(new)",
-      "PENDING_TRIAGE",
-      "UC-049",
-      "Reporter",
-      "GBR-066"
-    ],
-    [
-      "Incident",
-      "PENDING_TRIAGE",
-      "PENDING_ASSIGNMENT",
-      "UC-052",
-      "Maintenance Lead",
-      "GBR-068, GBR-069"
-    ],
-    [
-      "Incident",
-      "PENDING_TRIAGE",
-      "CANCELLED",
-      "UC-052",
-      "Maintenance Lead",
-      "GBR-070"
-    ],
-    [
-      "Incident",
-      "PENDING_ASSIGNMENT / ASSIGNED",
-      "ASSIGNED",
-      "UC-053",
-      "Maintenance Lead",
-      "GBR-071"
-    ],
-    [
-      "Incident",
-      "ASSIGNED",
-      "IN_PROGRESS",
-      "UC-054",
-      "Assigned technician",
-      "GBR-072, GBR-136"
-    ],
-    [
-      "Incident",
-      "ASSIGNED",
-      "PENDING_ASSIGNMENT",
-      "UC-054 (decline)",
-      "Assigned technician",
-      "GBR-012"
-    ],
-    [
-      "Incident",
-      "IN_PROGRESS",
-      "ON_HOLD",
-      "UC-055",
-      "Assigned technician",
-      "GBR-073"
-    ],
-    [
-      "Incident",
-      "ON_HOLD",
-      "IN_PROGRESS",
-      "UC-055",
-      "Assigned technician",
-      "GBR-073, GBR-136"
-    ],
-    [
-      "Incident",
-      "IN_PROGRESS",
-      "PENDING_VERIFICATION",
-      "UC-058",
-      "Assigned technician",
-      "GBR-077"
-    ],
-    [
-      "Incident",
-      "PENDING_VERIFICATION",
-      "CLOSED",
-      "UC-059",
-      "Maintenance Lead (not the performer)",
-      "GBR-078, GBR-013"
-    ],
-    [
-      "Incident",
-      "PENDING_VERIFICATION",
-      "IN_PROGRESS",
-      "UC-059 (return)",
-      "Maintenance Lead (not the performer)",
-      "GBR-078"
-    ],
-    [
-      "Incident",
-      "CLOSED",
-      "PENDING_TRIAGE",
-      "UC-060",
-      "Maintenance Lead",
-      "GBR-079"
-    ],
-    [
-      "RoomBlock",
-      "(new)",
-      "EFFECTIVE",
-      "UC-056",
-      "Maintenance Lead",
-      "GBR-075"
-    ],
-    [
-      "RoomBlock",
-      "EFFECTIVE",
-      "REMOVED",
-      "UC-056 / UC-059 / UC-052 (cancel)",
-      "Maintenance Lead / System",
-      "GBR-075"
-    ],
-    [
-      "Escalation",
-      "(new)",
-      "OPEN",
-      "UC-057 / UC-122",
-      "Maintenance Lead / Operations Manager",
-      "GBR-076, GBR-155"
-    ],
-    [
-      "Escalation",
-      "OPEN",
-      "CLOSED",
-      "UC-059 / UC-052 / UC-120",
-      "System",
-      "GBR-076, GBR-155"
-    ],
-    [
-      "MaintenanceSchedule",
-      "(new)",
-      "ACTIVE",
-      "UC-061",
-      "Maintenance Lead",
-      "GBR-081"
-    ],
-    [
-      "MaintenanceSchedule",
-      "ACTIVE",
-      "INACTIVE",
-      "UC-061",
-      "Maintenance Lead",
-      "GBR-082"
-    ],
-    [
-      "MaintenanceOccurrence",
-      "(new)",
-      "ASSIGNED / PENDING_ASSIGNMENT",
-      "Scheduled job",
-      "System",
-      "GBR-083"
-    ],
-    [
-      "MaintenanceOccurrence",
-      "PENDING_ASSIGNMENT / ASSIGNED",
-      "ASSIGNED / CANCELLED",
-      "UC-062",
-      "Maintenance Lead",
-      "GBR-084, GBR-012"
-    ],
-    [
-      "MaintenanceOccurrence",
-      "ASSIGNED",
-      "IN_PROGRESS",
-      "UC-062",
-      "Assigned technician",
-      "GBR-084, GBR-136"
-    ],
-    [
-      "MaintenanceOccurrence",
-      "IN_PROGRESS",
-      "COMPLETED",
-      "UC-062",
-      "Assigned technician",
-      "GBR-084"
-    ],
-    [
-      "Asset",
-      "(new)",
-      "ACTIVE / IN_USE",
-      "UC-065",
-      "Operations Manager",
-      "GBR-086"
-    ],
-    [
-      "Asset (condition)",
-      "IN_USE / DAMAGED / UNDER_REPAIR",
-      "IN_USE / DAMAGED / UNDER_REPAIR",
-      "UC-070",
-      "OM / DH",
-      "GBR-089"
-    ],
-    [
-      "Asset",
-      "ACTIVE",
-      "RETIRED",
-      "UC-074",
-      "Operations Manager",
-      "GBR-090"
-    ],
-    [
-      "Handover",
-      "(new)",
-      "PENDING_ACKNOWLEDGMENT",
-      "UC-069 / UC-119 / UC-140",
-      "Sender",
-      "GBR-088, GBR-151, GBR-144"
-    ],
-    [
-      "Handover",
-      "PENDING_ACKNOWLEDGMENT",
-      "ACKNOWLEDGED / REJECTED",
-      "UC-069 / UC-119 / UC-140",
-      "Designated receiver",
-      "GBR-088, GBR-151, GBR-144"
-    ],
-    [
-      "StockDocument (receipt)",
-      "(new)",
-      "DRAFT",
-      "UC-079",
-      "Storekeeper",
-      "GBR-099"
-    ],
-    [
-      "StockDocument (receipt)",
-      "DRAFT",
-      "CANCELLED",
-      "UC-079",
-      "Storekeeper",
-      "GBR-100"
-    ],
-    [
-      "StockDocument (receipt)",
-      "DRAFT",
-      "POSTED",
-      "UC-080",
-      "Storekeeper",
-      "GBR-099"
-    ],
-    [
-      "StockDocument (issue)",
-      "(new)",
-      "POSTED",
-      "UC-081 (via UC-097/098)",
-      "Storekeeper",
-      "GBR-101, GBR-097"
-    ],
-    [
-      "StockDocument (return)",
-      "(new)",
-      "DRAFT",
-      "UC-090",
-      "Requester",
-      "GBR-102"
-    ],
-    [
-      "StockDocument (return)",
-      "DRAFT",
-      "POSTED",
-      "UC-082",
-      "Storekeeper",
-      "GBR-102"
-    ],
-    [
-      "StockDocument (return)",
-      "DRAFT",
-      "CANCELLED",
-      "UC-090 (withdraw)",
-      "Requester",
-      "GBR-102"
-    ],
-    [
-      "StockDocument (transfer)",
-      "(new)",
-      "DRAFT",
-      "UC-083",
-      "Storekeeper",
-      "GBR-103"
-    ],
-    [
-      "StockDocument (transfer)",
-      "DRAFT",
-      "IN_TRANSIT / CANCELLED",
-      "UC-083",
-      "Storekeeper",
-      "GBR-103"
-    ],
-    [
-      "StockDocument (transfer)",
-      "IN_TRANSIT / PARTIALLY_RECEIVED",
-      "PARTIALLY_RECEIVED / RECEIVED",
-      "UC-084",
-      "Storekeeper (destination)",
-      "GBR-104"
-    ],
-    [
-      "StockDocument (adjustment)",
-      "(new)",
-      "POSTED",
-      "UC-087",
-      "Operations Manager",
-      "GBR-107"
-    ],
-    [
-      "StockDocument",
-      "POSTED",
-      "REVERSED",
-      "UC-088",
-      "Operations Manager",
-      "GBR-108"
-    ],
-    [
-      "Stocktake",
-      "(new)",
-      "IN_PROGRESS",
-      "UC-085",
-      "Storekeeper",
-      "GBR-105"
-    ],
-    [
-      "Stocktake",
-      "IN_PROGRESS",
-      "COUNTED / CANCELLED",
-      "UC-085",
-      "Storekeeper",
-      "GBR-105"
-    ],
-    [
-      "Stocktake",
-      "COUNTED",
-      "PENDING_ADJUSTMENT / RECONCILED",
-      "UC-086",
-      "Storekeeper",
-      "GBR-106"
-    ],
-    [
-      "Stocktake",
-      "PENDING_ADJUSTMENT",
-      "RECONCILED",
-      "UC-087",
-      "Operations Manager",
-      "GBR-107"
-    ],
-    [
-      "Stocktake",
-      "PENDING_ADJUSTMENT",
-      "COUNTED",
-      "UC-087 (return)",
-      "Operations Manager",
-      "GBR-012"
-    ],
-    [
-      "MaterialRequest",
-      "(new)",
-      "DRAFT / PENDING_APPROVAL",
-      "UC-091",
-      "Requester",
-      "GBR-110, GBR-111"
-    ],
-    [
-      "MaterialRequest",
-      "DRAFT / NEEDS_INFORMATION / APPROVED",
-      "PENDING_APPROVAL",
-      "UC-093",
-      "Requester",
-      "GBR-112"
-    ],
-    [
-      "MaterialRequest",
-      "DRAFT / PENDING_APPROVAL / NEEDS_INFORMATION / APPROVED",
-      "CANCELLED",
-      "UC-093",
-      "Requester",
-      "GBR-113"
-    ],
-    [
-      "MaterialRequest",
-      "PENDING_APPROVAL",
-      "NEEDS_INFORMATION",
-      "UC-094",
-      "Approver",
-      "GBR-114"
-    ],
-    [
-      "MaterialRequest",
-      "PENDING_APPROVAL",
-      "APPROVED / REJECTED",
-      "UC-095",
-      "Approver",
-      "GBR-115, GBR-013"
-    ],
-    [
-      "MaterialRequest",
-      "PARTIALLY_ISSUED",
-      "REMAINDER_CLOSED",
-      "UC-095",
-      "Approver",
-      "GBR-117"
-    ],
-    [
-      "MaterialRequest",
-      "APPROVED / PARTIALLY_ISSUED",
-      "FULLY_ISSUED",
-      "UC-097 / UC-098",
-      "Storekeeper",
-      "GBR-116"
-    ],
-    [
-      "MaterialRequest",
-      "APPROVED / PARTIALLY_ISSUED",
-      "PARTIALLY_ISSUED",
-      "UC-098",
-      "Storekeeper",
-      "GBR-116"
-    ],
-    [
-      "Replenishment",
-      "(new)",
-      "REQUESTED",
-      "UC-100",
-      "Storekeeper",
-      "GBR-120"
-    ],
-    [
-      "Replenishment",
-      "REQUESTED / PARTIALLY_RECEIVED",
-      "PARTIALLY_RECEIVED / FULLY_RECEIVED",
-      "UC-080",
-      "System (on posting)",
-      "GBR-121"
-    ],
-    [
-      "Replenishment",
-      "REQUESTED / PARTIALLY_RECEIVED",
-      "CLOSED",
-      "UC-101",
-      "Storekeeper",
-      "GBR-122"
-    ],
-    [
-      "Task",
-      "(new)",
-      "PENDING_ASSIGNMENT",
-      "UC-102 / scheduled job",
-      "Department Head / System",
-      "GBR-123, GBR-124"
-    ],
-    [
-      "Task",
-      "PENDING_ASSIGNMENT / ASSIGNED / ACCEPTED / IN_PROGRESS / PAUSED",
-      "ASSIGNED",
-      "UC-104",
-      "Department Head",
-      "GBR-126, GBR-127"
-    ],
-    [
-      "Task",
-      "ASSIGNED",
-      "ACCEPTED",
-      "UC-107",
-      "Assignee",
-      "GBR-129"
-    ],
-    [
-      "Task",
-      "ASSIGNED",
-      "PENDING_ASSIGNMENT",
-      "UC-107 (decline)",
-      "Assignee",
-      "GBR-129"
-    ],
-    [
-      "Task",
-      "ACCEPTED / PAUSED",
-      "IN_PROGRESS",
-      "UC-108 / UC-110",
-      "Assignee",
-      "GBR-130, GBR-136"
-    ],
-    [
-      "Task",
-      "IN_PROGRESS",
-      "PAUSED",
-      "UC-110",
-      "Assignee",
-      "GBR-131"
-    ],
-    [
-      "Task",
-      "IN_PROGRESS",
-      "PENDING_VERIFICATION",
-      "UC-112",
-      "Assignee",
-      "GBR-132"
-    ],
-    [
-      "Task",
-      "PENDING_VERIFICATION",
-      "CLOSED",
-      "UC-105",
-      "Department Head",
-      "GBR-133, GBR-013"
-    ],
-    [
-      "Task",
-      "PENDING_VERIFICATION",
-      "ACCEPTED",
-      "UC-105 (return)",
-      "Department Head",
-      "GBR-133"
-    ],
-    [
-      "Task",
-      "CLOSED",
-      "ASSIGNED",
-      "UC-106",
-      "Department Head",
-      "GBR-134"
-    ],
-    [
-      "Task",
-      "PENDING_ASSIGNMENT / ASSIGNED / ACCEPTED",
-      "CANCELLED",
-      "UC-103",
-      "Department Head",
-      "GBR-128"
-    ],
-    [
-      "InternalRequest",
-      "(new)",
-      "PENDING_ACCEPTANCE",
-      "UC-114",
-      "Requester",
-      "GBR-145"
-    ],
-    [
-      "InternalRequest",
-      "PENDING_ACCEPTANCE",
-      "PENDING_ACCEPTANCE (new department)",
-      "UC-115 (route)",
-      "Receiving Department Head",
-      "GBR-147"
-    ],
-    [
-      "InternalRequest",
-      "PENDING_ACCEPTANCE",
-      "ACCEPTED / REJECTED",
-      "UC-116",
-      "Receiving Department Head",
-      "GBR-146"
-    ],
-    [
-      "InternalRequest",
-      "ACCEPTED",
-      "IN_PROGRESS",
-      "UC-115",
-      "Receiving Department Head",
-      "GBR-148"
-    ],
-    [
-      "InternalRequest",
-      "IN_PROGRESS",
-      "CLOSED",
-      "UC-120",
-      "Receiving Department Head",
-      "GBR-152"
-    ],
-    [
-      "InternalRequest",
-      "CLOSED",
-      "IN_PROGRESS",
-      "UC-121",
-      "Requester / requesting Department Head",
-      "GBR-153"
-    ],
-    [
-      "InternalRequest",
-      "PENDING_ACCEPTANCE",
-      "CANCELLED",
-      "UC-123 (withdraw)",
-      "Requester",
-      "GBR-154"
-    ],
-    [
-      "Workday",
-      "(new)",
-      "WORKING",
-      "UC-139",
-      "Employee",
-      "GBR-142"
-    ],
-    [
-      "Workday",
-      "WORKING",
-      "ENDED",
-      "UC-139",
-      "Employee",
-      "GBR-143"
-    ],
-    [
-      "WorkInterval",
-      "(new)",
-      "OPEN",
-      "UC-031, 035, 054, 055, 062, 108, 110",
-      "System",
-      "GBR-138, GBR-137"
-    ],
-    [
-      "WorkInterval",
-      "OPEN",
-      "CLOSED",
-      "UC-030, 033, 034, 036, 055, 058, 062, 104, 110, 112, 139",
-      "System",
-      "GBR-138"
-    ],
-    [
-      "TimeCorrectionRequest",
-      "PENDING",
-      "APPLIED / REJECTED",
-      "UC-111",
-      "Department Head",
-      "GBR-139"
-    ],
-    [
-      "Notification",
-      "UNREAD",
-      "READ / ACKNOWLEDGED",
-      "UC-124 to UC-130",
-      "Recipient",
-      "GBR-159"
-    ]
+    {
+      "Entity": "User",
+      "From": "ACTIVE",
+      "To": "INACTIVE",
+      "Trigger": "UC-006",
+      "Actor": "Administrator",
+      "Rules": "GBR-026, GBR-027, GBR-028"
+    },
+    {
+      "Entity": "User",
+      "From": "INACTIVE",
+      "To": "ACTIVE",
+      "Trigger": "UC-006",
+      "Actor": "Administrator",
+      "Rules": "GBR-012"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "(new)",
+      "To": "PENDING_ASSIGNMENT",
+      "Trigger": "UC-028",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-045"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "PENDING_ASSIGNMENT",
+      "To": "ASSIGNED",
+      "Trigger": "UC-029",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-046"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "ASSIGNED / IN_PROGRESS / ON_HOLD",
+      "To": "ASSIGNED",
+      "Trigger": "UC-030",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-047"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "ASSIGNED / ON_HOLD",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-031",
+      "Actor": "Housekeeping Staff",
+      "Rules": "GBR-049, GBR-136, GBR-137"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "IN_PROGRESS",
+      "To": "ON_HOLD",
+      "Trigger": "UC-033",
+      "Actor": "Housekeeping Staff",
+      "Rules": "GBR-051"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "IN_PROGRESS",
+      "To": "PENDING_INSPECTION",
+      "Trigger": "UC-034",
+      "Actor": "Housekeeping Staff",
+      "Rules": "GBR-052"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "PENDING_ASSIGNMENT / ASSIGNED",
+      "To": "CANCELLED",
+      "Trigger": "UC-037",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-048"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "PENDING_INSPECTION",
+      "To": "COMPLETED",
+      "Trigger": "UC-044",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-062"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "PENDING_INSPECTION",
+      "To": "REWORK_REQUIRED",
+      "Trigger": "UC-045",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-063"
+    },
+    {
+      "Entity": "CleaningTask",
+      "From": "REWORK_REQUIRED",
+      "To": "COMPLETED",
+      "Trigger": "UC-047",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-065"
+    },
+    {
+      "Entity": "ChecklistVersion",
+      "From": "(new)",
+      "To": "DRAFT",
+      "Trigger": "UC-039 / UC-040",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-056, GBR-057"
+    },
+    {
+      "Entity": "ChecklistVersion",
+      "From": "DRAFT",
+      "To": "PUBLISHED",
+      "Trigger": "UC-039 / UC-040",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-056"
+    },
+    {
+      "Entity": "ChecklistVersion",
+      "From": "PUBLISHED",
+      "To": "RETIRED",
+      "Trigger": "UC-040",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-057"
+    },
+    {
+      "Entity": "Inspection",
+      "From": "(new)",
+      "To": "ASSIGNED",
+      "Trigger": "UC-041",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-058, GBR-059"
+    },
+    {
+      "Entity": "Inspection",
+      "From": "ASSIGNED",
+      "To": "INSPECTING",
+      "Trigger": "UC-042",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-060"
+    },
+    {
+      "Entity": "Inspection",
+      "From": "INSPECTING",
+      "To": "PENDING_CONCLUSION",
+      "Trigger": "UC-042",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-060"
+    },
+    {
+      "Entity": "Inspection",
+      "From": "PENDING_CONCLUSION",
+      "To": "PASSED",
+      "Trigger": "UC-044",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-062"
+    },
+    {
+      "Entity": "Inspection",
+      "From": "PENDING_CONCLUSION",
+      "To": "FAILED",
+      "Trigger": "UC-045",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-063"
+    },
+    {
+      "Entity": "Inspection (reinspection)",
+      "From": "ASSIGNED",
+      "To": "PASSED / FAILED",
+      "Trigger": "UC-047",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-065"
+    },
+    {
+      "Entity": "ReworkTask",
+      "From": "(new)",
+      "To": "PENDING_ACCEPTANCE",
+      "Trigger": "UC-046",
+      "Actor": "Housekeeping Supervisor",
+      "Rules": "GBR-064, GBR-046"
+    },
+    {
+      "Entity": "ReworkTask",
+      "From": "PENDING_ACCEPTANCE",
+      "To": "ACCEPTED",
+      "Trigger": "UC-035",
+      "Actor": "Housekeeping Staff",
+      "Rules": "GBR-053"
+    },
+    {
+      "Entity": "ReworkTask",
+      "From": "ACCEPTED",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-035",
+      "Actor": "Housekeeping Staff",
+      "Rules": "GBR-053, GBR-136"
+    },
+    {
+      "Entity": "ReworkTask",
+      "From": "IN_PROGRESS",
+      "To": "PENDING_REINSPECTION",
+      "Trigger": "UC-036",
+      "Actor": "Housekeeping Staff",
+      "Rules": "GBR-054"
+    },
+    {
+      "Entity": "ReworkTask",
+      "From": "PENDING_REINSPECTION",
+      "To": "COMPLETED / FAILED",
+      "Trigger": "UC-047",
+      "Actor": "Housekeeping Supervisor (inspector)",
+      "Rules": "GBR-065"
+    },
+    {
+      "Entity": "Room",
+      "From": "any",
+      "To": "(recalculated)",
+      "Trigger": "UC-020, 022, 028, 030, 031, 033, 034, 036, 037, 044, 045, 047, 052, 056, 059",
+      "Actor": "System",
+      "Rules": "GBR-043, GBR-044"
+    },
+    {
+      "Entity": "Incident",
+      "From": "(new)",
+      "To": "PENDING_TRIAGE",
+      "Trigger": "UC-049",
+      "Actor": "Reporter",
+      "Rules": "GBR-066"
+    },
+    {
+      "Entity": "Incident",
+      "From": "PENDING_TRIAGE",
+      "To": "PENDING_ASSIGNMENT",
+      "Trigger": "UC-052",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-068, GBR-069"
+    },
+    {
+      "Entity": "Incident",
+      "From": "PENDING_TRIAGE",
+      "To": "CANCELLED",
+      "Trigger": "UC-052",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-070"
+    },
+    {
+      "Entity": "Incident",
+      "From": "PENDING_ASSIGNMENT / ASSIGNED",
+      "To": "ASSIGNED",
+      "Trigger": "UC-053",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-071"
+    },
+    {
+      "Entity": "Incident",
+      "From": "ASSIGNED",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-054",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-072, GBR-136"
+    },
+    {
+      "Entity": "Incident",
+      "From": "ASSIGNED",
+      "To": "PENDING_ASSIGNMENT",
+      "Trigger": "UC-054 (decline)",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-012"
+    },
+    {
+      "Entity": "Incident",
+      "From": "IN_PROGRESS",
+      "To": "ON_HOLD",
+      "Trigger": "UC-055",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-073"
+    },
+    {
+      "Entity": "Incident",
+      "From": "ON_HOLD",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-055",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-073, GBR-136"
+    },
+    {
+      "Entity": "Incident",
+      "From": "IN_PROGRESS",
+      "To": "PENDING_VERIFICATION",
+      "Trigger": "UC-058",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-077"
+    },
+    {
+      "Entity": "Incident",
+      "From": "PENDING_VERIFICATION",
+      "To": "CLOSED",
+      "Trigger": "UC-059",
+      "Actor": "Maintenance Lead (not the performer)",
+      "Rules": "GBR-078, GBR-013"
+    },
+    {
+      "Entity": "Incident",
+      "From": "PENDING_VERIFICATION",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-059 (return)",
+      "Actor": "Maintenance Lead (not the performer)",
+      "Rules": "GBR-078"
+    },
+    {
+      "Entity": "Incident",
+      "From": "CLOSED",
+      "To": "PENDING_TRIAGE",
+      "Trigger": "UC-060",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-079"
+    },
+    {
+      "Entity": "RoomBlock",
+      "From": "(new)",
+      "To": "EFFECTIVE",
+      "Trigger": "UC-056",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-075"
+    },
+    {
+      "Entity": "RoomBlock",
+      "From": "EFFECTIVE",
+      "To": "REMOVED",
+      "Trigger": "UC-056 / UC-059 / UC-052 (cancel)",
+      "Actor": "Maintenance Lead / System",
+      "Rules": "GBR-075"
+    },
+    {
+      "Entity": "Escalation",
+      "From": "(new)",
+      "To": "OPEN",
+      "Trigger": "UC-057 / UC-122",
+      "Actor": "Maintenance Lead / Operations Manager",
+      "Rules": "GBR-076, GBR-155"
+    },
+    {
+      "Entity": "Escalation",
+      "From": "OPEN",
+      "To": "CLOSED",
+      "Trigger": "UC-059 / UC-052 / UC-120",
+      "Actor": "System",
+      "Rules": "GBR-076, GBR-155"
+    },
+    {
+      "Entity": "MaintenanceSchedule",
+      "From": "(new)",
+      "To": "ACTIVE",
+      "Trigger": "UC-061",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-081"
+    },
+    {
+      "Entity": "MaintenanceSchedule",
+      "From": "ACTIVE",
+      "To": "INACTIVE",
+      "Trigger": "UC-061",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-082"
+    },
+    {
+      "Entity": "MaintenanceOccurrence",
+      "From": "(new)",
+      "To": "ASSIGNED / PENDING_ASSIGNMENT",
+      "Trigger": "Scheduled job",
+      "Actor": "System",
+      "Rules": "GBR-083"
+    },
+    {
+      "Entity": "MaintenanceOccurrence",
+      "From": "PENDING_ASSIGNMENT / ASSIGNED",
+      "To": "ASSIGNED / CANCELLED",
+      "Trigger": "UC-062",
+      "Actor": "Maintenance Lead",
+      "Rules": "GBR-084, GBR-012"
+    },
+    {
+      "Entity": "MaintenanceOccurrence",
+      "From": "ASSIGNED",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-062",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-084, GBR-136"
+    },
+    {
+      "Entity": "MaintenanceOccurrence",
+      "From": "IN_PROGRESS",
+      "To": "COMPLETED",
+      "Trigger": "UC-062",
+      "Actor": "Assigned technician",
+      "Rules": "GBR-084"
+    },
+    {
+      "Entity": "Asset",
+      "From": "(new)",
+      "To": "ACTIVE / IN_USE",
+      "Trigger": "UC-065",
+      "Actor": "Operations Manager",
+      "Rules": "GBR-086"
+    },
+    {
+      "Entity": "Asset (condition)",
+      "From": "IN_USE / DAMAGED / UNDER_REPAIR",
+      "To": "IN_USE / DAMAGED / UNDER_REPAIR",
+      "Trigger": "UC-070",
+      "Actor": "OM / DH",
+      "Rules": "GBR-089"
+    },
+    {
+      "Entity": "Asset",
+      "From": "ACTIVE",
+      "To": "RETIRED",
+      "Trigger": "UC-074",
+      "Actor": "Operations Manager",
+      "Rules": "GBR-090"
+    },
+    {
+      "Entity": "Handover",
+      "From": "(new)",
+      "To": "PENDING_ACKNOWLEDGMENT",
+      "Trigger": "UC-069 / UC-119 / UC-140",
+      "Actor": "Sender",
+      "Rules": "GBR-088, GBR-151, GBR-144"
+    },
+    {
+      "Entity": "Handover",
+      "From": "PENDING_ACKNOWLEDGMENT",
+      "To": "ACKNOWLEDGED / REJECTED",
+      "Trigger": "UC-069 / UC-119 / UC-140",
+      "Actor": "Designated receiver",
+      "Rules": "GBR-088, GBR-151, GBR-144"
+    },
+    {
+      "Entity": "StockDocument (receipt)",
+      "From": "(new)",
+      "To": "DRAFT",
+      "Trigger": "UC-079",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-099"
+    },
+    {
+      "Entity": "StockDocument (receipt)",
+      "From": "DRAFT",
+      "To": "CANCELLED",
+      "Trigger": "UC-079",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-100"
+    },
+    {
+      "Entity": "StockDocument (receipt)",
+      "From": "DRAFT",
+      "To": "POSTED",
+      "Trigger": "UC-080",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-099"
+    },
+    {
+      "Entity": "StockDocument (issue)",
+      "From": "(new)",
+      "To": "POSTED",
+      "Trigger": "UC-081 (via UC-097/098)",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-101, GBR-097"
+    },
+    {
+      "Entity": "StockDocument (return)",
+      "From": "(new)",
+      "To": "DRAFT",
+      "Trigger": "UC-090",
+      "Actor": "Requester",
+      "Rules": "GBR-102"
+    },
+    {
+      "Entity": "StockDocument (return)",
+      "From": "DRAFT",
+      "To": "POSTED",
+      "Trigger": "UC-082",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-102"
+    },
+    {
+      "Entity": "StockDocument (return)",
+      "From": "DRAFT",
+      "To": "CANCELLED",
+      "Trigger": "UC-090 (withdraw)",
+      "Actor": "Requester",
+      "Rules": "GBR-102"
+    },
+    {
+      "Entity": "StockDocument (transfer)",
+      "From": "(new)",
+      "To": "DRAFT",
+      "Trigger": "UC-083",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-103"
+    },
+    {
+      "Entity": "StockDocument (transfer)",
+      "From": "DRAFT",
+      "To": "IN_TRANSIT / CANCELLED",
+      "Trigger": "UC-083",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-103"
+    },
+    {
+      "Entity": "StockDocument (transfer)",
+      "From": "IN_TRANSIT / PARTIALLY_RECEIVED",
+      "To": "PARTIALLY_RECEIVED / RECEIVED",
+      "Trigger": "UC-084",
+      "Actor": "Storekeeper (destination)",
+      "Rules": "GBR-104"
+    },
+    {
+      "Entity": "StockDocument (adjustment)",
+      "From": "(new)",
+      "To": "POSTED",
+      "Trigger": "UC-087",
+      "Actor": "Operations Manager",
+      "Rules": "GBR-107"
+    },
+    {
+      "Entity": "StockDocument",
+      "From": "POSTED",
+      "To": "REVERSED",
+      "Trigger": "UC-088",
+      "Actor": "Operations Manager",
+      "Rules": "GBR-108"
+    },
+    {
+      "Entity": "Stocktake",
+      "From": "(new)",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-085",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-105"
+    },
+    {
+      "Entity": "Stocktake",
+      "From": "IN_PROGRESS",
+      "To": "COUNTED / CANCELLED",
+      "Trigger": "UC-085",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-105"
+    },
+    {
+      "Entity": "Stocktake",
+      "From": "COUNTED",
+      "To": "PENDING_ADJUSTMENT / RECONCILED",
+      "Trigger": "UC-086",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-106"
+    },
+    {
+      "Entity": "Stocktake",
+      "From": "PENDING_ADJUSTMENT",
+      "To": "RECONCILED",
+      "Trigger": "UC-087",
+      "Actor": "Operations Manager",
+      "Rules": "GBR-107"
+    },
+    {
+      "Entity": "Stocktake",
+      "From": "PENDING_ADJUSTMENT",
+      "To": "COUNTED",
+      "Trigger": "UC-087 (return)",
+      "Actor": "Operations Manager",
+      "Rules": "GBR-012"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "(new)",
+      "To": "DRAFT / PENDING_APPROVAL",
+      "Trigger": "UC-091",
+      "Actor": "Requester",
+      "Rules": "GBR-110, GBR-111"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "DRAFT / NEEDS_INFORMATION / APPROVED",
+      "To": "PENDING_APPROVAL",
+      "Trigger": "UC-093",
+      "Actor": "Requester",
+      "Rules": "GBR-112"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "DRAFT / PENDING_APPROVAL / NEEDS_INFORMATION / APPROVED",
+      "To": "CANCELLED",
+      "Trigger": "UC-093",
+      "Actor": "Requester",
+      "Rules": "GBR-113"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "PENDING_APPROVAL",
+      "To": "NEEDS_INFORMATION",
+      "Trigger": "UC-094",
+      "Actor": "Approver",
+      "Rules": "GBR-114"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "PENDING_APPROVAL",
+      "To": "APPROVED / REJECTED",
+      "Trigger": "UC-095",
+      "Actor": "Approver",
+      "Rules": "GBR-115, GBR-013"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "PARTIALLY_ISSUED",
+      "To": "REMAINDER_CLOSED",
+      "Trigger": "UC-095",
+      "Actor": "Approver",
+      "Rules": "GBR-117"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "APPROVED / PARTIALLY_ISSUED",
+      "To": "FULLY_ISSUED",
+      "Trigger": "UC-097 / UC-098",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-116"
+    },
+    {
+      "Entity": "MaterialRequest",
+      "From": "APPROVED / PARTIALLY_ISSUED",
+      "To": "PARTIALLY_ISSUED",
+      "Trigger": "UC-098",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-116"
+    },
+    {
+      "Entity": "Replenishment",
+      "From": "(new)",
+      "To": "REQUESTED",
+      "Trigger": "UC-100",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-120"
+    },
+    {
+      "Entity": "Replenishment",
+      "From": "REQUESTED / PARTIALLY_RECEIVED",
+      "To": "PARTIALLY_RECEIVED / FULLY_RECEIVED",
+      "Trigger": "UC-080",
+      "Actor": "System (on posting)",
+      "Rules": "GBR-121"
+    },
+    {
+      "Entity": "Replenishment",
+      "From": "REQUESTED / PARTIALLY_RECEIVED",
+      "To": "CLOSED",
+      "Trigger": "UC-101",
+      "Actor": "Storekeeper",
+      "Rules": "GBR-122"
+    },
+    {
+      "Entity": "Task",
+      "From": "(new)",
+      "To": "PENDING_ASSIGNMENT",
+      "Trigger": "UC-102 / scheduled job",
+      "Actor": "Department Head / System",
+      "Rules": "GBR-123, GBR-124"
+    },
+    {
+      "Entity": "Task",
+      "From": "PENDING_ASSIGNMENT / ASSIGNED / ACCEPTED / IN_PROGRESS / PAUSED",
+      "To": "ASSIGNED",
+      "Trigger": "UC-104",
+      "Actor": "Department Head",
+      "Rules": "GBR-126, GBR-127"
+    },
+    {
+      "Entity": "Task",
+      "From": "ASSIGNED",
+      "To": "ACCEPTED",
+      "Trigger": "UC-107",
+      "Actor": "Assignee",
+      "Rules": "GBR-129"
+    },
+    {
+      "Entity": "Task",
+      "From": "ASSIGNED",
+      "To": "PENDING_ASSIGNMENT",
+      "Trigger": "UC-107 (decline)",
+      "Actor": "Assignee",
+      "Rules": "GBR-129"
+    },
+    {
+      "Entity": "Task",
+      "From": "ACCEPTED / PAUSED",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-108 / UC-110",
+      "Actor": "Assignee",
+      "Rules": "GBR-130, GBR-136"
+    },
+    {
+      "Entity": "Task",
+      "From": "IN_PROGRESS",
+      "To": "PAUSED",
+      "Trigger": "UC-110",
+      "Actor": "Assignee",
+      "Rules": "GBR-131"
+    },
+    {
+      "Entity": "Task",
+      "From": "IN_PROGRESS",
+      "To": "PENDING_VERIFICATION",
+      "Trigger": "UC-112",
+      "Actor": "Assignee",
+      "Rules": "GBR-132"
+    },
+    {
+      "Entity": "Task",
+      "From": "PENDING_VERIFICATION",
+      "To": "CLOSED",
+      "Trigger": "UC-105",
+      "Actor": "Department Head",
+      "Rules": "GBR-133, GBR-013"
+    },
+    {
+      "Entity": "Task",
+      "From": "PENDING_VERIFICATION",
+      "To": "ACCEPTED",
+      "Trigger": "UC-105 (return)",
+      "Actor": "Department Head",
+      "Rules": "GBR-133"
+    },
+    {
+      "Entity": "Task",
+      "From": "CLOSED",
+      "To": "ASSIGNED",
+      "Trigger": "UC-106",
+      "Actor": "Department Head",
+      "Rules": "GBR-134"
+    },
+    {
+      "Entity": "Task",
+      "From": "PENDING_ASSIGNMENT / ASSIGNED / ACCEPTED",
+      "To": "CANCELLED",
+      "Trigger": "UC-103",
+      "Actor": "Department Head",
+      "Rules": "GBR-128"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "(new)",
+      "To": "PENDING_ACCEPTANCE",
+      "Trigger": "UC-114",
+      "Actor": "Requester",
+      "Rules": "GBR-145"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "PENDING_ACCEPTANCE",
+      "To": "PENDING_ACCEPTANCE (new department)",
+      "Trigger": "UC-115 (route)",
+      "Actor": "Receiving Department Head",
+      "Rules": "GBR-147"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "PENDING_ACCEPTANCE",
+      "To": "ACCEPTED / REJECTED",
+      "Trigger": "UC-116",
+      "Actor": "Receiving Department Head",
+      "Rules": "GBR-146"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "ACCEPTED",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-115",
+      "Actor": "Receiving Department Head",
+      "Rules": "GBR-148"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "IN_PROGRESS",
+      "To": "CLOSED",
+      "Trigger": "UC-120",
+      "Actor": "Receiving Department Head",
+      "Rules": "GBR-152"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "CLOSED",
+      "To": "IN_PROGRESS",
+      "Trigger": "UC-121",
+      "Actor": "Requester / requesting Department Head",
+      "Rules": "GBR-153"
+    },
+    {
+      "Entity": "InternalRequest",
+      "From": "PENDING_ACCEPTANCE",
+      "To": "CANCELLED",
+      "Trigger": "UC-123 (withdraw)",
+      "Actor": "Requester",
+      "Rules": "GBR-154"
+    },
+    {
+      "Entity": "Workday",
+      "From": "(new)",
+      "To": "WORKING",
+      "Trigger": "UC-139",
+      "Actor": "Employee",
+      "Rules": "GBR-142"
+    },
+    {
+      "Entity": "Workday",
+      "From": "WORKING",
+      "To": "ENDED",
+      "Trigger": "UC-139",
+      "Actor": "Employee",
+      "Rules": "GBR-143"
+    },
+    {
+      "Entity": "WorkInterval",
+      "From": "(new)",
+      "To": "OPEN",
+      "Trigger": "UC-031, 035, 054, 055, 062, 108, 110",
+      "Actor": "System",
+      "Rules": "GBR-138, GBR-137"
+    },
+    {
+      "Entity": "WorkInterval",
+      "From": "OPEN",
+      "To": "CLOSED",
+      "Trigger": "UC-030, 033, 034, 036, 055, 058, 062, 104, 110, 112, 139",
+      "Actor": "System",
+      "Rules": "GBR-138"
+    },
+    {
+      "Entity": "TimeCorrectionRequest",
+      "From": "PENDING",
+      "To": "APPLIED / REJECTED",
+      "Trigger": "UC-111",
+      "Actor": "Department Head",
+      "Rules": "GBR-139"
+    },
+    {
+      "Entity": "Notification",
+      "From": "UNREAD",
+      "To": "READ / ACKNOWLEDGED",
+      "Trigger": "UC-124 to UC-130",
+      "Actor": "Recipient",
+      "Rules": "GBR-159"
+    }
   ]
 }

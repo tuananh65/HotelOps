@@ -16,9 +16,7 @@ export class ScreenBoundary extends Component<
     return this.state.failed ? (
       <section className="empty" role="alert">
         <h2>{t("This screen could not load")}</h2>
-        <p>
-          {t("Your saved records remain in this browser. Reload to retry.")}
-        </p>
+        <p>{t("Unable to display this screen. Reload to retry.")}</p>
         <button className="primary" onClick={() => window.location.reload()}>
           {t("Reload screen")}
         </button>

@@ -1,11 +1,13 @@
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { t, useLanguage } from "../../i18n";
 import * as service from "../../services";
-import { PageHeader } from "../../ui";
+import { PageHeader, notify } from "../../ui";
 export default function ProfileScreen() {
   useLanguage();
   const user = service.currentUser()!;
   const nav = useNavigate();
+  const [busy, setBusy] = useState(false);
   return (
     <>
       <PageHeader id={4} />
@@ -33,9 +35,17 @@ export default function ProfileScreen() {
           </Link>
           <button
             className="primary"
-            onClick={() => {
-              service.logout();
-              nav("/login");
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              try {
+                await service.logout();
+                nav("/login");
+              } catch (error) {
+                notify((error as Error).message);
+              } finally {
+                setBusy(false);
+              }
             }}
           >
             {t("Logout")}

@@ -29,7 +29,9 @@ export default function MaintenanceTaskDetailScreen() {
                 label: "Work source",
                 value: record.incident
                   ? "Incident repair"
-                  : "Preventive maintenance",
+                  : record.schedule
+                    ? "Preventive maintenance"
+                    : "N/A",
               },
               {
                 label: "Completed checks",

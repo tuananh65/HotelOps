@@ -219,36 +219,39 @@ export default function WorkloadTimeLogsScreen() {
                       <small>{c.reason}</small>
                     </span>
                     <StatusBadge status={c.status} />
-                    {c.status === "Pending" && true && (
-                      <div className="header-actions">
-                        <button
-                          className="secondary"
-                          onClick={() => {
-                            try {
-                              service.applyCorrection(c, true);
-                              notify("Correction applied.");
-                            } catch (e) {
-                              notify((e as Error).message);
-                            }
-                          }}
-                        >
-                          {t("Approve")}
-                        </button>
-                        <button
-                          className="secondary"
-                          onClick={() => {
-                            try {
-                              service.applyCorrection(c, false);
-                              notify("Correction rejected.");
-                            } catch (e) {
-                              notify((e as Error).message);
-                            }
-                          }}
-                        >
-                          {t("Reject")}
-                        </button>
-                      </div>
-                    )}
+                    {c.status === "Pending" &&
+                      service.can("work_interval.correct", c) && (
+                        <div className="header-actions">
+                          <button
+                            className="secondary"
+                            disabled={service.isPending("corrections:" + c.id)}
+                            onClick={async () => {
+                              try {
+                                await service.applyCorrection(c, true);
+                                notify("Correction applied.");
+                              } catch (e) {
+                                notify((e as Error).message);
+                              }
+                            }}
+                          >
+                            {t("Approve")}
+                          </button>
+                          <button
+                            className="secondary"
+                            disabled={service.isPending("corrections:" + c.id)}
+                            onClick={async () => {
+                              try {
+                                await service.applyCorrection(c, false);
+                                notify("Correction rejected.");
+                              } catch (e) {
+                                notify((e as Error).message);
+                              }
+                            }}
+                          >
+                            {t("Reject")}
+                          </button>
+                        </div>
+                      )}
                   </div>
                 ))}
             </>
@@ -281,8 +284,13 @@ export default function WorkloadTimeLogsScreen() {
                 required: true,
               },
             ]}
-            onSubmit={(v) => {
-              service.requestCorrection(correction, v.start, v.end, v.reason);
+            onSubmit={async (v) => {
+              await service.requestCorrection(
+                correction,
+                v.start,
+                v.end,
+                v.reason,
+              );
               notify("Correction submitted to Department Head.");
               setCorrection(undefined);
             }}

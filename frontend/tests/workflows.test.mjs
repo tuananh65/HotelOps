@@ -1,217 +1,273 @@
 import { test, beforeEach } from "node:test";
 import assert from "node:assert/strict";
-import { build } from "esbuild";
-await build({
-  entryPoints: ["src/services.ts"],
-  bundle: true,
-  platform: "node",
-  format: "esm",
-  outfile: ".test-output/workflows.mjs",
-});
-class Storage {
-  map = new Map();
-  getItem(k) {
-    return this.map.get(k) || null;
-  }
-  setItem(k, v) {
-    this.map.set(k, String(v));
-  }
-  removeItem(k) {
-    this.map.delete(k);
-  }
-}
-let s;
+import {
+  bundle,
+  browserGlobals,
+  json,
+  entity,
+  session,
+} from "./api-test-helpers.mjs";
+import {
+  catalog,
+  context,
+  fixtureResponse,
+  collections,
+  ids,
+} from "./fixtures/api-fixture.mjs";
+let s,
+  calls = [];
+let caseNo = 0;
 beforeEach(async () => {
-  globalThis.localStorage = new Storage();
-  globalThis.sessionStorage = new Storage();
-  s = await import("../.test-output/workflows.mjs?" + Math.random());
+  browserGlobals();
+  calls = [];
+  s = await bundle("src/services.ts", "services-" + caseNo++);
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url, options });
+    const value = fixtureResponse(
+      url,
+      options.method,
+      options.body ? JSON.parse(options.body) : {},
+    );
+    return value === undefined
+      ? new Response(null, { status: 204 })
+      : json(value);
+  };
+  await s.login("tester", "password");
 });
-const login = (user) => s.login(user, "HotelOps@2026");
-test("inspection approves cleaning and makes the room ready", () => {
-  login("hksupervisor");
-  let r = s.visible("inspections")[0];
-  const d = { key: "inspections" };
-  r = s.perform(d, r, {
-    label: "Start inspection",
-    uc: "UC-042",
-    from: ["Assigned"],
-    to: "Inspecting",
-    own: true,
-  });
-  const results = r.criteria
-    .split("\n")
-    .map((text) => ({ text, result: "Pass", defect: "" }));
-  r = s.perform(
-    d,
-    r,
-    { label: "Record results", uc: "UC-042", from: ["Inspecting"], own: true },
-    { results },
-  );
-  r = s.perform(d, r, {
-    label: "Finish inspection",
-    uc: "UC-042",
-    from: ["Inspecting"],
-    to: "Pending Conclusion",
-    own: true,
-  });
-  r = s.perform(
-    d,
+test("all 80 screens have a successful API loading path using the proposed scoped context", async () => {
+  for (const screen of catalog.screens.filter((s) => s.id > 2)) {
+    const { domainFor } =
+      await import("../.test-output/fixture-domain.mjs").catch(async () => {
+        return bundle("src/domain.ts", "fixture-domain");
+      });
+    const key = [36, 37].includes(screen.id)
+      ? "inspections"
+      : screen.id === 50
+        ? "assets"
+        : domainFor(screen.id).key;
+    await s.loadScreen(
+      screen.id,
+      screen.route.includes(":id") ? ids[key] : undefined,
+    );
+  }
+  assert.equal(Object.keys(localStorage.data).length, 0);
+  assert.ok(calls.some((call) => call.url.includes("/api/incidents")));
+});
+test("session grants pair each use case with its branch and department; scope cannot leak across grants", async () => {
+  const auth = session([
+    { useCase: "UC-021", branchIds: ["1"], departmentIds: ["2"] },
+    { useCase: "UC-095", branchIds: ["b2"], departmentIds: ["d2"] },
+  ]);
+  globalThis.fetch = async () => json(auth);
+  await s.login("test", "test");
+  assert.equal(s.can("UC-021", { branchId: "b2", departmentId: "d2" }), false);
+  assert.equal(s.can("UC-021", { branchId: "1", departmentId: "2" }), true);
+  assert.equal(s.can("UC-004"), false);
+});
+test("a cleaning completion is a dedicated command, never a generic status update or browser readiness calculation", async () => {
+  const state = structuredClone(context);
+  state.collections.rooms[0].statusCode = "BLOCKED";
+  const oldFetch = globalThis.fetch;
+  globalThis.fetch = async (url, options = {}) => {
+    if (url.includes("/api/ui/screens/26/context")) return json(state);
+    if (url.endsWith("/api/cleaning-tasks/cl1/submit-for-inspection")) {
+      calls.push({ url, options });
+      state.collections.cleaning[0].statusCode = "PENDING_INSPECTION";
+      return json(state.collections.cleaning[0]);
+    }
+    if (url.includes("/api/cleaning-tasks/cl1") && options.method === "GET")
+      return json(state.collections.cleaning[0]);
+    return oldFetch(url, options);
+  };
+  await s.loadScreen(26, "cl1");
+  const r = s.visible("cleaning")[0];
+  const saved = await s.perform(
+    { key: "cleaning" },
     r,
     {
-      label: "Approve",
-      uc: "UC-044",
-      from: ["Pending Conclusion"],
-      to: "Passed",
+      label: "Submit for inspection",
+      uc: "UC-034",
+      from: ["In Progress"],
       own: true,
     },
-    { note: "Every mandatory criterion passed" },
+    { note: "Done" },
   );
-  assert.equal(
-    s.snapshot().rooms.find((room) => room.id === r.room).status,
-    "Ready",
+  assert.equal(saved.status, "Pending Inspection");
+  assert.equal(s.snapshot().rooms[0].status, "Blocked");
+  const call = calls.find((c) => c.url.endsWith("submit-for-inspection"));
+  const body = JSON.parse(call.options.body);
+  assert.equal(body.rowVersion, "AAAAAQ==");
+  assert.equal(body.note, "Done");
+  assert.equal("status" in body, false);
+});
+test("server availableActions and rowVersion are required before changing a record", async () => {
+  await s.loadScreen(26, "cl1");
+  const r = s.visible("cleaning")[0];
+  assert.deepEqual(
+    s.availableActions({ key: "cleaning" }, { ...r, allowedActions: [] }),
+    [],
   );
-  assert.equal(
-    s.snapshot().cleaning.find((c) => c.id === r.cleaning).status,
-    "Completed",
+  await assert.rejects(
+    s.perform(
+      { key: "cleaning" },
+      { ...r, rowVersion: undefined },
+      { label: "Submit for inspection", uc: "UC-034", from: ["In Progress"] },
+      { note: "Done" },
+    ),
+    /rowVersion/,
   );
 });
-test("room block takes precedence over ready and a notification acknowledgement leaves source untouched", () => {
-  login("maintenancelead");
-  const incident = s.visible("incidents")[0];
-  const room = s.snapshot().rooms.find((r) => r.status === "Ready");
-  s.perform(
-    { key: "incidents" },
-    incident,
-    { label: "Block room", uc: "UC-056", reason: true },
-    { room: room.id, reason: "Safety inspection required" },
-  );
-  assert.equal(
-    s.snapshot().rooms.find((r) => r.id === room.id).status,
-    "Blocked",
-  );
-  const original = JSON.stringify(s.snapshot().incidents);
-  const n = s.visible("notifications")[0];
-  s.perform({ key: "notifications" }, n, {
-    label: "Acknowledge",
-    uc: "UC-130",
-    to: "Acknowledged",
-  });
-  assert.equal(JSON.stringify(s.snapshot().incidents), original);
-});
-test("receipt posting changes stock once, repeated submission rejected", () => {
-  login("storekeeper");
-  const db = s.snapshot();
-  const d = {
-    key: "transactions",
-    createUC: "UC-079",
-    fields: [],
-    initial: "Draft",
-  };
-  let r = s.save(d, {
-    name: "Receipt",
-    type: "Receipt",
-    warehouse: db.warehouses[0].id,
-    lines: [{ item: db.items[0].id, quantity: 5 }],
-  });
-  const before = s.balance(s.snapshot(), r.warehouse, db.items[0].id);
-  r = s.perform(
-    d,
-    r,
-    { label: "Post receipt", uc: "UC-080", from: ["Draft"], to: "Posted" },
-    { lines: r.lines },
-  );
-  assert.equal(
-    s.balance(s.snapshot(), r.warehouse, db.items[0].id),
-    before + 5,
-  );
-  assert.throws(
+test("submit mutex blocks a second write while the first request is still in flight", async () => {
+  let finish;
+  const first = s.runMutation(
+    "same",
     () =>
-      s.perform(
-        d,
-        r,
-        { label: "Post receipt", uc: "UC-080", from: ["Draft"], to: "Posted" },
-        { lines: r.lines },
-      ),
-    /no longer available/,
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
   );
+  await assert.rejects(
+    s.runMutation("same", async () => 42),
+    /already being submitted/,
+  );
+  finish("done");
+  assert.equal(await first, "done");
 });
-test("material approval and partial issue preserve approved remainder and reject negative stock", () => {
-  login("headhousekeeping");
-  let r = s
-    .visible("materials")
-    .find((r) => r.name === "Replenish room amenities");
-  const d = { key: "materials" };
-  r = s.perform(
-    d,
-    r,
-    {
-      label: "Approve",
-      uc: "UC-095",
-      from: ["Pending Approval"],
-      to: "Approved",
-    },
-    { lines: r.lines },
-  );
-  s.logout();
-  login("storekeeper");
-  r = s.visible("materials").find((m) => m.id === r.id);
-  const item = r.lines[0].item,
-    warehouse = r.warehouse;
-  const before = s.balance(s.snapshot(), warehouse, item);
-  r = s.perform(
-    d,
-    r,
-    {
-      label: "Partial issue",
-      uc: "UC-098",
-      from: ["Approved", "Partially Issued"],
-    },
-    { warehouse, receiver: s.currentUser().id, lines: [{ item, quantity: 5 }] },
-  );
-  assert.equal(r.status, "Partially Issued");
-  assert.equal(r.lines[0].issued, 5);
-  assert.equal(s.balance(s.snapshot(), warehouse, item), before - 5);
-  assert.throws(
-    () =>
-      s.perform(
-        d,
-        r,
-        {
-          label: "Partial issue",
-          uc: "UC-098",
-          from: ["Approved", "Partially Issued"],
-        },
-        {
-          warehouse,
-          receiver: s.currentUser().id,
-          lines: [{ item, quantity: 100 }],
-        },
-      ),
-    /approved remainder/,
-  );
+test("API errors never switch to mock data or write browser business storage", async () => {
+  globalThis.fetch = async () => new Response(null, { status: 500 });
+  await assert.rejects(s.loadScreen(19));
+  assert.equal(s.snapshot().rooms.length, 0);
+  assert.equal(localStorage.data.size, 0);
 });
-test("maintenance occurrences are generated once and next due follows schedule", () => {
-  login("maintenancelead");
-  const db = s.snapshot();
-  const d = {
-    key: "schedules",
-    createUC: "UC-061",
-    fields: [],
-    initial: "Active",
+test("server stock projection is read directly; a ledger page is never summed into a balance", async () => {
+  await s.loadScreen(61);
+  assert.equal(s.balance(s.snapshot(), "w1", "item1"), 20);
+  assert.ok(Number.isNaN(s.balance(s.snapshot(), "unknown", "item1")));
+});
+test("403 preserves the current session; 401 removes identity and cached business records", async () => {
+  await s.loadScreen(19);
+  globalThis.fetch = async () => new Response(null, { status: 403 });
+  await assert.rejects(s.loadScreen(19));
+  assert.ok(s.currentUser());
+  globalThis.fetch = async () => new Response(null, { status: 401 });
+  await assert.rejects(s.loadScreen(19));
+  assert.equal(s.currentUser(), null);
+  assert.equal(s.snapshot().rooms.length, 0);
+});
+test("readAll requests every page and refuses a changed snapshot", async () => {
+  const api = await bundle("src/api/modules.ts", "paging");
+  let pages = [];
+  globalThis.fetch = async (url) => {
+    const page = Number(new URL(url).searchParams.get("page"));
+    pages.push(page);
+    return json({
+      items: [entity("r" + page)],
+      page,
+      pageSize: 1,
+      totalCount: 2,
+      snapshot: "snap1",
+    });
   };
-  const due = new Date(Date.now() + 86400000).toISOString();
-  const r = s.save(d, {
-    name: "Monthly HVAC",
-    room: db.rooms[0].id,
-    criteria: "Filter checked",
-    interval: 1,
-    intervalUnit: "Months",
-    due,
-    assignee: db.users.find((u) => u.username === "technician").id,
-  });
-  assert.equal(s.generateDueMaintenance(), 1);
-  assert.equal(s.generateDueMaintenance(), 0);
-  const occurrence = s.snapshot().occurrences.find((o) => o.schedule === r.id);
-  assert.equal(occurrence.scheduledDue, due);
-  assert.equal(occurrence.status, "Assigned");
+  assert.equal((await api.readAll("rooms", {})).length, 2);
+  assert.deepEqual(pages, [1, 2]);
+  globalThis.fetch = async (url) => {
+    const page = Number(new URL(url).searchParams.get("page"));
+    return json({
+      items: [entity("r" + page)],
+      page,
+      pageSize: 1,
+      totalCount: 2,
+      snapshot: "snap" + page,
+    });
+  };
+  await assert.rejects(api.readAll("rooms", {}), /snapshot changed/);
+});
+test("all declared workflow operations have distinct dispatch paths and never send a target status", async () => {
+  const { actions, domains } = await bundle("src/domain.ts", "workflow-domain");
+  const { actionContracts } = await bundle(
+    "src/api/endpoints.ts",
+    "workflow-contracts",
+  );
+  const recorded = [];
+  globalThis.fetch = async (url, options = {}) => {
+    if (options.method === "POST") {
+      const data = JSON.parse(options.body);
+      recorded.push({ url, data });
+      const key = Object.keys(collections).find((key) =>
+        url.includes("/" + key + "/"),
+      );
+      if (url.endsWith("/reset-password"))
+        return json({
+          record: collections.users[0],
+          temporaryPassword: "OneTime!23",
+          validForHours: 24,
+        });
+      const contractKey = Object.keys(actionContracts).find((name) =>
+        url.endsWith("/" + actionContracts[name].path),
+      );
+      return json(collections[contractKey?.split(":")[0] ?? key ?? "tasks"][0]);
+    }
+    return json(context);
+  };
+  let count = 0;
+  for (const d of domains) {
+    for (const action of actions[d.key] ?? []) {
+      const contract = actionContracts[d.key + ":" + action.label];
+      const record = {
+        id: "target",
+        name: "Target",
+        branchId: "1",
+        branch: "Bui Vien",
+        departmentId: "2",
+        department: "Housekeeping",
+        createdAt: context.snapshot,
+        version: 0,
+        rowVersion: "version",
+        status: action.from?.[0] ?? "Active",
+        allowedActions: [contract.id],
+        assignee: "7",
+        creator: "7",
+        recipient: "7",
+        type:
+          action.label === "Post receipt"
+            ? "Receipt"
+            : action.label === "Post return"
+              ? "Return"
+              : "Transfer",
+        ...(action.label === "Conclude reinspection" ? { rework: "rw1" } : {}),
+      };
+      const values = {
+        reason: "A sufficient reason",
+        note: "Result confirmed",
+        lines: [{ id: "line1", item: "item1", unit: "unit1", quantity: 1 }],
+        results: [],
+        receivingDepartment: "2",
+        warehouse: "w1",
+        room: "201",
+      };
+      // Fields outside the action schema are discarded at the form/adapter boundary.
+      if (!(action.fields ?? []).some((field) => field.key === "lines"))
+        delete values.lines;
+      await s.perform(d, record, action, values);
+      count++;
+    }
+  }
+  assert.equal(count, Object.keys(actionContracts).length);
+  assert.equal(recorded.length, count);
+  assert.ok(
+    recorded.every(
+      (call) => !("status" in call.data) && !("statusCode" in call.data),
+    ),
+  );
+  assert.equal(localStorage.data.size, 0);
+  assert.equal(JSON.stringify(s.snapshot()).includes("OneTime!23"), false);
+});
+test("linked-work and preselected-room context is sent to the server", async () => {
+  await s.loadScreen(25, undefined, undefined, "?room=201&source=req1");
+  const call = calls.find((call) =>
+    call.url.includes("/api/ui/screens/25/context"),
+  );
+  const url = new URL(call.url);
+  assert.equal(url.searchParams.get("roomId"), "201");
+  assert.equal(url.searchParams.get("sourceRequestId"), "req1");
 });

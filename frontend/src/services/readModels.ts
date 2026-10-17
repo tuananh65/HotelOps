@@ -10,7 +10,7 @@ import type {
   User,
 } from "../types/entities";
 
-/** Typed read views over the existing transactional mock service. */
+/** Typed read views over the scoped API cache. */
 export const readModels = {
   users: () => visible("users") as User[],
   rooms: () => visible("rooms") as Room[],

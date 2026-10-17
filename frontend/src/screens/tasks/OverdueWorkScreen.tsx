@@ -141,9 +141,10 @@ export default function OverdueWorkScreen() {
                         <div className="header-actions">
                           <button
                             className="secondary"
-                            onClick={() => {
+                            disabled={service.isPending("corrections:" + c.id)}
+                            onClick={async () => {
                               try {
-                                service.applyCorrection(c, true);
+                                await service.applyCorrection(c, true);
                                 notify("Correction applied.");
                               } catch (e) {
                                 notify((e as Error).message);
@@ -154,9 +155,10 @@ export default function OverdueWorkScreen() {
                           </button>
                           <button
                             className="secondary"
-                            onClick={() => {
+                            disabled={service.isPending("corrections:" + c.id)}
+                            onClick={async () => {
                               try {
-                                service.applyCorrection(c, false);
+                                await service.applyCorrection(c, false);
                                 notify("Correction rejected.");
                               } catch (e) {
                                 notify((e as Error).message);
@@ -199,8 +201,13 @@ export default function OverdueWorkScreen() {
                 required: true,
               },
             ]}
-            onSubmit={(v) => {
-              service.requestCorrection(correction, v.start, v.end, v.reason);
+            onSubmit={async (v) => {
+              await service.requestCorrection(
+                correction,
+                v.start,
+                v.end,
+                v.reason,
+              );
               notify("Correction submitted to Department Head.");
               setCorrection(undefined);
             }}

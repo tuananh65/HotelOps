@@ -91,8 +91,8 @@ export default function CleaningAssignmentScreen() {
                   },
                 ]}
                 label="Confirm assignment"
-                onSubmit={(v) => {
-                  service.assign(d, r, v.assignee, v.reason || "");
+                onSubmit={async (v) => {
+                  await service.assign(d, r, v.assignee, v.reason || "");
                   notify("Assignment saved.");
                   nav(pathFor(d.detail, r.id));
                 }}

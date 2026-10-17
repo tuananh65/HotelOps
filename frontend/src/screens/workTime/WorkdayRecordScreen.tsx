@@ -26,11 +26,12 @@ export default function WorkdayRecordScreen() {
       <PageHeader id={73}>
         <button
           className="primary"
-          onClick={() => {
+          disabled={service.isPending("workday")}
+          onClick={async () => {
             if (!active) setStarting(true);
             else {
               try {
-                service.workday(false, "");
+                await service.workday(false, "");
                 notify("Workday ended.");
               } catch (e) {
                 notify((e as Error).message);
@@ -90,8 +91,8 @@ export default function WorkdayRecordScreen() {
               { key: "reason", label: "Reason / notes", type: "textarea" },
             ]}
             label="Start workday"
-            onSubmit={(v) => {
-              service.workday(true, v.reason || "");
+            onSubmit={async (v) => {
+              await service.workday(true, v.reason || "");
               setStarting(false);
               notify("Workday started.");
             }}

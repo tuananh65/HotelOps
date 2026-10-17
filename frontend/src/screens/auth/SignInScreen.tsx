@@ -19,33 +19,16 @@ export default function SignInScreen() {
             required: true,
           },
         ]}
-        initial={{ username: "demo.viewer", password: "DemoOnly@2026" }}
+        initial={{ username: "", password: "" }}
         label="Sign in"
-        onSubmit={(values) => {
-          const user = login(values.username, values.password);
-          navigate("/dashboard");
+        onSubmit={async (values) => {
+          const user = await login(values.username, values.password);
+          navigate("/profile");
         }}
       />
       <Link className="forgot" to="/forgot-password">
         {t("Forgot password?")}
       </Link>
-      <details className="demo">
-        <summary>{t("Local demo accounts")}</summary>
-        <p>
-          {t("Password:")}
-          <code>{t("HotelOps@2026")}</code>
-        </p>
-        <p>
-          {t(
-            "admin, manager, owner, hksupervisor, housekeeper, maintenancelead, technician, storekeeper, head",
-          )}
-        </p>
-        <small>
-          {t(
-            "This prototype stores demo data in this browser. It is not connected to an authentication server.",
-          )}
-        </small>
-      </details>
     </AuthLayout>
   );
 }

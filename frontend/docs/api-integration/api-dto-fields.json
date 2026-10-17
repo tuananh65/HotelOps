@@ -1,0 +1,1301 @@
+{
+  "users": {
+    "path": "/api/users",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "username",
+        "uiField": "username",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "email",
+        "uiField": "email",
+        "uiType": "email",
+        "required": true
+      },
+      {
+        "apiField": "phone",
+        "uiField": "phone",
+        "uiType": "tel",
+        "required": false
+      },
+      {
+        "apiField": "roleNames",
+        "uiField": "roles",
+        "uiType": "multiselect",
+        "required": true,
+        "options": [
+          "Administrator",
+          "Operations Manager",
+          "Owner",
+          "Housekeeping Supervisor",
+          "Housekeeping Staff",
+          "Maintenance Lead",
+          "Maintenance Staff",
+          "Storekeeper",
+          "Department Head"
+        ]
+      }
+    ],
+    "updateOverride": [
+      "name",
+      "email",
+      "phone"
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "roles": {
+    "path": "/api/roles",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "branches": {
+    "path": "/api/branches",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "address",
+        "uiField": "address",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "phone",
+        "uiField": "phone",
+        "uiType": "tel",
+        "required": false
+      },
+      {
+        "apiField": "email",
+        "uiField": "email",
+        "uiType": "email",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "locations": {
+    "path": "/api/locations",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "kindCode",
+        "uiField": "kind",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Floor",
+          "Area"
+        ]
+      },
+      {
+        "apiField": "parentFloorId",
+        "uiField": "parent",
+        "uiType": "location",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "roomTypes": {
+    "path": "/api/room-types",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "standardCleaningMinutes",
+        "uiField": "minutes",
+        "uiType": "number",
+        "required": true
+      },
+      {
+        "apiField": "checklistId",
+        "uiField": "checklist",
+        "uiType": "checklist",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "rooms": {
+    "path": "/api/rooms",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "floorId",
+        "uiField": "floor",
+        "uiType": "location",
+        "required": true
+      },
+      {
+        "apiField": "roomTypeId",
+        "uiField": "roomType",
+        "uiType": "roomType",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "departments": {
+    "path": "/api/departments",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "managerUserId",
+        "uiField": "head",
+        "uiType": "user",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "cleaning": {
+    "path": "/api/cleaning-tasks",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": true
+      },
+      {
+        "apiField": "priorityCode",
+        "uiField": "priority",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Low",
+          "Normal",
+          "High",
+          "Critical"
+        ]
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "cleaningType",
+        "uiField": "cleaningType",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Turnover",
+          "Daily",
+          "Deep cleaning"
+        ]
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "rework": {
+    "path": "/api/cleaning-reworks",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": false
+      },
+      {
+        "apiField": "priorityCode",
+        "uiField": "priority",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Low",
+          "Normal",
+          "High",
+          "Critical"
+        ]
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "inspectionId",
+        "uiField": "inspection",
+        "uiType": "inspection",
+        "required": true
+      },
+      {
+        "apiField": "assigneeId",
+        "uiField": "assignee",
+        "uiType": "housekeeper",
+        "required": true
+      },
+      {
+        "apiField": "defects",
+        "uiField": "defects",
+        "uiType": "textarea",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "checklists": {
+    "path": "/api/inspection-checklists",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "inspections": {
+    "path": "/api/inspections",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": true
+      },
+      {
+        "apiField": "cleaningTaskId",
+        "uiField": "cleaning",
+        "uiType": "cleaning",
+        "required": true
+      },
+      {
+        "apiField": "checklistId",
+        "uiField": "checklist",
+        "uiType": "checklist",
+        "required": true
+      },
+      {
+        "apiField": "assigneeId",
+        "uiField": "assignee",
+        "uiType": "inspector",
+        "required": true
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "incidents": {
+    "path": "/api/incidents",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": false
+      },
+      {
+        "apiField": "areaId",
+        "uiField": "area",
+        "uiType": "location",
+        "required": false
+      },
+      {
+        "apiField": "assetId",
+        "uiField": "asset",
+        "uiType": "asset",
+        "required": false
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "discoveredAt",
+        "uiField": "detectedAt",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "attachmentIds",
+        "uiField": "evidence",
+        "uiType": "file",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "schedules": {
+    "path": "/api/maintenance-schedules",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": false
+      },
+      {
+        "apiField": "priorityCode",
+        "uiField": "priority",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Low",
+          "Normal",
+          "High",
+          "Critical"
+        ]
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "areaId",
+        "uiField": "area",
+        "uiType": "location",
+        "required": false
+      },
+      {
+        "apiField": "assetId",
+        "uiField": "asset",
+        "uiType": "asset",
+        "required": false
+      },
+      {
+        "apiField": "interval",
+        "uiField": "interval",
+        "uiType": "number",
+        "required": true
+      },
+      {
+        "apiField": "intervalUnitCode",
+        "uiField": "intervalUnit",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Days",
+          "Weeks",
+          "Months"
+        ]
+      },
+      {
+        "apiField": "assigneeId",
+        "uiField": "assignee",
+        "uiType": "technician",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "reference": {
+    "path": "/api/reference-values",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "group",
+        "uiField": "group",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Incident category",
+          "Work category",
+          "Priority",
+          "Interruption reason",
+          "Request type",
+          "Cleaning type"
+        ]
+      },
+      {
+        "apiField": "responseMinutes",
+        "uiField": "responseMinutes",
+        "uiType": "number",
+        "required": false
+      },
+      {
+        "apiField": "resolutionMinutes",
+        "uiField": "resolutionMinutes",
+        "uiType": "number",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "assets": {
+    "path": "/api/assets",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "category",
+        "uiField": "category",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "model",
+        "uiField": "model",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "serial",
+        "uiField": "serial",
+        "uiType": "text",
+        "required": false
+      },
+      {
+        "apiField": "purchaseDate",
+        "uiField": "purchaseDate",
+        "uiType": "date",
+        "required": false
+      },
+      {
+        "apiField": "warrantyEnd",
+        "uiField": "warrantyEnd",
+        "uiType": "date",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "warehouses": {
+    "path": "/api/warehouses",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "items": {
+    "path": "/api/inventory-items",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "category",
+        "uiField": "category",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "unitId",
+        "uiField": "unit",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Piece",
+          "Bottle",
+          "Litre",
+          "Kilogram",
+          "Box"
+        ]
+      },
+      {
+        "apiField": "minimum",
+        "uiField": "minimum",
+        "uiType": "number",
+        "required": true
+      },
+      {
+        "apiField": "warehouseId",
+        "uiField": "warehouse",
+        "uiType": "warehouse",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "units": {
+    "path": "/api/units",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "factor",
+        "uiField": "factor",
+        "uiType": "number",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "transactions": {
+    "path": "/api/stock-documents",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "transactionTypeCode",
+        "uiField": "type",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Receipt",
+          "Transfer",
+          "Return"
+        ]
+      },
+      {
+        "apiField": "warehouseId",
+        "uiField": "warehouse",
+        "uiType": "warehouse",
+        "required": true
+      },
+      {
+        "apiField": "lines",
+        "uiField": "lines",
+        "uiType": "lines",
+        "required": true
+      },
+      {
+        "apiField": "destinationWarehouseId",
+        "uiField": "destination",
+        "uiType": "warehouse",
+        "required": false
+      },
+      {
+        "apiField": "source",
+        "uiField": "source",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "replenishmentId",
+        "uiField": "replenishment",
+        "uiType": "replenishment",
+        "required": false
+      },
+      {
+        "apiField": "issueDocumentId",
+        "uiField": "issue",
+        "uiType": "transaction",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "stocktakes": {
+    "path": "/api/stocktakes",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "warehouseId",
+        "uiField": "warehouse",
+        "uiType": "warehouse",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "materials": {
+    "path": "/api/material-requests",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "warehouseId",
+        "uiField": "warehouse",
+        "uiType": "warehouse",
+        "required": true
+      },
+      {
+        "apiField": "lines",
+        "uiField": "lines",
+        "uiType": "lines",
+        "required": true
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "linkedWork",
+        "uiField": "linkedWork",
+        "uiType": "work",
+        "required": false
+      },
+      {
+        "apiField": "submission",
+        "uiField": "submission",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Submit",
+          "Save draft"
+        ]
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "replenishments": {
+    "path": "/api/replenishments",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "warehouseId",
+        "uiField": "warehouse",
+        "uiType": "warehouse",
+        "required": true
+      },
+      {
+        "apiField": "lines",
+        "uiField": "lines",
+        "uiType": "lines",
+        "required": true
+      },
+      {
+        "apiField": "supplier",
+        "uiField": "supplier",
+        "uiType": "text",
+        "required": false
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "tasks": {
+    "path": "/api/tasks",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": false
+      },
+      {
+        "apiField": "priorityCode",
+        "uiField": "priority",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Low",
+          "Normal",
+          "High",
+          "Critical"
+        ]
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "category",
+        "uiField": "category",
+        "uiType": "text",
+        "required": true
+      },
+      {
+        "apiField": "plannedStartAt",
+        "uiField": "plannedStart",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "recurrenceCode",
+        "uiField": "recurrence",
+        "uiType": "select",
+        "required": false,
+        "options": [
+          "None",
+          "Daily",
+          "Weekly",
+          "Monthly"
+        ]
+      },
+      {
+        "apiField": "weekdays",
+        "uiField": "weekdays",
+        "uiType": "multiselect",
+        "required": false,
+        "options": [
+          "Sunday",
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday"
+        ]
+      },
+      {
+        "apiField": "monthDay",
+        "uiField": "monthDay",
+        "uiType": "number",
+        "required": false
+      },
+      {
+        "apiField": "seriesEnd",
+        "uiField": "seriesEnd",
+        "uiType": "date",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "shifts": {
+    "path": "/api/shifts",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": false
+      },
+      {
+        "apiField": "date",
+        "uiField": "date",
+        "uiType": "date",
+        "required": true
+      },
+      {
+        "apiField": "startAt",
+        "uiField": "start",
+        "uiType": "time",
+        "required": true
+      },
+      {
+        "apiField": "endAt",
+        "uiField": "end",
+        "uiType": "time",
+        "required": true
+      },
+      {
+        "apiField": "assigneeIds",
+        "uiField": "assignees",
+        "uiType": "employees",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "handovers": {
+    "path": "/api/shift-handovers",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "receiverId",
+        "uiField": "receiver",
+        "uiType": "user",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "requests": {
+    "path": "/api/internal-requests",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": false
+      },
+      {
+        "apiField": "priorityCode",
+        "uiField": "priority",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Low",
+          "Normal",
+          "High",
+          "Critical"
+        ]
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "receivingDepartmentId",
+        "uiField": "receivingDepartment",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Housekeeping",
+          "Maintenance",
+          "Warehouse",
+          "Operations"
+        ]
+      },
+      {
+        "apiField": "requestType",
+        "uiField": "requestType",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Operational support",
+          "Guest service support",
+          "Facility support"
+        ]
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "notifications": {
+    "path": "/api/notifications",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "maintenance": {
+    "path": "/api/maintenance-work",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [
+      {
+        "apiField": "roomId",
+        "uiField": "room",
+        "uiType": "room",
+        "required": false
+      },
+      {
+        "apiField": "priorityCode",
+        "uiField": "priority",
+        "uiType": "select",
+        "required": true,
+        "options": [
+          "Low",
+          "Normal",
+          "High",
+          "Critical"
+        ]
+      },
+      {
+        "apiField": "dueAt",
+        "uiField": "due",
+        "uiType": "datetime-local",
+        "required": true
+      },
+      {
+        "apiField": "description",
+        "uiField": "description",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "criteria",
+        "uiField": "criteria",
+        "uiType": "textarea",
+        "required": true
+      },
+      {
+        "apiField": "assetId",
+        "uiField": "asset",
+        "uiType": "asset",
+        "required": false
+      },
+      {
+        "apiField": "incidentId",
+        "uiField": "incident",
+        "uiType": "text",
+        "required": false
+      },
+      {
+        "apiField": "scheduleId",
+        "uiField": "schedule",
+        "uiType": "text",
+        "required": false
+      }
+    ],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  },
+  "audit": {
+    "path": "/api/audit-logs",
+    "request": "EntityWriteDto",
+    "topLevel": [
+      "name",
+      "code",
+      "branchId",
+      "departmentId",
+      "rowVersion (update only)",
+      "attributes"
+    ],
+    "attributes": [],
+    "source": "API đề xuất – cần đối chiếu với back-end"
+  }
+}
