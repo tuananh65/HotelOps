@@ -1,0 +1,247 @@
+{
+  "MSG01": {
+    "#": "1",
+    "Message code": "MSG01",
+    "Message Type": "Dialog",
+    "Context": "Session missing, expired or revoked",
+    "Content": "Your session has expired. Please log in again."
+  },
+  "MSG02": {
+    "#": "2",
+    "Message code": "MSG02",
+    "Message Type": "Toast message",
+    "Context": "Missing permission or record outside the user's scope",
+    "Content": "You do not have permission to perform this action."
+  },
+  "MSG03": {
+    "#": "3",
+    "Message code": "MSG03",
+    "Message Type": "In red, under the text box",
+    "Context": "A field or business rule is violated",
+    "Content": "{Field}: {reason}. Please check and try again."
+  },
+  "MSG04": {
+    "#": "4",
+    "Message code": "MSG04",
+    "Message Type": "Toast message",
+    "Context": "Screen or data cannot be loaded",
+    "Content": "Unable to load data. Please try again."
+  },
+  "MSG05": {
+    "#": "5",
+    "Message code": "MSG05",
+    "Message Type": "Dialog",
+    "Context": "Record changed by someone else since it was loaded (row_version mismatch)",
+    "Content": "This record has been changed by another user. Please reload and try again."
+  },
+  "MSG06": {
+    "#": "6",
+    "Message code": "MSG06",
+    "Message Type": "Toast message",
+    "Context": "Transaction rolled back",
+    "Content": "Unable to save. No data has been changed."
+  },
+  "MSG07": {
+    "#": "7",
+    "Message code": "MSG07",
+    "Message Type": "Dialog",
+    "Context": "Result of a write is unknown or still processing",
+    "Content": "The result is not confirmed yet. Please reload the record before trying again."
+  },
+  "MSG08": {
+    "#": "8",
+    "Message code": "MSG08",
+    "Message Type": "Toast message",
+    "Context": "Create/update/status change saved",
+    "Content": "{Object} has been saved successfully."
+  },
+  "MSG09": {
+    "#": "9",
+    "Message code": "MSG09",
+    "Message Type": "Toast message",
+    "Context": "Record submitted and waiting for another person",
+    "Content": "{Object} has been submitted and is waiting for {next step}."
+  },
+  "MSG10": {
+    "#": "10",
+    "Message code": "MSG10",
+    "Message Type": "In line",
+    "Context": "Query returns no record",
+    "Content": "No matching results."
+  },
+  "MSG11": {
+    "#": "11",
+    "Message code": "MSG11",
+    "Message Type": "In line",
+    "Context": "Wrong credentials, unknown or inactive account",
+    "Content": "Invalid username/email or password."
+  },
+  "MSG12": {
+    "#": "12",
+    "Message code": "MSG12",
+    "Message Type": "In line",
+    "Context": "Correct credentials but account still locked",
+    "Content": "Your account is temporarily locked. Please try again after {time}."
+  },
+  "MSG13": {
+    "#": "13",
+    "Message code": "MSG13",
+    "Message Type": "In line",
+    "Context": "Temporary password expired",
+    "Content": "Your temporary password has expired. Please contact the Administrator."
+  },
+  "MSG14": {
+    "#": "14",
+    "Message code": "MSG14",
+    "Message Type": "In line",
+    "Context": "Forgot Password",
+    "Content": "If you need your password reset, please contact the Administrator."
+  },
+  "MSG15": {
+    "#": "15",
+    "Message code": "MSG15",
+    "Message Type": "Dialog",
+    "Context": "Temporary password generated",
+    "Content": "Temporary password: {password}. It is shown only once and expires in {hours} hours."
+  },
+  "MSG16": {
+    "#": "16",
+    "Message code": "MSG16",
+    "Message Type": "In red, under the text box",
+    "Context": "Available stock is lower than the quantity to issue/dispatch",
+    "Content": "Insufficient stock for {item}: available {available}, requested {quantity}."
+  },
+  "MSG17": {
+    "#": "17",
+    "Message code": "MSG17",
+    "Message Type": "Toast message",
+    "Context": "Inspection passed but the room still has an effective block",
+    "Content": "Inspection passed. The room remains Blocked until incident {incident} is resolved."
+  },
+  "MSG18": {
+    "#": "18",
+    "Message code": "MSG18",
+    "Message Type": "Toast message",
+    "Context": "Partial quantity recorded",
+    "Content": "Recorded {quantity}. Remaining: {remaining}."
+  },
+  "MSG19": {
+    "#": "19",
+    "Message code": "MSG19",
+    "Message Type": "Toast message",
+    "Context": "Rejection or decline saved",
+    "Content": "{Object} has been rejected. The reason has been recorded."
+  },
+  "MSG20": {
+    "#": "20",
+    "Message code": "MSG20",
+    "Message Type": "Toast message",
+    "Context": "Record returned for rework or more information",
+    "Content": "{Object} has been returned to {person} for {action}."
+  },
+  "MSG21": {
+    "#": "21",
+    "Message code": "MSG21",
+    "Message Type": "Toast message",
+    "Context": "Business data saved but notification creation failed (will retry)",
+    "Content": "The data has been saved, but the notification has not been sent yet. The system will retry."
+  },
+  "MSG22": {
+    "#": "22",
+    "Message code": "MSG22",
+    "Message Type": "Dialog",
+    "Context": "Segregation-of-duties violation",
+    "Content": "You cannot approve or verify a result that you requested, submitted or performed."
+  },
+  "MSG23": {
+    "#": "23",
+    "Message code": "MSG23",
+    "Message Type": "In red, under the text box",
+    "Context": "Attachment violates format, size or count limits",
+    "Content": "Invalid file. Only JPG, PNG or PDF files up to 10 MB each and 5 files per upload are accepted."
+  },
+  "MSG24": {
+    "#": "24",
+    "Message code": "MSG24",
+    "Message Type": "Toast message",
+    "Context": "Action not allowed in the record's current status",
+    "Content": "{Object} is {status} and can no longer be changed by this action."
+  },
+  "MSG25": {
+    "#": "25",
+    "Message code": "MSG25",
+    "Message Type": "Toast message",
+    "Context": "Report file created",
+    "Content": "The report has been exported with the selected filters."
+  },
+  "MSG26": {
+    "#": "26",
+    "Message code": "MSG26",
+    "Message Type": "In line",
+    "Context": "Export exceeds the row limit",
+    "Content": "The report has more than 50,000 rows. Please narrow the filters."
+  },
+  "MSG27": {
+    "#": "27",
+    "Message code": "MSG27",
+    "Message Type": "Toast message",
+    "Context": "Export file could not be created",
+    "Content": "Unable to create the report file. Please try again."
+  },
+  "MSG28": {
+    "#": "28",
+    "Message code": "MSG28",
+    "Message Type": "Toast message",
+    "Context": "Action already processed (double submission)",
+    "Content": "This action has already been processed. Please reload to see the current result."
+  },
+  "MSG29": {
+    "#": "29",
+    "Message code": "MSG29",
+    "Message Type": "In line",
+    "Context": "Some source data is missing or not yet updated",
+    "Content": "Data as of {snapshot}. Missing data: {sources}."
+  },
+  "MSG30": {
+    "#": "30",
+    "Message code": "MSG30",
+    "Message Type": "Dialog",
+    "Context": "User starts work without a Working workday",
+    "Content": "Please start your workday before starting work."
+  },
+  "MSG31": {
+    "#": "31",
+    "Message code": "MSG31",
+    "Message Type": "Dialog",
+    "Context": "User already has an open work interval",
+    "Content": "You are working on {item}. Pause, hold or complete it before starting another item."
+  },
+  "MSG32": {
+    "#": "32",
+    "Message code": "MSG32",
+    "Message Type": "Dialog",
+    "Context": "Similar open incidents found",
+    "Content": "Open incidents already exist at this location: {list}. Add information to an existing incident or continue creating a new one."
+  },
+  "MSG33": {
+    "#": "33",
+    "Message code": "MSG33",
+    "Message Type": "Dialog",
+    "Context": "Before deactivate, cancel, reject, reverse, retire or close",
+    "Content": "Are you sure you want to {action} {object}? This cannot be undone."
+  },
+  "MSG34": {
+    "#": "34",
+    "Message code": "MSG34",
+    "Message Type": "Dialog",
+    "Context": "Deactivation/closing blocked by dependent records",
+    "Content": "{Object} cannot be {action} because it still has {dependencies}."
+  },
+  "MSG35": {
+    "#": "35",
+    "Message code": "MSG35",
+    "Message Type": "In red, under the text box",
+    "Context": "Unique code/number/name already exists",
+    "Content": "{Field} '{value}' already exists."
+  }
+}

@@ -1,0 +1,261 @@
+[
+  {
+    "id": 5,
+    "text": "Air conditioner not cooling · Room 202",
+    "url": "http://127.0.0.1:5173/incidents/INC-CT-6",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 6,
+    "text": "Welcome to HotelOps",
+    "url": "http://127.0.0.1:5173/notifications/BV-WELCOME-9",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 8,
+    "text": "Warehouse Department Head",
+    "url": "http://127.0.0.1:5173/users/CT-DH-WAREHOUSE-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 10,
+    "text": "Storekeeper",
+    "url": "http://127.0.0.1:5173/roles/BV-STOREKEEPER-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 13,
+    "text": "Cao Thang",
+    "url": "http://127.0.0.1:5173/branches/CT-CT-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 15,
+    "text": "Floor 3",
+    "url": "http://127.0.0.1:5173/locations/CT-F3-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 17,
+    "text": "Deluxe",
+    "url": "http://127.0.0.1:5173/room-types/CT-DLX-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 19,
+    "text": "Room 564",
+    "url": "http://127.0.0.1:5173/rooms/DEMO-ROOMS-64",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 21,
+    "text": "Warehouse",
+    "url": "http://127.0.0.1:5173/departments/CT-WAR-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 24,
+    "text": "Turnover · Room 203 · 30",
+    "url": "http://127.0.0.1:5173/cleaning/tasks/DEMO-CLEANING-30",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 28,
+    "text": "Fix bathroom mirror",
+    "url": "http://127.0.0.1:5173/rework/BV-RW-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 30,
+    "text": "Turnover · Room 203 · 30",
+    "url": "http://127.0.0.1:5173/cleaning/tasks/DEMO-CLEANING-30",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 31,
+    "text": "Deep cleaning",
+    "url": "http://127.0.0.1:5173/checklists/DEMO-CHECKLISTS-5",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 33,
+    "text": "Room recovery · final reinspection",
+    "url": "http://127.0.0.1:5173/inspections/DEMO-REINSPECTION-001/result",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 38,
+    "text": "Room recovery · final reinspection",
+    "url": "http://127.0.0.1:5173/inspections/DEMO-REINSPECTION-001/result",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 39,
+    "text": "Air conditioner not cooling · 22",
+    "url": "http://127.0.0.1:5173/incidents/DEMO-INCIDENTS-22",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 43,
+    "text": "Air conditioner not cooling · 22",
+    "url": "http://127.0.0.1:5173/maintenance/tasks/DEMO-INCIDENTS-22",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 45,
+    "text": "Monthly HVAC inspection",
+    "url": "http://127.0.0.1:5173/maintenance/schedules/BV-PM-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 47,
+    "text": "Low · 9",
+    "url": "http://127.0.0.1:5173/reference-data",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 48,
+    "text": "Daikin air conditioner · 42",
+    "url": "http://127.0.0.1:5173/assets/DEMO-ASSETS-42",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 50,
+    "text": "Air conditioner not cooling",
+    "url": "http://127.0.0.1:5173/incidents/BV-INC-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 51,
+    "text": "Main warehouse",
+    "url": "http://127.0.0.1:5173/inventory/warehouses/CT-MAIN-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 53,
+    "text": "Plumbing seal",
+    "url": "http://127.0.0.1:5173/inventory/items/ITM-029",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 54,
+    "text": "Bathroom cleaner · 35",
+    "url": "http://127.0.0.1:5173/inventory/items/DEMO-ITEMS-35",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 56,
+    "text": "Piece",
+    "url": "http://127.0.0.1:5173/inventory/units",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 57,
+    "text": "Amenities supplier receipt",
+    "url": "http://127.0.0.1:5173/inventory/transactions/BV-REC-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 59,
+    "text": "Main warehouse cycle count",
+    "url": "http://127.0.0.1:5173/inventory/stocktakes/BV-ST-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 61,
+    "text": "Opening count · Tea sachet · 48",
+    "url": "http://127.0.0.1:5173/inventory/ledger",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 62,
+    "text": "Replenish room amenities · 18",
+    "url": "http://127.0.0.1:5173/material-requests/DEMO-MATERIALS-18",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 64,
+    "text": "Guest shampoo low-stock replenishment",
+    "url": "http://127.0.0.1:5173/replenishments/BV-REP-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 66,
+    "text": "Prepare rooftop event area · 32",
+    "url": "http://127.0.0.1:5173/tasks/DEMO-TASKS-32",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 69,
+    "text": "Bui Thu Trang",
+    "url": "http://127.0.0.1:5173/workload",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 70,
+    "text": "Inspect linen delivery · 9",
+    "url": "http://127.0.0.1:5173/tasks/TSK-CT-9",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 71,
+    "text": "Housekeeping day shift",
+    "url": "http://127.0.0.1:5173/shifts/BV-HK-DAY-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 74,
+    "text": "Housekeeping afternoon handover",
+    "url": "http://127.0.0.1:5173/handovers/BV-HO-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 76,
+    "text": "Move rooftop event furniture",
+    "url": "http://127.0.0.1:5173/internal-requests/BV-IR-001-1",
+    "action": true,
+    "unavailable": 0
+  },
+  {
+    "id": 79,
+    "text": "Mark as read · Welcome to HotelOps",
+    "url": "http://127.0.0.1:5173/audit-logs/0c41afdf-2a87-4d0f-b2ca-b167b0c32f4b",
+    "action": true,
+    "unavailable": 0
+  }
+]
