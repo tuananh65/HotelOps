@@ -222,6 +222,19 @@ public sealed class IncidentService : IIncidentService
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
 
         // Serialize allocation across application instances until this transaction ends.
+        // Asset -> Incident number allocation. Retirement and handover writers also
+        // lock Asset first; never allocate an Incident number while waiting for Asset.
+        if (request.AssetId is long assetId)
+        {
+            var asset = await _dbContext.Assets
+                .FromSqlInterpolated($"SELECT * FROM assets WITH (UPDLOCK, HOLDLOCK) WHERE asset_id = {assetId}")
+                .AsTracking().SingleOrDefaultAsync(cancellationToken);
+            if (asset is null || asset.BranchId != request.BranchId)
+                throw new ValidationException("AssetId must identify an asset in the specified branch.");
+            if (asset.LifecycleStatus == "RETIRED")
+                throw new ValidationException("A retired Asset cannot receive a new Incident.");
+        }
+
         // Range locks also protect allocation against writers that do not take the application lock.
         var resource = "HotelOps:IncidentNo:" + prefix;
         await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
