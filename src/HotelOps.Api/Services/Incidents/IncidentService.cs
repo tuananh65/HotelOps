@@ -17,6 +17,112 @@ public sealed class IncidentService : IIncidentService
         _dbContext = dbContext;
     }
 
+    public async Task<IncidentDetailDto?> ChangeIncidentStatusAsync(long id, ChangeIncidentStatusRequest request, CancellationToken cancellationToken)
+    {
+        Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        var incident = await _dbContext.Incidents
+            .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
+            .AsTracking()
+            .SingleOrDefaultAsync(cancellationToken);
+        if (incident is null)
+        {
+            return null;
+        }
+
+        if (!await _dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+            throw new ValidationException("ActorUserId does not exist.");
+
+        var status = request.Status.Trim().ToUpperInvariant();
+        if (status is not ("OPEN" or "IN_PROGRESS" or "RESOLVED" or "CLOSED" or "CANCELLED"))
+            throw new ValidationException("Status must be OPEN, IN_PROGRESS, RESOLVED, CLOSED, or CANCELLED.");
+
+        if (incident.Status != status)
+        {
+            var allowed = (incident.Status, status) switch
+            {
+                ("OPEN", "IN_PROGRESS" or "CANCELLED") => true,
+                ("IN_PROGRESS", "RESOLVED" or "CANCELLED") => true,
+                ("RESOLVED", "CLOSED") => true,
+                _ => false
+            };
+            if (!allowed)
+                throw new ValidationException($"Transition from {incident.Status} to {status} is not allowed.");
+
+            var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
+            if (status is "CLOSED" or "CANCELLED" && note is null)
+                throw new ValidationException("Note is required when closing or cancelling an incident.");
+
+            var occurredAt = DateTime.UtcNow;
+            var previousStatus = incident.Status;
+            var previousResolvedAt = incident.ResolvedAt;
+            var previousClosedAt = incident.ClosedAt;
+            var previousClosureNote = incident.ClosureNote;
+            var oldValues = JsonSerializer.Serialize(new
+            {
+                status = previousStatus,
+                resolved_at = previousResolvedAt,
+                closed_at = previousClosedAt,
+                closure_note = previousClosureNote
+            });
+
+            incident.Status = status;
+            if (status == "RESOLVED")
+            {
+                incident.ResolvedAt = occurredAt;
+            }
+            else if (status == "CLOSED")
+            {
+                incident.ClosedAt = occurredAt;
+                incident.ClosureNote = note;
+            }
+
+            var changedFields = new List<string> { "status" };
+            if (incident.ResolvedAt != previousResolvedAt)
+                changedFields.Add("resolved_at");
+            if (incident.ClosedAt != previousClosedAt)
+                changedFields.Add("closed_at");
+            if (incident.ClosureNote != previousClosureNote)
+                changedFields.Add("closure_note");
+
+            _dbContext.IncidentEvents.Add(new IncidentEvent
+            {
+                IncidentId = incident.IncidentId,
+                EventType = "STATUS_CHANGED",
+                FromStatus = previousStatus,
+                ToStatus = status,
+                ActorId = request.ActorUserId,
+                Note = note,
+                OccurredAt = occurredAt
+            });
+            _dbContext.AuditLogs.Add(new AuditLog
+            {
+                EntityType = "incidents",
+                EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
+                Action = "UPDATE",
+                ActorUserId = request.ActorUserId,
+                BranchId = incident.BranchId,
+                OccurredAt = occurredAt,
+                OldValues = oldValues,
+                NewValues = JsonSerializer.Serialize(new
+                {
+                    status = incident.Status,
+                    resolved_at = incident.ResolvedAt,
+                    closed_at = incident.ClosedAt,
+                    closure_note = incident.ClosureNote
+                }),
+                ChangedFields = JsonSerializer.Serialize(changedFields)
+            });
+            await _dbContext.SaveChangesAsync(cancellationToken);
+        }
+
+        var result = await GetIncidentAsync(id, cancellationToken)
+            ?? throw new InvalidOperationException("Incident could not be read after status operation.");
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
     public async Task<IncidentDetailDto?> TriageIncidentAsync(long id, TriageIncidentRequest request, CancellationToken cancellationToken)
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
