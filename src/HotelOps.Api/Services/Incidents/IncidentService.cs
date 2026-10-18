@@ -44,7 +44,7 @@ public sealed class IncidentService : IIncidentService
             {
                 ("OPEN", "IN_PROGRESS" or "CANCELLED") => true,
                 ("IN_PROGRESS", "RESOLVED" or "CANCELLED") => true,
-                ("RESOLVED", "CLOSED") => true,
+                ("RESOLVED", "CLOSED" or "IN_PROGRESS") => true,
                 _ => false
             };
             if (!allowed)
@@ -53,6 +53,8 @@ public sealed class IncidentService : IIncidentService
             var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
             if (status is "CLOSED" or "CANCELLED" && note is null)
                 throw new ValidationException("Note is required when closing or cancelling an incident.");
+            if (incident.Status == "RESOLVED" && status == "IN_PROGRESS" && note is null)
+                throw new ValidationException("A reason is required when returning a resolved incident for rework.");
 
             var occurredAt = DateTime.UtcNow;
             var previousStatus = incident.Status;
@@ -71,6 +73,10 @@ public sealed class IncidentService : IIncidentService
             if (status == "RESOLVED")
             {
                 incident.ResolvedAt = occurredAt;
+            }
+            else if (previousStatus == "RESOLVED" && status == "IN_PROGRESS")
+            {
+                incident.ResolvedAt = null;
             }
             else if (status == "CLOSED")
             {
