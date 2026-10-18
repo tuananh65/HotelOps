@@ -1,8 +1,0 @@
-node_modules
-dist
-src/catalog.json
-docs/requirements
-docs/verification
-package-lock.json
-.test-output
-test-results
