@@ -9,6 +9,132 @@ namespace HotelOps.Api.Controllers;
 [Route("api/assets")]
 public sealed class AssetsController(IAssetService service) : ControllerBase
 {
+    [HttpPost("{assetId:long}/handovers")]
+    public async Task<ActionResult<AssetHandoverDto>> CreateHandover(long assetId, CreateAssetHandoverRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.CreateHandoverAsync(assetId, request, cancellationToken);
+            if (result is null) return NotFound();
+            return CreatedAtAction(nameof(GetHandover), new { handoverId = result.HandoverId }, result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpGet("{assetId:long}/handovers")]
+    public async Task<ActionResult<AssetPagedResponse<AssetHandoverDto>>> GetHandovers(long assetId, [FromQuery] AssetPageRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.GetHandoversAsync(assetId, request, cancellationToken);
+            if (result is null) return NotFound();
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpGet("/api/asset-handovers/{handoverId:long}")]
+    public async Task<ActionResult<AssetHandoverDto>> GetHandover(long handoverId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.GetHandoverAsync(handoverId, cancellationToken);
+            if (result is null) return NotFound();
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpPost("/api/asset-handovers/{handoverId:long}/accept")]
+    public async Task<ActionResult<AssetHandoverDto>> AcceptHandover(long handoverId, AcceptAssetHandoverRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.AcceptHandoverAsync(handoverId, request, cancellationToken);
+            if (result is null) return NotFound();
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpPost("/api/asset-handovers/{handoverId:long}/reject")]
+    public async Task<ActionResult<AssetHandoverDto>> RejectHandover(long handoverId, RejectAssetHandoverRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.RejectHandoverAsync(handoverId, request, cancellationToken);
+            if (result is null) return NotFound();
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpPost("{assetId:long}/retire")]
+    public async Task<ActionResult<AssetDetailDto>> RetireAsset(long assetId, RetireAssetRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.RetireAssetAsync(assetId, request, cancellationToken);
+            if (result is null) return NotFound();
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpGet("{assetId:long}/maintenance-history")]
+    public async Task<ActionResult<AssetPagedResponse<AssetMaintenanceHistoryDto>>> GetMaintenanceHistory(long assetId, [FromQuery] AssetMaintenanceHistoryRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.GetMaintenanceHistoryAsync(assetId, request, cancellationToken);
+            if (result is null) return NotFound();
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpGet("statistics/by-location")]
+    public async Task<ActionResult<AssetLocationStatisticsResponse>> GetStatistics([FromQuery] AssetStatisticsRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await service.GetStatisticsAsync(request, cancellationToken);
+            return Ok(result);
+        }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: StatusCodes.Status400BadRequest,
+                title: "Asset validation failed", detail: exception.Message);
+        }
+    }
     [HttpGet]
     public async Task<ActionResult<AssetPagedResponse<AssetListDto>>> GetAssets([FromQuery] AssetQueryRequest request, CancellationToken cancellationToken)
     {
