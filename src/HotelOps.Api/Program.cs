@@ -1,5 +1,6 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.Services.Incidents;
+using HotelOps.Api.Services.Maintenance;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ builder.Services.AddDbContext<HotelOpsDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddScoped<IIncidentService, IncidentService>();
+builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
