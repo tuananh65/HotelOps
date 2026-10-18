@@ -1,4 +1,5 @@
 using HotelOps.Api.Data;
+using HotelOps.Api.Services.Assets;
 using HotelOps.Api.Services.Incidents;
 using HotelOps.Api.Services.Maintenance;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ builder.Services.AddDbContext<HotelOpsDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddScoped<IIncidentService, IncidentService>();
+builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 
 builder.Services.AddControllers();
