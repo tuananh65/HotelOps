@@ -60,6 +60,7 @@ export interface LoginRequest {
 export interface PasswordRequest {
   currentPassword: string;
   newPassword: string;
+  confirmNewPassword: string;
 }
 export interface MaterialLineDto {
   id?: Id;

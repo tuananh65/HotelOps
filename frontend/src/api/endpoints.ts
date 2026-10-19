@@ -38,10 +38,11 @@ export const resourcePaths = {
 } as const;
 export type ResourceKey = keyof typeof resourcePaths;
 export const endpoints = {
+  csrf: "/api/auth/csrf",
   login: "/api/auth/login",
   session: "/api/auth/session",
   logout: "/api/auth/logout",
-  password: "/api/auth/password",
+  password: "/api/auth/change-password",
   context: (screen: number) => "/api/ui/screens/" + screen + "/context",
   dashboard: "/api/dashboards/operations",
   reports: "/api/reports",

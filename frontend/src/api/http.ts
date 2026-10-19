@@ -151,6 +151,17 @@ export async function request<T>(
         configuration: "API configuration is incomplete.",
       };
       if (response.status === 401 && !options.public) onUnauthorized();
+      const authMessages: Record<string, string> = {
+        INVALID_CREDENTIALS: "Invalid username/email or password.",
+        ACCOUNT_LOCKED: "This account is temporarily locked. Try again later.",
+        TEMPORARY_PASSWORD_EXPIRED: "Temporary password has expired. Contact your administrator.",
+        SESSION_INVALID: "Your session has expired. Please sign in again.",
+        AUTHENTICATED_SESSION_EXISTS: "You are already signed in. Refresh the page.",
+        CURRENT_PASSWORD_INVALID: "Current password is incorrect.",
+        PASSWORD_POLICY_VIOLATION: "New password does not satisfy the password rules.",
+        VALIDATION_FAILED: "Check the form fields and try again.",
+        AUTH_STATE_CHANGED: "Account security state changed. Sign in again.",
+      };
       const template = (systemMessages as Record<string, string>)[
         problem.code ?? ""
       ];
@@ -159,7 +170,7 @@ export async function request<T>(
         (match, key: string) => String(problem.parameters?.[key] ?? match),
       );
       throw new ApiError(
-        problem.detail || catalogMessage || problem.title || defaults[kind],
+        problem.detail || authMessages[problem.code ?? ""] || catalogMessage || problem.title || defaults[kind],
         response.status,
         kind,
         problem,

@@ -1,5 +1,6 @@
 import { endpoints, resourcePaths, type ResourceKey } from "./endpoints";
-import { request, ApiError } from "./http";
+import { request, ApiError, configureSession } from "./http";
+import { adaptBackendSession, type BackendSessionDto } from "./authAdapter";
 import type {
   EntityDto,
   EntityWriteDto,
@@ -51,17 +52,27 @@ export const incidentReads = {
     ),
 };
 export const authService = {
-  session: (signal?: AbortSignal) =>
-    request<SessionDto>(endpoints.session, { signal }),
-  login: (body: LoginRequest) =>
-    request<SessionDto>(endpoints.login, {
-      method: "POST",
-      body,
-      public: true,
-    }),
+  csrf: () =>
+    request<{ csrfToken: string; headerName: string }>(endpoints.csrf, { public: true }),
+  session: async (signal?: AbortSignal): Promise<SessionDto> =>
+    adaptBackendSession(await request<BackendSessionDto>(endpoints.session, { signal })),
+  login: async (body: LoginRequest): Promise<SessionDto> => {
+    // BE1's antiforgery middleware also protects the anonymous login request.
+    const bootstrap = await request<{ csrfToken: string; headerName: string }>(
+      endpoints.csrf, { public: true },
+    );
+    if (bootstrap.headerName !== "X-CSRF-TOKEN" || !bootstrap.csrfToken)
+      throw new ApiError("CSRF bootstrap response is invalid.", 0, "configuration");
+    configureSession(undefined, bootstrap.csrfToken);
+    return adaptBackendSession(await request<BackendSessionDto>(endpoints.login, {
+      method: "POST", body, public: true,
+    }));
+  },
   logout: () => request<void>(endpoints.logout, { method: "POST" }),
-  changePassword: (body: PasswordRequest) =>
-    request<void>(endpoints.password, { method: "POST", body }),
+  changePassword: async (body: PasswordRequest): Promise<SessionDto> =>
+    adaptBackendSession(await request<BackendSessionDto>(endpoints.password, {
+      method: "POST", body,
+    })),
 };
 export const contextService = {
   get: (screen: number, query: Query, signal?: AbortSignal) =>
