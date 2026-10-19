@@ -151,6 +151,8 @@ public partial class User
 
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 
+    public virtual ICollection<StockTransferReceipt> StockTransferReceipts { get; set; } = new List<StockTransferReceipt>();
+
     public virtual ICollection<Stocktake> StocktakeApprovedByNavigations { get; set; } = new List<Stocktake>();
 
     public virtual ICollection<Stocktake> StocktakeCountedByNavigations { get; set; } = new List<Stocktake>();

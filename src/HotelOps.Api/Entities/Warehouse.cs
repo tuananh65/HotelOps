@@ -23,6 +23,8 @@ public partial class Warehouse
 
     public DateTime? CreatedAt { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual Branch Branch { get; set; } = null!;
 
     public virtual Department? Department { get; set; }

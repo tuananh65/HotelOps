@@ -15,6 +15,8 @@ public partial class UnitsOfMeasure
 
     public bool IsActive { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
 
     public virtual ICollection<MaterialFulfillmentLine> MaterialFulfillmentLines { get; set; } = new List<MaterialFulfillmentLine>();
