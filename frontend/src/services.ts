@@ -241,14 +241,13 @@ export async function changePassword(
     throw new ApiError("Passwords must match.", 400, "validation", {
       errors: { confirm: ["Passwords must match."] },
     });
-  await authService.changePassword({
+  const updated = await authService.changePassword({
     currentPassword: current,
     newPassword: next,
+    confirmNewPassword: confirm,
   });
-  // Session rotation/revocation is server-owned; reload the confirmed session in cookie mode.
-  if (apiConfig.authMode === "cookie")
-    applySession(await authService.session());
-  else clearSession();
+  // Password change rotates the backend session and returns the new cookie session.
+  applySession(updated);
 }
 function grantMatches(uc: string, record?: RecordData) {
   return (
