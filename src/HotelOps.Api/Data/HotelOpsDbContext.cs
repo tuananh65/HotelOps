@@ -156,6 +156,14 @@ public partial class HotelOpsDbContext : DbContext
 
     public virtual DbSet<WorkShift> WorkShifts { get; set; }
 
+    public virtual DbSet<StockTransferReceipt> StockTransferReceipts { get; set; }
+
+    public virtual DbSet<StockTransferReceiptLine> StockTransferReceiptLines { get; set; }
+
+    public virtual DbSet<StockReceiptLineDetail> StockReceiptLineDetails { get; set; }
+
+    public virtual DbSet<StockReturnLineDetail> StockReturnLineDetails { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -1250,6 +1258,11 @@ public partial class HotelOpsDbContext : DbContext
         modelBuilder.Entity<InventoryItem>(entity =>
         {
             entity.HasKey(e => e.ItemId).HasName("PK__inventor__52020FDD14FA6F3D");
+
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
 
             entity.ToTable("inventory_items");
 
@@ -2392,6 +2405,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.DocumentId).HasName("PK__stock_do__9666E8AC2AC8BA18");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("stock_documents");
 
             entity.HasIndex(e => e.DocumentNo, "UQ__stock_do__967931BE36726CCA").IsUnique();
@@ -2552,6 +2570,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.ThresholdId).HasName("PK__stock_th__A2E239DED8B42A00");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("stock_thresholds");
 
             entity.HasIndex(e => new { e.WarehouseId, e.ItemId }, "stock_thresholds_index_21").IsUnique();
@@ -2587,6 +2610,11 @@ public partial class HotelOpsDbContext : DbContext
         modelBuilder.Entity<Stocktake>(entity =>
         {
             entity.HasKey(e => e.StocktakeId).HasName("PK__stocktak__988280EDCD3908BB");
+
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
 
             entity.ToTable("stocktakes");
 
@@ -2712,6 +2740,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.UomId).HasName("PK__units_of__48EF04DF7562B367");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("units_of_measure");
 
             entity.HasIndex(e => e.UomCode, "UQ__units_of__31E2176B7AC6F419").IsUnique();
@@ -2733,6 +2766,11 @@ public partial class HotelOpsDbContext : DbContext
         modelBuilder.Entity<UomConversion>(entity =>
         {
             entity.HasKey(e => e.ConversionId).HasName("PK__uom_conv__E4E07B3FD3F36B3B");
+
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
 
             entity.ToTable("uom_conversions");
 
@@ -2943,6 +2981,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.WarehouseId).HasName("PK__warehous__734FE6BF3D0071C3");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("warehouses");
 
             entity.HasIndex(e => new { e.BranchId, e.WarehouseCode }, "warehouses_index_19").IsUnique();
@@ -3049,6 +3092,119 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey(d => d.ShiftTemplateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_work_shifts_shift_template_id");
+        });
+
+        modelBuilder.Entity<StockTransferReceipt>(entity =>
+        {
+            entity.HasKey(e => e.TransferReceiptId);
+
+            entity.ToTable("stock_transfer_receipts");
+
+            entity.HasIndex(e => new { e.TransferDocumentId, e.TransferReceiptId }, "IX_stock_transfer_receipts_document");
+
+            entity.HasIndex(e => e.ReceivedBy, "IX_stock_transfer_receipts_received_by");
+
+            entity.Property(e => e.TransferReceiptId).HasColumnName("transfer_receipt_id");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.ReceivedAt).HasColumnName("received_at");
+            entity.Property(e => e.ReceivedBy).HasColumnName("received_by");
+            entity.Property(e => e.TransferDocumentId).HasColumnName("transfer_document_id");
+
+            entity.HasOne(d => d.ReceivedByNavigation).WithMany(p => p.StockTransferReceipts)
+                .HasForeignKey(d => d.ReceivedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipts_user");
+
+            entity.HasOne(d => d.TransferDocument).WithMany(p => p.StockTransferReceipts)
+                .HasForeignKey(d => d.TransferDocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipts_document");
+        });
+
+        modelBuilder.Entity<StockTransferReceiptLine>(entity =>
+        {
+            entity.HasKey(e => e.TransferReceiptLineId);
+
+            entity.ToTable("stock_transfer_receipt_lines");
+
+            entity.HasIndex(e => e.TransferReceiptId, "IX_stock_transfer_receipt_lines_receipt");
+
+            entity.HasIndex(e => e.TransferLineId, "IX_stock_transfer_receipt_lines_transfer_line");
+
+            entity.Property(e => e.TransferReceiptLineId).HasColumnName("transfer_receipt_line_id");
+            entity.Property(e => e.DamagedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("damaged_qty");
+            entity.Property(e => e.MissingQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("missing_qty");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.ReceivedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("received_qty");
+            entity.Property(e => e.TransferLineId).HasColumnName("transfer_line_id");
+            entity.Property(e => e.TransferReceiptId).HasColumnName("transfer_receipt_id");
+
+            entity.HasOne(d => d.TransferLine).WithMany(p => p.StockTransferReceiptLines)
+                .HasForeignKey(d => d.TransferLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipt_lines_line");
+
+            entity.HasOne(d => d.TransferReceipt).WithMany(p => p.StockTransferReceiptLines)
+                .HasForeignKey(d => d.TransferReceiptId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipt_lines_receipt");
+        });
+
+        modelBuilder.Entity<StockReceiptLineDetail>(entity =>
+        {
+            entity.HasKey(e => e.StockDocumentLineId);
+
+            entity.ToTable("stock_receipt_line_details");
+
+            entity.Property(e => e.StockDocumentLineId)
+                .ValueGeneratedNever()
+                .HasColumnName("stock_document_line_id");
+            entity.Property(e => e.DamagedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("damaged_qty");
+            entity.Property(e => e.DiscrepancyReason).HasColumnName("discrepancy_reason");
+            entity.Property(e => e.RejectedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("rejected_qty");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.StockReceiptLineDetail)
+                .HasForeignKey<StockReceiptLineDetail>(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_receipt_line_details_line");
+        });
+
+        modelBuilder.Entity<StockReturnLineDetail>(entity =>
+        {
+            entity.HasKey(e => e.StockDocumentLineId);
+
+            entity.ToTable("stock_return_line_details");
+
+            entity.HasIndex(e => e.OriginalIssueLineId, "IX_stock_return_line_details_original");
+
+            entity.Property(e => e.StockDocumentLineId)
+                .ValueGeneratedNever()
+                .HasColumnName("stock_document_line_id");
+            entity.Property(e => e.DamagedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("damaged_qty");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.OriginalIssueLineId).HasColumnName("original_issue_line_id");
+
+            entity.HasOne(d => d.OriginalIssueLine).WithMany(p => p.StockReturnLineDetailOriginalIssueLines)
+                .HasForeignKey(d => d.OriginalIssueLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_return_line_details_original");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.StockReturnLineDetailStockDocumentLine)
+                .HasForeignKey<StockReturnLineDetail>(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_return_line_details_line");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -31,6 +31,8 @@ public partial class Stocktake
 
     public DateTime CreatedAt { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual StockDocument? AdjustmentDocument { get; set; }
 
     public virtual User? ApprovedByNavigation { get; set; }
