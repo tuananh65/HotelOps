@@ -1,0 +1,912 @@
+[
+  {
+    "label": "dashboard",
+    "path": "/dashboard",
+    "status": 200,
+    "headings": [
+      {
+        "text": "Dashboard",
+        "font": "34px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 740,
+        "height": 44
+      },
+      {
+        "text": "A well-run day begins with clarity.",
+        "font": "29px",
+        "weight": "400",
+        "color": "rgb(244, 238, 227)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 238, 227)",
+        "width": 1046,
+        "height": 38
+      },
+      {
+        "text": "Room readiness",
+        "font": "19px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 135,
+        "height": 25
+      },
+      {
+        "text": "Incident status",
+        "font": "19px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 125,
+        "height": 25
+      }
+    ],
+    "body": [
+      {
+        "text": "DUC VUONG ·FE-14",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 740,
+        "height": 16
+      },
+      {
+        "text": "Role-specific home page; for Operations Manager and Owner it show",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 740,
+        "height": 41
+      },
+      {
+        "text": "YOUR HOTEL, AT A GLANCE",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(216, 189, 145)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(216, 189, 145)",
+        "width": 1046,
+        "height": 16
+      },
+      {
+        "text": "Plumbing seal",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 280,
+        "height": 58
+      },
+      {
+        "text": "25",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 217,
+        "height": 58
+      },
+      {
+        "text": "0",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 222,
+        "height": 58
+      }
+    ],
+    "controls": [
+      {
+        "text": "EN",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgb(35, 35, 35)",
+        "border": "rgb(244, 234, 216)",
+        "width": 32,
+        "height": 30
+      },
+      {
+        "text": "VI",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 28,
+        "height": 30
+      }
+    ],
+    "selection": [
+      {
+        "text": "Dashboard",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(216, 189, 145)",
+        "bg": "rgb(54, 49, 41)",
+        "border": "rgb(216, 189, 145) rgb(216, 189, 145) rgb(216, 189, 145) rgb(200, 162, 103)",
+        "width": 226,
+        "height": 38
+      }
+    ],
+    "small": [
+      {
+        "text": "HOTEL OPERATIONS",
+        "font": "8px",
+        "weight": "400",
+        "color": "rgb(200, 162, 103)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(200, 162, 103)",
+        "width": 115,
+        "height": 13
+      },
+      {
+        "text": "Duc Vuong Group · HotelOps v1",
+        "font": "9px",
+        "weight": "400",
+        "color": "rgb(139, 134, 124)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(139, 134, 124)",
+        "width": 202,
+        "height": 14
+      },
+      {
+        "text": "Public frontend prototype",
+        "font": "9px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 103,
+        "height": 14
+      },
+      {
+        "text": "16 of 64 rooms ready",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 230,
+        "height": 16
+      },
+      {
+        "text": "Assigned work in your scope",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 234, 216)",
+        "width": 230,
+        "height": 16
+      },
+      {
+        "text": "Maintenance attention required",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 234, 216)",
+        "width": 230,
+        "height": 16
+      }
+    ]
+  },
+  {
+    "label": "rooms",
+    "path": "/rooms",
+    "status": 200,
+    "headings": [
+      {
+        "text": "Room List",
+        "font": "34px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 486,
+        "height": 44
+      }
+    ],
+    "body": [
+      {
+        "text": "DUC VUONG ·FE-02",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 486,
+        "height": 16
+      },
+      {
+        "text": "Searches and filters rooms by branch, floor, area, room type and ",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 486,
+        "height": 20
+      },
+      {
+        "text": "Room 564",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 172,
+        "height": 59
+      },
+      {
+        "text": "Floor 3",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 173,
+        "height": 59
+      },
+      {
+        "text": "Floor 1",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 162,
+        "height": 59
+      },
+      {
+        "text": "Deluxe",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgb(239, 235, 228)",
+        "width": 210,
+        "height": 59
+      }
+    ],
+    "controls": [
+      {
+        "text": "EN",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgb(35, 35, 35)",
+        "border": "rgb(244, 234, 216)",
+        "width": 32,
+        "height": 30
+      },
+      {
+        "text": "VI",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 28,
+        "height": 30
+      },
+      {
+        "text": "Create room",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgb(120, 88, 49)",
+        "border": "rgb(200, 162, 103)",
+        "width": 150,
+        "height": 44
+      },
+      {
+        "text": "Clear domain filters",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgb(255, 255, 255)",
+        "border": "rgb(226, 214, 196)",
+        "width": 177,
+        "height": 44
+      }
+    ],
+    "selection": [
+      {
+        "text": "Room List",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(216, 189, 145)",
+        "bg": "rgb(54, 49, 41)",
+        "border": "rgb(216, 189, 145) rgb(216, 189, 145) rgb(216, 189, 145) rgb(200, 162, 103)",
+        "width": 226,
+        "height": 38
+      }
+    ],
+    "small": [
+      {
+        "text": "HOTEL OPERATIONS",
+        "font": "8px",
+        "weight": "400",
+        "color": "rgb(200, 162, 103)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(200, 162, 103)",
+        "width": 115,
+        "height": 13
+      },
+      {
+        "text": "Duc Vuong Group · HotelOps v1",
+        "font": "9px",
+        "weight": "400",
+        "color": "rgb(139, 134, 124)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(139, 134, 124)",
+        "width": 202,
+        "height": 14
+      },
+      {
+        "text": "Public frontend prototype",
+        "font": "9px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 103,
+        "height": 14
+      },
+      {
+        "text": "",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 230,
+        "height": 0
+      },
+      {
+        "text": "",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 234, 216)",
+        "width": 230,
+        "height": 0
+      },
+      {
+        "text": "",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 234, 216)",
+        "width": 230,
+        "height": 0
+      }
+    ]
+  },
+  {
+    "label": "cleaning-detail",
+    "path": "/cleaning/tasks/BV-CLN-1-1",
+    "status": 200,
+    "headings": [
+      {
+        "text": "Cleaning Task Detail",
+        "font": "34px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 458,
+        "height": 44
+      },
+      {
+        "text": "Turnover · Room 102",
+        "font": "26px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 244,
+        "height": 34
+      }
+    ],
+    "body": [
+      {
+        "text": "DUC VUONG ·FE-04",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 458,
+        "height": 16
+      },
+      {
+        "text": "Displays a cleaning task; staff start it, update progress, report",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 458,
+        "height": 20
+      },
+      {
+        "text": "CLN-1",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 244,
+        "height": 16
+      },
+      {
+        "text": "Inspection Queue ·3",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 246,
+        "height": 16
+      },
+      {
+        "text": "Audit Log ·1",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 246,
+        "height": 16
+      },
+      {
+        "text": "WORKFLOW",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 246,
+        "height": 16
+      }
+    ],
+    "controls": [
+      {
+        "text": "EN",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgb(35, 35, 35)",
+        "border": "rgb(244, 234, 216)",
+        "width": 32,
+        "height": 30
+      },
+      {
+        "text": "VI",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 28,
+        "height": 30
+      },
+      {
+        "text": "Edit information",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgb(255, 255, 255)",
+        "border": "rgb(226, 214, 196)",
+        "width": 154,
+        "height": 44
+      },
+      {
+        "text": "Assign / reassign",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgb(120, 88, 49)",
+        "border": "rgb(200, 162, 103)",
+        "width": 154,
+        "height": 44
+      },
+      {
+        "text": "Overview",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 49,
+        "height": 45
+      },
+      {
+        "text": "Activity",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93) rgb(104, 100, 93) rgba(0, 0, 0, 0)",
+        "width": 39,
+        "height": 45
+      }
+    ],
+    "selection": [
+      {
+        "text": "Cleaning Task List",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(216, 189, 145)",
+        "bg": "rgb(54, 49, 41)",
+        "border": "rgb(216, 189, 145) rgb(216, 189, 145) rgb(216, 189, 145) rgb(200, 162, 103)",
+        "width": 226,
+        "height": 38
+      },
+      {
+        "text": "Overview",
+        "font": "12px",
+        "weight": "400",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 49,
+        "height": 45
+      }
+    ],
+    "small": [
+      {
+        "text": "HOTEL OPERATIONS",
+        "font": "8px",
+        "weight": "400",
+        "color": "rgb(200, 162, 103)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(200, 162, 103)",
+        "width": 115,
+        "height": 13
+      },
+      {
+        "text": "Duc Vuong Group · HotelOps v1",
+        "font": "9px",
+        "weight": "400",
+        "color": "rgb(139, 134, 124)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(139, 134, 124)",
+        "width": 202,
+        "height": 14
+      },
+      {
+        "text": "Public frontend prototype",
+        "font": "9px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 103,
+        "height": 14
+      },
+      {
+        "text": "",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 230,
+        "height": 0
+      },
+      {
+        "text": "",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 234, 216)",
+        "width": 230,
+        "height": 0
+      },
+      {
+        "text": "",
+        "font": "10px",
+        "weight": "400",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(244, 234, 216)",
+        "width": 231,
+        "height": 0
+      }
+    ]
+  },
+  {
+    "label": "directory",
+    "path": "/dev/screens",
+    "status": 200,
+    "headings": [
+      {
+        "text": "Screen library",
+        "font": "34px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(255, 255, 255)",
+        "width": 1272,
+        "height": 44
+      },
+      {
+        "text": "Sign In",
+        "font": "23px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 379,
+        "height": 30
+      },
+      {
+        "text": "Forgot Password",
+        "font": "23px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 379,
+        "height": 30
+      },
+      {
+        "text": "Change Password",
+        "font": "23px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 379,
+        "height": 30
+      },
+      {
+        "text": "Profile",
+        "font": "23px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 379,
+        "height": 30
+      },
+      {
+        "text": "Dashboard",
+        "font": "23px",
+        "weight": "400",
+        "color": "rgb(43, 42, 39)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(43, 42, 39)",
+        "width": 379,
+        "height": 30
+      }
+    ],
+    "body": [
+      {
+        "text": "HOTEL OPS · UI/UX SCREEN DIRECTORY",
+        "font": "10px",
+        "weight": "600",
+        "color": "rgb(120, 88, 49)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(120, 88, 49)",
+        "width": 1272,
+        "height": 16
+      }
+    ],
+    "controls": [
+      {
+        "text": "EN",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(244, 234, 216)",
+        "bg": "rgb(35, 35, 35)",
+        "border": "rgb(244, 234, 216)",
+        "width": 32,
+        "height": 30
+      },
+      {
+        "text": "VI",
+        "font": "12px",
+        "weight": "700",
+        "color": "rgb(104, 100, 93)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(104, 100, 93)",
+        "width": 28,
+        "height": 30
+      },
+      {
+        "text": "Open",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgb(120, 88, 49)",
+        "border": "rgb(200, 162, 103)",
+        "width": 74,
+        "height": 44
+      },
+      {
+        "text": "Open",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgb(120, 88, 49)",
+        "border": "rgb(200, 162, 103)",
+        "width": 74,
+        "height": 44
+      },
+      {
+        "text": "Open",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgb(120, 88, 49)",
+        "border": "rgb(200, 162, 103)",
+        "width": 74,
+        "height": 44
+      },
+      {
+        "text": "Open",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(255, 255, 255)",
+        "bg": "rgb(120, 88, 49)",
+        "border": "rgb(200, 162, 103)",
+        "width": 74,
+        "height": 44
+      }
+    ],
+    "selection": [],
+    "small": [
+      {
+        "text": "HOTEL OPERATIONS",
+        "font": "8px",
+        "weight": "400",
+        "color": "rgb(73, 56, 43)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(73, 56, 43)",
+        "width": 115,
+        "height": 13
+      },
+      {
+        "text": "Sign In / Đăng nhập",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(124, 92, 62)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(124, 92, 62)",
+        "width": 379,
+        "height": 18
+      },
+      {
+        "text": "Forgot Password / Quên mật khẩu",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(124, 92, 62)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(124, 92, 62)",
+        "width": 379,
+        "height": 18
+      },
+      {
+        "text": "Change Password / Đổi mật khẩu",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(124, 92, 62)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(124, 92, 62)",
+        "width": 379,
+        "height": 18
+      },
+      {
+        "text": "Profile / Hồ sơ cá nhân",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(124, 92, 62)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(124, 92, 62)",
+        "width": 379,
+        "height": 18
+      },
+      {
+        "text": "Dashboard / Tổng quan",
+        "font": "11px",
+        "weight": "400",
+        "color": "rgb(124, 92, 62)",
+        "bg": "rgba(0, 0, 0, 0)",
+        "border": "rgb(124, 92, 62)",
+        "width": 379,
+        "height": 18
+      }
+    ]
+  },
+  {
+    "label": "create-form",
+    "prefilled": [],
+    "buttons": []
+  },
+  {
+    "label": "rooms-mobile",
+    "style": [
+      {
+        "text": "Room List",
+        "font": "29px",
+        "width": 354,
+        "height": 37.6875
+      },
+      {
+        "text": "Create room",
+        "font": "10px",
+        "width": 130.75,
+        "height": 44
+      },
+      {
+        "text": "Room 564",
+        "font": "12px",
+        "width": 94.78125,
+        "height": 59
+      },
+      {
+        "text": "Floor 3",
+        "font": "12px",
+        "width": 95.765625,
+        "height": 59
+      },
+      {
+        "text": "Floor 1",
+        "font": "12px",
+        "width": 89.65625,
+        "height": 59
+      },
+      {
+        "text": "Deluxe",
+        "font": "12px",
+        "width": 116.15625,
+        "height": 59
+      },
+      {
+        "text": "Blocked",
+        "font": "12px",
+        "width": 155.390625,
+        "height": 59
+      },
+      {
+        "text": "Blocked",
+        "font": "10px",
+        "width": 63.734375,
+        "height": 24
+      },
+      {
+        "text": "",
+        "font": "12px",
+        "width": 65,
+        "height": 59
+      },
+      {
+        "text": "Room 563",
+        "font": "12px",
+        "width": 94.78125,
+        "height": 59
+      }
+    ],
+    "horizontalPageOverflow": false
+  }
+]

@@ -21,8 +21,6 @@ public partial class StockThreshold
 
     public DateTime? UpdatedAt { get; set; }
 
-    public byte[] RowVersion { get; set; } = null!;
-
     public virtual InventoryItem Item { get; set; } = null!;
 
     public virtual Warehouse Warehouse { get; set; } = null!;

@@ -9,7 +9,7 @@ public partial class UserSession
 
     public long UserId { get; set; }
 
-    public string RefreshTokenHash { get; set; } = null!;
+    public string SessionKeyHash { get; set; } = null!;
 
     public string? DeviceInfo { get; set; }
 
