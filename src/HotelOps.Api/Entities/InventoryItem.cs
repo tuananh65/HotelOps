@@ -27,8 +27,6 @@ public partial class InventoryItem
 
     public DateTime? UpdatedAt { get; set; }
 
-    public byte[] RowVersion { get; set; } = null!;
-
     public virtual UnitsOfMeasure BaseUom { get; set; } = null!;
 
     public virtual ItemCategory Category { get; set; } = null!;

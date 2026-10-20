@@ -1,0 +1,2383 @@
+[
+  {
+    "table": "branches",
+    "columns": [
+      "branch_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_code VARCHAR(30) UNIQUE NOT NULL",
+      "branch_name NVARCHAR(200) NOT NULL",
+      "address NVARCHAR(MAX)",
+      "phone VARCHAR(20)",
+      "email VARCHAR(150)",
+      "timezone VARCHAR(60) DEFAULT 'Asia/Ho_Chi_Minh'",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_at DATETIME2",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "floors",
+    "columns": [
+      "floor_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "floor_code VARCHAR(30) NOT NULL",
+      "floor_name NVARCHAR(100) NOT NULL",
+      "floor_number INT",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_floors_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX floors_index_0 ON dbo.floors(branch_id, floor_code);"
+    ]
+  },
+  {
+    "table": "areas",
+    "columns": [
+      "area_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "floor_id BIGINT",
+      "area_code VARCHAR(30) NOT NULL",
+      "area_name NVARCHAR(150) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_areas_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_areas_floor_id",
+        "column": "floor_id",
+        "references": "floors.floor_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX areas_index_1 ON dbo.areas(branch_id, area_code);"
+    ]
+  },
+  {
+    "table": "room_types",
+    "columns": [
+      "room_type_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "type_code VARCHAR(30) UNIQUE NOT NULL",
+      "type_name NVARCHAR(150) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "standard_capacity INT",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "rooms",
+    "columns": [
+      "room_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "floor_id BIGINT NOT NULL",
+      "area_id BIGINT",
+      "room_type_id BIGINT NOT NULL",
+      "room_number VARCHAR(30) NOT NULL",
+      "operational_status VARCHAR(40) NOT NULL DEFAULT 'AVAILABLE'",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_at DATETIME2",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_rooms_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_rooms_floor_id",
+        "column": "floor_id",
+        "references": "floors.floor_id"
+      },
+      {
+        "constraint": "FK_rooms_area_id",
+        "column": "area_id",
+        "references": "areas.area_id"
+      },
+      {
+        "constraint": "FK_rooms_room_type_id",
+        "column": "room_type_id",
+        "references": "room_types.room_type_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX rooms_index_2 ON dbo.rooms(branch_id, room_number);",
+      "CREATE INDEX rooms_index_3 ON dbo.rooms(branch_id, operational_status);"
+    ]
+  },
+  {
+    "table": "departments",
+    "columns": [
+      "department_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "department_code VARCHAR(30) NOT NULL",
+      "department_name NVARCHAR(150) NOT NULL",
+      "manager_user_id BIGINT",
+      "scope_description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_departments_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_departments_manager_user_id",
+        "column": "manager_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX departments_index_4 ON dbo.departments(branch_id, department_code);"
+    ]
+  },
+  {
+    "table": "reference_values",
+    "columns": [
+      "reference_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "group_code VARCHAR(60) NOT NULL",
+      "value_code VARCHAR(60) NOT NULL",
+      "display_name NVARCHAR(150) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "sort_order INT DEFAULT 0",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [],
+    "indexes": [
+      "CREATE UNIQUE INDEX reference_values_index_5 ON dbo.reference_values(group_code, value_code);"
+    ]
+  },
+  {
+    "table": "work_categories",
+    "columns": [
+      "category_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "category_code VARCHAR(40) UNIQUE NOT NULL",
+      "category_name NVARCHAR(150) NOT NULL",
+      "department_id BIGINT",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_work_categories_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "cleaning_tasks",
+    "columns": [
+      "cleaning_task_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "task_no VARCHAR(40) UNIQUE NOT NULL",
+      "room_id BIGINT NOT NULL",
+      "cleaning_type_id BIGINT NOT NULL",
+      "priority_id BIGINT",
+      "instruction NVARCHAR(MAX)",
+      "scheduled_start_at DATETIME2",
+      "due_at DATETIME2",
+      "actual_start_at DATETIME2",
+      "actual_end_at DATETIME2",
+      "status VARCHAR(40) NOT NULL DEFAULT 'PENDING'",
+      "completion_note NVARCHAR(MAX)",
+      "created_by BIGINT NOT NULL",
+      "created_at DATETIME2 NOT NULL",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_cleaning_tasks_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_cleaning_tasks_cleaning_type_id",
+        "column": "cleaning_type_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_cleaning_tasks_priority_id",
+        "column": "priority_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_cleaning_tasks_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX cleaning_tasks_index_6 ON dbo.cleaning_tasks(room_id, status);",
+      "CREATE INDEX cleaning_tasks_index_7 ON dbo.cleaning_tasks(due_at);"
+    ]
+  },
+  {
+    "table": "cleaning_assignments",
+    "columns": [
+      "assignment_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "cleaning_task_id BIGINT NOT NULL",
+      "assignee_user_id BIGINT NOT NULL",
+      "assigned_by BIGINT NOT NULL",
+      "assigned_at DATETIME2 NOT NULL",
+      "ended_at DATETIME2",
+      "assignment_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'",
+      "reason NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_cleaning_assignments_cleaning_task_id",
+        "column": "cleaning_task_id",
+        "references": "cleaning_tasks.cleaning_task_id"
+      },
+      {
+        "constraint": "FK_cleaning_assignments_assignee_user_id",
+        "column": "assignee_user_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_cleaning_assignments_assigned_by",
+        "column": "assigned_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX cleaning_assignments_index_8 ON dbo.cleaning_assignments(cleaning_task_id, assigned_at);",
+      "CREATE INDEX cleaning_assignments_index_9 ON dbo.cleaning_assignments(assignee_user_id, assignment_status);"
+    ]
+  },
+  {
+    "table": "cleaning_progress_logs",
+    "columns": [
+      "progress_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "cleaning_task_id BIGINT NOT NULL",
+      "progress_percent INT NOT NULL",
+      "status VARCHAR(30)",
+      "blocker_type_id BIGINT",
+      "note NVARCHAR(MAX)",
+      "logged_by BIGINT NOT NULL",
+      "logged_at DATETIME2 NOT NULL",
+      "CONSTRAINT CK_cleaning_progress_logs_percent CHECK (progress_percent BETWEEN 0 AND 100)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_cleaning_progress_logs_cleaning_task_id",
+        "column": "cleaning_task_id",
+        "references": "cleaning_tasks.cleaning_task_id"
+      },
+      {
+        "constraint": "FK_cleaning_progress_logs_blocker_type_id",
+        "column": "blocker_type_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_cleaning_progress_logs_logged_by",
+        "column": "logged_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "cleaning_reworks",
+    "columns": [
+      "rework_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "cleaning_task_id BIGINT NOT NULL",
+      "inspection_id BIGINT NOT NULL",
+      "assignee_user_id BIGINT",
+      "reason NVARCHAR(MAX) NOT NULL",
+      "status VARCHAR(30) NOT NULL DEFAULT 'PENDING'",
+      "requested_at DATETIME2 NOT NULL",
+      "completed_at DATETIME2",
+      "note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_cleaning_reworks_cleaning_task_id",
+        "column": "cleaning_task_id",
+        "references": "cleaning_tasks.cleaning_task_id"
+      },
+      {
+        "constraint": "FK_cleaning_reworks_inspection_id",
+        "column": "inspection_id",
+        "references": "room_inspections.inspection_id"
+      },
+      {
+        "constraint": "FK_cleaning_reworks_assignee_user_id",
+        "column": "assignee_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "room_status_history",
+    "columns": [
+      "history_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "room_id BIGINT NOT NULL",
+      "from_status VARCHAR(40)",
+      "to_status VARCHAR(40) NOT NULL",
+      "trigger_type VARCHAR(50)",
+      "trigger_id BIGINT",
+      "changed_by BIGINT",
+      "changed_at DATETIME2 NOT NULL",
+      "reason NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_room_status_history_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_room_status_history_changed_by",
+        "column": "changed_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX room_status_history_index_10 ON dbo.room_status_history(room_id, changed_at);"
+    ]
+  },
+  {
+    "table": "inspection_checklists",
+    "columns": [
+      "checklist_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "checklist_code VARCHAR(40) UNIQUE NOT NULL",
+      "checklist_name NVARCHAR(200) NOT NULL",
+      "room_type_id BIGINT",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_by BIGINT",
+      "created_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_inspection_checklists_room_type_id",
+        "column": "room_type_id",
+        "references": "room_types.room_type_id"
+      },
+      {
+        "constraint": "FK_inspection_checklists_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "inspection_checklist_versions",
+    "columns": [
+      "version_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "checklist_id BIGINT NOT NULL",
+      "version_no INT NOT NULL",
+      "effective_at DATETIME2",
+      "status VARCHAR(30) NOT NULL DEFAULT 'DRAFT'",
+      "published_by BIGINT"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_inspection_checklist_versions_checklist_id",
+        "column": "checklist_id",
+        "references": "inspection_checklists.checklist_id"
+      },
+      {
+        "constraint": "FK_inspection_checklist_versions_published_by",
+        "column": "published_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX inspection_checklist_versions_index_11 ON dbo.inspection_checklist_versions(checklist_id, version_no);"
+    ]
+  },
+  {
+    "table": "inspection_checklist_items",
+    "columns": [
+      "item_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "version_id BIGINT NOT NULL",
+      "criterion NVARCHAR(250) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "pass_condition NVARCHAR(MAX)",
+      "is_required BIT NOT NULL DEFAULT 1",
+      "sort_order INT NOT NULL DEFAULT 0",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_inspection_checklist_items_version_id",
+        "column": "version_id",
+        "references": "inspection_checklist_versions.version_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "room_inspections",
+    "columns": [
+      "inspection_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "inspection_no VARCHAR(40) UNIQUE NOT NULL",
+      "room_id BIGINT NOT NULL",
+      "cleaning_task_id BIGINT",
+      "version_id BIGINT NOT NULL",
+      "inspector_user_id BIGINT NOT NULL",
+      "status VARCHAR(30) NOT NULL DEFAULT 'PENDING'",
+      "result VARCHAR(30)",
+      "scheduled_at DATETIME2",
+      "inspected_at DATETIME2",
+      "summary_note NVARCHAR(MAX)",
+      "created_at DATETIME2 NOT NULL",
+      "CONSTRAINT CK_room_inspections_result CHECK (result IS NULL OR result IN ('PASS','FAIL','CONDITIONAL'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_room_inspections_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_room_inspections_cleaning_task_id",
+        "column": "cleaning_task_id",
+        "references": "cleaning_tasks.cleaning_task_id"
+      },
+      {
+        "constraint": "FK_room_inspections_version_id",
+        "column": "version_id",
+        "references": "inspection_checklist_versions.version_id"
+      },
+      {
+        "constraint": "FK_room_inspections_inspector_user_id",
+        "column": "inspector_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX room_inspections_index_12 ON dbo.room_inspections(room_id, inspected_at);"
+    ]
+  },
+  {
+    "table": "inspection_results",
+    "columns": [
+      "result_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "inspection_id BIGINT NOT NULL",
+      "checklist_item_id BIGINT NOT NULL",
+      "outcome VARCHAR(30) NOT NULL",
+      "note NVARCHAR(MAX)",
+      "inspected_at DATETIME2",
+      "CONSTRAINT CK_inspection_results_outcome CHECK (outcome IN ('PASS','FAIL','NA'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_inspection_results_inspection_id",
+        "column": "inspection_id",
+        "references": "room_inspections.inspection_id"
+      },
+      {
+        "constraint": "FK_inspection_results_checklist_item_id",
+        "column": "checklist_item_id",
+        "references": "inspection_checklist_items.item_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX inspection_results_index_13 ON dbo.inspection_results(inspection_id, checklist_item_id);"
+    ]
+  },
+  {
+    "table": "inspection_defects",
+    "columns": [
+      "defect_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "inspection_id BIGINT NOT NULL",
+      "checklist_item_id BIGINT",
+      "severity_id BIGINT",
+      "description NVARCHAR(MAX) NOT NULL",
+      "corrective_action NVARCHAR(MAX)",
+      "status VARCHAR(30) NOT NULL DEFAULT 'OPEN'",
+      "assigned_to BIGINT",
+      "resolved_at DATETIME2",
+      "resolution_note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_inspection_defects_inspection_id",
+        "column": "inspection_id",
+        "references": "room_inspections.inspection_id"
+      },
+      {
+        "constraint": "FK_inspection_defects_checklist_item_id",
+        "column": "checklist_item_id",
+        "references": "inspection_checklist_items.item_id"
+      },
+      {
+        "constraint": "FK_inspection_defects_severity_id",
+        "column": "severity_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_inspection_defects_assigned_to",
+        "column": "assigned_to",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "incidents",
+    "columns": [
+      "incident_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "incident_no VARCHAR(40) UNIQUE NOT NULL",
+      "branch_id BIGINT NOT NULL",
+      "room_id BIGINT",
+      "area_id BIGINT",
+      "asset_id BIGINT",
+      "incident_title NVARCHAR(200) NOT NULL",
+      "description NVARCHAR(MAX) NOT NULL",
+      "severity_id BIGINT",
+      "priority_id BIGINT",
+      "status VARCHAR(40) NOT NULL DEFAULT 'OPEN'",
+      "reported_by BIGINT NOT NULL",
+      "discovered_at DATETIME2 NOT NULL",
+      "reported_at DATETIME2 NOT NULL",
+      "resolved_at DATETIME2",
+      "closed_at DATETIME2",
+      "closure_note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_incidents_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_incidents_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_incidents_area_id",
+        "column": "area_id",
+        "references": "areas.area_id"
+      },
+      {
+        "constraint": "FK_incidents_asset_id",
+        "column": "asset_id",
+        "references": "assets.asset_id"
+      },
+      {
+        "constraint": "FK_incidents_severity_id",
+        "column": "severity_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_incidents_priority_id",
+        "column": "priority_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_incidents_reported_by",
+        "column": "reported_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX incidents_index_14 ON dbo.incidents(branch_id, status);",
+      "CREATE INDEX incidents_index_15 ON dbo.incidents(room_id, reported_at);"
+    ]
+  },
+  {
+    "table": "incident_events",
+    "columns": [
+      "event_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "incident_id BIGINT NOT NULL",
+      "event_type VARCHAR(50) NOT NULL",
+      "from_status VARCHAR(40)",
+      "to_status VARCHAR(40)",
+      "note NVARCHAR(MAX)",
+      "actor_id BIGINT NOT NULL",
+      "occurred_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_incident_events_incident_id",
+        "column": "incident_id",
+        "references": "incidents.incident_id"
+      },
+      {
+        "constraint": "FK_incident_events_actor_id",
+        "column": "actor_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "maintenance_works",
+    "columns": [
+      "maintenance_work_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "work_no VARCHAR(40) UNIQUE NOT NULL",
+      "incident_id BIGINT",
+      "assignee_id BIGINT",
+      "department_id BIGINT",
+      "title NVARCHAR(200) NOT NULL",
+      "instruction NVARCHAR(MAX)",
+      "priority_id BIGINT",
+      "status VARCHAR(40) NOT NULL DEFAULT 'PENDING'",
+      "planned_start_at DATETIME2",
+      "planned_end_at DATETIME2",
+      "actual_start_at DATETIME2",
+      "resolved_at DATETIME2",
+      "resolution_note NVARCHAR(MAX)",
+      "reviewed_by BIGINT",
+      "reviewed_at DATETIME2",
+      "created_by BIGINT NOT NULL",
+      "created_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_maintenance_works_incident_id",
+        "column": "incident_id",
+        "references": "incidents.incident_id"
+      },
+      {
+        "constraint": "FK_maintenance_works_assignee_id",
+        "column": "assignee_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_maintenance_works_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_maintenance_works_priority_id",
+        "column": "priority_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_maintenance_works_reviewed_by",
+        "column": "reviewed_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_maintenance_works_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "maintenance_work_logs",
+    "columns": [
+      "log_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "maintenance_work_id BIGINT NOT NULL",
+      "work_note NVARCHAR(MAX) NOT NULL",
+      "spent_minutes INT NOT NULL DEFAULT 0",
+      "material_issue_id BIGINT",
+      "status VARCHAR(30)",
+      "logged_by BIGINT NOT NULL",
+      "logged_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_maintenance_work_logs_maintenance_work_id",
+        "column": "maintenance_work_id",
+        "references": "maintenance_works.maintenance_work_id"
+      },
+      {
+        "constraint": "FK_maintenance_work_logs_material_issue_id",
+        "column": "material_issue_id",
+        "references": "stock_documents.document_id"
+      },
+      {
+        "constraint": "FK_maintenance_work_logs_logged_by",
+        "column": "logged_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "preventive_maintenance_schedules",
+    "columns": [
+      "schedule_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "schedule_code VARCHAR(40) UNIQUE NOT NULL",
+      "asset_id BIGINT",
+      "room_id BIGINT",
+      "area_id BIGINT",
+      "frequency VARCHAR(30) NOT NULL",
+      "frequency_interval INT NOT NULL DEFAULT 1",
+      "instruction NVARCHAR(MAX)",
+      "last_performed_at DATETIME2",
+      "next_due_at DATETIME2 NOT NULL",
+      "assigned_department_id BIGINT",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_by BIGINT"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_preventive_maintenance_schedules_asset_id",
+        "column": "asset_id",
+        "references": "assets.asset_id"
+      },
+      {
+        "constraint": "FK_preventive_maintenance_schedules_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_preventive_maintenance_schedules_area_id",
+        "column": "area_id",
+        "references": "areas.area_id"
+      },
+      {
+        "constraint": "FK_preventive_maintenance_schedules_assigned_department_id",
+        "column": "assigned_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_preventive_maintenance_schedules_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "preventive_maintenance_runs",
+    "columns": [
+      "run_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "schedule_id BIGINT NOT NULL",
+      "maintenance_work_id BIGINT",
+      "planned_at DATETIME2 NOT NULL",
+      "performed_at DATETIME2",
+      "result VARCHAR(30)",
+      "next_due_at DATETIME2",
+      "note NVARCHAR(MAX)",
+      "performed_by BIGINT"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_preventive_maintenance_runs_schedule_id",
+        "column": "schedule_id",
+        "references": "preventive_maintenance_schedules.schedule_id"
+      },
+      {
+        "constraint": "FK_preventive_maintenance_runs_maintenance_work_id",
+        "column": "maintenance_work_id",
+        "references": "maintenance_works.maintenance_work_id"
+      },
+      {
+        "constraint": "FK_preventive_maintenance_runs_performed_by",
+        "column": "performed_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX preventive_maintenance_runs_index_16 ON dbo.preventive_maintenance_runs(schedule_id, planned_at);"
+    ]
+  },
+  {
+    "table": "room_blocks",
+    "columns": [
+      "block_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "room_id BIGINT NOT NULL",
+      "incident_id BIGINT",
+      "reason NVARCHAR(MAX) NOT NULL",
+      "blocked_at DATETIME2 NOT NULL",
+      "blocked_by BIGINT NOT NULL",
+      "expected_release_at DATETIME2",
+      "released_at DATETIME2",
+      "released_by BIGINT",
+      "release_note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_room_blocks_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_room_blocks_incident_id",
+        "column": "incident_id",
+        "references": "incidents.incident_id"
+      },
+      {
+        "constraint": "FK_room_blocks_blocked_by",
+        "column": "blocked_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_room_blocks_released_by",
+        "column": "released_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "asset_types",
+    "columns": [
+      "asset_type_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "type_code VARCHAR(40) UNIQUE NOT NULL",
+      "type_name NVARCHAR(150) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "assets",
+    "columns": [
+      "asset_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "asset_code VARCHAR(50) UNIQUE NOT NULL",
+      "asset_name NVARCHAR(200) NOT NULL",
+      "asset_type_id BIGINT NOT NULL",
+      "branch_id BIGINT NOT NULL",
+      "serial_number VARCHAR(100)",
+      "brand NVARCHAR(100)",
+      "model NVARCHAR(100)",
+      "purchase_date DATE",
+      "warranty_expiry_date DATE",
+      "acquisition_cost DECIMAL(18,2)",
+      "condition_status VARCHAR(40) NOT NULL DEFAULT 'GOOD'",
+      "lifecycle_status VARCHAR(40) NOT NULL DEFAULT 'IN_USE'",
+      "current_room_id BIGINT",
+      "current_area_id BIGINT",
+      "current_department_id BIGINT",
+      "custodian_user_id BIGINT",
+      "description NVARCHAR(MAX)",
+      "created_at DATETIME2",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_assets_asset_type_id",
+        "column": "asset_type_id",
+        "references": "asset_types.asset_type_id"
+      },
+      {
+        "constraint": "FK_assets_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_assets_current_room_id",
+        "column": "current_room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_assets_current_area_id",
+        "column": "current_area_id",
+        "references": "areas.area_id"
+      },
+      {
+        "constraint": "FK_assets_current_department_id",
+        "column": "current_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_assets_custodian_user_id",
+        "column": "custodian_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX assets_index_17 ON dbo.assets(branch_id, lifecycle_status);",
+      "CREATE INDEX assets_index_18 ON dbo.assets(serial_number);"
+    ]
+  },
+  {
+    "table": "asset_location_history",
+    "columns": [
+      "location_history_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "asset_id BIGINT NOT NULL",
+      "from_location_type VARCHAR(30)",
+      "from_location_id BIGINT",
+      "to_location_type VARCHAR(30) NOT NULL",
+      "to_location_id BIGINT NOT NULL",
+      "effective_at DATETIME2 NOT NULL",
+      "moved_by BIGINT NOT NULL",
+      "reason NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_asset_location_history_asset_id",
+        "column": "asset_id",
+        "references": "assets.asset_id"
+      },
+      {
+        "constraint": "FK_asset_location_history_moved_by",
+        "column": "moved_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "asset_handovers",
+    "columns": [
+      "handover_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "handover_no VARCHAR(40) UNIQUE NOT NULL",
+      "asset_id BIGINT NOT NULL",
+      "from_user_id BIGINT",
+      "to_user_id BIGINT",
+      "from_department_id BIGINT",
+      "to_department_id BIGINT",
+      "condition_note NVARCHAR(MAX)",
+      "handover_status VARCHAR(30) NOT NULL DEFAULT 'PENDING'",
+      "handed_over_at DATETIME2",
+      "accepted_at DATETIME2",
+      "created_by BIGINT NOT NULL",
+      "created_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_asset_handovers_asset_id",
+        "column": "asset_id",
+        "references": "assets.asset_id"
+      },
+      {
+        "constraint": "FK_asset_handovers_from_user_id",
+        "column": "from_user_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_asset_handovers_to_user_id",
+        "column": "to_user_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_asset_handovers_from_department_id",
+        "column": "from_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_asset_handovers_to_department_id",
+        "column": "to_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_asset_handovers_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "asset_condition_history",
+    "columns": [
+      "condition_history_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "asset_id BIGINT NOT NULL",
+      "old_condition VARCHAR(40)",
+      "new_condition VARCHAR(40) NOT NULL",
+      "note NVARCHAR(MAX)",
+      "related_incident_id BIGINT",
+      "changed_by BIGINT NOT NULL",
+      "changed_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_asset_condition_history_asset_id",
+        "column": "asset_id",
+        "references": "assets.asset_id"
+      },
+      {
+        "constraint": "FK_asset_condition_history_related_incident_id",
+        "column": "related_incident_id",
+        "references": "incidents.incident_id"
+      },
+      {
+        "constraint": "FK_asset_condition_history_changed_by",
+        "column": "changed_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "warehouses",
+    "columns": [
+      "warehouse_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "department_id BIGINT",
+      "warehouse_code VARCHAR(40) NOT NULL",
+      "warehouse_name NVARCHAR(150) NOT NULL",
+      "location_description NVARCHAR(MAX)",
+      "manager_user_id BIGINT",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_warehouses_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_warehouses_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_warehouses_manager_user_id",
+        "column": "manager_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX warehouses_index_19 ON dbo.warehouses(branch_id, warehouse_code);"
+    ]
+  },
+  {
+    "table": "item_categories",
+    "columns": [
+      "item_category_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "category_code VARCHAR(40) UNIQUE NOT NULL",
+      "category_name NVARCHAR(150) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "units_of_measure",
+    "columns": [
+      "uom_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "uom_code VARCHAR(30) UNIQUE NOT NULL",
+      "uom_name NVARCHAR(100) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "inventory_items",
+    "columns": [
+      "item_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "item_code VARCHAR(50) UNIQUE NOT NULL",
+      "item_name NVARCHAR(200) NOT NULL",
+      "category_id BIGINT NOT NULL",
+      "base_uom_id BIGINT NOT NULL",
+      "description NVARCHAR(MAX)",
+      "specification NVARCHAR(MAX)",
+      "is_consumable BIT NOT NULL DEFAULT 1",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_at DATETIME2",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_inventory_items_category_id",
+        "column": "category_id",
+        "references": "item_categories.item_category_id"
+      },
+      {
+        "constraint": "FK_inventory_items_base_uom_id",
+        "column": "base_uom_id",
+        "references": "units_of_measure.uom_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "uom_conversions",
+    "columns": [
+      "conversion_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "item_id BIGINT",
+      "from_uom_id BIGINT NOT NULL",
+      "to_uom_id BIGINT NOT NULL",
+      "conversion_factor DECIMAL(18,6) NOT NULL",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_uom_conversions_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      },
+      {
+        "constraint": "FK_uom_conversions_from_uom_id",
+        "column": "from_uom_id",
+        "references": "units_of_measure.uom_id"
+      },
+      {
+        "constraint": "FK_uom_conversions_to_uom_id",
+        "column": "to_uom_id",
+        "references": "units_of_measure.uom_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX uom_conversions_index_20 ON dbo.uom_conversions(item_id, from_uom_id, to_uom_id);"
+    ]
+  },
+  {
+    "table": "stock_thresholds",
+    "columns": [
+      "threshold_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "warehouse_id BIGINT NOT NULL",
+      "item_id BIGINT NOT NULL",
+      "minimum_qty DECIMAL(18,3) NOT NULL DEFAULT 0",
+      "maximum_qty DECIMAL(18,3)",
+      "reorder_qty DECIMAL(18,3)",
+      "alert_enabled BIT NOT NULL DEFAULT 1",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_stock_thresholds_warehouse_id",
+        "column": "warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_stock_thresholds_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX stock_thresholds_index_21 ON dbo.stock_thresholds(warehouse_id, item_id);"
+    ]
+  },
+  {
+    "table": "stock_documents",
+    "columns": [
+      "document_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "document_no VARCHAR(50) UNIQUE NOT NULL",
+      "document_type VARCHAR(30) NOT NULL",
+      "source_warehouse_id BIGINT",
+      "destination_warehouse_id BIGINT",
+      "status VARCHAR(30) NOT NULL DEFAULT 'DRAFT'",
+      "reference_type VARCHAR(50)",
+      "reference_id BIGINT",
+      "document_date DATE NOT NULL",
+      "reason NVARCHAR(MAX)",
+      "note NVARCHAR(MAX)",
+      "created_by BIGINT NOT NULL",
+      "approved_by BIGINT",
+      "posted_by BIGINT",
+      "created_at DATETIME2 NOT NULL",
+      "approved_at DATETIME2",
+      "posted_at DATETIME2",
+      "cancelled_at DATETIME2",
+      "reversal_of_document_id BIGINT",
+      "CONSTRAINT CK_stock_documents_type CHECK (document_type IN ('RECEIPT','ISSUE','RETURN','TRANSFER','ADJUSTMENT','REVERSAL'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_stock_documents_source_warehouse_id",
+        "column": "source_warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_stock_documents_destination_warehouse_id",
+        "column": "destination_warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_stock_documents_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_stock_documents_approved_by",
+        "column": "approved_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_stock_documents_posted_by",
+        "column": "posted_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_stock_documents_reversal_of_document_id",
+        "column": "reversal_of_document_id",
+        "references": "stock_documents.document_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX stock_documents_index_22 ON dbo.stock_documents(document_type, status);",
+      "CREATE INDEX stock_documents_index_23 ON dbo.stock_documents(document_date);"
+    ]
+  },
+  {
+    "table": "stock_document_lines",
+    "columns": [
+      "line_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "document_id BIGINT NOT NULL",
+      "line_no INT NOT NULL",
+      "item_id BIGINT NOT NULL",
+      "uom_id BIGINT NOT NULL",
+      "conversion_factor DECIMAL(18,6) NOT NULL DEFAULT 1",
+      "requested_qty DECIMAL(18,3)",
+      "actual_qty DECIMAL(18,3) NOT NULL DEFAULT 0",
+      "base_qty DECIMAL(18,3) NOT NULL DEFAULT 0",
+      "unit_cost DECIMAL(18,2)",
+      "note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_stock_document_lines_document_id",
+        "column": "document_id",
+        "references": "stock_documents.document_id"
+      },
+      {
+        "constraint": "FK_stock_document_lines_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      },
+      {
+        "constraint": "FK_stock_document_lines_uom_id",
+        "column": "uom_id",
+        "references": "units_of_measure.uom_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX stock_document_lines_index_24 ON dbo.stock_document_lines(document_id, line_no);"
+    ]
+  },
+  {
+    "table": "stock_movements",
+    "columns": [
+      "movement_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "document_line_id BIGINT NOT NULL",
+      "warehouse_id BIGINT NOT NULL",
+      "item_id BIGINT NOT NULL",
+      "signed_base_qty DECIMAL(18,3) NOT NULL",
+      "unit_cost DECIMAL(18,2)",
+      "occurred_at DATETIME2 NOT NULL",
+      "created_by BIGINT NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_stock_movements_document_line_id",
+        "column": "document_line_id",
+        "references": "stock_document_lines.line_id"
+      },
+      {
+        "constraint": "FK_stock_movements_warehouse_id",
+        "column": "warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_stock_movements_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      },
+      {
+        "constraint": "FK_stock_movements_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX stock_movements_index_25 ON dbo.stock_movements(warehouse_id, item_id, occurred_at);"
+    ]
+  },
+  {
+    "table": "stocktakes",
+    "columns": [
+      "stocktake_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "stocktake_no VARCHAR(50) UNIQUE NOT NULL",
+      "warehouse_id BIGINT NOT NULL",
+      "snapshot_at DATETIME2 NOT NULL",
+      "status VARCHAR(30) NOT NULL DEFAULT 'DRAFT'",
+      "counted_by BIGINT",
+      "approved_by BIGINT",
+      "started_at DATETIME2",
+      "completed_at DATETIME2",
+      "approved_at DATETIME2",
+      "adjustment_document_id BIGINT",
+      "note NVARCHAR(MAX)",
+      "created_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_stocktakes_warehouse_id",
+        "column": "warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_stocktakes_counted_by",
+        "column": "counted_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_stocktakes_approved_by",
+        "column": "approved_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_stocktakes_adjustment_document_id",
+        "column": "adjustment_document_id",
+        "references": "stock_documents.document_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "stocktake_lines",
+    "columns": [
+      "stocktake_line_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "stocktake_id BIGINT NOT NULL",
+      "item_id BIGINT NOT NULL",
+      "system_qty DECIMAL(18,3) NOT NULL",
+      "counted_qty DECIMAL(18,3)",
+      "variance_qty DECIMAL(18,3)",
+      "discrepancy_reason NVARCHAR(MAX)",
+      "counted_at DATETIME2",
+      "counted_by BIGINT"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_stocktake_lines_stocktake_id",
+        "column": "stocktake_id",
+        "references": "stocktakes.stocktake_id"
+      },
+      {
+        "constraint": "FK_stocktake_lines_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      },
+      {
+        "constraint": "FK_stocktake_lines_counted_by",
+        "column": "counted_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX stocktake_lines_index_26 ON dbo.stocktake_lines(stocktake_id, item_id);"
+    ]
+  },
+  {
+    "table": "material_requests",
+    "columns": [
+      "request_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "request_no VARCHAR(50) UNIQUE NOT NULL",
+      "branch_id BIGINT NOT NULL",
+      "department_id BIGINT NOT NULL",
+      "requester_id BIGINT NOT NULL",
+      "source_warehouse_id BIGINT",
+      "purpose NVARCHAR(MAX) NOT NULL",
+      "needed_at DATETIME2",
+      "priority_id BIGINT",
+      "status VARCHAR(40) NOT NULL DEFAULT 'DRAFT'",
+      "submitted_at DATETIME2",
+      "completed_at DATETIME2",
+      "cancellation_reason NVARCHAR(MAX)",
+      "created_at DATETIME2 NOT NULL",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_material_requests_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_material_requests_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_material_requests_requester_id",
+        "column": "requester_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_material_requests_source_warehouse_id",
+        "column": "source_warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_material_requests_priority_id",
+        "column": "priority_id",
+        "references": "reference_values.reference_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX material_requests_index_27 ON dbo.material_requests(branch_id, department_id, status);"
+    ]
+  },
+  {
+    "table": "material_request_lines",
+    "columns": [
+      "line_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "request_id BIGINT NOT NULL",
+      "line_no INT NOT NULL",
+      "item_id BIGINT NOT NULL",
+      "uom_id BIGINT NOT NULL",
+      "requested_qty DECIMAL(18,3) NOT NULL",
+      "approved_qty DECIMAL(18,3)",
+      "fulfilled_qty DECIMAL(18,3) NOT NULL DEFAULT 0",
+      "note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_material_request_lines_request_id",
+        "column": "request_id",
+        "references": "material_requests.request_id"
+      },
+      {
+        "constraint": "FK_material_request_lines_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      },
+      {
+        "constraint": "FK_material_request_lines_uom_id",
+        "column": "uom_id",
+        "references": "units_of_measure.uom_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX material_request_lines_index_28 ON dbo.material_request_lines(request_id, line_no);"
+    ]
+  },
+  {
+    "table": "material_request_approvals",
+    "columns": [
+      "approval_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "request_id BIGINT NOT NULL",
+      "approval_level INT NOT NULL DEFAULT 1",
+      "approver_id BIGINT NOT NULL",
+      "decision VARCHAR(30) NOT NULL",
+      "decision_note NVARCHAR(MAX)",
+      "decided_at DATETIME2 NOT NULL",
+      "CONSTRAINT CK_material_request_approvals_decision CHECK (decision IN ('APPROVED','REJECTED','RETURNED'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_material_request_approvals_request_id",
+        "column": "request_id",
+        "references": "material_requests.request_id"
+      },
+      {
+        "constraint": "FK_material_request_approvals_approver_id",
+        "column": "approver_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "material_fulfillments",
+    "columns": [
+      "fulfillment_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "fulfillment_no VARCHAR(50) UNIQUE NOT NULL",
+      "request_id BIGINT NOT NULL",
+      "stock_document_id BIGINT",
+      "warehouse_id BIGINT NOT NULL",
+      "fulfilled_by BIGINT NOT NULL",
+      "received_by BIGINT",
+      "status VARCHAR(30) NOT NULL DEFAULT 'PREPARING'",
+      "fulfilled_at DATETIME2",
+      "received_at DATETIME2",
+      "note NVARCHAR(MAX)",
+      "created_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_material_fulfillments_request_id",
+        "column": "request_id",
+        "references": "material_requests.request_id"
+      },
+      {
+        "constraint": "FK_material_fulfillments_stock_document_id",
+        "column": "stock_document_id",
+        "references": "stock_documents.document_id"
+      },
+      {
+        "constraint": "FK_material_fulfillments_warehouse_id",
+        "column": "warehouse_id",
+        "references": "warehouses.warehouse_id"
+      },
+      {
+        "constraint": "FK_material_fulfillments_fulfilled_by",
+        "column": "fulfilled_by",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_material_fulfillments_received_by",
+        "column": "received_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "material_fulfillment_lines",
+    "columns": [
+      "fulfillment_line_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "fulfillment_id BIGINT NOT NULL",
+      "request_line_id BIGINT NOT NULL",
+      "item_id BIGINT NOT NULL",
+      "issued_qty DECIMAL(18,3) NOT NULL",
+      "received_qty DECIMAL(18,3)",
+      "uom_id BIGINT NOT NULL",
+      "note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_material_fulfillment_lines_fulfillment_id",
+        "column": "fulfillment_id",
+        "references": "material_fulfillments.fulfillment_id"
+      },
+      {
+        "constraint": "FK_material_fulfillment_lines_request_line_id",
+        "column": "request_line_id",
+        "references": "material_request_lines.line_id"
+      },
+      {
+        "constraint": "FK_material_fulfillment_lines_item_id",
+        "column": "item_id",
+        "references": "inventory_items.item_id"
+      },
+      {
+        "constraint": "FK_material_fulfillment_lines_uom_id",
+        "column": "uom_id",
+        "references": "units_of_measure.uom_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX material_fulfillment_lines_index_29 ON dbo.material_fulfillment_lines(fulfillment_id, request_line_id);"
+    ]
+  },
+  {
+    "table": "internal_request_types",
+    "columns": [
+      "request_type_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "type_code VARCHAR(40) UNIQUE NOT NULL",
+      "type_name NVARCHAR(150) NOT NULL",
+      "default_department_id BIGINT",
+      "default_priority_id BIGINT",
+      "sla_minutes INT",
+      "description NVARCHAR(MAX)",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_internal_request_types_default_department_id",
+        "column": "default_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_internal_request_types_default_priority_id",
+        "column": "default_priority_id",
+        "references": "reference_values.reference_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "internal_requests",
+    "columns": [
+      "internal_request_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "request_no VARCHAR(50) UNIQUE NOT NULL",
+      "branch_id BIGINT NOT NULL",
+      "request_type_id BIGINT NOT NULL",
+      "requester_id BIGINT NOT NULL",
+      "requester_department_id BIGINT",
+      "receiving_department_id BIGINT",
+      "room_id BIGINT",
+      "area_id BIGINT",
+      "related_incident_id BIGINT",
+      "subject NVARCHAR(200) NOT NULL",
+      "description NVARCHAR(MAX) NOT NULL",
+      "priority_id BIGINT",
+      "status VARCHAR(40) NOT NULL DEFAULT 'DRAFT'",
+      "required_at DATETIME2",
+      "due_at DATETIME2",
+      "submitted_at DATETIME2",
+      "completed_at DATETIME2",
+      "closed_at DATETIME2",
+      "cancellation_reason NVARCHAR(MAX)",
+      "created_at DATETIME2 NOT NULL",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_internal_requests_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_internal_requests_request_type_id",
+        "column": "request_type_id",
+        "references": "internal_request_types.request_type_id"
+      },
+      {
+        "constraint": "FK_internal_requests_requester_id",
+        "column": "requester_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_internal_requests_requester_department_id",
+        "column": "requester_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_internal_requests_receiving_department_id",
+        "column": "receiving_department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_internal_requests_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_internal_requests_area_id",
+        "column": "area_id",
+        "references": "areas.area_id"
+      },
+      {
+        "constraint": "FK_internal_requests_related_incident_id",
+        "column": "related_incident_id",
+        "references": "incidents.incident_id"
+      },
+      {
+        "constraint": "FK_internal_requests_priority_id",
+        "column": "priority_id",
+        "references": "reference_values.reference_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX internal_requests_index_30 ON dbo.internal_requests(branch_id, status);",
+      "CREATE INDEX internal_requests_index_31 ON dbo.internal_requests(receiving_department_id, due_at);"
+    ]
+  },
+  {
+    "table": "internal_request_assignments",
+    "columns": [
+      "assignment_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "internal_request_id BIGINT NOT NULL",
+      "assignee_id BIGINT NOT NULL",
+      "assigned_by BIGINT NOT NULL",
+      "assigned_at DATETIME2 NOT NULL",
+      "ended_at DATETIME2",
+      "status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'",
+      "assignment_note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_internal_request_assignments_internal_request_id",
+        "column": "internal_request_id",
+        "references": "internal_requests.internal_request_id"
+      },
+      {
+        "constraint": "FK_internal_request_assignments_assignee_id",
+        "column": "assignee_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_internal_request_assignments_assigned_by",
+        "column": "assigned_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "internal_request_events",
+    "columns": [
+      "event_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "internal_request_id BIGINT NOT NULL",
+      "event_type VARCHAR(50) NOT NULL",
+      "old_status VARCHAR(40)",
+      "new_status VARCHAR(40)",
+      "event_note NVARCHAR(MAX)",
+      "actor_id BIGINT NOT NULL",
+      "occurred_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_internal_request_events_internal_request_id",
+        "column": "internal_request_id",
+        "references": "internal_requests.internal_request_id"
+      },
+      {
+        "constraint": "FK_internal_request_events_actor_id",
+        "column": "actor_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX internal_request_events_index_32 ON dbo.internal_request_events(internal_request_id, occurred_at);"
+    ]
+  },
+  {
+    "table": "internal_request_feedback",
+    "columns": [
+      "feedback_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "internal_request_id BIGINT UNIQUE NOT NULL",
+      "rating INT NOT NULL",
+      "comment NVARCHAR(MAX)",
+      "is_satisfied BIT",
+      "submitted_by BIGINT NOT NULL",
+      "submitted_at DATETIME2 NOT NULL",
+      "CONSTRAINT CK_internal_request_feedback_rating CHECK (rating BETWEEN 1 AND 5)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_internal_request_feedback_internal_request_id",
+        "column": "internal_request_id",
+        "references": "internal_requests.internal_request_id"
+      },
+      {
+        "constraint": "FK_internal_request_feedback_submitted_by",
+        "column": "submitted_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "operational_tasks",
+    "columns": [
+      "task_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "task_code VARCHAR(50) UNIQUE NOT NULL",
+      "branch_id BIGINT NOT NULL",
+      "department_id BIGINT NOT NULL",
+      "category_id BIGINT",
+      "title NVARCHAR(200) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "priority_id BIGINT",
+      "room_id BIGINT",
+      "area_id BIGINT",
+      "parent_task_id BIGINT",
+      "source_type VARCHAR(50)",
+      "source_id BIGINT",
+      "status VARCHAR(40) NOT NULL DEFAULT 'TODO'",
+      "progress_percent INT NOT NULL DEFAULT 0",
+      "planned_start_at DATETIME2",
+      "due_at DATETIME2",
+      "actual_start_at DATETIME2",
+      "completed_at DATETIME2",
+      "completion_note NVARCHAR(MAX)",
+      "created_by BIGINT NOT NULL",
+      "created_at DATETIME2 NOT NULL",
+      "updated_at DATETIME2",
+      "CONSTRAINT CK_operational_tasks_progress CHECK (progress_percent BETWEEN 0 AND 100)",
+      "CONSTRAINT CK_operational_tasks_source_type CHECK (source_type IS NULL OR source_type IN ('CLEANING','INSPECTION','MAINTENANCE','INTERNAL_REQUEST','MANUAL'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_operational_tasks_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_category_id",
+        "column": "category_id",
+        "references": "work_categories.category_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_priority_id",
+        "column": "priority_id",
+        "references": "reference_values.reference_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_room_id",
+        "column": "room_id",
+        "references": "rooms.room_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_area_id",
+        "column": "area_id",
+        "references": "areas.area_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_parent_task_id",
+        "column": "parent_task_id",
+        "references": "operational_tasks.task_id"
+      },
+      {
+        "constraint": "FK_operational_tasks_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX operational_tasks_index_33 ON dbo.operational_tasks(branch_id, department_id, status);",
+      "CREATE INDEX operational_tasks_index_34 ON dbo.operational_tasks(due_at);"
+    ]
+  },
+  {
+    "table": "operational_task_assignments",
+    "columns": [
+      "assignment_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "task_id BIGINT NOT NULL",
+      "assignee_id BIGINT NOT NULL",
+      "assigned_by BIGINT NOT NULL",
+      "assigned_at DATETIME2 NOT NULL",
+      "ended_at DATETIME2",
+      "assignment_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'",
+      "note NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_operational_task_assignments_task_id",
+        "column": "task_id",
+        "references": "operational_tasks.task_id"
+      },
+      {
+        "constraint": "FK_operational_task_assignments_assignee_id",
+        "column": "assignee_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_operational_task_assignments_assigned_by",
+        "column": "assigned_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "operational_task_progress",
+    "columns": [
+      "progress_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "task_id BIGINT NOT NULL",
+      "progress_percent INT NOT NULL",
+      "old_status VARCHAR(40)",
+      "new_status VARCHAR(40)",
+      "description NVARCHAR(MAX)",
+      "blocker_reason NVARCHAR(MAX)",
+      "reported_by BIGINT NOT NULL",
+      "reported_at DATETIME2 NOT NULL",
+      "CONSTRAINT CK_operational_task_progress_percent CHECK (progress_percent BETWEEN 0 AND 100)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_operational_task_progress_task_id",
+        "column": "task_id",
+        "references": "operational_tasks.task_id"
+      },
+      {
+        "constraint": "FK_operational_task_progress_reported_by",
+        "column": "reported_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "operational_task_dependencies",
+    "columns": [
+      "dependency_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "predecessor_task_id BIGINT NOT NULL",
+      "successor_task_id BIGINT NOT NULL",
+      "dependency_type VARCHAR(30) NOT NULL DEFAULT 'FINISH_TO_START'",
+      "lag_minutes INT DEFAULT 0"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_operational_task_dependencies_predecessor_task_id",
+        "column": "predecessor_task_id",
+        "references": "operational_tasks.task_id"
+      },
+      {
+        "constraint": "FK_operational_task_dependencies_successor_task_id",
+        "column": "successor_task_id",
+        "references": "operational_tasks.task_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX operational_task_dependencies_index_35 ON dbo.operational_task_dependencies(predecessor_task_id, successor_task_id);"
+    ]
+  },
+  {
+    "table": "shift_templates",
+    "columns": [
+      "shift_template_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "shift_code VARCHAR(30) NOT NULL",
+      "shift_name NVARCHAR(100) NOT NULL",
+      "start_time TIME NOT NULL",
+      "end_time TIME NOT NULL",
+      "break_minutes INT NOT NULL DEFAULT 0",
+      "crosses_midnight BIT NOT NULL DEFAULT 0",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_shift_templates_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX shift_templates_index_36 ON dbo.shift_templates(branch_id, shift_code);"
+    ]
+  },
+  {
+    "table": "work_shifts",
+    "columns": [
+      "shift_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT NOT NULL",
+      "department_id BIGINT NOT NULL",
+      "shift_template_id BIGINT NOT NULL",
+      "shift_date DATE NOT NULL",
+      "scheduled_start_at DATETIME2 NOT NULL",
+      "scheduled_end_at DATETIME2 NOT NULL",
+      "required_staff_count INT NOT NULL DEFAULT 1",
+      "status VARCHAR(30) NOT NULL DEFAULT 'PLANNED'",
+      "note NVARCHAR(MAX)",
+      "created_by BIGINT NOT NULL",
+      "created_at DATETIME2 NOT NULL"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_work_shifts_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_work_shifts_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_work_shifts_shift_template_id",
+        "column": "shift_template_id",
+        "references": "shift_templates.shift_template_id"
+      },
+      {
+        "constraint": "FK_work_shifts_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "shift_assignments",
+    "columns": [
+      "shift_assignment_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "shift_id BIGINT NOT NULL",
+      "user_id BIGINT NOT NULL",
+      "assignment_status VARCHAR(30) NOT NULL DEFAULT 'ASSIGNED'",
+      "assigned_by BIGINT NOT NULL",
+      "assigned_at DATETIME2 NOT NULL",
+      "confirmed_at DATETIME2",
+      "cancellation_reason NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_shift_assignments_shift_id",
+        "column": "shift_id",
+        "references": "work_shifts.shift_id"
+      },
+      {
+        "constraint": "FK_shift_assignments_user_id",
+        "column": "user_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_shift_assignments_assigned_by",
+        "column": "assigned_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX shift_assignments_index_37 ON dbo.shift_assignments(shift_id, user_id);"
+    ]
+  },
+  {
+    "table": "shift_attendance",
+    "columns": [
+      "attendance_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "shift_assignment_id BIGINT UNIQUE NOT NULL",
+      "actual_check_in_at DATETIME2",
+      "actual_check_out_at DATETIME2",
+      "attendance_status VARCHAR(30) NOT NULL DEFAULT 'NOT_STARTED'",
+      "late_minutes INT DEFAULT 0",
+      "overtime_minutes INT DEFAULT 0",
+      "note NVARCHAR(MAX)",
+      "verified_by BIGINT",
+      "verified_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_shift_attendance_shift_assignment_id",
+        "column": "shift_assignment_id",
+        "references": "shift_assignments.shift_assignment_id"
+      },
+      {
+        "constraint": "FK_shift_attendance_verified_by",
+        "column": "verified_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "users",
+    "columns": [
+      "user_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "employee_code VARCHAR(40) UNIQUE NOT NULL",
+      "username VARCHAR(100) UNIQUE NOT NULL",
+      "email VARCHAR(150) UNIQUE NOT NULL",
+      "password_hash VARCHAR(255)",
+      "full_name NVARCHAR(200) NOT NULL",
+      "phone VARCHAR(20)",
+      "avatar_url NVARCHAR(MAX)",
+      "primary_branch_id BIGINT",
+      "department_id BIGINT",
+      "manager_user_id BIGINT",
+      "employment_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'",
+      "account_status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE'",
+      "last_login_at DATETIME2",
+      "created_at DATETIME2 NOT NULL",
+      "updated_at DATETIME2",
+      "deleted_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_users_primary_branch_id",
+        "column": "primary_branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_users_department_id",
+        "column": "department_id",
+        "references": "departments.department_id"
+      },
+      {
+        "constraint": "FK_users_manager_user_id",
+        "column": "manager_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX users_index_38 ON dbo.users(primary_branch_id, department_id);"
+    ]
+  },
+  {
+    "table": "roles",
+    "columns": [
+      "role_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "role_code VARCHAR(60) UNIQUE NOT NULL",
+      "role_name NVARCHAR(150) NOT NULL",
+      "description NVARCHAR(MAX)",
+      "is_system_role BIT NOT NULL DEFAULT 0",
+      "is_active BIT NOT NULL DEFAULT 1",
+      "created_at DATETIME2"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "permissions",
+    "columns": [
+      "permission_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "permission_code VARCHAR(100) UNIQUE NOT NULL",
+      "permission_name NVARCHAR(150) NOT NULL",
+      "module_code VARCHAR(60) NOT NULL",
+      "resource_code VARCHAR(60) NOT NULL",
+      "action_code VARCHAR(40) NOT NULL",
+      "description NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [],
+    "indexes": []
+  },
+  {
+    "table": "user_roles",
+    "columns": [
+      "user_role_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "user_id BIGINT NOT NULL",
+      "role_id BIGINT NOT NULL",
+      "branch_id BIGINT",
+      "assigned_by BIGINT",
+      "assigned_at DATETIME2 NOT NULL",
+      "expires_at DATETIME2",
+      "is_active BIT NOT NULL DEFAULT 1"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_user_roles_user_id",
+        "column": "user_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_user_roles_role_id",
+        "column": "role_id",
+        "references": "roles.role_id"
+      },
+      {
+        "constraint": "FK_user_roles_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_user_roles_assigned_by",
+        "column": "assigned_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX user_roles_index_39 ON dbo.user_roles(user_id, role_id, branch_id);"
+    ]
+  },
+  {
+    "table": "role_permissions",
+    "columns": [
+      "role_permission_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "role_id BIGINT NOT NULL",
+      "permission_id BIGINT NOT NULL",
+      "granted_at DATETIME2",
+      "granted_by BIGINT"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_role_permissions_role_id",
+        "column": "role_id",
+        "references": "roles.role_id"
+      },
+      {
+        "constraint": "FK_role_permissions_permission_id",
+        "column": "permission_id",
+        "references": "permissions.permission_id"
+      },
+      {
+        "constraint": "FK_role_permissions_granted_by",
+        "column": "granted_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX role_permissions_index_40 ON dbo.role_permissions(role_id, permission_id);"
+    ]
+  },
+  {
+    "table": "user_branch_access",
+    "columns": [
+      "access_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "user_id BIGINT NOT NULL",
+      "branch_id BIGINT NOT NULL",
+      "access_level VARCHAR(30) NOT NULL DEFAULT 'STANDARD'",
+      "is_primary BIT NOT NULL DEFAULT 0",
+      "granted_by BIGINT",
+      "granted_at DATETIME2 NOT NULL",
+      "revoked_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_user_branch_access_user_id",
+        "column": "user_id",
+        "references": "users.user_id"
+      },
+      {
+        "constraint": "FK_user_branch_access_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_user_branch_access_granted_by",
+        "column": "granted_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX user_branch_access_index_41 ON dbo.user_branch_access(user_id, branch_id);"
+    ]
+  },
+  {
+    "table": "user_sessions",
+    "columns": [
+      "session_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "user_id BIGINT NOT NULL",
+      "refresh_token_hash VARCHAR(255) UNIQUE NOT NULL",
+      "device_info NVARCHAR(MAX)",
+      "ip_address VARCHAR(45)",
+      "user_agent NVARCHAR(MAX)",
+      "created_at DATETIME2 NOT NULL",
+      "expires_at DATETIME2 NOT NULL",
+      "revoked_at DATETIME2",
+      "last_used_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_user_sessions_user_id",
+        "column": "user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "notifications",
+    "columns": [
+      "notification_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "notification_type VARCHAR(60) NOT NULL",
+      "title NVARCHAR(200) NOT NULL",
+      "message NVARCHAR(MAX) NOT NULL",
+      "priority VARCHAR(20) NOT NULL DEFAULT 'NORMAL'",
+      "source_type VARCHAR(60)",
+      "source_id BIGINT",
+      "action_url NVARCHAR(MAX)",
+      "created_by BIGINT",
+      "created_at DATETIME2 NOT NULL",
+      "expires_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_notifications_created_by",
+        "column": "created_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": []
+  },
+  {
+    "table": "notification_recipients",
+    "columns": [
+      "recipient_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "notification_id BIGINT NOT NULL",
+      "user_id BIGINT NOT NULL",
+      "delivery_channel VARCHAR(30) NOT NULL DEFAULT 'IN_APP'",
+      "delivery_status VARCHAR(30) NOT NULL DEFAULT 'PENDING'",
+      "delivered_at DATETIME2",
+      "read_at DATETIME2",
+      "dismissed_at DATETIME2",
+      "failure_reason NVARCHAR(MAX)"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_notification_recipients_notification_id",
+        "column": "notification_id",
+        "references": "notifications.notification_id"
+      },
+      {
+        "constraint": "FK_notification_recipients_user_id",
+        "column": "user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX notification_recipients_index_42 ON dbo.notification_recipients(notification_id, user_id, delivery_channel);",
+      "CREATE INDEX notification_recipients_index_43 ON dbo.notification_recipients(user_id, read_at);"
+    ]
+  },
+  {
+    "table": "attachments",
+    "columns": [
+      "attachment_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "entity_type VARCHAR(60) NOT NULL",
+      "entity_id BIGINT NOT NULL",
+      "file_name NVARCHAR(255) NOT NULL",
+      "original_file_name NVARCHAR(255)",
+      "mime_type VARCHAR(100)",
+      "file_size_bytes BIGINT",
+      "storage_key NVARCHAR(500) NOT NULL",
+      "file_url NVARCHAR(MAX)",
+      "description NVARCHAR(MAX)",
+      "uploaded_by BIGINT NOT NULL",
+      "uploaded_at DATETIME2 NOT NULL",
+      "deleted_at DATETIME2",
+      "CONSTRAINT CK_attachments_entity_type CHECK (entity_type IN ('ROOM','CLEANING_TASK','INSPECTION','INCIDENT','MAINTENANCE','ASSET','STOCK_DOCUMENT','REQUEST','TASK'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_attachments_uploaded_by",
+        "column": "uploaded_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX attachments_index_44 ON dbo.attachments(entity_type, entity_id);"
+    ]
+  },
+  {
+    "table": "audit_logs",
+    "columns": [
+      "audit_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT",
+      "actor_user_id BIGINT",
+      "entity_type VARCHAR(100) NOT NULL",
+      "entity_id VARCHAR(100) NOT NULL",
+      "action VARCHAR(40) NOT NULL",
+      "old_values NVARCHAR(MAX)",
+      "new_values NVARCHAR(MAX)",
+      "changed_fields NVARCHAR(MAX)",
+      "ip_address VARCHAR(45)",
+      "request_id VARCHAR(100)",
+      "user_agent NVARCHAR(MAX)",
+      "occurred_at DATETIME2 NOT NULL",
+      "CONSTRAINT CK_audit_logs_old_values CHECK (old_values IS NULL OR ISJSON(old_values)=1)",
+      "CONSTRAINT CK_audit_logs_new_values CHECK (new_values IS NULL OR ISJSON(new_values)=1)",
+      "CONSTRAINT CK_audit_logs_changed_fields CHECK (changed_fields IS NULL OR ISJSON(changed_fields)=1)",
+      "CONSTRAINT CK_audit_logs_action CHECK (action IN ('CREATE','UPDATE','DELETE','APPROVE','REJECT','CANCEL','LOGIN','LOGOUT'))"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_audit_logs_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_audit_logs_actor_user_id",
+        "column": "actor_user_id",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX audit_logs_index_45 ON dbo.audit_logs(entity_type, entity_id, occurred_at);",
+      "CREATE INDEX audit_logs_index_46 ON dbo.audit_logs(actor_user_id, occurred_at);"
+    ]
+  },
+  {
+    "table": "system_settings",
+    "columns": [
+      "setting_id BIGINT IDENTITY(1,1) PRIMARY KEY",
+      "branch_id BIGINT",
+      "setting_group VARCHAR(60) NOT NULL",
+      "setting_key VARCHAR(100) NOT NULL",
+      "setting_value NVARCHAR(MAX)",
+      "data_type VARCHAR(30) NOT NULL DEFAULT 'STRING'",
+      "description NVARCHAR(MAX)",
+      "is_sensitive BIT NOT NULL DEFAULT 0",
+      "updated_by BIGINT",
+      "updated_at DATETIME2"
+    ],
+    "foreignKeys": [
+      {
+        "constraint": "FK_system_settings_branch_id",
+        "column": "branch_id",
+        "references": "branches.branch_id"
+      },
+      {
+        "constraint": "FK_system_settings_updated_by",
+        "column": "updated_by",
+        "references": "users.user_id"
+      }
+    ],
+    "indexes": [
+      "CREATE UNIQUE INDEX system_settings_index_47 ON dbo.system_settings(branch_id, setting_group, setting_key);"
+    ]
+  }
+]

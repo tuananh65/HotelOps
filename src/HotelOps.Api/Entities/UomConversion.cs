@@ -17,8 +17,6 @@ public partial class UomConversion
 
     public bool IsActive { get; set; }
 
-    public byte[] RowVersion { get; set; } = null!;
-
     public virtual UnitsOfMeasure FromUom { get; set; } = null!;
 
     public virtual InventoryItem? Item { get; set; }

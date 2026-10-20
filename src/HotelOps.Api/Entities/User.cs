@@ -15,6 +15,12 @@ public partial class User
 
     public string? PasswordHash { get; set; }
 
+    public int FailedLoginCount { get; set; }
+
+    public DateTime? LockedUntil { get; set; }
+
+    public DateTime? TemporaryPasswordExpiresAt { get; set; }
+
     public string FullName { get; set; } = null!;
 
     public string? Phone { get; set; }
@@ -150,8 +156,6 @@ public partial class User
     public virtual ICollection<StockDocument> StockDocumentPostedByNavigations { get; set; } = new List<StockDocument>();
 
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
-
-    public virtual ICollection<StockTransferReceipt> StockTransferReceipts { get; set; } = new List<StockTransferReceipt>();
 
     public virtual ICollection<Stocktake> StocktakeApprovedByNavigations { get; set; } = new List<Stocktake>();
 
