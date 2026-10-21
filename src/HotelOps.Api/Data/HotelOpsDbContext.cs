@@ -168,6 +168,12 @@ public partial class HotelOpsDbContext : DbContext
 
     public virtual DbSet<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; }
 
+    public virtual DbSet<MaterialReplenishment> MaterialReplenishments { get; set; }
+
+    public virtual DbSet<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; }
+
+    public virtual DbSet<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -3345,6 +3351,167 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey(d => d.UomId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_mr_snapshots_uom");
+        });
+
+        modelBuilder.Entity<MaterialReplenishment>(entity =>
+        {
+            entity.HasKey(e => e.ReplenishmentId);
+
+            entity.ToTable("material_replenishments");
+
+            entity.HasIndex(e => e.ClosedBy, "IX_material_replenishments_closed_by");
+
+            entity.HasIndex(e => e.RequestedBy, "IX_material_replenishments_requested_by");
+
+            entity.HasIndex(e => new { e.WarehouseId, e.Status, e.ExpectedOn, e.ReplenishmentId }, "IX_replenishments_tracking");
+
+            entity.HasIndex(e => e.ReplenishmentNo, "UQ_replenishment_no").IsUnique();
+
+            entity.HasIndex(e => new { e.ReplenishmentId, e.WarehouseId }, "UQ_replenishments_warehouse").IsUnique();
+
+            entity.Property(e => e.ReplenishmentId).HasColumnName("replenishment_id");
+            entity.Property(e => e.CloseReason).HasColumnName("close_reason");
+            entity.Property(e => e.ClosedAt).HasColumnName("closed_at");
+            entity.Property(e => e.ClosedBy).HasColumnName("closed_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.ExpectedOn).HasColumnName("expected_on");
+            entity.Property(e => e.ReplenishmentNo)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("replenishment_no");
+            entity.Property(e => e.RequestedBy).HasColumnName("requested_by");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.SupplierName)
+                .HasMaxLength(200)
+                .HasColumnName("supplier_name");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+
+            entity.HasOne(d => d.ClosedByNavigation).WithMany(p => p.MaterialReplenishmentClosedByNavigations)
+                .HasForeignKey(d => d.ClosedBy)
+                .HasConstraintName("FK_replenishments_closer");
+
+            entity.HasOne(d => d.RequestedByNavigation).WithMany(p => p.MaterialReplenishmentRequestedByNavigations)
+                .HasForeignKey(d => d.RequestedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishments_requester");
+
+            entity.HasOne(d => d.Warehouse).WithMany(p => p.MaterialReplenishments)
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishments_warehouse");
+        });
+
+        modelBuilder.Entity<MaterialReplenishmentLine>(entity =>
+        {
+            entity.HasKey(e => e.ReplenishmentLineId);
+
+            entity.ToTable("material_replenishment_lines");
+
+            entity.HasIndex(e => e.BaseUomId, "IX_material_replenishment_lines_base_uom_id");
+
+            entity.HasIndex(e => e.ItemId, "IX_material_replenishment_lines_item_id");
+
+            entity.HasIndex(e => new { e.ReplenishmentId, e.WarehouseId }, "IX_material_replenishment_lines_replenishment_id_warehouse_id");
+
+            entity.HasIndex(e => e.SourceMaterialRequestLineId, "IX_replenishment_lines_request_line");
+
+            entity.HasIndex(e => e.SourceThresholdId, "IX_replenishment_lines_threshold");
+
+            entity.HasIndex(e => new { e.ReplenishmentId, e.LineNo }, "UQ_replenishment_lines_number").IsUnique();
+
+            entity.HasIndex(e => new { e.WarehouseId, e.ItemId }, "UX_replenishment_active_coverage")
+                .IsUnique()
+                .HasFilter("([is_open_coverage]=(1))");
+
+            entity.Property(e => e.ReplenishmentLineId).HasColumnName("replenishment_line_id");
+            entity.Property(e => e.BaseUomId).HasColumnName("base_uom_id");
+            entity.Property(e => e.IsOpenCoverage).HasColumnName("is_open_coverage");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.LineNo).HasColumnName("line_no");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.ReceivedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("received_base_qty");
+            entity.Property(e => e.ReplenishmentId).HasColumnName("replenishment_id");
+            entity.Property(e => e.RequestedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("requested_base_qty");
+            entity.Property(e => e.SourceMaterialRequestLineId).HasColumnName("source_material_request_line_id");
+            entity.Property(e => e.SourceThresholdId).HasColumnName("source_threshold_id");
+            entity.Property(e => e.SourceType)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("source_type");
+            entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+
+            entity.HasOne(d => d.BaseUom).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.BaseUomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_lines_uom");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_lines_item");
+
+            entity.HasOne(d => d.SourceMaterialRequestLine).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.SourceMaterialRequestLineId)
+                .HasConstraintName("FK_replenishment_lines_request_line");
+
+            entity.HasOne(d => d.SourceThreshold).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.SourceThresholdId)
+                .HasConstraintName("FK_replenishment_lines_threshold");
+
+            entity.HasOne(d => d.MaterialReplenishment).WithMany(p => p.MaterialReplenishmentLines)
+                .HasPrincipalKey(p => new { p.ReplenishmentId, p.WarehouseId })
+                .HasForeignKey(d => new { d.ReplenishmentId, d.WarehouseId })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_lines_owner");
+        });
+
+        modelBuilder.Entity<MaterialReplenishmentReceiptLine>(entity =>
+        {
+            entity.HasKey(e => e.ReplenishmentReceiptLineId);
+
+            entity.ToTable("material_replenishment_receipt_lines");
+
+            entity.HasIndex(e => e.LinkedBy, "IX_material_replenishment_receipt_lines_linked_by");
+
+            entity.HasIndex(e => e.ReplenishmentLineId, "IX_replenishment_receipts_owner");
+
+            entity.HasIndex(e => e.StockDocumentLineId, "UQ_replenishment_receipt_stock_line").IsUnique();
+
+            entity.Property(e => e.ReplenishmentReceiptLineId).HasColumnName("replenishment_receipt_line_id");
+            entity.Property(e => e.CreditedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("credited_base_qty");
+            entity.Property(e => e.LinkedAt).HasColumnName("linked_at");
+            entity.Property(e => e.LinkedBy).HasColumnName("linked_by");
+            entity.Property(e => e.ReplenishmentLineId).HasColumnName("replenishment_line_id");
+            entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
+
+            entity.HasOne(d => d.LinkedByNavigation).WithMany(p => p.MaterialReplenishmentReceiptLines)
+                .HasForeignKey(d => d.LinkedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_receipts_actor");
+
+            entity.HasOne(d => d.ReplenishmentLine).WithMany(p => p.MaterialReplenishmentReceiptLines)
+                .HasForeignKey(d => d.ReplenishmentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_receipts_owner");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.MaterialReplenishmentReceiptLine)
+                .HasForeignKey<MaterialReplenishmentReceiptLine>(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_receipts_stock_line");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -53,6 +53,7 @@ public sealed partial class InventoryService
             await db.StockDocuments.AnyAsync(x => x.ReversalOfDocumentId == id, ct)) throw Invalid("Document is not eligible for reversal.");
         var movements = await db.StockMovements.Where(x => x.DocumentLine.DocumentId == id).OrderBy(x => x.MovementId).ToListAsync(ct);
         if (movements.Count == 0) throw Invalid("Original has no recorded stock effect.");
+        await HotelOps.Api.Services.Replenishments.ReplenishmentRules.ReverseLinkedReceipt(db, original, r.ActorUserId, ct);
         var warehouses = await Warehouses(movements.Select(x => x.WarehouseId).Concat(WarehouseIds(original)), true, ct);
         await StockGates(movements.Select(x => (x.WarehouseId, x.ItemId)), ct);
         foreach (var g in movements.GroupBy(x => (x.WarehouseId, x.ItemId)))

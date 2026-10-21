@@ -16,6 +16,9 @@ builder.Services.AddScoped<IIncidentService, IncidentService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
 builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Replenishments.ReplenishmentService>();
+builder.Services.AddScoped<IInventoryReceiptPosting>(services => services.GetRequiredService<InventoryService>());
+builder.Services.AddScoped<IInventoryQuantityContext>(services => services.GetRequiredService<InventoryService>());
 builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialRequestService>();
 builder.Services.AddScoped<IInventoryIssuePosting>(services => services.GetRequiredService<InventoryService>());
 

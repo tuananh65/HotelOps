@@ -44,4 +44,6 @@ public partial class StockDocumentLine
     public virtual UnitsOfMeasure Uom { get; set; } = null!;
 
     public virtual MaterialFulfillmentLine? MaterialFulfillmentLine { get; set; }
+
+    public virtual MaterialReplenishmentReceiptLine? MaterialReplenishmentReceiptLine { get; set; }
 }

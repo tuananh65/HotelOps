@@ -589,6 +589,38 @@ Columns: `setting_id`, `branch_id`, `setting_group`, `setting_key`, `setting_val
 
 Foreign keys: `branch_id` → `dbo.branches(branch_id)`, `updated_by` → `dbo.users(user_id)`.
 
+## FE-10 approved additive contract (2026-10-21)
+
+`database/patches/20261021_replenishment_contract.sql` adds the following tables.
+This section was verified against the patched local SQL catalog and a full EF
+Core 10.0.8 Database First scaffold; it does not certify other draft sections.
+The patch requires exact database `HotelOpsDB`, prints the server/database,
+uses a transaction/schema application lock and refuses existing FE-10 tables.
+It contains no developer hostname requirement, migration or legacy backfill.
+
+| Table | Columns and constraints |
+| --- | --- |
+| `material_replenishments` | Identity `replenishment_id` PK; unique `replenishment_no varchar(50)`; `warehouse_id`, `requested_by` required FKs; nullable `supplier_name nvarchar(200)`, `expected_on date`; required `status varchar(30)`; nullable `closed_at datetime2(7)`, `closed_by` FK, `close_reason nvarchar(max)`; required `created_at datetime2(7)`, nullable `updated_at datetime2(7)`; required SQL `row_version rowversion`. Composite unique `(replenishment_id, warehouse_id)` supports consistent owner warehouse. |
+| `material_replenishment_lines` | Identity `replenishment_line_id` PK; required `replenishment_id`, `warehouse_id`, positive `line_no`; composite owner FK; unique `(replenishment_id,line_no)`; required item/base-UOM FKs; `requested_base_qty decimal(18,3)>0`, `received_base_qty decimal(18,3)` default 0 within requested bounds; `source_type varchar(30)`; nullable threshold/MR-line FKs; required `is_open_coverage bit`; nullable `note nvarchar(max)`. Source CHECK requires exactly its corresponding FK. |
+| `material_replenishment_receipt_lines` | Identity `replenishment_receipt_line_id` PK; required replenishment-line FK, globally unique stock-document-line FK, positive `credited_base_qty decimal(18,3)`, `linked_at datetime2(7)` and actor FK `linked_by`. Credits are immutable snapshots. |
+
+Root status CHECK permits `REQUESTED`, `PARTIALLY_RECEIVED`, `FULLY_RECEIVED`,
+`CLOSED`; closure metadata is required only for CLOSED and reason length is at
+least 10. All FKs use SQL NO ACTION. CHECKs/FKs are enabled and trusted.
+
+`UX_replenishment_active_coverage` uniquely covers `(warehouse_id,item_id)`
+filtered by `is_open_coverage=1`, independent of source. A source cannot acquire
+parallel active coverage through another MR line. Lookup indexes cover threshold,
+MR line, receipt owner, root `(warehouse_id,status,expected_on,replenishment_id)`
+and remaining FK columns. The receipt stock-line UQ also enforces no split credit.
+
+EF adds three entities/DbSets/mapping sections and their direct navigations only.
+Root rowversion maps as byte[], concurrency token, generated OnAddOrUpdate;
+the full catalog check covers all 32 FE-10 columns, keys, indexes and navigations.
+Quantity cache/status/coverage are reconciled transactionally with durable links
+and Inventory receipt/reversal state. Cross-table business invariants remain in
+services; the database constraints are a second line of enforcement.
+
 ## Schema-specific cautions
 
 - `roles` and `permissions` define reference records; exact grants are seeded in `role_permissions`, and can change independently of table structure.

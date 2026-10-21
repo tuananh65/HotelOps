@@ -148,6 +148,13 @@ public sealed partial class InventoryService
     public async Task<InventoryDocumentDto?> Post(string type, long id, InventoryPost request, CancellationToken ct)
     {
         await using var tx = await Begin(request.ActorUserId, ct);
+        var document = await PostCore(type, id, request, ct);
+        if (document is null) return null;
+        await tx.CommitAsync(ct);
+        return await GetDocument(id, ct);
+    }
+    private async Task<StockDocument?> PostCore(string type, long id, InventoryPost request, CancellationToken ct)
+    {
         var d = await Document(id, ct); if (d is null) return null;
         Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType != type || type is not ("RECEIPT" or "RETURN")) throw Invalid("Only the matching DRAFT receipt/return may be posted.");
@@ -180,7 +187,7 @@ public sealed partial class InventoryService
             await ReturnCap(g.Key, g.Sum(x => Base(x.ActualQty + x.StockReturnLineDetailStockDocumentLine!.DamagedQty, x.ConversionFactor)), id, ct);
         d.Status = "POSTED"; d.PostedBy = request.ActorUserId; d.PostedAt = now;
         await DocumentAudit(d, request.ActorUserId, "UPDATE", "POSTED", before, warehouses, now, ct);
-        await tx.CommitAsync(ct); return await GetDocument(id, ct);
+        return d;
     }
     public async Task<InventoryDocumentDto?> CancelDocument(long id, InventoryCommand request, CancellationToken ct)
     {
