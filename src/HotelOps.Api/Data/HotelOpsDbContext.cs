@@ -164,6 +164,10 @@ public partial class HotelOpsDbContext : DbContext
 
     public virtual DbSet<StockReturnLineDetail> StockReturnLineDetails { get; set; }
 
+    public virtual DbSet<MaterialRequestApprovalCycle> MaterialRequestApprovalCycles { get; set; }
+
+    public virtual DbSet<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -1423,7 +1427,13 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("material_fulfillments");
 
+            entity.HasIndex(e => new { e.RequestId, e.FulfillmentId }, "IX_mr_fulfillments_request");
+
             entity.HasIndex(e => e.FulfillmentNo, "UQ__material__34E7AD3928AC09D5").IsUnique();
+
+            entity.HasIndex(e => e.StockDocumentId, "UX_mr_fulfillment_document")
+                .IsUnique()
+                .HasFilter("([stock_document_id] IS NOT NULL)");
 
             entity.Property(e => e.FulfillmentId).HasColumnName("fulfillment_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
@@ -1459,8 +1469,8 @@ public partial class HotelOpsDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_fulfillments_request_id");
 
-            entity.HasOne(d => d.StockDocument).WithMany(p => p.MaterialFulfillments)
-                .HasForeignKey(d => d.StockDocumentId)
+            entity.HasOne(d => d.StockDocument).WithOne(p => p.MaterialFulfillment)
+                .HasForeignKey<MaterialFulfillment>(d => d.StockDocumentId)
                 .HasConstraintName("FK_material_fulfillments_stock_document_id");
 
             entity.HasOne(d => d.Warehouse).WithMany(p => p.MaterialFulfillments)
@@ -1475,6 +1485,12 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("material_fulfillment_lines");
 
+            entity.HasIndex(e => e.RequestLineId, "IX_mr_fulfillment_request_line");
+
+            entity.HasIndex(e => e.StockDocumentLineId, "UX_mr_fulfillment_issue_line")
+                .IsUnique()
+                .HasFilter("([stock_document_line_id] IS NOT NULL)");
+
             entity.HasIndex(e => new { e.FulfillmentId, e.RequestLineId }, "material_fulfillment_lines_index_29").IsUnique();
 
             entity.Property(e => e.FulfillmentLineId).HasColumnName("fulfillment_line_id");
@@ -1488,6 +1504,7 @@ public partial class HotelOpsDbContext : DbContext
                 .HasColumnType("decimal(18, 3)")
                 .HasColumnName("received_qty");
             entity.Property(e => e.RequestLineId).HasColumnName("request_line_id");
+            entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
             entity.Property(e => e.UomId).HasColumnName("uom_id");
 
             entity.HasOne(d => d.Fulfillment).WithMany(p => p.MaterialFulfillmentLines)
@@ -1504,6 +1521,10 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey(d => d.RequestLineId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_fulfillment_lines_request_line_id");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.MaterialFulfillmentLine)
+                .HasForeignKey<MaterialFulfillmentLine>(d => d.StockDocumentLineId)
+                .HasConstraintName("FK_mr_fulfillment_issue_line");
 
             entity.HasOne(d => d.Uom).WithMany(p => p.MaterialFulfillmentLines)
                 .HasForeignKey(d => d.UomId)
@@ -1527,14 +1548,24 @@ public partial class HotelOpsDbContext : DbContext
             entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+            entity.Property(e => e.IncidentId).HasColumnName("incident_id");
             entity.Property(e => e.NeededAt).HasColumnName("needed_at");
             entity.Property(e => e.PriorityId).HasColumnName("priority_id");
             entity.Property(e => e.Purpose).HasColumnName("purpose");
+            entity.Property(e => e.ReceivingAreaId).HasColumnName("receiving_area_id");
+            entity.Property(e => e.ReceivingRoomId).HasColumnName("receiving_room_id");
+            entity.Property(e => e.RemainderCloseReason).HasColumnName("remainder_close_reason");
+            entity.Property(e => e.RemainderClosedAt).HasColumnName("remainder_closed_at");
+            entity.Property(e => e.RemainderClosedBy).HasColumnName("remainder_closed_by");
             entity.Property(e => e.RequestNo)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("request_no");
             entity.Property(e => e.RequesterId).HasColumnName("requester_id");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
             entity.Property(e => e.SourceWarehouseId).HasColumnName("source_warehouse_id");
             entity.Property(e => e.Status)
                 .HasMaxLength(40)
@@ -1554,9 +1585,25 @@ public partial class HotelOpsDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_requests_department_id");
 
+            entity.HasOne(d => d.Incident).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.IncidentId)
+                .HasConstraintName("FK_material_requests_incident");
+
             entity.HasOne(d => d.Priority).WithMany(p => p.MaterialRequests)
                 .HasForeignKey(d => d.PriorityId)
                 .HasConstraintName("FK_material_requests_priority_id");
+
+            entity.HasOne(d => d.ReceivingArea).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.ReceivingAreaId)
+                .HasConstraintName("FK_material_requests_receiving_area");
+
+            entity.HasOne(d => d.ReceivingRoom).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.ReceivingRoomId)
+                .HasConstraintName("FK_material_requests_receiving_room");
+
+            entity.HasOne(d => d.RemainderClosedByNavigation).WithMany(p => p.MaterialRequestRemainderClosedByNavigations)
+                .HasForeignKey(d => d.RemainderClosedBy)
+                .HasConstraintName("FK_material_requests_remainder_closed_by");
 
             entity.HasOne(d => d.Requester).WithMany(p => p.MaterialRequests)
                 .HasForeignKey(d => d.RequesterId)
@@ -1574,7 +1621,14 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("material_request_approvals");
 
+            entity.HasIndex(e => new { e.RequestId, e.DecidedAt, e.ApprovalId }, "IX_mr_approval_timeline");
+
+            entity.HasIndex(e => e.ApprovalCycleId, "UX_mr_decision_cycle")
+                .IsUnique()
+                .HasFilter("([approval_cycle_id] IS NOT NULL)");
+
             entity.Property(e => e.ApprovalId).HasColumnName("approval_id");
+            entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
             entity.Property(e => e.ApprovalLevel)
                 .HasDefaultValue(1)
                 .HasColumnName("approval_level");
@@ -1586,6 +1640,10 @@ public partial class HotelOpsDbContext : DbContext
                 .HasColumnName("decision");
             entity.Property(e => e.DecisionNote).HasColumnName("decision_note");
             entity.Property(e => e.RequestId).HasColumnName("request_id");
+
+            entity.HasOne(d => d.ApprovalCycle).WithOne(p => p.MaterialRequestApproval)
+                .HasForeignKey<MaterialRequestApproval>(d => d.ApprovalCycleId)
+                .HasConstraintName("FK_mr_approvals_cycle");
 
             entity.HasOne(d => d.Approver).WithMany(p => p.MaterialRequestApprovals)
                 .HasForeignKey(d => d.ApproverId)
@@ -1613,6 +1671,9 @@ public partial class HotelOpsDbContext : DbContext
             entity.Property(e => e.FulfilledQty)
                 .HasColumnType("decimal(18, 3)")
                 .HasColumnName("fulfilled_qty");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true, "DF_material_request_lines_active")
+                .HasColumnName("is_active");
             entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.LineNo).HasColumnName("line_no");
             entity.Property(e => e.Note).HasColumnName("note");
@@ -3205,6 +3266,85 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey<StockReturnLineDetail>(d => d.StockDocumentLineId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_stock_return_line_details_line");
+        });
+
+        modelBuilder.Entity<MaterialRequestApprovalCycle>(entity =>
+        {
+            entity.HasKey(e => e.ApprovalCycleId).HasName("PK__material__FBD97943D0FA7855");
+
+            entity.ToTable("material_request_approval_cycles");
+
+            entity.HasIndex(e => new { e.RequestId, e.RevisionNo }, "UQ_mr_cycles_revision").IsUnique();
+
+            entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+            entity.Property(e => e.AssignedApproverId).HasColumnName("assigned_approver_id");
+            entity.Property(e => e.RequestId).HasColumnName("request_id");
+            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+            entity.Property(e => e.RevisionNo).HasColumnName("revision_no");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.SubmittedAt).HasColumnName("submitted_at");
+            entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
+
+            entity.HasOne(d => d.AssignedApprover).WithMany(p => p.MaterialRequestApprovalCycleAssignedApprovers)
+                .HasForeignKey(d => d.AssignedApproverId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_cycles_approver");
+
+            entity.HasOne(d => d.Request).WithMany(p => p.MaterialRequestApprovalCycles)
+                .HasForeignKey(d => d.RequestId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_cycles_request");
+
+            entity.HasOne(d => d.SubmittedByNavigation).WithMany(p => p.MaterialRequestApprovalCycleSubmittedByNavigations)
+                .HasForeignKey(d => d.SubmittedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_cycles_submitter");
+        });
+
+        modelBuilder.Entity<MaterialRequestApprovalLineSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.SnapshotId).HasName("PK__material__C27CFBF76273C8DC");
+
+            entity.ToTable("material_request_approval_line_snapshots");
+
+            entity.HasIndex(e => new { e.ApprovalCycleId, e.RequestLineId }, "UQ_mr_snapshots_line").IsUnique();
+
+            entity.Property(e => e.SnapshotId).HasColumnName("snapshot_id");
+            entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+            entity.Property(e => e.ApprovedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("approved_qty");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.LineNo).HasColumnName("line_no");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.RequestLineId).HasColumnName("request_line_id");
+            entity.Property(e => e.RequestedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("requested_qty");
+            entity.Property(e => e.UomId).HasColumnName("uom_id");
+
+            entity.HasOne(d => d.ApprovalCycle).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.ApprovalCycleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_cycle");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_item");
+
+            entity.HasOne(d => d.RequestLine).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.RequestLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_line");
+
+            entity.HasOne(d => d.Uom).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.UomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_uom");
         });
 
         OnModelCreatingPartial(modelBuilder);

@@ -46,4 +46,6 @@ public partial class InventoryItem
     public virtual ICollection<StocktakeLine> StocktakeLines { get; set; } = new List<StocktakeLine>();
 
     public virtual ICollection<UomConversion> UomConversions { get; set; } = new List<UomConversion>();
+
+    public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
 }

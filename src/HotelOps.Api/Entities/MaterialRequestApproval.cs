@@ -22,4 +22,8 @@ public partial class MaterialRequestApproval
     public virtual User Approver { get; set; } = null!;
 
     public virtual MaterialRequest Request { get; set; } = null!;
+
+    public long? ApprovalCycleId { get; set; }
+
+    public virtual MaterialRequestApprovalCycle? ApprovalCycle { get; set; }
 }
