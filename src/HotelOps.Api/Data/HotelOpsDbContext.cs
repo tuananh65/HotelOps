@@ -2063,6 +2063,12 @@ public partial class HotelOpsDbContext : DbContext
             entity.HasIndex(e => new { e.RoleId, e.PermissionId }, "role_permissions_index_40").IsUnique();
 
             entity.Property(e => e.RolePermissionId).HasColumnName("role_permission_id");
+            entity.Property(e => e.DataScope)
+                .IsRequired()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('BRANCH')")
+                .HasColumnName("data_scope");
             entity.Property(e => e.GrantedAt).HasColumnName("granted_at");
             entity.Property(e => e.GrantedBy).HasColumnName("granted_by");
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");

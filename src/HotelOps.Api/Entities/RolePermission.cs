@@ -11,6 +11,8 @@ public partial class RolePermission
 
     public long PermissionId { get; set; }
 
+    public string DataScope { get; set; } = null!;
+
     public DateTime? GrantedAt { get; set; }
 
     public long? GrantedBy { get; set; }

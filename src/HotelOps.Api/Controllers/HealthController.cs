@@ -16,37 +16,18 @@ public class HealthController : ControllerBase
     }
 
     [HttpGet("database")]
-    public async Task<IActionResult> CheckDatabase()
+    public async Task<IActionResult> CheckDatabase(CancellationToken cancellationToken = default)
     {
         try
         {
-            var canConnect = await _dbContext.Database.CanConnectAsync();
-
-            if (!canConnect)
-            {
-                return StatusCode(503, new
-                {
-                    status = "error",
-                    database = "HotelOpsDB",
-                    message = "Cannot connect to database."
-                });
-            }
-
-            return Ok(new
-            {
-                status = "ok",
-                database = _dbContext.Database.GetDbConnection().Database,
-                message = "Database connection successful."
-            });
+            var canConnect = await _dbContext.Database.CanConnectAsync(cancellationToken);
+            return canConnect ? Ok(new { status = "ok" }) : StatusCode(503, new { status = "error" });
         }
-        catch (Exception ex)
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+        catch (Exception)
         {
-            return StatusCode(503, new
-            {
-                status = "error",
-                database = "HotelOpsDB",
-                message = ex.Message
-            });
+            // Public readiness response: never include provider/configuration details.
+            return StatusCode(503, new { status = "error" });
         }
     }
 }

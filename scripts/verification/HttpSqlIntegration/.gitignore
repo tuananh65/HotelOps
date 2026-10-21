@@ -1,0 +1,13 @@
+# Machine/database provenance and fixture evidence stay local.
+/environment.json
+/environment-preflight.json
+/fixtures.json
+/provisioning-checkpoint.json
+/main-before.json
+/main-after.json
+/preexisting-files.json
+/preservation.json
+/regressions.json
+/results.json
+/test-final-state.json
+/run.lock

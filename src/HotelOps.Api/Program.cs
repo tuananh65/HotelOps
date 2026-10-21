@@ -1,6 +1,7 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Security;
+using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Middleware;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,13 @@ builder.Services.AddScoped<IAuthenticationLoginService, AuthenticationLoginServi
 builder.Services.AddScoped<IAuthenticationCredentialWorkflow, AuthenticationCredentialWorkflow>();
 builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
 builder.Services.AddHotelOpsAntiforgery();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+builder.Services.AddScoped<IPermissionDataSource, EfPermissionDataSource>();
+builder.Services.AddScoped<ICleaningTaskAccessReader, EfCleaningTaskAccessReader>();
+builder.Services.AddScoped<IPermissionResourceResolver, CleaningTaskResourceResolver>();
+builder.Services.AddScoped<IPermissionService, PermissionService>();
+builder.Services.AddHotelOpsPermissionAuthorization();
 
 builder.Services.AddControllers().ConfigureApiBehaviorOptions(AuthenticationApiBehavior.Configure);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
