@@ -52,4 +52,6 @@ public partial class Room
     public virtual ICollection<RoomStatusHistory> RoomStatusHistories { get; set; } = new List<RoomStatusHistory>();
 
     public virtual RoomType RoomType { get; set; } = null!;
+
+    public virtual ICollection<MaterialRequest> MaterialRequests { get; set; } = new List<MaterialRequest>();
 }

@@ -50,4 +50,28 @@ public partial class MaterialRequest
     public virtual User Requester { get; set; } = null!;
 
     public virtual Warehouse? SourceWarehouse { get; set; }
+
+    public byte[] RowVersion { get; set; } = null!;
+
+    public long? ReceivingRoomId { get; set; }
+
+    public long? ReceivingAreaId { get; set; }
+
+    public long? IncidentId { get; set; }
+
+    public DateTime? RemainderClosedAt { get; set; }
+
+    public long? RemainderClosedBy { get; set; }
+
+    public string? RemainderCloseReason { get; set; }
+
+    public virtual Incident? Incident { get; set; }
+
+    public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycles { get; set; } = new List<MaterialRequestApprovalCycle>();
+
+    public virtual Area? ReceivingArea { get; set; }
+
+    public virtual Room? ReceivingRoom { get; set; }
+
+    public virtual User? RemainderClosedByNavigation { get; set; }
 }

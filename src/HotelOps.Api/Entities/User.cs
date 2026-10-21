@@ -174,4 +174,10 @@ public partial class User
     public virtual ICollection<Warehouse> Warehouses { get; set; } = new List<Warehouse>();
 
     public virtual ICollection<WorkShift> WorkShifts { get; set; } = new List<WorkShift>();
+
+    public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycleAssignedApprovers { get; set; } = new List<MaterialRequestApprovalCycle>();
+
+    public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycleSubmittedByNavigations { get; set; } = new List<MaterialRequestApprovalCycle>();
+
+    public virtual ICollection<MaterialRequest> MaterialRequestRemainderClosedByNavigations { get; set; } = new List<MaterialRequest>();
 }

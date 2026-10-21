@@ -42,4 +42,6 @@ public partial class StockDocumentLine
     public virtual ICollection<StockTransferReceiptLine> StockTransferReceiptLines { get; set; } = new List<StockTransferReceiptLine>();
 
     public virtual UnitsOfMeasure Uom { get; set; } = null!;
+
+    public virtual MaterialFulfillmentLine? MaterialFulfillmentLine { get; set; }
 }

@@ -55,7 +55,7 @@ public partial class StockDocument
 
     public virtual ICollection<MaintenanceWorkLog> MaintenanceWorkLogs { get; set; } = new List<MaintenanceWorkLog>();
 
-    public virtual ICollection<MaterialFulfillment> MaterialFulfillments { get; set; } = new List<MaterialFulfillment>();
+    public virtual MaterialFulfillment? MaterialFulfillment { get; set; }
 
     public virtual User? PostedByNavigation { get; set; }
 

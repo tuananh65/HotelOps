@@ -28,4 +28,6 @@ public partial class UnitsOfMeasure
     public virtual ICollection<UomConversion> UomConversionFromUoms { get; set; } = new List<UomConversion>();
 
     public virtual ICollection<UomConversion> UomConversionToUoms { get; set; } = new List<UomConversion>();
+
+    public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
 }

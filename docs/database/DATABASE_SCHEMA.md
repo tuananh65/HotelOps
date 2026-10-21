@@ -376,6 +376,41 @@ Columns: `stocktake_line_id`, `stocktake_id`, `item_id`, `system_qty`, `counted_
 
 Foreign keys: `stocktake_id` → `dbo.stocktakes(stocktake_id)`, `item_id` → `dbo.inventory_items(item_id)`, `counted_by` → `dbo.users(user_id)`.
 
+### FE-09 additive contract (2026-10-20)
+
+`patches/20261020_material_request_contract.sql` extends the live model below.
+No legacy request statuses or data are rewritten.
+
+- `material_requests`: `row_version` SQL rowversion, nullable typed
+  `receiving_room_id`, `receiving_area_id`, `incident_id`; at-most-one receiving
+  location CHECK; `remainder_closed_at datetime2(7)`, nullable user FK
+  `remainder_closed_by`, `remainder_close_reason nvarchar(max)`.
+- Status CHECK retains legacy values and adds `PENDING_APPROVAL`,
+  `NEEDS_INFORMATION`, `PARTIALLY_ISSUED`, `FULLY_ISSUED`, `REMAINDER_CLOSED`.
+- `material_request_lines.is_active bit NOT NULL DEFAULT 1`; legacy-validated
+  CHECK for positive requested quantity, nonnegative approved/fulfilled quantities,
+  approved <= requested and fulfilled <= COALESCE(approved,0).
+- `material_request_approval_cycles`: identity `approval_cycle_id`, request/user
+  FKs, `revision_no`, assigned approver, submitter, status, submitted/resolved UTC
+  timestamps; unique request/revision. States PENDING/NEEDS_INFORMATION/APPROVED/
+  REJECTED/SUPERSEDED; submitter differs from assigned approver.
+- `material_request_approval_line_snapshots`: identity `snapshot_id`, cycle/line/
+  item/UOM FKs; line number, requested and nullable approved decimal(18,3), note
+  snapshots; unique cycle/request-line and quantity CHECK. Historical lines retire
+  rather than being deleted.
+- `material_request_approvals.approval_cycle_id` nullable FK and filtered unique
+  index: one new decision per cycle, legacy decisions remain null.
+- `material_fulfillment_lines.stock_document_line_id` nullable FK and filtered
+  unique index; `material_fulfillments.stock_document_id` filtered unique index.
+  Direct generated navigations become one-to-one for these unique links.
+- Supporting indexes: fulfillment request lookup, fulfillment-line request-line
+  lookup and request approval timeline.
+
+FE-09 owns request-UOM approval and calls Inventory's caller-owned transaction
+ISSUE primitive. New fulfillment is immediately ISSUED; legacy PREPARING/RECEIVED
+remain readable. UC-092 is Incident-only; location applicability and Auth/RBAC
+enforcement remain explicitly deferred. No EF migrations.
+
 ### `dbo.material_requests`
 
 Columns: `request_id`, `request_no`, `branch_id`, `department_id`, `requester_id`, `source_warehouse_id`, `purpose`, `priority_id`, `status`, `cancellation_reason`.
