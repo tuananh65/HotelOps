@@ -40,6 +40,9 @@ public sealed class IncidentService : IIncidentService
 
         if (incident.Status != status)
         {
+            // The Incident row is already locked: corrective creation takes the same
+            // lock before linking a work, so this check cannot race with creation.
+            await RequireGenericStatusOwnershipAsync(incident.IncidentId, cancellationToken);
             var allowed = (incident.Status, status) switch
             {
                 ("OPEN", "IN_PROGRESS" or "CANCELLED") => true,
@@ -127,6 +130,13 @@ public sealed class IncidentService : IIncidentService
             ?? throw new InvalidOperationException("Incident could not be read after status operation.");
         await transaction.CommitAsync(cancellationToken);
         return result;
+    }
+
+    private async Task RequireGenericStatusOwnershipAsync(long incidentId, CancellationToken cancellationToken)
+    {
+        if (await _dbContext.MaintenanceWorks.AsNoTracking()
+            .AnyAsync(work => work.IncidentId == incidentId, cancellationToken))
+            throw new ValidationException("An incident with linked maintenance work must change status through the corrective Maintenance workflow.");
     }
 
     public async Task<IncidentDetailDto?> TriageIncidentAsync(long id, TriageIncidentRequest request, CancellationToken cancellationToken)
