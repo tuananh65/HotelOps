@@ -26,4 +26,6 @@ public partial class StockThreshold
     public virtual InventoryItem Item { get; set; } = null!;
 
     public virtual Warehouse Warehouse { get; set; } = null!;
+
+    public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
 }

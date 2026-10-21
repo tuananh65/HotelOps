@@ -180,4 +180,10 @@ public partial class User
     public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycleSubmittedByNavigations { get; set; } = new List<MaterialRequestApprovalCycle>();
 
     public virtual ICollection<MaterialRequest> MaterialRequestRemainderClosedByNavigations { get; set; } = new List<MaterialRequest>();
+
+    public virtual ICollection<MaterialReplenishment> MaterialReplenishmentClosedByNavigations { get; set; } = new List<MaterialReplenishment>();
+
+    public virtual ICollection<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; } = new List<MaterialReplenishmentReceiptLine>();
+
+    public virtual ICollection<MaterialReplenishment> MaterialReplenishmentRequestedByNavigations { get; set; } = new List<MaterialReplenishment>();
 }

@@ -21,6 +21,7 @@ public sealed partial class InventoryService
         if (await db.InventoryItems.AnyAsync(i => i.ItemCode == code && i.ItemId != id, ct)) throw Invalid("ItemCode already exists.");
         if (!await db.ItemCategories.AnyAsync(c => c.ItemCategoryId == r.CategoryId && c.IsActive, ct) || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.BaseUomId && u.IsActive, ct)) throw Invalid("Active Category and BaseUOM are required.");
         if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.StockMovements.AnyAsync(m => m.ItemId == id, ct)) throw Invalid("Base UOM is immutable after the first stock effect.");
+        if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.MaterialReplenishmentLines.AnyAsync(l => l.ItemId == id, ct)) throw Invalid("Base UOM is immutable after replenishment history.");
         x.ItemCode = code; x.ItemName = name; x.CategoryId = r.CategoryId; x.BaseUomId = r.BaseUomId; x.IsConsumable = r.IsConsumable; x.IsActive = r.IsActive; x.Description = r.Description; x.Specification = r.Specification;
         var now = DateTime.UtcNow; if (!id.HasValue) { x.CreatedAt = now; db.InventoryItems.Add(x); }
         if (Changed(x))
@@ -59,7 +60,7 @@ public sealed partial class InventoryService
         await db.StockDocuments.AnyAsync(d => d.SourceWarehouseId == id || d.DestinationWarehouseId == id, ct) ||
         await db.StockMovements.AnyAsync(m => m.WarehouseId == id, ct) || await db.Stocktakes.AnyAsync(s => s.WarehouseId == id, ct) ||
         await db.StockThresholds.AnyAsync(t => t.WarehouseId == id, ct) || await db.MaterialRequests.AnyAsync(m => m.SourceWarehouseId == id, ct) ||
-        await db.MaterialFulfillments.AnyAsync(m => m.WarehouseId == id, ct);
+        await db.MaterialFulfillments.AnyAsync(m => m.WarehouseId == id, ct) || await db.MaterialReplenishments.AnyAsync(r => r.WarehouseId == id, ct);
     public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, InventoryWarehouseWrite r, CancellationToken ct)
     {
         var code = Required(r.WarehouseCode, "WarehouseCode", 40); var name = Required(r.WarehouseName, "WarehouseName", 150);
@@ -75,6 +76,7 @@ public sealed partial class InventoryService
         if (await db.Warehouses.AnyAsync(w => w.BranchId == r.BranchId && w.WarehouseCode == code && w.WarehouseId != id, ct)) throw Invalid("WarehouseCode already exists in this branch.");
         if (id.HasValue && x.IsActive && !r.IsActive)
         {
+            if (await db.MaterialReplenishments.AnyAsync(p => p.WarehouseId == id && (p.Status == "REQUESTED" || p.Status == "PARTIALLY_RECEIVED"), ct)) throw Invalid("Warehouse has open replenishments.");
             if (await db.StockMovements.Where(m => m.WarehouseId == id).GroupBy(m => m.ItemId).AnyAsync(g => g.Sum(m => m.SignedBaseQty) != 0, ct) ||
                 await db.StockDocuments.AnyAsync(d => (d.SourceWarehouseId == id || d.DestinationWarehouseId == id) && !TerminalDocuments.Contains(d.Status), ct) ||
                 await db.Stocktakes.AnyAsync(s => s.WarehouseId == id && !TerminalStocktakes.Contains(s.Status), ct)) throw Invalid("Warehouse has nonzero stock or documents/stocktakes whose closure cannot be confirmed.");

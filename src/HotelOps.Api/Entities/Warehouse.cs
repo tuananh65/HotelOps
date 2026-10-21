@@ -44,4 +44,6 @@ public partial class Warehouse
     public virtual ICollection<StockThreshold> StockThresholds { get; set; } = new List<StockThreshold>();
 
     public virtual ICollection<Stocktake> Stocktakes { get; set; } = new List<Stocktake>();
+
+    public virtual ICollection<MaterialReplenishment> MaterialReplenishments { get; set; } = new List<MaterialReplenishment>();
 }
