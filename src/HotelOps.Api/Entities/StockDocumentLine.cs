@@ -33,5 +33,19 @@ public partial class StockDocumentLine
 
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 
+    public virtual StockReceiptLineDetail? StockReceiptLineDetail { get; set; }
+
+    public virtual ICollection<StockReturnLineDetail> StockReturnLineDetailOriginalIssueLines { get; set; } = new List<StockReturnLineDetail>();
+
+    public virtual StockReturnLineDetail? StockReturnLineDetailStockDocumentLine { get; set; }
+
+    public virtual ICollection<StockTransferReceiptLine> StockTransferReceiptLines { get; set; } = new List<StockTransferReceiptLine>();
+
     public virtual UnitsOfMeasure Uom { get; set; } = null!;
+
+    public virtual MaterialFulfillmentLine? MaterialFulfillmentLine { get; set; }
+
+    public virtual MaterialReplenishmentReceiptLine? MaterialReplenishmentReceiptLine { get; set; }
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
 }

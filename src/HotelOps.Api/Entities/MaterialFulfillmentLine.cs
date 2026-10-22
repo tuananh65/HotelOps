@@ -28,4 +28,8 @@ public partial class MaterialFulfillmentLine
     public virtual MaterialRequestLine RequestLine { get; set; } = null!;
 
     public virtual UnitsOfMeasure Uom { get; set; } = null!;
+
+    public long? StockDocumentLineId { get; set; }
+
+    public virtual StockDocumentLine? StockDocumentLine { get; set; }
 }

@@ -30,4 +30,10 @@ public partial class MaterialRequestLine
     public virtual MaterialRequest Request { get; set; } = null!;
 
     public virtual UnitsOfMeasure Uom { get; set; } = null!;
+
+    public bool IsActive { get; set; }
+
+    public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
+
+    public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
 }

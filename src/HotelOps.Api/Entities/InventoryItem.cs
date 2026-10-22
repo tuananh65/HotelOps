@@ -27,6 +27,8 @@ public partial class InventoryItem
 
     public DateTime? UpdatedAt { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual UnitsOfMeasure BaseUom { get; set; } = null!;
 
     public virtual ItemCategory Category { get; set; } = null!;
@@ -44,4 +46,10 @@ public partial class InventoryItem
     public virtual ICollection<StocktakeLine> StocktakeLines { get; set; } = new List<StocktakeLine>();
 
     public virtual ICollection<UomConversion> UomConversions { get; set; } = new List<UomConversion>();
+
+    public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
+
+    public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
 }

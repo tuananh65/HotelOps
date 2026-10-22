@@ -43,6 +43,8 @@ public partial class StockDocument
 
     public long? ReversalOfDocumentId { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual User? ApprovedByNavigation { get; set; }
 
     public virtual User CreatedByNavigation { get; set; } = null!;
@@ -53,7 +55,7 @@ public partial class StockDocument
 
     public virtual ICollection<MaintenanceWorkLog> MaintenanceWorkLogs { get; set; } = new List<MaintenanceWorkLog>();
 
-    public virtual ICollection<MaterialFulfillment> MaterialFulfillments { get; set; } = new List<MaterialFulfillment>();
+    public virtual MaterialFulfillment? MaterialFulfillment { get; set; }
 
     public virtual User? PostedByNavigation { get; set; }
 
@@ -62,6 +64,8 @@ public partial class StockDocument
     public virtual Warehouse? SourceWarehouse { get; set; }
 
     public virtual ICollection<StockDocumentLine> StockDocumentLines { get; set; } = new List<StockDocumentLine>();
+
+    public virtual ICollection<StockTransferReceipt> StockTransferReceipts { get; set; } = new List<StockTransferReceipt>();
 
     public virtual ICollection<Stocktake> Stocktakes { get; set; } = new List<Stocktake>();
 }

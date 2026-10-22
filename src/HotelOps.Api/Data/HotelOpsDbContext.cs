@@ -156,6 +156,26 @@ public partial class HotelOpsDbContext : DbContext
 
     public virtual DbSet<WorkShift> WorkShifts { get; set; }
 
+    public virtual DbSet<StockTransferReceipt> StockTransferReceipts { get; set; }
+
+    public virtual DbSet<StockTransferReceiptLine> StockTransferReceiptLines { get; set; }
+
+    public virtual DbSet<StockReceiptLineDetail> StockReceiptLineDetails { get; set; }
+
+    public virtual DbSet<StockReturnLineDetail> StockReturnLineDetails { get; set; }
+
+    public virtual DbSet<MaterialRequestApprovalCycle> MaterialRequestApprovalCycles { get; set; }
+
+    public virtual DbSet<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; }
+
+    public virtual DbSet<MaterialReplenishment> MaterialReplenishments { get; set; }
+
+    public virtual DbSet<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; }
+
+    public virtual DbSet<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; }
+
+    public virtual DbSet<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -1251,6 +1271,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.ItemId).HasName("PK__inventor__52020FDD14FA6F3D");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("inventory_items");
 
             entity.HasIndex(e => e.ItemCode, "UQ__inventor__4A67201E314B119B").IsUnique();
@@ -1377,6 +1402,8 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("maintenance_work_logs");
 
+            entity.HasIndex(e => new { e.LogId, e.MaintenanceWorkId }, "UQ_maintenance_logs_work").IsUnique();
+
             entity.Property(e => e.LogId).HasColumnName("log_id");
             entity.Property(e => e.LoggedAt).HasColumnName("logged_at");
             entity.Property(e => e.LoggedBy).HasColumnName("logged_by");
@@ -1410,7 +1437,13 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("material_fulfillments");
 
+            entity.HasIndex(e => new { e.RequestId, e.FulfillmentId }, "IX_mr_fulfillments_request");
+
             entity.HasIndex(e => e.FulfillmentNo, "UQ__material__34E7AD3928AC09D5").IsUnique();
+
+            entity.HasIndex(e => e.StockDocumentId, "UX_mr_fulfillment_document")
+                .IsUnique()
+                .HasFilter("([stock_document_id] IS NOT NULL)");
 
             entity.Property(e => e.FulfillmentId).HasColumnName("fulfillment_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
@@ -1446,8 +1479,8 @@ public partial class HotelOpsDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_fulfillments_request_id");
 
-            entity.HasOne(d => d.StockDocument).WithMany(p => p.MaterialFulfillments)
-                .HasForeignKey(d => d.StockDocumentId)
+            entity.HasOne(d => d.StockDocument).WithOne(p => p.MaterialFulfillment)
+                .HasForeignKey<MaterialFulfillment>(d => d.StockDocumentId)
                 .HasConstraintName("FK_material_fulfillments_stock_document_id");
 
             entity.HasOne(d => d.Warehouse).WithMany(p => p.MaterialFulfillments)
@@ -1462,6 +1495,12 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("material_fulfillment_lines");
 
+            entity.HasIndex(e => e.RequestLineId, "IX_mr_fulfillment_request_line");
+
+            entity.HasIndex(e => e.StockDocumentLineId, "UX_mr_fulfillment_issue_line")
+                .IsUnique()
+                .HasFilter("([stock_document_line_id] IS NOT NULL)");
+
             entity.HasIndex(e => new { e.FulfillmentId, e.RequestLineId }, "material_fulfillment_lines_index_29").IsUnique();
 
             entity.Property(e => e.FulfillmentLineId).HasColumnName("fulfillment_line_id");
@@ -1475,6 +1514,7 @@ public partial class HotelOpsDbContext : DbContext
                 .HasColumnType("decimal(18, 3)")
                 .HasColumnName("received_qty");
             entity.Property(e => e.RequestLineId).HasColumnName("request_line_id");
+            entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
             entity.Property(e => e.UomId).HasColumnName("uom_id");
 
             entity.HasOne(d => d.Fulfillment).WithMany(p => p.MaterialFulfillmentLines)
@@ -1491,6 +1531,10 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey(d => d.RequestLineId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_fulfillment_lines_request_line_id");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.MaterialFulfillmentLine)
+                .HasForeignKey<MaterialFulfillmentLine>(d => d.StockDocumentLineId)
+                .HasConstraintName("FK_mr_fulfillment_issue_line");
 
             entity.HasOne(d => d.Uom).WithMany(p => p.MaterialFulfillmentLines)
                 .HasForeignKey(d => d.UomId)
@@ -1514,14 +1558,24 @@ public partial class HotelOpsDbContext : DbContext
             entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+            entity.Property(e => e.IncidentId).HasColumnName("incident_id");
             entity.Property(e => e.NeededAt).HasColumnName("needed_at");
             entity.Property(e => e.PriorityId).HasColumnName("priority_id");
             entity.Property(e => e.Purpose).HasColumnName("purpose");
+            entity.Property(e => e.ReceivingAreaId).HasColumnName("receiving_area_id");
+            entity.Property(e => e.ReceivingRoomId).HasColumnName("receiving_room_id");
+            entity.Property(e => e.RemainderCloseReason).HasColumnName("remainder_close_reason");
+            entity.Property(e => e.RemainderClosedAt).HasColumnName("remainder_closed_at");
+            entity.Property(e => e.RemainderClosedBy).HasColumnName("remainder_closed_by");
             entity.Property(e => e.RequestNo)
                 .HasMaxLength(50)
                 .IsUnicode(false)
                 .HasColumnName("request_no");
             entity.Property(e => e.RequesterId).HasColumnName("requester_id");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
             entity.Property(e => e.SourceWarehouseId).HasColumnName("source_warehouse_id");
             entity.Property(e => e.Status)
                 .HasMaxLength(40)
@@ -1541,9 +1595,25 @@ public partial class HotelOpsDbContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_requests_department_id");
 
+            entity.HasOne(d => d.Incident).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.IncidentId)
+                .HasConstraintName("FK_material_requests_incident");
+
             entity.HasOne(d => d.Priority).WithMany(p => p.MaterialRequests)
                 .HasForeignKey(d => d.PriorityId)
                 .HasConstraintName("FK_material_requests_priority_id");
+
+            entity.HasOne(d => d.ReceivingArea).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.ReceivingAreaId)
+                .HasConstraintName("FK_material_requests_receiving_area");
+
+            entity.HasOne(d => d.ReceivingRoom).WithMany(p => p.MaterialRequests)
+                .HasForeignKey(d => d.ReceivingRoomId)
+                .HasConstraintName("FK_material_requests_receiving_room");
+
+            entity.HasOne(d => d.RemainderClosedByNavigation).WithMany(p => p.MaterialRequestRemainderClosedByNavigations)
+                .HasForeignKey(d => d.RemainderClosedBy)
+                .HasConstraintName("FK_material_requests_remainder_closed_by");
 
             entity.HasOne(d => d.Requester).WithMany(p => p.MaterialRequests)
                 .HasForeignKey(d => d.RequesterId)
@@ -1561,7 +1631,14 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("material_request_approvals");
 
+            entity.HasIndex(e => new { e.RequestId, e.DecidedAt, e.ApprovalId }, "IX_mr_approval_timeline");
+
+            entity.HasIndex(e => e.ApprovalCycleId, "UX_mr_decision_cycle")
+                .IsUnique()
+                .HasFilter("([approval_cycle_id] IS NOT NULL)");
+
             entity.Property(e => e.ApprovalId).HasColumnName("approval_id");
+            entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
             entity.Property(e => e.ApprovalLevel)
                 .HasDefaultValue(1)
                 .HasColumnName("approval_level");
@@ -1573,6 +1650,10 @@ public partial class HotelOpsDbContext : DbContext
                 .HasColumnName("decision");
             entity.Property(e => e.DecisionNote).HasColumnName("decision_note");
             entity.Property(e => e.RequestId).HasColumnName("request_id");
+
+            entity.HasOne(d => d.ApprovalCycle).WithOne(p => p.MaterialRequestApproval)
+                .HasForeignKey<MaterialRequestApproval>(d => d.ApprovalCycleId)
+                .HasConstraintName("FK_mr_approvals_cycle");
 
             entity.HasOne(d => d.Approver).WithMany(p => p.MaterialRequestApprovals)
                 .HasForeignKey(d => d.ApproverId)
@@ -1600,6 +1681,9 @@ public partial class HotelOpsDbContext : DbContext
             entity.Property(e => e.FulfilledQty)
                 .HasColumnType("decimal(18, 3)")
                 .HasColumnName("fulfilled_qty");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true, "DF_material_request_lines_active")
+                .HasColumnName("is_active");
             entity.Property(e => e.ItemId).HasColumnName("item_id");
             entity.Property(e => e.LineNo).HasColumnName("line_no");
             entity.Property(e => e.Note).HasColumnName("note");
@@ -2398,6 +2482,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.DocumentId).HasName("PK__stock_do__9666E8AC2AC8BA18");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("stock_documents");
 
             entity.HasIndex(e => e.DocumentNo, "UQ__stock_do__967931BE36726CCA").IsUnique();
@@ -2558,6 +2647,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.ThresholdId).HasName("PK__stock_th__A2E239DED8B42A00");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("stock_thresholds");
 
             entity.HasIndex(e => new { e.WarehouseId, e.ItemId }, "stock_thresholds_index_21").IsUnique();
@@ -2593,6 +2687,11 @@ public partial class HotelOpsDbContext : DbContext
         modelBuilder.Entity<Stocktake>(entity =>
         {
             entity.HasKey(e => e.StocktakeId).HasName("PK__stocktak__988280EDCD3908BB");
+
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
 
             entity.ToTable("stocktakes");
 
@@ -2718,6 +2817,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.UomId).HasName("PK__units_of__48EF04DF7562B367");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("units_of_measure");
 
             entity.HasIndex(e => e.UomCode, "UQ__units_of__31E2176B7AC6F419").IsUnique();
@@ -2739,6 +2843,11 @@ public partial class HotelOpsDbContext : DbContext
         modelBuilder.Entity<UomConversion>(entity =>
         {
             entity.HasKey(e => e.ConversionId).HasName("PK__uom_conv__E4E07B3FD3F36B3B");
+
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
 
             entity.ToTable("uom_conversions");
 
@@ -2963,6 +3072,11 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.WarehouseId).HasName("PK__warehous__734FE6BF3D0071C3");
 
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+
             entity.ToTable("warehouses");
 
             entity.HasIndex(e => new { e.BranchId, e.WarehouseCode }, "warehouses_index_19").IsUnique();
@@ -3069,6 +3183,428 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey(d => d.ShiftTemplateId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_work_shifts_shift_template_id");
+        });
+
+        modelBuilder.Entity<StockTransferReceipt>(entity =>
+        {
+            entity.HasKey(e => e.TransferReceiptId);
+
+            entity.ToTable("stock_transfer_receipts");
+
+            entity.HasIndex(e => new { e.TransferDocumentId, e.TransferReceiptId }, "IX_stock_transfer_receipts_document");
+
+            entity.HasIndex(e => e.ReceivedBy, "IX_stock_transfer_receipts_received_by");
+
+            entity.Property(e => e.TransferReceiptId).HasColumnName("transfer_receipt_id");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.ReceivedAt).HasColumnName("received_at");
+            entity.Property(e => e.ReceivedBy).HasColumnName("received_by");
+            entity.Property(e => e.TransferDocumentId).HasColumnName("transfer_document_id");
+
+            entity.HasOne(d => d.ReceivedByNavigation).WithMany(p => p.StockTransferReceipts)
+                .HasForeignKey(d => d.ReceivedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipts_user");
+
+            entity.HasOne(d => d.TransferDocument).WithMany(p => p.StockTransferReceipts)
+                .HasForeignKey(d => d.TransferDocumentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipts_document");
+        });
+
+        modelBuilder.Entity<StockTransferReceiptLine>(entity =>
+        {
+            entity.HasKey(e => e.TransferReceiptLineId);
+
+            entity.ToTable("stock_transfer_receipt_lines");
+
+            entity.HasIndex(e => e.TransferReceiptId, "IX_stock_transfer_receipt_lines_receipt");
+
+            entity.HasIndex(e => e.TransferLineId, "IX_stock_transfer_receipt_lines_transfer_line");
+
+            entity.Property(e => e.TransferReceiptLineId).HasColumnName("transfer_receipt_line_id");
+            entity.Property(e => e.DamagedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("damaged_qty");
+            entity.Property(e => e.MissingQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("missing_qty");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.ReceivedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("received_qty");
+            entity.Property(e => e.TransferLineId).HasColumnName("transfer_line_id");
+            entity.Property(e => e.TransferReceiptId).HasColumnName("transfer_receipt_id");
+
+            entity.HasOne(d => d.TransferLine).WithMany(p => p.StockTransferReceiptLines)
+                .HasForeignKey(d => d.TransferLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipt_lines_line");
+
+            entity.HasOne(d => d.TransferReceipt).WithMany(p => p.StockTransferReceiptLines)
+                .HasForeignKey(d => d.TransferReceiptId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_transfer_receipt_lines_receipt");
+        });
+
+        modelBuilder.Entity<StockReceiptLineDetail>(entity =>
+        {
+            entity.HasKey(e => e.StockDocumentLineId);
+
+            entity.ToTable("stock_receipt_line_details");
+
+            entity.Property(e => e.StockDocumentLineId)
+                .ValueGeneratedNever()
+                .HasColumnName("stock_document_line_id");
+            entity.Property(e => e.DamagedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("damaged_qty");
+            entity.Property(e => e.DiscrepancyReason).HasColumnName("discrepancy_reason");
+            entity.Property(e => e.RejectedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("rejected_qty");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.StockReceiptLineDetail)
+                .HasForeignKey<StockReceiptLineDetail>(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_receipt_line_details_line");
+        });
+
+        modelBuilder.Entity<StockReturnLineDetail>(entity =>
+        {
+            entity.HasKey(e => e.StockDocumentLineId);
+
+            entity.ToTable("stock_return_line_details");
+
+            entity.HasIndex(e => e.OriginalIssueLineId, "IX_stock_return_line_details_original");
+
+            entity.Property(e => e.StockDocumentLineId)
+                .ValueGeneratedNever()
+                .HasColumnName("stock_document_line_id");
+            entity.Property(e => e.DamagedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("damaged_qty");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.OriginalIssueLineId).HasColumnName("original_issue_line_id");
+
+            entity.HasOne(d => d.OriginalIssueLine).WithMany(p => p.StockReturnLineDetailOriginalIssueLines)
+                .HasForeignKey(d => d.OriginalIssueLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_return_line_details_original");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.StockReturnLineDetailStockDocumentLine)
+                .HasForeignKey<StockReturnLineDetail>(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_stock_return_line_details_line");
+        });
+
+        modelBuilder.Entity<MaterialRequestApprovalCycle>(entity =>
+        {
+            entity.HasKey(e => e.ApprovalCycleId).HasName("PK__material__FBD97943D0FA7855");
+
+            entity.ToTable("material_request_approval_cycles");
+
+            entity.HasIndex(e => new { e.RequestId, e.RevisionNo }, "UQ_mr_cycles_revision").IsUnique();
+
+            entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+            entity.Property(e => e.AssignedApproverId).HasColumnName("assigned_approver_id");
+            entity.Property(e => e.RequestId).HasColumnName("request_id");
+            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+            entity.Property(e => e.RevisionNo).HasColumnName("revision_no");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.SubmittedAt).HasColumnName("submitted_at");
+            entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
+
+            entity.HasOne(d => d.AssignedApprover).WithMany(p => p.MaterialRequestApprovalCycleAssignedApprovers)
+                .HasForeignKey(d => d.AssignedApproverId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_cycles_approver");
+
+            entity.HasOne(d => d.Request).WithMany(p => p.MaterialRequestApprovalCycles)
+                .HasForeignKey(d => d.RequestId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_cycles_request");
+
+            entity.HasOne(d => d.SubmittedByNavigation).WithMany(p => p.MaterialRequestApprovalCycleSubmittedByNavigations)
+                .HasForeignKey(d => d.SubmittedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_cycles_submitter");
+        });
+
+        modelBuilder.Entity<MaterialRequestApprovalLineSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.SnapshotId).HasName("PK__material__C27CFBF76273C8DC");
+
+            entity.ToTable("material_request_approval_line_snapshots");
+
+            entity.HasIndex(e => new { e.ApprovalCycleId, e.RequestLineId }, "UQ_mr_snapshots_line").IsUnique();
+
+            entity.Property(e => e.SnapshotId).HasColumnName("snapshot_id");
+            entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+            entity.Property(e => e.ApprovedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("approved_qty");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.LineNo).HasColumnName("line_no");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.RequestLineId).HasColumnName("request_line_id");
+            entity.Property(e => e.RequestedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("requested_qty");
+            entity.Property(e => e.UomId).HasColumnName("uom_id");
+
+            entity.HasOne(d => d.ApprovalCycle).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.ApprovalCycleId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_cycle");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_item");
+
+            entity.HasOne(d => d.RequestLine).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.RequestLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_line");
+
+            entity.HasOne(d => d.Uom).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+                .HasForeignKey(d => d.UomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_mr_snapshots_uom");
+        });
+
+        modelBuilder.Entity<MaterialReplenishment>(entity =>
+        {
+            entity.HasKey(e => e.ReplenishmentId);
+
+            entity.ToTable("material_replenishments");
+
+            entity.HasIndex(e => e.ClosedBy, "IX_material_replenishments_closed_by");
+
+            entity.HasIndex(e => e.RequestedBy, "IX_material_replenishments_requested_by");
+
+            entity.HasIndex(e => new { e.WarehouseId, e.Status, e.ExpectedOn, e.ReplenishmentId }, "IX_replenishments_tracking");
+
+            entity.HasIndex(e => e.ReplenishmentNo, "UQ_replenishment_no").IsUnique();
+
+            entity.HasIndex(e => new { e.ReplenishmentId, e.WarehouseId }, "UQ_replenishments_warehouse").IsUnique();
+
+            entity.Property(e => e.ReplenishmentId).HasColumnName("replenishment_id");
+            entity.Property(e => e.CloseReason).HasColumnName("close_reason");
+            entity.Property(e => e.ClosedAt).HasColumnName("closed_at");
+            entity.Property(e => e.ClosedBy).HasColumnName("closed_by");
+            entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+            entity.Property(e => e.ExpectedOn).HasColumnName("expected_on");
+            entity.Property(e => e.ReplenishmentNo)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasColumnName("replenishment_no");
+            entity.Property(e => e.RequestedBy).HasColumnName("requested_by");
+            entity.Property(e => e.RowVersion)
+                .IsRowVersion()
+                .IsConcurrencyToken()
+                .HasColumnName("row_version");
+            entity.Property(e => e.Status)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("status");
+            entity.Property(e => e.SupplierName)
+                .HasMaxLength(200)
+                .HasColumnName("supplier_name");
+            entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+            entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+
+            entity.HasOne(d => d.ClosedByNavigation).WithMany(p => p.MaterialReplenishmentClosedByNavigations)
+                .HasForeignKey(d => d.ClosedBy)
+                .HasConstraintName("FK_replenishments_closer");
+
+            entity.HasOne(d => d.RequestedByNavigation).WithMany(p => p.MaterialReplenishmentRequestedByNavigations)
+                .HasForeignKey(d => d.RequestedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishments_requester");
+
+            entity.HasOne(d => d.Warehouse).WithMany(p => p.MaterialReplenishments)
+                .HasForeignKey(d => d.WarehouseId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishments_warehouse");
+        });
+
+        modelBuilder.Entity<MaterialReplenishmentLine>(entity =>
+        {
+            entity.HasKey(e => e.ReplenishmentLineId);
+
+            entity.ToTable("material_replenishment_lines");
+
+            entity.HasIndex(e => e.BaseUomId, "IX_material_replenishment_lines_base_uom_id");
+
+            entity.HasIndex(e => e.ItemId, "IX_material_replenishment_lines_item_id");
+
+            entity.HasIndex(e => new { e.ReplenishmentId, e.WarehouseId }, "IX_material_replenishment_lines_replenishment_id_warehouse_id");
+
+            entity.HasIndex(e => e.SourceMaterialRequestLineId, "IX_replenishment_lines_request_line");
+
+            entity.HasIndex(e => e.SourceThresholdId, "IX_replenishment_lines_threshold");
+
+            entity.HasIndex(e => new { e.ReplenishmentId, e.LineNo }, "UQ_replenishment_lines_number").IsUnique();
+
+            entity.HasIndex(e => new { e.WarehouseId, e.ItemId }, "UX_replenishment_active_coverage")
+                .IsUnique()
+                .HasFilter("([is_open_coverage]=(1))");
+
+            entity.Property(e => e.ReplenishmentLineId).HasColumnName("replenishment_line_id");
+            entity.Property(e => e.BaseUomId).HasColumnName("base_uom_id");
+            entity.Property(e => e.IsOpenCoverage).HasColumnName("is_open_coverage");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.LineNo).HasColumnName("line_no");
+            entity.Property(e => e.Note).HasColumnName("note");
+            entity.Property(e => e.ReceivedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("received_base_qty");
+            entity.Property(e => e.ReplenishmentId).HasColumnName("replenishment_id");
+            entity.Property(e => e.RequestedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("requested_base_qty");
+            entity.Property(e => e.SourceMaterialRequestLineId).HasColumnName("source_material_request_line_id");
+            entity.Property(e => e.SourceThresholdId).HasColumnName("source_threshold_id");
+            entity.Property(e => e.SourceType)
+                .HasMaxLength(30)
+                .IsUnicode(false)
+                .HasColumnName("source_type");
+            entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+
+            entity.HasOne(d => d.BaseUom).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.BaseUomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_lines_uom");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_lines_item");
+
+            entity.HasOne(d => d.SourceMaterialRequestLine).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.SourceMaterialRequestLineId)
+                .HasConstraintName("FK_replenishment_lines_request_line");
+
+            entity.HasOne(d => d.SourceThreshold).WithMany(p => p.MaterialReplenishmentLines)
+                .HasForeignKey(d => d.SourceThresholdId)
+                .HasConstraintName("FK_replenishment_lines_threshold");
+
+            entity.HasOne(d => d.MaterialReplenishment).WithMany(p => p.MaterialReplenishmentLines)
+                .HasPrincipalKey(p => new { p.ReplenishmentId, p.WarehouseId })
+                .HasForeignKey(d => new { d.ReplenishmentId, d.WarehouseId })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_lines_owner");
+        });
+
+        modelBuilder.Entity<MaterialReplenishmentReceiptLine>(entity =>
+        {
+            entity.HasKey(e => e.ReplenishmentReceiptLineId);
+
+            entity.ToTable("material_replenishment_receipt_lines");
+
+            entity.HasIndex(e => e.LinkedBy, "IX_material_replenishment_receipt_lines_linked_by");
+
+            entity.HasIndex(e => e.ReplenishmentLineId, "IX_replenishment_receipts_owner");
+
+            entity.HasIndex(e => e.StockDocumentLineId, "UQ_replenishment_receipt_stock_line").IsUnique();
+
+            entity.Property(e => e.ReplenishmentReceiptLineId).HasColumnName("replenishment_receipt_line_id");
+            entity.Property(e => e.CreditedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("credited_base_qty");
+            entity.Property(e => e.LinkedAt).HasColumnName("linked_at");
+            entity.Property(e => e.LinkedBy).HasColumnName("linked_by");
+            entity.Property(e => e.ReplenishmentLineId).HasColumnName("replenishment_line_id");
+            entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
+
+            entity.HasOne(d => d.LinkedByNavigation).WithMany(p => p.MaterialReplenishmentReceiptLines)
+                .HasForeignKey(d => d.LinkedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_receipts_actor");
+
+            entity.HasOne(d => d.ReplenishmentLine).WithMany(p => p.MaterialReplenishmentReceiptLines)
+                .HasForeignKey(d => d.ReplenishmentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_receipts_owner");
+
+            entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.MaterialReplenishmentReceiptLine)
+                .HasForeignKey<MaterialReplenishmentReceiptLine>(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_replenishment_receipts_stock_line");
+        });
+
+        modelBuilder.Entity<MaintenanceMaterialUsage>(entity =>
+        {
+            entity.HasKey(e => e.UsageId);
+
+            entity.ToTable("maintenance_material_usages");
+
+            entity.HasIndex(e => e.BaseUomId, "IX_material_usages_base_uom");
+
+            entity.HasIndex(e => new { e.StockDocumentLineId, e.UsageId }, "IX_material_usages_issue_capacity");
+
+            entity.HasIndex(e => e.ItemId, "IX_material_usages_item");
+
+            entity.HasIndex(e => new { e.MaintenanceWorkLogId, e.MaintenanceWorkId }, "IX_material_usages_log_work");
+
+            entity.HasIndex(e => e.UomId, "IX_material_usages_uom");
+
+            entity.HasIndex(e => new { e.MaintenanceWorkId, e.UsageId }, "IX_material_usages_work_history");
+
+            entity.HasIndex(e => new { e.MaintenanceWorkLogId, e.StockDocumentLineId }, "UQ_material_usages_log_issue").IsUnique();
+
+            entity.Property(e => e.UsageId).HasColumnName("usage_id");
+            entity.Property(e => e.BaseUomId).HasColumnName("base_uom_id");
+            entity.Property(e => e.ConversionFactor)
+                .HasColumnType("decimal(18, 6)")
+                .HasColumnName("conversion_factor");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.MaintenanceWorkId).HasColumnName("maintenance_work_id");
+            entity.Property(e => e.MaintenanceWorkLogId).HasColumnName("maintenance_work_log_id");
+            entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
+            entity.Property(e => e.UomId).HasColumnName("uom_id");
+            entity.Property(e => e.UsedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("used_base_qty");
+            entity.Property(e => e.UsedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("used_qty");
+
+            entity.HasOne(d => d.BaseUom).WithMany(p => p.MaintenanceMaterialUsageBaseUoms)
+                .HasForeignKey(d => d.BaseUomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_base_uom");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_item");
+
+            entity.HasOne(d => d.MaintenanceWork).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasForeignKey(d => d.MaintenanceWorkId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_work");
+
+            entity.HasOne(d => d.StockDocumentLine).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasForeignKey(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_issue_line");
+
+            entity.HasOne(d => d.Uom).WithMany(p => p.MaintenanceMaterialUsageUoms)
+                .HasForeignKey(d => d.UomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_uom");
+
+            entity.HasOne(d => d.MaintenanceWorkLog).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasPrincipalKey(p => new { p.LogId, p.MaintenanceWorkId })
+                .HasForeignKey(d => new { d.MaintenanceWorkLogId, d.MaintenanceWorkId })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_log_work");
         });
 
         OnModelCreatingPartial(modelBuilder);

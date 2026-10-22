@@ -157,6 +157,8 @@ public partial class User
 
     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
 
+    public virtual ICollection<StockTransferReceipt> StockTransferReceipts { get; set; } = new List<StockTransferReceipt>();
+
     public virtual ICollection<Stocktake> StocktakeApprovedByNavigations { get; set; } = new List<Stocktake>();
 
     public virtual ICollection<Stocktake> StocktakeCountedByNavigations { get; set; } = new List<Stocktake>();
@@ -178,4 +180,16 @@ public partial class User
     public virtual ICollection<Warehouse> Warehouses { get; set; } = new List<Warehouse>();
 
     public virtual ICollection<WorkShift> WorkShifts { get; set; } = new List<WorkShift>();
+
+    public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycleAssignedApprovers { get; set; } = new List<MaterialRequestApprovalCycle>();
+
+    public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycleSubmittedByNavigations { get; set; } = new List<MaterialRequestApprovalCycle>();
+
+    public virtual ICollection<MaterialRequest> MaterialRequestRemainderClosedByNavigations { get; set; } = new List<MaterialRequest>();
+
+    public virtual ICollection<MaterialReplenishment> MaterialReplenishmentClosedByNavigations { get; set; } = new List<MaterialReplenishment>();
+
+    public virtual ICollection<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; } = new List<MaterialReplenishmentReceiptLine>();
+
+    public virtual ICollection<MaterialReplenishment> MaterialReplenishmentRequestedByNavigations { get; set; } = new List<MaterialReplenishment>();
 }

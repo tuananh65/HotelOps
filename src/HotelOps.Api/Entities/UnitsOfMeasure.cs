@@ -15,6 +15,8 @@ public partial class UnitsOfMeasure
 
     public bool IsActive { get; set; }
 
+    public byte[] RowVersion { get; set; } = null!;
+
     public virtual ICollection<InventoryItem> InventoryItems { get; set; } = new List<InventoryItem>();
 
     public virtual ICollection<MaterialFulfillmentLine> MaterialFulfillmentLines { get; set; } = new List<MaterialFulfillmentLine>();
@@ -26,4 +28,12 @@ public partial class UnitsOfMeasure
     public virtual ICollection<UomConversion> UomConversionFromUoms { get; set; } = new List<UomConversion>();
 
     public virtual ICollection<UomConversion> UomConversionToUoms { get; set; } = new List<UomConversion>();
+
+    public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
+
+    public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsageBaseUoms { get; set; } = new List<MaintenanceMaterialUsage>();
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsageUoms { get; set; } = new List<MaintenanceMaterialUsage>();
 }

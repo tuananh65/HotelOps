@@ -376,6 +376,41 @@ Columns: `stocktake_line_id`, `stocktake_id`, `item_id`, `system_qty`, `counted_
 
 Foreign keys: `stocktake_id` → `dbo.stocktakes(stocktake_id)`, `item_id` → `dbo.inventory_items(item_id)`, `counted_by` → `dbo.users(user_id)`.
 
+### FE-09 additive contract (2026-10-20)
+
+`patches/20261020_material_request_contract.sql` extends the live model below.
+No legacy request statuses or data are rewritten.
+
+- `material_requests`: `row_version` SQL rowversion, nullable typed
+  `receiving_room_id`, `receiving_area_id`, `incident_id`; at-most-one receiving
+  location CHECK; `remainder_closed_at datetime2(7)`, nullable user FK
+  `remainder_closed_by`, `remainder_close_reason nvarchar(max)`.
+- Status CHECK retains legacy values and adds `PENDING_APPROVAL`,
+  `NEEDS_INFORMATION`, `PARTIALLY_ISSUED`, `FULLY_ISSUED`, `REMAINDER_CLOSED`.
+- `material_request_lines.is_active bit NOT NULL DEFAULT 1`; legacy-validated
+  CHECK for positive requested quantity, nonnegative approved/fulfilled quantities,
+  approved <= requested and fulfilled <= COALESCE(approved,0).
+- `material_request_approval_cycles`: identity `approval_cycle_id`, request/user
+  FKs, `revision_no`, assigned approver, submitter, status, submitted/resolved UTC
+  timestamps; unique request/revision. States PENDING/NEEDS_INFORMATION/APPROVED/
+  REJECTED/SUPERSEDED; submitter differs from assigned approver.
+- `material_request_approval_line_snapshots`: identity `snapshot_id`, cycle/line/
+  item/UOM FKs; line number, requested and nullable approved decimal(18,3), note
+  snapshots; unique cycle/request-line and quantity CHECK. Historical lines retire
+  rather than being deleted.
+- `material_request_approvals.approval_cycle_id` nullable FK and filtered unique
+  index: one new decision per cycle, legacy decisions remain null.
+- `material_fulfillment_lines.stock_document_line_id` nullable FK and filtered
+  unique index; `material_fulfillments.stock_document_id` filtered unique index.
+  Direct generated navigations become one-to-one for these unique links.
+- Supporting indexes: fulfillment request lookup, fulfillment-line request-line
+  lookup and request approval timeline.
+
+FE-09 owns request-UOM approval and calls Inventory's caller-owned transaction
+ISSUE primitive. New fulfillment is immediately ISSUED; legacy PREPARING/RECEIVED
+remain readable. UC-092 is Incident-only; location applicability and Auth/RBAC
+enforcement remain explicitly deferred. No EF migrations.
+
 ### `dbo.material_requests`
 
 Columns: `request_id`, `request_no`, `branch_id`, `department_id`, `requester_id`, `source_warehouse_id`, `purpose`, `priority_id`, `status`, `cancellation_reason`.
@@ -553,6 +588,73 @@ Foreign keys: `branch_id` → `dbo.branches(branch_id)`, `actor_user_id` → `db
 Columns: `setting_id`, `branch_id`, `setting_group`, `setting_key`, `setting_value`, `data_type`, `description`, `is_sensitive`, `updated_by`.
 
 Foreign keys: `branch_id` → `dbo.branches(branch_id)`, `updated_by` → `dbo.users(user_id)`.
+
+## FE-10 approved additive contract (2026-10-21)
+
+`database/patches/20261021_replenishment_contract.sql` adds the following tables.
+This section was verified against the patched local SQL catalog and a full EF
+Core 10.0.8 Database First scaffold; it does not certify other draft sections.
+The patch requires exact database `HotelOpsDB`, prints the server/database,
+uses a transaction/schema application lock and refuses existing FE-10 tables.
+It contains no developer hostname requirement, migration or legacy backfill.
+
+| Table | Columns and constraints |
+| --- | --- |
+| `material_replenishments` | Identity `replenishment_id` PK; unique `replenishment_no varchar(50)`; `warehouse_id`, `requested_by` required FKs; nullable `supplier_name nvarchar(200)`, `expected_on date`; required `status varchar(30)`; nullable `closed_at datetime2(7)`, `closed_by` FK, `close_reason nvarchar(max)`; required `created_at datetime2(7)`, nullable `updated_at datetime2(7)`; required SQL `row_version rowversion`. Composite unique `(replenishment_id, warehouse_id)` supports consistent owner warehouse. |
+| `material_replenishment_lines` | Identity `replenishment_line_id` PK; required `replenishment_id`, `warehouse_id`, positive `line_no`; composite owner FK; unique `(replenishment_id,line_no)`; required item/base-UOM FKs; `requested_base_qty decimal(18,3)>0`, `received_base_qty decimal(18,3)` default 0 within requested bounds; `source_type varchar(30)`; nullable threshold/MR-line FKs; required `is_open_coverage bit`; nullable `note nvarchar(max)`. Source CHECK requires exactly its corresponding FK. |
+| `material_replenishment_receipt_lines` | Identity `replenishment_receipt_line_id` PK; required replenishment-line FK, globally unique stock-document-line FK, positive `credited_base_qty decimal(18,3)`, `linked_at datetime2(7)` and actor FK `linked_by`. Credits are immutable snapshots. |
+
+Root status CHECK permits `REQUESTED`, `PARTIALLY_RECEIVED`, `FULLY_RECEIVED`,
+`CLOSED`; closure metadata is required only for CLOSED and reason length is at
+least 10. All FKs use SQL NO ACTION. CHECKs/FKs are enabled and trusted.
+
+`UX_replenishment_active_coverage` uniquely covers `(warehouse_id,item_id)`
+filtered by `is_open_coverage=1`, independent of source. A source cannot acquire
+parallel active coverage through another MR line. Lookup indexes cover threshold,
+MR line, receipt owner, root `(warehouse_id,status,expected_on,replenishment_id)`
+and remaining FK columns. The receipt stock-line UQ also enforces no split credit.
+
+EF adds three entities/DbSets/mapping sections and their direct navigations only.
+Root rowversion maps as byte[], concurrency token, generated OnAddOrUpdate;
+the full catalog check covers all 32 FE-10 columns, keys, indexes and navigations.
+Quantity cache/status/coverage are reconciled transactionally with durable links
+and Inventory receipt/reversal state. Cross-table business invariants remain in
+services; the database constraints are a second line of enforcement.
+
+## Maintenance Material Usage V1 (2026-10-22)
+
+`database/patches/20261022_maintenance_material_usage_contract.sql` adds
+`maintenance_material_usages` and the parent log UQ `(log_id,maintenance_work_id)`.
+The reusable patch guards the exact `HotelOpsDB` database name, reports the server
+and database, takes a transaction-owned schema lock and refuses an existing usage
+table. It performs no backfill or data rewrite.
+
+All ten usage columns are NOT NULL: identity bigint `usage_id`; bigint Work,
+parent log, original ISSUE line, item, base UOM and input UOM IDs;
+`used_qty`/`used_base_qty` decimal(18,3); `conversion_factor` decimal(18,6).
+The composite parent FK prevents attaching a log belonging to another Work.
+Other FKs reference Work, stock line, item and the two UOM identities. All use
+SQL NO ACTION; no cascading deletion, actor/time/status/cycle or rowversion fields.
+Actor/time derive from the immutable parent log. MaterialIssueId remains nullable
+and is not populated by V1.
+
+CHECKs enforce positive quantities/factor, exact product and factor 1 for base
+UOM. UQ `(maintenance_work_log_id,stock_document_line_id)` prevents duplicate
+allocation within one log. Indexes cover Work/history, ISSUE capacity with
+`INCLUDE(used_base_qty)`, composite log ownership and other FK columns.
+
+Cross-row `consumed + effective physically returned <= issued` is a service
+invariant under the shared Inventory Catalog transaction gate, rather than a SQL
+CHECK. RETURN includes posted usable and damaged quantities, excludes draft,
+cancelled and reversed documents; usage remains consumed after terminal Work.
+Usage has no stock effect and no update/delete/void/correction API.
+Only deterministic approved FE-09 ISSUE lineage can create usage; legacy-valid
+Inventory RETURN does not acquire that new provenance requirement.
+
+Full temporary Database First output is the generation authority for the new
+entity, DbSet/mapping, parent unique metadata and direct navigations. SQL catalog
+tests additionally verify CHECK trust, indexes/includes, composite FK columns,
+precision and no shadow properties, which scaffolding alone does not prove.
 
 ## Schema-specific cautions
 

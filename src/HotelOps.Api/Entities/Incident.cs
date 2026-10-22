@@ -62,4 +62,6 @@ public partial class Incident
     public virtual ICollection<RoomBlock> RoomBlocks { get; set; } = new List<RoomBlock>();
 
     public virtual ReferenceValue? Severity { get; set; }
+
+    public virtual ICollection<MaterialRequest> MaterialRequests { get; set; } = new List<MaterialRequest>();
 }
