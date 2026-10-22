@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# Track shared HotelOps database release scripts
+!/scripts/database/release/

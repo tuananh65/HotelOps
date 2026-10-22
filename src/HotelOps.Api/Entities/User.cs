@@ -15,6 +15,12 @@ public partial class User
 
     public string? PasswordHash { get; set; }
 
+    public int FailedLoginCount { get; set; }
+
+    public DateTime? LockedUntil { get; set; }
+
+    public DateTime? TemporaryPasswordExpiresAt { get; set; }
+
     public string FullName { get; set; } = null!;
 
     public string? Phone { get; set; }

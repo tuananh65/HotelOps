@@ -2147,6 +2147,12 @@ public partial class HotelOpsDbContext : DbContext
             entity.HasIndex(e => new { e.RoleId, e.PermissionId }, "role_permissions_index_40").IsUnique();
 
             entity.Property(e => e.RolePermissionId).HasColumnName("role_permission_id");
+            entity.Property(e => e.DataScope)
+                .IsRequired()
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValueSql("('BRANCH')")
+                .HasColumnName("data_scope");
             entity.Property(e => e.GrantedAt).HasColumnName("granted_at");
             entity.Property(e => e.GrantedBy).HasColumnName("granted_by");
             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
@@ -2877,7 +2883,9 @@ public partial class HotelOpsDbContext : DbContext
         {
             entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370FD4563718");
 
-            entity.ToTable("users");
+            // Schema B preparation: verify against SQL after applying the authentication schema update.
+            entity.ToTable("users", table =>
+                table.HasCheckConstraint("CK_users_failed_login_count", "[failed_login_count] >= 0"));
 
             entity.HasIndex(e => e.Email, "UQ__users__AB6E61641B43B5D5").IsUnique();
 
@@ -2910,10 +2918,17 @@ public partial class HotelOpsDbContext : DbContext
                 .IsUnicode(false)
                 .HasDefaultValue("ACTIVE")
                 .HasColumnName("employment_status");
+            entity.Property(e => e.FailedLoginCount)
+                .HasColumnType("int")
+                .HasDefaultValue(0, "DF_users_failed_login_count")
+                .HasColumnName("failed_login_count");
             entity.Property(e => e.FullName)
                 .HasMaxLength(200)
                 .HasColumnName("full_name");
             entity.Property(e => e.LastLoginAt).HasColumnName("last_login_at");
+            entity.Property(e => e.LockedUntil)
+                .HasColumnType("datetime2(7)")
+                .HasColumnName("locked_until");
             entity.Property(e => e.ManagerUserId).HasColumnName("manager_user_id");
             entity.Property(e => e.PasswordHash)
                 .HasMaxLength(255)
@@ -2924,6 +2939,9 @@ public partial class HotelOpsDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("phone");
             entity.Property(e => e.PrimaryBranchId).HasColumnName("primary_branch_id");
+            entity.Property(e => e.TemporaryPasswordExpiresAt)
+                .HasColumnType("datetime2(7)")
+                .HasColumnName("temporary_password_expires_at");
             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
             entity.Property(e => e.Username)
                 .HasMaxLength(100)
@@ -3023,7 +3041,8 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.ToTable("user_sessions");
 
-            entity.HasIndex(e => e.RefreshTokenHash, "UQ__user_ses__63546C90BE1D5BBB").IsUnique();
+            // Keep the actual development SQL constraint name; column rename does not rename it.
+            entity.HasIndex(e => e.SessionKeyHash, "UQ__user_ses__63546C90989E9852").IsUnique();
 
             entity.Property(e => e.SessionId).HasColumnName("session_id");
             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
@@ -3034,10 +3053,11 @@ public partial class HotelOpsDbContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("ip_address");
             entity.Property(e => e.LastUsedAt).HasColumnName("last_used_at");
-            entity.Property(e => e.RefreshTokenHash)
+            entity.Property(e => e.SessionKeyHash)
+                .IsRequired()
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasColumnName("refresh_token_hash");
+                .HasColumnName("session_key_hash");
             entity.Property(e => e.RevokedAt).HasColumnName("revoked_at");
             entity.Property(e => e.UserAgent).HasColumnName("user_agent");
             entity.Property(e => e.UserId).HasColumnName("user_id");

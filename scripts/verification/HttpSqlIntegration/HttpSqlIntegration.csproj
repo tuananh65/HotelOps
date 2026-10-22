@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>HotelOps.Authorization.Integration.Task06</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup><ProjectReference Include="../../../src/HotelOps.Api/HotelOps.Api.csproj" /></ItemGroup>
+</Project>
