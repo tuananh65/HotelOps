@@ -80,14 +80,15 @@ sealed partial class IntegritySuite
             api = Process.Start(start)!; api.OutputDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.ErrorDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
             var ready = false; for (var i = 0; i < 100; i++) { try { using var r = await http.GetAsync("incidents?pageSize=1"); ready = r.IsSuccessStatusCode; if (ready) break; } catch (HttpRequestException) { } await Task.Delay(100); } Check(ready, "API startup");
             await Generic(); await Lifecycle(); await Drift(); await Concurrency(); await Rollbacks();
+            await MaterialUsage(); await MaterialConcurrency(); await MaterialFaults(); await VerifyCatalog();
             await Send<JsonElement>("GET", "incidents?pageSize=1"); await Send<JsonElement>("GET", "maintenance-works?pageSize=1");
         }
         finally
         {
             if (api is { HasExited: false }) { api.Kill(true); await api.WaitForExitAsync(); } api?.Dispose();
-            if (verified) { await Cleanup(); if (baseline != null) Check(baseline == await LegacySnapshot(), "Legacy/live or other DEV2 data changed"); }
+            if (verified) { await Cleanup(); if (baseline != null) { var after = await LegacySnapshot(); if (baseline != after) ExplainSnapshotDifference(baseline, after); Check(baseline == after, "Legacy/live or other DEV2 data changed"); } }
         }
-        Console.WriteLine($"PASS requests={requests} assertions={assertions} forbidden_cases={forbidden} SQL_ordered_races={races} rollback_cases={faults}; legacy 15-table snapshot unchanged; owned cleanup complete.");
+        Console.WriteLine($"PASS requests={requests} assertions={assertions} forbidden_cases={forbidden} SQL_ordered_races={races} rollback_cases={faults}; legacy 16-table snapshot unchanged; owned cleanup complete.");
     }
     async Task Generic()
     {

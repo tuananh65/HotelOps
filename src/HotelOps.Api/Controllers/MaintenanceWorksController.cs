@@ -186,6 +186,17 @@ public class MaintenanceWorksController : ControllerBase
         }
     }
 
+    [HttpGet("{id:long}/material-availability")]
+    public async Task<ActionResult<MaintenanceMaterialAvailability>> MaterialAvailability(long id, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var result = await _service.MaterialAvailabilityAsync(id, page, pageSize, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (ValidationException exception) { return ValidationFailure(exception); }
+    }
+
     [HttpGet]
     public async Task<ActionResult<MaintenancePagedResponse>> GetWorks(
         [FromQuery] MaintenanceQueryRequest request, CancellationToken cancellationToken)

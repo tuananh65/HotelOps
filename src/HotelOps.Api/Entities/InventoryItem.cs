@@ -50,4 +50,6 @@ public partial class InventoryItem
     public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
 
     public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
 }

@@ -64,11 +64,7 @@ public sealed partial class InventoryService
     }
     private async Task ReturnCap(long original, decimal additionalBase, long? excludeDocument, CancellationToken ct)
     {
-        var issued = -(await db.StockMovements.Where(x => x.DocumentLineId == original && x.SignedBaseQty < 0).SumAsync(x => (decimal?)x.SignedBaseQty, ct) ?? 0);
-        var returned = await db.StockReturnLineDetails.Where(x => x.OriginalIssueLineId == original &&
-            x.StockDocumentLine.DocumentId != excludeDocument && x.StockDocumentLine.Document.Status == "POSTED")
-            .SumAsync(x => (decimal?)((x.StockDocumentLine.ActualQty + x.DamagedQty) * x.StockDocumentLine.ConversionFactor), ct) ?? 0;
-        if (returned + additionalBase > issued) throw Invalid("Cumulative accepted return exceeds the original issued quantity.");
+        await ValidateCapacity(original, 0, additionalBase, excludeDocument, ct);
     }
     public async Task<InventoryDocumentDto?> SaveDraft(string type, long? id, InventoryDraft request, CancellationToken ct)
     {

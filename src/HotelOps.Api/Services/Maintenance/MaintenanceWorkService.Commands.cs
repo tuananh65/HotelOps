@@ -24,7 +24,7 @@ public sealed partial class MaintenanceWorkService
     private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveAsync(long id,
         MaintenanceActorRequest request, string? incidentNote,
         Func<MaintenanceWork, Incident, DateTime, CancellationToken, Task> operation,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken, Func<CancellationToken, Task>? prepareOwners = null)
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         var discovered = await _dbContext.MaintenanceWorks.AsNoTracking()
@@ -37,6 +37,7 @@ public sealed partial class MaintenanceWorkService
             throw new ValidationException("This action requires a corrective work linked to an incident.");
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        if (prepareOwners is not null) await prepareOwners(cancellationToken);
         // All corrective operations lock Incident first, then MaintenanceWork.
         var incident = await LockIncidentAsync(incidentId, cancellationToken);
         var work = await _dbContext.MaintenanceWorks

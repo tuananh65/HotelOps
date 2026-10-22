@@ -40,11 +40,12 @@ public sealed partial class MaintenanceWorkService
             RequireState(work, "IN_PROGRESS", "ON_HOLD");
             RequireAssignee(work, request.ActorUserId);
             var note = RequiredNote(request.WorkNote, "WorkNote");
+            var materials = request.MaterialUsages is { Count: > 0 } ? await PrepareUsages(work, incident, request.MaterialUsages, token) : [];
             log = AddWorkLog(work, request.ActorUserId, note, request.SpentMinutes, now);
             await _dbContext.SaveChangesAsync(token);
+            if (materials.Count > 0) await SaveUsages(log, materials, incident, request.ActorUserId, now, token);
             // The technical log is a business record, not a substitute for its CREATE audit.
-            AddAudit("maintenance_work_logs", log.LogId, incident.BranchId, request.ActorUserId,
-                now, null, new Dictionary<string, object?>
+            var values = new Dictionary<string, object?>
                 {
                     ["maintenance_work_id"] = log.MaintenanceWorkId,
                     ["work_note"] = log.WorkNote,
@@ -53,8 +54,10 @@ public sealed partial class MaintenanceWorkService
                     ["status"] = log.Status,
                     ["logged_by"] = log.LoggedBy,
                     ["logged_at"] = log.LoggedAt
-                });
-        }, cancellationToken);
+                };
+            if (materials.Count > 0) values["material_usages"] = materials.Select(x => new { x.Row.UsageId, x.Row.StockDocumentLineId, x.Row.UsedBaseQty }).ToArray();
+            AddAudit("maintenance_work_logs", log.LogId, incident.BranchId, request.ActorUserId, now, null, values);
+        }, cancellationToken, request.MaterialUsages is { Count: > 0 } ? token => PrepareMaterialLocks(request.MaterialUsages, token) : null);
         if (result is null)
             return null;
         return new MaintenanceWorkLogDto
@@ -66,7 +69,8 @@ public sealed partial class MaintenanceWorkService
             MaterialIssueId = log.MaterialIssueId,
             Status = log.Status,
             LoggedBy = log.LoggedBy,
-            LoggedAt = log.LoggedAt
+            LoggedAt = log.LoggedAt,
+            MaterialUsages = (await UsageDetails(id, cancellationToken)).Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray()
         };
     }
 

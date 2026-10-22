@@ -26,4 +26,6 @@ public partial class MaintenanceWorkLog
     public virtual MaintenanceWork MaintenanceWork { get; set; } = null!;
 
     public virtual StockDocument? MaterialIssue { get; set; }
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
 }

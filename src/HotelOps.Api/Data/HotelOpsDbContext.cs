@@ -174,6 +174,8 @@ public partial class HotelOpsDbContext : DbContext
 
     public virtual DbSet<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; }
 
+    public virtual DbSet<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -1399,6 +1401,8 @@ public partial class HotelOpsDbContext : DbContext
             entity.HasKey(e => e.LogId).HasName("PK__maintena__9E2397E041AC2DA9");
 
             entity.ToTable("maintenance_work_logs");
+
+            entity.HasIndex(e => new { e.LogId, e.MaintenanceWorkId }, "UQ_maintenance_logs_work").IsUnique();
 
             entity.Property(e => e.LogId).HasColumnName("log_id");
             entity.Property(e => e.LoggedAt).HasColumnName("logged_at");
@@ -3512,6 +3516,75 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey<MaterialReplenishmentReceiptLine>(d => d.StockDocumentLineId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_replenishment_receipts_stock_line");
+        });
+
+        modelBuilder.Entity<MaintenanceMaterialUsage>(entity =>
+        {
+            entity.HasKey(e => e.UsageId);
+
+            entity.ToTable("maintenance_material_usages");
+
+            entity.HasIndex(e => e.BaseUomId, "IX_material_usages_base_uom");
+
+            entity.HasIndex(e => new { e.StockDocumentLineId, e.UsageId }, "IX_material_usages_issue_capacity");
+
+            entity.HasIndex(e => e.ItemId, "IX_material_usages_item");
+
+            entity.HasIndex(e => new { e.MaintenanceWorkLogId, e.MaintenanceWorkId }, "IX_material_usages_log_work");
+
+            entity.HasIndex(e => e.UomId, "IX_material_usages_uom");
+
+            entity.HasIndex(e => new { e.MaintenanceWorkId, e.UsageId }, "IX_material_usages_work_history");
+
+            entity.HasIndex(e => new { e.MaintenanceWorkLogId, e.StockDocumentLineId }, "UQ_material_usages_log_issue").IsUnique();
+
+            entity.Property(e => e.UsageId).HasColumnName("usage_id");
+            entity.Property(e => e.BaseUomId).HasColumnName("base_uom_id");
+            entity.Property(e => e.ConversionFactor)
+                .HasColumnType("decimal(18, 6)")
+                .HasColumnName("conversion_factor");
+            entity.Property(e => e.ItemId).HasColumnName("item_id");
+            entity.Property(e => e.MaintenanceWorkId).HasColumnName("maintenance_work_id");
+            entity.Property(e => e.MaintenanceWorkLogId).HasColumnName("maintenance_work_log_id");
+            entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
+            entity.Property(e => e.UomId).HasColumnName("uom_id");
+            entity.Property(e => e.UsedBaseQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("used_base_qty");
+            entity.Property(e => e.UsedQty)
+                .HasColumnType("decimal(18, 3)")
+                .HasColumnName("used_qty");
+
+            entity.HasOne(d => d.BaseUom).WithMany(p => p.MaintenanceMaterialUsageBaseUoms)
+                .HasForeignKey(d => d.BaseUomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_base_uom");
+
+            entity.HasOne(d => d.Item).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_item");
+
+            entity.HasOne(d => d.MaintenanceWork).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasForeignKey(d => d.MaintenanceWorkId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_work");
+
+            entity.HasOne(d => d.StockDocumentLine).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasForeignKey(d => d.StockDocumentLineId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_issue_line");
+
+            entity.HasOne(d => d.Uom).WithMany(p => p.MaintenanceMaterialUsageUoms)
+                .HasForeignKey(d => d.UomId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_uom");
+
+            entity.HasOne(d => d.MaintenanceWorkLog).WithMany(p => p.MaintenanceMaterialUsages)
+                .HasPrincipalKey(p => new { p.LogId, p.MaintenanceWorkId })
+                .HasForeignKey(d => new { d.MaintenanceWorkLogId, d.MaintenanceWorkId })
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_material_usages_log_work");
         });
 
         OnModelCreatingPartial(modelBuilder);
