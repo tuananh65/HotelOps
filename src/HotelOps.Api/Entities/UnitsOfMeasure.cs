@@ -32,4 +32,8 @@ public partial class UnitsOfMeasure
     public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
 
     public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsageBaseUoms { get; set; } = new List<MaintenanceMaterialUsage>();
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsageUoms { get; set; } = new List<MaintenanceMaterialUsage>();
 }

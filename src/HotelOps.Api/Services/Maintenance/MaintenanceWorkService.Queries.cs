@@ -65,9 +65,9 @@ public sealed partial class MaintenanceWorkService
         };
     }
 
-    public Task<MaintenanceWorkDetailDto?> GetWorkAsync(long id, CancellationToken cancellationToken)
+    public async Task<MaintenanceWorkDetailDto?> GetWorkAsync(long id, CancellationToken cancellationToken)
     {
-        return _dbContext.MaintenanceWorks.AsNoTracking()
+        var result = await _dbContext.MaintenanceWorks.AsNoTracking()
             .Where(work => work.MaintenanceWorkId == id)
             .Select(work => new MaintenanceWorkDetailDto
             {
@@ -104,6 +104,12 @@ public sealed partial class MaintenanceWorkService
                     }).ToList()
             })
             .SingleOrDefaultAsync(cancellationToken);
+        if (result != null)
+        {
+            var usages = await UsageDetails(id, cancellationToken);
+            foreach (var log in result.MaintenanceWorkLogs) log.MaterialUsages = usages.Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray();
+        }
+        return result;
     }
 
     private static bool IsWorkStatus(string status) =>

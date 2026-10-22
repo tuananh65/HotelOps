@@ -3,6 +3,21 @@ using Microsoft.EntityFrameworkCore;
 
 sealed partial class IntegritySuite
 {
+    static void ExplainSnapshotDifference(string before, string after)
+    {
+        var a = JsonSerializer.Deserialize<string[]>(before)!; var b = JsonSerializer.Deserialize<string[]>(after)!;
+        for (var i = 0; i < a.Length; i++) if (a[i] != b[i])
+        {
+            var left = JsonDocument.Parse(a[i]).RootElement.EnumerateArray().Select(x => x.GetRawText()).ToHashSet();
+            var right = JsonDocument.Parse(b[i]).RootElement.EnumerateArray().Select(x => x.GetRawText()).ToHashSet();
+            Console.WriteLine($"Snapshot table index {i}: removed {left.Except(right).Count()}, added {right.Except(left).Count()}");
+            foreach (var row in left.Except(right).Concat(right.Except(left)).Take(4))
+            {
+                var key = JsonDocument.Parse(row).RootElement.EnumerateObject().First();
+                Console.WriteLine($"Changed row key: {key.Name}={key.Value}");
+            }
+        }
+    }
     async Task<string> Footprint()
     {
         await using var d = Db();
@@ -14,12 +29,17 @@ sealed partial class IntegritySuite
         var incidentIds = owned.Select(x => x.ToString()).ToArray(); var workIds = ids.Select(x => x.ToString()).ToArray(); var logIds = logs.Select(x => x.LogId.ToString()).ToArray();
         var audit = await d.AuditLogs.AsNoTracking().Where(x => x.EntityType == "incidents" && incidentIds.Contains(x.EntityId) || x.EntityType == "maintenance_works" && workIds.Contains(x.EntityId) || x.EntityType == "maintenance_work_logs" && logIds.Contains(x.EntityId)).OrderBy(x => x.AuditId).Select(x => new { x.AuditId, x.EntityType, x.EntityId, x.Action, x.ActorUserId, x.BranchId, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields }).ToArrayAsync();
         var totals = new[] { await d.Incidents.CountAsync(), await d.MaintenanceWorks.CountAsync(), await d.MaintenanceWorkLogs.CountAsync(), await d.IncidentEvents.CountAsync(), await d.AuditLogs.CountAsync() };
-        return JsonSerializer.Serialize(new { incidents, works, logs, events, audit, totals });
+        var usages = await d.MaintenanceMaterialUsages.AsNoTracking().OrderBy(x => x.UsageId).Select(x => new { x.UsageId, x.MaintenanceWorkId, x.MaintenanceWorkLogId, x.StockDocumentLineId, x.ItemId, x.UomId, x.BaseUomId, x.UsedQty, x.ConversionFactor, x.UsedBaseQty }).ToArrayAsync();
+        var stock = await d.StockDocuments.AsNoTracking().OrderBy(x => x.DocumentId).Select(x => new { x.DocumentId, x.Status, x.RowVersion, x.PostedAt }).ToArrayAsync();
+        var stockTotals = new[] { await d.StockDocuments.CountAsync(), await d.StockDocumentLines.CountAsync(), await d.StockMovements.CountAsync(), await d.StockReturnLineDetails.CountAsync() };
+        var ledger = await d.StockMovements.SumAsync(x => (decimal?)x.SignedBaseQty) ?? 0;
+        return JsonSerializer.Serialize(new { incidents, works, logs, events, audit, totals, usages, stock, stockTotals, ledger });
     }
     async Task<string> LegacySnapshot()
     {
         await using var d = Db(); var values = new List<string>();
         foreach (var sql in new[] {
+            "SELECT (SELECT * FROM dbo.maintenance_material_usages ORDER BY usage_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
             "SELECT (SELECT * FROM dbo.incidents ORDER BY incident_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
             "SELECT (SELECT * FROM dbo.maintenance_works ORDER BY maintenance_work_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
             "SELECT (SELECT * FROM dbo.maintenance_work_logs ORDER BY log_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
@@ -51,6 +71,10 @@ sealed partial class IntegritySuite
         var works = await d.MaintenanceWorks.Where(x => x.IncidentId != null && incidents.Contains(x.IncidentId.Value)).Select(x => x.MaintenanceWorkId).ToArrayAsync();
         var logs = await d.MaintenanceWorkLogs.Where(x => works.Contains(x.MaintenanceWorkId)).Select(x => x.LogId).ToArrayAsync();
         var ii = incidents.Select(x => x.ToString()).ToArray(); var wi = works.Select(x => x.ToString()).ToArray(); var li = logs.Select(x => x.ToString()).ToArray();
+        var usageIds = await d.MaintenanceMaterialUsages.Where(x => works.Contains(x.MaintenanceWorkId)).Select(x => x.UsageId.ToString()).ToArrayAsync();
+        await d.AuditLogs.Where(x => x.EntityType == "maintenance_material_usages" && usageIds.Contains(x.EntityId)).ExecuteDeleteAsync();
+        await d.MaintenanceMaterialUsages.Where(x => works.Contains(x.MaintenanceWorkId)).ExecuteDeleteAsync();
+        await CleanupMaterialFixtures(d, incidents);
         await d.AuditLogs.Where(x => x.EntityType == "incidents" && ii.Contains(x.EntityId) || x.EntityType == "maintenance_works" && wi.Contains(x.EntityId) || x.EntityType == "maintenance_work_logs" && li.Contains(x.EntityId)).ExecuteDeleteAsync();
         await d.MaintenanceWorkLogs.Where(x => logs.Contains(x.LogId)).ExecuteDeleteAsync();
         await d.MaintenanceWorks.Where(x => works.Contains(x.MaintenanceWorkId)).ExecuteDeleteAsync();

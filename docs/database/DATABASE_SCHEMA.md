@@ -621,6 +621,41 @@ Quantity cache/status/coverage are reconciled transactionally with durable links
 and Inventory receipt/reversal state. Cross-table business invariants remain in
 services; the database constraints are a second line of enforcement.
 
+## Maintenance Material Usage V1 (2026-10-22)
+
+`database/patches/20261022_maintenance_material_usage_contract.sql` adds
+`maintenance_material_usages` and the parent log UQ `(log_id,maintenance_work_id)`.
+The reusable patch guards the exact `HotelOpsDB` database name, reports the server
+and database, takes a transaction-owned schema lock and refuses an existing usage
+table. It performs no backfill or data rewrite.
+
+All ten usage columns are NOT NULL: identity bigint `usage_id`; bigint Work,
+parent log, original ISSUE line, item, base UOM and input UOM IDs;
+`used_qty`/`used_base_qty` decimal(18,3); `conversion_factor` decimal(18,6).
+The composite parent FK prevents attaching a log belonging to another Work.
+Other FKs reference Work, stock line, item and the two UOM identities. All use
+SQL NO ACTION; no cascading deletion, actor/time/status/cycle or rowversion fields.
+Actor/time derive from the immutable parent log. MaterialIssueId remains nullable
+and is not populated by V1.
+
+CHECKs enforce positive quantities/factor, exact product and factor 1 for base
+UOM. UQ `(maintenance_work_log_id,stock_document_line_id)` prevents duplicate
+allocation within one log. Indexes cover Work/history, ISSUE capacity with
+`INCLUDE(used_base_qty)`, composite log ownership and other FK columns.
+
+Cross-row `consumed + effective physically returned <= issued` is a service
+invariant under the shared Inventory Catalog transaction gate, rather than a SQL
+CHECK. RETURN includes posted usable and damaged quantities, excludes draft,
+cancelled and reversed documents; usage remains consumed after terminal Work.
+Usage has no stock effect and no update/delete/void/correction API.
+Only deterministic approved FE-09 ISSUE lineage can create usage; legacy-valid
+Inventory RETURN does not acquire that new provenance requirement.
+
+Full temporary Database First output is the generation authority for the new
+entity, DbSet/mapping, parent unique metadata and direct navigations. SQL catalog
+tests additionally verify CHECK trust, indexes/includes, composite FK columns,
+precision and no shadow properties, which scaffolding alone does not prove.
+
 ## Schema-specific cautions
 
 - `roles` and `permissions` define reference records; exact grants are seeded in `role_permissions`, and can change independently of table structure.

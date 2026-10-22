@@ -46,4 +46,6 @@ public partial class StockDocumentLine
     public virtual MaterialFulfillmentLine? MaterialFulfillmentLine { get; set; }
 
     public virtual MaterialReplenishmentReceiptLine? MaterialReplenishmentReceiptLine { get; set; }
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
 }

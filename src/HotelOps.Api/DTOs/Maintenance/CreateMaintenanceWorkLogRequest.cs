@@ -8,4 +8,5 @@ public sealed class CreateMaintenanceWorkLogRequest : MaintenanceActorRequest
     public string WorkNote { get; init; } = string.Empty;
     [Range(0, int.MaxValue)]
     public int SpentMinutes { get; init; }
+    public IReadOnlyList<MaintenanceMaterialUsageWrite>? MaterialUsages { get; init; }
 }

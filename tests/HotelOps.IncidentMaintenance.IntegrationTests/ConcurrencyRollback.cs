@@ -40,7 +40,7 @@ sealed partial class IntegritySuite
         {
             var incident = await Create();
             Func<HotelOpsDbContext, Task> generic = async d => { await new IncidentService(d).ChangeIncidentStatusAsync(incident.IncidentId, Change("IN_PROGRESS"), default); };
-            Func<HotelOpsDbContext, Task> create = async d => { await new MaintenanceWorkService(d).CreateWorkAsync(incident.IncidentId, new() { ActorUserId = actor, Title = prefix }, default); };
+            Func<HotelOpsDbContext, Task> create = async d => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).CreateWorkAsync(incident.IncidentId, new() { ActorUserId = actor, Title = prefix }, default); };
             var before = await HistoryCounts(incident.IncidentId);
             await OrderedRace("generic/create; " + (genericFirst ? "generic" : "create") + " first", genericFirst ? generic : create, genericFirst ? create : generic, (a, b) => Check(a && !b, "Create race winner follows Incident lock order"));
             await using var check = Db(); var works = await check.MaintenanceWorks.Where(x => x.IncidentId == incident.IncidentId).ToArrayAsync(); var row = await check.Incidents.SingleAsync(x => x.IncidentId == incident.IncidentId);
@@ -55,7 +55,7 @@ sealed partial class IntegritySuite
             Func<HotelOpsDbContext, Task> generic = async d => { await new IncidentService(d).ChangeIncidentStatusAsync(pair.Incident, Change(target, prefix), default); };
             Func<HotelOpsDbContext, Task> command = async d =>
             {
-                var m = new MaintenanceWorkService(d);
+                var m = new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d));
                 switch (action)
                 {
                     case "start": await m.StartWorkAsync(pair.Work, new() { ActorUserId = actor }, default); break;
@@ -85,17 +85,17 @@ sealed partial class IntegritySuite
         await using (var d = Db(new CommitFailure())) await Rollback("generic before commit", async () => { await new IncidentService(d).ChangeIncidentStatusAsync(i.IncidentId, Change("IN_PROGRESS"), default); });
         foreach (var boundary in new[] { 1, 2 })
         {
-            await using var d = Db(new SaveFailure(boundary)); await Rollback("corrective create save " + boundary, async () => { await new MaintenanceWorkService(d).CreateWorkAsync(i.IncidentId, new() { ActorUserId = actor, Title = prefix }, default); });
+            await using var d = Db(new SaveFailure(boundary)); await Rollback("corrective create save " + boundary, async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).CreateWorkAsync(i.IncidentId, new() { ActorUserId = actor, Title = prefix }, default); });
         }
         var pair = await Prepare("IN_PROGRESS");
-        await using (var d = Db(new SaveFailure(1))) await Rollback("paired result/status/event/audits after SQL save", async () => { await new MaintenanceWorkService(d).SubmitResultAsync(pair.Work, new() { ActorUserId = actor, ResolutionNote = prefix }, default); });
-        await using (var d = Db(new CommitFailure())) await Rollback("paired result before commit", async () => { await new MaintenanceWorkService(d).SubmitResultAsync(pair.Work, new() { ActorUserId = actor, ResolutionNote = prefix }, default); });
+        await using (var d = Db(new SaveFailure(1))) await Rollback("paired result/status/event/audits after SQL save", async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).SubmitResultAsync(pair.Work, new() { ActorUserId = actor, ResolutionNote = prefix }, default); });
+        await using (var d = Db(new CommitFailure())) await Rollback("paired result before commit", async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).SubmitResultAsync(pair.Work, new() { ActorUserId = actor, ResolutionNote = prefix }, default); });
         foreach (var boundary in new[] { 1, 2 })
         {
-            await using var d = Db(new SaveFailure(boundary)); await Rollback("technical log/history save " + boundary, async () => { await new MaintenanceWorkService(d).CreateLogAsync(pair.Work, new() { ActorUserId = actor, WorkNote = prefix, SpentMinutes = 1 }, default); });
+            await using var d = Db(new SaveFailure(boundary)); await Rollback("technical log/history save " + boundary, async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).CreateLogAsync(pair.Work, new() { ActorUserId = actor, WorkNote = prefix, SpentMinutes = 1 }, default); });
         }
         await Command(pair.Work, "submit-result", new { ActorUserId = actor, ResolutionNote = prefix });
-        await using (var d = Db(new SaveFailure(1))) await Rollback("paired verification/closure/review/audits after SQL save", async () => { await new MaintenanceWorkService(d).VerifyWorkAsync(pair.Work, new() { ActorUserId = verifier, Note = prefix }, default); });
+        await using (var d = Db(new SaveFailure(1))) await Rollback("paired verification/closure/review/audits after SQL save", async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).VerifyWorkAsync(pair.Work, new() { ActorUserId = verifier, Note = prefix }, default); });
         foreach (var paired in new[] { false, true })
         {
             var target = paired ? pair.Incident : i.IncidentId;
@@ -105,7 +105,7 @@ sealed partial class IntegritySuite
             using var cancellation = new CancellationTokenSource();
             await Rollback("cancellation waiting Incident lock: " + (paired ? "paired" : "generic"), async () =>
             {
-                Task task = paired ? new MaintenanceWorkService(worker).VerifyWorkAsync(pair.Work, new() { ActorUserId = verifier, Note = prefix }, cancellation.Token) : new IncidentService(worker).ChangeIncidentStatusAsync(i.IncidentId, Change("IN_PROGRESS"), cancellation.Token);
+                Task task = paired ? new MaintenanceWorkService(worker, new HotelOps.Api.Services.Inventory.InventoryService(worker)).VerifyWorkAsync(pair.Work, new() { ActorUserId = verifier, Note = prefix }, cancellation.Token) : new IncidentService(worker).ChangeIncidentStatusAsync(i.IncidentId, Change("IN_PROGRESS"), cancellation.Token);
                 try
                 {
                     var waiting = 0;

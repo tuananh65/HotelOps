@@ -56,4 +56,6 @@ public partial class MaintenanceWork
     public virtual ReferenceValue? Priority { get; set; }
 
     public virtual User? ReviewedByNavigation { get; set; }
+
+    public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
 }

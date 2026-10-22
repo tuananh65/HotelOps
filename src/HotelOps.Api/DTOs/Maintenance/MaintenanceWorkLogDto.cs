@@ -10,4 +10,5 @@ public sealed class MaintenanceWorkLogDto
     public string? Status { get; init; }
     public long LoggedBy { get; init; }
     public DateTime LoggedAt { get; init; }
+    public IReadOnlyList<MaintenanceMaterialUsageDto> MaterialUsages { get; set; } = [];
 }
