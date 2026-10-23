@@ -3,6 +3,9 @@ namespace HotelOps.Api.DTOs.Maintenance;
 public sealed class MaintenanceWorkDetailDto
 {
     public long MaintenanceWorkId { get; init; }
+    public long? CurrentCycleId { get; set; }
+    public int? CurrentCycleNo { get; set; }
+    public DateTime? IncidentClosedAt { get; init; }
     public string WorkNo { get; init; } = string.Empty;
     public long? IncidentId { get; init; }
     public long? AssigneeId { get; init; }

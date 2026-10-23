@@ -67,6 +67,15 @@ public sealed partial class MaintenanceWorkService
 
     public async Task<MaintenanceWorkDetailDto?> GetWorkAsync(long id, CancellationToken cancellationToken)
     {
+        if (_dbContext.Database.CurrentTransaction is not null) return await ReadWorkCoreAsync(id, cancellationToken);
+        await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        if (!await LockCycleRead(id, cancellationToken)) return null;
+        var result = await ReadWorkCoreAsync(id, cancellationToken);
+        await tx.CommitAsync(cancellationToken); return result;
+    }
+
+    private async Task<MaintenanceWorkDetailDto?> ReadWorkCoreAsync(long id, CancellationToken cancellationToken)
+    {
         var result = await _dbContext.MaintenanceWorks.AsNoTracking()
             .Where(work => work.MaintenanceWorkId == id)
             .Select(work => new MaintenanceWorkDetailDto
@@ -74,6 +83,7 @@ public sealed partial class MaintenanceWorkService
                 MaintenanceWorkId = work.MaintenanceWorkId,
                 WorkNo = work.WorkNo,
                 IncidentId = work.IncidentId,
+                IncidentClosedAt = work.Incident == null ? null : work.Incident.ClosedAt,
                 AssigneeId = work.AssigneeId,
                 DepartmentId = work.DepartmentId,
                 Title = work.Title,
@@ -94,6 +104,7 @@ public sealed partial class MaintenanceWorkService
                     .Select(log => new MaintenanceWorkLogDto
                     {
                         LogId = log.LogId,
+                        CycleId = log.CycleId,
                         MaintenanceWorkId = log.MaintenanceWorkId,
                         WorkNote = log.WorkNote,
                         SpentMinutes = log.SpentMinutes,
@@ -106,6 +117,8 @@ public sealed partial class MaintenanceWorkService
             .SingleOrDefaultAsync(cancellationToken);
         if (result != null)
         {
+            var cycle = await _dbContext.MaintenanceWorkCycles.AsNoTracking().Where(x => x.MaintenanceWorkId == id).OrderByDescending(x => x.CycleNo).Select(x => new { x.CycleId, x.CycleNo }).FirstOrDefaultAsync(cancellationToken);
+            result.CurrentCycleId = cycle?.CycleId; result.CurrentCycleNo = cycle?.CycleNo;
             var usages = await UsageDetails(id, cancellationToken);
             foreach (var log in result.MaintenanceWorkLogs) log.MaterialUsages = usages.Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray();
         }

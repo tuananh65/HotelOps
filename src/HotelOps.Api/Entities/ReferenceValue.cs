@@ -40,4 +40,6 @@ public partial class ReferenceValue
     public virtual ICollection<MaterialRequest> MaterialRequests { get; set; } = new List<MaterialRequest>();
 
     public virtual ICollection<OperationalTask> OperationalTasks { get; set; } = new List<OperationalTask>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycles { get; set; } = new List<MaintenanceWorkCycle>();
 }

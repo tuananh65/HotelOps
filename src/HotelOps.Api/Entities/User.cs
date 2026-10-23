@@ -192,4 +192,14 @@ public partial class User
     public virtual ICollection<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; } = new List<MaterialReplenishmentReceiptLine>();
 
     public virtual ICollection<MaterialReplenishment> MaterialReplenishmentRequestedByNavigations { get; set; } = new List<MaterialReplenishment>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycleAssignees { get; set; } = new List<MaintenanceWorkCycle>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycleEndedByNavigations { get; set; } = new List<MaintenanceWorkCycle>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycleOpenedByNavigations { get; set; } = new List<MaintenanceWorkCycle>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycleRecordedByNavigations { get; set; } = new List<MaintenanceWorkCycle>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycleReviewedByNavigations { get; set; } = new List<MaintenanceWorkCycle>();
 }

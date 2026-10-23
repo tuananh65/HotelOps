@@ -186,6 +186,28 @@ public class MaintenanceWorksController : ControllerBase
         }
     }
 
+    [HttpPost("{id:long}/reopen")]
+    public async Task<ActionResult<MaintenanceWorkDetailDto>> Reopen(long id, ReopenMaintenanceWorkRequest request, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var result = await _service.ReopenWorkAsync(id, request, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (ValidationException exception) { return ValidationFailure(exception); }
+    }
+
+    [HttpGet("{id:long}/cycles")]
+    public async Task<ActionResult<MaintenanceCyclePage>> Cycles(long id, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
+    {
+        try
+        {
+            var result = await _service.GetCyclesAsync(id, page, pageSize, cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (ValidationException exception) { return ValidationFailure(exception); }
+    }
+
     [HttpGet("{id:long}/material-availability")]
     public async Task<ActionResult<MaintenanceMaterialAvailability>> MaterialAvailability(long id, CancellationToken cancellationToken, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
     {

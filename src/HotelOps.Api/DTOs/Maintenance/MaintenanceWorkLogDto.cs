@@ -3,6 +3,7 @@ namespace HotelOps.Api.DTOs.Maintenance;
 public sealed class MaintenanceWorkLogDto
 {
     public long LogId { get; init; }
+    public long? CycleId { get; init; }
     public long MaintenanceWorkId { get; init; }
     public string WorkNote { get; init; } = string.Empty;
     public int SpentMinutes { get; init; }

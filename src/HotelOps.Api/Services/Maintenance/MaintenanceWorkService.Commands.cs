@@ -49,12 +49,17 @@ public sealed partial class MaintenanceWorkService
             throw new ValidationException("The corrective work relationship changed. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
         await RequireUserAsync(request.ActorUserId, "ActorUserId", cancellationToken);
+        var cycle = await CycleContext(work, incident, cancellationToken);
+        ExpectedCycle(cycle, request.ExpectedCycleId, true);
+        _logCycleId = cycle?.CycleId;
 
         var beforeWork = WorkSnapshot(work);
         var beforeIncident = IncidentSnapshot(incident);
         var previousStatus = incident.Status;
-        var now = DateTime.UtcNow;
+        var now = _clock.GetUtcNow().UtcDateTime;
         await operation(work, incident, now, cancellationToken);
+        if (cycle is not null && work.Status is "CLOSED" or "CANCELLED")
+            FinalizeCycle(cycle, work, incident, request.ActorUserId, incidentNote!, now);
         AddAudit("maintenance_works", id, incident.BranchId, request.ActorUserId,
             now, beforeWork, WorkSnapshot(work));
         if (incident.Status != previousStatus)

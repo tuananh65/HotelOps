@@ -33,12 +33,15 @@ sealed partial class IntegritySuite
         var stock = await d.StockDocuments.AsNoTracking().OrderBy(x => x.DocumentId).Select(x => new { x.DocumentId, x.Status, x.RowVersion, x.PostedAt }).ToArrayAsync();
         var stockTotals = new[] { await d.StockDocuments.CountAsync(), await d.StockDocumentLines.CountAsync(), await d.StockMovements.CountAsync(), await d.StockReturnLineDetails.CountAsync() };
         var ledger = await d.StockMovements.SumAsync(x => (decimal?)x.SignedBaseQty) ?? 0;
-        return JsonSerializer.Serialize(new { incidents, works, logs, events, audit, totals, usages, stock, stockTotals, ledger });
+        var cycles = await d.MaintenanceWorkCycles.AsNoTracking().OrderBy(x => x.CycleId).Select(x => new { x.CycleId, x.MaintenanceWorkId, x.CycleNo, x.IsLegacySnapshot, x.RecordedAt, x.RecordedBy, x.OpenedAt, x.OpenedBy, x.ReopenReason, x.StartingWorkStatus, x.StartingIncidentStatus, x.FinalizedAt, x.TerminalStatus, x.EndedAt, x.EndedBy, x.TerminalReason, x.AssigneeId, x.DepartmentId, x.PriorityId, x.Title, x.Instruction, x.PlannedStartAt, x.PlannedEndAt, x.ActualStartAt, x.ResolvedAt, x.ResolutionNote, x.ReviewedBy, x.ReviewedAt, x.IncidentResolvedAt, x.IncidentClosedAt, x.IncidentClosureNote }).ToArrayAsync();
+        var logCycles = await d.MaintenanceWorkLogs.AsNoTracking().Where(x => ids.Contains(x.MaintenanceWorkId)).OrderBy(x => x.LogId).Select(x => new { x.LogId, x.CycleId }).ToArrayAsync();
+        return JsonSerializer.Serialize(new { incidents, works, logs, events, audit, totals, usages, stock, stockTotals, ledger, cycles, logCycles });
     }
     async Task<string> LegacySnapshot()
     {
         await using var d = Db(); var values = new List<string>();
         foreach (var sql in new[] {
+            "SELECT (SELECT * FROM dbo.maintenance_work_cycles ORDER BY cycle_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
             "SELECT (SELECT * FROM dbo.maintenance_material_usages ORDER BY usage_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
             "SELECT (SELECT * FROM dbo.incidents ORDER BY incident_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
             "SELECT (SELECT * FROM dbo.maintenance_works ORDER BY maintenance_work_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS Value",
@@ -77,6 +80,9 @@ sealed partial class IntegritySuite
         await CleanupMaterialFixtures(d, incidents);
         await d.AuditLogs.Where(x => x.EntityType == "incidents" && ii.Contains(x.EntityId) || x.EntityType == "maintenance_works" && wi.Contains(x.EntityId) || x.EntityType == "maintenance_work_logs" && li.Contains(x.EntityId)).ExecuteDeleteAsync();
         await d.MaintenanceWorkLogs.Where(x => logs.Contains(x.LogId)).ExecuteDeleteAsync();
+        var cycleIds = await d.MaintenanceWorkCycles.Where(x => works.Contains(x.MaintenanceWorkId)).Select(x => x.CycleId.ToString()).ToArrayAsync();
+        await d.AuditLogs.Where(x => x.EntityType == "maintenance_work_cycles" && cycleIds.Contains(x.EntityId)).ExecuteDeleteAsync();
+        await d.MaintenanceWorkCycles.Where(x => works.Contains(x.MaintenanceWorkId)).ExecuteDeleteAsync();
         await d.MaintenanceWorks.Where(x => works.Contains(x.MaintenanceWorkId)).ExecuteDeleteAsync();
         await d.IncidentEvents.Where(x => incidents.Contains(x.IncidentId)).ExecuteDeleteAsync();
         await d.Incidents.Where(x => incidents.Contains(x.IncidentId)).ExecuteDeleteAsync();

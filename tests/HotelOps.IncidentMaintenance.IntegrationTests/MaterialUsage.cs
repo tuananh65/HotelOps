@@ -6,6 +6,7 @@ using HotelOps.Api.DTOs.Maintenance;
 using HotelOps.Api.Services.Inventory;
 using HotelOps.Api.Services.Maintenance;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 sealed partial class IntegritySuite
 {
@@ -15,7 +16,8 @@ sealed partial class IntegritySuite
     InventoryWarehouseDto usageWarehouse = null!;
     long usageDepartment, materialCategory;
     sealed record IssuedSource(long Incident, long Work, MaterialRequestDto Request, MaterialFulfillmentDto Fulfillment, InventoryDocumentDto Document);
-    MaintenanceWorkService Maintenance(HotelOpsDbContext d) => new(d, new InventoryService(d));
+    readonly MaintenanceOptions maintenanceOptions = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory()).AddJsonFile("src/HotelOps.Api/appsettings.json").Build().GetSection("Maintenance").Get<MaintenanceOptions>()!;
+    MaintenanceWorkService Maintenance(HotelOpsDbContext d, TimeProvider? clock = null) => new(d, new InventoryService(d), Microsoft.Extensions.Options.Options.Create(maintenanceOptions), clock ?? TimeProvider.System);
     CreateMaintenanceWorkLogRequest UsageInput(long line, decimal qty, long? uom = null) => new() { ActorUserId = actor, WorkNote = prefix, SpentMinutes = 1, MaterialUsages = [new(line, uom ?? usageUnit.UomId, qty)] };
     Task<MaintenanceWorkLogDto> Use(IssuedSource s, decimal qty, long? uom = null) => Send<MaintenanceWorkLogDto>("POST", $"maintenance-works/{s.Work}/logs", UsageInput(s.Document.Lines[0].LineId, qty, uom), 201);
     Task<MaintenanceMaterialAvailability> Available(IssuedSource s) => Send<MaintenanceMaterialAvailability>("GET", $"maintenance-works/{s.Work}/material-availability");

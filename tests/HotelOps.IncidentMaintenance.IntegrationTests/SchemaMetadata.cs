@@ -11,14 +11,14 @@ sealed partial class IntegritySuite
             CONVERT(int,c.max_length) MaxLength,CONVERT(int,c.precision) Precision,CONVERT(int,c.scale) Scale,
             c.is_nullable Nullable,c.is_identity IdentityColumn
             FROM sys.columns c WHERE OBJECT_NAME(c.object_id) IN
-            ('maintenance_material_usages')
+            ('maintenance_material_usages','maintenance_work_cycles','maintenance_work_logs')
             """).ToListAsync();
         var keys = await db.Database.SqlQueryRaw<CatalogKey>("""
             SELECT OBJECT_NAME(i.object_id) TableName,i.name KeyName,c.name ColumnName,i.is_unique UniqueKey,i.is_primary_key PrimaryKey,
             CONVERT(int,ic.key_ordinal) Ordinal,COALESCE(i.filter_definition,'') Filter
             FROM sys.indexes i JOIN sys.index_columns ic ON i.object_id=ic.object_id AND i.index_id=ic.index_id
             JOIN sys.columns c ON c.object_id=ic.object_id AND c.column_id=ic.column_id
-            WHERE ic.key_ordinal>0 AND OBJECT_NAME(i.object_id) = 'maintenance_material_usages'
+            WHERE ic.key_ordinal>0 AND OBJECT_NAME(i.object_id) IN ('maintenance_material_usages','maintenance_work_cycles','maintenance_work_logs')
             """).ToListAsync();
         var fks = await db.Database.SqlQueryRaw<CatalogFk>("""
             SELECT fk.name ConstraintName,OBJECT_NAME(fk.parent_object_id) TableName,
@@ -26,7 +26,7 @@ sealed partial class IntegritySuite
             OBJECT_NAME(fk.referenced_object_id) TargetTable,COL_NAME(fk.referenced_object_id,fkc.referenced_column_id) TargetColumn,
             CONVERT(int,fkc.constraint_column_id) Ordinal,CONVERT(int,fk.delete_referential_action) DeleteAction,fk.is_disabled Disabled,fk.is_not_trusted Untrusted
             FROM sys.foreign_keys fk JOIN sys.foreign_key_columns fkc ON fkc.constraint_object_id=fk.object_id
-            WHERE OBJECT_NAME(fk.parent_object_id) = 'maintenance_material_usages'
+            WHERE OBJECT_NAME(fk.parent_object_id) IN ('maintenance_material_usages','maintenance_work_cycles','maintenance_work_logs')
             """).ToListAsync();
         foreach (var entity in db.Model.GetEntityTypes().Where(x => columns.Any(c => c.TableName == x.GetTableName())))
         {
@@ -52,6 +52,10 @@ sealed partial class IntegritySuite
             foreach (var index in entity.GetIndexes())
             {
                 var name = index.GetDatabaseName()!;
+                // Parent log has pre-existing convention-only FK indexes in EF.
+                // This task verifies its owned cycle index and existing composite UQ;
+                // do not silently create unrelated indexes to synchronize old drift.
+                if (table == "maintenance_work_logs" && !index.Properties.Any(p => p.Name == "CycleId") && name != "UQ_maintenance_logs_work") continue;
                 var actual = keys.Where(x => x.TableName == table && x.KeyName == name).OrderBy(x => x.Ordinal).ToArray();
                 Check(actual.Length > 0 && actual.All(x => x.UniqueKey == index.IsUnique) && actual.Select(x => x.ColumnName).SequenceEqual(index.Properties.Select(x => x.GetColumnName(store))), "Index " + name);
                 Check(actual[0].Filter == (index.GetFilter() ?? ""), "Index filter " + name);
@@ -71,6 +75,9 @@ sealed partial class IntegritySuite
         Check(await db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.maintenance_work_logs') AND name='UQ_maintenance_logs_work' AND is_unique=1").SingleAsync() == 1, "Parent composite unique support");
         Check(db.Model.GetEntityTypes().Where(x => new[] { "maintenance_material_usages", "maintenance_work_logs", "maintenance_works", "stock_document_lines", "inventory_items", "units_of_measure" }.Contains(x.GetTableName())).All(x => x.GetProperties().All(p => !p.IsShadowProperty())), "No shadow properties on all direct navigation entities");
         Console.WriteLine($"SQL catalog verified: {columns.Count} columns, primary keys, FKs, navigation metadata and usage indexes.");
+        Check(await db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID('maintenance_work_cycles') AND is_disabled=0 AND is_not_trusted=0").SingleAsync() == 3, "Three trusted cycle CHECKs");
+        Check(await db.Database.SqlQueryRaw<int>("SELECT COUNT(*) AS Value FROM sys.columns WHERE object_id IN (OBJECT_ID('maintenance_works'),OBJECT_ID('incidents')) AND system_type_id=189").SingleAsync() == 0, "No new Work/Incident rowversion");
+        Check(db.Model.FindEntityType(typeof(HotelOps.Api.Entities.MaintenanceWorkCycle))!.GetForeignKeys().Single(x => x.PrincipalEntityType.ClrType == typeof(HotelOps.Api.Entities.MaintenanceWork)).IsUnique == false, "Scaffold models Work cycles as one-to-many");
     }
 }
 sealed record CatalogColumn(string TableName, string ColumnName, string SqlType, int MaxLength, int Precision, int Scale, bool Nullable, bool IdentityColumn);

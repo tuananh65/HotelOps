@@ -52,9 +52,9 @@ operations also exercise their separate business/history flushes. Before-commit
 failures and cancellation while waiting for an Incident lock must propagate and
 leave no partial state. There are no production test switches.
 
-Complete ordered JSON snapshots of 16 tables before fixtures and after cleanup
+Complete ordered JSON snapshots of 17 tables before fixtures and after cleanup
 must match: Incident/Work/log/event/audit, stock document/line/movement, Material
-Request/line/fulfillment, all three FE-10 tables, Asset and material usages. Snapshots stay in
+Request/line/fulfillment, all three FE-10 tables, Asset, material usages and cycles. Snapshots stay in
 process memory; failure diagnostics print only table positions and changed row keys.
 This includes the known existing
 mismatch; tests do not use or repair it.
@@ -85,3 +85,30 @@ All owned material masters, MR evidence, stock effects, replenishments and audit
 finally. No shared category is toggled: inactive-category tests own their category.
 Existing console suites must run sequentially: IncidentMaintenance, Inventory,
 MaterialRequests, Replenishment. `dotnet test HotelOps.slnx` does not discover them.
+
+Reopen/Cycle V1 additionally requires the reviewed
+`20261023_maintenance_reopen_cycle_contract.sql` patch. The API loads its copied
+appsettings from the application directory even when the DLL is launched from
+repository root. `Maintenance:ReopenWindowDays` defaults to 30 in configuration;
+environment overrides remain supported. Invalid nonpositive/noninteger values
+must fail startup. Direct service factories read the same repository options and
+inject standard TimeProvider; FixedClock is test-only for exact UTC boundaries.
+
+Reopen coverage includes first legacy capture, cycles2/3/4, immutable terminal
+snapshots, every reset/preserved field, legacy unknown metadata, all eligibility
+rejections, one-tick window expiry/inclusive boundary, nondefault window, every
+mutation's missing/wrong/stale token, automatic/plain/material log FK ownership,
+cross-cycle consumption/RETURN and paging/counts/audits. SQL writes verify active
+cycle uniqueness, legacy CHECK and composite log owner rejection. Parent-log
+pre-existing convention-only EF FK indexes are reported as unrelated drift;
+metadata assertions for that parent scope indexes to owned cycle/UQ changes.
+
+Fifteen additional races use the existing independent SPID/DMV blocking proof:
+reopen/reopen, generic OPEN/CLOSED in both orders, verify/cancel/plain/material
+logs in both orders, and consistent detail reads in both orders. The material-first
+case holds Catalog/source-document before Incident while reopen waits only on
+Incident. Reopen never acquires Catalog. Thirteen additional rollback/cancellation
+cases exercise three first-reopen SQL flushes/commit, managed verify/cancel,
+two plain-log flushes, three material-log flushes and Incident/Work waits. Fresh
+contexts compare full cycle scalars and log CycleId as well as existing footprints.
+The 17-table preservation snapshot includes all cycles and the full log schema.

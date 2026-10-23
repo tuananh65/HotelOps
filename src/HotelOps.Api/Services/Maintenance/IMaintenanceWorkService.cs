@@ -4,6 +4,8 @@ namespace HotelOps.Api.Services.Maintenance;
 
 public interface IMaintenanceWorkService
 {
+    Task<MaintenanceWorkDetailDto?> ReopenWorkAsync(long id, ReopenMaintenanceWorkRequest request, CancellationToken cancellationToken);
+    Task<MaintenanceCyclePage?> GetCyclesAsync(long id, int page, int pageSize, CancellationToken cancellationToken);
     Task<MaintenanceMaterialAvailability?> MaterialAvailabilityAsync(long id, int page, int pageSize, CancellationToken cancellationToken);
     Task<MaintenanceWorkDetailDto?> CancelWorkAsync(long id, CancelMaintenanceWorkRequest request, CancellationToken cancellationToken);
     Task<MaintenanceWorkDetailDto?> VerifyWorkAsync(long id, VerifyMaintenanceWorkRequest request, CancellationToken cancellationToken);
