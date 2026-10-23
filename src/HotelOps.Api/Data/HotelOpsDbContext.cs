@@ -176,6 +176,8 @@ public partial class HotelOpsDbContext : DbContext
 
     public virtual DbSet<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; }
 
+    public virtual DbSet<MaintenanceWorkCycle> MaintenanceWorkCycles { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -1404,6 +1406,9 @@ public partial class HotelOpsDbContext : DbContext
 
             entity.HasIndex(e => new { e.LogId, e.MaintenanceWorkId }, "UQ_maintenance_logs_work").IsUnique();
 
+            entity.HasIndex(e => new { e.CycleId, e.MaintenanceWorkId, e.LoggedAt, e.LogId }, "IX_maintenance_logs_cycle_history");
+
+            entity.Property(e => e.CycleId).HasColumnName("cycle_id");
             entity.Property(e => e.LogId).HasColumnName("log_id");
             entity.Property(e => e.LoggedAt).HasColumnName("logged_at");
             entity.Property(e => e.LoggedBy).HasColumnName("logged_by");
@@ -1429,6 +1434,10 @@ public partial class HotelOpsDbContext : DbContext
             entity.HasOne(d => d.MaterialIssue).WithMany(p => p.MaintenanceWorkLogs)
                 .HasForeignKey(d => d.MaterialIssueId)
                 .HasConstraintName("FK_maintenance_work_logs_material_issue_id");
+            entity.HasOne(d => d.MaintenanceWorkCycle).WithMany(p => p.MaintenanceWorkLogs)
+                .HasPrincipalKey(p => new { p.CycleId, p.MaintenanceWorkId })
+                .HasForeignKey(d => new { d.CycleId, d.MaintenanceWorkId })
+                .HasConstraintName("FK_maintenance_logs_cycle_work");
         });
 
         modelBuilder.Entity<MaterialFulfillment>(entity =>
@@ -3585,6 +3594,112 @@ public partial class HotelOpsDbContext : DbContext
                 .HasForeignKey(d => new { d.MaintenanceWorkLogId, d.MaintenanceWorkId })
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_material_usages_log_work");
+        });
+
+        modelBuilder.Entity<MaintenanceWorkCycle>(entity =>
+        {
+            entity.HasKey(e => e.CycleId);
+
+            entity.ToTable("maintenance_work_cycles");
+
+            entity.HasIndex(e => e.AssigneeId, "IX_maintenance_cycles_assignee");
+
+            entity.HasIndex(e => e.DepartmentId, "IX_maintenance_cycles_department");
+
+            entity.HasIndex(e => e.EndedBy, "IX_maintenance_cycles_ender");
+
+            entity.HasIndex(e => e.OpenedBy, "IX_maintenance_cycles_opener");
+
+            entity.HasIndex(e => e.PriorityId, "IX_maintenance_cycles_priority");
+
+            entity.HasIndex(e => e.RecordedBy, "IX_maintenance_cycles_recorder");
+
+            entity.HasIndex(e => e.ReviewedBy, "IX_maintenance_cycles_reviewer");
+
+            entity.HasIndex(e => new { e.CycleId, e.MaintenanceWorkId }, "UQ_maintenance_cycles_id_work").IsUnique();
+
+            entity.HasIndex(e => new { e.MaintenanceWorkId, e.CycleNo }, "UQ_maintenance_cycles_work_no").IsUnique();
+
+            entity.HasIndex(e => new { e.MaintenanceWorkId, e.FinalizedAt }, "UX_maintenance_cycles_active")
+                .IsUnique()
+                .HasFilter("([finalized_at] IS NULL)");
+
+            entity.Property(e => e.CycleId).HasColumnName("cycle_id");
+            entity.Property(e => e.ActualStartAt).HasColumnName("actual_start_at");
+            entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
+            entity.Property(e => e.CycleNo).HasColumnName("cycle_no");
+            entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+            entity.Property(e => e.EndedAt).HasColumnName("ended_at");
+            entity.Property(e => e.EndedBy).HasColumnName("ended_by");
+            entity.Property(e => e.FinalizedAt).HasColumnName("finalized_at");
+            entity.Property(e => e.IncidentClosedAt).HasColumnName("incident_closed_at");
+            entity.Property(e => e.IncidentClosureNote).HasColumnName("incident_closure_note");
+            entity.Property(e => e.IncidentResolvedAt).HasColumnName("incident_resolved_at");
+            entity.Property(e => e.Instruction).HasColumnName("instruction");
+            entity.Property(e => e.IsLegacySnapshot).HasColumnName("is_legacy_snapshot");
+            entity.Property(e => e.MaintenanceWorkId).HasColumnName("maintenance_work_id");
+            entity.Property(e => e.OpenedAt).HasColumnName("opened_at");
+            entity.Property(e => e.OpenedBy).HasColumnName("opened_by");
+            entity.Property(e => e.PlannedEndAt).HasColumnName("planned_end_at");
+            entity.Property(e => e.PlannedStartAt).HasColumnName("planned_start_at");
+            entity.Property(e => e.PriorityId).HasColumnName("priority_id");
+            entity.Property(e => e.RecordedAt).HasColumnName("recorded_at");
+            entity.Property(e => e.RecordedBy).HasColumnName("recorded_by");
+            entity.Property(e => e.ReopenReason).HasColumnName("reopen_reason");
+            entity.Property(e => e.ResolutionNote).HasColumnName("resolution_note");
+            entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+            entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+            entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+            entity.Property(e => e.StartingIncidentStatus)
+                .HasMaxLength(40)
+                .IsUnicode(false)
+                .HasColumnName("starting_incident_status");
+            entity.Property(e => e.StartingWorkStatus)
+                .HasMaxLength(40)
+                .IsUnicode(false)
+                .HasColumnName("starting_work_status");
+            entity.Property(e => e.TerminalReason).HasColumnName("terminal_reason");
+            entity.Property(e => e.TerminalStatus)
+                .HasMaxLength(40)
+                .IsUnicode(false)
+                .HasColumnName("terminal_status");
+            entity.Property(e => e.Title)
+                .HasMaxLength(200)
+                .HasColumnName("title");
+
+            entity.HasOne(d => d.Assignee).WithMany(p => p.MaintenanceWorkCycleAssignees)
+                .HasForeignKey(d => d.AssigneeId)
+                .HasConstraintName("FK_maintenance_cycles_assignee");
+
+            entity.HasOne(d => d.Department).WithMany(p => p.MaintenanceWorkCycles)
+                .HasForeignKey(d => d.DepartmentId)
+                .HasConstraintName("FK_maintenance_cycles_department");
+
+            entity.HasOne(d => d.EndedByNavigation).WithMany(p => p.MaintenanceWorkCycleEndedByNavigations)
+                .HasForeignKey(d => d.EndedBy)
+                .HasConstraintName("FK_maintenance_cycles_ender");
+
+            entity.HasOne(d => d.MaintenanceWork).WithMany(p => p.MaintenanceWorkCycles)
+                .HasForeignKey(d => d.MaintenanceWorkId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_maintenance_cycles_work");
+
+            entity.HasOne(d => d.OpenedByNavigation).WithMany(p => p.MaintenanceWorkCycleOpenedByNavigations)
+                .HasForeignKey(d => d.OpenedBy)
+                .HasConstraintName("FK_maintenance_cycles_opener");
+
+            entity.HasOne(d => d.Priority).WithMany(p => p.MaintenanceWorkCycles)
+                .HasForeignKey(d => d.PriorityId)
+                .HasConstraintName("FK_maintenance_cycles_priority");
+
+            entity.HasOne(d => d.RecordedByNavigation).WithMany(p => p.MaintenanceWorkCycleRecordedByNavigations)
+                .HasForeignKey(d => d.RecordedBy)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_maintenance_cycles_recorder");
+
+            entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.MaintenanceWorkCycleReviewedByNavigations)
+                .HasForeignKey(d => d.ReviewedBy)
+                .HasConstraintName("FK_maintenance_cycles_reviewer");
         });
 
         OnModelCreatingPartial(modelBuilder);

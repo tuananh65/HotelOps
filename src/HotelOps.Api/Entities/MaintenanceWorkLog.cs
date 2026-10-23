@@ -28,4 +28,8 @@ public partial class MaintenanceWorkLog
     public virtual StockDocument? MaterialIssue { get; set; }
 
     public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
+
+    public long? CycleId { get; set; }
+
+    public virtual MaintenanceWorkCycle? MaintenanceWorkCycle { get; set; }
 }

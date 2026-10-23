@@ -656,6 +656,46 @@ entity, DbSet/mapping, parent unique metadata and direct navigations. SQL catalo
 tests additionally verify CHECK trust, indexes/includes, composite FK columns,
 precision and no shadow properties, which scaffolding alone does not prove.
 
+## Maintenance Reopen + Cycle History V1 (2026-10-23)
+
+Patch `database/patches/20261023_maintenance_reopen_cycle_contract.sql` adds
+`maintenance_work_cycles` (31 columns) and nullable `maintenance_work_logs.cycle_id`.
+It performs no UPDATE/backfill, keeps existing status vocabulary and all Material
+Usage ownership constraints, and refuses unexpected existing cycle objects.
+
+Cycle PK is identity bigint; UQs cover `(maintenance_work_id,cycle_no)` and
+`(cycle_id,maintenance_work_id)`. The log FK uses the latter composite owner key.
+All new FKs are SQL NO ACTION and trusted, including Work, user actors/assignee/
+reviewer, Department and Priority reference. Mirrored snapshot columns retain
+source SQL types/lengths: title nvarchar(200), notes nvarchar(max), datetime2(7).
+No Work/Incident rowversion, migrations, cycle pointer on Work or cycle column
+on usages is introduced.
+
+`UX_maintenance_cycles_active` is unique on `(maintenance_work_id,finalized_at)`
+with filter `finalized_at IS NULL`. All active rows have the same NULL second key,
+so SQL enforces one active row per Work. Including the second column prevents
+Database First from treating the Work FK as one-to-one because of a filtered
+single-column unique index. Multiple finalized histories remain supported;
+runtime tests prove both properties.
+
+Three CHECKs enforce positive numbering; truthful legacy cycle1/finalized/CLOSED
+with unknown opening metadata; nonlegacy cycles>=2 with PENDING/OPEN opening
+context and reason>=10; coherent active/finalized snapshots, appropriate terminal
+metadata and CLOSED/CANCELLED terminal states. Active snapshot fields remain NULL;
+the current state lives on Work. Finalized snapshots are immutable in services.
+Indexes support cycle actor/FK lookups and `(cycle_id,maintenance_work_id,logged_at,log_id)`
+log history. Actor/time metadata is separate from unknown legacy historical facts.
+
+On first reopen, terminal Work/Incident evidence is captured as a finalized legacy
+cycle1 and cycle2 opens in the same transaction. Existing logs remain physically
+NULL-cycle and form a clearly marked logical legacy history group. New logs on
+managed Work have a server-derived cycle FK; usage ownership derives through log.
+Consumption remains cumulative over every cycle. Reopen changes CLOSED/CLOSED to
+PENDING/OPEN, preserves root identities and creates no stock effect.
+
+Reopen window is application configuration `Maintenance:ReopenWindowDays` (default
+30, positive integer, startup validated), not a database setting or schema value.
+
 ## Schema-specific cautions
 
 - `roles` and `permissions` define reference records; exact grants are seeded in `role_permissions`, and can change independently of table structure.

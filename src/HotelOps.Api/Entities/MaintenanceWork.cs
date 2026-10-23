@@ -58,4 +58,6 @@ public partial class MaintenanceWork
     public virtual User? ReviewedByNavigation { get; set; }
 
     public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycles { get; set; } = new List<MaintenanceWorkCycle>();
 }

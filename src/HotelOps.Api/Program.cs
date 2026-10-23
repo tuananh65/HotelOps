@@ -5,7 +5,13 @@ using HotelOps.Api.Services.Maintenance;
 using HotelOps.Api.Services.Inventory;
 using Microsoft.EntityFrameworkCore;
 
-var builder = WebApplication.CreateBuilder(args);
+// Resolve deployed appsettings alongside the application when launched from another directory.
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions { Args = args, ContentRootPath = AppContext.BaseDirectory });
+builder.Services.AddOptions<MaintenanceOptions>()
+    .Bind(builder.Configuration.GetSection("Maintenance"))
+    .Validate(options => options.ReopenWindowDays > 0, "Maintenance:ReopenWindowDays must be a positive integer.")
+    .ValidateOnStart();
+builder.Services.AddSingleton(TimeProvider.System);
 
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
     options.UseSqlServer(

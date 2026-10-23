@@ -56,6 +56,7 @@ public sealed partial class MaintenanceWorkService
                     ["logged_at"] = log.LoggedAt
                 };
             if (materials.Count > 0) values["material_usages"] = materials.Select(x => new { x.Row.UsageId, x.Row.StockDocumentLineId, x.Row.UsedBaseQty }).ToArray();
+            if (log.CycleId is long cycleId) values["cycle_id"] = cycleId;
             AddAudit("maintenance_work_logs", log.LogId, incident.BranchId, request.ActorUserId, now, null, values);
         }, cancellationToken, request.MaterialUsages is { Count: > 0 } ? token => PrepareMaterialLocks(request.MaterialUsages, token) : null);
         if (result is null)
@@ -63,6 +64,7 @@ public sealed partial class MaintenanceWorkService
         return new MaintenanceWorkLogDto
         {
             LogId = log!.LogId,
+            CycleId = log.CycleId,
             MaintenanceWorkId = log.MaintenanceWorkId,
             WorkNote = log.WorkNote,
             SpentMinutes = log.SpentMinutes,
@@ -80,6 +82,7 @@ public sealed partial class MaintenanceWorkService
         var log = new MaintenanceWorkLog
         {
             MaintenanceWorkId = work.MaintenanceWorkId,
+            CycleId = _logCycleId,
             WorkNote = note,
             SpentMinutes = spentMinutes,
             MaterialIssueId = null,

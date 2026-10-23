@@ -50,4 +50,6 @@ public partial class Department
     public virtual ICollection<WorkCategory> WorkCategories { get; set; } = new List<WorkCategory>();
 
     public virtual ICollection<WorkShift> WorkShifts { get; set; } = new List<WorkShift>();
+
+    public virtual ICollection<MaintenanceWorkCycle> MaintenanceWorkCycles { get; set; } = new List<MaintenanceWorkCycle>();
 }
