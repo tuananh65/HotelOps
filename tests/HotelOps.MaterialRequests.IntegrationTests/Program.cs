@@ -18,7 +18,7 @@ sealed partial class MaterialSuite
 {
     readonly string connection = Environment.GetEnvironmentVariable("ConnectionStrings__HotelOpsDb") ?? throw new Exception("Supply ConnectionStrings__HotelOpsDb through environment.");
     readonly string prefix = "MRTEST_" + Guid.NewGuid().ToString("N")[..10];
-    readonly HttpClient http = new() { BaseAddress = new("http://127.0.0.1:5191"), Timeout = TimeSpan.FromSeconds(60) };
+    readonly Dev2HttpClient http = new() { BaseAddress = new("https://localhost:5191"), Timeout = TimeSpan.FromSeconds(60) };
     readonly List<long> incidents = [];
     readonly List<long> unitIds = [], itemIds = [], warehouseIds = [];
     long actor, approver, issuer, branch, department, category, otherBranch;
@@ -58,7 +58,7 @@ sealed partial class MaterialSuite
             await using (var db = Db())
             {
                 var target = await db.Database.SqlQueryRaw<string>("SELECT CONVERT(nvarchar(128),@@SERVERNAME)+N'/'+DB_NAME() AS Value").SingleAsync();
-                Check(target == "KIENPC/HotelOpsDB", "Wrong SQL target"); verified = true;
+                Check(target == "KIENPC/HotelOps_Canonical_DEV2_Regression", "Wrong SQL target"); verified = true;
                 var participants = await db.Users.Where(x => x.DeletedAt == null && x.AccountStatus == "ACTIVE" && x.EmploymentStatus == "ACTIVE" && x.PrimaryBranchId != null).OrderBy(x => x.UserId).ToListAsync();
                 branch = participants.GroupBy(x => x.PrimaryBranchId!.Value).First(x => x.Count() >= 3).Key;
                 var users = participants.Where(x => x.PrimaryBranchId == branch).Take(3).ToArray(); actor = users[0].UserId; approver = users[1].UserId; issuer = users[2].UserId;
@@ -66,12 +66,14 @@ sealed partial class MaterialSuite
                 category = await db.ItemCategories.Where(x => x.IsActive).Select(x => x.ItemCategoryId).FirstAsync();
                 otherBranch = await db.Branches.Where(x => x.BranchId != branch && x.IsActive).Select(x => x.BranchId).FirstAsync();
             }
-            var start = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls http://127.0.0.1:5191") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            var start = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls https://localhost:5191") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
             start.Environment["ConnectionStrings__HotelOpsDb"] = connection;
+            start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
             start.Environment["Logging__LogLevel__Default"] = "Warning";
             api = Process.Start(start)!; api.OutputDataReceived += (_, e) => { if(e.Data != null) apiErrors.Enqueue(e.Data); }; api.ErrorDataReceived += (_, e) => { if(e.Data != null) apiErrors.Enqueue(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
-            var ready = false; for (var i = 0; i < 100; i++) { try { using var response = await http.GetAsync("/api/health"); ready = true; break; } catch (HttpRequestException) { await Task.Delay(100); } }
+            var ready = false; for (var i = 0; i < 100; i++) { try { using var response = await http.GetAsync("/api/auth/csrf"); ready = response.IsSuccessStatusCode; if (!ready) { await Task.Delay(100); continue; } break; } catch (HttpRequestException) { await Task.Delay(100); } }
             Check(ready, "API startup");
+            await http.LoginAsync();
             unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "U", prefix), 201); unitIds.Add(unit.UomId);
             box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "B", prefix), 201); unitIds.Add(box.UomId);
             item = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix, prefix, category, unit.UomId, true), 201); itemIds.Add(item.ItemId);

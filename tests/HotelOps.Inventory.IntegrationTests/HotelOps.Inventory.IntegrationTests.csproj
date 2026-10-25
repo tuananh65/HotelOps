@@ -8,4 +8,5 @@
   <ItemGroup>
     <ProjectReference Include="../../src/HotelOps.Api/HotelOps.Api.csproj" />
   </ItemGroup>
+  <ItemGroup><Compile Include="../Shared/Dev2HttpClient.cs" Link="Dev2HttpClient.cs" /></ItemGroup>
 </Project>

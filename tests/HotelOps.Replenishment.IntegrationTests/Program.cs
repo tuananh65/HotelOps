@@ -18,7 +18,7 @@ sealed partial class ReplenishmentSuite
 {
     readonly string connection = Environment.GetEnvironmentVariable("ConnectionStrings__HotelOpsDb") ?? throw new Exception("Supply connection in process environment.");
     readonly string prefix = "RPLTEST_" + Guid.NewGuid().ToString("N")[..10];
-    readonly HttpClient http = new() { BaseAddress = new("http://127.0.0.1:5193"), Timeout = TimeSpan.FromSeconds(60) };
+    readonly Dev2HttpClient http = new() { BaseAddress = new("https://localhost:5193"), Timeout = TimeSpan.FromSeconds(60) };
     readonly System.Collections.Concurrent.ConcurrentQueue<string> errors = new();
     readonly List<long> items = [], units = [], warehouses = [];
     long actor, approver, issuer, branch, department, category;
@@ -85,16 +85,17 @@ sealed partial class ReplenishmentSuite
         {
             await using (var db = Db())
             {
-                Check(await db.Database.SqlQueryRaw<string>("SELECT CONVERT(nvarchar(128),@@SERVERNAME)+'/'+DB_NAME() Value").SingleAsync() == "KIENPC/HotelOpsDB", "Wrong target"); verified = true;
+                Check(await db.Database.SqlQueryRaw<string>("SELECT CONVERT(nvarchar(128),@@SERVERNAME)+'/'+DB_NAME() Value").SingleAsync() == "KIENPC/HotelOps_Canonical_DEV2_Regression", "Wrong target"); verified = true;
                 legacyBefore = await LegacyFingerprint();
                 var users = await db.Users.Where(x => x.PrimaryBranchId != null && x.AccountStatus == "ACTIVE" && x.EmploymentStatus == "ACTIVE" && x.DeletedAt == null).OrderBy(x => x.UserId).ToListAsync();
                 branch = users.GroupBy(x => x.PrimaryBranchId!.Value).First(g => g.Count() >= 3).Key; var selected = users.Where(x => x.PrimaryBranchId == branch).Take(3).ToArray(); actor = selected[0].UserId; approver = selected[1].UserId; issuer = selected[2].UserId;
                 department = await db.Departments.Where(x => x.BranchId == branch && x.IsActive).Select(x => x.DepartmentId).FirstAsync(); category = await db.ItemCategories.Where(x => x.IsActive).Select(x => x.ItemCategoryId).FirstAsync();
             }
-            var start = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls http://127.0.0.1:5193") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            start.Environment["ConnectionStrings__HotelOpsDb"] = connection; start.Environment["Logging__LogLevel__Default"] = "Warning";
+            var start = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls https://localhost:5193") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            start.Environment["ConnectionStrings__HotelOpsDb"] = connection; start.Environment["Logging__LogLevel__Default"] = "Warning"; start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
             api = Process.Start(start)!; api.OutputDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.ErrorDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
-            var ready = false; for (var i = 0; i < 100; i++) { try { using var response = await http.GetAsync("/api/health"); ready = true; break; } catch (HttpRequestException) { await Task.Delay(100); } } Check(ready, "Startup");
+            var ready = false; for (var i = 0; i < 100; i++) { try { using var response = await http.GetAsync("/api/auth/csrf"); ready = response.IsSuccessStatusCode; if (!ready) { await Task.Delay(100); continue; } break; } catch (HttpRequestException) { await Task.Delay(100); } } Check(ready, "Startup");
+            await http.LoginAsync();
             unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "U", prefix), 201); units.Add(unit.UomId);
             box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "B", prefix), 201); units.Add(box.UomId);
             item = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix, prefix, category, unit.UomId, true), 201); items.Add(item.ItemId);

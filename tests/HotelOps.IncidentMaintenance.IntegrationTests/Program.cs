@@ -16,7 +16,7 @@ sealed partial class IntegritySuite
 {
     readonly string connection = Environment.GetEnvironmentVariable("ConnectionStrings__HotelOpsDb") ?? throw new Exception("Supply ConnectionStrings__HotelOpsDb in process environment.");
     readonly string prefix = "ICITEST_" + Guid.NewGuid().ToString("N")[..12];
-    readonly HttpClient http = new() { BaseAddress = new("http://127.0.0.1:5195/api/"), Timeout = TimeSpan.FromSeconds(60) };
+    readonly Dev2HttpClient http = new() { BaseAddress = new("https://localhost:5195/api/"), Timeout = TimeSpan.FromSeconds(60) };
     readonly System.Collections.Concurrent.ConcurrentQueue<string> errors = new();
     readonly List<long> owned = [];
     long actor, verifier, branch, severity, priority;
@@ -69,17 +69,18 @@ sealed partial class IntegritySuite
         {
             await using (var d = Db())
             {
-                Check(await d.Database.SqlQueryRaw<string>("SELECT CONVERT(nvarchar(128),@@SERVERNAME)+'/'+DB_NAME() AS Value").SingleAsync() == "KIENPC/HotelOpsDB", "Wrong SQL target"); verified = true;
+                Check(await d.Database.SqlQueryRaw<string>("SELECT CONVERT(nvarchar(128),@@SERVERNAME)+'/'+DB_NAME() AS Value").SingleAsync() == "KIENPC/HotelOps_Canonical_DEV2_Regression", "Wrong SQL target"); verified = true;
                 baseline = await LegacySnapshot();
                 var users = await d.Users.Where(x => x.PrimaryBranchId != null && x.DeletedAt == null && x.AccountStatus == "ACTIVE" && x.EmploymentStatus == "ACTIVE").OrderBy(x => x.UserId).ToArrayAsync();
                 var group = users.GroupBy(x => x.PrimaryBranchId!.Value).First(x => x.Count() >= 2); branch = group.Key; actor = group.First().UserId; verifier = group.Skip(1).First().UserId;
                 severity = await d.ReferenceValues.Where(x => x.GroupCode == "SEVERITY" && x.IsActive).Select(x => x.ReferenceId).FirstAsync();
                 priority = await d.ReferenceValues.Where(x => x.GroupCode == "PRIORITY" && x.IsActive).Select(x => x.ReferenceId).FirstAsync();
             }
-            var start = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls http://127.0.0.1:5195") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            start.Environment["ConnectionStrings__HotelOpsDb"] = connection; start.Environment["Logging__LogLevel__Default"] = "Warning";
+            var start = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls https://localhost:5195") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
+            start.Environment["ConnectionStrings__HotelOpsDb"] = connection; start.Environment["Logging__LogLevel__Default"] = "Warning"; start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
             api = Process.Start(start)!; api.OutputDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.ErrorDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
-            var ready = false; for (var i = 0; i < 100; i++) { if (api.HasExited) break; try { using var r = await http.GetAsync("incidents?pageSize=1"); ready = r.IsSuccessStatusCode; if (ready) break; } catch (HttpRequestException) { } await Task.Delay(100); } Check(ready, "API startup: " + string.Join('\n', errors.TakeLast(20)));
+            var ready = false; for (var i = 0; i < 100; i++) { if (api.HasExited) break; try { using var r = await http.GetAsync("/api/auth/csrf"); ready = r.IsSuccessStatusCode; if (ready) break; } catch (HttpRequestException) { } await Task.Delay(100); } Check(ready, "API startup: " + string.Join('\n', errors.TakeLast(20)));
+            await http.LoginAsync();
             await Generic(); await Lifecycle(); await Drift(); await Concurrency(); await Rollbacks();
             await MaterialUsage(); await MaterialConcurrency(); await MaterialFaults(); await VerifyCatalog();
             await ReopenCycles(); await ReopenConcurrency(); await ReopenFaults();

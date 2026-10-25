@@ -17,7 +17,7 @@ sealed partial class InventorySuite
 {
     private readonly string connection = Environment.GetEnvironmentVariable("ConnectionStrings__HotelOpsDb")
         ?? throw new InvalidOperationException("Supply ConnectionStrings__HotelOpsDb through the process environment.");
-    private readonly HttpClient http = new() { BaseAddress = new("http://127.0.0.1:5188"), Timeout = TimeSpan.FromSeconds(60) };
+    private readonly Dev2HttpClient http = new() { BaseAddress = new("https://localhost:5188"), Timeout = TimeSpan.FromSeconds(60) };
     private readonly string prefix = "INVTEST_" + Guid.NewGuid().ToString("N")[..10];
     private readonly HashSet<long> documents = [], stocktakes = [], items = [], units = [], warehouses = [];
     private readonly List<string> passed = [];
@@ -79,7 +79,7 @@ sealed partial class InventorySuite
             {
                 await db.Database.OpenConnectionAsync(); using var cmd = db.Database.GetDbConnection().CreateCommand();
                 cmd.CommandText = "SELECT CONVERT(nvarchar(128),@@SERVERNAME)+'|'+DB_NAME()";
-                Check((string?)await cmd.ExecuteScalarAsync() == "KIENPC|HotelOpsDB", "Wrong SQL target; abort all writes.");
+                Check((string?)await cmd.ExecuteScalarAsync() == "KIENPC|HotelOps_Canonical_DEV2_Regression", "Wrong SQL target; abort all writes.");
                 verifiedTarget = true;
                 var actors = await db.Users.OrderBy(x => x.UserId).Select(x => x.UserId).Take(2).ToListAsync(); actor = actors[0]; other = actors[1];
                 category = await db.ItemCategories.Where(x => x.IsActive).OrderBy(x => x.ItemCategoryId).Select(x => x.ItemCategoryId).FirstAsync();
@@ -93,6 +93,7 @@ sealed partial class InventorySuite
             }
             StartApi();
             await WaitForApi();
+            await http.LoginAsync();
             await Masters(); await Receipts(); await Transfers(); await AdjustmentsAndReversals(); await Stocktakes(); await Returns(); await Races(); await Rollbacks(); await DeepTests(); await DeepRaces(); await DeepRollback(); await ReadsAndRegression();
         }
         catch (Exception ex) { failure = ex; Console.Error.WriteLine(ex); }
@@ -106,9 +107,10 @@ sealed partial class InventorySuite
     }
     private void StartApi()
     {
-        var info = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls http://127.0.0.1:5188")
+        var info = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls https://localhost:5188")
         { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
         info.Environment["ConnectionStrings__HotelOpsDb"] = connection;
+        info.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
         info.Environment["Logging__LogLevel__Default"] = "Warning";
         api = Process.Start(info)!; api.OutputDataReceived += (_, e) => { if (e.Data is not null) Console.WriteLine(e.Data); };
         api.ErrorDataReceived += (_, e) => { if (e.Data is not null) Console.Error.WriteLine(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
@@ -118,7 +120,7 @@ sealed partial class InventorySuite
         for (var n = 0; n < 50; n++)
         {
             if (api!.HasExited) throw new InvalidOperationException("API process exited.");
-            try { using var response = await http.GetAsync("/api/inventory/item-categories"); if (response.IsSuccessStatusCode) return; } catch (HttpRequestException) { }
+            try { using var response = await http.GetAsync("/api/auth/csrf"); if (response.IsSuccessStatusCode) return; } catch (HttpRequestException) { }
             await Task.Delay(200);
         }
         throw new TimeoutException("API did not start.");
