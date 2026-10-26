@@ -11,6 +11,7 @@ using HotelOps.Api.Services.Inventory;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<StartupSchemaValidator>();
 
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
     options.UseSqlServer(
@@ -57,6 +58,13 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(AuthenticationApiB
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+await using (var schemaScope = app.Services.CreateAsyncScope())
+{
+    var compatibility = await schemaScope.ServiceProvider.GetRequiredService<StartupSchemaValidator>()
+        .ValidateAsync(app.Lifetime.ApplicationStopping);
+    if (compatibility != SchemaCompatibility.Compatible)
+        throw new InvalidOperationException($"Startup schema validation failed: {compatibility}. HTTP listener was not started.");
+}
 app.UseMiddleware<AuthenticationExceptionMiddleware>();
 
 // Configure the HTTP request pipeline.
