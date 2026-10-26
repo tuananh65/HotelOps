@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<StartupSchemaValidator>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
     options.UseSqlServer(
