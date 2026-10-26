@@ -17,6 +17,7 @@ builder.Services.AddDbContext<HotelOpsDbContext>(options =>
         builder.Configuration.GetConnectionString("HotelOpsDb")));
 
 // Add services to the container.
+builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
 builder.Services.AddScoped<IIncidentService, IncidentService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
