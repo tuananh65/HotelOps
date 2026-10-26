@@ -190,8 +190,11 @@ try
     var ready = false;
     for (var attempt = 0; attempt < 40 && !process.HasExited; attempt++)
     {
-        try { using var response = await http.GetAsync("/api/auth/csrf", ct); if (response.IsSuccessStatusCode) { ready = true; break; } }
+        // Warm the real permission catalog/EF model as well as Kestrel. A CSRF
+        // response alone does not prove the protected pipeline is ready.
+        try { using var response = await http.GetAsync("/api/users", ct); if (response.StatusCode == HttpStatusCode.Unauthorized) { ready = true; break; } }
         catch (HttpRequestException) { }
+        catch (TaskCanceledException) when (!ct.IsCancellationRequested) { }
         await Task.Delay(250, ct);
     }
     Check(ready, "actual API startup and production DI registration resolve");

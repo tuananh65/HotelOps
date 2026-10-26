@@ -13,6 +13,16 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class UsersController(IUserDirectoryService users) : ControllerBase
 {
+    [HttpGet("{userId}")]
+    public async Task<ActionResult<UserAccountDetailDto>> Detail([FromRoute, Range(1, long.MaxValue)] long userId,
+        CancellationToken cancellationToken)
+    {
+        var user = await users.GetAsync(userId, cancellationToken);
+        return user is null
+            ? Problem(statusCode: StatusCodes.Status404NotFound, title: "User account not found")
+            : Ok(user);
+    }
+
     [HttpGet]
     public async Task<ActionResult<UserDirectoryResponse>> List([FromQuery] UserDirectoryQuery query,
         CancellationToken cancellationToken)
