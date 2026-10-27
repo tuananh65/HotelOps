@@ -54,6 +54,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.Users.UserCredentialResetAccess
 builder.Services.AddScoped<HotelOps.Api.Services.Users.AdminCredentialResetWorkflow>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountStatusAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountActivationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserBranchAssignmentAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserBranchAssignmentService>();
 builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
 builder.Services.AddHotelOpsAntiforgery();
 builder.Services.AddHttpContextAccessor();
