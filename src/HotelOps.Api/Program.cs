@@ -48,6 +48,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountCreationServic
 builder.Services.AddScoped<ISqlSessionService, SqlSessionService>();
 builder.Services.AddScoped<IAuthenticationLoginService, AuthenticationLoginService>();
 builder.Services.AddScoped<IAuthenticationCredentialWorkflow, AuthenticationCredentialWorkflow>();
+builder.Services.AddSingleton<ReauthenticationProofStore>();
+builder.Services.AddScoped<AdminReauthenticationService>();
 builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
 builder.Services.AddHotelOpsAntiforgery();
 builder.Services.AddHttpContextAccessor();
