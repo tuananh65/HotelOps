@@ -50,6 +50,8 @@ builder.Services.AddScoped<IAuthenticationLoginService, AuthenticationLoginServi
 builder.Services.AddScoped<IAuthenticationCredentialWorkflow, AuthenticationCredentialWorkflow>();
 builder.Services.AddSingleton<ReauthenticationProofStore>();
 builder.Services.AddScoped<AdminReauthenticationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserCredentialResetAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.AdminCredentialResetWorkflow>();
 builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
 builder.Services.AddHotelOpsAntiforgery();
 builder.Services.AddHttpContextAccessor();

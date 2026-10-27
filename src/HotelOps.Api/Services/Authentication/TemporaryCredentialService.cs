@@ -8,7 +8,8 @@ namespace HotelOps.Api.Services.Authentication;
 
 public sealed class TemporaryCredentialService(
     HotelOpsDbContext db, IPasswordCredentialService passwords,
-    ISessionRevocationService sessions, TimeProvider clock) : ITemporaryCredentialService, IInitialCredentialTransactionParticipant
+    ISessionRevocationService sessions, TimeProvider clock) : ITemporaryCredentialService,
+    IInitialCredentialTransactionParticipant, IConditionalCredentialResetService
 {
     public static readonly TimeSpan Validity = TimeSpan.FromHours(24);
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -82,8 +83,60 @@ public sealed class TemporaryCredentialService(
         return new PendingInitialCredential(material.Password, expiry);
     }
 
+    public Task<ConditionalCredentialResetResult> ResetAsync(PreparedTemporaryCredential prepared,
+        long actorUserId, byte[] expectedVersion, string identityVerificationMethod,
+        CancellationToken cancellationToken = default)
+        => ResetWithGateAsync(prepared, actorUserId, expectedVersion, identityVerificationMethod, null, cancellationToken);
+
+    internal async Task<ConditionalCredentialResetResult> ResetWithGateAsync(PreparedTemporaryCredential prepared,
+        long actorUserId, byte[] expectedVersion, string identityVerificationMethod,
+        Func<CancellationToken, Task<ConditionalCredentialResetStatus?>>? gate, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(prepared);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(actorUserId);
+        ArgumentNullException.ThrowIfNull(expectedVersion);
+        if (expectedVersion.Length != 8)
+            throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
+        // Audit accepts a bounded procedure code, never free-form identity evidence or documents.
+        if (string.IsNullOrEmpty(identityVerificationMethod) || identityVerificationMethod.Length > 40
+            || identityVerificationMethod.Any(c => c is not (>= 'A' and <= 'Z' or >= '0' and <= '9' or '_')))
+            throw new ArgumentException("A non-sensitive procedure code is required.", nameof(identityVerificationMethod));
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null
+            || System.Transactions.Transaction.Current != null || db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Conditional reset requires SQL Server, a clean context and no caller transaction.");
+        // Snapshot caller-owned mutable input before the first await.
+        var expected = expectedVersion.ToArray();
+        if (prepared.UserId == actorUserId) return new(ConditionalCredentialResetStatus.SelfDenied);
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        if (gate is not null)
+        {
+            // Deterministic user-first locking also covers two administrators resetting each other.
+            foreach (var id in new[] { actorUserId, prepared.UserId }.Order())
+                _ = await db.Users.FromSqlInterpolated($"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}")
+                    .AsNoTracking().ToListAsync(cancellationToken);
+            if (await gate(cancellationToken) is { } denied) return new(denied);
+        }
+        var rows = await db.Users.FromSqlInterpolated(
+            $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {prepared.UserId}")
+            .AsNoTracking().ToListAsync(cancellationToken);
+        var target = rows.SingleOrDefault();
+        if (target is null || target.DeletedAt != null) return new(ConditionalCredentialResetStatus.NotFound);
+        if (target.AccountStatus != "ACTIVE") return new(ConditionalCredentialResetStatus.Inactive);
+        if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(ConditionalCredentialResetStatus.Stale);
+        var material = prepared.Consume();
+        var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId,
+            CredentialProvisioningOperation.AdminReset, cancellationToken, identityVerificationMethod);
+        var version = await db.Users.AsNoTracking().Where(u => u.UserId == prepared.UserId)
+            .Select(u => u.RowVersion).SingleAsync(cancellationToken);
+        // A slow operation must not commit after its reauthentication window expires.
+        if (gate is not null && await gate(cancellationToken) is { } finalDenial) return new(finalDenial);
+        await transaction.CommitAsync(cancellationToken);
+        return new(ConditionalCredentialResetStatus.Success, new(material.Password, expiry), version);
+    }
+
     private async Task<DateTime> ApplyCoreAsync(long userId, string hash, long actorUserId,
-        CredentialProvisioningOperation operation, CancellationToken cancellationToken)
+        CredentialProvisioningOperation operation, CancellationToken cancellationToken,
+        string? identityVerificationMethod = null)
     {
         AuditLog? pendingAudit = null;
         try
@@ -110,9 +163,14 @@ public sealed class TemporaryCredentialService(
             if (updated != 1) throw new DbUpdateConcurrencyException("Credential update did not affect exactly one user.");
 
             var revokedCount = await sessions.RevokeAllAsync(user.UserId, now, cancellationToken);
-            pendingAudit = AuthenticationAudit.ForUser(user.UserId, "UPDATE", now,
-                new { authenticationEvent = operation == CredentialProvisioningOperation.AdminReset ? "CREDENTIAL_RESET" : "CREDENTIAL_PROVISION",
-                    temporary_password_expires_at = expiry, failed_login_count = 0, locked_until = (DateTime?)null, revoked_session_count = revokedCount },
+            object auditValues = identityVerificationMethod is null
+                ? new { authenticationEvent = operation == CredentialProvisioningOperation.AdminReset ? "CREDENTIAL_RESET" : "CREDENTIAL_PROVISION",
+                    temporary_password_expires_at = expiry, failed_login_count = 0, locked_until = (DateTime?)null, revoked_session_count = revokedCount }
+                : new { authenticationEvent = "CREDENTIAL_RESET", temporary_password_expires_at = expiry,
+                    failed_login_count = 0, locked_until = (DateTime?)null, revoked_session_count = revokedCount,
+                    identity_verification_method = identityVerificationMethod, identity_verified_at_utc = now,
+                    identity_verification_source = "ADMIN_ATTESTATION", reset_outcome = "SUCCEEDED" };
+            pendingAudit = AuthenticationAudit.ForUser(user.UserId, "UPDATE", now, auditValues,
                 "password_hash", "temporary_password_expires_at", "failed_login_count", "locked_until");
             pendingAudit.ActorUserId = actorUserId;
             db.AuditLogs.Add(pendingAudit);
