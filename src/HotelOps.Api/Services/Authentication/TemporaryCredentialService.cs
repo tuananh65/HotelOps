@@ -8,7 +8,7 @@ namespace HotelOps.Api.Services.Authentication;
 
 public sealed class TemporaryCredentialService(
     HotelOpsDbContext db, IPasswordCredentialService passwords,
-    ISessionRevocationService sessions, TimeProvider clock) : ITemporaryCredentialService
+    ISessionRevocationService sessions, TimeProvider clock) : ITemporaryCredentialService, IInitialCredentialTransactionParticipant
 {
     public static readonly TimeSpan Validity = TimeSpan.FromHours(24);
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -60,11 +60,36 @@ public sealed class TemporaryCredentialService(
         // Consumed before opening a transaction: no user interaction while locked.
         var material = prepared.Consume();
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId, operation, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return new IssuedTemporaryCredential(material.Password, expiry);
+    }
+
+    public async Task<PendingInitialCredential> StageInitialAsync(PreparedTemporaryCredential prepared,
+        long actorUserId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(prepared);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(actorUserId);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction == null
+            || System.Transactions.Transaction.Current != null)
+            throw new InvalidOperationException("Initial credential participant requires an explicit SQL Server caller transaction.");
+        if (db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Save and detach caller entries before staging credentials.");
+        var material = prepared.Consume();
+        var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId,
+            CredentialProvisioningOperation.InitialProvisioning, cancellationToken);
+        // No commit and no public plaintext accessor. Trusted orchestration releases only after commit.
+        return new PendingInitialCredential(material.Password, expiry);
+    }
+
+    private async Task<DateTime> ApplyCoreAsync(long userId, string hash, long actorUserId,
+        CredentialProvisioningOperation operation, CancellationToken cancellationToken)
+    {
         AuditLog? pendingAudit = null;
         try
         {
             var rows = await db.Users.FromSqlInterpolated(
-                $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {prepared.UserId}")
+                $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}")
                 .AsNoTracking().ToListAsync(cancellationToken);
             var user = rows.SingleOrDefault()
                 ?? throw new InvalidOperationException("Credential target was not found.");
@@ -78,7 +103,7 @@ public sealed class TemporaryCredentialService(
             var expiry = now.Add(Validity);
             var updated = await db.Users.Where(u => u.UserId == user.UserId)
                 .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(u => u.PasswordHash, material.Hash)
+                    .SetProperty(u => u.PasswordHash, hash)
                     .SetProperty(u => u.TemporaryPasswordExpiresAt, expiry)
                     .SetProperty(u => u.FailedLoginCount, 0)
                     .SetProperty(u => u.LockedUntil, (DateTime?)null), cancellationToken);
@@ -92,17 +117,12 @@ public sealed class TemporaryCredentialService(
             pendingAudit.ActorUserId = actorUserId;
             db.AuditLogs.Add(pendingAudit);
             await db.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            db.Entry(pendingAudit).State = EntityState.Detached;
-            return new IssuedTemporaryCredential(material.Password, expiry);
+            return expiry;
         }
-        catch
+        finally
         {
             if (pendingAudit is not null)
                 db.Entry(pendingAudit).State = EntityState.Detached;
-            // Never deliver plaintext on failure; disposal rolls back any still-open
-            // transaction. A commit-unknown error must be investigated, not retried.
-            throw;
         }
     }
 }

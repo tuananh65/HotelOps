@@ -42,6 +42,9 @@ builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
 builder.Services.AddScoped<ICredentialLockoutService, CredentialLockoutService>();
 builder.Services.AddScoped<ISessionRevocationService, SessionRevocationService>();
 builder.Services.AddScoped<ITemporaryCredentialService, TemporaryCredentialService>();
+builder.Services.AddScoped<IInitialCredentialTransactionParticipant>(services =>
+    (IInitialCredentialTransactionParticipant)services.GetRequiredService<ITemporaryCredentialService>());
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountCreationService>();
 builder.Services.AddScoped<ISqlSessionService, SqlSessionService>();
 builder.Services.AddScoped<IAuthenticationLoginService, AuthenticationLoginService>();
 builder.Services.AddScoped<IAuthenticationCredentialWorkflow, AuthenticationCredentialWorkflow>();
