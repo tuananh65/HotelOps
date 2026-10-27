@@ -52,6 +52,8 @@ builder.Services.AddSingleton<ReauthenticationProofStore>();
 builder.Services.AddScoped<AdminReauthenticationService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserCredentialResetAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.AdminCredentialResetWorkflow>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountStatusAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountActivationService>();
 builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
 builder.Services.AddHotelOpsAntiforgery();
 builder.Services.AddHttpContextAccessor();
