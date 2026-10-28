@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 
+if (args.Length == 1 && args[0] == "--responsibility-coordination") { await ResponsibilityCoordinationChecks.Run(); return; }
+
 await new IntegritySuite().Run();
 
 sealed partial class IntegritySuite

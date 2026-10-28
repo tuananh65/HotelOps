@@ -6,6 +6,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.MaterialRequests;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Services.Inventory;
+using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -39,14 +40,19 @@ public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInvent
     }
     private async Task Participant(long id, long branch, CancellationToken ct)
     {
-        var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == id, ct);
-        if (user is null || user.DeletedAt != null || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE") throw Invalid("Business participant must be an active user.");
-        if (user.PrimaryBranchId != branch && !await db.UserBranchAccesses.AnyAsync(x => x.UserId == id && x.BranchId == branch && x.RevokedAt == null, ct)) throw Invalid("Participant must be branch-related. This is not authorization.");
+        // Eligibility is enforced under retained User locks before MR resources.
+        if (!await db.Users.AsNoTracking().AnyAsync(x => x.UserId == id && x.PrimaryBranchId == branch, ct) && !await db.UserBranchAccesses.AnyAsync(x => x.UserId == id && x.BranchId == branch && x.RevokedAt == null, ct)) throw Invalid("Participant must be branch-related. This is not authorization.");
     }
     private async Task Approver(MaterialRequest r, long? id, long actor, CancellationToken ct)
     {
         if (id is null || id == r.RequesterId || id == actor) throw Invalid("An independent assigned approver is required.");
         await Participant(id.Value, r.BranchId, ct);
+    }
+    private static void RecheckDiscovery(MaterialRequest current, MaterialRequest discovered)
+    {
+        if (current.RequesterId != discovered.RequesterId || current.BranchId != discovered.BranchId
+            || current.Status != discovered.Status || !current.RowVersion.SequenceEqual(discovered.RowVersion))
+            throw Invalid("Request context changed during User lock acquisition. Reload.");
     }
     private static void Version(MaterialRequest r, string? expected)
     {
@@ -61,9 +67,13 @@ public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInvent
     {
         await Gate("HotelOps:Inventory:Catalog", ct);
         await Gate($"HotelOps:MaterialRequest:Request:{id}", ct);
+        var trackedRequest = db.MaterialRequests.Local.Any(x => x.RequestId == id);
+        var trackedLines = db.MaterialRequestLines.Local.Where(x => x.RequestId == id).ToArray();
         var r = await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}")
             .Include(x => x.MaterialRequestLines).SingleOrDefaultAsync(ct);
         if (r is null) return null;
+        if (trackedRequest) await db.Entry(r).ReloadAsync(ct);
+        foreach (var line in trackedLines) await db.Entry(line).ReloadAsync(ct);
         Version(r, version);
         if (!await NewWorkflow(r, ct)) throw Invalid("Legacy request mutation cannot be reconciled safely; read only.");
         return r;
@@ -108,12 +118,27 @@ public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInvent
             return result.Length <= 50 ? result : throw new InvalidOperationException("Number space exhausted.");
         }
     }
-    private async Task<MaterialRequestApprovalCycle> Latest(long id, CancellationToken ct) => await db.MaterialRequestApprovalCycles
-        .Include(x => x.MaterialRequestApprovalLineSnapshots).Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct) ?? throw Invalid("Approval cycle missing.");
-    private async Task Cycle(MaterialRequest r, long actor, long? approver, CancellationToken ct)
+    private async Task<MaterialRequestApprovalCycle> Latest(long id, CancellationToken ct)
     {
+        var trackedCycles = db.MaterialRequestApprovalCycles.Local.Where(x => x.RequestId == id).Select(x => x.ApprovalCycleId).ToArray();
+        var cycle = await db.MaterialRequestApprovalCycles.Include(x => x.MaterialRequestApprovalLineSnapshots)
+            .Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct) ?? throw Invalid("Approval cycle missing.");
+        if (trackedCycles.Contains(cycle.ApprovalCycleId))
+        {
+            await db.Entry(cycle).ReloadAsync(ct);
+            foreach (var line in cycle.MaterialRequestApprovalLineSnapshots.ToArray()) await db.Entry(line).ReloadAsync(ct);
+        }
+        return cycle;
+    }
+    private async Task Cycle(MaterialRequest r, long actor, long? approver,
+        IReadOnlyDictionary<long, UserEligibilityLock.LockedUser?> lockedUsers, CancellationToken ct)
+    {
+        // BASE routing is the explicit selector (or latest selector on edit).
+        // Never select another User or acquire a User lock after MR resources.
         await ValidateContent(r, true, false, ct); await Approver(r, approver, actor, ct);
+        UserEligibilityLock.RequireEligible(approver!.Value, lockedUsers);
         var prior = await db.MaterialRequestApprovalCycles.Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
+        if (prior != null) await db.Entry(prior).ReloadAsync(ct);
         if (prior?.Status == "PENDING") { prior.Status = "SUPERSEDED"; prior.ResolvedAt = DateTime.UtcNow; }
         var cycle = new MaterialRequestApprovalCycle { Request = r, RevisionNo = (prior?.RevisionNo ?? 0) + 1, SubmittedBy = actor, AssignedApproverId = approver!.Value, Status = "PENDING", SubmittedAt = DateTime.UtcNow };
         foreach (var l in r.MaterialRequestLines.Where(x => x.IsActive))

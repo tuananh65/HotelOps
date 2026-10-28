@@ -12,6 +12,8 @@ using HotelOps.Api.Services.MaterialRequests;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
+if (args.Length == 1 && args[0] == "--deactivation-coordination") { await DeactivationCoordination.Run(); return; }
+
 await new MaterialSuite().Run();
 
 sealed partial class MaterialSuite

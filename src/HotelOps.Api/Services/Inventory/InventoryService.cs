@@ -87,11 +87,12 @@ public sealed partial class InventoryService(HotelOpsDbContext db)
     }
     // All Inventory writers cooperate through the catalog gate, then owner,
     // numeric warehouse, numeric stock-pair, and number-allocation gates.
-    private async Task<IDbContextTransaction> Begin(long actor, CancellationToken ct)
+    private async Task<IDbContextTransaction> Begin(long actor, CancellationToken ct, Func<CancellationToken, Task>? prepareOwners = null)
     {
         var transaction = await db.Database.BeginTransactionAsync(ct);
         try
         {
+            if (prepareOwners is not null) await prepareOwners(ct);
             await Gate("HotelOps:Inventory:Catalog", ct);
             await Actor(actor, ct);
             return transaction;
