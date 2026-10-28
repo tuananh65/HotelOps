@@ -1,6 +1,7 @@
 using HotelOps.Api.DTOs.MaterialRequests;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Services.Inventory;
+using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
@@ -10,12 +11,35 @@ public sealed partial class MaterialRequestService
 {
     public async Task<MaterialRequestDto?> Save(long? id, MaterialRequestWrite input, CancellationToken ct)
     {
+        var discovered = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = input.ActorUserId, Status = "DRAFT" }
+            : await db.MaterialRequests.AsNoTracking().SingleOrDefaultAsync(x => x.RequestId == id.Value, ct);
+        if (discovered is null) return null;
+        var needsCycle = discovered.Status is "PENDING_APPROVAL" or "APPROVED" || id is null && input.Submit;
+        var discoveredCycle = id != null && needsCycle ? await db.MaterialRequestApprovalCycles.AsNoTracking()
+            .Where(x => x.RequestId == id.Value).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct) : null;
+        // Preserve the BASE explicit selector / latest-cycle edit fallback.
+        var approver = input.AssignedApproverUserId ?? discoveredCycle?.AssignedApproverId;
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         try
         {
+            long[] ids = needsCycle && approver is long candidate
+                ? [input.ActorUserId, discovered.RequesterId, candidate] : [input.ActorUserId, discovered.RequesterId];
+            var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);
+            UserEligibilityLock.RequireEligible(input.ActorUserId, lockedUsers);
+            UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);
+            if (needsCycle && approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);
             await Gate("HotelOps:Inventory:Catalog", ct);
             var r = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = input.ActorUserId, Status = "DRAFT", CreatedAt = DateTime.UtcNow } : await Locked(id.Value, input.ExpectedRowVersion, ct);
             if (r is null) return null;
+            if (id != null) RecheckDiscovery(r, discovered);
+            if (id != null && needsCycle)
+            {
+                var latestCycle = await Latest(r.RequestId, ct);
+                if (discoveredCycle is null || latestCycle.ApprovalCycleId != discoveredCycle.ApprovalCycleId
+                    || latestCycle.AssignedApproverId != discoveredCycle.AssignedApproverId || latestCycle.SubmittedBy != discoveredCycle.SubmittedBy
+                    || latestCycle.Status != discoveredCycle.Status || latestCycle.RevisionNo != discoveredCycle.RevisionNo)
+                    throw Invalid("Approval context changed during User lock acquisition. Reload.");
+            }
             if (input.NeededAt is DateTime time && time.Kind != DateTimeKind.Utc) throw Invalid("NeededAt must use UTC (Z).");
             await Participant(input.ActorUserId, r.BranchId, ct);
             if (input.ActorUserId != r.RequesterId || r.BranchId != input.BranchId) throw Invalid("Requester identity and branch are immutable.");
@@ -27,12 +51,7 @@ public sealed partial class MaterialRequestService
             var changed = before is null || JsonSerializer.Serialize(before) != JsonSerializer.Serialize(Snapshot(r));
             if (!changed) { await tx.CommitAsync(ct); return await Get(r.RequestId, ct); }
             if (id is null) { r.RequestNo = await Number(false, ct); db.MaterialRequests.Add(r); await db.SaveChangesAsync(ct); }
-            if (previousState is "PENDING_APPROVAL" or "APPROVED" || id is null && input.Submit)
-            {
-                var approver = input.AssignedApproverUserId;
-                if (approver is null && id != null) approver = (await Latest(r.RequestId, ct)).AssignedApproverId;
-                await Cycle(r, input.ActorUserId, approver, ct);
-            }
+            if (needsCycle) await Cycle(r, input.ActorUserId, approver, lockedUsers, ct);
             if (id != null) r.UpdatedAt = DateTime.UtcNow;
             await db.SaveChangesAsync(ct);
             var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
@@ -66,17 +85,29 @@ public sealed partial class MaterialRequestService
     }
     public async Task<MaterialRequestDto?> Command(long id, string command, MaterialCommand input, CancellationToken ct, MaterialApproval? approval = null)
     {
+        var discovered = await db.MaterialRequests.AsNoTracking().SingleOrDefaultAsync(x => x.RequestId == id, ct);
+        if (discovered is null) return null;
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         try
         {
+            // Returning for information creates requester responsibility again.
+            var needsRequester = command is "submit" or "cancel" or "request-information";
+            var approver = command == "submit" ? input.AssignedApproverUserId : null;
+            long[] ids = needsRequester ? [input.ActorUserId, discovered.RequesterId] : [input.ActorUserId];
+            if (approver is long candidate) ids = [.. ids, candidate];
+            var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);
+            UserEligibilityLock.RequireEligible(input.ActorUserId, lockedUsers);
+            if (needsRequester) UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);
+            if (approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);
             var r = await Locked(id, input.ExpectedRowVersion, ct); if (r is null) return null;
+            RecheckDiscovery(r, discovered);
             await Participant(input.ActorUserId, r.BranchId, ct); var before = Snapshot(r);
             var action = "UPDATE"; var evt = "";
             if (command == "submit")
             {
                 State(r, "DRAFT", "NEEDS_INFORMATION"); if (r.RequesterId != input.ActorUserId) throw Invalid("Only requester may submit.");
                 var resubmit = r.Status == "NEEDS_INFORMATION";
-                await Cycle(r, input.ActorUserId, input.AssignedApproverUserId, ct); evt = resubmit ? "REQUEST_RESUBMITTED" : "REQUEST_SUBMITTED";
+                await Cycle(r, input.ActorUserId, approver, lockedUsers, ct); evt = resubmit ? "REQUEST_RESUBMITTED" : "REQUEST_SUBMITTED";
             }
             else if (command == "cancel")
             {
@@ -127,6 +158,7 @@ public sealed partial class MaterialRequestService
         await using var tx = await db.Database.BeginTransactionAsync(ct);
         try
         {
+            await new UserEligibilityLock(db).RequireEligibleAsync(input.ActorUserId, ct);
             var r = await Locked(id, input.ExpectedRowVersion, ct); if (r is null) return null;
             State(r, "APPROVED", "PARTIALLY_ISSUED"); await Participant(input.ActorUserId, r.BranchId, ct);
             var cycle = await Latest(id, ct);

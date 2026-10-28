@@ -64,15 +64,30 @@ public sealed partial class InventoryService
     public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, InventoryWarehouseWrite r, CancellationToken ct)
     {
         var code = Required(r.WarehouseCode, "WarehouseCode", 40); var name = Required(r.WarehouseName, "WarehouseName", 150);
-        await using var tx = await Begin(r.ActorUserId, ct);
+        // Discovery establishes User lock order only; reread under the Warehouse lock.
+        var discovered = id.HasValue ? await db.Warehouses.AsNoTracking().Where(w => w.WarehouseId == id.Value)
+            .Select(w => new { w.ManagerUserId }).SingleOrDefaultAsync(ct) : null;
+        await using var tx = await Begin(r.ActorUserId, ct, async token =>
+        {
+            var ids = new[] { discovered?.ManagerUserId, r.ManagerUserId }.Where(x => x.HasValue).Select(x => x!.Value);
+            var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync(ids, token);
+            // The old manager may be inactive when removing responsibility.
+            if (r.ManagerUserId is long proposed) HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(proposed, locked);
+        });
         if (id.HasValue && !await db.Warehouses.AnyAsync(w => w.WarehouseId == id, ct)) return null;
         var x = id.HasValue ? (await Warehouses([id.Value], false, ct)).Single() : new Warehouse();
-        if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion); var before = id.HasValue ? Scalars(x) : null;
+        if (id.HasValue)
+        {
+            await db.Entry(x).ReloadAsync(ct);
+            if (discovered is null || x.ManagerUserId != discovered.ManagerUserId)
+                throw Invalid("Warehouse manager changed after discovery. Reload before retrying.");
+            Version(x.RowVersion, r.ExpectedRowVersion);
+        }
+        var before = id.HasValue ? Scalars(x) : null;
         if ((!id.HasValue || x.BranchId != r.BranchId) && !await db.Branches.AnyAsync(b => b.BranchId == r.BranchId && b.IsActive, ct)) throw Invalid("A new warehouse or branch change requires an active branch.");
         if ((!id.HasValue || r.DepartmentId != x.DepartmentId) && !r.DepartmentId.HasValue) throw Invalid("DepartmentId is required for a new warehouse or department change.");
         if (r.DepartmentId.HasValue && !await db.Departments.AnyAsync(d => d.DepartmentId == r.DepartmentId && d.BranchId == r.BranchId && d.IsActive, ct)) throw Invalid("Department must be active in the selected branch.");
         if (id.HasValue && x.BranchId != r.BranchId && await WarehouseHistory(id.Value, ct)) throw Invalid("Warehouse branch is immutable after dependent history.");
-        if (r.ManagerUserId.HasValue && !await db.Users.AnyAsync(u => u.UserId == r.ManagerUserId && u.DeletedAt == null && u.AccountStatus == "ACTIVE", ct)) throw Invalid("ManagerUser must be active and not deleted.");
         if (await db.Warehouses.AnyAsync(w => w.BranchId == r.BranchId && w.WarehouseCode == code && w.WarehouseId != id, ct)) throw Invalid("WarehouseCode already exists in this branch.");
         if (id.HasValue && x.IsActive && !r.IsActive)
         {

@@ -9,17 +9,18 @@ public sealed partial class MaintenanceWorkService
 {
     public Task<MaintenanceWorkDetailDto?> AssignWorkAsync(long id,
         AssignMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
-        ExecuteCorrectiveAsync(id, request, null, async (work, incident, now, token) =>
+        ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
         {
             RequireState(work, "PENDING");
-            await RequireUserAsync(request.AssigneeId, "AssigneeId", token);
             var end = request.PlannedEndAt ?? work.PlannedEndAt;
             ValidatePlannedTimes(work.PlannedStartAt, end);
             work.AssigneeId = request.AssigneeId;
             if (request.Instruction is not null)
                 work.Instruction = request.Instruction;
             work.PlannedEndAt = end;
-        }, cancellationToken);
+            return Task.CompletedTask;
+        }, cancellationToken, prepareOwners: token =>
+            new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.AssigneeId, token));
 
     private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveAsync(long id,
         MaintenanceActorRequest request, string? incidentNote,
@@ -45,6 +46,9 @@ public sealed partial class MaintenanceWorkService
             .AsTracking().SingleOrDefaultAsync(cancellationToken);
         if (work is null)
             return null;
+        // Tracking queries can retain state from before the User-lock wait.
+        await _dbContext.Entry(work).ReloadAsync(cancellationToken);
+        if (incident is not null) await _dbContext.Entry(incident).ReloadAsync(cancellationToken);
         if (incident is null || work.IncidentId != incidentId)
             throw new ValidationException("The corrective work relationship changed. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
