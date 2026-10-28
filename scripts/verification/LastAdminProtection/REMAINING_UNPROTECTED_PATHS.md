@@ -1,5 +1,10 @@
 ﻿# Task 43 - remaining unprotected paths
 
+Task44 update: approved first-role-only branch-bound assignment now participates in the same
+global-first protocol, without changing an existing grant, credential, identifier or scope.
+It is additive, not a Revoke/rebind writer or a general delegation API. Its implementation
+does not resolve any external-writer, future-expiry or future reducing-workflow boundary below.
+
 Existing decreasing application writer entries now participating in GlobalAdminSerialization:
 gated HTTP admin reset, raw conditional reset, legacy Apply AdminReset, Create and Profile.
 See MUTATION_PATH_MATRIX.md for reachability, classification and exact methods.

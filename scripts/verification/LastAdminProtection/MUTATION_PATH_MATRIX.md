@@ -1,5 +1,14 @@
 ﻿# Task 43 - existing writer coverage
 
+Task44 update: technically approved `UserRoleAssignmentService.AssignAsync` now implements
+POST /api/users/{id}/roles for five exact operational envelopes, first role only, existing
+primary Branch/Department/membership, no self/protected/global/regrant/revoke. It uses the
+global-first protocol and nonzero-baseline poststate check. The fresh branch-bound INSERT
+and aggregate version/audit have **NO ADMIN-DECREASING EFFECT**; authority is still required.
+See ../UserRoleAssignment/VERIFICATION_RESULTS.md for actual HTTP/SQL races and limits.
+References below to absent role-management writers concern reducing/rebind/catalog workflows;
+they do not exclude this new bounded additive INSERT. Existing external/expiry limits remain.
+
 Current source audit, DEV1 / FE-01, 2026-10-28 Asia/Saigon. Supersedes the historical
 Task 41/42 matrix. Source paths below are under src/HotelOps.Api unless noted.
 No reachability conclusion is based only on the absence of a public endpoint.
