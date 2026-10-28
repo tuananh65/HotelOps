@@ -10,6 +10,8 @@ using HotelOps.Api.Services.Inventory;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
+if (args.Length == 1 && args[0] == "--responsibility-coordination") { await ResponsibilityCoordinationChecks.Run(); return; }
+
 var suite = new InventorySuite();
 await suite.Run();
 
