@@ -44,7 +44,7 @@ public sealed class PasswordCredentialService : IPasswordCredentialService
         return _hasher.VerifyHashedPassword(user, storedHash!, password);
     }
 
-    private static bool IsSupportedV3Hash(string? hash)
+    internal static bool IsSupportedV3Hash(string? hash)
     {
         if (string.IsNullOrEmpty(hash) || hash.Length > MaximumStoredHashLength)
         {

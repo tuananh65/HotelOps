@@ -2,6 +2,7 @@ using System.Data;
 using System.Security.Cryptography;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
+using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Authentication;
@@ -61,7 +62,16 @@ public sealed class TemporaryCredentialService(
         // Consumed before opening a transaction: no user interaction while locked.
         var material = prepared.Consume();
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        GlobalAdminTransaction? guard = null;
+        GlobalAdminSnapshot? before = null;
+        if (operation == CredentialProvisioningOperation.AdminReset)
+        {
+            guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: cancellationToken);
+            before = await guard.ReadSnapshotAsync(cancellationToken);
+        }
         var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId, operation, cancellationToken);
+        if (before?.DurableEligibleUserIds.Contains(prepared.UserId) == true)
+            await guard!.EnsurePreservedAsync(before, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return new IssuedTemporaryCredential(material.Password, expiry);
     }
@@ -108,6 +118,11 @@ public sealed class TemporaryCredentialService(
         var expected = expectedVersion.ToArray();
         if (prepared.UserId == actorUserId) return new(ConditionalCredentialResetStatus.SelfDenied);
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        // Both raw and HTTP reset participate. Raw callers retain responsibility for authorization.
+        GlobalAdminTransaction adminGuard;
+        try { adminGuard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: cancellationToken); }
+        catch (GlobalAdminLockException) { return new(ConditionalCredentialResetStatus.SerializationUnavailable); }
+        var adminBefore = await adminGuard.ReadSnapshotAsync(cancellationToken);
         if (gate is not null)
         {
             // Deterministic user-first locking also covers two administrators resetting each other.
@@ -130,6 +145,15 @@ public sealed class TemporaryCredentialService(
             .Select(u => u.RowVersion).SingleAsync(cancellationToken);
         // A slow operation must not commit after its reauthentication window expires.
         if (gate is not null && await gate(cancellationToken) is { } finalDenial) return new(finalDenial);
+        // A non-durable/nonadmin target cannot lose durable eligibility through credential rotation.
+        // Do not reject ordinary employee resets merely because the pre-existing global count is zero.
+        if (adminBefore.DurableEligibleUserIds.Contains(prepared.UserId))
+        {
+            try { await adminGuard.EnsurePreservedAsync(adminBefore, cancellationToken); }
+            catch (GlobalAdministrationInvariantException) { return new(ConditionalCredentialResetStatus.LastAdministrator); }
+            // The poststate snapshot can take time; do not extend proof/authorization validity through it.
+            if (gate is not null && await gate(cancellationToken) is { } boundaryDenial) return new(boundaryDenial);
+        }
         await transaction.CommitAsync(cancellationToken);
         return new(ConditionalCredentialResetStatus.Success, new(material.Password, expiry), version);
     }

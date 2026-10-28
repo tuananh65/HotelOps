@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-public enum AccountCreationStatus { Success, Forbidden, InvalidReference, Duplicate }
+public enum AccountCreationStatus { Success, Forbidden, InvalidReference, Duplicate, LastAdministrator, SerializationUnavailable }
 public sealed record AccountCreationResult(AccountCreationStatus Status, CreatedEmployeeAccountDto? User = null,
     IssuedTemporaryCredential? Credential = null, IReadOnlyList<string>? DuplicateFields = null) : IDisposable
 {
@@ -34,6 +34,10 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
         var request = input.Normalize();
         if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Creation requires a clean scoped context.");
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+        GlobalAdminTransaction guard;
+        try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
+        catch (GlobalAdminLockException) { return new(AccountCreationStatus.SerializationUnavailable); }
+        var before = await guard.ReadSnapshotAsync(ct);
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted
             || !(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
@@ -98,6 +102,15 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
         }
         using var prepared = credentials.Prepare(user.UserId);
         using var pending = await participant.StageInitialAsync(prepared, actor.UserId, ct);
+        // An inserted identifier can collide with an existing administrator across columns.
+        if (before.DurableEligibleUserIds.Count > 0)
+        {
+            try { await guard.EnsurePreservedAsync(before, ct); }
+            catch (GlobalAdministrationInvariantException) { return new(AccountCreationStatus.LastAdministrator); }
+        }
+        if (!(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
+            || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
+            return new(AccountCreationStatus.Forbidden);
         await transaction.CommitAsync(ct);
         var issued = pending.ReleaseAfterCommit();
         return new(AccountCreationStatus.Success, new(user.UserId, request.EmployeeCode, request.Username, request.FullName,

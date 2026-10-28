@@ -8,6 +8,11 @@ namespace HotelOps.Api.Services.Users;
 public sealed class UserProfileAccess(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, IPermissionDataSource data, TimeProvider clock)
 {
+    // Profile supports OWN in addition to reset's scopes, but retains the same authority
+    // rows/ranges. Reuse only the lock acquisition, never the reset permission decision.
+    internal Task LockAuthorityAsync(long actorId, long targetId, CancellationToken ct)
+        => new UserCredentialResetAccess(db, current, permissions, data, clock).LockAuthorityAsync(actorId, targetId, ct);
+
     public async Task<bool> CanManageAsync(long targetId, CancellationToken ct)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted) return false;

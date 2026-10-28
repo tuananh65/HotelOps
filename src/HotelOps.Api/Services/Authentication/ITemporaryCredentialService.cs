@@ -9,6 +9,9 @@ public interface ITemporaryCredentialService
     /// Caller must authorize the actor/target and secure the one-time handoff.
     /// Owns/commits its transaction; do not wrap in an existing transaction or
     /// wait for external delivery inside it. A failed attempt consumes preparation.
+    /// AdminReset participates in global-admin serialization and throws
+    /// GlobalAdministrationInvariantException if it would remove the last durable admin.
+    /// This primitive does not replace caller authorization/revalidation.
     /// </summary>
     Task<IssuedTemporaryCredential> ApplyAsync(PreparedTemporaryCredential prepared,
         long actorUserId, CredentialProvisioningOperation operation,

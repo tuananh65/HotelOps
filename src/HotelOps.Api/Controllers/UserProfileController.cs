@@ -45,6 +45,8 @@ public sealed class UserProfileController(UserProfileService profiles, UserProfi
             case UserProfileStatus.NotFound: return Problem(statusCode: 404, title: "User account not found");
             case UserProfileStatus.Stale: return Problem(statusCode: 412, title: "Profile version changed; reload before updating");
             case UserProfileStatus.EmailInUse: return Problem(statusCode: 409, title: "Email is already in use");
+            case UserProfileStatus.LastAdministrator: return Problem(statusCode: 409, title: "LAST_DURABLE_ADMIN");
+            case UserProfileStatus.SerializationUnavailable: return Problem(statusCode: 503, title: "GLOBAL_ADMIN_SERIALIZATION_UNAVAILABLE");
             default: throw new InvalidOperationException("Unknown profile outcome.");
         }
     }

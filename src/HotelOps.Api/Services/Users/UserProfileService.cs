@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
 
-public enum UserProfileStatus { Success, Forbidden, NotFound, Stale, EmailInUse }
+public enum UserProfileStatus { Success, Forbidden, NotFound, Stale, EmailInUse, LastAdministrator, SerializationUnavailable }
 public sealed record UserProfileResult(UserProfileStatus Status, UserProfileDto? Profile = null, byte[]? Version = null);
 
 public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess access,
@@ -30,7 +30,14 @@ public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess a
         ArgumentNullException.ThrowIfNull(patch);
         if (expected.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expected));
         patch = patch.Normalize();
+        if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Profile update requires a clean context.");
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+        GlobalAdminTransaction guard;
+        try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
+        catch (GlobalAdminLockException) { return new(UserProfileStatus.SerializationUnavailable); }
+        var adminBefore = await guard.ReadSnapshotAsync(ct);
+        if (!current.TryGetCurrentUser(out var identity)) return new(UserProfileStatus.Forbidden);
+        await access.LockAuthorityAsync(identity.UserId, id, ct);
         if (!await access.CanManageAsync(id, ct) || !current.TryGetCurrentUser(out var actor))
             return new(UserProfileStatus.Forbidden);
         var before = await ReadRow(id, ct);
@@ -76,6 +83,13 @@ public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess a
         try
         {
             await db.SaveChangesAsync(ct);
+            db.Entry(audit).State = EntityState.Detached;
+            if (adminBefore.DurableEligibleUserIds.Count > 0)
+            {
+                try { await guard.EnsurePreservedAsync(adminBefore, ct); }
+                catch (GlobalAdministrationInvariantException) { return new(UserProfileStatus.LastAdministrator); }
+            }
+            if (!await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
             var result = Success((await ReadRow(id, ct))!);
             await transaction.CommitAsync(ct);
             return result;

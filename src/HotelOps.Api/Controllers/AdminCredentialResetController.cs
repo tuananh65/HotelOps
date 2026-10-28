@@ -43,6 +43,8 @@ public sealed class AdminCredentialResetController(AdminCredentialResetWorkflow 
             case ConditionalCredentialResetStatus.NotFound: return Failure(404, "USER_NOT_FOUND");
             case ConditionalCredentialResetStatus.Inactive: return Failure(409, "TARGET_NOT_ACTIVE");
             case ConditionalCredentialResetStatus.Stale: return Failure(412, "STALE_USER_VERSION");
+            case ConditionalCredentialResetStatus.LastAdministrator: return Failure(409, "LAST_DURABLE_ADMIN");
+            case ConditionalCredentialResetStatus.SerializationUnavailable: return Failure(503, "GLOBAL_ADMIN_SERIALIZATION_UNAVAILABLE");
             default: throw new InvalidOperationException("Unknown credential reset result.");
         }
     }

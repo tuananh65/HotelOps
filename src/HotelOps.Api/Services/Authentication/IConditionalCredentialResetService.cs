@@ -6,6 +6,8 @@ namespace HotelOps.Api.Services.Authentication;
 /// Trusted orchestration must verify actor/session, reset authority, recent
 /// reauthentication and employee identity confirmation. Never call the legacy unconditional reset
 /// wrapper to implement the administrative endpoint.
+/// Raw resets also enforce global-admin preservation and may return LastAdministrator
+/// or SerializationUnavailable; they still do not authorize the supplied actor ID.
 /// </summary>
 public interface IConditionalCredentialResetService
 {
@@ -14,7 +16,7 @@ public interface IConditionalCredentialResetService
         CancellationToken cancellationToken = default);
 }
 
-public enum ConditionalCredentialResetStatus { Success, SelfDenied, NotFound, Inactive, Stale, Forbidden, SessionInvalid, ReauthenticationRequired }
+public enum ConditionalCredentialResetStatus { Success, SelfDenied, NotFound, Inactive, Stale, Forbidden, SessionInvalid, ReauthenticationRequired, LastAdministrator, SerializationUnavailable }
 
 public sealed record ConditionalCredentialResetResult(ConditionalCredentialResetStatus Status,
     IssuedTemporaryCredential? Credential = null, byte[]? Version = null) : IDisposable
