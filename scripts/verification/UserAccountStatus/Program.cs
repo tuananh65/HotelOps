@@ -58,4 +58,9 @@ foreach (var status in new[] { "ACTIVE", "INACTIVE" })
 }
 Check(!new UserAccountStatusChange("ACTIVE", "short").IsValid, "service validation rejects parser bypass");
 Console.WriteLine($"PASS: {checks} independent parser/session-policy assertions; HTTP certification is a separate suite.");
-if (args.Length != 0) await ActivationSqlSuite.RunAsync(args);
+if (args.Length > 0 && args[0] == "--dev1-predicates")
+{
+    await Dev1PredicateSuite.RunAsync();
+    if (args.Length > 1) await Dev1PredicateSqlSuite.RunAsync(args[1..]);
+}
+else if (args.Length != 0) await ActivationSqlSuite.RunAsync(args);
