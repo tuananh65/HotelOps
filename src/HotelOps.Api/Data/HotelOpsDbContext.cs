@@ -2881,6 +2881,7 @@ public partial class HotelOpsDbContext : DbContext
 
         modelBuilder.Entity<User>(entity =>
         {
+            entity.Property(e => e.RowVersion).IsRowVersion().HasColumnName("row_version");
             entity.HasKey(e => e.UserId).HasName("PK__users__B9BE370FD4563718");
 
             // Schema B preparation: verify against SQL after applying the authentication schema update.

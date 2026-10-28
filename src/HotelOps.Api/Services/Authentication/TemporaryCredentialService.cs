@@ -2,13 +2,15 @@ using System.Data;
 using System.Security.Cryptography;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
+using HotelOps.Api.Services.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Authentication;
 
 public sealed class TemporaryCredentialService(
     HotelOpsDbContext db, IPasswordCredentialService passwords,
-    ISessionRevocationService sessions, TimeProvider clock) : ITemporaryCredentialService
+    ISessionRevocationService sessions, TimeProvider clock) : ITemporaryCredentialService,
+    IInitialCredentialTransactionParticipant, IConditionalCredentialResetService
 {
     public static readonly TimeSpan Validity = TimeSpan.FromHours(24);
     private const string Alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
@@ -60,11 +62,111 @@ public sealed class TemporaryCredentialService(
         // Consumed before opening a transaction: no user interaction while locked.
         var material = prepared.Consume();
         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        GlobalAdminTransaction? guard = null;
+        GlobalAdminSnapshot? before = null;
+        if (operation == CredentialProvisioningOperation.AdminReset)
+        {
+            guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: cancellationToken);
+            before = await guard.ReadSnapshotAsync(cancellationToken);
+        }
+        var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId, operation, cancellationToken);
+        if (before?.DurableEligibleUserIds.Contains(prepared.UserId) == true)
+            await guard!.EnsurePreservedAsync(before, cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return new IssuedTemporaryCredential(material.Password, expiry);
+    }
+
+    public async Task<PendingInitialCredential> StageInitialAsync(PreparedTemporaryCredential prepared,
+        long actorUserId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(prepared);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(actorUserId);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction == null
+            || System.Transactions.Transaction.Current != null)
+            throw new InvalidOperationException("Initial credential participant requires an explicit SQL Server caller transaction.");
+        if (db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Save and detach caller entries before staging credentials.");
+        var material = prepared.Consume();
+        var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId,
+            CredentialProvisioningOperation.InitialProvisioning, cancellationToken);
+        // No commit and no public plaintext accessor. Trusted orchestration releases only after commit.
+        return new PendingInitialCredential(material.Password, expiry);
+    }
+
+    public Task<ConditionalCredentialResetResult> ResetAsync(PreparedTemporaryCredential prepared,
+        long actorUserId, byte[] expectedVersion, string identityVerificationMethod,
+        CancellationToken cancellationToken = default)
+        => ResetWithGateAsync(prepared, actorUserId, expectedVersion, identityVerificationMethod, null, cancellationToken);
+
+    internal async Task<ConditionalCredentialResetResult> ResetWithGateAsync(PreparedTemporaryCredential prepared,
+        long actorUserId, byte[] expectedVersion, string identityVerificationMethod,
+        Func<CancellationToken, Task<ConditionalCredentialResetStatus?>>? gate, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(prepared);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(actorUserId);
+        ArgumentNullException.ThrowIfNull(expectedVersion);
+        if (expectedVersion.Length != 8)
+            throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
+        // Audit accepts a bounded procedure code, never free-form identity evidence or documents.
+        if (string.IsNullOrEmpty(identityVerificationMethod) || identityVerificationMethod.Length > 40
+            || identityVerificationMethod.Any(c => c is not (>= 'A' and <= 'Z' or >= '0' and <= '9' or '_')))
+            throw new ArgumentException("A non-sensitive procedure code is required.", nameof(identityVerificationMethod));
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null
+            || System.Transactions.Transaction.Current != null || db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Conditional reset requires SQL Server, a clean context and no caller transaction.");
+        // Snapshot caller-owned mutable input before the first await.
+        var expected = expectedVersion.ToArray();
+        if (prepared.UserId == actorUserId) return new(ConditionalCredentialResetStatus.SelfDenied);
+        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+        // Both raw and HTTP reset participate. Raw callers retain responsibility for authorization.
+        GlobalAdminTransaction adminGuard;
+        try { adminGuard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: cancellationToken); }
+        catch (GlobalAdminLockException) { return new(ConditionalCredentialResetStatus.SerializationUnavailable); }
+        var adminBefore = await adminGuard.ReadSnapshotAsync(cancellationToken);
+        if (gate is not null)
+        {
+            // Deterministic user-first locking also covers two administrators resetting each other.
+            foreach (var id in new[] { actorUserId, prepared.UserId }.Order())
+                _ = await db.Users.FromSqlInterpolated($"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}")
+                    .AsNoTracking().ToListAsync(cancellationToken);
+            if (await gate(cancellationToken) is { } denied) return new(denied);
+        }
+        var rows = await db.Users.FromSqlInterpolated(
+            $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {prepared.UserId}")
+            .AsNoTracking().ToListAsync(cancellationToken);
+        var target = rows.SingleOrDefault();
+        if (target is null || target.DeletedAt != null) return new(ConditionalCredentialResetStatus.NotFound);
+        if (target.AccountStatus != "ACTIVE") return new(ConditionalCredentialResetStatus.Inactive);
+        if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(ConditionalCredentialResetStatus.Stale);
+        var material = prepared.Consume();
+        var expiry = await ApplyCoreAsync(prepared.UserId, material.Hash, actorUserId,
+            CredentialProvisioningOperation.AdminReset, cancellationToken, identityVerificationMethod);
+        var version = await db.Users.AsNoTracking().Where(u => u.UserId == prepared.UserId)
+            .Select(u => u.RowVersion).SingleAsync(cancellationToken);
+        // A slow operation must not commit after its reauthentication window expires.
+        if (gate is not null && await gate(cancellationToken) is { } finalDenial) return new(finalDenial);
+        // A non-durable/nonadmin target cannot lose durable eligibility through credential rotation.
+        // Do not reject ordinary employee resets merely because the pre-existing global count is zero.
+        if (adminBefore.DurableEligibleUserIds.Contains(prepared.UserId))
+        {
+            try { await adminGuard.EnsurePreservedAsync(adminBefore, cancellationToken); }
+            catch (GlobalAdministrationInvariantException) { return new(ConditionalCredentialResetStatus.LastAdministrator); }
+            // The poststate snapshot can take time; do not extend proof/authorization validity through it.
+            if (gate is not null && await gate(cancellationToken) is { } boundaryDenial) return new(boundaryDenial);
+        }
+        await transaction.CommitAsync(cancellationToken);
+        return new(ConditionalCredentialResetStatus.Success, new(material.Password, expiry), version);
+    }
+
+    private async Task<DateTime> ApplyCoreAsync(long userId, string hash, long actorUserId,
+        CredentialProvisioningOperation operation, CancellationToken cancellationToken,
+        string? identityVerificationMethod = null)
+    {
         AuditLog? pendingAudit = null;
         try
         {
             var rows = await db.Users.FromSqlInterpolated(
-                $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {prepared.UserId}")
+                $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}")
                 .AsNoTracking().ToListAsync(cancellationToken);
             var user = rows.SingleOrDefault()
                 ?? throw new InvalidOperationException("Credential target was not found.");
@@ -78,31 +180,31 @@ public sealed class TemporaryCredentialService(
             var expiry = now.Add(Validity);
             var updated = await db.Users.Where(u => u.UserId == user.UserId)
                 .ExecuteUpdateAsync(setters => setters
-                    .SetProperty(u => u.PasswordHash, material.Hash)
+                    .SetProperty(u => u.PasswordHash, hash)
                     .SetProperty(u => u.TemporaryPasswordExpiresAt, expiry)
                     .SetProperty(u => u.FailedLoginCount, 0)
                     .SetProperty(u => u.LockedUntil, (DateTime?)null), cancellationToken);
             if (updated != 1) throw new DbUpdateConcurrencyException("Credential update did not affect exactly one user.");
 
             var revokedCount = await sessions.RevokeAllAsync(user.UserId, now, cancellationToken);
-            pendingAudit = AuthenticationAudit.ForUser(user.UserId, "UPDATE", now,
-                new { authenticationEvent = operation == CredentialProvisioningOperation.AdminReset ? "CREDENTIAL_RESET" : "CREDENTIAL_PROVISION",
-                    temporary_password_expires_at = expiry, failed_login_count = 0, locked_until = (DateTime?)null, revoked_session_count = revokedCount },
+            object auditValues = identityVerificationMethod is null
+                ? new { authenticationEvent = operation == CredentialProvisioningOperation.AdminReset ? "CREDENTIAL_RESET" : "CREDENTIAL_PROVISION",
+                    temporary_password_expires_at = expiry, failed_login_count = 0, locked_until = (DateTime?)null, revoked_session_count = revokedCount }
+                : new { authenticationEvent = "CREDENTIAL_RESET", temporary_password_expires_at = expiry,
+                    failed_login_count = 0, locked_until = (DateTime?)null, revoked_session_count = revokedCount,
+                    identity_verification_method = identityVerificationMethod, identity_verified_at_utc = now,
+                    identity_verification_source = "ADMIN_ATTESTATION", reset_outcome = "SUCCEEDED" };
+            pendingAudit = AuthenticationAudit.ForUser(user.UserId, "UPDATE", now, auditValues,
                 "password_hash", "temporary_password_expires_at", "failed_login_count", "locked_until");
             pendingAudit.ActorUserId = actorUserId;
             db.AuditLogs.Add(pendingAudit);
             await db.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-            db.Entry(pendingAudit).State = EntityState.Detached;
-            return new IssuedTemporaryCredential(material.Password, expiry);
+            return expiry;
         }
-        catch
+        finally
         {
             if (pendingAudit is not null)
                 db.Entry(pendingAudit).State = EntityState.Detached;
-            // Never deliver plaintext on failure; disposal rolls back any still-open
-            // transaction. A commit-unknown error must be investigated, not retried.
-            throw;
         }
     }
 }

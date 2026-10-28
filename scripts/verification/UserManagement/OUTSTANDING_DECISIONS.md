@@ -1,0 +1,23 @@
+# Outstanding decisions — gates trước coding
+
+Không đặt business rule thay cho quyết định còn thiếu. Review này chưa yêu cầu triển khai, nên ghi gates để developer duyệt trong task code tương ứng.
+
+| Gate | Bằng chứng / khoảng trống | Quyết định cần có |
+|---|---|---|
+| O1 — Permission mapping | Catalog USER_VIEW/USER_MANAGE/ROLE_MANAGE có thật; SRS chưa map HTTP read detail/UC011/UC007; create chứa roles/scope | Duyệt Global USER_VIEW detail-only; UC011 USER_VIEW hay ROLE_MANAGE; UC007 gate; create cần tổ hợp quyền nào. Không tự thêm code hoặc OR grants |
+| O2 — Effective access semantics | UC011 yêu cầu roles/scopes/granting role; evaluator caller-only; OWN là resource-dependent | DTO eligible/effective/conditional, inactive paths, feature filter/bounds, target with no active account/session, snapshot consistency, reviewer visibility |
+| O3 — Concurrency | GBR005 đòi row_version nhưng User/Role/UserRole/UserBranchAccess không có rowversion token. UpdatedAt không bao phủ mọi writer | Approval token/conditional-snapshot design hoặc schema change riêng; aggregate token coverage cho assignment changes; stale error409 hay412/428; concurrency tests trên SQL. Authentication locking protocol không tự đáp ứng stale-client edit |
+| O4 — Employee & multi-scope model | User chứa EmployeeCode unique required, PrimaryBranchId và một DepartmentId; UserBranchAccess multi-branch nhưng không multi-dept relation | Nguồn employeeCode, primary selection, multi-dept persistence hoặc giới hạn slice được duyệt; no Employee entity invented; accessLevel/primary consistency; branch removal xử lý dependent roles |
+| O5 — Delegation / role-specific constraints | Existing catalog grants không tự quy định ceiling của grantor; canonical12 roles khác dynamic role UC008. Canonical manifest OM một branch, DH branch-wide; draft031 cho OM nhiều branches | Reconcile OM single-branch, DH cardinality/branch binding, Storekeeper/SoD với contract release đã duyệt; null branch ALL assignments; protected role/self-elevation policy; expiry/regrant/duplicate history. Không suy ra Storekeeper không được có role nào khác nếu chưa có evidence |
+| O6 — Atomic provisioning / reset delivery | TemporaryCredentialService.ApplyAsync cấm ambient/existing transaction và dirty tracker; create SRS yêu cầu atomic all. Employee ID cần trước Prepare | Duyệt composable credential orchestration và clean-context revoke coordination, identity generation, one-time handoff/lost-response recovery/idempotency; reset identity verification flow; không insert User rồi reset bằng transaction khác |
+| O7 — Last admin và open work | GBR026 last active admin có permission administration;027 self protection;028 tasks/cleaning/rework/incidents/internal requests. Chưa có unified guard/service; DEV2 tables/workflows đang phát triển | Định nghĩa active admin effective set/locked/temp state và global admin authority; transaction-wide lock bảo vệ concurrent removals/expiry; authoritative open statuses/assignee associations từng module, handover proof và race protocol với assignment writers |
+| O8 — Invalidation / race | Reset/deactivate revoke-all rõ ràng; scope/role changes phải có hiệu lực next request; không có auth_version | Duyệt có logout-all cho grant/scope changes, recheck actor quyền lúc commit, in-flight request guarantees và lock order; không tự thêm auth_version/schema |
+| O9 — Validation / audit UX |012 xác nhận reason>=10 cho deactivate; không nói rõ reason role revoke/reactivate; Username editable chưa rõ; model limits có sẵn | Activation/no-op behavior, revoke reason requirement, exact audit actions/changed fields, UTC/date bounds, collation/duplicate normalization, unknown field policy, validation errors, retry/idempotency semantics |
+
+## Canonical / SRS conflicts giữ nguyên
+
+- GBR018 DH một department trong draft đã bị Change Notes sửa thành branch-wide.
+- GBR029 “nine actors” và030 “one permission per UC” không tương đương canonical12 roles/62 permissions. Không tạo role/permission để làm khớp draft.
+- Fresh canonical được phép không Users/UserRoles/Sessions/OM/DH; đây là seed decision, không có nghĩa bỏ last-admin guard khi provisioning production. Bootstrap first trusted admin là quy trình riêng cần phê duyệt, không API anonymous/default admin.
+- Trial upgrade selection/cleanup có dữ liệu lịch sử và ID fixture; không dùng các lựa chọn đó làm identity nghiệp vụ hoặc copying instructions cho canonical mới.
+- Task20A structure lookup quyền đang pending; user create/assignment UI cần active branch/dept/role selectors, không tự dùng auth-only endpoints hay mở quyền lookup để unblock UI.
