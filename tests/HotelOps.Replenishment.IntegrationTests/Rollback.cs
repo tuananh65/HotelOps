@@ -42,9 +42,9 @@ sealed partial class ReplenishmentSuite
         r = await Receive(r, receipt, 5); receipt = await Send<InventoryDocumentDto>("GET", $"inventory/documents/{receipt.DocumentId}");
         foreach (var point in new[] { 1, 2, 4 })
         {
-            await using var d = Db(new SaveFailure(point)); await Rollback("reversal save " + point, async () => { await new InventoryService(d).Reverse(receipt.DocumentId, new(actor, receipt.RowVersion, prefix), default); });
+            await using var d = Db(new SaveFailure(point)); await Rollback("reversal save " + point, async () => { await new InventoryService(d).Reverse(receipt.DocumentId, actor, new(receipt.RowVersion, prefix), default); });
         }
-        await using (var d = Db(new CommitFailure())) await Rollback("reversal before commit", async () => { await new InventoryService(d).Reverse(receipt.DocumentId, new(actor, receipt.RowVersion, prefix), default); });
+        await using (var d = Db(new CommitFailure())) await Rollback("reversal before commit", async () => { await new InventoryService(d).Reverse(receipt.DocumentId, actor, new(receipt.RowVersion, prefix), default); });
         foreach (var resource in new[] { "HotelOps:Inventory:Catalog", $"HotelOps:Replenishment:Owner:{r.ReplenishmentId}", $"HotelOps:Replenishment:Shortage:{warehouse.WarehouseId}:{item.ItemId}" })
         {
             await using var blocker = Db(); await using var tx = await blocker.Database.BeginTransactionAsync();

@@ -9,15 +9,15 @@ sealed partial class ReplenishmentSuite
     async Task Additional()
     {
         await ReleaseAll(); await SetStock(0);
-        second = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix + "I2", prefix, category, unit.UomId, true), 201); items.Add(second.ItemId);
-        secondThreshold = await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{warehouse.WarehouseId}/items/{second.ItemId}/threshold", new InventoryThresholdWrite(actor, 100));
-        var extraWarehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, department, prefix + "W2", prefix), 201); warehouses.Add(extraWarehouse.WarehouseId);
+        second = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(prefix + "I2", prefix, category, unit.UomId, true), 201); items.Add(second.ItemId);
+        secondThreshold = await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{warehouse.WarehouseId}/items/{second.ItemId}/threshold", new InventoryThresholdWrite(100));
+        var extraWarehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, department, prefix + "W2", prefix), 201); warehouses.Add(extraWarehouse.WarehouseId);
         var noThreshold = await Send<ReplenishmentPaged<LowStockShortage>>("GET", $"replenishment-shortages/low-stock?warehouseId={extraWarehouse.WarehouseId}"); Check(noThreshold.Total == 0, "No threshold excluded");
         await Bad("POST", "replenishments", Input() with { WarehouseId = extraWarehouse.WarehouseId });
-        var extraThreshold = await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{extraWarehouse.WarehouseId}/items/{second.ItemId}/threshold", new InventoryThresholdWrite(actor, 1));
+        var extraThreshold = await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{extraWarehouse.WarehouseId}/items/{second.ItemId}/threshold", new InventoryThresholdWrite(1));
         var secondRoot = await Send<ReplenishmentDto>("POST", "replenishments", new ReplenishmentCreate(actor, extraWarehouse.WarehouseId, prefix, null, [new(1, second.ItemId, "LOW_STOCK", extraThreshold.ThresholdId, null, 1)]), 201);
-        await Bad("PUT", $"inventory/items/{second.ItemId}", new InventoryItemWrite(actor, second.ItemCode, prefix, category, box.UomId, true, ExpectedRowVersion: second.RowVersion));
-        await Bad("PUT", $"inventory/warehouses/{extraWarehouse.WarehouseId}", new InventoryWarehouseWrite(actor, branch, department, extraWarehouse.WarehouseCode, prefix, false, ExpectedRowVersion: extraWarehouse.RowVersion));
+        await Bad("PUT", $"inventory/items/{second.ItemId}", new InventoryItemWrite(second.ItemCode, prefix, category, box.UomId, true, ExpectedRowVersion: second.RowVersion));
+        await Bad("PUT", $"inventory/warehouses/{extraWarehouse.WarehouseId}", new InventoryWarehouseWrite(branch, department, extraWarehouse.WarehouseCode, prefix, false, ExpectedRowVersion: extraWarehouse.RowVersion));
         await Close(secondRoot);
         var r = await Create(2); var wrong = await Post(await Draft(1, warehouseId: extraWarehouse.WarehouseId));
         await Bad("POST", $"replenishments/{r.ReplenishmentId}/receipts/link", new ReplenishmentLink(actor, r.RowVersion, [new(wrong.Lines[0].LineId, r.Lines[0].ReplenishmentLineId)]));
@@ -34,7 +34,7 @@ sealed partial class ReplenishmentSuite
         await Bad("POST", $"replenishments/{r.ReplenishmentId}/receipts/link", new ReplenishmentLink(actor, r.RowVersion, [new(reversed.Lines[0].LineId, r.Lines[0].ReplenishmentLineId)])); await Close(r);
         // Same receipt document, distinct item lines, one replenishment with two sources.
         var multi = await Send<ReplenishmentDto>("POST", "replenishments", Input(2) with { Lines = [Input(2).Lines[0], new(2, second.ItemId, "LOW_STOCK", secondThreshold.ThresholdId, null, 2)] }, 201);
-        var doc = await Send<InventoryDocumentDto>("POST", "inventory/receipts", new InventoryDraft(actor, null, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(item.ItemId, unit.UomId, 2), new(second.ItemId, unit.UomId, 2)], Note: prefix), 201);
+        var doc = await Send<InventoryDocumentDto>("POST", "inventory/receipts", new InventoryDraft(null, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(item.ItemId, unit.UomId, 2), new(second.ItemId, unit.UomId, 2)], Note: prefix), 201);
         multi = await Send<ReplenishmentDto>("POST", $"replenishments/{multi.ReplenishmentId}/receipts/post", new ReplenishmentPost(actor, multi.RowVersion, doc.DocumentId, doc.RowVersion, doc.Lines.Select(x => new InventoryAcceptedLine(x.LineId, 2)).ToArray(), doc.Lines.Select(x => new ReplenishmentReceiptMapping(x.LineId, multi.Lines.Single(l => l.ItemId == x.ItemId).ReplenishmentLineId)).ToArray()));
         Check(multi.RawStatus == "FULLY_RECEIVED" && multi.Receipts.Count == 2, "Multi-line receipt correlation");
         await SetStock(0);

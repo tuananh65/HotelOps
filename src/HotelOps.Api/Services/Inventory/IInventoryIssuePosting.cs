@@ -13,7 +13,7 @@ public record InventoryIssueResult(long DocumentId, IReadOnlyList<InventoryIssue
 /// HotelOpsDbContext, call this primitive before acquiring warehouse/stock locks,
 /// update fulfillment totals/linkage and commit atomically. This primitive never commits.
 /// The caller must roll back and discard tracked state after any failure.
-/// ActorUserId is a temporary integration identity, not authentication.
+/// ActorUserId is supplied by the trusted calling business service, never model-bound from an Inventory HTTP request.
 /// </summary>
 public interface IInventoryIssuePosting
 {

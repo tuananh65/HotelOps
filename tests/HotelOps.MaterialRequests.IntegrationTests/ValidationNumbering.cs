@@ -63,7 +63,7 @@ sealed partial class MaterialSuite
             try { await Bad("POST", "material-requests", Write() with { Lines = [new(null, 1, item.ItemId, box.UomId, 1, null)] }); }
             finally { await db.UnitsOfMeasures.Where(x => x.UomId == box.UomId).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, true)); }
         }
-        var chainUnit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "C", prefix), 201); unitIds.Add(chainUnit.UomId);
+        var chainUnit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "C", prefix), 201); unitIds.Add(chainUnit.UomId);
         await using (var db = Db())
         {
             var chain = new UomConversion { ItemId = item.ItemId, FromUomId = chainUnit.UomId, ToUomId = box.UomId, ConversionFactor = 2, IsActive = true };
@@ -126,8 +126,8 @@ sealed partial class MaterialSuite
         await using (var db = Db()) await db.Incidents.Where(x => x.IncidentId == incidents[1]).ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "CLOSED"));
         await Issue(linked); // Closing source after linking must not block ISSUE.
         var batchReturn = await Issue(converted);
-        var ret = await Send<InventoryDocumentDto>("POST", "inventory/returns", new InventoryDraft(issuer, null, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(item.ItemId, unit.UomId, 1, batchReturn.Lines[0].StockDocumentLineId)], Note: prefix), 201);
-        await Send<InventoryDocumentDto>("POST", $"inventory/returns/{ret.DocumentId}/post", new InventoryPost(issuer, ret.RowVersion, [new(ret.Lines[0].LineId, 1)]));
+        var ret = await Send<InventoryDocumentDto>("POST", "inventory/returns", new InventoryDraft(null, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(item.ItemId, unit.UomId, 1, batchReturn.Lines[0].StockDocumentLineId)], Note: prefix), 201);
+        await Send<InventoryDocumentDto>("POST", $"inventory/returns/{ret.DocumentId}/post", new InventoryPost(ret.RowVersion, [new(ret.Lines[0].LineId, 1)]));
         var returned = await Get(converted.RequestId); Check(returned.Lines[0].FulfilledQty == 2 && returned.Lines[0].OpenFulfillableQty == 0 && returned.Returns.Count == 1, "Return linkage without reopening demand");
     }
 }

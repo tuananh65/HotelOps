@@ -74,12 +74,12 @@ sealed partial class MaterialSuite
             api = Process.Start(start)!; api.OutputDataReceived += (_, e) => { if(e.Data != null) apiErrors.Enqueue(e.Data); }; api.ErrorDataReceived += (_, e) => { if(e.Data != null) apiErrors.Enqueue(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
             var ready = false; for (var i = 0; i < 100; i++) { try { using var response = await http.GetAsync("/api/health"); ready = true; break; } catch (HttpRequestException) { await Task.Delay(100); } }
             Check(ready, "API startup");
-            unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "U", prefix), 201); unitIds.Add(unit.UomId);
-            box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "B", prefix), 201); unitIds.Add(box.UomId);
-            item = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix, prefix, category, unit.UomId, true), 201); itemIds.Add(item.ItemId);
-            warehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, department, prefix, prefix), 201); warehouseIds.Add(warehouse.WarehouseId);
-            await Send<InventoryConversionDto>("POST", $"inventory/items/{item.ItemId}/conversions", new InventoryConversionWrite(actor, box.UomId, 2), 201);
-            await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 10000)]), 201);
+            unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "U", prefix), 201); unitIds.Add(unit.UomId);
+            box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "B", prefix), 201); unitIds.Add(box.UomId);
+            item = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(prefix, prefix, category, unit.UomId, true), 201); itemIds.Add(item.ItemId);
+            warehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, department, prefix, prefix), 201); warehouseIds.Add(warehouse.WarehouseId);
+            await Send<InventoryConversionDto>("POST", $"inventory/items/{item.ItemId}/conversions", new InventoryConversionWrite(box.UomId, 2), 201);
+            await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 10000)]), 201);
             await Core(); await ValidationAndNumbering(); await Races(); await Rollbacks(); await Metadata(); await VerifyCatalog();
             Console.WriteLine($"PASS requests={requests} assertions={checks} overlapping_races={races} rollback_faults={faults}");
         }

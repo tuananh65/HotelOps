@@ -13,13 +13,13 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 if (args.Length == 1 && args[0] == "--responsibility-coordination") { await ResponsibilityCoordinationChecks.Run(); return; }
 
 var suite = new InventorySuite();
-await suite.Run();
+await suite.Run(adjustmentReversalOnly: args.Length == 1 && args[0] == "--adjustment-reversal");
 
 sealed partial class InventorySuite
 {
     private readonly string connection = Environment.GetEnvironmentVariable("ConnectionStrings__HotelOpsDb")
         ?? throw new InvalidOperationException("Supply ConnectionStrings__HotelOpsDb through the process environment.");
-    private readonly HttpClient http = new() { BaseAddress = new("http://127.0.0.1:5188"), Timeout = TimeSpan.FromSeconds(60) };
+    private readonly InventoryAuthenticatedClient http = new("HOTEL_OPS_INV_STOREKEEPER") { BaseAddress = new("https://localhost:5188"), Timeout = TimeSpan.FromSeconds(60) };
     private readonly string prefix = "INVTEST_" + Guid.NewGuid().ToString("N")[..10];
     private readonly HashSet<long> documents = [], stocktakes = [], items = [], units = [], warehouses = [];
     private readonly List<string> passed = [];
@@ -41,7 +41,7 @@ sealed partial class InventorySuite
     {
         using var message = new HttpRequestMessage(new HttpMethod(method), "/api/" + path);
         if (body is not null) message.Content = JsonContent.Create(body);
-        using var response = await http.SendAsync(message); requests++;
+        using var response = await ClientFor(method, path, body).SendAsync(message); requests++;
         var status = (int)response.StatusCode; statuses[status] = statuses.GetValueOrDefault(status) + 1;
         var text = await response.Content.ReadAsStringAsync();
         Check(status == expected, $"{method} {path}: expected {expected}, got {status}: {text}");
@@ -65,27 +65,33 @@ sealed partial class InventorySuite
     private Task<InventoryDocumentDto> Get(long id) => Send<InventoryDocumentDto>("GET", $"inventory/documents/{id}");
     private Task<InventoryStockDto> Stock(long warehouse) => Send<InventoryStockDto>("GET", $"inventory/warehouses/{warehouse}/items/{item.ItemId}/stock");
     private InventoryDraft Draft(long warehouse, decimal quantity = 10, long? origin = null, long? uom = null) =>
-        new(actor, null, warehouse, DateOnly.FromDateTime(DateTime.UtcNow), [new(item.ItemId, uom ?? unit.UomId, quantity, origin)], Note: prefix);
+        new(null, warehouse, DateOnly.FromDateTime(DateTime.UtcNow), [new(item.ItemId, uom ?? unit.UomId, quantity, origin)], Note: prefix);
     private Task<InventoryDocumentDto> Receipt(decimal qty = 10, long? warehouse = null) => Send<InventoryDocumentDto>("POST", "inventory/receipts", Draft(warehouse ?? source.WarehouseId, qty), 201);
     private Task<InventoryDocumentDto> PostReceipt(InventoryDocumentDto d, decimal qty, decimal rejected = 0, decimal damaged = 0, string? reason = null) => Send<InventoryDocumentDto>("POST", $"inventory/receipts/{d.DocumentId}/post",
-        new InventoryPost(actor, d.RowVersion, [new(d.Lines[0].LineId, qty, rejected, damaged, reason)]));
-    private Task<InventoryDocumentDto> Adjust(decimal delta, long? warehouse = null) => Send<InventoryDocumentDto>("POST", "inventory/adjustments",
-        new InventoryAdjustment(actor, warehouse ?? source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, delta)]), 201);
-    private InventoryCommand Command(string version, string? reason = null, long? who = null) => new(who ?? actor, version, reason);
-    public async Task Run()
+        new InventoryPost(d.RowVersion, [new(d.Lines[0].LineId, qty, rejected, damaged, reason)]));
+    private async Task<InventoryDocumentDto> Adjust(decimal delta, long? warehouse = null) =>
+        await PostAdjustmentFixture(await ProposeAdjustment(delta, warehouse ?? source.WarehouseId));
+    private InventoryCommand Command(string version, string? reason = null, long? who = null) => SelectActor(new InventoryCommand(version, reason), who);
+    public async Task Run(bool adjustmentReversalOnly = false)
     {
         Exception? failure = null;
         try
         {
+            if (adjustmentReversalOnly)
+            {
+                Console.WriteLine("RUN_MODE=adjustment-reversal");
+                if (reversalPosterHttp is null)
+                    throw new InvalidOperationException("--adjustment-reversal requires externally provisioned HOTEL_OPS_INV_REVERSE_POSTER_USERNAME/_PASSWORD for an independent HTTP reversal poster; service fallback is not allowed in this mode.");
+            }
             await using (var db = Db())
             {
                 await db.Database.OpenConnectionAsync(); using var cmd = db.Database.GetDbConnection().CreateCommand();
                 cmd.CommandText = "SELECT CONVERT(nvarchar(128),@@SERVERNAME)+'|'+DB_NAME()";
-                Check((string?)await cmd.ExecuteScalarAsync() == "KIENPC|HotelOpsDB", "Wrong SQL target; abort all writes.");
+                Check((string?)await cmd.ExecuteScalarAsync() == "KIENPC|HotelOps_Canonical_DEV2_Regression", "Wrong SQL target; abort all writes.");
                 verifiedTarget = true;
-                var actors = await db.Users.OrderBy(x => x.UserId).Select(x => x.UserId).Take(2).ToListAsync(); actor = actors[0]; other = actors[1];
+
                 category = await db.ItemCategories.Where(x => x.IsActive).OrderBy(x => x.ItemCategoryId).Select(x => x.ItemCategoryId).FirstAsync();
-                var dep = await db.Departments.Where(x => x.IsActive && x.Branch.IsActive).OrderBy(x => x.DepartmentId).FirstAsync(); branch = dep.BranchId; department = dep.DepartmentId;
+
                 foreach (var type in new[] { typeof(InventoryItem), typeof(UnitsOfMeasure), typeof(UomConversion), typeof(Warehouse), typeof(StockThreshold), typeof(StockDocument), typeof(Stocktake) })
                 {
                     var prop = db.Model.FindEntityType(type)!.FindProperty("RowVersion")!;
@@ -95,12 +101,30 @@ sealed partial class InventorySuite
             }
             StartApi();
             await WaitForApi();
-            await Masters(); await Receipts(); await Transfers(); await AdjustmentsAndReversals(); await Stocktakes(); await Returns(); await Races(); await Rollbacks(); await DeepTests(); await DeepRaces(); await DeepRollback(); await ReadsAndRegression();
+            await LoginIdentities();
+            await using (var db = Db())
+            {
+                branch = await db.Users.Where(x => x.UserId == actor).Select(x => x.PrimaryBranchId).SingleAsync() ?? throw new Exception("STOREKEEPER fixture needs a primary branch.");
+                department = await db.Departments.Where(x => x.BranchId == branch && x.IsActive).Select(x => x.DepartmentId).FirstAsync();
+            }
+            if (adjustmentReversalOnly)
+            {
+                await Masters(); await Receipts(); await Transfers(); await AdjustmentsAndReversals();
+            }
+            else
+            {
+                await Masters(); await AuthorizationCases(); await Receipts(); await Transfers(); await AdjustmentsAndReversals(); await Stocktakes(); await Returns(); await Races(); await Rollbacks(); await DeepTests(); await DeepRaces(); await DeepRollback(); await ReadsAndRegression();
+            }
         }
         catch (Exception ex) { failure = ex; Console.Error.WriteLine(ex); }
         finally
         {
-            if (api is { HasExited: false }) { api.Kill(true); await api.WaitForExitAsync(); }
+            if (api is { HasExited: false })
+            {
+                foreach (var client in Clients()) try { await client.LogoutAsync(); } catch { Console.Error.WriteLine("Fixture logout failed; auth details redacted."); }
+                api.Kill(true); await api.WaitForExitAsync();
+            }
+            foreach (var client in Clients()) client.Dispose();
             if (verifiedTarget) try { await Cleanup(); } catch (Exception ex) { failure ??= ex; Console.Error.WriteLine("Cleanup failed: " + ex); }
             Console.WriteLine(JsonSerializer.Serialize(new { prefix, assertions, requests, statuses, passed, success = failure is null }, new JsonSerializerOptions { WriteIndented = true }));
         }
@@ -108,9 +132,10 @@ sealed partial class InventorySuite
     }
     private void StartApi()
     {
-        var info = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls http://127.0.0.1:5188")
+        var info = new ProcessStartInfo("dotnet", "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll --urls https://localhost:5188")
         { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
         info.Environment["ConnectionStrings__HotelOpsDb"] = connection;
+        info.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
         info.Environment["Logging__LogLevel__Default"] = "Warning";
         api = Process.Start(info)!; api.OutputDataReceived += (_, e) => { if (e.Data is not null) Console.WriteLine(e.Data); };
         api.ErrorDataReceived += (_, e) => { if (e.Data is not null) Console.Error.WriteLine(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
@@ -120,16 +145,16 @@ sealed partial class InventorySuite
         for (var n = 0; n < 50; n++)
         {
             if (api!.HasExited) throw new InvalidOperationException("API process exited.");
-            try { using var response = await http.GetAsync("/api/inventory/item-categories"); if (response.IsSuccessStatusCode) return; } catch (HttpRequestException) { }
+            try { using var response = await http.GetAsync("/api/auth/csrf"); if (response.IsSuccessStatusCode) return; } catch (HttpRequestException) { }
             await Task.Delay(200);
         }
         throw new TimeoutException("API did not start.");
     }
     private async Task Masters()
     {
-        unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "U", "Test unit"), 201);
-        box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "B", "Test box"), 201);
-        var r = new InventoryItemWrite(actor, prefix + "I", "Test item", category, unit.UomId, true);
+        unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "U", "Test unit"), 201);
+        box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "B", "Test box"), 201);
+        var r = new InventoryItemWrite(prefix + "I", "Test item", category, unit.UomId, true);
         item = await Send<InventoryItemDto>("POST", "inventory/items", r, 201);
         await Bad("POST", "inventory/items", r);
         await Bad("POST", "inventory/items", r with { ItemCode = " " });
@@ -139,25 +164,25 @@ sealed partial class InventorySuite
         await Bad("PUT", $"inventory/items/{item.ItemId}", r with { ExpectedRowVersion = item.RowVersion }); item = changed;
         var noOp = await Send<InventoryItemDto>("PUT", $"inventory/items/{item.ItemId}", r with { ItemName = "Changed", ExpectedRowVersion = item.RowVersion });
         Check(noOp.RowVersion == item.RowVersion, "No-op changed rowversion.");
-        source = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, department, prefix + "S", "Test source"), 201);
-        destination = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, department, prefix + "D", "Test destination"), 201);
-        await Bad("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, null, prefix + "N", "Missing department"));
-        await Bad("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, department, prefix + "S", "Duplicate"));
-        var conversion = await Send<InventoryConversionDto>("POST", $"inventory/items/{item.ItemId}/conversions", new InventoryConversionWrite(actor, box.UomId, 2), 201);
-        await Bad("PUT", $"inventory/items/{item.ItemId}/conversions/{conversion.ConversionId}", new InventoryConversionWrite(actor, box.UomId, 0, ExpectedRowVersion: conversion.RowVersion));
-        await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{source.WarehouseId}/items/{item.ItemId}/threshold", new InventoryThresholdWrite(actor, 10));
+        source = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, department, prefix + "S", "Test source"), 201);
+        destination = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, department, prefix + "D", "Test destination"), 201);
+        await Bad("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, null, prefix + "N", "Missing department"));
+        await Bad("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, department, prefix + "S", "Duplicate"));
+        var conversion = await Send<InventoryConversionDto>("POST", $"inventory/items/{item.ItemId}/conversions", new InventoryConversionWrite(box.UomId, 2), 201);
+        await Bad("PUT", $"inventory/items/{item.ItemId}/conversions/{conversion.ConversionId}", new InventoryConversionWrite(box.UomId, 0, ExpectedRowVersion: conversion.RowVersion));
+        await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{source.WarehouseId}/items/{item.ItemId}/threshold", new InventoryThresholdWrite(10));
         Check((await Stock(source.WarehouseId)).OnHand == 0, "Empty pair must be zero.");
         passed.Add("masters, duplicates, lengths, references, rowversion, no-op, empty pair");
     }
     private async Task Receipts()
     {
         var d = await Receipt(); Check((await Stock(source.WarehouseId)).OnHand == 0, "Draft moved stock.");
-        await Bad("POST", $"inventory/receipts/{d.DocumentId}/post", new InventoryPost(actor, d.RowVersion, [new(d.Lines[0].LineId, 8, 1, 1)]));
+        await Bad("POST", $"inventory/receipts/{d.DocumentId}/post", new InventoryPost(d.RowVersion, [new(d.Lines[0].LineId, 8, 1, 1)]));
         var posted = await PostReceipt(d, 8, 1, 1, "Shipment damage");
         Check((await Stock(source.WarehouseId)).OnHand == 8, "Receipt credited non-usable quantity.");
-        await Bad("POST", $"inventory/receipts/{d.DocumentId}/post", new InventoryPost(actor, posted.RowVersion, [new(d.Lines[0].LineId, 10)]));
+        await Bad("POST", $"inventory/receipts/{d.DocumentId}/post", new InventoryPost(posted.RowVersion, [new(d.Lines[0].LineId, 10)]));
         item = await Send<InventoryItemDto>("GET", $"inventory/items/{item.ItemId}");
-        await Bad("PUT", $"inventory/items/{item.ItemId}", new InventoryItemWrite(actor, item.ItemCode, item.ItemName, category, box.UomId, true, ExpectedRowVersion: item.RowVersion));
+        await Bad("PUT", $"inventory/items/{item.ItemId}", new InventoryItemWrite(item.ItemCode, item.ItemName, category, box.UomId, true, ExpectedRowVersion: item.RowVersion));
         var cancel = await Receipt(); cancel = await Send<InventoryDocumentDto>("POST", $"inventory/documents/{cancel.DocumentId}/cancel", Command(cancel.RowVersion, "Test cancellation"));
         Check(cancel.Status == "CANCELLED", "Cancel state.");
         await Bad("POST", $"inventory/documents/{cancel.DocumentId}/cancel", Command(cancel.RowVersion, "Again"));
@@ -175,40 +200,28 @@ sealed partial class InventorySuite
         d = await Send<InventoryDocumentDto>("POST", $"inventory/transfers/{d.DocumentId}/dispatch", Command(d.RowVersion));
         Check(d.Status == "IN_TRANSIT" && d.Lines[0].InTransitQty == 5, "Dispatch/in transit.");
         Check((await Stock(source.WarehouseId)).OnHand == 7 && (await Stock(destination.WarehouseId)).OnHand == 0, "Dispatch destination credit.");
-        d = await Send<InventoryDocumentDto>("POST", $"inventory/transfers/{d.DocumentId}/receipts", new InventoryReceive(actor, d.RowVersion, [new(d.Lines[0].LineId, 2, 1, 0, "Damage")]));
+        d = await Send<InventoryDocumentDto>("POST", $"inventory/transfers/{d.DocumentId}/receipts", new InventoryReceive(d.RowVersion, [new(d.Lines[0].LineId, 2, 1, 0, "Damage")]));
         Check(d.Status == "PARTIALLY_RECEIVED" && d.Lines[0].InTransitQty == 2, "Partial receive.");
-        await Bad("POST", $"inventory/transfers/{d.DocumentId}/receipts", new InventoryReceive(actor, d.RowVersion, [new(d.Lines[0].LineId, 3, 0, 0)]));
-        d = await Send<InventoryDocumentDto>("POST", $"inventory/transfers/{d.DocumentId}/receipts", new InventoryReceive(actor, d.RowVersion, [new(d.Lines[0].LineId, 1, 0, 1, "Missing")]));
+        await Bad("POST", $"inventory/transfers/{d.DocumentId}/receipts", new InventoryReceive(d.RowVersion, [new(d.Lines[0].LineId, 3, 0, 0)]));
+        d = await Send<InventoryDocumentDto>("POST", $"inventory/transfers/{d.DocumentId}/receipts", new InventoryReceive(d.RowVersion, [new(d.Lines[0].LineId, 1, 0, 1, "Missing")]));
         Check(d.Status == "RECEIVED" && d.ReceivingBatches.Count == 2 && d.Lines[0].InTransitQty == 0, "Final receiving state.");
         Check((await Stock(destination.WarehouseId)).OnHand == 3, "Damaged/missing credited stock.");
         await Bad("POST", $"inventory/documents/{d.DocumentId}/reverse", Command(d.RowVersion, "Not eligible"));
         passed.Add("transfer source-only dispatch, partial/multiple receiving, loss persistence, cumulative cap, transfer reversal prohibited");
     }
-    private async Task AdjustmentsAndReversals()
-    {
-        await Bad("POST", "inventory/adjustments", new InventoryAdjustment(actor, source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 0)]));
-        var d = await Adjust(-2); Check(d.Lines[0].BaseQty == 2 && d.Lines[0].ActualQty == 2, "Negative adjustment line magnitude.");
-        Check((await Stock(source.WarehouseId)).OnHand == 5, "Negative adjustment sign.");
-        var reverse = await Send<InventoryDocumentDto>("POST", $"inventory/documents/{d.DocumentId}/reverse", Command(d.RowVersion, "Test reversal"));
-        Check(reverse.ReversalOfDocumentId == d.DocumentId && (await Get(d.DocumentId)).Status == "REVERSED", "Reversal identity/status.");
-        Check((await Stock(source.WarehouseId)).OnHand == 7, "Reversal offset missing.");
-        await Bad("POST", $"inventory/documents/{d.DocumentId}/reverse", Command((await Get(d.DocumentId)).RowVersion, "Second reversal"));
-        await Bad("POST", $"inventory/documents/{reverse.DocumentId}/reverse", Command(reverse.RowVersion, "Reverse reversal"));
-        await Bad("POST", "inventory/adjustments", new InventoryAdjustment(actor, source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, -4), new(item.ItemId, -4)]));
-        passed.Add("adjustment signed effects, positive persisted magnitude, duplicate item aggregate, reversal offsets/immutability");
-    }
+    private Task AdjustmentsAndReversals() => AdjustmentReversalWorkflow();
     private async Task Stocktakes()
     {
-        var s = await Send<InventoryStocktakeDto>("POST", "inventory/stocktakes", new InventoryStocktakeCreate(actor, source.WarehouseId, prefix), 201);
-        await Bad("POST", "inventory/stocktakes", new InventoryStocktakeCreate(actor, source.WarehouseId, prefix));
+        var s = await Send<InventoryStocktakeDto>("POST", "inventory/stocktakes", new InventoryStocktakeCreate(source.WarehouseId, prefix), 201);
+        await Bad("POST", "inventory/stocktakes", new InventoryStocktakeCreate(source.WarehouseId, prefix));
         await Bad("POST", $"inventory/stocktakes/{s.StocktakeId}/submit", Command(s.RowVersion));
         Check(s.Lines.Count == 1 && s.Lines[0].SystemQty == 7 && s.Lines[0].CountedQty is null, "Cutoff snapshot/universe.");
-        s = await Send<InventoryStocktakeDto>("PUT", $"inventory/stocktakes/{s.StocktakeId}/counts", new InventoryCounts(actor, s.RowVersion, [new(s.Lines[0].StocktakeLineId, 5, "Count correction")]));
+        s = await Send<InventoryStocktakeDto>("PUT", $"inventory/stocktakes/{s.StocktakeId}/counts", new InventoryCounts(s.RowVersion, [new(s.Lines[0].StocktakeLineId, 5, "Count correction")]));
         s = await Send<InventoryStocktakeDto>("POST", $"inventory/stocktakes/{s.StocktakeId}/submit", Command(s.RowVersion));
         s = await Send<InventoryStocktakeDto>("POST", $"inventory/stocktakes/{s.StocktakeId}/reconcile", Command(s.RowVersion));
         Check(s.Status == "PENDING_ADJUSTMENT" && s.Lines[0].VarianceQty == -2, "Variance/reconcile.");
         await Adjust(3);
-        await Bad("POST", $"inventory/stocktakes/{s.StocktakeId}/approve-adjustment", Command(s.RowVersion, "Correction"));
+        await Send<object>("POST", $"inventory/stocktakes/{s.StocktakeId}/approve-adjustment", Command(s.RowVersion, "Correction", actor), 403);
         s = await Send<InventoryStocktakeDto>("POST", $"inventory/stocktakes/{s.StocktakeId}/approve-adjustment", Command(s.RowVersion, "Correction", other));
         documents.Add(s.AdjustmentDocumentId!.Value); Check(s.Status == "RECONCILED" && (await Stock(source.WarehouseId)).OnHand == 8, "Delta correction lost post-cutoff movement.");
         await Bad("POST", $"inventory/stocktakes/{s.StocktakeId}/approve-adjustment", Command(s.RowVersion, "Again", other));
@@ -234,7 +247,7 @@ sealed partial class InventorySuite
         db.StockMovements.Add(new() { DocumentLine = line, WarehouseId = source.WarehouseId, ItemId = item.ItemId, SignedBaseQty = -3, CreatedBy = actor, OccurredAt = DateTime.UtcNow });
         await db.SaveChangesAsync(); await tx.CommitAsync(); documents.Add(issue.DocumentId);
         var d = await Send<InventoryDocumentDto>("POST", "inventory/returns", Draft(source.WarehouseId, 3, line.LineId), 201);
-        d = await Send<InventoryDocumentDto>("POST", $"inventory/returns/{d.DocumentId}/post", new InventoryPost(actor, d.RowVersion, [new(d.Lines[0].LineId, 2, 0, 1, "Damaged return")]));
+        d = await Send<InventoryDocumentDto>("POST", $"inventory/returns/{d.DocumentId}/post", new InventoryPost(d.RowVersion, [new(d.Lines[0].LineId, 2, 0, 1, "Damaged return")]));
         Check(d.Lines[0].OriginalIssueLineId == line.LineId && (await Stock(source.WarehouseId)).OnHand == 7, "Return lineage/usable-only credit.");
         await Bad("POST", "inventory/returns", Draft(source.WarehouseId, 1, line.LineId));
         await Bad("POST", $"inventory/documents/{issue.DocumentId}/reverse", Command(Convert.ToBase64String(issue.RowVersion), "Deferred issue reversal"));
@@ -242,10 +255,10 @@ sealed partial class InventorySuite
     }
     private async Task Races()
     {
-        var d = await Receipt(1); var body = new InventoryPost(actor, d.RowVersion, [new(d.Lines[0].LineId, 1)]);
+        var d = await Receipt(1); var body = new InventoryPost(d.RowVersion, [new(d.Lines[0].LineId, 1)]);
         async Task<int> Race(string path, object payload)
         {
-            using var response = await http.PostAsJsonAsync("/api/" + path, payload); var status = (int)response.StatusCode;
+            using var response = await ClientFor("POST", path, payload).PostAsJsonAsync("/api/" + path, payload); var status = (int)response.StatusCode;
             lock (statuses) { requests++; statuses[status] = statuses.GetValueOrDefault(status) + 1; }
             return status;
         }
@@ -253,11 +266,14 @@ sealed partial class InventorySuite
         Check(results.Order().SequenceEqual(new[] { 200, 400 }), "Double-post race must have one winner.");
         var effect=await Effect(d.DocumentId);Check(effect.Status=="POSTED" && effect.Movements==1 && effect.Delta==1,"Double-post DB movement invariant.");
         var current = (await Stock(source.WarehouseId)).OnHand; await Adjust(10 - current);
-        var consume = new InventoryAdjustment(actor, source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, -8)]);
-        results = await Task.WhenAll(Race("inventory/adjustments", consume), Race("inventory/adjustments", consume));
-        Check(results.Order().SequenceEqual(new[] { 201, 400 }) && (await Stock(source.WarehouseId)).OnHand == 2, "Concurrent 8+8 consumption invariant.");
+        var consume = new InventoryAdjustment(source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, -8)]);
+        var first = await Send<InventoryDocumentDto>("POST", "inventory/adjustments", consume, 201);
+        var second = await Send<InventoryDocumentDto>("POST", "inventory/adjustments", consume, 201);
+        results = await Task.WhenAll(Race($"inventory/adjustments/{first.DocumentId}/post", Command(first.RowVersion, who: other)),
+            Race($"inventory/adjustments/{second.DocumentId}/post", Command(second.RowVersion, who: other)));
+        Check(results.Order().SequenceEqual(new[] { 200, 400 }) && (await Stock(source.WarehouseId)).OnHand == 2, "Concurrent 8+8 consumption invariant.");
         await using (var db = Db()) foreach (var id in await db.StockDocuments.Where(x => x.Reason == prefix).Select(x => x.DocumentId).ToListAsync()) documents.Add(id);
-        d = await Receipt(1); body = new(actor, d.RowVersion, [new(d.Lines[0].LineId, 1)]);
+        d = await Receipt(1); body = new(d.RowVersion, [new(d.Lines[0].LineId, 1)]);
         results = await Task.WhenAll(Race($"inventory/receipts/{d.DocumentId}/post", body), Race($"inventory/documents/{d.DocumentId}/cancel", Command(d.RowVersion, "Race cancellation")));
         Check(results.Count(x => x == 200) == 1 && results.Count(x => x == 400) == 1, "Cancel-vs-post race.");
         effect=await Effect(d.DocumentId);Check(effect.Status is "POSTED" or "CANCELLED" && effect.Movements==(effect.Status=="POSTED"?1:0),"Cancel-versus-post DB terminal path.");
@@ -265,21 +281,21 @@ sealed partial class InventorySuite
     }
     private async Task Rollbacks()
     {
-        foreach (var target in new[] { "stock_documents", "stock_document_lines", "stock_movements", "audit_logs" })
+        foreach (var target in new[] { "stock_documents", "stock_document_lines", "audit_logs" })
         {
             await using var beforeDb = Db(); var before = await beforeDb.StockMovements.Where(x => x.WarehouseId == source.WarehouseId).SumAsync(x => (decimal?)x.SignedBaseQty) ?? 0;
             var count = await beforeDb.StockDocuments.CountAsync(x => x.DestinationWarehouseId == source.WarehouseId);
             await using (var db = Db(new FailAfterWrite(target)))
             {
                 var service = new InventoryService(db); var failed = false;
-                try { await service.CreateAdjustment(new(actor, source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1)]), default); }
+                try { await service.CreateAdjustment(actor, new(source.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1)]), default); }
                 catch (Exception ex) when (ex is InjectedFailure || ex.InnerException is InjectedFailure) { failed = true; }
                 Check(failed, "Fault injection was not reached: " + target);
             }
             await using var afterDb = Db(); Check((await afterDb.StockMovements.Where(x => x.WarehouseId == source.WarehouseId).SumAsync(x => (decimal?)x.SignedBaseQty) ?? 0) == before, "Rollback left a stock effect.");
             Check(await afterDb.StockDocuments.CountAsync(x => x.DestinationWarehouseId == source.WarehouseId) == count, "Rollback left a document.");
         }
-        passed.Add("fault injection after document/line/movement/audit SQL: transaction rollback");
+        passed.Add("draft fault injection after document/line/audit SQL; posting movement faults covered separately");
     }
     private async Task ReadsAndRegression()
     {

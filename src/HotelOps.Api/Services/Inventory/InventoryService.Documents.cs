@@ -9,8 +9,16 @@ public sealed partial class InventoryService
     private async Task<StockDocument?> Document(long id, CancellationToken ct)
     {
         await Gate($"HotelOps:Inventory:Document:{id}", ct);
+        var tracked = db.StockDocuments.Local.Any(x => x.DocumentId == id);
+        var trackedLines = db.StockDocumentLines.Local.Where(x => x.DocumentId == id).ToArray();
         var root = await db.StockDocuments.FromSqlInterpolated($"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={id}").SingleOrDefaultAsync(ct);
-        if (root is not null) await db.Entry(root).Collection(x => x.StockDocumentLines).LoadAsync(ct);
+        if (root is not null)
+        {
+            // A tracking query alone can return stale state after a lock wait.
+            if (tracked) await db.Entry(root).ReloadAsync(ct);
+            foreach (var line in trackedLines) await db.Entry(line).ReloadAsync(ct);
+            await db.Entry(root).Collection(x => x.StockDocumentLines).Query().LoadAsync(ct);
+        }
         return root;
     }
     private static IEnumerable<long> WarehouseIds(StockDocument d) => new[] { d.SourceWarehouseId, d.DestinationWarehouseId }.Where(x => x.HasValue).Select(x => x!.Value);
@@ -66,12 +74,12 @@ public sealed partial class InventoryService
     {
         await ValidateCapacity(original, 0, additionalBase, excludeDocument, ct);
     }
-    public async Task<InventoryDocumentDto?> SaveDraft(string type, long? id, InventoryDraft request, CancellationToken ct)
+    public async Task<InventoryDocumentDto?> SaveDraft(string type, long? id, long actorUserId, InventoryDraft request, CancellationToken ct)
     {
         if (request.DocumentDate == default) throw Invalid("DocumentDate is required.");
         if (type is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Unsupported draft type.");
         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count == 0) throw Invalid("At least one line is required.");
-        await using var tx = await Begin(request.ActorUserId, ct);
+        await using var tx = await Begin(actorUserId, ct);
         StockDocument d;
         object? before = null;
         if (id.HasValue)
@@ -81,7 +89,7 @@ public sealed partial class InventoryService
             if (d.DocumentType != type || d.Status != "DRAFT") throw Invalid("Only the matching DRAFT document can be edited.");
             before = new { document = Scalars(d), lines = d.StockDocumentLines.Select(Scalars).ToList() };
         }
-        else d = new StockDocument { DocumentType = type, Status = "DRAFT", CreatedBy = request.ActorUserId };
+        else d = new StockDocument { DocumentType = type, Status = "DRAFT", CreatedBy = actorUserId };
         if (type == "TRANSFER" && (!request.SourceWarehouseId.HasValue || !request.DestinationWarehouseId.HasValue || request.SourceWarehouseId == request.DestinationWarehouseId))
             throw Invalid("Transfer requires different source and destination warehouses.");
         if (type != "TRANSFER" && (request.SourceWarehouseId.HasValue || !request.DestinationWarehouseId.HasValue))
@@ -138,18 +146,18 @@ public sealed partial class InventoryService
         d.StockDocumentLines = lines;
         if (!id.HasValue) { d.CreatedAt = now; d.DocumentNo = await Number(type == "RECEIPT" ? "GRN" : type == "RETURN" ? "RTN" : "TRF", now, false, ct); db.StockDocuments.Add(d); }
         else db.Entry(d).Property(x => x.Status).IsModified = true;
-        await DocumentAudit(d, request.ActorUserId, id.HasValue ? "UPDATE" : "CREATE", "DRAFT_SAVED", before, warehouses, now, ct);
+        await DocumentAudit(d, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "DRAFT_SAVED", before, warehouses, now, ct);
         await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct);
     }
-    public async Task<InventoryDocumentDto?> Post(string type, long id, InventoryPost request, CancellationToken ct)
+    public async Task<InventoryDocumentDto?> Post(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
     {
-        await using var tx = await Begin(request.ActorUserId, ct);
-        var document = await PostCore(type, id, request, ct);
+        await using var tx = await Begin(actorUserId, ct);
+        var document = await PostCore(type, id, actorUserId, request, ct);
         if (document is null) return null;
         await tx.CommitAsync(ct);
         return await GetDocument(id, ct);
     }
-    private async Task<StockDocument?> PostCore(string type, long id, InventoryPost request, CancellationToken ct)
+    private async Task<StockDocument?> PostCore(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
     {
         var d = await Document(id, ct); if (d is null) return null;
         Version(d.RowVersion, request.ExpectedRowVersion);
@@ -177,27 +185,27 @@ public sealed partial class InventoryService
                 if (input.AcceptedQty + input.DamagedQty > l.RequestedQty) throw Invalid("Accepted usable + damaged exceeds requested return.");
                 detail.DamagedQty = input.DamagedQty; detail.Note = input.DiscrepancyReason;
             }
-            if (l.BaseQty > 0) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.DestinationWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = l.BaseQty, CreatedBy = request.ActorUserId, OccurredAt = now });
+            if (l.BaseQty > 0) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.DestinationWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = l.BaseQty, CreatedBy = actorUserId, OccurredAt = now });
         }
         if (d.DocumentType == "RETURN") foreach (var g in d.StockDocumentLines.GroupBy(x => x.StockReturnLineDetailStockDocumentLine!.OriginalIssueLineId))
             await ReturnCap(g.Key, g.Sum(x => Base(x.ActualQty + x.StockReturnLineDetailStockDocumentLine!.DamagedQty, x.ConversionFactor)), id, ct);
-        d.Status = "POSTED"; d.PostedBy = request.ActorUserId; d.PostedAt = now;
-        await DocumentAudit(d, request.ActorUserId, "UPDATE", "POSTED", before, warehouses, now, ct);
+        d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now;
+        await DocumentAudit(d, actorUserId, "UPDATE", "POSTED", before, warehouses, now, ct);
         return d;
     }
-    public async Task<InventoryDocumentDto?> CancelDocument(long id, InventoryCommand request, CancellationToken ct)
+    public async Task<InventoryDocumentDto?> CancelDocument(long id, long actorUserId, InventoryCommand request, CancellationToken ct)
     {
-        var reason = Reason(request.Reason); await using var tx = await Begin(request.ActorUserId, ct);
+        var reason = Reason(request.Reason); await using var tx = await Begin(actorUserId, ct);
         var d = await Document(id, ct); if (d is null) return null; Version(d.RowVersion, request.ExpectedRowVersion);
         if (d.Status != "DRAFT" || d.DocumentType is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Only an eligible DRAFT may be cancelled.");
         var warehouses = await Warehouses(WarehouseIds(d), false, ct); var before = Scalars(d); var now = DateTime.UtcNow;
         d.Status = "CANCELLED"; d.CancelledAt = now; d.Reason = reason;
-        await DocumentAudit(d, request.ActorUserId, "CANCEL", "CANCELLED", before, warehouses, now, ct);
+        await DocumentAudit(d, actorUserId, "CANCEL", "CANCELLED", before, warehouses, now, ct);
         await tx.CommitAsync(ct); return await GetDocument(id, ct);
     }
-    public async Task<InventoryDocumentDto?> Dispatch(long id, InventoryCommand request, CancellationToken ct)
+    public async Task<InventoryDocumentDto?> Dispatch(long id, long actorUserId, InventoryCommand request, CancellationToken ct)
     {
-        await using var tx = await Begin(request.ActorUserId, ct); var d = await Document(id, ct); if (d is null) return null;
+        await using var tx = await Begin(actorUserId, ct); var d = await Document(id, ct); if (d is null) return null;
         Version(d.RowVersion, request.ExpectedRowVersion); if (d.Status != "DRAFT" || d.DocumentType != "TRANSFER") throw Invalid("Only a DRAFT transfer can be dispatched.");
         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
         await StockGates(d.StockDocumentLines.SelectMany(x => WarehouseIds(d).Select(w => (w, x.ItemId))), ct);
@@ -210,21 +218,21 @@ public sealed partial class InventoryService
         }
         foreach (var g in d.StockDocumentLines.GroupBy(x => x.ItemId))
             if (await Balance(d.SourceWarehouseId!.Value, g.Key, ct) < g.Sum(x => x.BaseQty)) throw Invalid("Insufficient stock.");
-        foreach (var l in d.StockDocumentLines) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.SourceWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = -l.BaseQty, OccurredAt = now, CreatedBy = request.ActorUserId });
+        foreach (var l in d.StockDocumentLines) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.SourceWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = -l.BaseQty, OccurredAt = now, CreatedBy = actorUserId });
         d.Status = "IN_TRANSIT";
-        await DocumentAudit(d, request.ActorUserId, "UPDATE", "DISPATCHED", before, warehouses, now, ct);
+        await DocumentAudit(d, actorUserId, "UPDATE", "DISPATCHED", before, warehouses, now, ct);
         await tx.CommitAsync(ct); return await GetDocument(id, ct);
     }
-    public async Task<InventoryDocumentDto?> Receive(long id, InventoryReceive request, CancellationToken ct)
+    public async Task<InventoryDocumentDto?> Receive(long id, long actorUserId, InventoryReceive request, CancellationToken ct)
     {
-        await using var tx = await Begin(request.ActorUserId, ct); var d = await Document(id, ct); if (d is null) return null;
+        await using var tx = await Begin(actorUserId, ct); var d = await Document(id, ct); if (d is null) return null;
         Version(d.RowVersion, request.ExpectedRowVersion); if (d.DocumentType != "TRANSFER" || d.Status is not ("IN_TRANSIT" or "PARTIALLY_RECEIVED")) throw Invalid("Transfer must be in transit or partially received.");
         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count == 0 || request.Lines.Select(x => x.TransferLineId).Distinct().Count() != request.Lines.Count) throw Invalid("Supply distinct transfer lines for this batch.");
         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
         await StockGates(d.StockDocumentLines.SelectMany(x => WarehouseIds(d).Select(w => (w, x.ItemId))), ct);
         var before = Scalars(d); var now = DateTime.UtcNow;
         var previous = await db.StockTransferReceiptLines.Where(x => x.TransferReceipt.TransferDocumentId == id).ToListAsync(ct);
-        var batch = new StockTransferReceipt { TransferDocumentId = id, ReceivedBy = request.ActorUserId, ReceivedAt = now, Note = request.Note };
+        var batch = new StockTransferReceipt { TransferDocumentId = id, ReceivedBy = actorUserId, ReceivedAt = now, Note = request.Note };
         foreach (var input in request.Lines)
         {
             var l = d.StockDocumentLines.SingleOrDefault(x => x.LineId == input.TransferLineId) ?? throw Invalid("Transfer line does not belong to this document.");
@@ -237,13 +245,13 @@ public sealed partial class InventoryService
             var detail = new StockTransferReceiptLine { TransferLineId = l.LineId, ReceivedQty = input.ReceivedQty, DamagedQty = input.DamagedQty, MissingQty = input.MissingQty, Note = input.Note };
             batch.StockTransferReceiptLines.Add(detail); previous.Add(detail);
             var usable = Base(input.ReceivedQty, l.ConversionFactor);
-            if (usable > 0) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.DestinationWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = usable, CreatedBy = request.ActorUserId, OccurredAt = now });
+            if (usable > 0) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.DestinationWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = usable, CreatedBy = actorUserId, OccurredAt = now });
         }
         db.StockTransferReceipts.Add(batch);
         d.Status = d.StockDocumentLines.All(l => previous.Where(x => x.TransferLineId == l.LineId).Sum(x => x.ReceivedQty + x.DamagedQty + x.MissingQty) == l.ActualQty) ? "RECEIVED" : "PARTIALLY_RECEIVED";
         db.Entry(d).Property(x => x.Status).IsModified = true;
-        if (d.Status == "RECEIVED") { d.PostedAt = now; d.PostedBy = request.ActorUserId; }
-        await DocumentAudit(d, request.ActorUserId, "UPDATE", "BATCH_RECEIVED", before, warehouses, now, ct);
+        if (d.Status == "RECEIVED") { d.PostedAt = now; d.PostedBy = actorUserId; }
+        await DocumentAudit(d, actorUserId, "UPDATE", "BATCH_RECEIVED", before, warehouses, now, ct);
         await tx.CommitAsync(ct); return await GetDocument(id, ct);
     }
 }

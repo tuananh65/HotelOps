@@ -30,8 +30,8 @@ sealed partial class IntegritySuite
         return new(p.Incident, p.Work, r, f, document);
     }
     async Task<InventoryDocumentDto> ReturnDraft(IssuedSource s, decimal quantity)
-        => await Send<InventoryDocumentDto>("POST", "inventory/returns", new InventoryDraft(actor, null, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(s.Document.Lines[0].ItemId, s.Document.Lines[0].UomId, quantity, s.Document.Lines[0].LineId)], Note: prefix), 201);
-    Task<InventoryDocumentDto> ReturnPost(InventoryDocumentDto d, decimal usable, decimal damaged = 0) => Send<InventoryDocumentDto>("POST", $"inventory/returns/{d.DocumentId}/post", new InventoryPost(actor, d.RowVersion, [new(d.Lines[0].LineId, usable, DamagedQty: damaged, DiscrepancyReason: prefix)]));
+        => await Send<InventoryDocumentDto>("POST", "inventory/returns", new InventoryDraft(null, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(s.Document.Lines[0].ItemId, s.Document.Lines[0].UomId, quantity, s.Document.Lines[0].LineId)], Note: prefix), 201);
+    Task<InventoryDocumentDto> ReturnPost(InventoryDocumentDto d, decimal usable, decimal damaged = 0) => Send<InventoryDocumentDto>("POST", $"inventory/returns/{d.DocumentId}/post", new InventoryPost(d.RowVersion, [new(d.Lines[0].LineId, usable, DamagedQty: damaged, DiscrepancyReason: prefix)]));
     async Task RejectUsage(IssuedSource s, CreateMaintenanceWorkLogRequest input)
     {
         var before = await Footprint(); await Bad("POST", $"maintenance-works/{s.Work}/logs", input); Check(before == await Footprint(), "Usage validation has no business/stock/history effects");
@@ -39,14 +39,14 @@ sealed partial class IntegritySuite
     async Task MaterialUsage()
     {
         await using (var d = Db()) usageDepartment = await d.Departments.Where(x => x.BranchId == branch && x.IsActive).Select(x => x.DepartmentId).FirstAsync();
-        usageUnit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "U", prefix), 201); materialUnits.Add(usageUnit.UomId);
-        usageBox = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "B", prefix), 201); materialUnits.Add(usageBox.UomId);
+        usageUnit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "U", prefix), 201); materialUnits.Add(usageUnit.UomId);
+        usageBox = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "B", prefix), 201); materialUnits.Add(usageBox.UomId);
         long category; await using (var d = Db()) { var c = new HotelOps.Api.Entities.ItemCategory { CategoryCode = prefix, CategoryName = prefix, IsActive = true }; d.ItemCategories.Add(c); await d.SaveChangesAsync(); category = materialCategory = c.ItemCategoryId; }
-        usageItem = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix + "I", prefix, category, usageUnit.UomId, true), 201); materialItems.Add(usageItem.ItemId);
-        usageItem2 = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix + "I2", prefix, category, usageUnit.UomId, true), 201); materialItems.Add(usageItem2.ItemId);
-        usageWarehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, usageDepartment, prefix + "W", prefix), 201); materialWarehouses.Add(usageWarehouse.WarehouseId);
-        await Send<InventoryConversionDto>("POST", $"inventory/items/{usageItem.ItemId}/conversions", new InventoryConversionWrite(actor, usageBox.UomId, 2), 201);
-        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(actor, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(usageItem.ItemId, 10000), new(usageItem2.ItemId, 10000)]), 201);
+        usageItem = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(prefix + "I", prefix, category, usageUnit.UomId, true), 201); materialItems.Add(usageItem.ItemId);
+        usageItem2 = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(prefix + "I2", prefix, category, usageUnit.UomId, true), 201); materialItems.Add(usageItem2.ItemId);
+        usageWarehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, usageDepartment, prefix + "W", prefix), 201); materialWarehouses.Add(usageWarehouse.WarehouseId);
+        await Send<InventoryConversionDto>("POST", $"inventory/items/{usageItem.ItemId}/conversions", new InventoryConversionWrite(usageBox.UomId, 2), 201);
+        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(usageItem.ItemId, 10000), new(usageItem2.ItemId, 10000)]), 201);
         var source = await IssueSource(10, true); var capacity = await Available(source); Check(capacity.Items.Single().IssuedBaseQty == 20 && capacity.Items[0].AllowedUoms.Count == 2, "Historical source availability");
         int movements, documents; decimal onHand;
         await using (var d = Db()) { movements = await d.StockMovements.CountAsync(); documents = await d.StockDocuments.CountAsync(); onHand = await d.StockMovements.Where(x => x.ItemId == usageItem.ItemId).SumAsync(x => x.SignedBaseQty); }
@@ -68,8 +68,8 @@ sealed partial class IntegritySuite
         Check((await Available(source)).Items.Single().ReturnedBaseQty == 2, "Posted RETURN capacity");
         await Use(source, 9); Check((await Available(source)).Total == 0, "Consumed plus returned exactly issued"); await RejectUsage(source, UsageInput(source.Document.Lines[0].LineId, 1));
         var split = await IssueSource(5); var earlyDraft = await ReturnDraft(split, 5); await Use(split, 3);
-        var before = await Footprint(); await Bad("POST", $"inventory/returns/{earlyDraft.DocumentId}/post", new InventoryPost(actor, earlyDraft.RowVersion, [new(earlyDraft.Lines[0].LineId, 5)])); Check(before == await Footprint(), "RETURN posting rechecks consumed, failed post atomic");
-        await Bad("POST", "inventory/returns", new InventoryDraft(actor, null, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(usageItem.ItemId, usageUnit.UomId, 3, split.Document.Lines[0].LineId)]));
+        var before = await Footprint(); await Bad("POST", $"inventory/returns/{earlyDraft.DocumentId}/post", new InventoryPost(earlyDraft.RowVersion, [new(earlyDraft.Lines[0].LineId, 5)])); Check(before == await Footprint(), "RETURN posting rechecks consumed, failed post atomic");
+        await Bad("POST", "inventory/returns", new InventoryDraft(null, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(usageItem.ItemId, usageUnit.UomId, 3, split.Document.Lines[0].LineId)]));
         ret = await ReturnDraft(split, 2); await ReturnPost(ret, 1, 1); Check((await Available(split)).Total == 0, "Usable plus damaged physical return counts");
         var closed = await IssueSource(); await Use(closed, 4); await Command(closed.Work, "submit-result", new { ActorUserId = actor, ResolutionNote = prefix }); await Command(closed.Work, "verify", new { ActorUserId = verifier, Note = prefix });
         await using (var d = Db()) { await using var tx = await d.Database.BeginTransactionAsync(); var inv = new InventoryService(d); await inv.AcquireCatalog(default); Check((await inv.Capacity(closed.Document.Lines[0].LineId, null, default)).ConsumedBaseQty == 4, "Closed work still consumed"); await tx.RollbackAsync(); }
@@ -119,7 +119,7 @@ sealed partial class IntegritySuite
         finally { await d.MaterialFulfillments.Where(x => x.FulfillmentId == source.Fulfillment.FulfillmentId).ExecuteUpdateAsync(s => s.SetProperty(x => x.StockDocumentId, source.Document.DocumentId)); }
         var legacy = await IssueSource(); await d.StockDocuments.Where(x => x.DocumentId == legacy.Document.DocumentId).ExecuteUpdateAsync(s => s.SetProperty(x => x.ReferenceType, "LEGACY_TEST"));
         await RejectUsage(legacy, UsageInput(legacy.Document.Lines[0].LineId, 1)); var ret = await ReturnDraft(legacy, 1); await ReturnPost(ret, 1); Check(true, "Legacy-valid RETURN does not require strict FE09 provenance");
-        var nonIssue = await Send<InventoryDocumentDto>("POST", "inventory/receipts", new InventoryDraft(actor, null, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(usageItem.ItemId, usageUnit.UomId, 1)], Note: prefix), 201);
+        var nonIssue = await Send<InventoryDocumentDto>("POST", "inventory/receipts", new InventoryDraft(null, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(usageItem.ItemId, usageUnit.UomId, 1)], Note: prefix), 201);
         await RejectUsage(source, UsageInput(nonIssue.Lines[0].LineId, 1));
         await d.InventoryItems.Where(x => x.ItemId == usageItem.ItemId).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, false));
         await d.UnitsOfMeasures.Where(x => x.UomId == usageUnit.UomId).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, false));
@@ -165,7 +165,7 @@ sealed partial class IntegritySuite
         }
         finally { await d.UomConversions.Where(x => x.ItemId == usageItem.ItemId).ExecuteUpdateAsync(s => s.SetProperty(x => x.ConversionFactor, 2)); }
         var restored = await IssueSource(); var returned = await ReturnPost(await ReturnDraft(restored, 2), 2);
-        await Send<InventoryDocumentDto>("POST", $"inventory/documents/{returned.DocumentId}/reverse", new InventoryCommand(actor, returned.RowVersion, prefix));
+        await Send<InventoryDocumentDto>("POST", $"inventory/documents/{returned.DocumentId}/reverse", new InventoryCommand(returned.RowVersion, prefix));
         Check((await Available(restored)).Items.Single().ReturnedBaseQty == 0, "Reversed RETURN no longer consumes capacity");
         await Use(restored, 10);
     }
