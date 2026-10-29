@@ -25,12 +25,13 @@ public sealed partial class MaintenanceWorkService
     private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveAsync(long id,
         MaintenanceActorRequest request, string? incidentNote,
         Func<MaintenanceWork, Incident, DateTime, CancellationToken, Task> operation,
-        CancellationToken cancellationToken, Func<CancellationToken, Task>? prepareOwners = null)
+        CancellationToken cancellationToken, Func<CancellationToken, Task>? prepareOwners = null,
+        bool restoreAssigneeResponsibility = false)
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         var discovered = await _dbContext.MaintenanceWorks.AsNoTracking()
             .Where(work => work.MaintenanceWorkId == id)
-            .Select(work => new { work.IncidentId })
+            .Select(work => new { work.MaintenanceWorkId, work.IncidentId, work.AssigneeId, work.Status })
             .SingleOrDefaultAsync(cancellationToken);
         if (discovered is null)
             return null;
@@ -38,8 +39,16 @@ public sealed partial class MaintenanceWorkService
             throw new ValidationException("This action requires a corrective work linked to an incident.");
 
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        if (restoreAssigneeResponsibility)
+        {
+            if (discovered.AssigneeId is not long assigneeId)
+                throw new ValidationException("Returning work requires a current assignee.");
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext)
+                .RequireEligibleAsync(assigneeId, cancellationToken);
+        }
         if (prepareOwners is not null) await prepareOwners(cancellationToken);
-        // All corrective operations lock Incident first, then MaintenanceWork.
+        // Responsibility User locks, when required, precede Incident -> MaintenanceWork.
+        // All locks are retained until this transaction commits or rolls back.
         var incident = await LockIncidentAsync(incidentId, cancellationToken);
         var work = await _dbContext.MaintenanceWorks
             .FromSqlInterpolated($"SELECT * FROM maintenance_works WITH (UPDLOCK, HOLDLOCK) WHERE maintenance_work_id = {id}")
@@ -51,6 +60,9 @@ public sealed partial class MaintenanceWorkService
         if (incident is not null) await _dbContext.Entry(incident).ReloadAsync(cancellationToken);
         if (incident is null || work.IncidentId != incidentId)
             throw new ValidationException("The corrective work relationship changed. Reload before retrying.");
+        if (restoreAssigneeResponsibility &&
+            (work.AssigneeId != discovered.AssigneeId || work.Status != discovered.Status))
+            throw new ValidationException("The maintenance assignee or state changed after discovery. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
         await RequireUserAsync(request.ActorUserId, "ActorUserId", cancellationToken);
 
