@@ -11,10 +11,10 @@ public sealed partial class InventoryService
         db.ChangeTracker.DetectChanges();
         return db.Entry(entity).State is EntityState.Added or EntityState.Modified;
     }
-    public async Task<InventoryItemDto?> SaveItem(long? id, InventoryItemWrite r, CancellationToken ct)
+    public async Task<InventoryItemDto?> SaveItem(long? id, long actorUserId, InventoryItemWrite r, CancellationToken ct)
     {
         var code = Required(r.ItemCode, "ItemCode", 50); var name = Required(r.ItemName, "ItemName", 200);
-        await using var tx = await Begin(r.ActorUserId, ct);
+        await using var tx = await Begin(actorUserId, ct);
         var x = id.HasValue ? await db.InventoryItems.FromSqlInterpolated($"SELECT * FROM dbo.inventory_items WITH (UPDLOCK,HOLDLOCK) WHERE item_id={id}").SingleOrDefaultAsync(ct) : new InventoryItem();
         if (x is null) return null; if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion);
         var before = id.HasValue ? Scalars(x) : null;
@@ -27,25 +27,25 @@ public sealed partial class InventoryService
         if (Changed(x))
         {
             if (id.HasValue) x.UpdatedAt = now;
-            await Audit(x, "inventory_items", x.ItemId, r.ActorUserId, id.HasValue ? "UPDATE" : "CREATE", "ITEM_SAVED", before, [null], now, ct);
+            await Audit(x, "inventory_items", x.ItemId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "ITEM_SAVED", before, [null], now, ct);
         }
         await tx.CommitAsync(ct); return Dto(x);
     }
-    public async Task<InventoryUnitDto?> SaveUnit(long? id, InventoryUnitWrite r, CancellationToken ct)
+    public async Task<InventoryUnitDto?> SaveUnit(long? id, long actorUserId, InventoryUnitWrite r, CancellationToken ct)
     {
         var code = Required(r.UomCode, "UomCode", 30); var name = Required(r.UomName, "UomName", 100);
-        await using var tx = await Begin(r.ActorUserId, ct);
+        await using var tx = await Begin(actorUserId, ct);
         var x = id.HasValue ? await db.UnitsOfMeasures.FromSqlInterpolated($"SELECT * FROM dbo.units_of_measure WITH (UPDLOCK,HOLDLOCK) WHERE uom_id={id}").SingleOrDefaultAsync(ct) : new UnitsOfMeasure();
         if (x is null) return null; if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion); var before = id.HasValue ? Scalars(x) : null;
         if (await db.UnitsOfMeasures.AnyAsync(u => u.UomCode == code && u.UomId != id, ct)) throw Invalid("UomCode already exists.");
         x.UomCode = code; x.UomName = name; x.IsActive = r.IsActive; x.Description = r.Description; if (!id.HasValue) db.UnitsOfMeasures.Add(x);
-        if (Changed(x)) await Audit(x, "units_of_measure", x.UomId, r.ActorUserId, id.HasValue ? "UPDATE" : "CREATE", "UNIT_SAVED", before, [null], DateTime.UtcNow, ct);
+        if (Changed(x)) await Audit(x, "units_of_measure", x.UomId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "UNIT_SAVED", before, [null], DateTime.UtcNow, ct);
         await tx.CommitAsync(ct); return Dto(x);
     }
-    public async Task<InventoryConversionDto?> SaveConversion(long item, long? id, InventoryConversionWrite r, CancellationToken ct)
+    public async Task<InventoryConversionDto?> SaveConversion(long item, long? id, long actorUserId, InventoryConversionWrite r, CancellationToken ct)
     {
         if (r.ConversionFactor <= 0 || r.ConversionFactor > 999999999999.999999m || decimal.Round(r.ConversionFactor, 6) != r.ConversionFactor) throw Invalid("ConversionFactor must be positive decimal(18,6).");
-        await using var tx = await Begin(r.ActorUserId, ct); var catalog = await Item(item, ct);
+        await using var tx = await Begin(actorUserId, ct); var catalog = await Item(item, ct);
         if (r.FromUomId == catalog.BaseUomId || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.FromUomId && u.IsActive, ct)) throw Invalid("Conversion requires a different active source UOM.");
         var x = id.HasValue ? await db.UomConversions.FromSqlInterpolated($"SELECT * FROM dbo.uom_conversions WITH (UPDLOCK,HOLDLOCK) WHERE conversion_id={id}").SingleOrDefaultAsync(ct) : new UomConversion();
         if (x is null) return null; if (id.HasValue) { Version(x.RowVersion, r.ExpectedRowVersion); if (x.ItemId != item) throw Invalid("Conversion does not belong to this item."); }
@@ -53,7 +53,7 @@ public sealed partial class InventoryService
         if (await db.UomConversions.AnyAsync(c => c.ItemId == item && c.FromUomId == r.FromUomId && c.ToUomId == catalog.BaseUomId && c.ConversionId != id, ct)) throw Invalid("Conversion already exists.");
         x.ItemId = item; x.FromUomId = r.FromUomId; x.ToUomId = catalog.BaseUomId; x.ConversionFactor = r.ConversionFactor; x.IsActive = r.IsActive;
         if (!id.HasValue) db.UomConversions.Add(x);
-        if (Changed(x)) await Audit(x, "uom_conversions", x.ConversionId, r.ActorUserId, id.HasValue ? "UPDATE" : "CREATE", "CONVERSION_SAVED", before, [null], DateTime.UtcNow, ct);
+        if (Changed(x)) await Audit(x, "uom_conversions", x.ConversionId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "CONVERSION_SAVED", before, [null], DateTime.UtcNow, ct);
         await tx.CommitAsync(ct); return Dto(x);
     }
     private async Task<bool> WarehouseHistory(long id, CancellationToken ct) =>
@@ -61,13 +61,13 @@ public sealed partial class InventoryService
         await db.StockMovements.AnyAsync(m => m.WarehouseId == id, ct) || await db.Stocktakes.AnyAsync(s => s.WarehouseId == id, ct) ||
         await db.StockThresholds.AnyAsync(t => t.WarehouseId == id, ct) || await db.MaterialRequests.AnyAsync(m => m.SourceWarehouseId == id, ct) ||
         await db.MaterialFulfillments.AnyAsync(m => m.WarehouseId == id, ct) || await db.MaterialReplenishments.AnyAsync(r => r.WarehouseId == id, ct);
-    public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, InventoryWarehouseWrite r, CancellationToken ct)
+    public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, long actorUserId, InventoryWarehouseWrite r, CancellationToken ct)
     {
         var code = Required(r.WarehouseCode, "WarehouseCode", 40); var name = Required(r.WarehouseName, "WarehouseName", 150);
         // Discovery establishes User lock order only; reread under the Warehouse lock.
         var discovered = id.HasValue ? await db.Warehouses.AsNoTracking().Where(w => w.WarehouseId == id.Value)
             .Select(w => new { w.ManagerUserId }).SingleOrDefaultAsync(ct) : null;
-        await using var tx = await Begin(r.ActorUserId, ct, async token =>
+        await using var tx = await Begin(actorUserId, ct, async token =>
         {
             var ids = new[] { discovered?.ManagerUserId, r.ManagerUserId }.Where(x => x.HasValue).Select(x => x!.Value);
             var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync(ids, token);
@@ -98,12 +98,12 @@ public sealed partial class InventoryService
         }
         x.BranchId = r.BranchId; x.DepartmentId = r.DepartmentId; x.WarehouseCode = code; x.WarehouseName = name; x.ManagerUserId = r.ManagerUserId; x.LocationDescription = r.LocationDescription; x.IsActive = r.IsActive;
         var now = DateTime.UtcNow; if (!id.HasValue) { x.CreatedAt = now; db.Warehouses.Add(x); }
-        if (Changed(x)) await Audit(x, "warehouses", x.WarehouseId, r.ActorUserId, id.HasValue ? "UPDATE" : "CREATE", "WAREHOUSE_SAVED", before, [x.BranchId], now, ct);
+        if (Changed(x)) await Audit(x, "warehouses", x.WarehouseId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "WAREHOUSE_SAVED", before, [x.BranchId], now, ct);
         await tx.CommitAsync(ct); return Dto(x);
     }
-    public async Task<InventoryThresholdDto> SaveThreshold(long warehouse, long item, InventoryThresholdWrite r, CancellationToken ct)
+    public async Task<InventoryThresholdDto> SaveThreshold(long warehouse, long item, long actorUserId, InventoryThresholdWrite r, CancellationToken ct)
     {
-        Qty(r.MinimumQty); await using var tx = await Begin(r.ActorUserId, ct); await Item(item, ct);
+        Qty(r.MinimumQty); await using var tx = await Begin(actorUserId, ct); await Item(item, ct);
         var w = (await Warehouses([warehouse], true, ct)).Single();
         await StockGates([(warehouse, item)], ct);
         var x = await db.StockThresholds.FromSqlInterpolated($"SELECT * FROM dbo.stock_thresholds WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={warehouse} AND item_id={item}").SingleOrDefaultAsync(ct);
@@ -111,7 +111,7 @@ public sealed partial class InventoryService
         if (create) { if (r.ExpectedRowVersion is not null) throw Invalid("Threshold no longer exists."); x = new() { WarehouseId = warehouse, ItemId = item, AlertEnabled = true }; db.StockThresholds.Add(x); }
         else { Version(x!.RowVersion, r.ExpectedRowVersion); before = Scalars(x); }
         x!.MinimumQty = r.MinimumQty; var now = DateTime.UtcNow;
-        if (Changed(x)) { x.UpdatedAt = now; await Audit(x, "stock_thresholds", x.ThresholdId, r.ActorUserId, create ? "CREATE" : "UPDATE", "THRESHOLD_SAVED", before, [w.BranchId], now, ct); }
+        if (Changed(x)) { x.UpdatedAt = now; await Audit(x, "stock_thresholds", x.ThresholdId, actorUserId, create ? "CREATE" : "UPDATE", "THRESHOLD_SAVED", before, [w.BranchId], now, ct); }
         await tx.CommitAsync(ct); return Dto(x);
     }
     public async Task<IReadOnlyList<InventoryThresholdDto>> GetThresholds(long warehouse, CancellationToken ct) =>

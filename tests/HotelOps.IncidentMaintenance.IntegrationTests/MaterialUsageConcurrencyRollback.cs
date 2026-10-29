@@ -37,7 +37,7 @@ sealed partial class IntegritySuite
         {
             s = await IssueSource(); var draft = await ReturnDraft(s, 6);
             Func<HotelOpsDbContext, Task> use = UsageAction(s);
-            Func<HotelOpsDbContext, Task> post = async d => { await new InventoryService(d).Post("RETURN", draft.DocumentId, new(actor, draft.RowVersion, [new(draft.Lines[0].LineId, 6)]), default); };
+            Func<HotelOpsDbContext, Task> post = async d => { await new InventoryService(d).Post("RETURN", draft.DocumentId, actor, new(draft.RowVersion, [new(draft.Lines[0].LineId, 6)]), default); };
             await MaterialOrdered("usage/RETURN; " + (returnFirst ? "RETURN" : "usage") + " first", returnFirst ? post : use, returnFirst ? use : post, x => x[0] && !x[1]);
             var available = (await Available(s)).Items.Single(); Check(available.ConsumedBaseQty + available.ReturnedBaseQty == 6 && available.RemainingBaseQty == 4, "Usage/RETURN no combined over-allocation");
         }
@@ -72,11 +72,11 @@ sealed partial class IntegritySuite
         {
             s = await IssueSource(); var source = s;
             long threshold = 0;
-            if (module == "Replenishment") threshold = (await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{usageWarehouse.WarehouseId}/items/{usageItem.ItemId}/threshold", new InventoryThresholdWrite(actor, 50000))).ThresholdId;
+            if (module == "Replenishment") threshold = (await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{usageWarehouse.WarehouseId}/items/{usageItem.ItemId}/threshold", new InventoryThresholdWrite(50000))).ThresholdId;
             Func<HotelOpsDbContext, Task> writer = async d =>
             {
                 var inv = new InventoryService(d);
-                if (module == "Inventory") await inv.CreateAdjustment(new(actor, usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(usageItem.ItemId, 1)]), default);
+                if (module == "Inventory") await inv.CreateAdjustment(actor, new(usageWarehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(usageItem.ItemId, 1)]), default);
                 else if (module == "MR") await new MaterialRequestService(d, inv, inv).Save(null, new(actor, branch, usageDepartment, usageWarehouse.WarehouseId, prefix, DateTime.UtcNow, null, null, null, source.Incident, [new(null, 1, usageItem.ItemId, usageUnit.UomId, 1, null)]), default);
                 else await new ReplenishmentService(d, inv, inv).Create(new(actor, usageWarehouse.WarehouseId, prefix, null, [new(1, usageItem.ItemId, "LOW_STOCK", threshold, null, 1)]), default);
             };
@@ -94,9 +94,9 @@ sealed partial class IntegritySuite
         var draft = await ReturnDraft(s, 2);
         foreach (var boundary in new[] { 1, 2 })
         {
-            await using var d = Db(new SaveFailure(boundary)); await Rollback("RETURN state/detail/ledger/audit save " + boundary, async () => { await new InventoryService(d).Post("RETURN", draft.DocumentId, new(actor, draft.RowVersion, [new(draft.Lines[0].LineId, 2)]), default); });
+            await using var d = Db(new SaveFailure(boundary)); await Rollback("RETURN state/detail/ledger/audit save " + boundary, async () => { await new InventoryService(d).Post("RETURN", draft.DocumentId, actor, new(draft.RowVersion, [new(draft.Lines[0].LineId, 2)]), default); });
         }
-        await using (var d = Db(new CommitFailure())) await Rollback("RETURN before commit with shared cap", async () => { await new InventoryService(d).Post("RETURN", draft.DocumentId, new(actor, draft.RowVersion, [new(draft.Lines[0].LineId, 2)]), default); });
+        await using (var d = Db(new CommitFailure())) await Rollback("RETURN before commit with shared cap", async () => { await new InventoryService(d).Post("RETURN", draft.DocumentId, actor, new(draft.RowVersion, [new(draft.Lines[0].LineId, 2)]), default); });
         foreach (var resource in new[] { "Catalog", "Document", "Incident", "Work" })
         {
             await using var blocker = Db(); await using var tx = await blocker.Database.BeginTransactionAsync();

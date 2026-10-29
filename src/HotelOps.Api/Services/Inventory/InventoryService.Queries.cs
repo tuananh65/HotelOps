@@ -31,7 +31,7 @@ public sealed partial class InventoryService
         if (!await db.InventoryItems.AsNoTracking().AnyAsync(x => x.ItemId == item, ct)) return null;
         return (await db.UomConversions.AsNoTracking().Where(x => x.ItemId == item || x.ItemId == null).OrderBy(x => x.ConversionId).ToListAsync(ct)).Select(Dto).ToList();
     }
-    public Task<InventoryPaged<InventoryWarehouseDto>> GetWarehouses(InventoryPage page, CancellationToken ct) => Page(db.Warehouses.AsNoTracking().OrderBy(x => x.WarehouseId), page, Dto, ct);
+    public Task<InventoryPaged<InventoryWarehouseDto>> GetWarehouses(InventoryPage page, CancellationToken ct) => Page(ReadWarehouses().AsNoTracking().OrderBy(x => x.WarehouseId), page, Dto, ct);
     public async Task<InventoryWarehouseDto?> GetWarehouse(long id, CancellationToken ct) => await db.Warehouses.AsNoTracking().SingleOrDefaultAsync(x => x.WarehouseId == id, ct) is { } x ? Dto(x) : null;
     private IQueryable<InventoryStockDto> StockQuery()
     {
@@ -54,7 +54,7 @@ public sealed partial class InventoryService
                };
     }
     public Task<InventoryPaged<InventoryStockDto>> GetStock(InventoryPage page, bool lowOnly, CancellationToken ct) =>
-        Page(StockQuery().Where(x => !lowOnly || x.BelowMinimum).OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId), page, x => x, ct);
+        Page(ReadStock().Where(x => !lowOnly || x.BelowMinimum).OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId), page, x => x, ct);
     public async Task<InventoryStockDto?> GetStock(long warehouse, long item, CancellationToken ct)
     {
         if (!await db.Warehouses.AsNoTracking().AnyAsync(x => x.WarehouseId == warehouse, ct) ||
@@ -62,7 +62,7 @@ public sealed partial class InventoryService
         return await StockQuery().SingleOrDefaultAsync(x => x.WarehouseId == warehouse && x.ItemId == item, ct)
             ?? new(warehouse, item, 0, 0, null, false);
     }
-    private IQueryable<InventoryMovementDto> MovementQuery() => db.StockMovements.AsNoTracking().Select(x => new InventoryMovementDto
+    private IQueryable<InventoryMovementDto> MovementQuery() => ReadMovements().AsNoTracking().Select(x => new InventoryMovementDto
     {
         MovementId = x.MovementId,
         DocumentLineId = x.DocumentLineId,
@@ -113,7 +113,7 @@ public sealed partial class InventoryService
     }
     public async Task<InventoryPaged<InventoryDocumentDto>> GetDocuments(InventoryPage page, CancellationToken ct)
     {
-        var (offset, size) = Paging(page); var q = db.StockDocuments.AsNoTracking();
+        var (offset, size) = Paging(page); var q = ReadDocuments().AsNoTracking();
         var count = await q.CountAsync(ct); var ids = await q.OrderBy(x => x.DocumentId).Skip(offset).Take(size).Select(x => x.DocumentId).ToListAsync(ct);
         var items = new List<InventoryDocumentDto>(); foreach (var id in ids) items.Add((await GetDocument(id, ct))!);
         return new(items, count, page.Page, size);
@@ -133,8 +133,8 @@ public sealed partial class InventoryService
     }
     public async Task<InventoryPaged<InventoryStocktakeDto>> GetStocktakes(InventoryPage page, CancellationToken ct)
     {
-        var (offset, size) = Paging(page); var count = await db.Stocktakes.CountAsync(ct);
-        var ids = await db.Stocktakes.AsNoTracking().OrderBy(x => x.StocktakeId).Skip(offset).Take(size).Select(x => x.StocktakeId).ToListAsync(ct);
+        var (offset, size) = Paging(page); var count = await ReadStocktakes().CountAsync(ct);
+        var ids = await ReadStocktakes().AsNoTracking().OrderBy(x => x.StocktakeId).Skip(offset).Take(size).Select(x => x.StocktakeId).ToListAsync(ct);
         var items = new List<InventoryStocktakeDto>(); foreach (var id in ids) items.Add((await GetStocktake(id, ct))!);
         return new(items, count, page.Page, size);
     }

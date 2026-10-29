@@ -62,11 +62,11 @@ sealed partial class MaterialSuite
         var a = await Approved(s.OnHand); var b = await Approved(s.OnHand);
         await Race(async () => { await using var d = Db(); await Service(d).Issue(a.RequestId, new(issuer, a.RowVersion, "FullRemaining", DateOnly.FromDateTime(DateTime.UtcNow)), default); },
             async () => { await using var d = Db(); await Service(d).Issue(b.RequestId, new(issuer, b.RowVersion, "FullRemaining", DateOnly.FromDateTime(DateTime.UtcNow)), default); }, "two requests same stock and FUL allocation");
-        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1000)]), 201);
+        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1000)]), 201);
         r = await Approved(1000);
         await Race(async () => { await using var d = Db(); await Service(d).Issue(r.RequestId, new(issuer, r.RowVersion, "FullRemaining", DateOnly.FromDateTime(DateTime.UtcNow)), default); },
-            async () => { await using var d = Db(); await new InventoryService(d).CreateAdjustment(new(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, -1000)]), default); }, "FE09 vs Inventory writer");
-        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1000)]), 201);
+            async () => { await using var d = Db(); await new InventoryService(d).CreateAdjustment(actor, new(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, -1000)]), default); }, "FE09 vs Inventory writer");
+        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1000)]), 201);
     }
     async Task Rollbacks()
     {

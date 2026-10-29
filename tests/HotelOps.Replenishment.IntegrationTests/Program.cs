@@ -48,8 +48,8 @@ sealed partial class ReplenishmentSuite
     Task<ReplenishmentDto> Get(long id) => Send<ReplenishmentDto>("GET", $"replenishments/{id}");
     Task<ReplenishmentDto> Close(ReplenishmentDto r) => Send<ReplenishmentDto>("POST", $"replenishments/{r.ReplenishmentId}/close", new ReplenishmentClose(actor, r.RowVersion, prefix));
     async Task<InventoryDocumentDto> Draft(decimal quantity, long? warehouseId = null, long? itemId = null, long? uom = null)
-        => await Send<InventoryDocumentDto>("POST", "inventory/receipts", new InventoryDraft(actor, null, warehouseId ?? warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(itemId ?? item.ItemId, uom ?? unit.UomId, quantity)], Note: prefix), 201);
-    Task<InventoryDocumentDto> Post(InventoryDocumentDto d, decimal? accepted = null) => Send<InventoryDocumentDto>("POST", $"inventory/receipts/{d.DocumentId}/post", new InventoryPost(actor, d.RowVersion, d.Lines.Select(l => new InventoryAcceptedLine(l.LineId, accepted ?? l.RequestedQty!.Value, DiscrepancyReason: prefix)).ToArray()));
+        => await Send<InventoryDocumentDto>("POST", "inventory/receipts", new InventoryDraft(null, warehouseId ?? warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), [new(itemId ?? item.ItemId, uom ?? unit.UomId, quantity)], Note: prefix), 201);
+    Task<InventoryDocumentDto> Post(InventoryDocumentDto d, decimal? accepted = null) => Send<InventoryDocumentDto>("POST", $"inventory/receipts/{d.DocumentId}/post", new InventoryPost(d.RowVersion, d.Lines.Select(l => new InventoryAcceptedLine(l.LineId, accepted ?? l.RequestedQty!.Value, DiscrepancyReason: prefix)).ToArray()));
     ReplenishmentPost Posting(ReplenishmentDto r, InventoryDocumentDto d, decimal accepted, decimal rejected = 0, decimal damaged = 0) => new(actor, r.RowVersion, d.DocumentId, d.RowVersion,
         [new(d.Lines[0].LineId, accepted, rejected, damaged, prefix)], [new(d.Lines[0].LineId, r.Lines[0].ReplenishmentLineId)]);
     Task<ReplenishmentDto> Receive(ReplenishmentDto r, InventoryDocumentDto d, decimal accepted, decimal rejected = 0, decimal damaged = 0) => Send<ReplenishmentDto>("POST", $"replenishments/{r.ReplenishmentId}/receipts/post", Posting(r, d, accepted, rejected, damaged));
@@ -57,7 +57,7 @@ sealed partial class ReplenishmentSuite
     async Task Reverse(long doc, int status = 200)
     {
         var d = await Send<InventoryDocumentDto>("GET", $"inventory/documents/{doc}");
-        await Send<InventoryDocumentDto>("POST", $"inventory/documents/{doc}/reverse", new InventoryCommand(actor, d.RowVersion, prefix), status);
+        await Send<InventoryDocumentDto>("POST", $"inventory/documents/{doc}/reverse", new InventoryCommand(d.RowVersion, prefix), status);
     }
     async Task<MaterialRequestDto> ApprovedMR(decimal qty = 100, bool duplicate = false)
     {
@@ -67,7 +67,7 @@ sealed partial class ReplenishmentSuite
     }
     async Task Stock(decimal delta)
     {
-        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, delta)]), 201);
+        await Send<InventoryDocumentDto>("POST", "inventory/adjustments", new InventoryAdjustment(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, delta)]), 201);
     }
     async Task SetStock(decimal desired)
     {
@@ -95,12 +95,12 @@ sealed partial class ReplenishmentSuite
             start.Environment["ConnectionStrings__HotelOpsDb"] = connection; start.Environment["Logging__LogLevel__Default"] = "Warning";
             api = Process.Start(start)!; api.OutputDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.ErrorDataReceived += (_, e) => { if (e.Data != null) errors.Enqueue(e.Data); }; api.BeginOutputReadLine(); api.BeginErrorReadLine();
             var ready = false; for (var i = 0; i < 100; i++) { try { using var response = await http.GetAsync("/api/health"); ready = true; break; } catch (HttpRequestException) { await Task.Delay(100); } } Check(ready, "Startup");
-            unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "U", prefix), 201); units.Add(unit.UomId);
-            box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(actor, prefix + "B", prefix), 201); units.Add(box.UomId);
-            item = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(actor, prefix, prefix, category, unit.UomId, true), 201); items.Add(item.ItemId);
-            warehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(actor, branch, department, prefix, prefix), 201); warehouses.Add(warehouse.WarehouseId);
-            threshold = await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{warehouse.WarehouseId}/items/{item.ItemId}/threshold", new InventoryThresholdWrite(actor, 100));
-            await Send<InventoryConversionDto>("POST", $"inventory/items/{item.ItemId}/conversions", new InventoryConversionWrite(actor, box.UomId, 2), 201);
+            unit = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "U", prefix), 201); units.Add(unit.UomId);
+            box = await Send<InventoryUnitDto>("POST", "inventory/units", new InventoryUnitWrite(prefix + "B", prefix), 201); units.Add(box.UomId);
+            item = await Send<InventoryItemDto>("POST", "inventory/items", new InventoryItemWrite(prefix, prefix, category, unit.UomId, true), 201); items.Add(item.ItemId);
+            warehouse = await Send<InventoryWarehouseDto>("POST", "inventory/warehouses", new InventoryWarehouseWrite(branch, department, prefix, prefix), 201); warehouses.Add(warehouse.WarehouseId);
+            threshold = await Send<InventoryThresholdDto>("PUT", $"inventory/warehouses/{warehouse.WarehouseId}/items/{item.ItemId}/threshold", new InventoryThresholdWrite(100));
+            await Send<InventoryConversionDto>("POST", $"inventory/items/{item.ItemId}/conversions", new InventoryConversionWrite(box.UomId, 2), 201);
             await Functional(); await ContractEvidence(); await Concurrency(); await Faults(); await VerifyCatalog(); await VerifyAudit();
             foreach (var path in new[] { "assets", "incidents", "maintenance-works" }) await Send<JsonElement>("GET", path);
             Console.WriteLine($"PASS requests={requests} assertions={assertions} SQL_overlap_races={races} rollback_cases={faults}");

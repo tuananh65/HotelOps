@@ -22,7 +22,7 @@ sealed partial class ReplenishmentSuite
     }
     Func<Task> CreateAction(ReplenishmentCreate input) => async () => { await using var d = Db(); await Service(d).Create(input, default); };
     Func<Task> LinkAction(ReplenishmentDto r, InventoryDocumentDto receipt) => async () => { await using var d = Db(); await Service(d).Receive(r.ReplenishmentId, new(actor, r.RowVersion, [new(receipt.Lines[0].LineId, r.Lines[0].ReplenishmentLineId)]), default); };
-    Func<Task> ReverseAction(InventoryDocumentDto receipt) => async () => { await using var d = Db(); await new InventoryService(d).Reverse(receipt.DocumentId, new(actor, receipt.RowVersion, prefix), default); };
+    Func<Task> ReverseAction(InventoryDocumentDto receipt) => async () => { await using var d = Db(); await new InventoryService(d).Reverse(receipt.DocumentId, actor, new(receipt.RowVersion, prefix), default); };
     async Task Concurrency()
     {
         await ReleaseAll(); await SetStock(0);
@@ -30,7 +30,7 @@ sealed partial class ReplenishmentSuite
         await Race("LOW vs LOW", CreateAction(Input()), CreateAction(Input())); await ReleaseAll();
         await Race("LOW vs MR", CreateAction(Input()), CreateAction(Input(10, source.Lines[0].RequestLineId))); await ReleaseAll();
         await Race("MR vs MR", CreateAction(Input(10, source.Lines[0].RequestLineId)), CreateAction(Input(10, source.Lines[0].RequestLineId))); await ReleaseAll();
-        await Race("create vs stock above minimum", CreateAction(Input()), async () => { await using var d = Db(); await new InventoryService(d).CreateAdjustment(new(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 100)]), default); }, true); await ReleaseAll(); await SetStock(0);
+        await Race("create vs stock above minimum", CreateAction(Input()), async () => { await using var d = Db(); await new InventoryService(d).CreateAdjustment(actor, new(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 100)]), default); }, true); await ReleaseAll(); await SetStock(0);
         // Full MR can be satisfied while aggregate demand remains physically short due to independent lines.
         var fulfilled = await ApprovedMR(10); await SetStock(10);
         await Race("MR create vs FE09 fulfillment", CreateAction(Input(5, fulfilled.Lines[0].RequestLineId)), async () => { await using var d = Db(); var inv = new InventoryService(d); await new MaterialRequestService(d, inv, inv).Issue(fulfilled.RequestId, new(issuer, fulfilled.RowVersion, "FullRemaining", DateOnly.FromDateTime(DateTime.UtcNow)), default); }, true); await ReleaseAll(); await SetStock(0);
@@ -51,6 +51,6 @@ sealed partial class ReplenishmentSuite
         Func<Task> close = async () => { await using var d = Db(); await Service(d).Close(r.ReplenishmentId, new(actor, r.RowVersion, prefix), default); };
         await Race("stale version commands", close, close);
         await SetStock(0);
-        await Race("FE10 vs Inventory writer", CreateAction(Input()), async () => { await using var d = Db(); await new InventoryService(d).CreateAdjustment(new(actor, warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1)]), default); }, true, true); await ReleaseAll();
+        await Race("FE10 vs Inventory writer", CreateAction(Input()), async () => { await using var d = Db(); await new InventoryService(d).CreateAdjustment(actor, new(warehouse.WarehouseId, DateOnly.FromDateTime(DateTime.UtcNow), prefix, [new(item.ItemId, 1)]), default); }, true, true); await ReleaseAll();
     }
 }

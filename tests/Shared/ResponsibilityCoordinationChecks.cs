@@ -93,7 +93,7 @@ internal sealed class ResponsibilityCoordinationChecks
     async Task Manage(HotelOpsDbContext db, long receiver)
     {
         var w = await db.Warehouses.AsNoTracking().SingleAsync(x => x.WarehouseId == warehouse, ct);
-        Check(await new InventoryService(db).SaveWarehouse(warehouse, new InventoryWarehouseWrite(actor, w.BranchId, w.DepartmentId,
+        Check(await new InventoryService(db).SaveWarehouse(warehouse, actor, new InventoryWarehouseWrite(w.BranchId, w.DepartmentId,
             w.WarehouseCode, w.WarehouseName, w.IsActive, receiver, w.LocationDescription, Convert.ToBase64String(w.RowVersion)), ct) is not null, "Warehouse fixture disappeared.");
     }
     async Task Propose(HotelOpsDbContext db, long receiver)

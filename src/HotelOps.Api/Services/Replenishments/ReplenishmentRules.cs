@@ -78,7 +78,7 @@ internal static class ReplenishmentRules
         if (movements.Count != 1 || movements[0].WarehouseId != warehouse || movements[0].ItemId != item || movements[0].SignedBaseQty != line.BaseQty) throw Invalid("Receipt movement evidence is ambiguous.");
         if (doc.Status == "POSTED")
         {
-            if (await db.StockDocuments.AnyAsync(x => x.ReversalOfDocumentId == doc.DocumentId, ct)) throw Invalid("Receipt reversal evidence conflicts with POSTED status.");
+            if (await db.StockDocuments.AnyAsync(x => x.ReversalOfDocumentId == doc.DocumentId && x.Status == "POSTED", ct)) throw Invalid("Receipt reversal evidence conflicts with POSTED status.");
         }
         else if (doc.Status == "REVERSED")
         {
