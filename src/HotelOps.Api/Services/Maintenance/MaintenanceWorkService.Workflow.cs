@@ -59,7 +59,7 @@ public sealed partial class MaintenanceWorkService
             incident.ResolvedAt = null;
             AddWorkLog(work, request.ActorUserId, reason, 0, now);
             return Task.CompletedTask;
-        }, cancellationToken);
+        }, cancellationToken, restoreAssigneeResponsibility: true);
     }
 
     public Task<MaintenanceWorkDetailDto?> SubmitResultAsync(long id,

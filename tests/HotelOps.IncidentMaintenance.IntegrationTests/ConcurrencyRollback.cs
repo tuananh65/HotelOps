@@ -95,6 +95,8 @@ sealed partial class IntegritySuite
             await using var d = Db(new SaveFailure(boundary)); await Rollback("technical log/history save " + boundary, async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).CreateLogAsync(pair.Work, new() { ActorUserId = actor, WorkNote = prefix, SpentMinutes = 1 }, default); });
         }
         await Command(pair.Work, "submit-result", new { ActorUserId = actor, ResolutionNote = prefix });
+        await using (var d = Db(new SaveFailure(1))) await Rollback("return responsibility/status/log/event/audits after SQL save", async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).ReturnWorkAsync(pair.Work, new() { ActorUserId = verifier, Reason = prefix }, default); });
+        await using (var d = Db(new CommitFailure())) await Rollback("return responsibility before commit", async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).ReturnWorkAsync(pair.Work, new() { ActorUserId = verifier, Reason = prefix }, default); });
         await using (var d = Db(new SaveFailure(1))) await Rollback("paired verification/closure/review/audits after SQL save", async () => { await new MaintenanceWorkService(d, new HotelOps.Api.Services.Inventory.InventoryService(d)).VerifyWorkAsync(pair.Work, new() { ActorUserId = verifier, Note = prefix }, default); });
         foreach (var paired in new[] { false, true })
         {
