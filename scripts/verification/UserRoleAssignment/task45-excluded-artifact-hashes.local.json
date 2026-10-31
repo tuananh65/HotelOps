@@ -1,0 +1,1098 @@
+﻿[
+    {
+        "path":  "scripts/database/release/codex-attention-alert.wav",
+        "sha256":  "B85A7F7CE7CD0638B0ED5D0F9DAEF62781C6A65D447965D3EE06A54CA294F5ED"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/create-read-startup-regression.local.json",
+        "sha256":  "199ED938EBA8C70F24EFE8E3BE3726E0CF013E9631295CB4B551BB3203ABBD43"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/credential-legacy-regression.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/reauth-reset-final.local.json",
+        "sha256":  "30E769A722D06043B5004C5B1EF64346C6580DE1E615F5F21CB5A75A2962F4C4"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/reauth-reset.local.json",
+        "sha256":  "DAB20EBC6584FD6610C5FD7728B109D6F1F454AE534DC24C0EFEB036FE4591BC"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/reset-primitive-regression.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/task34-create-read-startup.local.json",
+        "sha256":  "1E6191405AC3216A4BAE1632CF4D4E68BE168E21D9FB60EE79D629397B2125C3"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/task34-credential-legacy.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/task34-reauth-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/AdminReauthentication/task34-reset-primitive.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/Authorization/RESULTS.md",
+        "sha256":  "CFB471864EFB4CC0A032343F6A8DDB4BA61B3A69FC617B87AFF5CD10AA154634"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/CREATED_FILES.txt",
+        "sha256":  "03AE5F659D822620EFA99E05FDF125C56A0270F4515D34B4A822E517727C28BA"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_123559_826e9eff-guards.json",
+        "sha256":  "1F51176822FA2D438740290CDDA345845674987D6580B401F26FEBC80BE31724"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_123559_826e9eff.json",
+        "sha256":  "5AAEE1F869303046CA48889C5DC175AD61FAE0F9E94E5F97DE454293645D043A"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_123559_826e9eff_AuthUpgrade-schema.json",
+        "sha256":  "086BF93BB8A7A1A2A14C8982246DB32B164A37FCC194DCEA5A76506A8F9FD58C"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_123559_826e9eff_Fresh-schema.json",
+        "sha256":  "086BF93BB8A7A1A2A14C8982246DB32B164A37FCC194DCEA5A76506A8F9FD58C"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_123559_826e9eff_Upgrade-schema.json",
+        "sha256":  "086BF93BB8A7A1A2A14C8982246DB32B164A37FCC194DCEA5A76506A8F9FD58C"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_124702_3bcc1bfa-catalog.json",
+        "sha256":  "F6C6523DC9B8E5DFA52A2CC1571C5E9BA203A133A64B1C3FDF160C0D1D90088C"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_124702_3bcc1bfa-guards.json",
+        "sha256":  "6EB71574E580F42113DE9CFB36BA8542EFEBAB964211D1D225C9F077708332EF"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_124702_3bcc1bfa.json",
+        "sha256":  "63BAA44F70EB3BC447696C08D9B1FCA841469939FB46F8A88FC928A57D167535"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_124702_3bcc1bfa_AuthUpgrade-schema.json",
+        "sha256":  "7AA352C5EE012119EDEDF49550414926D610FB6950CFF74AE5FAF6E17A0B2C14"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_124702_3bcc1bfa_Fresh-schema.json",
+        "sha256":  "7AA352C5EE012119EDEDF49550414926D610FB6950CFF74AE5FAF6E17A0B2C14"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261026_124702_3bcc1bfa_Upgrade-schema.json",
+        "sha256":  "7AA352C5EE012119EDEDF49550414926D610FB6950CFF74AE5FAF6E17A0B2C14"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/ef-fresh-final.json",
+        "sha256":  "A84BB39802F1FB1B5316B8265F67A9B72BFEC82F3CAFC8EA629F139909DBE30A"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/ef-fresh-relational.json",
+        "sha256":  "066310CF99CA8175D60FA0CBE19B9F89DFBA58914625B4C793E9A73F56F9B220"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/ef-fresh.json",
+        "sha256":  "A3590BC4B686377C1C50253E0D204D126A6CE3652C8307BFE323AD9EFB5F0B9E"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/final-ef-auth-upgrade.json",
+        "sha256":  "81BB0DD61748A3DC8C75E492C6575590FD881DEFB3061F859803C2B2D9730994"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/final-ef-fresh.json",
+        "sha256":  "76AA6F35FE4084295CFD3B1A3F634BD1D81AAF757751DE228431FA6D4E6D00FE"
+    },
+    {
+        "path":  "scripts/verification/CanonicalDatabase/evidence/final-ef-upgrade.json",
+        "sha256":  "FA4693BC25363FA2B3E2E45187C07513839CF59EE937129E06DE5693D4EF7F7C"
+    },
+    {
+        "path":  "scripts/verification/DataScope/RESULTS.md",
+        "sha256":  "36B89948D2D2501C979F42F02DC90CF646EBC69D2EE98AA8A35103399E624126"
+    },
+    {
+        "path":  "scripts/verification/Dev1Deactivation/CURRENT_RESPONSIBILITY_MATRIX.md",
+        "sha256":  "E3BE013CC423D765750BB113619732D00EB197B01AF67150CD1DF32737A06104"
+    },
+    {
+        "path":  "scripts/verification/Dev1Deactivation/LAST_ADMIN_REVIEW.md",
+        "sha256":  "BAB467A78CF852416049F15DBBC5A2B715F0A97E857951BDE1A6AD6C0AD57904"
+    },
+    {
+        "path":  "scripts/verification/Dev1Deactivation/OPEN_BLOCKERS.md",
+        "sha256":  "5881D9AC39F088FB160656044AB265B2ED8DF1713C51454CF348DCEC61A6D560"
+    },
+    {
+        "path":  "scripts/verification/Dev1Deactivation/README.md",
+        "sha256":  "F78717DA4FBE634EB5A845BC94BA99C6FF5D87AF9240E2466C2F15090E5BB50B"
+    },
+    {
+        "path":  "scripts/verification/Dev1Deactivation/VERIFICATION_RESULTS.md",
+        "sha256":  "8C901F3907C4A66C555AE0FB8EABC6D2D877E9E1FB99571EEAD5A067CACD75F6"
+    },
+    {
+        "path":  "scripts/verification/Dev1Deactivation/WRITER_AND_LOCK_AUDIT.md",
+        "sha256":  "3889728C5958BB893DACBAFD78BA7AAF828CF3E69A39154CF9E435566C5BDA43"
+    },
+    {
+        "path":  "scripts/verification/HttpSqlIntegration/README.md",
+        "sha256":  "CF5419173BE1DD19C84832D8FF63DA0679D98BDCB3E72554CA6B5956478A591A"
+    },
+    {
+        "path":  "scripts/verification/HttpSqlIntegration/RESULTS.md",
+        "sha256":  "7DD450E65B328DAD9F1228B9588544B3AFF6826822ED2DBC94E927DC12DBDDC0"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/sql-final.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-activate.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-branch.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-create-profile-startup.local.json",
+        "sha256":  "3DE5B5A27BF71D4A5364306122F8D1EDE351BFF85BBCC501F064EE80A40BE126"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-foundation.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-raw-reset.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reset-regression.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-activate.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-branch.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-create-order.local.json",
+        "sha256":  "8D2B58A13A60CB01CDEAE93CF32DDBC60823FBB5A0477F7B422BA35AB4D6F01A"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-create-profile-startup.local.json",
+        "sha256":  "ABB6AFC14C3AA4C9ED19E1FBE6375E3DD5A76D44F45E4C7311F9C039451FB47F"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-foundation.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-http-final.local.json",
+        "sha256":  "9A22A16E14362BF9C5FE88F49BCAE832F707084C0D573A40BAF445CC9E8001C6"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-raw-reset.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task42-reviewed-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-activate.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-branch.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-create-profile-startup.local.json",
+        "sha256":  "EABD4A7286EC484DC1AC2EEB3DDB651D0A650A313A985A50463800A653C4E68B"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-foundation.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-http-final.local.json",
+        "sha256":  "4293FC20BFF879EF4BB464E6AB7DFFAA39EDA209A28EDC0459173B6F06A2F753"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-http-verified.local.json",
+        "sha256":  "E5102809A3BBEFC5EFC10F60FC3EA04670E6F86A2CB7B52A881EA1C11FD69A41"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-preflight-hashes.local.json",
+        "sha256":  "47F1416024091C9CFE3AAFC5829634B634A0C14F7CE3965AC2D7BB19334EBF28"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-raw-reset.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-reauth.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/task43-writers-verified.local.json",
+        "sha256":  "3E723F6848552701893222C6EB06DDD3D004F6C54D5C9A7E1BFF8A506FF3F503"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/uc004-profile-startup.local.json",
+        "sha256":  "37300E967E62989AC06019E8AF60093A4CF4DEA2BBB4DA99EC4FCD507A359D8F"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/uc005-reset-reauth.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/uc006-activation.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/LastAdminProtection/uc007-branch.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/PermissionService/RESULTS.md",
+        "sha256":  "9FDC1C3E07B838685DB626A175B0095649BEC91BFE4F480587D00AD98609F714"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/BACKUP_RECOVERY_PLAN.md",
+        "sha256":  "165EFA661830927A9C8C6E9E0DBC3D3DD5744C80CBBAB122B77B812897918363"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/DEPLOYMENT_READINESS_REPORT.md",
+        "sha256":  "691B15A08298A82659BD5BC89B425A0ECBD76331275AB91124F91AF8C43823AE"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/EXPECTED_CHANGES_FOR_TASK03B.json",
+        "sha256":  "060FC2BC062810F15C13A47F16C28BFB9D053109AB578DCE514AC9B24B7D887E"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/PREFLIGHT_RESULTS.md",
+        "sha256":  "C0E76D32921FCDDA03EFCC3A2FB8D06F19B205CEFD692A518BA340DEA397D247"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/Prepare-Task03A.ps1",
+        "sha256":  "F1229BBA6E81D27CD64B9F30E02E987E3152DCF4AE7117543DE2BCF52DBFC058"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/README.md",
+        "sha256":  "87B8A100B4C0D9C92DB0C852188300EC4E7ED919DD4A86FED45521764077DD51"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+        "sha256":  "C1FD3904871107F0284CDC8ADF5CFF8193972B408ECBCBC3F3EBE51AF29B3A64"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/VERIFICATION_PLAN.md",
+        "sha256":  "DBD508155E4534FDDDAFBCC9484B7B64146125A499CC13F19F37B15F5DC225BF"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/Verify-Rehearsal.ps1",
+        "sha256":  "F105C3AE607239171126B87D9C57004D7D3D9A73682AEC7635272743E13D1F43"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/backup-evidence.json",
+        "sha256":  "74DDAD52A599483FD4F7540794F81D5AD69FD268D93DDBFBAF082C137B78D0A2"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/backup-rehearsal-state.json",
+        "sha256":  "6BEAFC35211141EE3D0C701F22CB81624807CE89D0F27FB5C7073A2436D013AA"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/deployment-state.json",
+        "sha256":  "2B7391F13BAA08387E775130A9BF74DB07E62AA3DF93E5F5E76020A6A96FA07D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+        "sha256":  "E77AC074EFF72F8F8A0D863B4B080E559699ED8A44A7D1DCEF7DB9C25BCF1793"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-commit.sql",
+        "sha256":  "1B3DC99121E55A01006C7775C433D37434D3A4219413BA6BB36CC8D5A0437BEB"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-dry-run.sql",
+        "sha256":  "84D42C42D8D180ED7CDF9F95BD225E15FD11AA078690E0648394636E21F38685"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-result.json",
+        "sha256":  "544303FDEEF6EA8EA54B6932BB544F4DC471A20410FD471464A6A914A5336960"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/postdeployment-readonly.sql",
+        "sha256":  "3A0FAA5FDD104F754F9D2D34944F1ACE72789AFD2F6CC05448D230D4DB419355"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/preflight-readonly.sql",
+        "sha256":  "371F3C8C66C0E7D7762D74F68619A97DB1FFF95D27596168E508D92B3838C1A0"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/preflight-results.txt",
+        "sha256":  "8D2ECD6EE18EE74965AE4C9693D268C4EA9A348CE01DDC0C19B1EEE788CCF60D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/recovery-preflight-results.txt",
+        "sha256":  "817BC4CFF78E05CB84D588FC5DC25A9CB69454EE7C289A1842CC3EBF65A91716"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-after.json",
+        "sha256":  "68EF4546426CDA7CE2494EFAAD041CBA846FB996209AE9FB145A6D0F2753C023"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-commit.sql",
+        "sha256":  "5C405F41A972BBEA5E36635C8811EFB6DA80D526672713224E8A7F36CF842364"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-dry-run.sql",
+        "sha256":  "932AD3F5BDFBCB8159C4965885147A6E54B8EACABFDEEFFB000E81C4D659329D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-result.json",
+        "sha256":  "24F692DACE8825177EDC838347B3B0D609990085B40709EA33BD218726348C59"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-verification.txt",
+        "sha256":  "03AD46D42E57127E1E8D6CF053A5E1F50F8288DFD8A97F8E9B7A7E436307ED75"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/restore-proof.json",
+        "sha256":  "D2156879DEA2261B12503BA03EAD5AFC1FC46D9B9A7ED04173B23206DF013CB4"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/source-after-readonly.json",
+        "sha256":  "AC696E0E343AE8167672D737EB48909015AAE87204F5D1F94DB693E5A76C2EA1"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/DEPLOYMENT_EXECUTION_REPORT.md",
+        "sha256":  "805C550B98832D02902CA7521950BF872FAA97E5C465579884FB34A29FDE72C5"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/Deploy-Task03B.ps1",
+        "sha256":  "AF6AEF2FE777D0D1C11ACD60D3CC08B6AE94EF3B7E7DDBB42378D9A3DE8C726C"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/Inspect-Task03B.ps1",
+        "sha256":  "8B39E944F5CFC7DC399D7C022BA16996BD6250623C6920AFCAF1F61FDD511E40"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/README.md",
+        "sha256":  "ADF14949E04C0B7B24F37EB1EFB3AA67F87514F6FEF624404532A98790873A73"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/RECOVERY_AND_INCIDENT_NOTES.md",
+        "sha256":  "1E6DB5EBBB8D6EA4C9D0798FF6B3BA461C95E0E4756E6A063390782BB0BB773A"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/actual-changeset.json",
+        "sha256":  "0CA4E46F21229897E9431523BF89DED5E9166CF836076E3B73D17A24DF7DBDB9"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/artifact-validation.json",
+        "sha256":  "A380059889A5E65BA19DB64C8EB3DCB8680F66D128794C438BF74A63F714FD7B"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/authentication-console-results.txt",
+        "sha256":  "FD2D69AD2C629E54148DCF0F835AB090E4617264FC71FAA7B5945F82383D2143"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/backup-verification.json",
+        "sha256":  "225C8032B9FF0FA0686B797CA29384E44A5C5CE7B649721F161CA5668AA56A55"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/execution-evidence.json",
+        "sha256":  "32FC2042F529F3122E7FF0D2214694BB6D7C984FED9141C3D9D9B0906D380206"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/postdeployment-fingerprints.json",
+        "sha256":  "5DB8F1B47F730A60D3401DA5ADF93624831ABCBA45607A5C1CC58F8ACD660268"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/postdeployment-results.txt",
+        "sha256":  "2D1ED1FF9C2C0CA33087D6DFD2742330D424CBEF4685D93D8DF41EC2E7A71846"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/predicted-grant-changes.json",
+        "sha256":  "2FD8E254AAE32219C3BF2BC9300901639FD0E1FF05AE56CB36F4BE5C9D7B1BB1"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/preflight-evidence.json",
+        "sha256":  "FAA891ED037C01947469CE0CDB3C4E9D23B1E95B0665C33E2D86E3E26A9ADE86"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/preservation-baseline.json",
+        "sha256":  "FC71BCDBFA65F8965AF88815EA6526E12CADCE1FA105986ECE80441B852CA4B2"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/read-only-harness-error.json",
+        "sha256":  "B56F655FF1E2A797F2B8238E2F6A4CE6AC5E17652E471EB9A914D18A640E8D0D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/release04-results.txt",
+        "sha256":  "0A9D6C9ACB74F98531C8314EFA810E7F35EF0E20A8FCB5A09718001ED7976DA5"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/task03a-package-digests.json",
+        "sha256":  "7D0E57BDCF56D8C924CAAEFD7F1D984F78DAD85EF7BDD5B3F8EE66A1039B30B2"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/README.md",
+        "sha256":  "1CAD6E91E7A1859E9586E1DFD3EA7B452871555BD10CA7881897D0338E507468"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Run-DepartmentCleanup.ps1",
+        "sha256":  "D1089FBC422DE95A22BB62C5661D4DDEC1A707288C47CF736E255E0F03432B26"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Run-Trial.ps1",
+        "sha256":  "5A17CED55200D3CA293E7555448A0D35AC011593263F24D33C1BB571654B6AB0"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/README.md",
+        "sha256":  "23390A3D55FAFE06B73E972F62A7D78073BF32FFEE2808008F406E36F8876086"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/department-cleanup.sql",
+        "sha256":  "1E11020B9068DEAC1D572960D1239BD8B1BA3E9B30C225D36873D9804C947579"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/dependency-before.txt",
+        "sha256":  "1AAD87489579DF9B341B8F691374C957BAB3B9ED9360A3258AFA1E7E8DD98CAD"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/dry-run-results.txt",
+        "sha256":  "CB551618FFB974E4A414F57F19E564A91AF404C0BBA6DA7B63ED715D2172D4DC"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/protected-file-hashes.json",
+        "sha256":  "07F28F6CCF09833107240798FAB5A7A0AFBA438BA1C9D9F398997F85B8127C36"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/result.json",
+        "sha256":  "6E0A73A33EA4E59A48481F23ABA44E2A02899637EE5AD1AE833AF2F61CADC2D3"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/source-after.json",
+        "sha256":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/source-before.json",
+        "sha256":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/trial-after.json",
+        "sha256":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/trial-before.json",
+        "sha256":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02B/verification-results.txt",
+        "sha256":  "011FC049EB8FD1A7A2EF26968CB50C24A5111B45F3B9C15E0BB982B91ED3DDF9"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/README.md",
+        "sha256":  "002ED7D3E6FDCB51B3E27A80A5C525CB484A7A7C6C3B472AE4117EC343F243FD"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/Run-Task02C.ps1",
+        "sha256":  "70E9CF1F6186C47D52A2BE1F173F93003813806CE5ADDDD3B4A4B3B1FF418C69"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/commit-results.txt",
+        "sha256":  "F47138D489309FD25B4C43D8F3A27561A3CAA1189364E7E97CABEB646E19DC14"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/department-dry-run-results.txt",
+        "sha256":  "A0965778A17BE9682693060C3D2C969896B6DF1EE23D6DA94F9F1FB90622FF73"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/dry-run-results.txt",
+        "sha256":  "F47138D489309FD25B4C43D8F3A27561A3CAA1189364E7E97CABEB646E19DC14"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/postflight-results.txt",
+        "sha256":  "8C1B83D7395A6FB35062D41D9D5C1A8C305228427D9D0D40EC1C26B4F7D01EA0"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/preflight-results.txt",
+        "sha256":  "E33F9A26A4AC34278D80B20C699724B423A3C382CD65055E15B6502F9B4DD890"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/preflight.sql",
+        "sha256":  "D2CC9EDE62A68A39A9A04403F19B41702C1B5F0D9BDEC80DC956E7FFC2FAD6BD"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/protected-file-hashes.json",
+        "sha256":  "1DB3B1665E05B4AF5967FAED07588FFB1F93B8C5A42F037D09317F77F5B2591F"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/recovery-point.json",
+        "sha256":  "95EEFF42F8ACEBE327A96EBE1B0838627EF276C53F1F8063AE13E11DA3AA1ED6"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/release-verification-results.txt",
+        "sha256":  "11420C178D7A513ACDFDEAF4B484E1F55263893FB27367C141EABD0951927292"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/resolve-safe-dependencies.sql",
+        "sha256":  "DC5110440B5518F73C5A0D49097B78EEF9F79366A8FE8A3D2B6A4FA646F88AB0"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/result.json",
+        "sha256":  "35FFA8A48C3A7BE26EAD8D07A6B85850F8980487B258649637094A1B74B70CDE"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/source-after.json",
+        "sha256":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/source-before.json",
+        "sha256":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/trial-after.json",
+        "sha256":  "93DA42E85E8F1432569E39BC3C1BA09EBEFEDCBFC32B074F79FA234570EE3F26"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/trial-before.json",
+        "sha256":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/user-reference-results.txt",
+        "sha256":  "DF9B05BAFB32B049D2458F38DF0B0BAC24AAB5D4453B6C8EFC97C7B799A3FC87"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02C/verification-results.txt",
+        "sha256":  "011FC049EB8FD1A7A2EF26968CB50C24A5111B45F3B9C15E0BB982B91ED3DDF9"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02D/FINAL_RESOLUTION_PLAN.md",
+        "sha256":  "B0F73B3742D75D615E5499AA90A57B29EDE931B0144CD8CAE0F9015CE0648DBF"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02E/EXECUTION_PLAN.md",
+        "sha256":  "1184BEADF9415AE2FEA7DBDE0DAD98D5B827558FCD8B5060086E880063D8A3D1"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02E/FINGERPRINT_BASELINES.json",
+        "sha256":  "6161CC7043985EDDCA4DBA65BA0019C1E9C9534010C9EAA9A431B1B7E9686E7D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02E/FIXTURE_RESET_MANIFEST.json",
+        "sha256":  "B689B96F666802C0F18063E60B549576CBEF6D2510087C9C3A29E8F9221BB6B6"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02E/FIXTURE_RESET_MANIFEST.md",
+        "sha256":  "8CE74D99758FC871813778CDB2EE594A0502B1A8AFFB6F527FF6EE24AC2AF8C7"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02E/FK_GRAPH.json",
+        "sha256":  "6ACBE89F90D31DC44542CBD52337C62D6044ACC67F271355DAA5FD25F4F34F6A"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Task02E/README.md",
+        "sha256":  "321BBAF0194620A93F2ADD16A2FCAF577C231257B83DE180334795B82EEE3ECA"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/Verify-Trial.ps1",
+        "sha256":  "B39C6AABB27A12BD21D0A716FB148F80DD19677193A85206DECB724B19C8BC5D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/extra-baseline.json",
+        "sha256":  "08F6B37FAEF4D5B9AE19672495C07C93FF892BC4C6F4ED6C7CD4DFB0BC8D8C24"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/schema-column-differences.json",
+        "sha256":  "84B1C14E68260082E3E79EDFF0A78F4EBF1942CFD6C593246044EC2149CBB87D"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/source-after.json",
+        "sha256":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/trial-after.json",
+        "sha256":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/trial-before.json",
+        "sha256":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/trial-dry-run.sql",
+        "sha256":  "D342BED0767B8B2ECAC9C27A6EBFD23AEB0C405A9B2A60990326C84F74FD502F"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/trial-state.json",
+        "sha256":  "A0A4C25947404FFFFBAC7D9B8707190B79A0E902BABD00D073AFA34CE16D232A"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/trial-upgrade.sql",
+        "sha256":  "28F0A8504075492E66F23F81D6EF0460C2478C3043DA653B8E5B81A72CD7DDF2"
+    },
+    {
+        "path":  "scripts/verification/RbacUpgradeTrial/verification-result.json",
+        "sha256":  "A3AA2258C09F4F8E30ECB8C1F991EEE096768F01D68B1554C4DCA8BBDA9A0722"
+    },
+    {
+        "path":  "scripts/verification/ResourceAuthorization/RESULTS.md",
+        "sha256":  "4CC72C607858E78B5812AD02C1F66B5273B8682C83C0B48BDB57401959078513"
+    },
+    {
+        "path":  "scripts/verification/ResourceAuthorization/preexisting-file-hashes.json",
+        "sha256":  "AE32D133BB57383EA29B719EA13CE6150472B623F3AB8F1FD41E34BDA5FB1A87"
+    },
+    {
+        "path":  "scripts/verification/StartupSchemaGate/startup-results.local.json",
+        "sha256":  "03E555E1D55F10B86F12DC9D0E1A4A5CE0DE9EB5813659807D6CF80D6E5843ED"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/activation-final.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/activation-http-race.local.json",
+        "sha256":  "04EC729E15F83B8F7D220642B3C9BDE7A5B7C94A8FF4188BB363D6299CB33DF4"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/activation-primitive.local.json",
+        "sha256":  "31DC46E047123DDDDB6CC716CA2950592CF1D769EFA5FCAFC8AADD9D1DBFC2BB"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/activation-release.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/create-read-startup.local.json",
+        "sha256":  "EB8293ED8ECC1B5C80CE6C9CBAD3ED2C7E167D7216A01D679501BFA23F785FDC"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/credential-legacy.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/reauth-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/reset-primitive.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-activation.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-create-read-startup.local.json",
+        "sha256":  "F5D1C9E5990BCC1101008293D471C36DC0761E669C3CFE005516947D3ADFFF2E"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-credential-legacy.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-dependency-inventory.local.json",
+        "sha256":  "6BF918EDD012F51AFC7A0653F88C9C1B37A9B56A600EB541A8430640C781D264"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-primitive.local.json",
+        "sha256":  "31DC46E047123DDDDB6CC716CA2950592CF1D769EFA5FCAFC8AADD9D1DBFC2BB"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-reauth-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserAccountActivation/task37-reset-primitive.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/http-results.local.json",
+        "sha256":  "A8257AB152F4A68C1916FADC24C8902CA62F81BC9B24C18F809F283296507BFA"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/http-verified-results.local.json",
+        "sha256":  "E806F5E11F939448E8374DC19B2FD93E13DC6A3653F9B5F2EC89FEFDCF673939"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/participant-final-results.local.json",
+        "sha256":  "5394E3CA059EC2C22452FEEB4D531F30EE0C9DB8B34E8881FB026B60018336DC"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/participant-results.local.json",
+        "sha256":  "03C99E3FE2A82E2655E44B1451A4C52D1B45EB86E5636297683944BF8DB3FA1F"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/task31-commit-boundary.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/task31-http.local.json",
+        "sha256":  "F92BD45B7AA7A1670BEB180B7B704EAB32C143A843C5B620DAFFF8310FE18DF9"
+    },
+    {
+        "path":  "scripts/verification/UserAccountCreation/task31-participant.local.json",
+        "sha256":  "5394E3CA059EC2C22452FEEB4D531F30EE0C9DB8B34E8881FB026B60018336DC"
+    },
+    {
+        "path":  "scripts/verification/UserAccountDetail/task22-final-results.local.json",
+        "sha256":  "E324D1D5EA097C9318CD41683137450B1F6D2CB0D8844AA806AA76AAE369F349"
+    },
+    {
+        "path":  "scripts/verification/UserAccountDetail/task22-list-final-results.local.json",
+        "sha256":  "79BD03594FF1BF4BB1D03026B1F3978960F8644DD87EE4DB582079841CEDA83C"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/activation-final.local.json",
+        "sha256":  "31DC46E047123DDDDB6CC716CA2950592CF1D769EFA5FCAFC8AADD9D1DBFC2BB"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/activation-sql.local.json",
+        "sha256":  "6649F30663624827BBCF582A52667142B56620E45CA138BC0A6700A2ADDECA14"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/create-read-startup.local.json",
+        "sha256":  "40678138CEC50E912A643D7452E82A6B332B19F4B3DC774392517E85BFB19479"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/credential-legacy.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/dependency-inventory.local.json",
+        "sha256":  "5E5B1B90921639DC1534AB70AF93674E640AFA3A8ED12FFAD63E8DE95409F904"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/reauth-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserAccountStatus/reset-primitive.local.json",
+        "sha256":  "4763AD5124B02937C902D50EC099E05FFED15E462B42C7E317C4D09650D5E6F0"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/activation-regression.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/create-read-startup.local.json",
+        "sha256":  "1003F0441D925C50A21BEF20AB4BB288497B3F88476D12BA1B9330060574A564"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/final-activation.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/final-create-read-startup.local.json",
+        "sha256":  "2C188A9A8D95840C4B5D87D56B949B7042DC57B2A523F9827FA1A38C13C3D0FA"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/final-reauth-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/http-sql-final.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/reauth-reset-regression.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/schema-foundation.local.json",
+        "sha256":  "2DFACEF14F8C817EE127A8306F62C15772053C3205AEEF1FBADF152D8504A1EE"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/task39-activation.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/task39-create-read-startup.local.json",
+        "sha256":  "1C5C7F6752DE19E8BBEFBCDD6A454569A3FAAFEAD3F6F7966308F3425D008D93"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/task39-http-sql-race.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/task39-reauth-reset.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserBranchAssignment/workflow-races.local.json",
+        "sha256":  "DC7992CA51754AE57A4ED8540C19533671FF85CEAA4268238AD2C2A04483CB9E"
+    },
+    {
+        "path":  "scripts/verification/UserCredentialReset/create-read-startup-regression.local.json",
+        "sha256":  "F00C3C5958F6FBF285C5448B9D3ED8E96D138EDEB2EC0FC12A63802F988CCEA9"
+    },
+    {
+        "path":  "scripts/verification/UserCredentialReset/legacy-regression.local.json",
+        "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+    },
+    {
+        "path":  "scripts/verification/UserCredentialReset/reset-transaction.local.json",
+        "sha256":  "843E99551936446D696BB825AEB0510D2D7E6D7C6DDD757D3752D2F4C5E6289B"
+    },
+    {
+        "path":  "scripts/verification/UserDirectory/uc141-results.json",
+        "sha256":  "2B91A6ECA148DE32D6F438BD9C3E4A68DD7AA2AFA6FEB4B104168DB580035793"
+    },
+    {
+        "path":  "scripts/verification/UserManagementCommit/COMMIT_MANIFEST.md",
+        "sha256":  "E3684FFF902C0804752273B3606E5FF640B2279F4F130E45BA191CFF03576C38"
+    },
+    {
+        "path":  "scripts/verification/UserManagementCommit/README.md",
+        "sha256":  "7B62BF9D1BD8BA74C8861A6105AD31C86457720AABC6A41E5BA04B9239E99F4C"
+    },
+    {
+        "path":  "scripts/verification/UserManagementCommit/RELEASE_RESTRICTIONS.md",
+        "sha256":  "03043888A2AE1ECCCC0A4924B15726ED54706B091058A90C0F813BE45CB42EF9"
+    },
+    {
+        "path":  "scripts/verification/UserManagementCommit/SECURITY_REVIEW.md",
+        "sha256":  "101E8EAF87C7A62F641C44B91AE9EB34112FA5F41102E6A88089D102131AF19B"
+    },
+    {
+        "path":  "scripts/verification/UserManagementCommit/VERIFICATION_RESULTS.md",
+        "sha256":  "9E980065D12CCBE843D2FEEEEEB43E0B3C947BF031D858BECC26D69CFADA9C0A"
+    },
+    {
+        "path":  "scripts/verification/UserManagementCommit/task29-runtime.local.json",
+        "sha256":  "3F9D7F73024CBE8E93F417B6ADFFB7E0189C794E0AB3764B9DA0FDD7A0A0BD9D"
+    },
+    {
+        "path":  "scripts/verification/UserManagementIntegration/integration-results.local.json",
+        "sha256":  "EA64D74F83041EC2C98C9CB2A02886AA85119768B4DBCA47F615BB6FFA4FCA6A"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/profile-final-results.local.json",
+        "sha256":  "B347F024FE43F560430C7898616D8D6FE35037BC734392A0401618AE9D17DA43"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/profile-verified-results.local.json",
+        "sha256":  "1FCDB19146B2FE268538C007A95A0A57CB34E607BEA2D371684B00F2C767D2D4"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-1239d565e3d64cf1bf107aa91e57d4fe.local.json",
+        "sha256":  "66A512DDC5B65BBC25F5BF8F4A05654FB08E4EB9B4461B3CB8E483FE3ADC6228"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-168ad210e1d54747a7052713b92ea88b.local.json",
+        "sha256":  "47A0DD631094F5CFF220DEFE2113CBFC7565FED583109EFB4C594F9528094CEF"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-201a91eb4b4a4f3385cd86e20193c291.local.json",
+        "sha256":  "E9A74E717BA729576F5A63053DA9654744934A246D95D704B709A316CA2FBDC4"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-2ece4d590a7f4d399f1bcfc207a3674b.local.json",
+        "sha256":  "DF86238CC1B661FF93F68EB697FC9E08A63A9BB9E08D2ABB356D18431697938E"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-404b84b733e34b79a554eaf440e68733.local.json",
+        "sha256":  "B65F8226740DA0EE2EF1DFF5180A08BEDFE532EFC9F3EC950D956846DACB9C36"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-487e59834bde4d87b986b466d16d024e.local.json",
+        "sha256":  "BF369B083793263549E17E5041BA1C469E276BC5A77A9951B0391AB85780C365"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-487f5a3f5888401eb4dd6cf2e1bb00b0.local.json",
+        "sha256":  "836EF5C6703D90734B0213E7197681A27BD67F6F68440FEAC5AB5F59259EEE52"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-4dc957637d0d470191a11842a221c935.local.json",
+        "sha256":  "9E83937090851A081FFADF8CC3BFF4D258BE8C7B2AF20788114FA7E59932B9EF"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-5f474d54a56e4bd7b8033517c41e1213.local.json",
+        "sha256":  "8D833A351CC9889218A66331B6CCFCBAE656637DE39F0921065A3C0A82D133AD"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-6f56f331479c4e95bbf47f4f48b0d152.local.json",
+        "sha256":  "F2C7428C7A5FF5314BE17E61350E56015F33EC51BCA0D6044AB19A3729BC6460"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-70bc846deac144578cab3d4649e4408f.local.json",
+        "sha256":  "4EEF76E22ABB9EBCAA9BF1C5FD61015C1F542304E00DE13FF3801F1EEAA0AD18"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-8b1a658c7e854b028d2c89690b41f788.local.json",
+        "sha256":  "D073956F8FD66A3D3EF7584D931E41F53037E075837D5EC41CD1833D06E3B863"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-8be09caeab9e405590d1b0d45cda20a1.local.json",
+        "sha256":  "7A1A77E542164D4E4CE8DC649E7CBEE460D744908614C56806B8DAECDF84B818"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-9693edca36684f04a6fd90bde3b8f4b0.local.json",
+        "sha256":  "ADA7D5886ADAE75F839B1935EB18B404329894C3A72221819438C4433A63ECC7"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-997d17c979fb4ed6a9dc4684592765bc.local.json",
+        "sha256":  "BC83CED046C5FE110DEC0BD60DEA1AF3C227DE7F3CACA70602FC1E243EEBF6B9"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-9bf5002d9b294bce8eb3e5128e88dc35.local.json",
+        "sha256":  "255050B1A4EEEF794A0051350329C3CEEC4909942D576D2D401FDD22A56EB684"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-a09e980329bd4dcbb6d31ad95bc2dc20.local.json",
+        "sha256":  "15E47939DE3BA976D6F590D9F3DA5CBD336A7D39A250F024D7D0804B7CE4018D"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-b68fe990a2fe43edb28699886d1248e0.local.json",
+        "sha256":  "478EBA629108542ABDF56DADA7313B15B7DBA559DC390875FE741AFA06291F1A"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-c40d16a266ed4425a54dd6d90c81392a.local.json",
+        "sha256":  "1161249250948F3B6E58DA7F185449BB234D6E2D897871E916AECB9E9FED4A75"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-d26e4c15db0f483c87fa73a3e632d482.local.json",
+        "sha256":  "1EBB144A1004F4E7EF88A8160558853D75A184ADB7DFE35501A24FF0AF40393F"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-d59701b994d94cdfbf0d52c0e49a1e66.local.json",
+        "sha256":  "34AD943B623A753922901703C94A1393F8B15B283A5F6BA1DAE9D7E2652D06E0"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-d880de9e77d74e62b4dd10af4c5475fb.local.json",
+        "sha256":  "6EE9B70EA2172CF8C29F9E13647D1805497D9F3A9BCEE97396D201665F3BEEA9"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdate/schema-e5d50c6ef9f749de8838d0ab82262c3b.local.json",
+        "sha256":  "08F6F31C79ACCD195BBD93ACD71DF9FA6093D1D9B8F6113462CBA545E647E0C9"
+    },
+    {
+        "path":  "scripts/verification/UserProfileUpdateGate/task25-read-regression.local.json",
+        "sha256":  "EED40FADA491C630B126AAA7AE24BF5D2475DDDBCE6610BC5D45BE06449FFE39"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-http-complete.local.json",
+        "sha256":  "AC76B3A7FE614B32E9F695850BAE010BBC753DC4F13662CD26555910F41649F4"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-http-final.local.json",
+        "sha256":  "15C6398D156767528F7C8F642F532E93BC69EF86BD5D4C9BBF91DA33F90A7766"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-http-release.local.json",
+        "sha256":  "E517FADA733D6A693B3D9827DE3168092353F46CBC661683BD82C0F3B53AEFFB"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-http.local.json",
+        "sha256":  "B9FD22229E365E3B9850189317108FAF2B1676B7A64DD7287D6D270C7B1FDC2B"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-lastadmin-foundation.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-lastadmin-http.local.json",
+        "sha256":  "E5102809A3BBEFC5EFC10F60FC3EA04670E6F86A2CB7B52A881EA1C11FD69A41"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-uc004-profile-startup.local.json",
+        "sha256":  "499C353354486EDF378D42F086F58F471A08DF26880EEEC75646C888AFF587B2"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-uc005.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-uc006.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-approved-uc007.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-lastadmin-foundation.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-lastadmin-http.local.json",
+        "sha256":  "E5102809A3BBEFC5EFC10F60FC3EA04670E6F86A2CB7B52A881EA1C11FD69A41"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-schema-final.local.json",
+        "sha256":  "45D9C0D63E9B0E88F33A38FA215617237AD35F01F25B1547346BFD3B252D7D7C"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-schema-verified.local.json",
+        "sha256":  "356256FEAB32F5AFEB9E46ABA4AE63AD1922FF102B249D67AA80FEF3DD55F002"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-schema.local.json",
+        "sha256":  "7C90BE3584A611105E3AA5FE913C32B43477ECAAD18F8E868582C1346D313DFD"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-uc004-profile-startup.local.json",
+        "sha256":  "1E7D296AA61475AD4A56FAACBD00920C85ADFD99234D581AE5A71471FC6230BA"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-uc005.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-uc006.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task44-uc007.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-https-sql.local.json",
+        "sha256":  "DB9457F967544B1AFD5150B2665C0D80C5B7008F789A6E272D7FC0A29F2D368A"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-lastadmin-foundation.local.json",
+        "sha256":  "5FEDABA719CB4620498352C5E97ABE87BE792B8C2E45648C53F3442939A6164A"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-lastadmin-http.local.json",
+        "sha256":  "E5102809A3BBEFC5EFC10F60FC3EA04670E6F86A2CB7B52A881EA1C11FD69A41"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-schema-catalog.local.json",
+        "sha256":  "9E326E6DCCD987BBDABA38A4EF04665F0404BBF12D2BD3C5969267E851687DAF"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-uc004-profile-startup.local.json",
+        "sha256":  "ED6CAAC70AFBFB0167C1C1D0310EB58D9644686F89C55E2B4BF3167047BEFBF1"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-uc005.local.json",
+        "sha256":  "198D4BC980D581908F0F5A4C6A72658F2F5F6DF7FC464570704993BABC49619B"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-uc006.local.json",
+        "sha256":  "F14569CB08F9FD003EAC0F6BB8C0819C2993085D434D5476C72EDDC40EC3CA1E"
+    },
+    {
+        "path":  "scripts/verification/UserRoleAssignment/task45-uc007.local.json",
+        "sha256":  "352FFEA96110B476DC560D25E7D41055A7CF6EFB6023CA7683CD42C4184D3AC3"
+    }
+]

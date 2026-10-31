@@ -1,0 +1,442 @@
+﻿{
+    "runId":  "RBAC03A_20261021_24e14e196c6a",
+    "sourceIdentity":  {
+                           "database":  "HotelOpsDB",
+                           "databaseId":  22,
+                           "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                           "createStamp":  "2026-10-18 02:41:14.627"
+                       },
+    "sourceBefore":  {
+                         "[dbo].[areas]":  {
+                                               "count":  12,
+                                               "hash":  "581247F519A5FBB4888AD8ECCEE4D2E0045191CADEAE49365994BFE94509DB17"
+                                           },
+                         "[dbo].[asset_condition_history]":  {
+                                                                 "count":  15,
+                                                                 "hash":  "B963DD15B5F3BA97A8714F50ABD77F9D84A1F90DA14AC3FC4E6A576DDB14C695"
+                                                             },
+                         "[dbo].[asset_handovers]":  {
+                                                         "count":  10,
+                                                         "hash":  "8EE500CEEC79721FEB79E870B2ADCCD79319B90D9EDC0A24CC98A4825D718260"
+                                                     },
+                         "[dbo].[asset_location_history]":  {
+                                                                "count":  14,
+                                                                "hash":  "341994F04038286B8D8E10B0022732E6F4C351DAC5BBB80994E6BF7956BB8C4A"
+                                                            },
+                         "[dbo].[asset_types]":  {
+                                                     "count":  10,
+                                                     "hash":  "B62B9DF0FACB83B3FA156E9ED6CB19FFE16EE8D140A6DD3C3726B40AE537189B"
+                                                 },
+                         "[dbo].[assets]":  {
+                                                "count":  15,
+                                                "hash":  "95A57987FB9C17D667510286AFD6C8A75B4B4FAB1E426A8FB30DF3700117CE38"
+                                            },
+                         "[dbo].[attachments]":  {
+                                                     "count":  12,
+                                                     "hash":  "3D82AF9A334B05E2E7964AA5D3CF6F5A9830538917D3B551CF2211346F653081"
+                                                 },
+                         "[dbo].[audit_logs]":  {
+                                                    "count":  14,
+                                                    "hash":  "93B7614882CBF6727CD4DEF1BF920BB43666D6E2083C10F26AAEE522EF59948C"
+                                                },
+                         "[dbo].[branches]":  {
+                                                  "count":  2,
+                                                  "hash":  "874190641D8BCD3D14FEBFFF3F6FC3EE0D389E260B6B1C6E962F484C12778BD2"
+                                              },
+                         "[dbo].[cleaning_assignments]":  {
+                                                              "count":  15,
+                                                              "hash":  "D8BE6457699FB9F6194BE65CD1823AA3351F478B92CC5AC860674D372A8AE91C"
+                                                          },
+                         "[dbo].[cleaning_progress_logs]":  {
+                                                                "count":  15,
+                                                                "hash":  "8A8E3EDEDACA724F0F4C2CB58DBF7AFC9809154FDBBB8F1C2B0B7C3A8AC54B8E"
+                                                            },
+                         "[dbo].[cleaning_reworks]":  {
+                                                          "count":  10,
+                                                          "hash":  "4961A1DBF70903CF0395656086B94248D675D03ACD8F2115FB7C3228616488E7"
+                                                      },
+                         "[dbo].[cleaning_tasks]":  {
+                                                        "count":  15,
+                                                        "hash":  "D62DDD1CA50F4135B8ED4AA68A76D1AEE6706D57350DCBD34EF5F22F97F3DDAF"
+                                                    },
+                         "[dbo].[departments]":  {
+                                                     "count":  12,
+                                                     "hash":  "D3B8357ECDC612513B03187E4754F39AB67BCE6FF933213F46DA4611338A8215"
+                                                 },
+                         "[dbo].[floors]":  {
+                                                "count":  12,
+                                                "hash":  "7114D9D9D02CCBE04A0348CEB1B6A86E807B875BAB28AC6C840B2D68E9869C58"
+                                            },
+                         "[dbo].[incident_events]":  {
+                                                         "count":  15,
+                                                         "hash":  "CE25C5C069DEE92B7589D84B94B8CFF2DF6A045A83CBCFDB6FFDB59286E1C0B8"
+                                                     },
+                         "[dbo].[incidents]":  {
+                                                   "count":  12,
+                                                   "hash":  "A7EB25B0C2BCF6C2B28CB9B77892D296E42683B7708EFD8F070C8CF99F8B85D3"
+                                               },
+                         "[dbo].[inspection_checklist_items]":  {
+                                                                    "count":  15,
+                                                                    "hash":  "0A5E4432DC148BDAC96D44FB58F5FA9B8037967DDEBB1543E7E25A9D5E84AAA4"
+                                                                },
+                         "[dbo].[inspection_checklist_versions]":  {
+                                                                       "count":  10,
+                                                                       "hash":  "FAD591F85F27C053866605F445B60E02F270744E538FC2F1442BC6F65F87CAF8"
+                                                                   },
+                         "[dbo].[inspection_checklists]":  {
+                                                               "count":  10,
+                                                               "hash":  "94EB0C78DE103AF6841F2C60F61E3257D910A6421C9C650ACBB2F3237ADB918A"
+                                                           },
+                         "[dbo].[inspection_defects]":  {
+                                                            "count":  12,
+                                                            "hash":  "EDD265D3C0C43002BF48BD9F14A387E2CA8F6BFAAF6670FCAE761C05AADFB46C"
+                                                        },
+                         "[dbo].[inspection_results]":  {
+                                                            "count":  15,
+                                                            "hash":  "0273AC818994A37B461F485D2BFBC716A8DC9715C4180F5C1C1761F48383B8D1"
+                                                        },
+                         "[dbo].[internal_request_assignments]":  {
+                                                                      "count":  12,
+                                                                      "hash":  "72E4C3B70C3790C49FC594A2D3CD06D1D85AD5A520235A8331E3591471AB12C8"
+                                                                  },
+                         "[dbo].[internal_request_events]":  {
+                                                                 "count":  14,
+                                                                 "hash":  "8742C1A65C96FE906F7A9F53F5F791E165E398FEDFECCD70A7174683B4506AD2"
+                                                             },
+                         "[dbo].[internal_request_feedback]":  {
+                                                                   "count":  10,
+                                                                   "hash":  "CD0E644029123D859FFDA9936AB10AE9D9A1191584E280859A5EC7BF5D75E3AA"
+                                                               },
+                         "[dbo].[internal_request_types]":  {
+                                                                "count":  10,
+                                                                "hash":  "9E1C37DA9F6A412B39E27E987593AC5F37B874B6A0C82BF58AAD58BA69712BF2"
+                                                            },
+                         "[dbo].[internal_requests]":  {
+                                                           "count":  15,
+                                                           "hash":  "8030BF07700368B9CF2E018078901E9B8336C352C5809E58DDAFF98EC5BC7275"
+                                                       },
+                         "[dbo].[inventory_items]":  {
+                                                         "count":  15,
+                                                         "hash":  "3EC32E1C20139394856DBC06E75A5F32E2AA4F43348642EDA925C82C52736DA7"
+                                                     },
+                         "[dbo].[item_categories]":  {
+                                                         "count":  10,
+                                                         "hash":  "30CD7B8353F3EEA8CD495BB6B3A7E9653A6C0741C258229FC529B057A994309C"
+                                                     },
+                         "[dbo].[maintenance_work_logs]":  {
+                                                               "count":  12,
+                                                               "hash":  "DE1B862C221D8BBC04172691ABE07822CA414B1FD3DF6989E9FA58ABA6EEBB3E"
+                                                           },
+                         "[dbo].[maintenance_works]":  {
+                                                           "count":  12,
+                                                           "hash":  "EB43BFCE561E9C6EA940A77184B0529F03A6219FCB6DC3F2AE057EC8D4C8EB74"
+                                                       },
+                         "[dbo].[material_fulfillment_lines]":  {
+                                                                    "count":  11,
+                                                                    "hash":  "D8964FDB02547F7541857DFC46CABD144154F9A9B402F142DB533795268FB15E"
+                                                                },
+                         "[dbo].[material_fulfillments]":  {
+                                                               "count":  10,
+                                                               "hash":  "5A02DFF2487B0F1F5377A25EE6097A058F71110B335651D5FD85218AADCE02C7"
+                                                           },
+                         "[dbo].[material_request_approvals]":  {
+                                                                    "count":  12,
+                                                                    "hash":  "2453CF7F1DEBACC116DD4B7CF1C65ADC47CD8C0420D59D2E82E98F322495604F"
+                                                                },
+                         "[dbo].[material_request_lines]":  {
+                                                                "count":  14,
+                                                                "hash":  "15774A5BFC22DBC7DC2A4B2312CADC71E819C76237D9E4A5A596ACEB81337EA3"
+                                                            },
+                         "[dbo].[material_requests]":  {
+                                                           "count":  13,
+                                                           "hash":  "0EA3D340A5F3133497217CD08F96F1E569BC4B358F86E8EFE8DF533B2040366B"
+                                                       },
+                         "[dbo].[notification_recipients]":  {
+                                                                 "count":  15,
+                                                                 "hash":  "7F9530A540FBB60543C5EB45CE0EA6505B1559899CAF9BCF5155C6B440E7B766"
+                                                             },
+                         "[dbo].[notifications]":  {
+                                                       "count":  10,
+                                                       "hash":  "AF0C9F56C9FFD5411DBC5AD75797701936C7B75AF94D0CCB1D5C1918FB60CF3B"
+                                                   },
+                         "[dbo].[operational_task_assignments]":  {
+                                                                      "count":  15,
+                                                                      "hash":  "4D87B81EDA23D3E5F886AD442C1F900F3C7B7FBE98DDCEF8E4BC3BE2835E3BC2"
+                                                                  },
+                         "[dbo].[operational_task_dependencies]":  {
+                                                                       "count":  10,
+                                                                       "hash":  "4EA4C42FF2DCE755543ECB54C1B02BF7872073159F8D2A220627F7D3F9994E88"
+                                                                   },
+                         "[dbo].[operational_task_progress]":  {
+                                                                   "count":  12,
+                                                                   "hash":  "419E2D42BC856FDF4C77C89CFE16D52207237AB05472232A47D0C65B3F500D86"
+                                                               },
+                         "[dbo].[operational_tasks]":  {
+                                                           "count":  15,
+                                                           "hash":  "4B43846EF67781D01A1E89EAFBA7031C7C1007FB5DB91B19CD9259CD067F0B9D"
+                                                       },
+                         "[dbo].[permissions]":  {
+                                                     "count":  47,
+                                                     "hash":  "B587BBBC41E5631608ACC9BD6F37F9BE83E85667729003ACE0C09492F9311360"
+                                                 },
+                         "[dbo].[preventive_maintenance_runs]":  {
+                                                                     "count":  12,
+                                                                     "hash":  "C23359AF098CAFDCAC9083860B168066D915C1FF04AA14A3E365BCC6FC197AAC"
+                                                                 },
+                         "[dbo].[preventive_maintenance_schedules]":  {
+                                                                          "count":  10,
+                                                                          "hash":  "466E57A3E0C481A5C469CCE212D7581393438351E0895B26B3210B8F0F1E6418"
+                                                                      },
+                         "[dbo].[reference_values]":  {
+                                                          "count":  15,
+                                                          "hash":  "46B687179E95CBEE4D54F00E24F05BE1E17382E356A7CA301864B90D71136872"
+                                                      },
+                         "[dbo].[role_permissions]":  {
+                                                          "count":  182,
+                                                          "hash":  "8CDECEF2BE15E05397C2895B808BB17BBCC81BB7B6FFC90143A2697DE00CA34C"
+                                                      },
+                         "[dbo].[roles]":  {
+                                               "count":  11,
+                                               "hash":  "68FEE49DAD7ED1A99BAA0534887EA3D1137B1B078C25DCEF861F70D5009415D9"
+                                           },
+                         "[dbo].[room_blocks]":  {
+                                                     "count":  11,
+                                                     "hash":  "B04A446DF67BA596D4F2F806FC0271CA9EE7E92534D03A84DF08FDDEEB41596C"
+                                                 },
+                         "[dbo].[room_inspections]":  {
+                                                          "count":  13,
+                                                          "hash":  "93AF5D2E5BBAE58A8A83624BFACC8271F8D1E20803977363085A1F3666BD0B38"
+                                                      },
+                         "[dbo].[room_status_history]":  {
+                                                             "count":  31,
+                                                             "hash":  "B8C5C45F6EB1A4EF5A17DBF0F435D8AC25EF1A83FC2676C65F9C442CFA52B514"
+                                                         },
+                         "[dbo].[room_types]":  {
+                                                    "count":  10,
+                                                    "hash":  "EAA21374EE29836514D2530A512B8156A32AEAC1E2DB02A5BC2DE789A4058CA8"
+                                                },
+                         "[dbo].[rooms]":  {
+                                               "count":  15,
+                                               "hash":  "52ABEDF832B6FEFD02AECD534E947C2E6DEE43291F0D2B35B90A8483F5040573"
+                                           },
+                         "[dbo].[shift_assignments]":  {
+                                                           "count":  17,
+                                                           "hash":  "2297B8E3BC77BB806E25393617DB974F21428263CA8E02953F5DBA9767BFFD82"
+                                                       },
+                         "[dbo].[shift_attendance]":  {
+                                                          "count":  15,
+                                                          "hash":  "14ACBA0BB14F74F55CFC94974AC37CCA227E7B2EE342CD20E70EB991B08AE49D"
+                                                      },
+                         "[dbo].[shift_templates]":  {
+                                                         "count":  11,
+                                                         "hash":  "3DA429248220FE4AE4E00FB45F4A7227BE45388EAD245077F7DB8630C008DB79"
+                                                     },
+                         "[dbo].[stock_document_lines]":  {
+                                                              "count":  14,
+                                                              "hash":  "C8ECDC809865F9E1509659BD6F36EE20E3FC8A3B0A74EE73AD9E75987A900990"
+                                                          },
+                         "[dbo].[stock_documents]":  {
+                                                         "count":  12,
+                                                         "hash":  "644E5DF9DD7D0A8DEBDA66C9344CE298085B77CE505EFC3483EB3793F402E900"
+                                                     },
+                         "[dbo].[stock_movements]":  {
+                                                         "count":  15,
+                                                         "hash":  "35609540B1491FFC1E2019C22D43B55F2E88E365AA72B5132D881E92605D0A56"
+                                                     },
+                         "[dbo].[stock_thresholds]":  {
+                                                          "count":  14,
+                                                          "hash":  "2A45FBDA48EA8AD8653D32B48349F9D7C297127A2038F4207D1E32BE2C70C859"
+                                                      },
+                         "[dbo].[stocktake_lines]":  {
+                                                         "count":  12,
+                                                         "hash":  "1E2E134044C44C6FCDA08DA05EB1AF2D770AA5CBF9BB676F54E3A6F92C43E886"
+                                                     },
+                         "[dbo].[stocktakes]":  {
+                                                    "count":  10,
+                                                    "hash":  "05536FD87985BBF26276C6C133226517DEE0D4C19D409BF4A312267103C4CE54"
+                                                },
+                         "[dbo].[system_settings]":  {
+                                                         "count":  12,
+                                                         "hash":  "778FCFF25B5233B639979F28D873AC3B76609EF71A6F6772DC76714A9F6EA437"
+                                                     },
+                         "[dbo].[units_of_measure]":  {
+                                                          "count":  12,
+                                                          "hash":  "E5C290518CAEA78B1A299ABAD1DA1A78BB0D6A071F8D7B2405F174A2C251A097"
+                                                      },
+                         "[dbo].[uom_conversions]":  {
+                                                         "count":  12,
+                                                         "hash":  "4D6F3162556411AE26C8D1FBC7D26434D1826527512188CBE488A299E0E8431A"
+                                                     },
+                         "[dbo].[user_branch_access]":  {
+                                                            "count":  28,
+                                                            "hash":  "181BDB61F4DD50C399AA57500C01019DA4408821B423003A4E40FA71305ABC6D"
+                                                        },
+                         "[dbo].[user_roles]":  {
+                                                    "count":  30,
+                                                    "hash":  "C2CE3A85D53ECD51B40E23F48AFF20208399936BCFE2F61C730C97A5B0363771"
+                                                },
+                         "[dbo].[user_sessions]":  {
+                                                       "count":  10,
+                                                       "hash":  "EB605F1F2F01B67CC905A0BBAA64E2ECBF90316629485A391F4C99CC1B3DDD5E"
+                                                   },
+                         "[dbo].[users]":  {
+                                               "count":  26,
+                                               "hash":  "3F9F62FADD0EA1B5A81D04ED6A5FD3D43D617B736233DF84BBA1DBBABE898455"
+                                           },
+                         "[dbo].[warehouses]":  {
+                                                    "count":  10,
+                                                    "hash":  "E4FE54A44128249E731609592D980152126D0F14FD41E461F185A44DE698D4A6"
+                                                },
+                         "[dbo].[work_categories]":  {
+                                                         "count":  12,
+                                                         "hash":  "38DB6D6D7C6ADF46643AA516043CE519895874BA5EDEB0269B684DFA7BB9C81D"
+                                                     },
+                         "[dbo].[work_shifts]":  {
+                                                     "count":  13,
+                                                     "hash":  "8F6FB639F7D92FA3CC52A03077F6646F0BC4976954172707CEEBFF6F4E95F930"
+                                                 }
+                     },
+    "sourceSchema":  {
+                         "columns":  "3FE13CFAA517EB6D521BABFA12568BF03D5837BDBAD87B1135AF4AD1603A340B",
+                         "foreignKeys":  "949D9DBD0F5A902179E21113F5813CC79FF57BD42EF0930E5050E90613E65E3F",
+                         "checks":  "86A9A46E4086F110B0117EFF6FF4E2CF4D694917B4502E0BCA69E407C06144FB",
+                         "defaults":  "DF6B910F8EE6E87547632A54BDD507235FD75BF5933A7B42450EE271E8349A42",
+                         "indexes":  "5D65EA325B8726632FFF46211BB5EC13A01608BE066CBD08501FCB87D3702E18"
+                     },
+    "sourceDriftVsOriginalTask02":  [
+
+                                    ],
+    "protectedFiles":  {
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\appsettings.Development.json":  "73F95F9E0CEB205FC1C4DC50C07697FCFA29D7087868C2AEF1D504CB38C771EC",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\appsettings.json":  "5DD118838E1A1C9CADF12CBACB280575574FE914C6709759C18A204D342040DF",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\HotelOps.Api.csproj":  "DBDA3208AE12B4C9ED8BEC102684AFED1E0EC4FB792B0A38C3E0928012E828D4",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\HotelOps.Api.csproj.user":  "A7AA504322D6C8938A15E2552DE43F74AF29633849B03C50A3135CACCDF935D9",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\HotelOps.Api.http":  "2ED049C2F8A51A1B0BC0AE64F52BF20E4007F11B50181C262428F0778EE30EEF",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Program.cs":  "80024F4ECE32248C0E73EBC2DD8AF5825DEECA177794E3AB9037D8AA433C9918",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\WeatherForecast.cs":  "C486961C911A8FA566E14315D2E87FC724E0D8FD6C5F207FBB9297D3C887C70E",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\AuthController.cs":  "77A148AE3D85F0612CDF4459A414A50C86BE99A47471FF57977959D6F5CC02E1",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\CsrfController.cs":  "33F64F870E3C7EF8E5FE6E5A608FAAEEB1F02CF492BCC958BF85420824B6407D",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\HealthController.cs":  "40041DDBE59FD7B090682ADF1D4140501D5221C75E93CF1F092727C45E6A84BE",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\WeatherForecastController.cs":  "CA1584E11EAFF689036BBDE67E9891C6746CCE5AFBE7681031A28369C9B99BE6",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Data\\HotelOpsDbContext.cs":  "872AA5C959718C5337CAEADEE0E4D07C7FE46DA3BD4FAE8ABA686F9FBC0BA403",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Authentication\\AuthenticationDtos.cs":  "8D7D2751D467BDB0358F17184D2328B15467AA4D1C481396B569ED074A0EBD44",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Area.cs":  "9E3B23B25B026803F290164D640B7FCFE276D14695A36F33A21F3E5C963C3F6B",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Asset.cs":  "E31EE14A6264E35064782C73F058CB4C043BA941B87AD55FD600C9C7FFFB4247",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetConditionHistory.cs":  "1E008913F8E920B545C61F9E9D0AB1CA72E21F035EB9A7CA6233E27EE442E833",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetHandover.cs":  "52CDDC26E905B7E346E011D793B032A42F929E00D69036B788909FB786CDDD89",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetLocationHistory.cs":  "BFD571FD6972BCEC5A2C5ECD2265151FCE562544DED8BB92C53C27BC2DF7706F",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetType.cs":  "7E9080B670815BF88B4390A9238F5734AC36AB8D872ED3810EBBCEE91CF8C7C9",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Attachment.cs":  "281A9C0849125F86D5BA3122379D5627B0ED02C0ED81CD72872BF1D3FA44628B",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AuditLog.cs":  "9CB4E239E19CCC0CA88707B8D3C59D6208082ED12C672A1E68FB2188613CE7A8",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Branch.cs":  "ACF4962ACDEA8D59DF8285617270663FC56B2C5D0E52AB58DA81A826C132BAD3",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningAssignment.cs":  "38581C3E0ECBFE35297D74D7F6EB4A12319252D0C0D7E6246E2D9F3D75CBDC90",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningProgressLog.cs":  "7189E7C99C985455C24C35303B655600650D51A8752C954656197DB84652E8FD",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningRework.cs":  "7CA65722909366305C4243EDAF691595F36A303398722AE0B6688A5CCCF9802E",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningTask.cs":  "7D62D0E91F277B57CEFEF15B91E4F602F21ED3D16F4FD99480D4E171DFEFDF94",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Department.cs":  "B5824D9D7DB9D5183A32EB2DA292CC705B6C93C20D63F040416392EFD2AE3A49",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Floor.cs":  "3286B41C3248C93D137F13204E3F56F405959B4C4ECE18E44356E47D64C856A7",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Incident.cs":  "71AAA78C8FC388338A6CCF1924E6AABD4C43FF9D1E004CE8B8BD252C4D57BBD1",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\IncidentEvent.cs":  "328450BC6A93571F754D877CA9DFFBE8AB6A9FE28172B0D60E4D8EC277D6D90A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionChecklist.cs":  "3E35A847F6BD95E81B3F82C74E9592E11179E5A678B9A925BFC6813AC02EC3B3",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionChecklistItem.cs":  "1851D1FDBF27DFAAF59DE844BE78EF11E5F7A4ECD4217C2171B6A97FED943DE5",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionChecklistVersion.cs":  "9B17653E5DC3241D505BCDEAC4DED2D5D8ABFB010CFDF788D28CFA11A2944BA0",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionDefect.cs":  "84ABC5A781DD4008AC1A0129FED0E6D4ED2E1FC3A3DF2E1C444B1C74959E5297",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionResult.cs":  "E1C6B11C478FA2D229C5E83CBD2EA89BAC13BE86F95BD5B6312B52EAA5BE8027",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequest.cs":  "B25AC2E5CB3F9C87E4AD091A5DB58FA5D40011A587DA0F2A81729359746E7C6A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestAssignment.cs":  "1EDF1A01E8B8A0E2EF6ACFD16F8AD4AED814B4B22AF9C026E4CC4421A517B7B6",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestEvent.cs":  "40F10470076AB65C4256DB05FEA7D4243A8CA83F1E96A39DAE5FE9EC24E135AE",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestFeedback.cs":  "11789438BA8629C87CA0BE1AFBA1BE14E08D9A3EECC768F0C9859BE25D910BBA",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestType.cs":  "4E32C84FADDA236422B5251542C88F8522450136DF4CB79939D17BEBEEA1D0F0",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InventoryItem.cs":  "07D3A83345323A8F030010F9E01C5F4BF9370D854C485DAB42D1842D0D603C44",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ItemCategory.cs":  "509ED136A1FC4DCFEEDCA35A205565AAC8F8F46E4DAE01EB1D8EE9800A09CD4D",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaintenanceWork.cs":  "89CF5D4531694E701CAE445207B25FB1FDCD92782F536A33DFA82B840765E4D7",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaintenanceWorkLog.cs":  "B234450F41676B0BD9297E55A90680480FCFF107E0CE13262EBAA7496F496E61",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialFulfillment.cs":  "40A573D6E437559A6FE7C2BFA6FE979403686CC312C65F8C1ED9E3E9AF06F2B7",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialFulfillmentLine.cs":  "D0E8A776E1A259B86147DABD6FB5A349CA92B9C0B2B446B5600354F4B6EDAA1B",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequest.cs":  "03B5205BEAA73820541FD2CB191A7D827EB7ACD5172CF845E4F03349CC88FB9A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequestApproval.cs":  "D457E8E1E7695053F199854E153B8A1BB04A87ABDAF103E17F3721BF2A6FA7E5",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequestLine.cs":  "48B89B71924574DA9661D2324794A8D61F330DEE9971602A68205D892382A15B",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Notification.cs":  "01271CC573CA39F65EA2B9A7620080DF7ECCD9C97F195F42E4F26D8D6A1A30FA",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\NotificationRecipient.cs":  "EF26A77EDA1225C019CBE8659663F555D9E7EF2E0C93B330F7DC1E352812B344",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTask.cs":  "5305C402FE9F317B6B429D8B1231C20113860141A860677F47993F538E9C9F23",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTaskAssignment.cs":  "11A7E892301D9F75A8B8749B3EC088EEEFF07986AA46AB0AD9FC4D6DE1BF6ABF",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTaskDependency.cs":  "F6F35BFEC469F69AB3FDD48E6597B3423FC410B17EE87A1B533F441F894A0E2C",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTaskProgress.cs":  "BF1FE5D4B430C990DF9B33B2B1C2A5F02213BB0A35D94BD6D2A2645DA97A9CDA",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Permission.cs":  "44C0917F354241482479ABF65B0A4FA0154BB9C60485C2DC9C4E7AAA915290BA",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\PreventiveMaintenanceRun.cs":  "43F4D112EAAC765775AA9FF49A513FC2E6A17895851DE75563DCB87761F8360D",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\PreventiveMaintenanceSchedule.cs":  "41C30CD82D54A2E5FF14E62458B5753D76C50A38EE6FCBBFD4529896E0E602C0",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ReferenceValue.cs":  "130A34653744F8060ABF4A76F41373C218EB7D07FF5A7890043E61E171751BF3",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Role.cs":  "02BCF587DD619AA35C042C87F52B87C38D7E52ED9468750BD61691009B002D7A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RolePermission.cs":  "BF74EA1C1D1472911500FE39EF3D0577D7C38CC4257A41DD2939517B5FDF727B",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Room.cs":  "F1018D8EBB553092E976C336523A5C3D76F886A8BD2CCD43CF50DBFA5461C48C",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomBlock.cs":  "7A62F2DBF728E2DB7D6962EE0346DD69075D318C18F822F2B22467E0B9C4E7C6",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomInspection.cs":  "5AE5C94EC3A544024D09831AD559E82DE0E8A7E4807EEC78A07D69C47D33B0D0",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomStatusHistory.cs":  "7A82EB18CB2D0CE47D9075CC53661B4B8E8CECE4E11639274FBA586FAADA94A6",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomType.cs":  "76F62FD391985F0291B7BAB38F599BF23BBEA2152C8D76B39EDC231F329A7D70",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ShiftAssignment.cs":  "EFB664B2CDEFCAAD8298D1B67F2127B778C615FF02FFE2742E611E28911A9B58",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ShiftAttendance.cs":  "277A19CF689720FF98F1B9E2D5AB12506189A59DE047A3ECD4EE5BC216BC484C",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ShiftTemplate.cs":  "4A1F1DEB0EB616A2F66327CF09EF05430C0A5924596583C4A5323D7171E3B3BC",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockDocument.cs":  "858A701776DC5B64B74CC339A1948E13394C4AEC62849374EBA69A5AE492847C",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockDocumentLine.cs":  "9D96CFA88AFE373BD41BACC66600F26D4FA0A796EEF3476384EF5C6D9AD40225",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockMovement.cs":  "E12A3ACB5B6EF3858CB6D7C534801EBBD06B399D0B15F00D6CCBF8BD9C3412FB",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Stocktake.cs":  "48EC3D412BC6227F8D58410A916069187B1E0F9E3C0F23FD402358C44DFA35DC",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StocktakeLine.cs":  "28DD4B0ED62418722EE735618079467F1A08C8DA9FB93F0AE62FDB3CF846F35D",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockThreshold.cs":  "13F9026C716D55BB2C0ED18A756D3A6A2D02DA56B151CE2948A9A77A1A0C2657",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\SystemSetting.cs":  "1711D80646813B53B77B90EB9B4535794883393C868B060057616CEFBDD97EC7",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UnitsOfMeasure.cs":  "6283A3185B611C8DC2654594F85723F45824882662DDB1DE846BE4BF7D8D35D1",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UomConversion.cs":  "25363FE403FD7168E7590ACFE78697CB22E0BD4DFF3EE40B8C9CED0A000403AF",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\User.cs":  "D79C73908F6EDC5C79D1788367216C762E6607007FA15FC4CCD164B8FFD44A98",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UserBranchAccess.cs":  "4401EED69716AB0B134E4B9E2CD2ABDEC06D098B76EE51E7444DE260E182810B",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UserRole.cs":  "E704DD41F2DF6C1CA8A355977FB637A5D2B727480E7D1DDE5ACD0C4C4CB227D5",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UserSession.cs":  "7036A7E1EA1040182404B46A8F54D779B1E9660A1E1E4422758CB9A97BA6933A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Warehouse.cs":  "115F5BEAA875DD029999050F0FFFC50ECAC6A59AE6D227B0C63649E49CF1C3C5",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\WorkCategory.cs":  "EE2EF8B935A0419BD5266EEFFBF723B8F20BEA48B381B26A7664F3422371BB6A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\WorkShift.cs":  "48051783270DE1FED36ABCD2B8DAAEEFFBDF053AC7C7AA92A8256F26135BBF20",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\ApiCsrfMiddleware.cs":  "2E631E5B66EB1769BCFD49705D099A6DA94383AC9ED204C9CDF74189DCB09F76",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\AuthenticationExceptionMiddleware.cs":  "6A9FC125E98BB291A4C4B63F504E0155A8E303BEBB336843F17795B8F140E127",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\InvalidCookieMiddleware.cs":  "BE4A24565FDAF455D8CA84F269CBCA649CDE96A011DDD8311EB7AF4F22152127",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\RestrictedSessionMiddleware.cs":  "C3F9F9BF1C3A7064343D51A59D30647423C5E3657DA686A944837DBEF3C66909",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\SessionTouchMiddleware.cs":  "2E2D4BC0DB512360055AE106E9A08B0650562000B416EC2498ABFBCB4A7B785A",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Properties\\launchSettings.json":  "B4B31D5FDF9165FED1D4E6683C866FA6F4935884F93E0C32FB08E582E7CF3145",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\AuthenticationApiBehavior.cs":  "A1091BDAE586EFAA0412BC5C9FF0AB4A90ABBEBD058586374DE875A3C9ACDA8C",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\AuthenticationProblem.cs":  "978796123A7459EB644016051C02EC671E40A3AE1C56134521BE5906D65002F5",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\CookieRequestRules.cs":  "A64BD06015AD3343E293EC015C4B8DA8CC9E637BE674D92CCF029552C709F614",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\CookieSessionValidator.cs":  "5627A421AD194348EECB99200BB5BB1BA29B5405CFB93F38F6B6CD4241F3D162",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsAntiforgery.cs":  "F5E45145BD986195B22C4C0E98504A8D003335D08967D5E23246131172BAC30D",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsCookieEvents.cs":  "F899B68B3761F1E735519EFF29DE6A2E3BA350606686495DC1C76A73856D0690",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsCookieInfrastructure.cs":  "309A2D7016FC00A88B42676815B61B0C6582EAE4FAF4622CF91EF12A9EF2DF13",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsCookieTicket.cs":  "F94030A809EFE19E38C4B8955EDA486F0EC0B4C894C4C4116D3A996D5A8BA982",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\SessionAntiforgeryAdditionalDataProvider.cs":  "15575872903F6A2D5B7ABA885C26A624D25D90F544798905C0F04102887A84F1",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\CurrentUserAccessor.cs":  "1F595235528237B72ED512057BA1EE401E9964860355885B6DEAE54CFF808CC9",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\ICurrentUserAccessor.cs":  "7FF330F8CB7B8797A0E30334C16FB05291A8937736DD4D8B7888BCFFEB4DD3F2",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AuthenticationAudit.cs":  "D499A2A02B4B89731C0E10CA12BFF3EB3D5B0737DCDD991306F1FFD0382ADC47",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AuthenticationCredentialWorkflow.cs":  "31FCAB643BF2D08238473D3E3CC4F3DC6B4D6D5984ED9DCD42FC6E10207B9BEA",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AuthenticationLoginService.cs":  "706B26F0E5AC89D49CD092691CA16F3A1A35F96A57DEFCCC6AEB1A6077D66773",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\CredentialLockoutPolicy.cs":  "9095DB3AC4FB7C99D9C823E91956BB6FBF75C372E14AC9DFAED955BE574685C1",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\CredentialLockoutService.cs":  "763A977F9183FC2C6B1F50A3F5545E0F881246129B19171D3E779774E69AA0CC",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IAuthenticationCredentialWorkflow.cs":  "ADE6FDAC879A6E574F4A2011B66D3C1618DFAE31E34CDEFA44CBDA3A40CD4B68",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IAuthenticationLoginService.cs":  "A37B0D348CC9A488CDBEE9272C3628D317FBD7965F3927A2F36F4E5B9C5D5AC3",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ICredentialLockoutService.cs":  "926C35D72553C37503D8EEBBB3E46289E57F855A93EAF3A7BF007185DB0E7646",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IPasswordCredentialService.cs":  "A563EF29CFC151FC4640599A7309BD14837E58ECA4C6FE4D1705486C7A49C60E",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ISqlSessionService.cs":  "2C3F53F7A5F5C953A15DE43580C94A2CE7A06ABE024CC7EA46E1AB6807E8CF0C",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ITemporaryCredentialService.cs":  "E290E68F391B54669AE4EB4BCD56A1B03DC806CF2FD21761835A6D0CB42621C0",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\PasswordChangePolicy.cs":  "7D49627BF7CC90CBD6C36C3B7FDE96E170511AB26C31902B968D4EFAD3D62EBC",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\PasswordCredentialService.cs":  "903552A3F0D95CADC8DD072968DA0ABDB1A6461F2BF4DCA14F0E70A8BFA7C4C0",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SessionCredential.cs":  "C379EBA3FA57850E2B7ECB47ABB84704722F7F81C4644B54BD2CE6F26F837A3F",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SessionRevocationService.cs":  "17D7E9E49BA81EA7D8BB1F8C4AB82853F615840BFBFDD53DF3883A5AF9667351",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SessionStoreUnavailableException.cs":  "9863442B19BD87520303D523BF9E9E924B92A7468A264D197D434A3A6B2A3AA9",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SqlSessionPolicy.cs":  "3852C92CD446ECA3F8855FE227F9AB232F5BE823DFE813F921F597B6133212CD",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SqlSessionService.cs":  "B29765A2E68D5208D598878BEF553E4BD4D0D62E3BA59B7189DB89E8E61AEB68",
+                           "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\TemporaryCredentialService.cs":  "F98803667B09FE6036A658024B7A7FE348AB53457E1F128AF32C9BEAF8AFC8D5",
+                           "D:\\SEP490\\Projects\\HotelOps\\scripts\\database\\release\\01_HotelOps_Full_Schema.sql":  "DF7A293A37C81865EB81903A283D60170B792A801E92E8E5363B6003B935444D",
+                           "D:\\SEP490\\Projects\\HotelOps\\scripts\\database\\release\\02_HotelOps_Upgrade_Auth_To_RBAC.sql":  "7C3C2130E726F809716A0D7BC444EAAA6CCB1C0657E7C08CBFFDB4EDF38C13DE",
+                           "D:\\SEP490\\Projects\\HotelOps\\scripts\\database\\release\\03_HotelOps_RBAC_Catalog_Seed.sql":  "EF9DB25794F8183946F0B34BBD1EAD13EB54CCC8B117F75B1A959B5C1BD17401",
+                           "D:\\SEP490\\Projects\\HotelOps\\scripts\\database\\release\\04_HotelOps_Verification_ReadOnly.sql":  "F4988E787EC77AB72588284FD2B5530B1A17C9F184C5CCFD0BA1828C73168265",
+                           "D:\\SEP490\\Projects\\HotelOps\\scripts\\database\\release\\README.md":  "87CC6580D348DD7E260760606B51B8B2FA27506C40A362F3CCD3D72AA482038B"
+                       },
+    "backupPath":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\Backup",
+    "dataPath":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\",
+    "logPath":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\",
+    "mainUpgradeExecuted":  false,
+    "sourceDataScopeAlreadyPresent":  true
+}

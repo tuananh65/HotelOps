@@ -7,5 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../../src/HotelOps.Api/HotelOps.Api.csproj" />
+    <Compile Include="../UserList/Task61AcceptanceCases.cs" Link="Task61AcceptanceCases.cs" />
+    <Compile Include="../AccessReview/Task62AcceptanceCases.cs" Link="Task62AcceptanceCases.cs" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,25 @@
+﻿{
+    "clone":  {
+                  "database":  "HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f",
+                  "databaseId":  28,
+                  "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                  "createStamp":  "2026-10-21 19:51:35.320"
+              },
+    "backup":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\Backup\\RBAC03A_20261021_24e14e196c6a.bak",
+    "restore":  "PASS",
+    "approvalGate":  "PASS_53001",
+    "dryRun":  "PASS_ROLLBACK_72_TABLES_AND_SCHEMA",
+    "commit":  "PASS_CLONE_ONLY",
+    "catalog":  "PASS_EXACT",
+    "integrity":  "PASS",
+    "authenticationFields":  "UNCHANGED",
+    "sessions":  "UNCHANGED",
+    "departmentsAndBusinessTables":  "UNCHANGED",
+    "oldAudits":  "UNCHANGED",
+    "newMigrationAudits":  6,
+    "sourceAll72Tables":  "UNCHANGED",
+    "sourceSchema":  "UNCHANGED",
+    "mainUpgradeExecuted":  false,
+    "mainScriptSha256":  "E77AC074EFF72F8F8A0D863B4B080E559699ED8A44A7D1DCEF7DB9C25BCF1793",
+    "separateTask03BApprovalRequired":  true
+}

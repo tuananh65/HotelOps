@@ -414,7 +414,9 @@ try
     Check(await db.AuditLogs.CountAsync(ct) == auditCount, "no-op does not fabricate update audit");
 
     // Two real SQL connections, same token: exactly one conditional update commits.
-    var realActor = new ProfileIdentity(identities["admin"].UserId);
+    var realActorSession = await db.UserSessions.AsNoTracking().Where(s => s.UserId == identities["admin"].UserId && s.RevokedAt == null)
+        .OrderByDescending(s => s.SessionId).Select(s => s.SessionId).FirstAsync(ct);
+    var realActor = new ProfileIdentity(identities["admin"].UserId, realActorSession);
     UserProfileService Service(HotelOpsDbContext context)
     {
         var data = new EfPermissionDataSource(context);
@@ -552,9 +554,9 @@ sealed class UnusedResolver : IPermissionResourceResolver
         => throw new InvalidOperationException("Global USER_VIEW must not use resource resolver");
 }
 
-sealed class ProfileIdentity(long id) : ICurrentUserAccessor
+sealed class ProfileIdentity(long id, long sessionId = 1) : ICurrentUserAccessor
 {
-    public bool TryGetCurrentUser(out CurrentUserInfo user) { user = new(id, 1, false); return true; }
+    public bool TryGetCurrentUser(out CurrentUserInfo user) { user = new(id, sessionId, false); return true; }
 }
 sealed class ProfileGrantData(IPermissionDataSource source) : IPermissionDataSource
 {

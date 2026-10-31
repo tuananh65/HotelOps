@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "checks": 23,
+  "cases": [
+    "SQL startup schema compatible",
+    "authorized activation returns committed version",
+    "activation updates actual SQL status and rowversion",
+    "activation preserves credential lock roles branch department profile and revoked sessions",
+    "atomic audit records actor target before-after and reason only",
+    "retry after committed activation rejects old token",
+    "activation no-op conflicts",
+    "self-activation denied even with ALL",
+    "deactivation cannot execute via primitive",
+    "SQL actor without grant denied",
+    "actor cannot borrow another SQL session",
+    "audit injected fault yields no success result",
+    "audit preserves atomic SQL outcome",
+    "commit injected fault yields no success result",
+    "commit preserves atomic SQL outcome",
+    "after-commit injected fault yields no success result",
+    "after-commit preserves atomic SQL outcome",
+    "post-commit failure retry cannot repeat transition",
+    "concurrent admins same rowversion yield one success and one stale",
+    "BRANCH requires actual grant and effective shared membership",
+    "cross-branch assignment cannot borrow other shared membership",
+    "OWN rejected",
+    "revoked SQL session denies activation"
+  ],
+  "httpEndpointVerified": false,
+  "deactivationVerified": false,
+  "actualNetworkLossVerified": false,
+  "secretsPersisted": false
+}

@@ -21,7 +21,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 
-if (args.Length != 2 || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$"))
+var task61 = args.Length == 3 && args[2] == "--task61";
+var task62 = args.Length == 3 && args[2] == "--task62";
+if ((args.Length != 2 && !task61 && !task62) || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$"))
     throw new ArgumentException("Usage: UserDirectory.Verification <new UC141 database> <new evidence JSON path>");
 if (File.Exists(args[1])) throw new InvalidOperationException("Evidence already exists; do not overwrite");
 var connection = new SqlConnectionStringBuilder
@@ -70,6 +72,8 @@ async Task<string> Fingerprint(params string[] tables)
     return string.Join(":", parts); // Only hashes retained, no account/credential data in evidence.
 }
 var catalogBefore = await Fingerprint("roles", "permissions", "role_permissions", "branches", "departments", "reference_values");
+if (task61 || task62) Check(await new StartupSchemaValidator(db).ValidateAsync(ct) == SchemaCompatibility.Compatible,
+    "Disposable trial startup schema gate compatible before query acceptance");
 var empty = await new UserDirectoryService(db, TimeProvider.System).ListAsync(new(), ct);
 Check(empty.TotalCount == 0 && empty.Items.Count == 0 && empty.PageSize == 20, "unused canonical database returns an empty page");
 
@@ -86,7 +90,8 @@ long B = branches.Single(b => b.BranchCode == "BR002").BranchId;
 long DA = departments.Single(d => d.BranchId == A && d.DepartmentCode == "HK").DepartmentId;
 long DB = departments.Single(d => d.BranchId == B && d.DepartmentCode == "HK").DepartmentId;
 var identities = new Dictionary<string, User>();
-foreach (var key in new[] { "admin", "denied", "restricted", "branch", "assignment", "owner", "inactiveRole", "expiredAssignment", "futureAssignment" })
+foreach (var key in new[] { "admin", "denied", "restricted", "branch", "assignment", "owner", "inactiveRole", "expiredAssignment", "futureAssignment" }
+    .Concat(task61 || task62 ? ["branchOnly"] : Array.Empty<string>()))
 {
     var user = new User { EmployeeCode = "UD_" + key, Username = "ud." + key, Email = "ud." + key + "@example.invalid",
         FullName = "00 Fixture " + key, PrimaryBranchId = A, DepartmentId = DA, AccountStatus = "ACTIVE",
@@ -112,6 +117,12 @@ Assign(identities["branch"], "SYS_ADMIN", A); Assign(identities["assignment"], "
 Assign(identities["owner"], "OWNER"); Assign(identities["inactiveRole"], "HK_INSPECTOR", A);
 Assign(identities["expiredAssignment"], "SYS_ADMIN", expires: now.AddMinutes(-1));
 Assign(identities["futureAssignment"], "SYS_ADMIN", assigned: now.AddHours(1));
+if (task61 || task62)
+{
+    Assign(identities["branchOnly"], "DEPT_MANAGER", A);
+    db.Add(new UserBranchAccess { UserId = identities["branchOnly"].UserId, BranchId = A,
+        AccessLevel = "STANDARD", GrantedAt = now.AddMinutes(-1) });
+}
 db.Add(new UserBranchAccess { UserId = identities["branch"].UserId, BranchId = A, AccessLevel = "STANDARD", GrantedAt = now.AddMinutes(-1), IsPrimary = true });
 Assign(targets[0], "HK_STAFF", A); Assign(targets[0], "HK_SUPERVISOR", A);
 Assign(targets[1], "HK_STAFF", B, active: false); Assign(targets[2], "HK_STAFF", A, expires: now.AddMinutes(-1));
@@ -178,7 +189,7 @@ try
     var stdout = process.StandardOutput.ReadToEndAsync(ct); var stderr = process.StandardError.ReadToEndAsync(ct);
     using var handler = new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false,
         ServerCertificateCustomValidationCallback = (_, cert, _, _) => cert?.GetCertHashString() == certificate.GetCertHashString() };
-    using var http = new HttpClient(handler) { BaseAddress = new Uri("https://127.0.0.1:" + port), Timeout = TimeSpan.FromSeconds(20) };
+    using var http = new HttpClient(handler) { BaseAddress = new Uri("https://127.0.0.1:" + port), Timeout = TimeSpan.FromSeconds(task62 ? 60 : 20) };
     async Task<HttpResponseMessage> Send(HttpMethod method, string path, Jar jar, object? body = null, bool csrf = true)
     {
         using var message = new HttpRequestMessage(method, path);
@@ -227,6 +238,19 @@ try
     foreach (var key in identities.Keys.Where(k => k != "admin"))
         await Expect(jars[key], "/api/users?branchId=" + B, 403, "no global USER_VIEW: " + key);
     await Expect(jars["branch"], "/api/users?branchId=" + A, 403, "branch-bound ALL cannot become global through matching filter");
+
+    if (task62)
+    {
+        await Task62AcceptanceCases.RunAsync(db, hook => Open(hook), http, Login,
+            identities, targets, jars, A, B, Fingerprint, Check, ct);
+        admin = await Login("admin");
+    }
+    if (task61 || task62)
+    {
+        await Task61AcceptanceCases.RunAsync(db, hook => Open(hook), http, Login,
+            identities, targets, jars["branchOnly"], A, Check, ct);
+        admin = await Login("admin");
+    }
 
     var beforeReads = await Fingerprint("users", "user_roles", "user_branch_access");
     var sessionCount = await db.UserSessions.AsNoTracking().CountAsync(ct);
@@ -298,7 +322,8 @@ try
     var report = new { database = args[0], success = true, checks = passed.Count, cases = passed,
         authorization = "Real API, Cookie + SQL sessions + existing global USER_VIEW policy; BRANCH/OWN paths additionally tested with core doubles",
         safety = "Only new trial fixture users/assignments/sessions/audits written; no main database connection; read phase preserved users/assignments/catalog",
-        secretsPersistedInEvidence = false };
+        secretsPersistedInEvidence = false, task61Waits = Task61AcceptanceCases.Waits,
+        task62Waits = Task62AcceptanceCases.Waits };
     await File.WriteAllTextAsync(args[1], JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }), ct);
     Console.WriteLine("PASS: " + passed.Count + " UC141 checks");
 }

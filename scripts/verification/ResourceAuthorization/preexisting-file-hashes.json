@@ -1,0 +1,950 @@
+﻿[
+    {
+        "path":  "src/HotelOps.Api\\appsettings.Development.json",
+        "hash":  "73F95F9E0CEB205FC1C4DC50C07697FCFA29D7087868C2AEF1D504CB38C771EC"
+    },
+    {
+        "path":  "src/HotelOps.Api\\WeatherForecast.cs",
+        "hash":  "C486961C911A8FA566E14315D2E87FC724E0D8FD6C5F207FBB9297D3C887C70E"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\TemporaryCredentialService.cs",
+        "hash":  "F98803667B09FE6036A658024B7A7FE348AB53457E1F128AF32C9BEAF8AFC8D5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\SqlSessionService.cs",
+        "hash":  "B29765A2E68D5208D598878BEF553E4BD4D0D62E3BA59B7189DB89E8E61AEB68"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\SqlSessionPolicy.cs",
+        "hash":  "3852C92CD446ECA3F8855FE227F9AB232F5BE823DFE813F921F597B6133212CD"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\SessionStoreUnavailableException.cs",
+        "hash":  "9863442B19BD87520303D523BF9E9E924B92A7468A264D197D434A3A6B2A3AA9"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\SessionRevocationService.cs",
+        "hash":  "17D7E9E49BA81EA7D8BB1F8C4AB82853F615840BFBFDD53DF3883A5AF9667351"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\SessionCredential.cs",
+        "hash":  "C379EBA3FA57850E2B7ECB47ABB84704722F7F81C4644B54BD2CE6F26F837A3F"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\PasswordCredentialService.cs",
+        "hash":  "903552A3F0D95CADC8DD072968DA0ABDB1A6461F2BF4DCA14F0E70A8BFA7C4C0"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\PasswordChangePolicy.cs",
+        "hash":  "7D49627BF7CC90CBD6C36C3B7FDE96E170511AB26C31902B968D4EFAD3D62EBC"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\ITemporaryCredentialService.cs",
+        "hash":  "E290E68F391B54669AE4EB4BCD56A1B03DC806CF2FD21761835A6D0CB42621C0"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\ISqlSessionService.cs",
+        "hash":  "2C3F53F7A5F5C953A15DE43580C94A2CE7A06ABE024CC7EA46E1AB6807E8CF0C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\IPasswordCredentialService.cs",
+        "hash":  "A563EF29CFC151FC4640599A7309BD14837E58ECA4C6FE4D1705486C7A49C60E"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\ICredentialLockoutService.cs",
+        "hash":  "926C35D72553C37503D8EEBBB3E46289E57F855A93EAF3A7BF007185DB0E7646"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\IAuthenticationLoginService.cs",
+        "hash":  "A37B0D348CC9A488CDBEE9272C3628D317FBD7965F3927A2F36F4E5B9C5D5AC3"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\IAuthenticationCredentialWorkflow.cs",
+        "hash":  "ADE6FDAC879A6E574F4A2011B66D3C1618DFAE31E34CDEFA44CBDA3A40CD4B68"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\CredentialLockoutService.cs",
+        "hash":  "763A977F9183FC2C6B1F50A3F5545E0F881246129B19171D3E779774E69AA0CC"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\CredentialLockoutPolicy.cs",
+        "hash":  "9095DB3AC4FB7C99D9C823E91956BB6FBF75C372E14AC9DFAED955BE574685C1"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\AuthenticationLoginService.cs",
+        "hash":  "706B26F0E5AC89D49CD092691CA16F3A1A35F96A57DEFCCC6AEB1A6077D66773"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\AuthenticationCredentialWorkflow.cs",
+        "hash":  "31FCAB643BF2D08238473D3E3CC4F3DC6B4D6D5984ED9DCD42FC6E10207B9BEA"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Services\\Authentication\\AuthenticationAudit.cs",
+        "hash":  "D499A2A02B4B89731C0E10CA12BFF3EB3D5B0737DCDD991306F1FFD0382ADC47"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Controllers\\WeatherForecastController.cs",
+        "hash":  "CA1584E11EAFF689036BBDE67E9891C6746CCE5AFBE7681031A28369C9B99BE6"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Controllers\\HealthController.cs",
+        "hash":  "40041DDBE59FD7B090682ADF1D4140501D5221C75E93CF1F092727C45E6A84BE"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Controllers\\CsrfController.cs",
+        "hash":  "33F64F870E3C7EF8E5FE6E5A608FAAEEB1F02CF492BCC958BF85420824B6407D"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Controllers\\AuthController.cs",
+        "hash":  "77A148AE3D85F0612CDF4459A414A50C86BE99A47471FF57977959D6F5CC02E1"
+    },
+    {
+        "path":  "src/HotelOps.Api\\appsettings.json",
+        "hash":  "5DD118838E1A1C9CADF12CBACB280575574FE914C6709759C18A204D342040DF"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\SessionAntiforgeryAdditionalDataProvider.cs",
+        "hash":  "15575872903F6A2D5B7ABA885C26A624D25D90F544798905C0F04102887A84F1"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\HotelOpsCookieTicket.cs",
+        "hash":  "F94030A809EFE19E38C4B8955EDA486F0EC0B4C894C4C4116D3A996D5A8BA982"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\HotelOpsCookieInfrastructure.cs",
+        "hash":  "309A2D7016FC00A88B42676815B61B0C6582EAE4FAF4622CF91EF12A9EF2DF13"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\HotelOpsCookieEvents.cs",
+        "hash":  "F899B68B3761F1E735519EFF29DE6A2E3BA350606686495DC1C76A73856D0690"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\HotelOpsAntiforgery.cs",
+        "hash":  "F5E45145BD986195B22C4C0E98504A8D003335D08967D5E23246131172BAC30D"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\CookieSessionValidator.cs",
+        "hash":  "5627A421AD194348EECB99200BB5BB1BA29B5405CFB93F38F6B6CD4241F3D162"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\CookieRequestRules.cs",
+        "hash":  "A64BD06015AD3343E293EC015C4B8DA8CC9E637BE674D92CCF029552C709F614"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\PermissionService.cs",
+        "hash":  "E862FC0280111133C17445C66383139311E0B6DF5C25DC414FFA2D03F58E5B9B"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\PermissionRequirement.cs",
+        "hash":  "69C4EB3BDBCC5285B0F6F31181863F91AA50E078C3239A84C139F0366C1A5245"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\PermissionPolicyProvider.cs",
+        "hash":  "E24C2A4D1BDA2898B74DC924D5A416FB680E67B1B494357EBFD3C6010B3EF71A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\PermissionDataSource.cs",
+        "hash":  "EDBCB1E0DE26FEF622A426D57BEC206995C9D4BF78005799450853072A2536D4"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\PermissionAuthorizationRegistration.cs",
+        "hash":  "5D036CD52D30094A17A7ADC74E9E48A5CEAB99D86340CFD826CC2E4402FB7CB4"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\PermissionAuthorizationHandler.cs",
+        "hash":  "106699E029F78F2203C9CB81FD26B3C02E0839FCD8681B8A38FCCB07ADE517A7"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\IPermissionService.cs",
+        "hash":  "BA2E70862F366A9DC92E498F1669953130C9C8D84061E25C38E2CBA839820C6C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\ICurrentUserAccessor.cs",
+        "hash":  "7FF330F8CB7B8797A0E30334C16FB05291A8937736DD4D8B7888BCFFEB4DD3F2"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\Authorization\\CurrentUserAccessor.cs",
+        "hash":  "1F595235528237B72ED512057BA1EE401E9964860355885B6DEAE54CFF808CC9"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\AuthenticationProblem.cs",
+        "hash":  "978796123A7459EB644016051C02EC671E40A3AE1C56134521BE5906D65002F5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Security\\AuthenticationApiBehavior.cs",
+        "hash":  "A1091BDAE586EFAA0412BC5C9FF0AB4A90ABBEBD058586374DE875A3C9ACDA8C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\HotelOps.Api.csproj",
+        "hash":  "DBDA3208AE12B4C9ED8BEC102684AFED1E0EC4FB792B0A38C3E0928012E828D4"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Properties\\launchSettings.json",
+        "hash":  "B4B31D5FDF9165FED1D4E6683C866FA6F4935884F93E0C32FB08E582E7CF3145"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Program.cs",
+        "hash":  "13890EA9A864867BEE43DC6B4A89E67BC65D78BB40DB573F55CE786D3B5F7594"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Middleware\\SessionTouchMiddleware.cs",
+        "hash":  "2E2D4BC0DB512360055AE106E9A08B0650562000B416EC2498ABFBCB4A7B785A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Middleware\\RestrictedSessionMiddleware.cs",
+        "hash":  "C3F9F9BF1C3A7064343D51A59D30647423C5E3657DA686A944837DBEF3C66909"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Middleware\\InvalidCookieMiddleware.cs",
+        "hash":  "BE4A24565FDAF455D8CA84F269CBCA649CDE96A011DDD8311EB7AF4F22152127"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Middleware\\AuthenticationExceptionMiddleware.cs",
+        "hash":  "6A9FC125E98BB291A4C4B63F504E0155A8E303BEBB336843F17795B8F140E127"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Middleware\\ApiCsrfMiddleware.cs",
+        "hash":  "2E631E5B66EB1769BCFD49705D099A6DA94383AC9ED204C9CDF74189DCB09F76"
+    },
+    {
+        "path":  "src/HotelOps.Api\\HotelOps.Api.http",
+        "hash":  "2ED049C2F8A51A1B0BC0AE64F52BF20E4007F11B50181C262428F0778EE30EEF"
+    },
+    {
+        "path":  "scripts/verification\\DataScope\\RESULTS.md",
+        "hash":  "36B89948D2D2501C979F42F02DC90CF646EBC69D2EE98AA8A35103399E624126"
+    },
+    {
+        "path":  "scripts/verification\\DataScope\\README.md",
+        "hash":  "42240BBB8BCBCFDA70257621E13B19149C45CC420375659FDB2E000DAF4131EA"
+    },
+    {
+        "path":  "scripts/verification\\DataScope\\Program.cs",
+        "hash":  "94CF271B5704F98FD4AD6CCE4CCF948DD121FE0A26A4A1115BAC4715CAEDA676"
+    },
+    {
+        "path":  "scripts/verification\\DataScope\\DataScope.Verification.csproj",
+        "hash":  "BE7B9E32834B1025C47D6683EBF3E82DB4379F403A55D7FF3D217AFD072BAD73"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Run-DepartmentCleanup.ps1",
+        "hash":  "D1089FBC422DE95A22BB62C5661D4DDEC1A707288C47CF736E255E0F03432B26"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\README.md",
+        "hash":  "1CAD6E91E7A1859E9586E1DFD3EA7B452871555BD10CA7881897D0338E507468"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\extra-baseline.json",
+        "hash":  "08F6B37FAEF4D5B9AE19672495C07C93FF892BC4C6F4ED6C7CD4DFB0BC8D8C24"
+    },
+    {
+        "path":  "scripts/verification\\Authorization\\RESULTS.md",
+        "hash":  "CFB471864EFB4CC0A032343F6A8DDB4BA61B3A69FC617B87AFF5CD10AA154634"
+    },
+    {
+        "path":  "scripts/verification\\Authorization\\README.md",
+        "hash":  "7AA80A9612B3D86B7D8F94AF3715154152DD218C48816A8263728EF428838165"
+    },
+    {
+        "path":  "scripts/verification\\Authorization\\Program.cs",
+        "hash":  "EFA14A952479BDD6E4C43AB4DD1CA549D25A21540C915A6A2BEEBAF4E1BBA0E2"
+    },
+    {
+        "path":  "scripts/verification\\Authorization\\Authorization.Verification.csproj",
+        "hash":  "C430F35377661C58C502BEB7F498F69B01B4004A767D54A1C4D583CFDC7FC03D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Verify-Trial.ps1",
+        "hash":  "B39C6AABB27A12BD21D0A716FB148F80DD19677193A85206DECB724B19C8BC5D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\verification-result.json",
+        "hash":  "A3AA2258C09F4F8E30ECB8C1F991EEE096768F01D68B1554C4DCA8BBDA9A0722"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\trial-upgrade.sql",
+        "hash":  "28F0A8504075492E66F23F81D6EF0460C2478C3043DA653B8E5B81A72CD7DDF2"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\trial-state.json",
+        "hash":  "A0A4C25947404FFFFBAC7D9B8707190B79A0E902BABD00D073AFA34CE16D232A"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\trial-dry-run.sql",
+        "hash":  "D342BED0767B8B2ECAC9C27A6EBFD23AEB0C405A9B2A60990326C84F74FD502F"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\trial-before.json",
+        "hash":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\trial-after.json",
+        "hash":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\verification-results.txt",
+        "hash":  "011FC049EB8FD1A7A2EF26968CB50C24A5111B45F3B9C15E0BB982B91ED3DDF9"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\trial-before.json",
+        "hash":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\trial-after.json",
+        "hash":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\source-before.json",
+        "hash":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\source-after.json",
+        "hash":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\result.json",
+        "hash":  "6E0A73A33EA4E59A48481F23ABA44E2A02899637EE5AD1AE833AF2F61CADC2D3"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\README.md",
+        "hash":  "23390A3D55FAFE06B73E972F62A7D78073BF32FFEE2808008F406E36F8876086"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\protected-file-hashes.json",
+        "hash":  "07F28F6CCF09833107240798FAB5A7A0AFBA438BA1C9D9F398997F85B8127C36"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\dry-run-results.txt",
+        "hash":  "CB551618FFB974E4A414F57F19E564A91AF404C0BBA6DA7B63ED715D2172D4DC"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\dependency-before.txt",
+        "hash":  "1AAD87489579DF9B341B8F691374C957BAB3B9ED9360A3258AFA1E7E8DD98CAD"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02B\\department-cleanup.sql",
+        "hash":  "1E11020B9068DEAC1D572960D1239BD8B1BA3E9B30C225D36873D9804C947579"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\source-after.json",
+        "hash":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\schema-column-differences.json",
+        "hash":  "84B1C14E68260082E3E79EDFF0A78F4EBF1942CFD6C593246044EC2149CBB87D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Run-Trial.ps1",
+        "hash":  "5A17CED55200D3CA293E7555448A0D35AC011593263F24D33C1BB571654B6AB0"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\Verify-Rehearsal.ps1",
+        "hash":  "F105C3AE607239171126B87D9C57004D7D3D9A73682AEC7635272743E13D1F43"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\VERIFICATION_PLAN.md",
+        "hash":  "DBD508155E4534FDDDAFBCC9484B7B64146125A499CC13F19F37B15F5DC225BF"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\source-after-readonly.json",
+        "hash":  "AC696E0E343AE8167672D737EB48909015AAE87204F5D1F94DB693E5A76C2EA1"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+        "hash":  "C1FD3904871107F0284CDC8ADF5CFF8193972B408ECBCBC3F3EBE51AF29B3A64"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\restore-proof.json",
+        "hash":  "D2156879DEA2261B12503BA03EAD5AFC1FC46D9B9A7ED04173B23206DF013CB4"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\rehearsal-verification.txt",
+        "hash":  "03AD46D42E57127E1E8D6CF053A5E1F50F8288DFD8A97F8E9B7A7E436307ED75"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\rehearsal-result.json",
+        "hash":  "24F692DACE8825177EDC838347B3B0D609990085B40709EA33BD218726348C59"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\rehearsal-dry-run.sql",
+        "hash":  "932AD3F5BDFBCB8159C4965885147A6E54B8EACABFDEEFFB000E81C4D659329D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\rehearsal-commit.sql",
+        "hash":  "5C405F41A972BBEA5E36635C8811EFB6DA80D526672713224E8A7F36CF842364"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\rehearsal-after.json",
+        "hash":  "68EF4546426CDA7CE2494EFAAD041CBA846FB996209AE9FB145A6D0F2753C023"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\recovery-preflight-results.txt",
+        "hash":  "817BC4CFF78E05CB84D588FC5DC25A9CB69454EE7C289A1842CC3EBF65A91716"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\README.md",
+        "hash":  "87B8A100B4C0D9C92DB0C852188300EC4E7ED919DD4A86FED45521764077DD51"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\Prepare-Task03A.ps1",
+        "hash":  "F1229BBA6E81D27CD64B9F30E02E987E3152DCF4AE7117543DE2BCF52DBFC058"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\PREFLIGHT_RESULTS.md",
+        "hash":  "C0E76D32921FCDDA03EFCC3A2FB8D06F19B205CEFD692A518BA340DEA397D247"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\preflight-results.txt",
+        "hash":  "8D2ECD6EE18EE74965AE4C9693D268C4EA9A348CE01DDC0C19B1EEE788CCF60D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\preflight-readonly.sql",
+        "hash":  "371F3C8C66C0E7D7762D74F68619A97DB1FFF95D27596168E508D92B3838C1A0"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\postdeployment-readonly.sql",
+        "hash":  "3A0FAA5FDD104F754F9D2D34944F1ACE72789AFD2F6CC05448D230D4DB419355"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02E\\README.md",
+        "hash":  "321BBAF0194620A93F2ADD16A2FCAF577C231257B83DE180334795B82EEE3ECA"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02E\\FK_GRAPH.json",
+        "hash":  "6ACBE89F90D31DC44542CBD52337C62D6044ACC67F271355DAA5FD25F4F34F6A"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02E\\FIXTURE_RESET_MANIFEST.md",
+        "hash":  "8CE74D99758FC871813778CDB2EE594A0502B1A8AFFB6F527FF6EE24AC2AF8C7"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02E\\FIXTURE_RESET_MANIFEST.json",
+        "hash":  "B689B96F666802C0F18063E60B549576CBEF6D2510087C9C3A29E8F9221BB6B6"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02E\\FINGERPRINT_BASELINES.json",
+        "hash":  "6161CC7043985EDDCA4DBA65BA0019C1E9C9534010C9EAA9A431B1B7E9686E7D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02E\\EXECUTION_PLAN.md",
+        "hash":  "1184BEADF9415AE2FEA7DBDE0DAD98D5B827558FCD8B5060086E880063D8A3D1"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\initial-rehearsal-evidence\\REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+        "hash":  "E77AC074EFF72F8F8A0D863B4B080E559699ED8A44A7D1DCEF7DB9C25BCF1793"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\initial-rehearsal-evidence\\rehearsal-result.json",
+        "hash":  "544303FDEEF6EA8EA54B6932BB544F4DC471A20410FD471464A6A914A5336960"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\initial-rehearsal-evidence\\rehearsal-dry-run.sql",
+        "hash":  "84D42C42D8D180ED7CDF9F95BD225E15FD11AA078690E0648394636E21F38685"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\initial-rehearsal-evidence\\rehearsal-commit.sql",
+        "hash":  "1B3DC99121E55A01006C7775C433D37434D3A4219413BA6BB36CC8D5A0437BEB"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\EXPECTED_CHANGES_FOR_TASK03B.json",
+        "hash":  "060FC2BC062810F15C13A47F16C28BFB9D053109AB578DCE514AC9B24B7D887E"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\DEPLOYMENT_READINESS_REPORT.md",
+        "hash":  "691B15A08298A82659BD5BC89B425A0ECBD76331275AB91124F91AF8C43823AE"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\deployment-state.json",
+        "hash":  "2B7391F13BAA08387E775130A9BF74DB07E62AA3DF93E5F5E76020A6A96FA07D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\BACKUP_RECOVERY_PLAN.md",
+        "hash":  "165EFA661830927A9C8C6E9E0DBC3D3DD5744C80CBBAB122B77B812897918363"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\backup-rehearsal-state.json",
+        "hash":  "6BEAFC35211141EE3D0C701F22CB81624807CE89D0F27FB5C7073A2436D013AA"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03A\\backup-evidence.json",
+        "hash":  "74DDAD52A599483FD4F7540794F81D5AD69FD268D93DDBFBAF082C137B78D0A2"
+    },
+    {
+        "path":  "scripts/verification\\CurrentUserAccessor\\CurrentUserAccessor.Verification.csproj",
+        "hash":  "BE7B9E32834B1025C47D6683EBF3E82DB4379F403A55D7FF3D217AFD072BAD73"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\Inspect-Task03B.ps1",
+        "hash":  "8B39E944F5CFC7DC399D7C022BA16996BD6250623C6920AFCAF1F61FDD511E40"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\execution-evidence.json",
+        "hash":  "32FC2042F529F3122E7FF0D2214694BB6D7C984FED9141C3D9D9B0906D380206"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\DEPLOYMENT_EXECUTION_REPORT.md",
+        "hash":  "805C550B98832D02902CA7521950BF872FAA97E5C465579884FB34A29FDE72C5"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\Deploy-Task03B.ps1",
+        "hash":  "AF6AEF2FE777D0D1C11ACD60D3CC08B6AE94EF3B7E7DDBB42378D9A3DE8C726C"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\backup-verification.json",
+        "hash":  "225C8032B9FF0FA0686B797CA29384E44A5C5CE7B649721F161CA5668AA56A55"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\authentication-console-results.txt",
+        "hash":  "FD2D69AD2C629E54148DCF0F835AB090E4617264FC71FAA7B5945F82383D2143"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\artifact-validation.json",
+        "hash":  "A380059889A5E65BA19DB64C8EB3DCB8680F66D128794C438BF74A63F714FD7B"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\actual-changeset.json",
+        "hash":  "0CA4E46F21229897E9431523BF89DED5E9166CF836076E3B73D17A24DF7DBDB9"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\preflight-evidence.json",
+        "hash":  "FAA891ED037C01947469CE0CDB3C4E9D23B1E95B0665C33E2D86E3E26A9ADE86"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\predicted-grant-changes.json",
+        "hash":  "2FD8E254AAE32219C3BF2BC9300901639FD0E1FF05AE56CB36F4BE5C9D7B1BB1"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\postdeployment-results.txt",
+        "hash":  "2D1ED1FF9C2C0CA33087D6DFD2742330D424CBEF4685D93D8DF41EC2E7A71846"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\postdeployment-fingerprints.json",
+        "hash":  "5DB8F1B47F730A60D3401DA5ADF93624831ABCBA45607A5C1CC58F8ACD660268"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\read-only-harness-error.json",
+        "hash":  "B56F655FF1E2A797F2B8238E2F6A4CE6AC5E17652E471EB9A914D18A640E8D0D"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\preservation-baseline.json",
+        "hash":  "FC71BCDBFA65F8965AF88815EA6526E12CADCE1FA105986ECE80441B852CA4B2"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\README.md",
+        "hash":  "ADF14949E04C0B7B24F37EB1EFB3AA67F87514F6FEF624404532A98790873A73"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\RECOVERY_AND_INCIDENT_NOTES.md",
+        "hash":  "1E6DB5EBBB8D6EA4C9D0798FF6B3BA461C95E0E4756E6A063390782BB0BB773A"
+    },
+    {
+        "path":  "scripts/verification\\PermissionService\\PermissionService.Verification.csproj",
+        "hash":  "BE7B9E32834B1025C47D6683EBF3E82DB4379F403A55D7FF3D217AFD072BAD73"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02D\\FINAL_RESOLUTION_PLAN.md",
+        "hash":  "B0F73B3742D75D615E5499AA90A57B29EDE931B0144CD8CAE0F9015CE0648DBF"
+    },
+    {
+        "path":  "scripts/verification\\PermissionService\\RESULTS.md",
+        "hash":  "9FDC1C3E07B838685DB626A175B0095649BEC91BFE4F480587D00AD98609F714"
+    },
+    {
+        "path":  "scripts/verification\\PermissionService\\README.md",
+        "hash":  "DD70DF567005B37966BA5C771051FA748DF8A6DFBD08AEE8684C401D4F07751B"
+    },
+    {
+        "path":  "scripts/verification\\PermissionService\\Program.cs",
+        "hash":  "17356FDE4F7A34E5262ED23AE85CFC1579D21307B61DD15139B91E360E67B222"
+    },
+    {
+        "path":  "scripts/verification\\CurrentUserAccessor\\README.md",
+        "hash":  "BCB49B29CB96C90827C799E5BC99512D15C30F60D3B81F611B89B314BCDD6BDC"
+    },
+    {
+        "path":  "scripts/verification\\CurrentUserAccessor\\Program.cs",
+        "hash":  "BBA1011317DEDF2FC35629CBD4781E8A0C06E70A739B396E63CDA93A910C1156"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\preflight-results.txt",
+        "hash":  "E33F9A26A4AC34278D80B20C699724B423A3C382CD65055E15B6502F9B4DD890"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\postflight-results.txt",
+        "hash":  "8C1B83D7395A6FB35062D41D9D5C1A8C305228427D9D0D40EC1C26B4F7D01EA0"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\dry-run-results.txt",
+        "hash":  "F47138D489309FD25B4C43D8F3A27561A3CAA1189364E7E97CABEB646E19DC14"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\department-dry-run-results.txt",
+        "hash":  "A0965778A17BE9682693060C3D2C969896B6DF1EE23D6DA94F9F1FB90622FF73"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\commit-results.txt",
+        "hash":  "F47138D489309FD25B4C43D8F3A27561A3CAA1189364E7E97CABEB646E19DC14"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\protected-file-hashes.json",
+        "hash":  "1DB3B1665E05B4AF5967FAED07588FFB1F93B8C5A42F037D09317F77F5B2591F"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\preflight.sql",
+        "hash":  "D2CC9EDE62A68A39A9A04403F19B41702C1B5F0D9BDEC80DC956E7FFC2FAD6BD"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\README.md",
+        "hash":  "002ED7D3E6FDCB51B3E27A80A5C525CB484A7A7C6C3B472AE4117EC343F243FD"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\recovery-point.json",
+        "hash":  "95EEFF42F8ACEBE327A96EBE1B0838627EF276C53F1F8063AE13E11DA3AA1ED6"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\verification-results.txt",
+        "hash":  "011FC049EB8FD1A7A2EF26968CB50C24A5111B45F3B9C15E0BB982B91ED3DDF9"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\user-reference-results.txt",
+        "hash":  "DF9B05BAFB32B049D2458F38DF0B0BAC24AAB5D4453B6C8EFC97C7B799A3FC87"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\trial-before.json",
+        "hash":  "D461CE75A9491A9262965C3879231F5BD27A22CD234B5250CC933805835B73EA"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\trial-after.json",
+        "hash":  "93DA42E85E8F1432569E39BC3C1BA09EBEFEDCBFC32B074F79FA234570EE3F26"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\source-before.json",
+        "hash":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\source-after.json",
+        "hash":  "5B555099D2ADD5DFE73A4F6E1CDCE15DAAB6F02EC5EE4D1EF3070D11BA725589"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\Run-Task02C.ps1",
+        "hash":  "70E9CF1F6186C47D52A2BE1F173F93003813806CE5ADDDD3B4A4B3B1FF418C69"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\result.json",
+        "hash":  "35FFA8A48C3A7BE26EAD8D07A6B85850F8980487B258649637094A1B74B70CDE"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\resolve-safe-dependencies.sql",
+        "hash":  "DC5110440B5518F73C5A0D49097B78EEF9F79366A8FE8A3D2B6A4FA646F88AB0"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeTrial\\Task02C\\release-verification-results.txt",
+        "hash":  "11420C178D7A513ACDFDEAF4B484E1F55263893FB27367C141EABD0951927292"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Data\\HotelOpsDbContext.cs",
+        "hash":  "106993205C8B43E9C22DBBC621165174588DF6C23B94CC5364C2DAFA2E9A5A77"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\task03a-package-digests.json",
+        "hash":  "7D0E57BDCF56D8C924CAAEFD7F1D984F78DAD85EF7BDD5B3F8EE66A1039B30B2"
+    },
+    {
+        "path":  "scripts/verification\\RbacUpgradeDeployment\\Task03B\\release04-results.txt",
+        "hash":  "0A9D6C9ACB74F98531C8314EFA810E7F35EF0E20A8FCB5A09718001ED7976DA5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\DTOs\\Authentication\\AuthenticationDtos.cs",
+        "hash":  "8D7D2751D467BDB0358F17184D2328B15467AA4D1C481396B569ED074A0EBD44"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\AssetHandover.cs",
+        "hash":  "52CDDC26E905B7E346E011D793B032A42F929E00D69036B788909FB786CDDD89"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\AssetConditionHistory.cs",
+        "hash":  "1E008913F8E920B545C61F9E9D0AB1CA72E21F035EB9A7CA6233E27EE442E833"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Asset.cs",
+        "hash":  "E31EE14A6264E35064782C73F058CB4C043BA941B87AD55FD600C9C7FFFB4247"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Area.cs",
+        "hash":  "9E3B23B25B026803F290164D640B7FCFE276D14695A36F33A21F3E5C963C3F6B"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\AssetType.cs",
+        "hash":  "7E9080B670815BF88B4390A9238F5734AC36AB8D872ED3810EBBCEE91CF8C7C9"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\AssetLocationHistory.cs",
+        "hash":  "BFD571FD6972BCEC5A2C5ECD2265151FCE562544DED8BB92C53C27BC2DF7706F"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Attachment.cs",
+        "hash":  "281A9C0849125F86D5BA3122379D5627B0ED02C0ED81CD72872BF1D3FA44628B"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\AuditLog.cs",
+        "hash":  "9CB4E239E19CCC0CA88707B8D3C59D6208082ED12C672A1E68FB2188613CE7A8"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InternalRequestFeedback.cs",
+        "hash":  "11789438BA8629C87CA0BE1AFBA1BE14E08D9A3EECC768F0C9859BE25D910BBA"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InternalRequestEvent.cs",
+        "hash":  "40F10470076AB65C4256DB05FEA7D4243A8CA83F1E96A39DAE5FE9EC24E135AE"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InternalRequestAssignment.cs",
+        "hash":  "1EDF1A01E8B8A0E2EF6ACFD16F8AD4AED814B4B22AF9C026E4CC4421A517B7B6"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InternalRequest.cs",
+        "hash":  "B25AC2E5CB3F9C87E4AD091A5DB58FA5D40011A587DA0F2A81729359746E7C6A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InspectionResult.cs",
+        "hash":  "E1C6B11C478FA2D229C5E83CBD2EA89BAC13BE86F95BD5B6312B52EAA5BE8027"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InspectionDefect.cs",
+        "hash":  "84ABC5A781DD4008AC1A0129FED0E6D4ED2E1FC3A3DF2E1C444B1C74959E5297"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InspectionChecklistVersion.cs",
+        "hash":  "9B17653E5DC3241D505BCDEAC4DED2D5D8ABFB010CFDF788D28CFA11A2944BA0"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InspectionChecklistItem.cs",
+        "hash":  "1851D1FDBF27DFAAF59DE844BE78EF11E5F7A4ECD4217C2171B6A97FED943DE5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InspectionChecklist.cs",
+        "hash":  "3E35A847F6BD95E81B3F82C74E9592E11179E5A678B9A925BFC6813AC02EC3B3"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\IncidentEvent.cs",
+        "hash":  "328450BC6A93571F754D877CA9DFFBE8AB6A9FE28172B0D60E4D8EC277D6D90A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Incident.cs",
+        "hash":  "71AAA78C8FC388338A6CCF1924E6AABD4C43FF9D1E004CE8B8BD252C4D57BBD1"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Floor.cs",
+        "hash":  "3286B41C3248C93D137F13204E3F56F405959B4C4ECE18E44356E47D64C856A7"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Department.cs",
+        "hash":  "B5824D9D7DB9D5183A32EB2DA292CC705B6C93C20D63F040416392EFD2AE3A49"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\CleaningTask.cs",
+        "hash":  "7D62D0E91F277B57CEFEF15B91E4F602F21ED3D16F4FD99480D4E171DFEFDF94"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\CleaningRework.cs",
+        "hash":  "7CA65722909366305C4243EDAF691595F36A303398722AE0B6688A5CCCF9802E"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\CleaningProgressLog.cs",
+        "hash":  "7189E7C99C985455C24C35303B655600650D51A8752C954656197DB84652E8FD"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\CleaningAssignment.cs",
+        "hash":  "38581C3E0ECBFE35297D74D7F6EB4A12319252D0C0D7E6246E2D9F3D75CBDC90"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Branch.cs",
+        "hash":  "ACF4962ACDEA8D59DF8285617270663FC56B2C5D0E52AB58DA81A826C132BAD3"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaterialRequestApproval.cs",
+        "hash":  "D457E8E1E7695053F199854E153B8A1BB04A87ABDAF103E17F3721BF2A6FA7E5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaterialRequest.cs",
+        "hash":  "03B5205BEAA73820541FD2CB191A7D827EB7ACD5172CF845E4F03349CC88FB9A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaterialFulfillmentLine.cs",
+        "hash":  "D0E8A776E1A259B86147DABD6FB5A349CA92B9C0B2B446B5600354F4B6EDAA1B"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaterialFulfillment.cs",
+        "hash":  "40A573D6E437559A6FE7C2BFA6FE979403686CC312C65F8C1ED9E3E9AF06F2B7"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaintenanceWorkLog.cs",
+        "hash":  "B234450F41676B0BD9297E55A90680480FCFF107E0CE13262EBAA7496F496E61"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaintenanceWork.cs",
+        "hash":  "89CF5D4531694E701CAE445207B25FB1FDCD92782F536A33DFA82B840765E4D7"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\ItemCategory.cs",
+        "hash":  "509ED136A1FC4DCFEEDCA35A205565AAC8F8F46E4DAE01EB1D8EE9800A09CD4D"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InventoryItem.cs",
+        "hash":  "07D3A83345323A8F030010F9E01C5F4BF9370D854C485DAB42D1842D0D603C44"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\InternalRequestType.cs",
+        "hash":  "4E32C84FADDA236422B5251542C88F8522450136DF4CB79939D17BEBEEA1D0F0"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\OperationalTaskAssignment.cs",
+        "hash":  "11A7E892301D9F75A8B8749B3EC088EEEFF07986AA46AB0AD9FC4D6DE1BF6ABF"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\OperationalTask.cs",
+        "hash":  "5305C402FE9F317B6B429D8B1231C20113860141A860677F47993F538E9C9F23"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\NotificationRecipient.cs",
+        "hash":  "EF26A77EDA1225C019CBE8659663F555D9E7EF2E0C93B330F7DC1E352812B344"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Notification.cs",
+        "hash":  "01271CC573CA39F65EA2B9A7620080DF7ECCD9C97F195F42E4F26D8D6A1A30FA"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\MaterialRequestLine.cs",
+        "hash":  "48B89B71924574DA9661D2324794A8D61F330DEE9971602A68205D892382A15B"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\OperationalTaskProgress.cs",
+        "hash":  "BF1FE5D4B430C990DF9B33B2B1C2A5F02213BB0A35D94BD6D2A2645DA97A9CDA"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\OperationalTaskDependency.cs",
+        "hash":  "F6F35BFEC469F69AB3FDD48E6597B3423FC410B17EE87A1B533F441F894A0E2C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Permission.cs",
+        "hash":  "44C0917F354241482479ABF65B0A4FA0154BB9C60485C2DC9C4E7AAA915290BA"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\PreventiveMaintenanceRun.cs",
+        "hash":  "43F4D112EAAC765775AA9FF49A513FC2E6A17895851DE75563DCB87761F8360D"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\PreventiveMaintenanceSchedule.cs",
+        "hash":  "41C30CD82D54A2E5FF14E62458B5753D76C50A38EE6FCBBFD4529896E0E602C0"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\ReferenceValue.cs",
+        "hash":  "130A34653744F8060ABF4A76F41373C218EB7D07FF5A7890043E61E171751BF3"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Role.cs",
+        "hash":  "02BCF587DD619AA35C042C87F52B87C38D7E52ED9468750BD61691009B002D7A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\RolePermission.cs",
+        "hash":  "DBA207B1C86C1B2DA741D8D30C75F5469129A5D7FE0E75B80CCFD813A894811D"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Room.cs",
+        "hash":  "F1018D8EBB553092E976C336523A5C3D76F886A8BD2CCD43CF50DBFA5461C48C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\WorkShift.cs",
+        "hash":  "48051783270DE1FED36ABCD2B8DAAEEFFBDF053AC7C7AA92A8256F26135BBF20"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\WorkCategory.cs",
+        "hash":  "EE2EF8B935A0419BD5266EEFFBF723B8F20BEA48B381B26A7664F3422371BB6A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Warehouse.cs",
+        "hash":  "115F5BEAA875DD029999050F0FFFC50ECAC6A59AE6D227B0C63649E49CF1C3C5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\UserSession.cs",
+        "hash":  "7036A7E1EA1040182404B46A8F54D779B1E9660A1E1E4422758CB9A97BA6933A"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\UserRole.cs",
+        "hash":  "E704DD41F2DF6C1CA8A355977FB637A5D2B727480E7D1DDE5ACD0C4C4CB227D5"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\UserBranchAccess.cs",
+        "hash":  "4401EED69716AB0B134E4B9E2CD2ABDEC06D098B76EE51E7444DE260E182810B"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\User.cs",
+        "hash":  "D79C73908F6EDC5C79D1788367216C762E6607007FA15FC4CCD164B8FFD44A98"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\UomConversion.cs",
+        "hash":  "25363FE403FD7168E7590ACFE78697CB22E0BD4DFF3EE40B8C9CED0A000403AF"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\UnitsOfMeasure.cs",
+        "hash":  "6283A3185B611C8DC2654594F85723F45824882662DDB1DE846BE4BF7D8D35D1"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\SystemSetting.cs",
+        "hash":  "1711D80646813B53B77B90EB9B4535794883393C868B060057616CEFBDD97EC7"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\StockThreshold.cs",
+        "hash":  "13F9026C716D55BB2C0ED18A756D3A6A2D02DA56B151CE2948A9A77A1A0C2657"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\StocktakeLine.cs",
+        "hash":  "28DD4B0ED62418722EE735618079467F1A08C8DA9FB93F0AE62FDB3CF846F35D"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\Stocktake.cs",
+        "hash":  "48EC3D412BC6227F8D58410A916069187B1E0F9E3C0F23FD402358C44DFA35DC"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\StockMovement.cs",
+        "hash":  "E12A3ACB5B6EF3858CB6D7C534801EBBD06B399D0B15F00D6CCBF8BD9C3412FB"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\StockDocumentLine.cs",
+        "hash":  "9D96CFA88AFE373BD41BACC66600F26D4FA0A796EEF3476384EF5C6D9AD40225"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\StockDocument.cs",
+        "hash":  "858A701776DC5B64B74CC339A1948E13394C4AEC62849374EBA69A5AE492847C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\ShiftTemplate.cs",
+        "hash":  "4A1F1DEB0EB616A2F66327CF09EF05430C0A5924596583C4A5323D7171E3B3BC"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\ShiftAttendance.cs",
+        "hash":  "277A19CF689720FF98F1B9E2D5AB12506189A59DE047A3ECD4EE5BC216BC484C"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\ShiftAssignment.cs",
+        "hash":  "EFB664B2CDEFCAAD8298D1B67F2127B778C615FF02FFE2742E611E28911A9B58"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\RoomType.cs",
+        "hash":  "76F62FD391985F0291B7BAB38F599BF23BBEA2152C8D76B39EDC231F329A7D70"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\RoomStatusHistory.cs",
+        "hash":  "7A82EB18CB2D0CE47D9075CC53661B4B8E8CECE4E11639274FBA586FAADA94A6"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\RoomInspection.cs",
+        "hash":  "5AE5C94EC3A544024D09831AD559E82DE0E8A7E4807EEC78A07D69C47D33B0D0"
+    },
+    {
+        "path":  "src/HotelOps.Api\\Entities\\RoomBlock.cs",
+        "hash":  "7A62F2DBF728E2DB7D6962EE0346DD69075D318C18F822F2B22467E0B9C4E7C6"
+    }
+]

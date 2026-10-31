@@ -1,6 +1,6 @@
 # GET /api/users
 
-Implemented scope: **UC-141 list/search/filter/pagination only**, per Task16 plan and Task17. This does not finish the UC-141 account-detail/effective-permissions step (UC-005/011).
+This document specifies the existing **UC-141 list/search/filter/pagination** contract from Task16/17. Task62 adds the opt-in account-detail/access-review step without changing this list response; see [UC011 implementation and V1 contract](../AccessReview/TASK62_UC011_IMPLEMENTATION.md).
 
 ## Authentication and scope
 
@@ -48,6 +48,18 @@ HTTP statuses: **200** allowed list; **400** invalid query or mismatched branch/
 
 ## Persistence behavior
 
-UserDirectoryService performs only SELECTs: normally count + projected page (two queries), plus one branch/department consistency check when both IDs are present. Filtering/pagination occur in SQL; no per-user query and no full-table materialization before filters. Count and page capture the same assignment UTC timestamp, but are separate read-committed queries, not a transactionally frozen snapshot during unrelated concurrent writes.
+UserDirectoryService query primitives perform only SELECTs: normally count + projected page (two queries), plus one branch/department consistency check when both IDs are present. Filtering/pagination occur in SQL; no per-user query and no full-table materialization before filters. Count and page capture the same assignment UTC timestamp.
+
+Task61 adds a read boundary using existing SqlSessionPolicy and global USER_VIEW evaluation. It owns a SERIALIZABLE transaction, takes a retained shared Users-universe lock before Session/grant/feature reads, and revalidates the hash-bound SQL session and time-valid global grant before publishing data. HTTP count/page and joined role data therefore remain consistent within one request. Read-only query primitives called directly without this guard retain their original isolation semantics. Pagination across separate requests is not a frozen snapshot. Task62 reuses this boundary for Access Review with its additional server-side authority check; list visibility and fields remain unchanged. See [Task61 acceptance](../UserList/TASK61_UC141_ACCEPTANCE.md).
+
+## Task62 detail drilldown
+
+`GET /api/users/{userId}` retains the minimal detail DTO. `GET /api/users/{userId}?includeAccess=true`
+returns the UC011 `UserAccessReviewDto` envelope (account, assignedRoles, branchMemberships,
+configuredGrants, effectivePermissions with source roles). The opt-in detail retains Global USER_VIEW
+and additionally requires ROLE_MANAGE. USER_VIEW alone cannot reveal access data. The dedicated
+`GET /api/users/{userId}/effective-access` also supports proven branch review scope; feature and
+permissionCode filters apply there. Routes/visibility are ASSUMED_V1 under Task62's explicit policy;
+neither endpoint changes grants/catalog. See the Task62 report for exact scope and error semantics.
 
 No user/assignment/catalog/audit mutation is added by this service. Existing authentication middleware may touch the validated session's last-used/expiry values; this behavior is preserved, not disabled to make a GET test appear completely write-free. No new session is created by the directory endpoint.

@@ -1,0 +1,161 @@
+﻿{
+    "startedUtc":  "2026-10-21T13:33:10.6520659Z",
+    "status":  "SUCCESS WITH NOTES",
+    "candidateSha256":  "C1FD3904871107F0284CDC8ADF5CFF8193972B408ECBCBC3F3EBE51AF29B3A64",
+    "completedBatches":  [
+                             1,
+                             2,
+                             3,
+                             4
+                         ],
+    "commitAcknowledged":  true,
+    "checks":  [
+                   "Exact identity, 72 data fingerprints, 5 schema groups, 126 protected files and candidate digest",
+                   "preflight DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS,NO_INFOMSGS",
+                   "preflight DBCC CHECKDB WITH NO_INFOMSGS,ALL_ERRORMSGS",
+                   "preflight trusted FK/CHECK and enabled unique indexes",
+                   "Exact predicted 18 added, 60 removed, 33 scope changes",
+                   "Fresh unique COPY_ONLY CHECKSUM backup, VERIFYONLY and logical file layout",
+                   "Bidirectional exact role metadata, permission metadata and 140 grant tuples",
+                   "Exact personnel, 7 expected changed tables, 65 preserved tables, credentials/sessions, old audit history and 6 new audits",
+                   "postdeployment DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS,NO_INFOMSGS",
+                   "postdeployment DBCC CHECKDB WITH NO_INFOMSGS,ALL_ERRORMSGS",
+                   "postdeployment trusted FK/CHECK and enabled unique indexes"
+               ],
+    "maintenance":  [
+                        {
+                            "phase":  "before-final-preflight",
+                            "utc":  "2026-10-21T13:33:18.2230890Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "before-final-backup",
+                            "utc":  "2026-10-21T13:36:05.6441513Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "immediately-before-candidate",
+                            "utc":  "2026-10-21T13:36:09.7081754Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "before-batch-1",
+                            "utc":  "2026-10-21T13:36:21.0263677Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "before-batch-2",
+                            "utc":  "2026-10-21T13:36:25.3297363Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "before-batch-3",
+                            "utc":  "2026-10-21T13:36:30.0078194Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "before-batch-4",
+                            "utc":  "2026-10-21T13:36:34.4285067Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        },
+                        {
+                            "phase":  "after-verification",
+                            "utc":  "2026-10-21T13:36:46.9176214Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        }
+                    ],
+    "backup":  {
+                   "identifier":  "RBAC03B_20261021_133605_d707920c940243b19f38814fcd69f6bb",
+                   "database":  "HotelOpsDB",
+                   "location":  "SQL Server configured backup directory, outside repository",
+                   "verifyOnly":  "PASS",
+                   "metadata":  [
+                                    {
+                                        "backup_set_id":  9383,
+                                        "backup_set_uuid":  "58B5E174-851A-4330-8DA2-AFE78306EF1A",
+                                        "database_name":  "HotelOpsDB",
+                                        "server_name":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                                        "start_server_local":  "2026-10-21 20:36:05.000",
+                                        "finish_server_local":  "2026-10-21 20:36:05.000",
+                                        "backup_size":  18563072,
+                                        "compressed_backup_size":  18563072,
+                                        "is_copy_only":  true,
+                                        "has_backup_checksums":  true,
+                                        "is_damaged":  false,
+                                        "recovery_model":  "SIMPLE",
+                                        "first_lsn":  43000000024700001,
+                                        "last_lsn":  43000000025000001
+                                    }
+                                ],
+                   "logicalFiles":  [
+                                        {
+                                            "name":  "HotelOpsDB",
+                                            "type":  "D",
+                                            "size":  75497472
+                                        },
+                                        {
+                                            "name":  "HotelOpsDB_log",
+                                            "type":  "L",
+                                            "size":  8388608
+                                        }
+                                    ]
+               },
+    "sqlStartUtc":  "2026-10-21T13:36:17.3902380",
+    "sqlFinishUtc":  "2026-10-21T13:36:35.6206841",
+    "counts":  [
+                   {
+                       "roles":  12,
+                       "active_roles":  10,
+                       "permissions":  62,
+                       "grants":  140,
+                       "department_grants":  0
+                   }
+               ],
+    "scopes":  [
+                   {
+                       "data_scope":  "ALL",
+                       "grants":  8
+                   },
+                   {
+                       "data_scope":  "BRANCH",
+                       "grants":  81
+                   },
+                   {
+                       "data_scope":  "OWN",
+                       "grants":  51
+                   }
+               ],
+    "finishedUtc":  "2026-10-21T13:36:47.8283902Z"
+}

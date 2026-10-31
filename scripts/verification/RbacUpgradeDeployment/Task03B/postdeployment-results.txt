@@ -1,0 +1,133 @@
+﻿
+database_name roles active_roles inactive_roles permissions grants
+------------- ----- ------------ -------------- ----------- ------
+HotelOpsDB       12           10              2          62    140
+
+
+
+
+role_code          is_active
+---------          ---------
+DEPT_MANAGER            True
+HK_INSPECTOR           False
+HK_STAFF                True
+HK_SUPERVISOR           True
+MAINTENANCE_LEAD        True
+MAINTENANCE_STAFF       True
+OPERATIONS_MANAGER      True
+OWNER                   True
+RECEPTION               True
+STAFF                  False
+STOREKEEPER             True
+SYS_ADMIN               True
+
+
+
+
+data_scope grants
+---------- ------
+ALL             8
+BRANCH         81
+OWN            51
+
+
+
+
+entity missing extra
+------ ------- -----
+roles        0     0
+
+
+
+
+entity      missing extra
+------      ------- -----
+permissions       0     0
+
+
+
+
+entity missing extra
+------ ------- -----
+grants       0     0
+
+
+
+
+user_id role_code          branch_id is_active
+------- ---------          --------- ---------
+      4 DEPT_MANAGER               1      True
+      5 DEPT_MANAGER               1     False
+     17 DEPT_MANAGER               1     False
+     18 DEPT_MANAGER               1     False
+     23 DEPT_MANAGER               1     False
+     19 DEPT_MANAGER               2      True
+     20 DEPT_MANAGER               2     False
+     25 DEPT_MANAGER               2     False
+      8 HK_INSPECTOR               1     False
+     14 HK_INSPECTOR               2     False
+      2 HK_SUPERVISOR              1      True
+      8 HK_SUPERVISOR              1      True
+     12 HK_SUPERVISOR              2      True
+     14 HK_SUPERVISOR              2      True
+      1 OPERATIONS_MANAGER         1      True
+      5 STOREKEEPER                1      True
+     19 STOREKEEPER                2     False
+
+
+
+
+access_id user_id branch_id access_level revoked_at           
+--------- ------- --------- ------------ ----------           
+        1       1         1 MANAGER                           
+        2       1         2 MANAGER      10/21/2026 1:36:35 PM
+
+
+
+
+user_id primary_branch_id department_id account_status
+------- ----------------- ------------- --------------
+      1                 1               ACTIVE        
+      4                 1               ACTIVE        
+      5                 1 4             ACTIVE        
+     19                 2               ACTIVE        
+
+
+
+
+role_code permission_code    data_scope
+--------- ---------------    ----------
+OWNER     DASHBOARD_VIEW     ALL       
+OWNER     REPORT_VIEW        ALL       
+SYS_ADMIN AUDIT_VIEW         ALL       
+SYS_ADMIN MASTER_DATA_MANAGE ALL       
+SYS_ADMIN ROLE_MANAGE        ALL       
+SYS_ADMIN SETTINGS_MANAGE    ALL       
+SYS_ADMIN USER_MANAGE        ALL       
+SYS_ADMIN USER_VIEW          ALL       
+
+
+
+
+department_id branch_id department_code is_active
+------------- --------- --------------- ---------
+            3         1 LAU                  True
+            5         1 SEC                  True
+            6         1 FB                   True
+           10         2 SEC                  True
+
+
+
+
+
+audit_id entity_type        entity_id                                action actor_user_id old_json_valid new_json_valid occurred_at          
+-------- -----------        ---------                                ------ ------------- -------------- -------------- -----------          
+      15 roles              deployment:RBAC03A_20261021_24e14e196c6a UPDATE                            1              1 10/21/2026 1:36:35 PM
+      16 permissions        deployment:RBAC03A_20261021_24e14e196c6a UPDATE                            1              1 10/21/2026 1:36:35 PM
+      17 role_permissions   deployment:RBAC03A_20261021_24e14e196c6a UPDATE                            1              1 10/21/2026 1:36:35 PM
+      18 users              deployment:RBAC03A_20261021_24e14e196c6a UPDATE                            1              1 10/21/2026 1:36:35 PM
+      19 user_roles         deployment:RBAC03A_20261021_24e14e196c6a UPDATE                            1              1 10/21/2026 1:36:35 PM
+      20 user_branch_access deployment:RBAC03A_20261021_24e14e196c6a UPDATE                            1              1 10/21/2026 1:36:35 PM
+
+
+

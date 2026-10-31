@@ -1,0 +1,10 @@
+﻿{
+    "safeSubsetDryRun":  "PASS_ROLLBACK",
+    "safeSubsetCommit":  "PASS_8_FLAGS_8_AUDITS",
+    "departments":  "BLOCKED_SQL_52005",
+    "rbac":  "PASS",
+    "integrity":  "PASS",
+    "source":  "UNCHANGED",
+    "usersAndSessions":  "UNCHANGED",
+    "verdict":  "BLOCKED_PARTIAL_IMPLEMENTATION"
+}

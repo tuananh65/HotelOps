@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using HotelOps.Api.Controllers.Filters;
 using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Users;
@@ -11,12 +12,20 @@ namespace HotelOps.Api.Controllers;
 [Route("api/users")]
 [Authorize(Policy = PermissionPolicy.Prefix + "Global:USER_VIEW")]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class UsersController(IUserDirectoryService users) : ControllerBase
+[TypeFilter(typeof(UserDirectoryReadFilter))]
+public sealed class UsersController(IUserDirectoryService users, UserAccessReviewService reviews) : ControllerBase
 {
     [HttpGet("{userId}")]
-    public async Task<ActionResult<UserAccountDetailDto>> Detail([FromRoute, Range(1, long.MaxValue)] long userId,
+    [UserAccessReview(whenIncluded: true)]
+    public async Task<IActionResult> Detail([FromRoute, Range(1, long.MaxValue)] long userId,
+        [FromQuery] bool includeAccess,
         CancellationToken cancellationToken)
     {
+        if (includeAccess)
+        {
+            var review = await reviews.ReadAsync(UserAccessReviewAttribute.Get(HttpContext), new(), cancellationToken);
+            return review is null ? Problem(statusCode: 404, title: "User account not found") : Ok(review);
+        }
         var user = await users.GetAsync(userId, cancellationToken);
         return user is null
             ? Problem(statusCode: StatusCodes.Status404NotFound, title: "User account not found")

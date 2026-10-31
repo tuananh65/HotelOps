@@ -1,0 +1,155 @@
+﻿
+database_name                                     server_name               
+-------------                                     -----------               
+HotelOps_RBAC_Upgrade_Trial_20261021_380b6cc4b282 DESKTOP-JI8U50T\SQLEXPRESS
+
+
+
+
+department_id branch_id department_code is_active user_id account_status employment_status deleted_at
+------------- --------- --------------- --------- ------- -------------- ----------------- ----------
+            3         1 LAU                  True      11 ACTIVE         ACTIVE                      
+            5         1 SEC                  True      17 ACTIVE         ACTIVE                      
+            6         1 FB                   True      18 ACTIVE         ACTIVE                      
+           10         2 SEC                  True      20 ACTIVE         ACTIVE                      
+
+
+
+
+warehouse_id warehouse_code department_id manager_user_id is_active
+------------ -------------- ------------- --------------- ---------
+           4 WH-FB                      6               5      True
+           8 WH-SEC                    10              20      True
+           9 WH-LAU                     3               4      True
+
+
+
+
+warehouse_id item_id on_hand movement_count
+------------ ------- ------- --------------
+           4      14 384.000              2
+           4      15 192.000              2
+           8           0.000              0
+           9           0.000              0
+
+
+
+
+document_id document_type status source_warehouse_id destination_warehouse_id created_at            posted_at             cancelled_at
+----------- ------------- ------ ------------------- ------------------------ ----------            ---------             ------------
+          3 RECEIPT       POSTED                                            4 9/5/2026 8:30:00 AM   9/5/2026 9:30:00 AM               
+          8 ISSUE         POSTED 4                                            9/25/2026 10:00:00 AM 9/25/2026 10:30:00 AM             
+
+
+
+
+request_id status    requester_id source_warehouse_id
+---------- ------    ------------ -------------------
+         3 COMPLETED            6                   4
+         8 APPROVED             6                   4
+         9 APPROVED             6                   4
+
+
+
+
+fulfillment_id request_id warehouse_id status    fulfilled_by received_by
+-------------- ---------- ------------ ------    ------------ -----------
+             3          3            4 RECEIVED             5           6
+             8          8            4 PREPARING            5            
+             9          9            4 PREPARING            5            
+
+
+
+
+stocktake_id warehouse_id status    created_at           
+------------ ------------ ------    ----------           
+           3            4 APPROVED  10/1/2026 4:30:00 PM 
+           7            4 COMPLETED 10/14/2026 3:30:00 PM
+
+
+
+
+name                
+----                
+stock_document_lines
+stock_documents     
+stock_movements     
+stock_thresholds    
+stocktake_lines     
+stocktakes          
+
+
+
+
+fk_name                                     table_name            column_name             
+-------                                     ----------            -----------             
+FK_stock_thresholds_warehouse_id            stock_thresholds      warehouse_id            
+FK_stock_documents_source_warehouse_id      stock_documents       source_warehouse_id     
+FK_stock_documents_destination_warehouse_id stock_documents       destination_warehouse_id
+FK_stock_movements_warehouse_id             stock_movements       warehouse_id            
+FK_stocktakes_warehouse_id                  stocktakes            warehouse_id            
+FK_material_requests_source_warehouse_id    material_requests     source_warehouse_id     
+FK_material_fulfillments_warehouse_id       material_fulfillments warehouse_id            
+
+
+
+
+internal_request_id status    request_type_id requester_id requester_department_id receiving_department_id completed_at          closed_at              cancellation_reason
+------------------- ------    --------------- ------------ ----------------------- ----------------------- ------------          ---------              -------------------
+                  4 COMPLETED               4            2                       1                       3 10/16/2026 9:35:00 AM                                           
+                  5 CLOSED                  2           17                       5                       2 10/12/2026 9:00:00 AM 10/12/2026 10:00:00 AM                    
+                  8 COMPLETED               4            8                       1                       3 10/14/2026 4:35:00 PM                                           
+                 13 DRAFT                   6           23                      11                       6                                                                 
+                 14 CANCELLED               9           23                      11                       6                                              Khách hủy lịch họp 
+
+
+
+
+event_id internal_request_id event_type old_status new_status actor_id occurred_at           
+-------- ------------------- ---------- ---------- ---------- -------- -----------           
+      13                  13 CREATED               DRAFT            23 10/16/2026 10:00:00 AM
+
+
+
+
+
+shift_id department_id shift_date             status      scheduled_start_at    scheduled_end_at      
+-------- ------------- ----------             ------      ------------------    ----------------      
+       4             3 10/16/2026 12:00:00 AM IN_PROGRESS 10/16/2026 6:00:00 AM 10/16/2026 2:00:00 PM 
+       5             3 10/16/2026 12:00:00 AM PLANNED     10/16/2026 2:00:00 PM 10/16/2026 10:00:00 PM
+
+
+
+
+shift_assignment_id shift_id user_id assignment_status confirmed_at          actual_check_in_at    actual_check_out_at attendance_status
+------------------- -------- ------- ----------------- ------------          ------------------    ------------------- -----------------
+                  7        4      11 CONFIRMED         10/14/2026 6:00:00 PM 10/16/2026 5:55:00 AM                     PRESENT          
+                  8        4       4 CONFIRMED         10/14/2026 6:00:00 PM 10/16/2026 6:00:00 AM                     PRESENT          
+
+
+
+
+user_id total_sessions unrevoked_sessions
+------- -------------- ------------------
+     11              1                  1
+     17              0                  0
+     18              0                  0
+     20              0                  0
+
+
+
+
+name                         definition                                                                                                                                                                    
+----                         ----------                                                                                                                                                                    
+CK_internal_requests_status  ([status]='CANCELLED' OR [status]='REJECTED' OR [status]='CLOSED' OR [status]='COMPLETED' OR [status]='IN_PROGRESS' OR [status]='SUBMITTED' OR [status]='DRAFT')              
+CK_users_manager_not_self    ([manager_user_id] IS NULL OR [manager_user_id]<>[user_id])                                                                                                                   
+CK_users_failed_login_count  ([failed_login_count]>=(0))                                                                                                                                                   
+CK_audit_logs_old_values     ([old_values] IS NULL OR isjson([old_values])=(1))                                                                                                                            
+CK_audit_logs_new_values     ([new_values] IS NULL OR isjson([new_values])=(1))                                                                                                                            
+CK_audit_logs_changed_fields ([changed_fields] IS NULL OR isjson([changed_fields])=(1))                                                                                                                    
+CK_audit_logs_action         ([action]='LOGOUT' OR [action]='LOGIN' OR [action]='CANCEL' OR [action]='REJECT' OR [action]='APPROVE' OR [action]='DELETE' OR [action]='UPDATE' OR [action]='CREATE')        
+CK_stock_documents_type      ([document_type]='REVERSAL' OR [document_type]='ADJUSTMENT' OR [document_type]='TRANSFER' OR [document_type]='RETURN' OR [document_type]='ISSUE' OR [document_type]='RECEIPT')
+
+
+
+

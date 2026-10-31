@@ -1,0 +1,14 @@
+﻿
+entity_type            entity_id branch_id
+-----------            --------- ---------
+internal_request_types 4                  
+internal_request_types 5                  
+internal_request_types 9                  
+warehouses             8         2        
+warehouses             9         1        
+work_categories        10                 
+work_categories        11                 
+work_categories        2                  
+
+
+

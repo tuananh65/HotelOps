@@ -1,0 +1,1053 @@
+﻿{
+    "success":  true,
+    "scope":  "Read-only disposable SQL metadata/catalog; no UC010 mutation or authorization certification",
+    "identity":  {
+                     "databaseName":  "HotelOps_Canonical_20261028_075110_1efcd85c_Fresh",
+                     "serverName":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                     "marker":  "Task17"
+                 },
+    "columns":  [
+                    {
+                        "tableName":  "role_permissions",
+                        "columnName":  "role_permission_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "role_permissions",
+                        "columnName":  "role_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "role_permissions",
+                        "columnName":  "permission_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "role_permissions",
+                        "columnName":  "granted_at",
+                        "typeName":  "datetime2",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "role_permissions",
+                        "columnName":  "granted_by",
+                        "typeName":  "bigint",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "role_permissions",
+                        "columnName":  "data_scope",
+                        "typeName":  "varchar",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "role_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "role_code",
+                        "typeName":  "varchar",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "role_name",
+                        "typeName":  "nvarchar",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "description",
+                        "typeName":  "nvarchar",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "is_system_role",
+                        "typeName":  "bit",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "is_active",
+                        "typeName":  "bit",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "roles",
+                        "columnName":  "created_at",
+                        "typeName":  "datetime2",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "access_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "user_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "branch_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "access_level",
+                        "typeName":  "varchar",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "is_primary",
+                        "typeName":  "bit",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "granted_by",
+                        "typeName":  "bigint",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "granted_at",
+                        "typeName":  "datetime2",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_branch_access",
+                        "columnName":  "revoked_at",
+                        "typeName":  "datetime2",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "user_role_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "user_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "role_id",
+                        "typeName":  "bigint",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "branch_id",
+                        "typeName":  "bigint",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "assigned_by",
+                        "typeName":  "bigint",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "assigned_at",
+                        "typeName":  "datetime2",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "expires_at",
+                        "typeName":  "datetime2",
+                        "nullable":  true
+                    },
+                    {
+                        "tableName":  "user_roles",
+                        "columnName":  "is_active",
+                        "typeName":  "bit",
+                        "nullable":  false
+                    },
+                    {
+                        "tableName":  "users",
+                        "columnName":  "row_version",
+                        "typeName":  "timestamp",
+                        "nullable":  false
+                    }
+                ],
+    "uniqueIndexes":  [
+                          {
+                              "tableName":  "user_branch_access",
+                              "indexName":  "PK__user_bra__10FA1E20AD7A1D97",
+                              "isUnique":  true,
+                              "hasFilter":  false,
+                              "keys":  [
+                                           {
+                                               "columnName":  "access_id",
+                                               "ordinal":  1
+                                           }
+                                       ]
+                          },
+                          {
+                              "tableName":  "user_branch_access",
+                              "indexName":  "user_branch_access_index_41",
+                              "isUnique":  true,
+                              "hasFilter":  false,
+                              "keys":  [
+                                           {
+                                               "columnName":  "user_id",
+                                               "ordinal":  1
+                                           },
+                                           {
+                                               "columnName":  "branch_id",
+                                               "ordinal":  2
+                                           }
+                                       ]
+                          },
+                          {
+                              "tableName":  "user_branch_access",
+                              "indexName":  "UX_user_branch_access_primary",
+                              "isUnique":  true,
+                              "hasFilter":  true,
+                              "filterDefinition":  "([is_primary]=(1) AND [revoked_at] IS NULL)",
+                              "keys":  [
+                                           {
+                                               "columnName":  "user_id",
+                                               "ordinal":  1
+                                           }
+                                       ]
+                          },
+                          {
+                              "tableName":  "user_roles",
+                              "indexName":  "PK__user_rol__B8D9ABA23356A8E4",
+                              "isUnique":  true,
+                              "hasFilter":  false,
+                              "keys":  [
+                                           {
+                                               "columnName":  "user_role_id",
+                                               "ordinal":  1
+                                           }
+                                       ]
+                          },
+                          {
+                              "tableName":  "user_roles",
+                              "indexName":  "user_roles_index_39",
+                              "isUnique":  true,
+                              "hasFilter":  false,
+                              "keys":  [
+                                           {
+                                               "columnName":  "user_id",
+                                               "ordinal":  1
+                                           },
+                                           {
+                                               "columnName":  "role_id",
+                                               "ordinal":  2
+                                           },
+                                           {
+                                               "columnName":  "branch_id",
+                                               "ordinal":  3
+                                           }
+                                       ]
+                          }
+                      ],
+    "foreignKeys":  [
+                        {
+                            "tableName":  "role_permissions",
+                            "constraintName":  "FK_role_permissions_granted_by",
+                            "referencedTable":  "users",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "granted_by",
+                                                "referencedColumn":  "user_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "role_permissions",
+                            "constraintName":  "FK_role_permissions_permission_id",
+                            "referencedTable":  "permissions",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "permission_id",
+                                                "referencedColumn":  "permission_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "role_permissions",
+                            "constraintName":  "FK_role_permissions_role_id",
+                            "referencedTable":  "roles",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "role_id",
+                                                "referencedColumn":  "role_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_branch_access",
+                            "constraintName":  "FK_user_branch_access_branch_id",
+                            "referencedTable":  "branches",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "branch_id",
+                                                "referencedColumn":  "branch_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_branch_access",
+                            "constraintName":  "FK_user_branch_access_granted_by",
+                            "referencedTable":  "users",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "granted_by",
+                                                "referencedColumn":  "user_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_branch_access",
+                            "constraintName":  "FK_user_branch_access_user_id",
+                            "referencedTable":  "users",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "user_id",
+                                                "referencedColumn":  "user_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_roles",
+                            "constraintName":  "FK_user_roles_assigned_by",
+                            "referencedTable":  "users",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "assigned_by",
+                                                "referencedColumn":  "user_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_roles",
+                            "constraintName":  "FK_user_roles_branch_id",
+                            "referencedTable":  "branches",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "branch_id",
+                                                "referencedColumn":  "branch_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_roles",
+                            "constraintName":  "FK_user_roles_role_id",
+                            "referencedTable":  "roles",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "role_id",
+                                                "referencedColumn":  "role_id"
+                                            }
+                                        ]
+                        },
+                        {
+                            "tableName":  "user_roles",
+                            "constraintName":  "FK_user_roles_user_id",
+                            "referencedTable":  "users",
+                            "disabled":  false,
+                            "untrusted":  false,
+                            "columns":  [
+                                            {
+                                                "parentColumn":  "user_id",
+                                                "referencedColumn":  "user_id"
+                                            }
+                                        ]
+                        }
+                    ],
+    "checkConstraints":  [
+                             {
+                                 "tableName":  "role_permissions",
+                                 "constraintName":  "CK_role_permissions_data_scope",
+                                 "definition":  "([data_scope]=\u0027ALL\u0027 OR [data_scope]=\u0027BRANCH\u0027 OR [data_scope]=\u0027DEPARTMENT\u0027 OR [data_scope]=\u0027OWN\u0027)",
+                                 "disabled":  false
+                             }
+                         ],
+    "triggers":  [
+
+                 ],
+    "roles":  [
+                  {
+                      "roleCode":  "DEPT_MANAGER",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ASSET_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "DASHBOARD_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INVENTORY_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_PROCESS",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_APPROVE_L1",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "REPORT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_MANAGE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_MANAGE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "USER_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "HK_INSPECTOR",
+                      "isSystemRole":  false,
+                      "isActive":  false
+                  },
+                  {
+                      "roleCode":  "HK_STAFF",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "CLEANING_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "CLEANING_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "DEFECT_RESOLVE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_PROCESS",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "OWN"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "HK_SUPERVISOR",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "CLEANING_ASSIGN",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "CLEANING_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INSPECTION_PERFORM",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INSPECTION_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "MAINTENANCE_LEAD",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ASSET_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_TRIAGE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_PROCESS",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_ASSIGN",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_REVIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "PM_MANAGE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_BLOCK_MANAGE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "MAINTENANCE_STAFF",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ASSET_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_PROCESS",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "OWN"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "OPERATIONS_MANAGER",
+                      "isSystemRole":  true,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ASSET_MANAGE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ASSET_RETIRE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ASSET_TRANSFER",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ASSET_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "CLEANING_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "DASHBOARD_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_ESCALATION_HANDLE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INSPECTION_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INVENTORY_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_OVERDUE_HANDLE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MAINTENANCE_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_APPROVE_FALLBACK",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "REPORT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCK_ADJUST_POST",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCK_REVERSE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "OWNER",
+                      "isSystemRole":  true,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "DASHBOARD_VIEW",
+                                         "dataScope":  "ALL"
+                                     },
+                                     {
+                                         "permissionCode":  "REPORT_VIEW",
+                                         "dataScope":  "ALL"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "RECEPTION",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "CLEANING_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_CHECKIN",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_CHECKOUT",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_OCCUPANCY_MOVE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "OWN"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "STAFF",
+                      "isSystemRole":  false,
+                      "isActive":  false,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_CREATE",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "INCIDENT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_PROCESS",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "ROOM_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "OWN"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "STOREKEEPER",
+                      "isSystemRole":  false,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "ASSET_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "ATTENDANCE_RECORD",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "INVENTORY_VIEW",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "IR_PROCESS",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_CREATE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "MR_FULFILL",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "SHIFT_VIEW",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCK_ISSUE_POST",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCK_RECEIPT_POST",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCK_RETURN_POST",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCK_TRANSFER_POST",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "STOCKTAKE_PERFORM",
+                                         "dataScope":  "BRANCH"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_EXECUTE",
+                                         "dataScope":  "OWN"
+                                     },
+                                     {
+                                         "permissionCode":  "TASK_VIEW",
+                                         "dataScope":  "OWN"
+                                     }
+                                 ]
+                  },
+                  {
+                      "roleCode":  "SYS_ADMIN",
+                      "isSystemRole":  true,
+                      "isActive":  true,
+                      "grants":  [
+                                     {
+                                         "permissionCode":  "AUDIT_VIEW",
+                                         "dataScope":  "ALL"
+                                     },
+                                     {
+                                         "permissionCode":  "MASTER_DATA_MANAGE",
+                                         "dataScope":  "ALL"
+                                     },
+                                     {
+                                         "permissionCode":  "ROLE_MANAGE",
+                                         "dataScope":  "ALL"
+                                     },
+                                     {
+                                         "permissionCode":  "SETTINGS_MANAGE",
+                                         "dataScope":  "ALL"
+                                     },
+                                     {
+                                         "permissionCode":  "USER_MANAGE",
+                                         "dataScope":  "ALL"
+                                     },
+                                     {
+                                         "permissionCode":  "USER_VIEW",
+                                         "dataScope":  "ALL"
+                                     }
+                                 ]
+                  }
+              ]
+}

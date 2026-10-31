@@ -1,0 +1,892 @@
+﻿{
+    "database":  "HotelOps_Canonical_20261027_153441_72eb1c7f_Fresh",
+    "metadataOnly":  true,
+    "userForeignKeys":  [
+                            {
+                                "table":  "asset_condition_history",
+                                "column":  "changed_by",
+                                "foreignKey":  "FK_asset_condition_history_changed_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "asset_handovers",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_asset_handovers_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "asset_handovers",
+                                "column":  "from_user_id",
+                                "foreignKey":  "FK_asset_handovers_from_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "asset_handovers",
+                                "column":  "to_user_id",
+                                "foreignKey":  "FK_asset_handovers_to_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "asset_location_history",
+                                "column":  "moved_by",
+                                "foreignKey":  "FK_asset_location_history_moved_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "assets",
+                                "column":  "custodian_user_id",
+                                "foreignKey":  "FK_assets_custodian_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "attachments",
+                                "column":  "uploaded_by",
+                                "foreignKey":  "FK_attachments_uploaded_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "audit_logs",
+                                "column":  "actor_user_id",
+                                "foreignKey":  "FK_audit_logs_actor_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "cleaning_assignments",
+                                "column":  "assigned_by",
+                                "foreignKey":  "FK_cleaning_assignments_assigned_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "cleaning_assignments",
+                                "column":  "assignee_user_id",
+                                "foreignKey":  "FK_cleaning_assignments_assignee_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "cleaning_progress_logs",
+                                "column":  "logged_by",
+                                "foreignKey":  "FK_cleaning_progress_logs_logged_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "cleaning_reworks",
+                                "column":  "assignee_user_id",
+                                "foreignKey":  "FK_cleaning_reworks_assignee_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "cleaning_tasks",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_cleaning_tasks_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "departments",
+                                "column":  "manager_user_id",
+                                "foreignKey":  "FK_departments_manager_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "incident_events",
+                                "column":  "actor_id",
+                                "foreignKey":  "FK_incident_events_actor_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "incidents",
+                                "column":  "reported_by",
+                                "foreignKey":  "FK_incidents_reported_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "inspection_checklist_versions",
+                                "column":  "published_by",
+                                "foreignKey":  "FK_inspection_checklist_versions_published_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "inspection_checklists",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_inspection_checklists_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "inspection_defects",
+                                "column":  "assigned_to",
+                                "foreignKey":  "FK_inspection_defects_assigned_to",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "internal_request_assignments",
+                                "column":  "assigned_by",
+                                "foreignKey":  "FK_internal_request_assignments_assigned_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "internal_request_assignments",
+                                "column":  "assignee_id",
+                                "foreignKey":  "FK_internal_request_assignments_assignee_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "internal_request_events",
+                                "column":  "actor_id",
+                                "foreignKey":  "FK_internal_request_events_actor_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "internal_request_feedback",
+                                "column":  "submitted_by",
+                                "foreignKey":  "FK_internal_request_feedback_submitted_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "internal_requests",
+                                "column":  "requester_id",
+                                "foreignKey":  "FK_internal_requests_requester_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "maintenance_work_logs",
+                                "column":  "logged_by",
+                                "foreignKey":  "FK_maintenance_work_logs_logged_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "maintenance_works",
+                                "column":  "assignee_id",
+                                "foreignKey":  "FK_maintenance_works_assignee_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "maintenance_works",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_maintenance_works_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "maintenance_works",
+                                "column":  "reviewed_by",
+                                "foreignKey":  "FK_maintenance_works_reviewed_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_fulfillments",
+                                "column":  "fulfilled_by",
+                                "foreignKey":  "FK_material_fulfillments_fulfilled_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_fulfillments",
+                                "column":  "received_by",
+                                "foreignKey":  "FK_material_fulfillments_received_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_replenishment_receipt_lines",
+                                "column":  "linked_by",
+                                "foreignKey":  "FK_replenishment_receipts_actor",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_replenishments",
+                                "column":  "closed_by",
+                                "foreignKey":  "FK_replenishments_closer",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_replenishments",
+                                "column":  "requested_by",
+                                "foreignKey":  "FK_replenishments_requester",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_request_approval_cycles",
+                                "column":  "assigned_approver_id",
+                                "foreignKey":  "FK_mr_cycles_approver",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_request_approval_cycles",
+                                "column":  "submitted_by",
+                                "foreignKey":  "FK_mr_cycles_submitter",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_request_approvals",
+                                "column":  "approver_id",
+                                "foreignKey":  "FK_material_request_approvals_approver_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_requests",
+                                "column":  "remainder_closed_by",
+                                "foreignKey":  "FK_material_requests_remainder_closed_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "material_requests",
+                                "column":  "requester_id",
+                                "foreignKey":  "FK_material_requests_requester_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "notification_recipients",
+                                "column":  "user_id",
+                                "foreignKey":  "FK_notification_recipients_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "notifications",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_notifications_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "operational_task_assignments",
+                                "column":  "assigned_by",
+                                "foreignKey":  "FK_operational_task_assignments_assigned_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "operational_task_assignments",
+                                "column":  "assignee_id",
+                                "foreignKey":  "FK_operational_task_assignments_assignee_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "operational_task_progress",
+                                "column":  "reported_by",
+                                "foreignKey":  "FK_operational_task_progress_reported_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "operational_tasks",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_operational_tasks_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "preventive_maintenance_runs",
+                                "column":  "performed_by",
+                                "foreignKey":  "FK_preventive_maintenance_runs_performed_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "preventive_maintenance_schedules",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_preventive_maintenance_schedules_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "role_permissions",
+                                "column":  "granted_by",
+                                "foreignKey":  "FK_role_permissions_granted_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "room_blocks",
+                                "column":  "blocked_by",
+                                "foreignKey":  "FK_room_blocks_blocked_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "room_blocks",
+                                "column":  "released_by",
+                                "foreignKey":  "FK_room_blocks_released_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "room_inspections",
+                                "column":  "inspector_user_id",
+                                "foreignKey":  "FK_room_inspections_inspector_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "room_status_history",
+                                "column":  "changed_by",
+                                "foreignKey":  "FK_room_status_history_changed_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "shift_assignments",
+                                "column":  "assigned_by",
+                                "foreignKey":  "FK_shift_assignments_assigned_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "shift_assignments",
+                                "column":  "user_id",
+                                "foreignKey":  "FK_shift_assignments_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "shift_attendance",
+                                "column":  "verified_by",
+                                "foreignKey":  "FK_shift_attendance_verified_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stock_documents",
+                                "column":  "approved_by",
+                                "foreignKey":  "FK_stock_documents_approved_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stock_documents",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_stock_documents_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stock_documents",
+                                "column":  "posted_by",
+                                "foreignKey":  "FK_stock_documents_posted_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stock_movements",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_stock_movements_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stock_transfer_receipts",
+                                "column":  "received_by",
+                                "foreignKey":  "FK_stock_transfer_receipts_user",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stocktake_lines",
+                                "column":  "counted_by",
+                                "foreignKey":  "FK_stocktake_lines_counted_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stocktakes",
+                                "column":  "approved_by",
+                                "foreignKey":  "FK_stocktakes_approved_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "stocktakes",
+                                "column":  "counted_by",
+                                "foreignKey":  "FK_stocktakes_counted_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "system_settings",
+                                "column":  "updated_by",
+                                "foreignKey":  "FK_system_settings_updated_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "user_branch_access",
+                                "column":  "granted_by",
+                                "foreignKey":  "FK_user_branch_access_granted_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "user_branch_access",
+                                "column":  "user_id",
+                                "foreignKey":  "FK_user_branch_access_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "user_roles",
+                                "column":  "assigned_by",
+                                "foreignKey":  "FK_user_roles_assigned_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "user_roles",
+                                "column":  "user_id",
+                                "foreignKey":  "FK_user_roles_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "user_sessions",
+                                "column":  "user_id",
+                                "foreignKey":  "FK_user_sessions_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "users",
+                                "column":  "manager_user_id",
+                                "foreignKey":  "FK_users_manager_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "warehouses",
+                                "column":  "manager_user_id",
+                                "foreignKey":  "FK_warehouses_manager_user_id",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            },
+                            {
+                                "table":  "work_shifts",
+                                "column":  "created_by",
+                                "foreignKey":  "FK_work_shifts_created_by",
+                                "referencedColumn":  "user_id",
+                                "disabled":  false,
+                                "untrusted":  false
+                            }
+                        ],
+    "checkConstraints":  [
+                             {
+                                 "table":  "attachments",
+                                 "constraint":  "CK_attachments_entity_type",
+                                 "definition":  "([entity_type]=\u0027TASK\u0027 OR [entity_type]=\u0027REQUEST\u0027 OR [entity_type]=\u0027STOCK_DOCUMENT\u0027 OR [entity_type]=\u0027ASSET\u0027 OR [entity_type]=\u0027MAINTENANCE\u0027 OR [entity_type]=\u0027INCIDENT\u0027 OR [entity_type]=\u0027INSPECTION\u0027 OR [entity_type]=\u0027CLEANING_TASK\u0027 OR [entity_type]=\u0027ROOM\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "audit_logs",
+                                 "constraint":  "CK_audit_logs_action",
+                                 "definition":  "([action]=\u0027LOGOUT\u0027 OR [action]=\u0027LOGIN\u0027 OR [action]=\u0027CANCEL\u0027 OR [action]=\u0027REJECT\u0027 OR [action]=\u0027APPROVE\u0027 OR [action]=\u0027DELETE\u0027 OR [action]=\u0027UPDATE\u0027 OR [action]=\u0027CREATE\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "audit_logs",
+                                 "constraint":  "CK_audit_logs_changed_fields",
+                                 "definition":  "([changed_fields] IS NULL OR isjson([changed_fields])=(1))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "audit_logs",
+                                 "constraint":  "CK_audit_logs_new_values",
+                                 "definition":  "([new_values] IS NULL OR isjson([new_values])=(1))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "audit_logs",
+                                 "constraint":  "CK_audit_logs_old_values",
+                                 "definition":  "([old_values] IS NULL OR isjson([old_values])=(1))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "cleaning_assignments",
+                                 "constraint":  "CK_cleaning_assignments_status",
+                                 "definition":  "([assignment_status]=\u0027CANCELLED\u0027 OR [assignment_status]=\u0027REASSIGNED\u0027 OR [assignment_status]=\u0027COMPLETED\u0027 OR [assignment_status]=\u0027ACTIVE\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "cleaning_progress_logs",
+                                 "constraint":  "CK_cleaning_progress_logs_percent",
+                                 "definition":  "([progress_percent]\u003e=(0) AND [progress_percent]\u003c=(100))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "cleaning_progress_logs",
+                                 "constraint":  "CK_cleaning_progress_logs_status",
+                                 "definition":  "([status] IS NULL OR ([status]=\u0027COMPLETED\u0027 OR [status]=\u0027BLOCKED\u0027 OR [status]=\u0027IN_PROGRESS\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "cleaning_reworks",
+                                 "constraint":  "CK_cleaning_reworks_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027PENDING\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "cleaning_tasks",
+                                 "constraint":  "CK_cleaning_tasks_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027PENDING\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "incident_events",
+                                 "constraint":  "CK_incident_events_to_status",
+                                 "definition":  "([to_status] IS NULL OR ([to_status]=\u0027CANCELLED\u0027 OR [to_status]=\u0027CLOSED\u0027 OR [to_status]=\u0027RESOLVED\u0027 OR [to_status]=\u0027IN_PROGRESS\u0027 OR [to_status]=\u0027OPEN\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "incidents",
+                                 "constraint":  "CK_incidents_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027CLOSED\u0027 OR [status]=\u0027RESOLVED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027OPEN\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "inspection_defects",
+                                 "constraint":  "CK_inspection_defects_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027RESOLVED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027OPEN\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "internal_request_assignments",
+                                 "constraint":  "CK_internal_request_assignments_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027REASSIGNED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027ACTIVE\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "internal_request_feedback",
+                                 "constraint":  "CK_internal_request_feedback_rating",
+                                 "definition":  "([rating]\u003e=(1) AND [rating]\u003c=(5))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "internal_requests",
+                                 "constraint":  "CK_internal_requests_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027REJECTED\u0027 OR [status]=\u0027CLOSED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027SUBMITTED\u0027 OR [status]=\u0027DRAFT\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "maintenance_work_logs",
+                                 "constraint":  "CK_maintenance_work_logs_status",
+                                 "definition":  "([status] IS NULL OR ([status]=\u0027COMPLETED\u0027 OR [status]=\u0027ON_HOLD\u0027 OR [status]=\u0027IN_PROGRESS\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "maintenance_works",
+                                 "constraint":  "CK_maintenance_works_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027CLOSED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027ON_HOLD\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027PENDING\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_fulfillments",
+                                 "constraint":  "CK_material_fulfillments_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027RECEIVED\u0027 OR [status]=\u0027ISSUED\u0027 OR [status]=\u0027PREPARING\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_replenishment_receipt_lines",
+                                 "constraint":  "CK_replenishment_receipts_credit",
+                                 "definition":  "([credited_base_qty]\u003e(0))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_replenishments",
+                                 "constraint":  "CK_replenishments_closure",
+                                 "definition":  "([status]=\u0027CLOSED\u0027 AND [closed_at] IS NOT NULL AND [closed_by] IS NOT NULL AND len(ltrim(rtrim([close_reason])))\u003e=(10) AND [close_reason] IS NOT NULL OR [status]\u003c\u003e\u0027CLOSED\u0027 AND [closed_at] IS NULL AND [closed_by] IS NULL AND [close_reason] IS NULL)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_replenishments",
+                                 "constraint":  "CK_replenishments_status",
+                                 "definition":  "([status]=\u0027CLOSED\u0027 OR [status]=\u0027FULLY_RECEIVED\u0027 OR [status]=\u0027PARTIALLY_RECEIVED\u0027 OR [status]=\u0027REQUESTED\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_request_approval_cycles",
+                                 "constraint":  "CK_mr_cycles_revision",
+                                 "definition":  "([revision_no]\u003e(0))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_request_approval_cycles",
+                                 "constraint":  "CK_mr_cycles_segregation",
+                                 "definition":  "([submitted_by]\u003c\u003e[assigned_approver_id])",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_request_approval_cycles",
+                                 "constraint":  "CK_mr_cycles_status",
+                                 "definition":  "([status]=\u0027SUPERSEDED\u0027 OR [status]=\u0027REJECTED\u0027 OR [status]=\u0027APPROVED\u0027 OR [status]=\u0027NEEDS_INFORMATION\u0027 OR [status]=\u0027PENDING\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_request_approvals",
+                                 "constraint":  "CK_material_request_approvals_decision",
+                                 "definition":  "([decision]=\u0027RETURNED\u0027 OR [decision]=\u0027REJECTED\u0027 OR [decision]=\u0027APPROVED\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_requests",
+                                 "constraint":  "CK_material_requests_receiving_location",
+                                 "definition":  "([receiving_room_id] IS NULL OR [receiving_area_id] IS NULL)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "material_requests",
+                                 "constraint":  "CK_material_requests_status",
+                                 "definition":  "([status]=\u0027COMPLETED\u0027 OR [status]=\u0027PARTIALLY_FULFILLED\u0027 OR [status]=\u0027RETURNED\u0027 OR [status]=\u0027SUBMITTED\u0027 OR [status]=\u0027CANCELLED\u0027 OR [status]=\u0027REJECTED\u0027 OR [status]=\u0027REMAINDER_CLOSED\u0027 OR [status]=\u0027FULLY_ISSUED\u0027 OR [status]=\u0027PARTIALLY_ISSUED\u0027 OR [status]=\u0027APPROVED\u0027 OR [status]=\u0027NEEDS_INFORMATION\u0027 OR [status]=\u0027PENDING_APPROVAL\u0027 OR [status]=\u0027DRAFT\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_task_assignments",
+                                 "constraint":  "CK_operational_task_assignments_status",
+                                 "definition":  "([assignment_status]=\u0027CANCELLED\u0027 OR [assignment_status]=\u0027REASSIGNED\u0027 OR [assignment_status]=\u0027COMPLETED\u0027 OR [assignment_status]=\u0027ACTIVE\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_task_progress",
+                                 "constraint":  "CK_operational_task_progress_new",
+                                 "definition":  "([new_status] IS NULL OR ([new_status]=\u0027CANCELLED\u0027 OR [new_status]=\u0027COMPLETED\u0027 OR [new_status]=\u0027BLOCKED\u0027 OR [new_status]=\u0027IN_PROGRESS\u0027 OR [new_status]=\u0027TODO\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_task_progress",
+                                 "constraint":  "CK_operational_task_progress_old",
+                                 "definition":  "([old_status] IS NULL OR ([old_status]=\u0027CANCELLED\u0027 OR [old_status]=\u0027COMPLETED\u0027 OR [old_status]=\u0027BLOCKED\u0027 OR [old_status]=\u0027IN_PROGRESS\u0027 OR [old_status]=\u0027TODO\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_task_progress",
+                                 "constraint":  "CK_operational_task_progress_percent",
+                                 "definition":  "([progress_percent]\u003e=(0) AND [progress_percent]\u003c=(100))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_tasks",
+                                 "constraint":  "CK_operational_tasks_progress",
+                                 "definition":  "([progress_percent]\u003e=(0) AND [progress_percent]\u003c=(100))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_tasks",
+                                 "constraint":  "CK_operational_tasks_source_type",
+                                 "definition":  "([source_type] IS NULL OR ([source_type]=\u0027MANUAL\u0027 OR [source_type]=\u0027INTERNAL_REQUEST\u0027 OR [source_type]=\u0027MAINTENANCE\u0027 OR [source_type]=\u0027INSPECTION\u0027 OR [source_type]=\u0027CLEANING\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "operational_tasks",
+                                 "constraint":  "CK_operational_tasks_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027BLOCKED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027TODO\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "role_permissions",
+                                 "constraint":  "CK_role_permissions_data_scope",
+                                 "definition":  "([data_scope]=\u0027ALL\u0027 OR [data_scope]=\u0027BRANCH\u0027 OR [data_scope]=\u0027DEPARTMENT\u0027 OR [data_scope]=\u0027OWN\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "room_inspections",
+                                 "constraint":  "CK_room_inspections_result",
+                                 "definition":  "([result] IS NULL OR ([result]=\u0027CONDITIONAL\u0027 OR [result]=\u0027FAIL\u0027 OR [result]=\u0027PASS\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "room_inspections",
+                                 "constraint":  "CK_room_inspections_status",
+                                 "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027PENDING\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "room_inspections",
+                                 "constraint":  "CK_room_inspections_status_result",
+                                 "definition":  "([status]=\u0027COMPLETED\u0027 AND [result] IS NOT NULL OR [status]\u003c\u003e\u0027COMPLETED\u0027 AND [result] IS NULL)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "room_status_history",
+                                 "constraint":  "CK_room_status_history_from",
+                                 "definition":  "([from_status] IS NULL OR ([from_status]=\u0027OUT_OF_SERVICE\u0027 OR [from_status]=\u0027READY\u0027 OR [from_status]=\u0027INSPECTION\u0027 OR [from_status]=\u0027CLEANING\u0027 OR [from_status]=\u0027DIRTY\u0027 OR [from_status]=\u0027OCCUPIED\u0027 OR [from_status]=\u0027AVAILABLE\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "room_status_history",
+                                 "constraint":  "CK_room_status_history_to",
+                                 "definition":  "([to_status]=\u0027OUT_OF_SERVICE\u0027 OR [to_status]=\u0027READY\u0027 OR [to_status]=\u0027INSPECTION\u0027 OR [to_status]=\u0027CLEANING\u0027 OR [to_status]=\u0027DIRTY\u0027 OR [to_status]=\u0027OCCUPIED\u0027 OR [to_status]=\u0027AVAILABLE\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "room_status_history",
+                                 "constraint":  "CK_room_status_history_trigger_type",
+                                 "definition":  "([trigger_type] IS NULL OR ([trigger_type]=\u0027MANUAL_CORRECTION\u0027 OR [trigger_type]=\u0027MAINTENANCE\u0027 OR [trigger_type]=\u0027ROOM_BLOCK\u0027 OR [trigger_type]=\u0027INSPECTION\u0027 OR [trigger_type]=\u0027CLEANING_TASK\u0027 OR [trigger_type]=\u0027CHECKOUT\u0027 OR [trigger_type]=\u0027CHECKIN\u0027 OR [trigger_type]=\u0027RELEASE\u0027 OR [trigger_type]=\u0027INIT\u0027))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "stock_documents",
+                                 "constraint":  "CK_stock_documents_type",
+                                 "definition":  "([document_type]=\u0027REVERSAL\u0027 OR [document_type]=\u0027ADJUSTMENT\u0027 OR [document_type]=\u0027TRANSFER\u0027 OR [document_type]=\u0027RETURN\u0027 OR [document_type]=\u0027ISSUE\u0027 OR [document_type]=\u0027RECEIPT\u0027)",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "users",
+                                 "constraint":  "CK_users_failed_login_count",
+                                 "definition":  "([failed_login_count]\u003e=(0))",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             },
+                             {
+                                 "table":  "users",
+                                 "constraint":  "CK_users_manager_not_self",
+                                 "definition":  "([manager_user_id] IS NULL OR [manager_user_id]\u003c\u003e[user_id])",
+                                 "disabled":  false,
+                                 "untrusted":  false
+                             }
+                         ],
+    "openWorkPredicateApproved":  false
+}

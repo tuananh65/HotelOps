@@ -1,0 +1,251 @@
+﻿{
+    "addedGrantKeys":  [
+                           "MAINTENANCE_LEAD|INCIDENT_TRIAGE",
+                           "MAINTENANCE_LEAD|MAINTENANCE_ASSIGN",
+                           "OPERATIONS_MANAGER|ASSET_MANAGE",
+                           "OPERATIONS_MANAGER|ASSET_RETIRE",
+                           "OPERATIONS_MANAGER|ASSET_TRANSFER",
+                           "OPERATIONS_MANAGER|INCIDENT_ESCALATION_HANDLE",
+                           "OPERATIONS_MANAGER|IR_OVERDUE_HANDLE",
+                           "OPERATIONS_MANAGER|MR_APPROVE_FALLBACK",
+                           "OPERATIONS_MANAGER|STOCK_ADJUST_POST",
+                           "OPERATIONS_MANAGER|STOCK_REVERSE",
+                           "OWNER|DASHBOARD_VIEW",
+                           "OWNER|REPORT_VIEW",
+                           "RECEPTION|ROOM_OCCUPANCY_MOVE",
+                           "STOREKEEPER|STOCK_ISSUE_POST",
+                           "STOREKEEPER|STOCK_RECEIPT_POST",
+                           "STOREKEEPER|STOCK_RETURN_POST",
+                           "STOREKEEPER|STOCK_TRANSFER_POST",
+                           "STOREKEEPER|STOCKTAKE_PERFORM"
+                       ],
+    "removedGrantKeys":  [
+                             "HK_INSPECTOR|ATTENDANCE_RECORD",
+                             "HK_INSPECTOR|CLEANING_ASSIGN",
+                             "HK_INSPECTOR|CLEANING_VIEW",
+                             "HK_INSPECTOR|INCIDENT_CREATE",
+                             "HK_INSPECTOR|INCIDENT_VIEW",
+                             "HK_INSPECTOR|INSPECTION_PERFORM",
+                             "HK_INSPECTOR|INSPECTION_VIEW",
+                             "HK_INSPECTOR|IR_CREATE",
+                             "HK_INSPECTOR|MR_CREATE",
+                             "HK_INSPECTOR|ROOM_VIEW",
+                             "HK_INSPECTOR|SHIFT_VIEW",
+                             "HK_INSPECTOR|TASK_EXECUTE",
+                             "HK_INSPECTOR|TASK_VIEW",
+                             "HK_SUPERVISOR|ASSET_VIEW",
+                             "HK_SUPERVISOR|CHECKLIST_MANAGE",
+                             "HK_SUPERVISOR|DASHBOARD_VIEW",
+                             "HK_SUPERVISOR|INVENTORY_POST",
+                             "HK_SUPERVISOR|INVENTORY_VIEW",
+                             "HK_SUPERVISOR|IR_PROCESS",
+                             "HK_SUPERVISOR|MR_APPROVE_L1",
+                             "HK_SUPERVISOR|MR_FULFILL",
+                             "HK_SUPERVISOR|REPORT_VIEW",
+                             "HK_SUPERVISOR|ROOM_BLOCK_MANAGE",
+                             "HK_SUPERVISOR|ROOM_STATUS_UPDATE",
+                             "HK_SUPERVISOR|SHIFT_MANAGE",
+                             "HK_SUPERVISOR|STOCK_APPROVE",
+                             "HK_SUPERVISOR|STOCKTAKE_MANAGE",
+                             "HK_SUPERVISOR|TASK_MANAGE",
+                             "HK_SUPERVISOR|USER_VIEW",
+                             "MAINTENANCE_LEAD|ASSET_MANAGE",
+                             "MAINTENANCE_LEAD|DASHBOARD_VIEW",
+                             "MAINTENANCE_LEAD|DEFECT_RESOLVE",
+                             "MAINTENANCE_LEAD|INCIDENT_MANAGE",
+                             "MAINTENANCE_LEAD|INVENTORY_POST",
+                             "MAINTENANCE_LEAD|INVENTORY_VIEW",
+                             "MAINTENANCE_LEAD|MR_APPROVE_L1",
+                             "MAINTENANCE_LEAD|MR_FULFILL",
+                             "MAINTENANCE_LEAD|REPORT_VIEW",
+                             "MAINTENANCE_LEAD|SHIFT_MANAGE",
+                             "MAINTENANCE_LEAD|STOCK_APPROVE",
+                             "MAINTENANCE_LEAD|STOCKTAKE_MANAGE",
+                             "MAINTENANCE_LEAD|TASK_MANAGE",
+                             "MAINTENANCE_LEAD|USER_VIEW",
+                             "MAINTENANCE_STAFF|DEFECT_RESOLVE",
+                             "MAINTENANCE_STAFF|INVENTORY_VIEW",
+                             "OPERATIONS_MANAGER|AUDIT_VIEW",
+                             "OPERATIONS_MANAGER|INCIDENT_MANAGE",
+                             "OPERATIONS_MANAGER|MAINTENANCE_REVIEW",
+                             "OPERATIONS_MANAGER|MR_APPROVE_L1",
+                             "OPERATIONS_MANAGER|MR_APPROVE_L2",
+                             "OPERATIONS_MANAGER|ROOM_STATUS_UPDATE",
+                             "OPERATIONS_MANAGER|STOCK_APPROVE",
+                             "OPERATIONS_MANAGER|TASK_MANAGE",
+                             "OPERATIONS_MANAGER|USER_VIEW",
+                             "RECEPTION|DASHBOARD_VIEW",
+                             "RECEPTION|ROOM_RELEASE",
+                             "STOREKEEPER|INVENTORY_POST",
+                             "STOREKEEPER|ITEM_MASTER_MANAGE",
+                             "STOREKEEPER|STOCK_APPROVE",
+                             "STOREKEEPER|STOCKTAKE_MANAGE"
+                         ],
+    "changedScopes":  [
+                          {
+                              "key":  "OPERATIONS_MANAGER|TASK_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "HK_SUPERVISOR|IR_CREATE",
+                              "before":  "DEPARTMENT",
+                              "after":  "OWN"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|TASK_MANAGE",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "HK_SUPERVISOR|MR_CREATE",
+                              "before":  "DEPARTMENT",
+                              "after":  "OWN"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|MR_CREATE",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|MAINTENANCE_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|ASSET_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|CLEANING_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "MAINTENANCE_LEAD|SHIFT_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|IR_CREATE",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "MAINTENANCE_LEAD|MR_CREATE",
+                              "before":  "DEPARTMENT",
+                              "after":  "OWN"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|USER_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "MAINTENANCE_LEAD|IR_CREATE",
+                              "before":  "DEPARTMENT",
+                              "after":  "OWN"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|REPORT_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "HK_SUPERVISOR|TASK_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|SHIFT_MANAGE",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|INCIDENT_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "MAINTENANCE_LEAD|MAINTENANCE_EXECUTE",
+                              "before":  "DEPARTMENT",
+                              "after":  "OWN"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|ROOM_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|MR_APPROVE_L1",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "MAINTENANCE_LEAD|TASK_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|SHIFT_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|INVENTORY_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|INSPECTION_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "HK_SUPERVISOR|SHIFT_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "MAINTENANCE_LEAD|IR_PROCESS",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|INVENTORY_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|DASHBOARD_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|IR_CREATE",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|TASK_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "OPERATIONS_MANAGER|REPORT_VIEW",
+                              "before":  "ALL",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|SHIFT_VIEW",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          },
+                          {
+                              "key":  "DEPT_MANAGER|IR_PROCESS",
+                              "before":  "DEPARTMENT",
+                              "after":  "BRANCH"
+                          }
+                      ]
+}

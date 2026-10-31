@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "checks": 19,
+  "cases": [
+    "pending credential has no public secret/release accessor",
+    "participant preserves caller transaction and does not commit",
+    "pending ToString is redacted",
+    "committed credential uses unchanged Identity V3 hashing",
+    "temporary policy remains 24 hours",
+    "committed handoff can be taken only once",
+    "audits contain neither plaintext nor hash values",
+    "account CREATE and credential UPDATE audits both persist",
+    "caller rollback removes user, credential, scope and both audits",
+    "credential failure rolls back complete caller workflow",
+    "audit failure rolls back complete caller workflow",
+    "participant refuses missing caller transaction without consuming preparation",
+    "legacy ApplyAsync still owns commit and delivers valid credential",
+    "initial provisioning cannot overwrite existing credentials",
+    "legacy explicit reset remains functional",
+    "legacy wrapper still rejects caller transaction",
+    "concurrent duplicate Username permits exactly one insert",
+    "concurrent duplicate Email permits exactly one insert",
+    "concurrent duplicate EmployeeCode permits exactly one insert"
+  ],
+  "scope": "Technical participant only, not UC004 endpoint certification",
+  "secretsPersisted": false
+}

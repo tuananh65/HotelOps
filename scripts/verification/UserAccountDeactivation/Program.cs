@@ -1,0 +1,139 @@
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Users;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Users;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
+var checks = new List<string>();
+void Check(bool ok, string label)
+{
+    if (!ok) throw new InvalidOperationException("FAIL: " + label);
+    checks.Add(label); Console.WriteLine("PASS: " + label);
+}
+foreach (var json in new[] { "{}", "[]", "null", "{\"reason\":null}", "{\"reason\":true}",
+    "{\"reason\":\"         123456789       \"}", "{\"Reason\":\"valid reason text\"}",
+    "{\"reason\":\"valid reason text\",\"actorId\":1}",
+    "{\"reason\":\"valid reason text\",\"reason\":\"duplicate reason\"}" })
+{
+    using var doc = JsonDocument.Parse(json);
+    Check(!UserAccountDeactivationRequest.TryParse(doc.RootElement, out _), "strict deactivation body rejects " + json);
+}
+using (var doc = JsonDocument.Parse("{\"reason\":\"  1234567890  \"}"))
+    Check(UserAccountDeactivationRequest.TryParse(doc.RootElement, out var value) && value!.Reason == "1234567890",
+        "reason trims and accepts exact ten-character boundary");
+Check(!new UserAccountDeactivationRequest("  valid reason text ").IsValid, "direct service input cannot bypass trimmed reason");
+Check(!typeof(UserAccountDeactivationService).Assembly.GetTypes().Any(t => t.Name == "UserAccountDeactivationController"),
+    "no Deactivate controller registered in API assembly");
+if (args.Length == 0) { Console.WriteLine($"PASS: {checks.Count} independent checks; SQL NOT RUN"); return; }
+if ((args.Length != 2 && !(args.Length == 3 && args[2] is "--readiness" or "--gates" or "--returnwork" or "--contracts" or "--writers"))
+    || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$") || File.Exists(args[1]))
+    throw new ArgumentException("Guarded disposable trial name and NEW receipt required.");
+var connection = new SqlConnectionStringBuilder { DataSource = @"localhost\SQLEXPRESS", InitialCatalog = args[0],
+    IntegratedSecurity = true, TrustServerCertificate = true, ConnectTimeout = 5 };
+using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(args.Length == 3 && args[2] == "--writers" ? 12 : 6)); var ct = timeout.Token;
+HotelOpsDbContext Open() => new(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection.ConnectionString).Options);
+await using var setup = Open(); await setup.Database.OpenConnectionAsync(ct);
+await using (var command = setup.Database.GetDbConnection().CreateCommand())
+{
+    command.CommandText = "SELECT DB_NAME(),CONVERT(nvarchar(128),@@SERVERNAME),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.UserDirectory.Trial')";
+    await using var reader = await command.ExecuteReaderAsync(ct);
+    if (!await reader.ReadAsync(ct) || reader.GetString(0) != args[0] || reader.GetString(1) != @"DESKTOP-JI8U50T\SQLEXPRESS"
+        || reader.IsDBNull(2) || reader.GetString(2) != "Task17") throw new InvalidOperationException("Trial guard rejected.");
+}
+Check(await new StartupSchemaValidator(setup).ValidateAsync(ct) == SchemaCompatibility.Compatible, "integrated source passes trial startup schema gate");
+if (args.Length == 3 && args[2] == "--writers")
+{
+    await Task58WriterAcceptanceSqlSuite.RunAsync(connection.ConnectionString, args[0], args[1], ct);
+    return;
+}
+if (args.Length == 3)
+{
+    var gateCases = args[2] switch
+    {
+        "--gates" => await GateResolutionSqlSuite.RunAsync(connection.ConnectionString, Check, ct),
+        "--contracts" => await BusinessContractSqlSuite.RunAsync(connection.ConnectionString, Check, ct),
+        _ => null
+    };
+    await ReadinessSqlSuite.RunAsync(connection.ConnectionString, args[0], args[1], Check, ct,
+        args[2] == "--gates" ? "scripts/verification/UserAccountDeactivation/task53-readiness-final.local.json" : null, gateCases,
+        verifyReturnWork: args[2] == "--returnwork", verifyDev1Writers: args[2] == "--contracts");
+    Console.WriteLine($"PASS: {checks.Count} readiness assertions; successful mutation remains BLOCKED by concrete gates");
+    return;
+}
+// Reuse approved catalog; never insert/update Roles, Permissions or RolePermissions.
+var role = await setup.RolePermissions.AsNoTracking().Where(p => p.Permission.PermissionCode == "USER_MANAGE"
+    && p.DataScope == "ALL" && p.Role.IsActive).Select(p => p.RoleId).FirstAsync(ct);
+var prefix = "T51_" + Guid.NewGuid().ToString("N")[..10]; var now = DateTime.UtcNow;
+User Fixture(string suffix) => new() { EmployeeCode = prefix + suffix, Username = prefix + suffix,
+    Email = prefix + suffix + "@example.invalid", FullName = "Task51 disposable fixture", AccountStatus = "ACTIVE",
+    EmploymentStatus = "ACTIVE", CreatedAt = now };
+var actor = Fixture("a"); var target = Fixture("t");
+setup.AddRange(actor, target); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+try
+{
+    var raw = SessionCredential.Generate();
+    var session = new UserSession { UserId = actor.UserId, SessionKeyHash = SessionCredential.Hash(raw), CreatedAt = now,
+        LastUsedAt = now, ExpiresAt = now.AddMinutes(30) };
+    var targetSession = new UserSession { UserId = target.UserId, SessionKeyHash = SessionCredential.Hash(SessionCredential.Generate()),
+        CreatedAt = now, LastUsedAt = now, ExpiresAt = now.AddMinutes(30) };
+    setup.AddRange(session, targetSession, new UserRole { UserId = actor.UserId, RoleId = role, IsActive = true, AssignedAt = now });
+    await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+    var ticket = SessionReference.FromProtectedTicket(actor.UserId, raw, false, now);
+    async Task<AccountDeactivationResult> Run(long id, byte[] version)
+    {
+        await using var db = Open(); var current = new Identity(actor.UserId, session.SessionId);
+        var data = new EfPermissionDataSource(db);
+        var permissions = new PermissionService(current, data, new UnresolvedPermissionResourceResolver(), TimeProvider.System);
+        var service = new UserAccountDeactivationService(db, new(new(db, current, permissions, data, TimeProvider.System)),
+            current, new SqlSessionService(db, new SessionRevocationService(db), TimeProvider.System), TimeProvider.System);
+        var result = await service.DeactivateAsync(ticket, session.SessionId, id, version, new("Verified disposable trial reason"), ct);
+        Check(db.Database.CurrentTransaction is null && !db.ChangeTracker.Entries().Any(), "service releases transaction and leaves clean context");
+        return result;
+    }
+    Check((await Run(actor.UserId, actor.RowVersion)).Status == AccountDeactivationStatus.Forbidden, "self-deactivation denied");
+    Check((await Run(target.UserId, new byte[8])).Status == AccountDeactivationStatus.Stale, "stale rowversion denied");
+    var before = JsonSerializer.Serialize(await setup.Users.AsNoTracking().SingleAsync(u => u.UserId == target.UserId, ct));
+    var auditCount = await setup.AuditLogs.CountAsync(ct);
+    var result = await Run(target.UserId, target.RowVersion);
+    Check(result.Status == AccountDeactivationStatus.ResponsibilitiesUnresolved && result.Version is null,
+        "authorized valid target fails closed on unresolved integrated review");
+    Check(before == JsonSerializer.Serialize(await setup.Users.AsNoTracking().SingleAsync(u => u.UserId == target.UserId, ct)),
+        "failed review preserves all User scalars including credentials, scope and rowversion");
+    Check(await setup.UserSessions.AsNoTracking().AnyAsync(s => s.SessionId == targetSession.SessionId && s.RevokedAt == null, ct),
+        "failed review does not revoke target session");
+    Check(await setup.AuditLogs.CountAsync(ct) == auditCount, "failed review writes no audit");
+    Check(!await setup.UserRoles.AnyAsync(u => u.UserId == target.UserId, ct)
+        && !await setup.UserBranchAccesses.AnyAsync(u => u.UserId == target.UserId, ct), "failed review creates no target roles/memberships");
+    await ServiceSqlValidation.RunAsync(connection.ConnectionString, actor.UserId, session.SessionId,
+        ticket, target.UserId, Check, ct);
+    await setup.Users.Where(u => u.UserId == target.UserId).ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, "INACTIVE"), ct);
+    var version = await setup.Users.AsNoTracking().Where(u => u.UserId == target.UserId).Select(u => u.RowVersion).SingleAsync(ct);
+    Check((await Run(target.UserId, version)).Status == AccountDeactivationStatus.Conflict, "inactive target denied");
+    await setup.UserRoles.Where(u => u.UserId == actor.UserId).ExecuteUpdateAsync(s => s.SetProperty(u => u.IsActive, false), ct);
+    Check((await Run(target.UserId, version)).Status == AccountDeactivationStatus.Forbidden, "committed authority revocation denies before target conflict disclosure");
+    await setup.UserSessions.Where(s => s.SessionId == session.SessionId).ExecuteUpdateAsync(s => s.SetProperty(s => s.RevokedAt, now), ct);
+    Check((await Run(target.UserId, version)).Status == AccountDeactivationStatus.SessionInvalid, "revoked SQL session denied");
+}
+finally
+{
+    // Only generated T51 fixture identities; no pre-existing artifacts or business rows.
+    await setup.UserRoles.Where(u => u.UserId == actor.UserId).ExecuteDeleteAsync(CancellationToken.None);
+    await setup.UserSessions.Where(s => s.UserId == actor.UserId || s.UserId == target.UserId).ExecuteDeleteAsync(CancellationToken.None);
+    await setup.Users.Where(u => (u.UserId == actor.UserId || u.UserId == target.UserId) && u.Username.StartsWith(prefix))
+        .ExecuteDeleteAsync(CancellationToken.None);
+}
+await File.WriteAllTextAsync(args[1], JsonSerializer.Serialize(new { checks = checks.Count, cases = checks, database = args[0],
+    verdict = "PARTIAL", endpointEnabled = false, successMutationVerified = false, racesCertified = false,
+    serviceSqlLockWaitEvidence = ServiceSqlValidation.ObservedWaits },
+    new JsonSerializerOptions { WriteIndented = true }), ct);
+Console.WriteLine($"PASS: {checks.Count} checks; successful mutation and concurrency acceptance remain BLOCKED");
+
+internal sealed class Identity(long userId, long sessionId) : ICurrentUserAccessor
+{
+    public bool TryGetCurrentUser(out CurrentUserInfo user) { user = new(userId, sessionId, false); return true; }
+}

@@ -1,9 +1,14 @@
 param(
  [ValidateSet('Preflight','Trial','Verify')][string]$Stage='Preflight',
  [string]$RunId,
- [string]$Server='DESKTOP-JI8U50T\SQLEXPRESS'
+ [string]$Server='DESKTOP-JI8U50T\SQLEXPRESS',
+ [switch]$Uc017,
+ [switch]$Checklists,
+ [switch]$Housekeeping
 )
 $ErrorActionPreference='Stop'
+if($Housekeeping){$Checklists=$true}
+if($Checklists){$Uc017=$true}
 Set-StrictMode -Version Latest
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../../../..')).Path
 $evidence=Join-Path $root 'scripts/verification/CanonicalDatabase/evidence'
@@ -66,6 +71,9 @@ try{
  $sources=@('scripts/database/release/01_HotelOps_Full_Schema.sql','scripts/database/release/02_HotelOps_Upgrade_Auth_To_RBAC.sql','scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql','scripts/database/release/04_HotelOps_Verification_ReadOnly.sql')
  $patches=@('database/patches/20261019_inventory_contract.sql','database/patches/20261020_material_request_contract.sql','database/patches/20261021_replenishment_contract.sql','database/patches/20261022_maintenance_material_usage_contract.sql')
  $allSources=$sources+$patches+@('scripts/database/release/canonical/00_Canonical_Reference_Contract.sql','scripts/database/release/canonical/01_Canonical_Seed.sql','scripts/database/release/canonical/02_Canonical_Verify.sql','scripts/database/release/canonical/Run-Canonical.ps1')
+ if($Uc017){$allSources+=@('scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql','scripts/database/release/uc017/06_UC017_Verify.sql','scripts/database/release/uc017/07_UC017_Rollback.sql','scripts/database/release/uc017/Run-Uc017.ps1')}
+ if($Checklists){$allSources+=@('scripts/database/release/checklists/01_Checklists.sql','scripts/database/release/checklists/02_Verify.sql','scripts/database/release/checklists/03_Rollback.sql','scripts/database/release/checklists/Run-Checklists.ps1')}
+ if($Housekeeping){$allSources+=@('scripts/database/release/housekeeping/01_Housekeeping.sql','scripts/database/release/housekeeping/02_Verify.sql','scripts/database/release/housekeeping/03_Rollback.sql','scripts/database/release/housekeeping/Run-Housekeeping.ps1')}
  $evidenceId=if($Stage -eq 'Trial'){$RunId}else{$RunId+'-verify-'+[DateTime]::UtcNow.ToString('yyyyMMddHHmmssfff')}
  $sourceHashes=@{};foreach($path in $allSources){ $sourceHashes[$path]=(Get-FileHash (Join-Path $root $path)).Hash }
  $report=[ordered]@{runId=$RunId;stage=$Stage;startedUtc=[DateTime]::UtcNow.ToString('o');preflight=$preflight;sourceHashes=$sourceHashes;mainDatabaseWritten=$false;targets=@();success=$false}
@@ -96,6 +104,21 @@ try{
    }
    Run-Source $c $sources[3] $name
    Run-Source $c 'scripts/database/release/canonical/02_Canonical_Verify.sql' $name
+   if($Uc017){
+    if($Stage -eq 'Trial'){
+     Execute $c "EXEC sys.sp_addextendedproperty @name=N'HotelOps.UserDirectory.Trial',@value=N'Task17';"
+    }
+    $moduleReceipt=Join-Path $evidence ($evidenceId+'_'+$name.Substring($RunId.Length+1)+'-uc017.json')
+    & (Join-Path $root 'scripts/database/release/uc017/Run-Uc017.ps1') -Stage $(if($Stage -eq 'Trial'){'Apply'}else{'Verify'}) -Server $Server -Database $name -Receipt $moduleReceipt
+   }
+   if($Checklists){
+    $checklistReceipt=Join-Path $evidence ($evidenceId+'_'+$name.Substring($RunId.Length+1)+'-checklists.json')
+    & (Join-Path $root 'scripts/database/release/checklists/Run-Checklists.ps1') -Stage $(if($Stage -eq 'Trial'){'Apply'}else{'Verify'}) -Server $Server -Database $name -Receipt $checklistReceipt
+   }
+   if($Housekeeping){
+    $housekeepingReceipt=Join-Path $evidence ($evidenceId+'_'+$name.Substring($RunId.Length+1)+'-housekeeping.json')
+    & (Join-Path $root 'scripts/database/release/housekeeping/Run-Housekeeping.ps1') -Stage $(if($Stage -eq 'Trial'){'Apply'}else{'Verify'}) -Server $Server -Database $name -Receipt $housekeepingReceipt
+   }
    $summary=@(Rows $c "SELECT DB_NAME() database_name,(SELECT COUNT(*) FROM sys.tables WHERE is_ms_shipped=0) table_count,(SELECT COUNT(*) FROM sys.columns WHERE system_type_id=189) rowversion_count,(SELECT COUNT(*) FROM sys.foreign_keys) foreign_keys,(SELECT COUNT(*) FROM sys.check_constraints) check_constraints,(SELECT COUNT(*) FROM sys.default_constraints) defaults,(SELECT COUNT(*) FROM sys.indexes i JOIN sys.tables t ON t.object_id=i.object_id WHERE t.is_ms_shipped=0 AND i.index_id>0) indexes,(SELECT COUNT(*) FROM dbo.roles) roles,(SELECT COUNT(*) FROM dbo.roles WHERE is_active=1) active_roles,(SELECT COUNT(*) FROM dbo.permissions) permissions,(SELECT COUNT(*) FROM dbo.role_permissions) grants,(SELECT COUNT(*) FROM dbo.users) users,(SELECT COUNT(*) FROM dbo.user_roles) user_roles,(SELECT COUNT(*) FROM dbo.user_sessions) sessions,(SELECT COUNT(*) FROM dbo.branches WHERE is_active=1) active_branches,(SELECT COUNT(*) FROM dbo.departments WHERE is_active=1) active_departments,(SELECT COUNT(*) FROM dbo.reference_values) reference_values")
    $violations=@(Rows $c 'DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS, NO_INFOMSGS;')
    if($violations.Count){throw 'CHECKCONSTRAINTS reported violations'}

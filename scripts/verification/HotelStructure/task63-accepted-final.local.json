@@ -1,0 +1,414 @@
+{
+  "database": "HotelOps_Canonical_20261029_235344_7bf00ae3_Fresh",
+  "success": true,
+  "checks": 215,
+  "cases": [
+    "canonical trial startup schema compatible before regression",
+    "actual production Program.cs startup/DI/schema gate/HTTPS ready",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "real CSRF bootstrap",
+    "production credential login other",
+    "real CSRF bootstrap",
+    "production credential login branch",
+    "real CSRF bootstrap",
+    "anonymous POST with valid CSRF is unauthorized (expected 401, actual 401)",
+    "anonymous POST with valid CSRF is unauthorized: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login viewer",
+    "no effective MASTER_DATA_MANAGE: viewer (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: viewer: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login denied",
+    "no effective MASTER_DATA_MANAGE: denied (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: denied: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login owner",
+    "no effective MASTER_DATA_MANAGE: owner (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: owner: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login restricted",
+    "no effective MASTER_DATA_MANAGE: restricted (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: restricted: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login inactiveAssignment",
+    "no effective MASTER_DATA_MANAGE: inactiveAssignment (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: inactiveAssignment: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login expiredAssignment",
+    "no effective MASTER_DATA_MANAGE: expiredAssignment (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: expiredAssignment: no security/provider disclosure",
+    "real CSRF bootstrap",
+    "production credential login futureAssignment",
+    "no effective MASTER_DATA_MANAGE: futureAssignment (expected 403, actual 403)",
+    "no effective MASTER_DATA_MANAGE: futureAssignment: no security/provider disclosure",
+    "authenticated unsafe request without CSRF rejected",
+    "branch-bound ALL cannot create outside branch (expected 403, actual 403)",
+    "branch-bound ALL cannot create outside branch: no security/provider disclosure",
+    "create Floor including basement number (expected 201, actual 201)",
+    "create Floor including basement number: no security/provider disclosure",
+    "creation response no-store",
+    "creation DTO allowlist and server-owned Active",
+    "GBR003 trim/name/code normalization",
+    "branch manager creates Floor; duplicate name with different code allowed by SRS (expected 201, actual 201)",
+    "branch manager creates Floor; duplicate name with different code allowed by SRS: no security/provider disclosure",
+    "creation response no-store",
+    "creation DTO allowlist and server-owned Active",
+    "optional floor number remains null",
+    "create Area with same-branch Floor (expected 201, actual 201)",
+    "create Area with same-branch Floor: no security/provider disclosure",
+    "creation response no-store",
+    "creation DTO allowlist and server-owned Active",
+    "create branch-level Area with null Floor (expected 201, actual 201)",
+    "create branch-level Area with null Floor: no security/provider disclosure",
+    "creation response no-store",
+    "creation DTO allowlist and server-owned Active",
+    "schema-supported branch-level Area retains null parent",
+    "code uniqueness is branch-scoped, not global (expected 201, actual 201)",
+    "code uniqueness is branch-scoped, not global: no security/provider disclosure",
+    "creation response no-store",
+    "creation DTO allowlist and server-owned Active",
+    "case-insensitive duplicate Floor rejected (expected 409, actual 409)",
+    "case-insensitive duplicate Floor rejected: no security/provider disclosure",
+    "normalized duplicate Area rejected (expected 409, actual 409)",
+    "normalized duplicate Area rejected: no security/provider disclosure",
+    "unified branch Floor/Area code namespace rejects cross-type duplicate (expected 409, actual 409)",
+    "unified branch Floor/Area code namespace rejects cross-type duplicate: no security/provider disclosure",
+    "cross-branch parent rejected (expected 400, actual 400)",
+    "cross-branch parent rejected: no security/provider disclosure",
+    "missing parent rejected (expected 400, actual 400)",
+    "missing parent rejected: no security/provider disclosure",
+    "inactive parent rejected (expected 400, actual 400)",
+    "inactive parent rejected: no security/provider disclosure",
+    "inactive existing Floor still reserves its code (expected 409, actual 409)",
+    "inactive existing Floor still reserves its code: no security/provider disclosure",
+    "global manager cannot create under missing/inactive branch (expected 400, actual 400)",
+    "global manager cannot create under missing/inactive branch: no security/provider disclosure",
+    "global manager cannot create under missing/inactive branch (expected 400, actual 400)",
+    "global manager cannot create under missing/inactive branch: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "invalid/overposted Floor payload rejected (expected 400, actual 400)",
+    "invalid/overposted Floor payload rejected: no security/provider disclosure",
+    "zero floorId rejected (expected 400, actual 400)",
+    "zero floorId rejected: no security/provider disclosure",
+    "Area name storage bound enforced (expected 400, actual 400)",
+    "Area name storage bound enforced: no security/provider disclosure",
+    "zero route branch rejected (expected 400, actual 400)",
+    "zero route branch rejected: no security/provider disclosure",
+    "route body limit returns generic 413 (expected 413, actual 413)",
+    "route body limit returns generic 413: no security/provider disclosure",
+    "actual existing SQL unique index rejects duplicate Floor independent of application checks",
+    "actual existing SQL unique index rejects duplicate Area independent of application checks",
+    "real HTTPS concurrent duplicate floors: one success/one conflict",
+    "concurrent duplicate floors persists exactly one entity",
+    "real HTTPS concurrent duplicate areas: one success/one conflict",
+    "concurrent duplicate areas persists exactly one entity",
+    "real HTTPS concurrent duplicate mixed: one success/one conflict",
+    "concurrent duplicate mixed persists exactly one entity",
+    "UC014-only HTTPS phase preserves every User column including login metadata and rowversion",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "actual HTTPS branch-inactive rereads committed parent; no business/audit partial effect",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "actual HTTPS floor-inactive rereads committed parent; no business/audit partial effect",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "actual HTTPS floor-deleted rereads committed parent; no business/audit partial effect",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "actual HTTPS branch-deleted rereads committed parent; no business/audit partial effect",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "production HTTP retains User/authority/parent through audit: revoke-permission",
+    "final production HTTPS result: revoke-permission",
+    "entity/audit atomic poststate: revoke-permission",
+    "revocation applies to next HTTPS creation: revoke-permission",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "production HTTP retains User/authority/parent through audit: revoke-session",
+    "final production HTTPS result: revoke-session",
+    "entity/audit atomic poststate: revoke-session",
+    "revocation applies to next HTTPS creation: revoke-session",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "production HTTP retains User/authority/parent through audit: parent-retained",
+    "final production HTTPS result: parent-retained",
+    "entity/audit atomic poststate: parent-retained",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "final production HTTPS result: final-expiry",
+    "entity/audit atomic poststate: final-expiry",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "HTTPS cancellation after entity INSERT rolls back and releases transaction locks before blocker release",
+    "canceled creation leaves neither entity nor audit",
+    "real SQL audit failure rolls back FLOOR, audit and tracker/transaction",
+    "actual SQL 1222 after FLOOR INSERT fails closed, no automatic replay or partial write",
+    "explicit fresh-context retry succeeds once after lock1222-FLOOR",
+    "replayed successful request returns duplicate without second audit/entity: FLOOR",
+    "actual SQL -2 after FLOOR INSERT fails closed, no automatic replay or partial write",
+    "explicit fresh-context retry succeeds once after command-timeout-FLOOR",
+    "replayed successful request returns duplicate without second audit/entity: FLOOR",
+    "actual SQL 1205 after FLOOR INSERT fails closed, no automatic replay or partial write",
+    "explicit fresh-context retry succeeds once after deadlock1205-FLOOR",
+    "replayed successful request returns duplicate without second audit/entity: FLOOR",
+    "real SQL audit failure rolls back AREA, audit and tracker/transaction",
+    "actual SQL 1222 after AREA INSERT fails closed, no automatic replay or partial write",
+    "explicit fresh-context retry succeeds once after lock1222-AREA",
+    "replayed successful request returns duplicate without second audit/entity: AREA",
+    "actual SQL -2 after AREA INSERT fails closed, no automatic replay or partial write",
+    "explicit fresh-context retry succeeds once after command-timeout-AREA",
+    "replayed successful request returns duplicate without second audit/entity: AREA",
+    "actual SQL 1205 after AREA INSERT fails closed, no automatic replay or partial write",
+    "explicit fresh-context retry succeeds once after deadlock1205-AREA",
+    "replayed successful request returns duplicate without second audit/entity: AREA",
+    "SQL authority reread after User wait rejects actor-inactive",
+    "SQL authority reread after User wait rejects grant-revoked",
+    "SQL authority reread after User wait rejects session-expired",
+    "real CSRF bootstrap",
+    "production credential login admin",
+    "expired SQL session denies actual HTTPS creation",
+    "real CSRF bootstrap",
+    "production credential login branch",
+    "revoked SQL branch membership invalidates branch-bound management grant",
+    "structure writers preserve credentials/account/role/membership fields",
+    "canonical RBAC/catalog/departments unchanged",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Floor has exactly one atomic CREATE audit",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "each successful Area has exactly one atomic CREATE audit",
+    "Area has no missing/cross-branch Floor",
+    "audit binds server actor/branch/entity, UTC time and before/after payload"
+  ],
+  "waits": [
+    {
+      "scenario": "branch-inactive",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "floor-inactive",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_S"
+    },
+    {
+      "scenario": "floor-deleted",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_S"
+    },
+    {
+      "scenario": "branch-deleted",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "revoke-permission-audit",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "revoke-permission-writer-waits",
+      "owner": 58,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "revoke-session-audit",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "revoke-session-writer-waits",
+      "owner": 58,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "parent-retained-audit",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "parent-retained-writer-waits",
+      "owner": 58,
+      "waiter": 60,
+      "Kind": "LCK_M_X"
+    },
+    {
+      "scenario": "final-expiry-audit",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "cancel-after-insert-audit",
+      "owner": 59,
+      "waiter": 58,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "lock1222-FLOOR",
+      "owner": 60,
+      "waiter": 59,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "command-timeout-FLOOR",
+      "owner": 60,
+      "waiter": 59,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "deadlock1205-FLOOR",
+      "owner": 60,
+      "waiter": 59,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "deadlock-inverse-FLOOR",
+      "owner": 59,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "lock1222-AREA",
+      "owner": 60,
+      "waiter": 59,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "command-timeout-AREA",
+      "owner": 60,
+      "waiter": 59,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "deadlock1205-AREA",
+      "owner": 60,
+      "waiter": 59,
+      "Kind": "LCK_M_IX"
+    },
+    {
+      "scenario": "deadlock-inverse-AREA",
+      "owner": 59,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "actor-inactive",
+      "owner": 59,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "grant-revoked",
+      "owner": 59,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    },
+    {
+      "scenario": "session-expired",
+      "owner": 59,
+      "waiter": 60,
+      "Kind": "LCK_M_U"
+    }
+  ],
+  "sqlFailures": [
+    {
+      "scenario": "audit-rollback-FLOOR",
+      "numbers": [
+        51063
+      ]
+    },
+    {
+      "scenario": "lock1222-FLOOR",
+      "numbers": [
+        1222
+      ]
+    },
+    {
+      "scenario": "command-timeout-FLOOR",
+      "numbers": [
+        -2
+      ]
+    },
+    {
+      "scenario": "deadlock1205-FLOOR",
+      "numbers": [
+        1205
+      ]
+    },
+    {
+      "scenario": "audit-rollback-AREA",
+      "numbers": [
+        51063
+      ]
+    },
+    {
+      "scenario": "lock1222-AREA",
+      "numbers": [
+        1222
+      ]
+    },
+    {
+      "scenario": "command-timeout-AREA",
+      "numbers": [
+        -2
+      ]
+    },
+    {
+      "scenario": "deadlock1205-AREA",
+      "numbers": [
+        1205
+      ]
+    }
+  ],
+  "http": "Actual root Program.cs HTTPS, real login/cookie/SQL/CSRF",
+  "secretsPersistedInEvidence": false
+}

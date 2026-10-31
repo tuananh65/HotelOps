@@ -1,0 +1,160 @@
+﻿
+department_id branch_id department_code is_active manager_user_id
+------------- --------- --------------- --------- ---------------
+            6         1 FB                   True              18
+           11         1 FO                   True              23
+            1         1 HK                   True               2
+            3         1 LAU                  True               4
+            2         1 MT                   True               3
+            5         1 SEC                  True              17
+            4         1 WH                   True               5
+           12         2 FO                   True              25
+            7         2 HK                   True              12
+            8         2 MT                   True              15
+           10         2 SEC                  True              20
+            9         2 WH                   True              19
+
+
+
+
+user_id primary_branch_id department_id department_code account_status deleted_at
+------- ----------------- ------------- --------------- -------------- ----------
+     11                 1             3 LAU             ACTIVE                   
+     17                 1             5 SEC             ACTIVE                   
+     18                 1             6 FB              ACTIVE                   
+     20                 2            10 SEC             ACTIVE                   
+
+
+
+
+user_id role_code    role_active branch_id assignment_active expires_at
+------- ---------    ----------- --------- ----------------- ----------
+     11 STAFF              False         1              True           
+     17 DEPT_MANAGER        True         1             False           
+     18 DEPT_MANAGER        True         1             False           
+     20 DEPT_MANAGER        True         2             False           
+
+
+
+
+user_id branch_id access_level revoked_at
+------- --------- ------------ ----------
+     11         1 STANDARD               
+     17         1 MANAGER                
+     18         1 MANAGER                
+     20         2 MANAGER                
+
+
+
+
+
+
+fk_name                                                    schema_name table_name                       column_name             is_disabled is_not_trusted
+-------                                                    ----------- ----------                       -----------             ----------- --------------
+FK_asset_handovers_from_department_id                      dbo         asset_handovers                  from_department_id            False          False
+FK_asset_handovers_to_department_id                        dbo         asset_handovers                  to_department_id              False          False
+FK_assets_current_department_id                            dbo         assets                           current_department_id         False          False
+FK_internal_request_types_default_department_id            dbo         internal_request_types           default_department_id         False          False
+FK_internal_requests_receiving_department_id               dbo         internal_requests                receiving_department_id       False          False
+FK_internal_requests_requester_department_id               dbo         internal_requests                requester_department_id       False          False
+FK_maintenance_works_department_id                         dbo         maintenance_works                department_id                 False          False
+FK_material_requests_department_id                         dbo         material_requests                department_id                 False          False
+FK_operational_tasks_department_id                         dbo         operational_tasks                department_id                 False          False
+FK_preventive_maintenance_schedules_assigned_department_id dbo         preventive_maintenance_schedules assigned_department_id        False          False
+FK_users_department_id                                     dbo         users                            department_id                 False          False
+FK_warehouses_department_id                                dbo         warehouses                       department_id                 False          False
+FK_work_categories_department_id                           dbo         work_categories                  department_id                 False          False
+FK_work_shifts_department_id                               dbo         work_shifts                      department_id                 False          False
+
+
+
+Reference: FK_asset_handovers_from_department_id
+
+Reference: FK_asset_handovers_to_department_id
+
+Reference: FK_assets_current_department_id
+
+Reference: FK_internal_request_types_default_department_id
+
+department_branch department_code request_type_id type_code   default_department_id default_priority_id is_active
+----------------- --------------- --------------- ---------   --------------------- ------------------- ---------
+                1 LAU                           4 LAUNDRY                         3                   5      True
+                1 SEC                           5 SECURITY                        5                   7      True
+                1 FB                            6 FB_ORDER                        6                   6      True
+                1 FB                            9 EVENT_SETUP                     6                   6      True
+
+
+
+Reference: FK_internal_requests_receiving_department_id
+
+department_branch department_code internal_request_id branch_id request_type_id requester_id requester_department_id receiving_department_id room_id area_id
+----------------- --------------- ------------------- --------- --------------- ------------ ----------------------- ----------------------- ------- -------
+                1 LAU                               4         1               4            2                       1                       3       9        
+                1 LAU                               8         1               4            8                       1                       3       7        
+                1 FB                               13         1               6           23                      11                       6         2      
+                1 FB                               14         1               9           23                      11                       6         2      
+
+
+
+Reference: FK_internal_requests_requester_department_id
+
+department_branch department_code internal_request_id branch_id request_type_id requester_id requester_department_id receiving_department_id room_id area_id
+----------------- --------------- ------------------- --------- --------------- ------------ ----------------------- ----------------------- ------- -------
+                1 SEC                               5         1               2           17                       5                       2               7
+
+
+
+Reference: FK_maintenance_works_department_id
+
+Reference: FK_material_requests_department_id
+
+Reference: FK_operational_tasks_department_id
+
+department_branch department_code task_id task_code    branch_id department_id category_id priority_id room_id area_id
+----------------- --------------- ------- ---------    --------- ------------- ----------- ----------- ------- -------
+                1 LAU                  14 OT-2026-0014         1             3           2           6       9        
+
+
+
+Reference: FK_preventive_maintenance_schedules_assigned_department_id
+
+Reference: FK_users_department_id
+
+department_branch department_code user_id employee_code primary_branch_id department_id manager_user_id employment_status account_status last_login_at        
+----------------- --------------- ------- ------------- ----------------- ------------- --------------- ----------------- -------------- -------------        
+                1 LAU                  11 NV011                         1             3               4 ACTIVE            ACTIVE         10/16/2026 5:55:00 AM
+                1 SEC                  17 NV017                         1             5               1 ACTIVE            ACTIVE         10/16/2026 6:00:00 AM
+                1 FB                   18 NV018                         1             6               1 ACTIVE            ACTIVE         10/16/2026 7:00:00 AM
+                2 SEC                  20 NV020                         2            10               1 ACTIVE            ACTIVE         10/16/2026 6:00:00 AM
+
+
+
+Reference: FK_warehouses_department_id
+
+department_branch department_code warehouse_id branch_id department_id warehouse_code manager_user_id is_active created_at          
+----------------- --------------- ------------ --------- ------------- -------------- --------------- --------- ----------          
+                1 FB                         4         1             6 WH-FB                        5      True 1/15/2024 8:00:00 AM
+                2 SEC                        8         2            10 WH-SEC                      20      True 3/20/2024 8:00:00 AM
+                1 LAU                        9         1             3 WH-LAU                       4      True 1/15/2024 8:00:00 AM
+
+
+
+Reference: FK_work_categories_department_id
+
+department_branch department_code category_id category_code   department_id is_active
+----------------- --------------- ----------- -------------   ------------- ---------
+                1 LAU                       2 LAUNDRY                     3      True
+                1 SEC                      10 SECURITY_PATROL             5      True
+                1 FB                       11 FB_SERVICE                  6      True
+
+
+
+Reference: FK_work_shifts_department_id
+
+department_branch department_code shift_id branch_id department_id shift_template_id shift_date             scheduled_start_at    scheduled_end_at       status     
+----------------- --------------- -------- --------- ------------- ----------------- ----------             ------------------    ----------------       ------     
+                1 LAU                    4         1             3                 1 10/16/2026 12:00:00 AM 10/16/2026 6:00:00 AM 10/16/2026 2:00:00 PM  IN_PROGRESS
+                1 LAU                    5         1             3                 2 10/16/2026 12:00:00 AM 10/16/2026 2:00:00 PM 10/16/2026 10:00:00 PM PLANNED    
+
+
+

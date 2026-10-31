@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "checks": 13,
+  "cases": [
+    "guarded trial startup schema compatible",
+    "actual HTTPS API starts with integrated reset guard",
+    "actual SQL-backed login manager",
+    "actual SQL-backed login manager2",
+    "actual SQL-backed login employee",
+    "actual SQL-backed login a",
+    "real password reauthentication before reset",
+    "HTTP snapshot passes Create-style Branch Department Role UPDLOCK without inversion",
+    "Create-style new User INSERT waits while protected HTTP reset retains User namespace",
+    "integrated reset returns200/no-store only after commit",
+    "HTTP credential and ETag match committed SQL rotation",
+    "integrated successful reset revokes every target session",
+    "integrated HTTP logs expose no password hash cookie CSRF or certificate secret"
+  ],
+  "scope": "Task42 actual HTTPS/SQL reset integration",
+  "createOrderOnly": true,
+  "protectedWorkflow": "AdminCredentialResetWorkflow.ResetAsync",
+  "allWritersProtected": false,
+  "futureExpiryGuaranteed": false,
+  "secretsPersisted": false
+}

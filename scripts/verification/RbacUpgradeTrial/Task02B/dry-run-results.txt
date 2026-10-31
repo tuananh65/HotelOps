@@ -1,0 +1,38 @@
+﻿
+issue                    record_count
+-----                    ------------
+ACTIVE_OR_PLANNED_SHIFTS            2
+ACTIVE_REQUEST_TYPES                4
+ACTIVE_USERS                        4
+ACTIVE_WAREHOUSES                   3
+ACTIVE_WORK_CATEGORIES              3
+OPEN_INTERNAL_REQUESTS              1
+OPEN_OPERATIONAL_TASKS              0
+
+
+
+
+candidate_departments_changed
+-----------------------------
+                            4
+
+
+
+
+branch_id department_code is_active
+--------- --------------- ---------
+        1 FB                  False
+        1 FO                   True
+        1 HK                   True
+        1 LAU                 False
+        1 MT                   True
+        1 SEC                 False
+        1 WH                   True
+        2 FO                   True
+        2 HK                   True
+        2 MT                   True
+        2 SEC                 False
+        2 WH                   True
+
+
+

@@ -1,0 +1,42 @@
+using HotelOps.Api.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Data;
+
+public partial class HotelOpsDbContext
+{
+    public DbSet<ChecklistScopeV1> ChecklistScopes => Set<ChecklistScopeV1>();
+    public DbSet<ChecklistRoomTypeV1> ChecklistRoomTypes => Set<ChecklistRoomTypeV1>();
+    public DbSet<ChecklistCriterionV1> ChecklistCriteria => Set<ChecklistCriterionV1>();
+
+    private static void ConfigureChecklists(ModelBuilder model)
+    {
+        // Approved Task74 optional progress triggers; compatible before/after deployment.
+        model.Entity<CleaningTask>().ToTable("cleaning_tasks", t => t.UseSqlOutputClause(false));
+        model.Entity<CleaningAssignment>().ToTable("cleaning_assignments", t => t.UseSqlOutputClause(false));
+        model.Entity<OperationalTask>().ToTable("operational_tasks", t => t.UseSqlOutputClause(false));
+        model.Entity<OperationalTaskAssignment>().ToTable("operational_task_assignments", t => t.UseSqlOutputClause(false));
+        model.Entity<InspectionChecklist>().ToTable("inspection_checklists", t => t.UseSqlOutputClause(false));
+        model.Entity<InspectionChecklistVersion>().ToTable("inspection_checklist_versions", t => t.UseSqlOutputClause(false));
+        model.Entity<InspectionChecklistItem>().ToTable("inspection_checklist_items", t => t.UseSqlOutputClause(false));
+        model.Entity<RoomInspection>().ToTable("room_inspections", t => t.UseSqlOutputClause(false));
+        model.Entity<InspectionResult>().ToTable("inspection_results", t => t.UseSqlOutputClause(false));
+        model.Entity<InspectionDefect>().ToTable("inspection_defects", t => t.UseSqlOutputClause(false));
+        model.Entity<ChecklistScopeV1>(e =>
+        {
+            e.ToView("inspection_checklists"); e.HasKey(x => x.ChecklistId);
+            e.Property(x => x.ChecklistId).HasColumnName("checklist_id"); e.Property(x => x.BranchId).HasColumnName("branch_id");
+            e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
+        });
+        model.Entity<ChecklistRoomTypeV1>(e =>
+        {
+            e.ToView("inspection_checklist_room_types"); e.HasKey(x => new { x.ChecklistId, x.RoomTypeId });
+            e.Property(x => x.ChecklistId).HasColumnName("checklist_id"); e.Property(x => x.RoomTypeId).HasColumnName("room_type_id");
+        });
+        model.Entity<ChecklistCriterionV1>(e =>
+        {
+            e.ToView("inspection_checklist_items"); e.HasKey(x => x.ItemId);
+            e.Property(x => x.ItemId).HasColumnName("item_id"); e.Property(x => x.Group).HasColumnName("criterion_group").HasMaxLength(100);
+        });
+    }
+}

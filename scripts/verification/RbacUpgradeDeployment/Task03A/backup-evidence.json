@@ -1,0 +1,27 @@
+﻿{
+    "path":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\Backup\\RBAC03A_20261021_24e14e196c6a.bak",
+    "fileSystemBytes":  null,
+    "fileSystemSizeStatus":  "Windows ACL denies PowerShell Get-Item; no ACL changes attempted",
+    "reportedBackupBytes":  17711104,
+    "reportedCompressedBackupBytes":  17711104,
+    "metadata":  [
+                     {
+                         "database_name":  "HotelOpsDB",
+                         "backup_start_date":  "\/Date(1792586994000)\/",
+                         "backup_finish_date":  "\/Date(1792586994000)\/",
+                         "backup_size":  17711104,
+                         "compressed_backup_size":  17711104,
+                         "is_copy_only":  true,
+                         "has_backup_checksums":  true,
+                         "first_lsn":  41000000333800001,
+                         "last_lsn":  41000000334100001,
+                         "checkpoint_lsn":  41000000333800001
+                     }
+                 ],
+    "verifyOnly":  "PASS",
+    "serverTimeNote":  "backup_start/finish_date are SQL Server local datetime; not labelled UTC",
+    "capturedUtc":  "2026-10-21T12:51:35.1818690",
+    "startServerLocal":  "2026-10-21 19:49:54.000",
+    "finishServerLocal":  "2026-10-21 19:49:54.000",
+    "metadataRecheckedUtc":  "2026-10-21T12:55:53.0300818Z"
+}

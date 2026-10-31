@@ -1,0 +1,126 @@
+﻿{
+    "runId":  "HotelOps_Canonical_20261031_161038_2d383b0b",
+    "stage":  "Trial",
+    "startedUtc":  "2026-10-31T09:10:39.4815119Z",
+    "preflight":  [
+                      {
+                          "server_name":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                          "version":  "16.0.1000.6",
+                          "is_sysadmin":  1,
+                          "can_create_database":  null
+                      }
+                  ],
+    "sourceHashes":  {
+                         "scripts/database/release/checklists/03_Rollback.sql":  "EBC5664DF9A7740935E22F4C6ECF47CF26E7E0317FC15A937AEB61D7730B2AD3",
+                         "database/patches/20261020_material_request_contract.sql":  "097AAA19389EAA137685EB1A078E55521EA16C20274D386C62B5BF182835B939",
+                         "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql":  "DD6874DB482B770482B5B8D0B3230F2F4175618433E7A65E29F63C9670DC4F7B",
+                         "scripts/database/release/checklists/Run-Checklists.ps1":  "C16E5E7A8CDBCB56305CD4533CBF13DC82F801DDA03243F46F80C35BD9D7791D",
+                         "scripts/database/release/housekeeping/02_Verify.sql":  "A3E1C24E5EC9D856CCA08AB27D03D66350D8AE4FD31C5DBE8BE4D80FE3542201",
+                         "scripts/database/release/uc017/Run-Uc017.ps1":  "FC58AF011AD601BA9EB3895E807EF4B5BE1BA0E3C163EE966266D4326CE49C0F",
+                         "scripts/database/release/canonical/01_Canonical_Seed.sql":  "B14B510483B4655C0F18FE55F5BF2D8906C6E20F158700BC3928F0AC19DE1035",
+                         "scripts/database/release/housekeeping/Run-Housekeeping.ps1":  "E6A2FC2A8769868981BAE025614CD103623680380091E0EF4247F2EF52F6A174",
+                         "scripts/database/release/canonical/Run-Canonical.ps1":  "E1D757D4F4ED78208EFA1C9252CEC9D3F0CA2D9AA59B1C91E80514FD79364F0E",
+                         "scripts/database/release/housekeeping/03_Rollback.sql":  "65B0970D68B193D76029253976654BA8D8A26E1AD4B69BBA29ADA7C6A5040503",
+                         "scripts/database/release/canonical/02_Canonical_Verify.sql":  "C6CA47A8D083C112D98E5992C61E87825DD300A11C70F25562DC59D5C577D327",
+                         "scripts/database/release/04_HotelOps_Verification_ReadOnly.sql":  "974F40D3FA392D23DA4225EE611DF54D659EA50FCE93E537C3E8BE5958EC7868",
+                         "scripts/database/release/housekeeping/01_Housekeeping.sql":  "4041A56F4C0AE061B4EF777BB9F834C53249F6A5E9F2C52253B88117B89024DA",
+                         "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql":  "F6F966F51407119964344BC1D1C99B004FA9CB45E61EE54E598E49604B0B8017",
+                         "scripts/database/release/02_HotelOps_Upgrade_Auth_To_RBAC.sql":  "C1EE772EEEB8EEF2D1985084001BD0D9267B64E8CA7936777877A5807D30FF9E",
+                         "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql":  "7BA7F2204F5ED7C9A28D89E03975AADD56C4C91A9DE43088115D5269B33BEDB3",
+                         "scripts/database/release/01_HotelOps_Full_Schema.sql":  "EEEF125A5F6595327A6BCDA99EB9E6A8555B46A0929345F84B9B4141BB3CF4D0",
+                         "scripts/database/release/checklists/02_Verify.sql":  "20F797C9B1D26AE5B285C152A4301A3DEECED17A76256E67F31352E32EAF41D6",
+                         "database/patches/20261019_inventory_contract.sql":  "55437D8B08767C9722D323B808231552837C561663E6EDC192CE4670979A0D8E",
+                         "database/patches/20261021_replenishment_contract.sql":  "2CD673D0EE393FEB8FE0D7F340E5068F4858A853C2C9551B0D2394B27232B787",
+                         "scripts/database/release/uc017/06_UC017_Verify.sql":  "79E12296BBDEB6E87AAC640760D3A4474FFC034D2500925593C0685945DE0627",
+                         "scripts/database/release/uc017/07_UC017_Rollback.sql":  "FBBAA973F23D95C803236BE6B736E93E742542BEC875A51DE947469811476925",
+                         "scripts/database/release/checklists/01_Checklists.sql":  "10B1E29979B18014E9005CF7DC17B36FD51C0EBD3A61A63CDEB0F17851A97851",
+                         "database/patches/20261022_maintenance_material_usage_contract.sql":  "132A69FC2C8C260BAF3249B2E9DCED4DB4A7DD46F919647D9CD6A5A6164F67F2"
+                     },
+    "mainDatabaseWritten":  false,
+    "targets":  [
+                    {
+                        "summary":  [
+                                        {
+                                            "database_name":  "HotelOps_Canonical_20261031_161038_2d383b0b_Fresh",
+                                            "table_count":  86,
+                                            "rowversion_count":  13,
+                                            "foreign_keys":  249,
+                                            "check_constraints":  58,
+                                            "defaults":  80,
+                                            "indexes":  211,
+                                            "roles":  12,
+                                            "active_roles":  10,
+                                            "permissions":  62,
+                                            "grants":  140,
+                                            "users":  0,
+                                            "user_roles":  0,
+                                            "sessions":  0,
+                                            "active_branches":  2,
+                                            "active_departments":  8,
+                                            "reference_values":  15
+                                        }
+                                    ],
+                        "checkconstraints":  "PASS",
+                        "seedReplay":  "PASS",
+                        "name":  "HotelOps_Canonical_20261031_161038_2d383b0b_Fresh",
+                        "checkdb":  "PASS"
+                    },
+                    {
+                        "summary":  [
+                                        {
+                                            "database_name":  "HotelOps_Canonical_20261031_161038_2d383b0b_Upgrade",
+                                            "table_count":  86,
+                                            "rowversion_count":  13,
+                                            "foreign_keys":  249,
+                                            "check_constraints":  58,
+                                            "defaults":  80,
+                                            "indexes":  211,
+                                            "roles":  12,
+                                            "active_roles":  10,
+                                            "permissions":  62,
+                                            "grants":  140,
+                                            "users":  0,
+                                            "user_roles":  0,
+                                            "sessions":  0,
+                                            "active_branches":  2,
+                                            "active_departments":  8,
+                                            "reference_values":  15
+                                        }
+                                    ],
+                        "checkconstraints":  "PASS",
+                        "seedReplay":  "PASS",
+                        "name":  "HotelOps_Canonical_20261031_161038_2d383b0b_Upgrade",
+                        "checkdb":  "PASS"
+                    },
+                    {
+                        "summary":  [
+                                        {
+                                            "database_name":  "HotelOps_Canonical_20261031_161038_2d383b0b_AuthUpgrade",
+                                            "table_count":  86,
+                                            "rowversion_count":  13,
+                                            "foreign_keys":  249,
+                                            "check_constraints":  58,
+                                            "defaults":  80,
+                                            "indexes":  211,
+                                            "roles":  12,
+                                            "active_roles":  10,
+                                            "permissions":  62,
+                                            "grants":  140,
+                                            "users":  0,
+                                            "user_roles":  0,
+                                            "sessions":  0,
+                                            "active_branches":  2,
+                                            "active_departments":  8,
+                                            "reference_values":  15
+                                        }
+                                    ],
+                        "checkconstraints":  "PASS",
+                        "seedReplay":  "PASS",
+                        "name":  "HotelOps_Canonical_20261031_161038_2d383b0b_AuthUpgrade",
+                        "checkdb":  "PASS"
+                    }
+                ],
+    "success":  true,
+    "schemaComparison":  "PASS",
+    "finishedUtc":  "2026-10-31T09:13:15.7609796Z"
+}

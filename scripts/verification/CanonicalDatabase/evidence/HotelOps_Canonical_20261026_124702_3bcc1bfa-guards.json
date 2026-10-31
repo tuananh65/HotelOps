@@ -1,0 +1,11 @@
+﻿{
+    "mainDatabaseTarget":  "PASS",
+    "unreviewedInstance":  "PASS",
+    "existingDatabase":  "PASS",
+    "seedReplayExactData":  "PASS",
+    "foreignKeyEnforced":  "PASS",
+    "scopeCheckEnforced":  "PASS",
+    "urgentPriorityRejected":  "PASS",
+    "fourCanonicalPrioritiesAndSeparateSeverity":  "PASS",
+    "rollbackPreservedCanonicalData":  "PASS"
+}

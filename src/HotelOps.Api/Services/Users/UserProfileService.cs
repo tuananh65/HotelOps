@@ -36,7 +36,8 @@ public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess a
         try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
         catch (GlobalAdminLockException) { return new(UserProfileStatus.SerializationUnavailable); }
         var adminBefore = await guard.ReadSnapshotAsync(ct);
-        if (!current.TryGetCurrentUser(out var identity)) return new(UserProfileStatus.Forbidden);
+        if (!current.TryGetCurrentUser(out var identity)
+            || !await AccountWriterSessionGate.IsValidAsync(db, identity, clock, ct)) return new(UserProfileStatus.Forbidden);
         await access.LockAuthorityAsync(identity.UserId, id, ct);
         if (!await access.CanManageAsync(id, ct) || !current.TryGetCurrentUser(out var actor))
             return new(UserProfileStatus.Forbidden);
@@ -89,7 +90,8 @@ public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess a
                 try { await guard.EnsurePreservedAsync(adminBefore, ct); }
                 catch (GlobalAdministrationInvariantException) { return new(UserProfileStatus.LastAdministrator); }
             }
-            if (!await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
+            if (!await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)
+                || !await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
             var result = Success((await ReadRow(id, ct))!);
             await transaction.CommitAsync(ct);
             return result;

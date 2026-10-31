@@ -1,0 +1,1365 @@
+{
+  "database": "HotelOps_Canonical_20261030_012434_cc6a1808_Fresh",
+  "cases": [
+    {
+      "Writer": "Create",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "stale-actor",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Forbidden; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "revoked-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Forbidden; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "expired-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Forbidden; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "final-session-expiry",
+      "Result": "PASS",
+      "Detail": "actor session expires after actual audit SQL flush; final boundary revalidation rolls back all staged mutations"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "stale-target",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Stale; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "stale-actor",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "revoked-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "stale-target",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Stale; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "stale-actor",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "revoked-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "stale-target",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Stale; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "stale-actor",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "revoked-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "stale-target",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Stale; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "stale-actor",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Forbidden; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "revoked-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Forbidden; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "expired-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Forbidden; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "final-session-expiry",
+      "Result": "PASS",
+      "Detail": "actor session expires after actual audit SQL flush; final boundary revalidation rolls back all staged mutations"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "stale-target",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Stale; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "stale-actor",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "revoked-actor-session",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "inactive-user-after-wait",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: InvalidCredentials; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "inactive-user-after-wait",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "post-UPDATE commit fault rolls back touch; audit not applicable"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "inactive-user-after-wait",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: Rejected; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "writer-first",
+      "Result": "PASS",
+      "Detail": "actual service commits; retained User waiter rereads after SQL wait; this is a standalone User protocol probe"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "actual-deactivate-first-denial",
+      "Result": "PASS",
+      "Detail": "actual Deactivate retained Users universe; writer waited; denial rolled back then writer committed; no INACTIVE Deactivate commit claimed"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "cancel",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "timeout1222",
+      "Result": "PASS",
+      "Detail": "actual SQL wait/fault propagates; owned transaction disposed; aggregate/access/sessions/audits unchanged"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "deadlock1205-retry",
+      "Result": "PASS",
+      "Detail": "test-only post-flush inverse cycle yields actual SQL 1205; no automatic retry/partial writes; not canonical-order safety proof"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "explicit-fresh-retry",
+      "Result": "PASS",
+      "Detail": "fresh context explicitly retries once, rereads current SQL state and commits; no stale replay or duplicate previous effect"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "audit-rollback",
+      "Result": "PASS",
+      "Detail": "real audit SQL insertion fault rolls back business/session/access/credential mutations atomically"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "inactive-user-after-wait",
+      "Result": "PASS",
+      "Detail": "authoritative post-wait rejection: SessionInvalid; competing edit retained, no partial writer mutation"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "last-durable-admin",
+      "Result": "PASS",
+      "Detail": "actual trusted raw reset rejects sole durable administrator and rolls back credential/session/audit; not HTTP authorization or Deactivate poststate acceptance"
+    },
+    {
+      "Writer": "All",
+      "Scenario": "catalog-preservation",
+      "Result": "PASS",
+      "Detail": "roles/permissions/catalog grants unchanged"
+    },
+    {
+      "Writer": "All",
+      "Scenario": "all-mapped-row-preservation",
+      "Result": "PASS",
+      "Detail": "every mapped table equals pre-run rows after owned cleanup, including NULL-actor audit events and all business assignments; identity counters may advance"
+    }
+  ],
+  "waits": [
+    {
+      "Writer": "Create",
+      "Scenario": "writer-first",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:27:26.146137Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:26.7953702Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "cancel",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:28.389103Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "timeout1222",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:28.9893094Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:27:30.7270001Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "stale-actor",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:34.5748921Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "revoked-actor-session",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:35.2326928Z"
+    },
+    {
+      "Writer": "Create",
+      "Scenario": "expired-actor-session",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:35.8717314Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "writer-first",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:37.6794083Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:27:38.1663346Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "cancel",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:39.0516002Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "timeout1222",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:39.536847Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:41.3113191Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "stale-target",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:46.7891923Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "stale-actor",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:47.4102075Z"
+    },
+    {
+      "Writer": "Activate",
+      "Scenario": "revoked-actor-session",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:27:48.013253Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "writer-first",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:27:49.8701279Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:50.7554919Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "cancel",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:52.4655876Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "timeout1222",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:52.9356174Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:27:54.8803983Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "stale-target",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:27:59.5925006Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "stale-actor",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:00.4549338Z"
+    },
+    {
+      "Writer": "Role",
+      "Scenario": "revoked-actor-session",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:01.3904389Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "writer-first",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:02.5024661Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:03.1552128Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "cancel",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:04.4824542Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "timeout1222",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:05.1552815Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:06.9815047Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "stale-target",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:12.1574567Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "stale-actor",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:12.9367907Z"
+    },
+    {
+      "Writer": "Branch",
+      "Scenario": "revoked-actor-session",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:13.6834267Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "writer-first",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:14.7765891Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:15.2714628Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "cancel",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:16.7101692Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "timeout1222",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:17.3334053Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:18.9172104Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "stale-target",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:24.496297Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "stale-actor",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:25.3434718Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "revoked-actor-session",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:25.9801298Z"
+    },
+    {
+      "Writer": "Profile",
+      "Scenario": "expired-actor-session",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:26.77745Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "writer-first",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:29.1704109Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:29.8014145Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "cancel",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:31.3525804Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "timeout1222",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:32.4141164Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:34.0984275Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "stale-target",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:37.7610979Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "stale-actor",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:39.0329451Z"
+    },
+    {
+      "Writer": "Reset",
+      "Scenario": "revoked-actor-session",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_X",
+      "Utc": "2026-10-29T18:28:40.3543118Z"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "writer-first",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:42.0781422Z"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IS",
+      "Utc": "2026-10-29T18:28:42.933528Z"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "cancel",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:44.6924836Z"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "timeout1222",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:45.634784Z"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:47.7169981Z"
+    },
+    {
+      "Writer": "Login",
+      "Scenario": "inactive-user-after-wait",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_S",
+      "Utc": "2026-10-29T18:28:49.9718411Z"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "writer-first",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:50.6442473Z"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:51.223428Z"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "cancel",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:52.162471Z"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "timeout1222",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:52.6466558Z"
+    },
+    {
+      "Writer": "Logout",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:53.8980993Z"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "writer-first",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:57.2647373Z"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:28:57.8325321Z"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "cancel",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:59.1981401Z"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "timeout1222",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:28:59.7206011Z"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:01.5421972Z"
+    },
+    {
+      "Writer": "PasswordChange",
+      "Scenario": "inactive-user-after-wait",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:04.9016365Z"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "writer-first",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:05.4089023Z"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:29:05.8267606Z"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "cancel",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:06.5563909Z"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "timeout1222",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:07.0351841Z"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:08.216344Z"
+    },
+    {
+      "Writer": "Touch",
+      "Scenario": "inactive-user-after-wait",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:11.9185286Z"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "writer-first",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:12.6032095Z"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:29:13.2258266Z"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "cancel",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:14.2457326Z"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "timeout1222",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:14.7667347Z"
+    },
+    {
+      "Writer": "RevokeAll",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:16.1827203Z"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "writer-first",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:18.659521Z"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "actual-deactivate-first-denial",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_IX",
+      "Utc": "2026-10-29T18:29:18.7992447Z"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "cancel",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:19.2899526Z"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "timeout1222",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:19.5610128Z"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "deadlock1205-retry",
+      "Waiter": 54,
+      "Owner": 56,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:20.4443197Z"
+    },
+    {
+      "Writer": "Reauthenticate",
+      "Scenario": "inactive-user-after-wait",
+      "Waiter": 56,
+      "Owner": 54,
+      "Type": "LCK_M_U",
+      "Utc": "2026-10-29T18:29:24.3268392Z"
+    }
+  ],
+  "passed": 112,
+  "failed": 0,
+  "productionServices": [
+    "Create",
+    "Activate",
+    "Role",
+    "Branch",
+    "Profile",
+    "Reset",
+    "Login",
+    "Logout",
+    "PasswordChange",
+    "Touch",
+    "RevokeAll",
+    "Reauthenticate"
+  ],
+  "fullUc006": "BLOCKED",
+  "deferredWorkflows": "NOT RUN",
+  "gatesCleared": false,
+  "endpointEnabled": false,
+  "sa57Activated": false,
+  "fixtureCleanup": "Owned generated rows removed per scenario; database retained"
+}

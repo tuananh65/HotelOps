@@ -1,0 +1,53 @@
+﻿
+database_name                                     total_roles active_roles total_permissions role_permission_grants
+-------------                                     ----------- ------------ ----------------- ----------------------
+HotelOps_RBAC_Upgrade_Trial_20261021_380b6cc4b282          12           10                62                    140
+
+
+
+
+role_code          is_active total_permissions all_scope branch_scope own_scope department_scope
+---------          --------- ----------------- --------- ------------ --------- ----------------
+DEPT_MANAGER            True                18         0           16         2                0
+HK_INSPECTOR           False                 0         0            0         0                0
+HK_STAFF                True                13         0            2        11                0
+HK_SUPERVISOR           True                13         0            9         4                0
+MAINTENANCE_LEAD        True                18         0           13         5                0
+MAINTENANCE_STAFF       True                13         0            4         9                0
+OPERATIONS_MANAGER      True                20         0           20         0                0
+OWNER                   True                 2         2            0         0                0
+RECEPTION               True                12         0            7         5                0
+STAFF                  False                10         0            2         8                0
+STOREKEEPER             True                15         0            8         7                0
+SYS_ADMIN               True                 6         6            0         0                0
+
+
+
+
+issue                           subject branch_id
+-----                           ------- ---------
+NON_CANONICAL_ACTIVE_DEPARTMENT LAU             1
+NON_CANONICAL_ACTIVE_DEPARTMENT SEC             1
+NON_CANONICAL_ACTIVE_DEPARTMENT FB              1
+NON_CANONICAL_ACTIVE_DEPARTMENT SEC             2
+
+
+
+
+branch_id role_code          active_assignments
+--------- ---------          ------------------
+        1 DEPT_MANAGER                        1
+        1 OPERATIONS_MANAGER                  1
+        2 DEPT_MANAGER                        1
+
+
+
+
+
+role_code permission_code data_scope
+--------- --------------- ----------
+OWNER     DASHBOARD_VIEW  ALL       
+OWNER     REPORT_VIEW     ALL       
+
+
+
