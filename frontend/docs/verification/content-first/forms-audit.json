@@ -1,0 +1,60 @@
+[
+  {
+    "id": 1,
+    "count": 1,
+    "formY": 398.34375,
+    "height": 141
+  },
+  {
+    "id": 2,
+    "count": 1,
+    "formY": 511.34375,
+    "height": 64.5
+  },
+  {
+    "id": 3,
+    "count": 1,
+    "formY": 435.59375,
+    "height": 217.5
+  },
+  {
+    "id": 4,
+    "count": 0
+  },
+  {
+    "id": 25,
+    "count": 1,
+    "formY": 223,
+    "height": 567
+  },
+  {
+    "id": 27,
+    "count": 1,
+    "formY": 381.09375,
+    "height": 200
+  },
+  {
+    "id": 36,
+    "count": 1,
+    "formY": 223,
+    "height": 702.5
+  },
+  {
+    "id": 40,
+    "count": 1,
+    "formY": 223,
+    "height": 537.796875
+  },
+  {
+    "id": 42,
+    "count": 1,
+    "formY": 381.09375,
+    "height": 200
+  },
+  {
+    "id": 68,
+    "count": 1,
+    "formY": 381.09375,
+    "height": 200
+  }
+]

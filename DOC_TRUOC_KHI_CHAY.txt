@@ -1,0 +1,7 @@
+HOTELops FRONTEND + DEV1 UI
+
+Đã nối màn hình qua controller DEV1. Đọc frontend/docs/DEV1_UI_HANDOFF.md trước khi chạy.
+Giải nén vào thư mục mới. Backend chạy riêng và giữ nguyên.
+Build PASS; 45 test chọn lọc PASS. Toàn bộ suite:54 PASS/11 lỗi cũ.
+Browser/live backend/database: NOT TESTED do thiếu runtime.
+Không tạo branch, commit, push hoặc merge.
