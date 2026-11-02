@@ -1,0 +1,92 @@
+.dev1-page {
+  padding: 20px;
+  max-width: 1250px;
+  margin: auto;
+}
+.dev1-nav,
+.dev1-actions,
+.dev1-context {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: end;
+  margin: 16px 0;
+}
+.dev1-nav a {
+  padding: 8px 12px;
+  border: 1px solid #b5c7de;
+  border-radius: 6px;
+}
+.dev1-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+.dev1-page label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dev1-page input,
+.dev1-page select,
+.dev1-page textarea {
+  padding: 9px;
+  border: 1px solid #9baec5;
+  border-radius: 4px;
+  color: inherit;
+  background: inherit;
+}
+.dev1-page button {
+  padding: 9px 14px;
+  cursor: pointer;
+}
+.dev1-page button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dev1-editor {
+  padding: 20px;
+  border: 1px solid #9baec5;
+  margin-top: 20px;
+  border-radius: 8px;
+}
+.dev1-editor fieldset {
+  border: 1px solid #b5c7de;
+  padding: 12px;
+  margin: 12px 0;
+}
+.dev1-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.dev1-table td,
+.dev1-table th {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #b5c7de;
+}
+.dev1-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+.dev1-details dt {
+  font-weight: 600;
+}
+.dev1-details dd {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.dev1-records section {
+  padding: 10px;
+  border-bottom: 1px solid #b5c7de;
+}
+.dev1-page [role="alert"] {
+  border-left: 4px solid #be2634;
+  padding: 12px;
+}
+.dev1-page input[type="checkbox"] {
+  align-self: start;
+  width: 18px;
+  height: 18px;
+}

@@ -1,0 +1,40 @@
+{
+  "modified": [
+    "DOC_TRUOC_KHI_CHAY.txt",
+    "frontend/docs/DEV1_CONTROLLER_HANDOFF.md",
+    "frontend/src/main.tsx"
+  ],
+  "added": [
+    "frontend/src/screens/dev1/HistoryScreen.tsx",
+    "frontend/src/screens/dev1/model.ts",
+    "frontend/src/screens/dev1/dev1.css",
+    "frontend/src/screens/dev1/Dev1Screen.tsx",
+    "frontend/playwright.dev1.config.ts",
+    "frontend/tests/dev1-ui-model-entry.ts",
+    "frontend/tests/dev1-ui-model.test.mjs",
+    "frontend/tests/dev1-ui.browser.spec.ts",
+    "frontend/docs/DEV1_UI_HANDOFF.md"
+  ],
+  "backendUnchangedFiles": 347,
+  "tests": {
+    "selectedPass": 45,
+    "fullSuitePass": 54,
+    "fullSuiteFail": 11,
+    "browser": "NOT TESTED - browser missing",
+    "liveBackend": "NOT TESTED - no .NET/SQL"
+  },
+  "sha256": {
+    "DOC_TRUOC_KHI_CHAY.txt": "daa384d80f716f9cf74899cfc7a4289a7273a2e09452db33b5b0b685c2138411",
+    "frontend/docs/DEV1_CONTROLLER_HANDOFF.md": "e0c94b1810be8e6a843cf5b43497ad3fb0248798d711b83c6194daf554078bc8",
+    "frontend/src/main.tsx": "0ac604793b9ccaeda1db93edeaf32f65d5392e3780e6c30b1d54647fc06ba986",
+    "frontend/src/screens/dev1/HistoryScreen.tsx": "12eb9e3c4dffd1ca9470dc0e007abd590cc429ca3fd493c40ad7ea3905cff746",
+    "frontend/src/screens/dev1/model.ts": "3cdcdc3f42f8119a940da85867c36ba38a490952217243a8b1d31bb20cfa3f21",
+    "frontend/src/screens/dev1/dev1.css": "ad7432fedb3fb80ecc4f4dd5f0cc1e3fd1a281e488f96047c0afbabc1ea2ee66",
+    "frontend/src/screens/dev1/Dev1Screen.tsx": "d00c4316feadd1a06f166fae780a914570d3ca3e4cc226f0b15b501b9c23ce95",
+    "frontend/playwright.dev1.config.ts": "3fd654c4235b4cab20d4c43490018e6999eb1b63947bb95ec92b27cef668e0b6",
+    "frontend/tests/dev1-ui-model-entry.ts": "53b37e6d7bd1922059df7abdc55a9d0143b5492c636b6e22840550aca52a73b3",
+    "frontend/tests/dev1-ui-model.test.mjs": "820aedfbd02096e666a800852a795f068dea55b2ef62bfe626006c80efefd4e8",
+    "frontend/tests/dev1-ui.browser.spec.ts": "c66c8ed58b3c4ed78110b85876f05dc8ef2c70389bbcbce828e00b4a4169c1a0",
+    "frontend/docs/DEV1_UI_HANDOFF.md": "03a884f47a6a5cca53d2ed00ff4674ca5b2626b4ea3d42d0c94f57f5728889d0"
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "baselineVerification": {
+    "frontend": {
+      "trackedFilesCompared": 306,
+      "changed": [],
+      "commit": "1cf8d71692207e01f34b57d1daf5cec3b5b1e40b"
+    },
+    "backend": {
+      "trackedFilesCompared": 347,
+      "changed": [],
+      "commit": "cf8fb020362f8f64192e7f2f14a10547cebe5b91"
+    }
+  },
+  "tests": {
+    "pass": 39,
+    "fail": 0,
+    "live": "NOT TESTED"
+  },
+  "existingFilesModified": [],
+  "addedFiles": [
+    {
+      "path": "frontend/src/controllers/dev1/checklistController.ts",
+      "sha256": "88cd0132fb37d029a82f5e4e89ecdb5f249c6fc2103c520e3b224f9761ac71d9"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/contracts.ts",
+      "sha256": "08b745bd8d7a747ef0602d7caad7dac84ad14c03b71ff06eae9e2083570d3671"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/departmentController.ts",
+      "sha256": "a2a9adeeb5f42d479ffb33cd1a4f6ce3aba3d7328a3074fc15d31caabac77557"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/hotelStructureController.ts",
+      "sha256": "b0091f96e05dd267bfd431f4e4d5e86151eedadbf1e3d53d27a6807ca7a35913"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/housekeepingController.ts",
+      "sha256": "b72935efb03af35928805202373a814136dffd5a2d280ab02f48c9a57f5ef1db"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/index.ts",
+      "sha256": "ad53c4046b18cfef75268d3512cf9653f2f31b22eb7390d24016588236a20283"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/progressController.ts",
+      "sha256": "16a7b3d0443b604737849dc271c2cf51774dc90fc70907fc98ca2572fd4fda3b"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/roomController.ts",
+      "sha256": "59c12f472b7db7eb33ebb856c047aa696aa05c03dcfb6498f904ad1c0c1472c5"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/roomTypeController.ts",
+      "sha256": "bc9bae15c6b8bc246605dc78a894f53e494554ca06ca2d2f6b1ba01ff9d65ca5"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/transportController.ts",
+      "sha256": "e0229bc463358c840ea93e98e1c75070ae9e74f9e0ad39f4e9608cb1601c75d4"
+    },
+    {
+      "path": "frontend/src/controllers/dev1/useDev1QueryController.ts",
+      "sha256": "bc4aa716178e1b60c1187dfde261f578cc7cb5b0aa6e51e088f3614510aa3f08"
+    },
+    {
+      "path": "frontend/tests/dev1-controller-contract.test.mjs",
+      "sha256": "ffd170a7f0cf91b6b743f16126d9abf831295735dfd97eb432c91ac35de1edb9"
+    },
+    {
+      "path": "frontend/tests/dev1-controller-entry.ts",
+      "sha256": "2bc9344c9fae6a00bcabe88fcde166813e76f753a1345f604be9bbf7d98b8fb2"
+    },
+    {
+      "path": "frontend/docs/DEV1_CONTROLLER_HANDOFF.md",
+      "sha256": "ba4aa79b927765139da5d9664f5dd0aa48bb46291e0c0af44d5648b47ee84cca"
+    }
+  ]
+}
