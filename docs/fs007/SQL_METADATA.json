@@ -1,0 +1,176 @@
+﻿{
+    "status":  "PASS_READ_ONLY_METADATA",
+    "database":  "HotelOps_Canonical_20261105_180000_f040001_Fresh",
+    "localInstance":  "SQLEXPRESS",
+    "ownerVerified":  true,
+    "businessWrites":  false,
+    "ddl":  false,
+    "authenticationStarted":  false,
+    "sqlCertificateException":  "Existing FS004 local trial only",
+    "tables":  [
+                   {
+                       "name":  "cleaning_assignments"
+                   },
+                   {
+                       "name":  "cleaning_reworks"
+                   },
+                   {
+                       "name":  "cleaning_tasks"
+                   },
+                   {
+                       "name":  "notification_recipients"
+                   },
+                   {
+                       "name":  "notifications"
+                   },
+                   {
+                       "name":  "room_blocks"
+                   },
+                   {
+                       "name":  "room_inspections"
+                   },
+                   {
+                       "name":  "room_status_history"
+                   },
+                   {
+                       "name":  "rooms"
+                   },
+                   {
+                       "name":  "shift_assignments"
+                   },
+                   {
+                       "name":  "shift_templates"
+                   },
+                   {
+                       "name":  "work_shifts"
+                   }
+               ],
+    "columns":  [
+                    {
+                        "tableName":  "cleaning_tasks",
+                        "name":  "row_version",
+                        "sqlType":  "timestamp",
+                        "max_length":  8,
+                        "is_nullable":  false,
+                        "defaultValue":  null
+                    },
+                    {
+                        "tableName":  "cleaning_tasks",
+                        "name":  "status",
+                        "sqlType":  "varchar",
+                        "max_length":  40,
+                        "is_nullable":  false,
+                        "defaultValue":  "(\u0027PENDING\u0027)"
+                    },
+                    {
+                        "tableName":  "cleaning_tasks",
+                        "name":  "workflow_status",
+                        "sqlType":  "varchar",
+                        "max_length":  30,
+                        "is_nullable":  true,
+                        "defaultValue":  null
+                    },
+                    {
+                        "tableName":  "rooms",
+                        "name":  "operational_status",
+                        "sqlType":  "varchar",
+                        "max_length":  40,
+                        "is_nullable":  false,
+                        "defaultValue":  "(\u0027DIRTY\u0027)"
+                    }
+                ],
+    "uniqueIndexes":  [
+                          {
+                              "tableName":  "notification_recipients",
+                              "name":  "notification_recipients_index_42",
+                              "is_unique":  true,
+                              "filter_definition":  null,
+                              "key_ordinal":  1,
+                              "columnName":  "notification_id"
+                          },
+                          {
+                              "tableName":  "notification_recipients",
+                              "name":  "notification_recipients_index_42",
+                              "is_unique":  true,
+                              "filter_definition":  null,
+                              "key_ordinal":  2,
+                              "columnName":  "user_id"
+                          },
+                          {
+                              "tableName":  "notification_recipients",
+                              "name":  "notification_recipients_index_42",
+                              "is_unique":  true,
+                              "filter_definition":  null,
+                              "key_ordinal":  3,
+                              "columnName":  "delivery_channel"
+                          },
+                          {
+                              "tableName":  "notification_recipients",
+                              "name":  "PK__notifica__FA0A4027DB8E40A2",
+                              "is_unique":  true,
+                              "filter_definition":  null,
+                              "key_ordinal":  1,
+                              "columnName":  "recipient_id"
+                          },
+                          {
+                              "tableName":  "room_blocks",
+                              "name":  "PK__room_blo__A67E647D767AA4FD",
+                              "is_unique":  true,
+                              "filter_definition":  null,
+                              "key_ordinal":  1,
+                              "columnName":  "block_id"
+                          },
+                          {
+                              "tableName":  "room_blocks",
+                              "name":  "UX_room_blocks_active",
+                              "is_unique":  true,
+                              "filter_definition":  "([released_at] IS NULL)",
+                              "key_ordinal":  1,
+                              "columnName":  "room_id"
+                          }
+                      ],
+    "checks":  [
+                   {
+                       "tableName":  "cleaning_tasks",
+                       "name":  "CK_cleaning_tasks_status",
+                       "definition":  "([status]=\u0027CANCELLED\u0027 OR [status]=\u0027COMPLETED\u0027 OR [status]=\u0027IN_PROGRESS\u0027 OR [status]=\u0027PENDING\u0027)",
+                       "is_disabled":  false,
+                       "is_not_trusted":  false
+                   },
+                   {
+                       "tableName":  "cleaning_tasks",
+                       "name":  "CK_cleaning_workflow_v1",
+                       "definition":  "([workflow_status] IS NULL OR ([workflow_status]=\u0027ASSIGNED\u0027 OR [workflow_status]=\u0027PENDING_ASSIGNMENT\u0027) AND [status]=\u0027PENDING\u0027 OR ([workflow_status]=\u0027REWORK_REQUIRED\u0027 OR [workflow_status]=\u0027PENDING_INSPECTION\u0027 OR [workflow_status]=\u0027ON_HOLD\u0027 OR [workflow_status]=\u0027IN_PROGRESS\u0027) AND [status]=\u0027IN_PROGRESS\u0027 OR [workflow_status]=\u0027COMPLETED\u0027 AND [status]=\u0027COMPLETED\u0027 OR [workflow_status]=\u0027CANCELLED\u0027 AND [status]=\u0027CANCELLED\u0027)",
+                       "is_disabled":  false,
+                       "is_not_trusted":  false
+                   },
+                   {
+                       "tableName":  "room_status_history",
+                       "name":  "CK_room_status_history_from",
+                       "definition":  "([from_status] IS NULL OR ([from_status]=\u0027OUT_OF_SERVICE\u0027 OR [from_status]=\u0027READY\u0027 OR [from_status]=\u0027INSPECTION\u0027 OR [from_status]=\u0027CLEANING\u0027 OR [from_status]=\u0027DIRTY\u0027 OR [from_status]=\u0027OCCUPIED\u0027 OR [from_status]=\u0027AVAILABLE\u0027))",
+                       "is_disabled":  false,
+                       "is_not_trusted":  false
+                   },
+                   {
+                       "tableName":  "room_status_history",
+                       "name":  "CK_room_status_history_to",
+                       "definition":  "([to_status]=\u0027OUT_OF_SERVICE\u0027 OR [to_status]=\u0027READY\u0027 OR [to_status]=\u0027INSPECTION\u0027 OR [to_status]=\u0027CLEANING\u0027 OR [to_status]=\u0027DIRTY\u0027 OR [to_status]=\u0027OCCUPIED\u0027 OR [to_status]=\u0027AVAILABLE\u0027)",
+                       "is_disabled":  false,
+                       "is_not_trusted":  false
+                   },
+                   {
+                       "tableName":  "room_status_history",
+                       "name":  "CK_room_status_history_trigger_type",
+                       "definition":  "([trigger_type] IS NULL OR ([trigger_type]=\u0027MANUAL_CORRECTION\u0027 OR [trigger_type]=\u0027MAINTENANCE\u0027 OR [trigger_type]=\u0027ROOM_BLOCK\u0027 OR [trigger_type]=\u0027INSPECTION\u0027 OR [trigger_type]=\u0027CLEANING_TASK\u0027 OR [trigger_type]=\u0027CHECKOUT\u0027 OR [trigger_type]=\u0027CHECKIN\u0027 OR [trigger_type]=\u0027RELEASE\u0027 OR [trigger_type]=\u0027INIT\u0027))",
+                       "is_disabled":  false,
+                       "is_not_trusted":  false
+                   },
+                   {
+                       "tableName":  "rooms",
+                       "name":  "CK_rooms_operational_status",
+                       "definition":  "([operational_status]=\u0027OUT_OF_SERVICE\u0027 OR [operational_status]=\u0027READY\u0027 OR [operational_status]=\u0027INSPECTION\u0027 OR [operational_status]=\u0027CLEANING\u0027 OR [operational_status]=\u0027DIRTY\u0027 OR [operational_status]=\u0027OCCUPIED\u0027 OR [operational_status]=\u0027AVAILABLE\u0027)",
+                       "is_disabled":  false,
+                       "is_not_trusted":  false
+                   }
+               ]
+}

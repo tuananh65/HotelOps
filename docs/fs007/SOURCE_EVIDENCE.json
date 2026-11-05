@@ -1,0 +1,498 @@
+{
+  "date": "2026-11-06",
+  "timezone": "Asia/Saigon",
+  "baseline": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+  "handover": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+  "scope": "Read committed source by Git; no unpublished other-worktree WIP inspected/imported; names/hashes only for historical evidence, no archive payload republished",
+  "sourceEvidence": [
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "AGENTS.md",
+      "blob": "ba1cc84d65953b7b840f1810196c9e3f7845c2eb",
+      "sha256": "a4a54b5a01dae1a7ad01ed3af96ee3bb5daa38aec5e46039716531f38c792c34"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/requirements/HotelOps_SRS_DRAFT.md",
+      "blob": "58958e9282cbb3079477a6d711ab29d6ccd9b1cb",
+      "sha256": "50f664f3240ed4f87339335614678c676821e5dd135b269663a82a37d284ecd3"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/requirements/SRS_CHANGE_NOTES.md",
+      "blob": "06efe11c1c0a1e8ae610840afcd98167cdc03552",
+      "sha256": "b9a48c26cbbf80e039e11a840f284c85a051137893008af0bb720ea5d7decc80"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fullstack-integration/UC_LEDGER_SUMMARY.md",
+      "blob": "01331d0c24b8caad7c9ad3a1ac74a360f9109bc5",
+      "sha256": "d00057d98a46f0f00d352ab01d9fc77699f024438307fde150b386f774839c3b"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs002/README.md",
+      "blob": "5a6890adcd0c9a3d79f1557371a87a70f7d91ef7",
+      "sha256": "a8ef9c5f47fed43160da5218c1d0d5fa8e4cb89eea15703532f8237f08676a20"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs003/UC032_API_CONTRACT.md",
+      "blob": "d57305ce84008a8d6d0d5b82571749326ed0db1c",
+      "sha256": "10d36413be31321a8eb471b91cfd331dfa5b003d332492b99e1e03de08e8b62c"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs004/README.md",
+      "blob": "f0381ab747f0fac4d4f2e54919b6a3acfddb96fe",
+      "sha256": "1a6ee900ac177e21c57491e7b92bc5db9faa39ab94139b9ea15536d85a779035"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs005/CONTRACT_AUDIT.md",
+      "blob": "6f0b68b2317216e7c93c309f0e78edb3ce5e61b3",
+      "sha256": "8d54b86ce0a5c94277e45104f8e7f3fa6dd5efcf8a9d70b163622edc48c976f9"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs006/README.md",
+      "blob": "c10a756523a6dd08eebaa080bc01108ed6cde796",
+      "sha256": "7e58aff1bb71f9f2b414aadf5be445f8084908055031a199c8ba1d26f52e7a22"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs006/SOURCE_REVIEW.md",
+      "blob": "87466c945c7bef4c1593f84e4860b213b884f1fd",
+      "sha256": "43d2fc00a71c0dd2558e7527b4ff502b04691cdebda49ffd87ec65070cf0aa31"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs006/UC028_CONTRACT.md",
+      "blob": "9987e0dbce15ac7d6667792967c05c34d0da8a28",
+      "sha256": "b7d4dca5dd84ae031b887e225a64a8b16ca9fda8f953a5c503c34dee286223a8"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "docs/fs006/UC029_CONTRACT.md",
+      "blob": "44dfaaa5c9349247a258b80bc55267f14cd4ffd2",
+      "sha256": "ae392c5e4a5e74193e8b0cea1bb9e53349d0c9d1749d03b9444610f2dd589456"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Program.cs",
+      "blob": "72f54cf4f2c3c6927289623baa83bf16a4e6c456",
+      "sha256": "9fd31ccbf043fe49019b93aee399268f94fa09cdd7b5c312b12b6d6b0a78f510"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+      "blob": "80143abc6704ba083790a980701c667a010120ea",
+      "sha256": "f2b782c601a25adbdd78186ba81dbff1e9d39bac3664a884692f2aadb01716fd"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Entities/Room.cs",
+      "blob": "feec9fa3ed1ed822eade951cd45db8d1acbfaee3",
+      "sha256": "41732297dde902af81a3761b0736a243a99d76c615a7a109c58b35ac9c1e3513"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Entities/RoomBlock.cs",
+      "blob": "c60080ff9e88d690e3189a3f51fc6db04385db3c",
+      "sha256": "257e3c232a012b2d27f983eb074101721c69c36d4cb64b644a7ecffd4db08bfa"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Entities/RoomStatusHistory.cs",
+      "blob": "d1929eb7408bbecaedadae2806a3dae0388d9e81",
+      "sha256": "6250f1c147e66bd39b97196f51e8f806e283f410088cc8e88d94362d9aa104af"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Entities/Notification.cs",
+      "blob": "7fa1b475b9078b7776b9b2ca1083bc74bf6c386b",
+      "sha256": "e91050e150dd256cf6f95cc064c67dc06eba2b89409f2e3724488641e87b15a2"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Entities/NotificationRecipient.cs",
+      "blob": "fdc7e5b10eafd53f34a20847bd8ba20a4e572fba",
+      "sha256": "cd3056373c86dc3429b55d5318e2bcccbe874a708339e78e09b2c7b1962516a2"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+      "blob": "f2b771332a2cdb8942c809bfcd339c6d68df6550",
+      "sha256": "8a7140b224ad8717126ba83aa17e3e843272d3f74ca6b0031d06b35b53022f7f"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs",
+      "blob": "7878e7d2ebe09c9593f98ed6fd6d6b099b4c356f",
+      "sha256": "164b243962bf33bfb01ab680d7449ef0f06c80dc4b54a8c88a5c8d0fe5e4e6b9"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+      "blob": "2d92c51f258872fe07b66ef2c06d0788e88774f5",
+      "sha256": "873f25afe2d37706752a283af41344a35c2c6da7335b56ac3f54646c3c46017d"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+      "blob": "6b5fcdfe47fccbdd6ffc1cd5e95aa147cd17ba6a",
+      "sha256": "1890559d3578ce136a758a4c625d8f2d242951ff596138d969b03d07e1616380"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+      "blob": "1b9f0d49b1a8d4a7435db421733c6472e6864b11",
+      "sha256": "f12749c6c98d56962d801e0a797af371cccb7095377c581f7e102eed410668c8"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+      "blob": "edf04aa994f9797e01d11ea83099785a7f073081",
+      "sha256": "7d3ec670c1595f594fe08734239a839a7832579feebf7fd4336bfd6a35951948"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/Housekeeping/WorkProgressService.cs",
+      "blob": "f913b80e69153682e066513d87d6a35a56d1cc10",
+      "sha256": "5d427eca8aba34a95f2212a5e180992d17550245501c26011c4e7876639b6136"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+      "blob": "87e1a7d6bbc5496d850253d7a84208de64326ac6",
+      "sha256": "f279d50e8deeaee673fc31b9b911c43a9d4d6bff84f4e0fc2e7d522c294e71a3"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+      "blob": "8aba8703a8e26808af57208cdd7439ceb43c099e",
+      "sha256": "a97aba36f24edeb8e3af6f1189d30c4fbbf03856bd5986d438e499301d1840d7"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+      "blob": "e6cdbe5d3274d0da59208f101f4aafa8f80f6236",
+      "sha256": "2bfa288a2b5157ca3c2abaacad62d341d7e88cbc50791e1c3b9a09627b9ef3c2"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+      "blob": "b0c5f5d376b68de90601cb00b5472905d173d9f6",
+      "sha256": "8e35907794362784b5b05a38339f53734c2e98b4e964e923087bdceada2360eb"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+      "blob": "7f02696530fa587454f81dfaf3a4e4467a2bdf16",
+      "sha256": "ff148586ae64fd9090b8e802d629435c1ead486908ffcbdd3dd7ba24a2b6c2fb"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+      "blob": "00727a65ed2ef1fd7c5bd6b86fe7d1c5c10e7732",
+      "sha256": "9341fa79ed19a327c792ad666490759a54fbe2f549a0bfb33b859808a93f75ad"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+      "blob": "0e8df24f9e1255bb6f4c761c8659100ec8e8f308",
+      "sha256": "3ef0e458fce07660c5b07a330ca9fc9b59560b64824dd614fa201d4e4dd1a0f2"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+      "blob": "9b77e6206647ef05b5a64ed3992e3004ee7a66c5",
+      "sha256": "466d5bd81927afb074d906e81c9291b1b97fa9286b40d8eda55701bceec22297"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+      "blob": "acc03d1d7d1b6109af7d745e9f7717b9a7f49901",
+      "sha256": "f53fbcde62e3934719e3a87b9d078681a2bb9d05f3981547c3682f57c68b1ec4"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+      "blob": "1cfa93754076750b5d7d82a70e66218068669abe",
+      "sha256": "f24a577cee3e5130c9417613263f5bf294ed4ac852d2fc0d329d9a50edcc843b"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+      "blob": "c41e9e447f4636704066270fc9742b781f53661d",
+      "sha256": "848f32bce13663a13ae0df21e58ffac04c8a389eff0637d5c64aee321e6567e5"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx",
+      "blob": "6539764ddebed77139e07bba47f9cc4de59ba102",
+      "sha256": "a028e498b6c2318a6dce122e35f70ec692f8417268ad7183bd5cf1c931a97e80"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+      "blob": "5b7c3c9042bbd4a25a514b105827ecb139b2aa4e",
+      "sha256": "632fa9260e5ce715ff3ca2884f4a1f925758877b002d4e8da019688f9589808d"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+      "blob": "0680e07a8c83d9c131c63b1fdb287c1070f5c113",
+      "sha256": "32eb3737afdead567b6240fd3f776efc7a4e04f1ae97cb97ec7981e4060ad9fc"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "frontend/src/api/dev1/cleaningAssignment.ts",
+      "blob": "80e6d4ca5eba828624a1266f2374dacfbda4a122",
+      "sha256": "492a4490deb59a8913aecd3b25bd1cba4f19b8f9e8f47fe1bd32f55e1f5e9e41"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "scripts/database/release/01_HotelOps_Full_Schema.sql",
+      "blob": "5c875a4ea1a2e86b99fb266cd77f2f08cc73fb98",
+      "sha256": "df7a293a37c81865eb81903a283d60170b792a801e92e8e5363b6003b935444d"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "scripts/database/release/canonical/01_Canonical_Seed.sql",
+      "blob": "a1260c90663ae8dfa44fc3e40d7c4fafa7432bef",
+      "sha256": "b14b510483b4655c0f18fe55f5bf2d8906c6e20f158700bc3928f0ac19de1035"
+    },
+    {
+      "commit": "a5b3f66e9732ff00035f0f5fc43971322e0122e6",
+      "path": "scripts/verification/Housekeeping/TASK73_CONTRACT_PROPOSAL.md",
+      "blob": "b444ec1a5b33d4710f60b588c47069fa927473f2",
+      "sha256": "a2e9ddab8b6138dac3e199b4bff7ecbcc3b36e08a6e93eb597dc479ce1276181"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_SHARED_CONTRACT_FINAL_DECISIONS.md",
+      "blob": "cbdd75ca1db26042e36e376be605abd085331d85",
+      "sha256": "0fe90fc6730d0a8f1589c748fff43fd241154fe35013d6438bf5e4e470bb90e5"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_NOTIFICATION_INTEGRATION_CONTRACT.md",
+      "blob": "556255eee9499a3f06ff8b682ed641fa0fd3b3de",
+      "sha256": "07697ca0e8611a481f9ca3c95235717867566cfe0449060499cc7ed18e98d5ad"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_ROOM_WORKDAY_SHARED_CONTRACT.md",
+      "blob": "2a0f99eb8318ac03a2c733349f397b9081d3058b",
+      "sha256": "6815e5639912e2f76e214244861c0807b254ac79884cbbc29b72c7038fa86a00"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_SHARED_APPROVAL_AND_ACCEPTANCE_MATRIX.md",
+      "blob": "3fd9f1bde4c88b154dd8adc8a66b72c3b9b6134a",
+      "sha256": "fc2033f1a253bc4dfda1650f15bdae29e7e24c1624d2b440fc50edbb939b64f0"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_GLOBAL_LOCK_AND_AUTHORITY_MATRIX.md",
+      "blob": "09f7947b86e58b9143eb99185d3116a693bcaceb",
+      "sha256": "01ef793dce6e6ccb6cc18f8dcdc304b76959b21e2e490437099d6c20bcc1879a"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task79/B12_APPROVAL_SCOPE.md",
+      "blob": "e407cb22ef8b87a8d8977fbe4523ed2987b46b6d",
+      "sha256": "b912cfce7dccf5b5af1596958dee2b6ca22204b61db93f9a6b4f9e40965ca8e0"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task80/TASK80_DEV2_HANDOFF_AND_UC138.md",
+      "blob": "9a1a5eb10cc59bc4494e0315b1710f7861120c4f",
+      "sha256": "0d854edc70d60b039263e351d17503093cd6e17bea1de20aa18807d044589e25"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task80/UC138_APPROVAL_SCOPE.md",
+      "blob": "f31f9d477648d7ab32ec2ffb5371a9e97ce665f9",
+      "sha256": "91e2d7217bf0e15b5c0b3bf856d48970501dca5e3f177dc3fe91cd85c40e1391"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task81/TASK81_CHANGELOG.md",
+      "blob": "22fd08c988f51943f19293ead29eec4abf4dc675",
+      "sha256": "514db4e38fc161bff7e2656f4fa144a655a6d4983f00c2b7bb309283c003c734"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task82/TASK82_IMPLEMENTATION_REPORT.md",
+      "blob": "12c131925594c99c020e2051b7669fc5e6d029ab",
+      "sha256": "1ab4dee89185e1f90e7ac0012e1adf4a9a5f6953aaf31d8ba6bd3dc5d4ff65f3"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task83/TASK83_IMPLEMENTATION_REPORT.md",
+      "blob": "cbf4e95250c74fb4f7f484dc08b3cb19df383057",
+      "sha256": "bf7c0c89beafc415c59e83b911c30a402765bf2f1af05b9795adeca065af43d8"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task84/TASK84_INTEGRATION_REPORT.md",
+      "blob": "47a0157a87c564d5eb872e5d83f20747ebb21706",
+      "sha256": "f37457883b43a1959949b74eda57756512aebed638feb32a72e80375fa43b079"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task85/PhaseB/TASK85B_UC038_INTEGRATION_REPORT.md",
+      "blob": "2ca5f959278405fb8d147feb420faf3f36fa0ea1",
+      "sha256": "32b719ec31901e768bbb4eac8e13784a67e57da5f10df64715b1b5c3f13608f2"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task86/TASK86_UC012_IMPLEMENTATION_REPORT.md",
+      "blob": "e5cdfde1c798ae400ff454875e6b03f0b058888b",
+      "sha256": "5828eddc80875a53cd5cd25253230d68d7bb56e99f41d356a86e611fe0d9efcc"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/Task87/TASK87_IMPLEMENTATION_REPORT.md",
+      "blob": "7c8b77092835962563203595bef32451881c7fc2",
+      "sha256": "53e78c1b6c82b710807bb95caeda3c4c236d2c15407eda2eb5ebda00ec03d28b"
+    },
+    {
+      "commit": "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+      "path": "scripts/verification/HANDOVER_CODEX_A_20261105/FULL_UC_LEDGER.csv",
+      "blob": "e06008783ed41fe0083c4f30b12db6285b30ce9a",
+      "sha256": "ce74b17d8b8e1fc9b0a07c0d44d43ddd23abdcf9c37756fc7384e69fc96a4e8a"
+    }
+  ],
+  "dev2RemoteComparison": [
+    {
+      "ref": "origin/feature/BE2-asset",
+      "sha": "67f44260a8fec40da9d3ea3303bb0240201a41a1",
+      "remoteHead": "67f44260a8fec40da9d3ea3303bb0240201a41a1",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/BE2-incident",
+      "sha": "5615b826c0f1a93241658da0e7b4abb88d21fd86",
+      "remoteHead": "5615b826c0f1a93241658da0e7b4abb88d21fd86",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/BE2-incident-corrective-integrity",
+      "sha": "a10e94f8edc07d941453a9fa51c5e2c2a687c936",
+      "remoteHead": "a10e94f8edc07d941453a9fa51c5e2c2a687c936",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/BE2-maintenance",
+      "sha": "0d101313b66273d9fb7b8e88a4f1e6aec0313742",
+      "remoteHead": "0d101313b66273d9fb7b8e88a4f1e6aec0313742",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/BE2-replenishment",
+      "sha": "2177c93c4669be13a6891cf005ba05df844d7878",
+      "remoteHead": "2177c93c4669be13a6891cf005ba05df844d7878",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/DEV2-deactivation-writer-coordination",
+      "sha": "1a63e8e0a49f8482069eb64087412e570a57d65d",
+      "remoteHead": "1a63e8e0a49f8482069eb64087412e570a57d65d",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/DEV2-deactivation-writer-coordination-clean",
+      "sha": "01bceb80b8589bba81b2318b3e679021bc13f641",
+      "remoteHead": "01bceb80b8589bba81b2318b3e679021bc13f641",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/DEV2-inventory-authz-clean",
+      "sha": "a2e6d68924ddc47ba855aeac90c8959b713f175e",
+      "remoteHead": "a2e6d68924ddc47ba855aeac90c8959b713f175e",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/DEV2-maintenance-returnwork-coordination",
+      "sha": "51df1c9dbf0f6dc7df65d93ecff2525a6b5b3b20",
+      "remoteHead": "51df1c9dbf0f6dc7df65d93ecff2525a6b5b3b20",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    },
+    {
+      "ref": "origin/feature/FE+BE/develop2",
+      "sha": "a13263717694e70f1ae8056d742659091e45f611",
+      "remoteHead": "a13263717694e70f1ae8056d742659091e45f611",
+      "remoteMatches": true,
+      "search": "NO_MATCH_IN_BOUNDED_SRC",
+      "paths": [
+        "src/HotelOps.Api/Entities/Notification.cs",
+        "src/HotelOps.Api/Entities/NotificationRecipient.cs"
+      ],
+      "symbolPaths": []
+    }
+  ],
+  "limits": [
+    "A01 accepted source namespace/signatures still UNKNOWN in supplied package",
+    "A02 reported structural completion not runtime acceptance",
+    "Source search is bounded to named refs/src, not proof no private/unpublished implementation exists",
+    "Remote metadata read only; no fetch/merge/checkout"
+  ],
+  "ledgerUnchanged": true
+}

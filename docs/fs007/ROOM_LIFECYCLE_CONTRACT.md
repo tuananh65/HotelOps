@@ -1,0 +1,32 @@
+﻿# Room Lifecycle contract V1 — design approved, implementation proposed
+
+## Nguồn và hiệu lực
+
+COORD-FINAL-01 tại `28f0a5e4f582bc56ba101b48915d33baadeb7b95:scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_SHARED_CONTRACT_FINAL_DECISIONS.md` và `DEV1_ROOM_WORKDAY_SHARED_CONTRACT.md`: business model ba chiều APPROVED_NOT_APPLIED ở mức lifecycle integration; không duyệt tự động DDL/EF/coordinator/DI. SRS DRAFT FE03/04/05, GBR043/044, Change Notes vẫn là nguồn có giới hạn. Baseline FS006 `a5b3f66...`: RoomDirectoryService ghi rõ không derive lifecycle.
+
+## Những quy tắc không mở lại
+
+Occupancy, Readiness, EffectiveBlock là ba dữ kiện riêng. Occupied có thể đồng thời Blocked. Ready cần current inspection passed và không effective block. Không dùng READY/AVAILABLE legacy để chứng minh Vacant+Ready. Check-in cần Active+Vacant+Ready+no effective block; không triển khai check-in trong FS008 cleaning. ReleasedAt NULL mới là unreleased; ExpectedReleaseAt chỉ dự kiến. Incident Closed/Cancelled chỉ release block gắn chính incident đó. Một block của nguồn khác vẫn có hiệu lực. Cardinality thiết kế: tối đa một unreleased mỗi room+incident, một unreleased manual mỗi room.
+
+## Một phương án V1 cho UC028 — PROPOSED
+
+1. Không lưu derived housekeeping readiness vào `rooms.operational_status`. Giữ DTO RoomDirectory hiện tại là recorded legacy, không đổi ý nghĩa route/filter/status/history cũ. Không tự đổi default AVAILABLE EF thành DIRTY SQL; nếu không ghi trường này trong UC028 thì mismatch không phải lý do sửa mapping ngoài scope.
+2. Bổ sung **hai sidecar** trong một exact shared package cần duyệt: logical `room_cleaning_cycle_state` (RoomId PK/FK, nullable CurrentCleaningTaskId, SQL rowversion; validate task.RoomId=RoomId) và `room_readiness_events` (immutable event ID, RoomId, CleaningTaskId/source revision, prior/new derived readiness, actor, server UTC, reason/source identity). Tên/cột/constraint ở đây là proposal yêu cầu package, không phải schema đã có hoặc được cấp quyền áp dụng. Không thêm Occupancy column để phục vụ cleaning; occupancy remains unknown khi không có nguồn có thẩm quyền.
+3. Current cycle là pointer được ghi atomically sau khi Create được phép; không chọn MAX(taskId), latest timestamp, latest assignment hoặc một pass cũ. Lazy sidecar creation chỉ khi chưa có task lịch sử cần phân loại; nếu có task mà chưa có pointer → fail closed yêu cầu explicit reviewed adoption/backfill riêng. Không tự migrate data trong request.
+4. Reducer đọc source cleaning/workflow, inspection/rework cùng exact task/room lineage và unreleased RoomBlocks. Các giá trị hiển thị đề xuất: Pending Cleaning, Cleaning In Progress, Pending Inspection, Rework Required, Ready và Unknown; machine codes/versioned DTO phải được duyệt cùng package. Không seed enum/status bằng tài liệu này. Khi ambiguity hoặc thiếu source → Unknown/unavailable, tuyệt đối không Ready.
+5. UC028 tạo PENDING_ASSIGNMENT (legacy PENDING theo proposal mapping), update pointer, tính readiness mới và ghi readiness event + audit cùng transaction. Không đổi occupancy hoặc tự close/release block. Effective block giữ cảnh báo độc lập; derived Ready false khi bất kỳ block nào effective. SRS 'Pending Cleaning unless Blocked' được biểu diễn bằng readiness + effectiveBlock thay vì đè ba chiều vào một string.
+6. History mới tách khỏi `room_status_history`. Metadata thực tế: bảng singular này có CHECK from/to chỉ cho legacy vocabulary, trigger_type có CHECK riêng. Không đưa PENDING_CLEANING vào cột legacy, không nới CHECK ngầm hoặc trộn semantics làm hỏng UC023/history. Event sidecar bổ sung giải thích derived before/after; legacy status history giữ nguyên. Chủ dự án phải duyệt cách đáp ứng SRS room history bằng event mới.
+
+Ready phải dựa vào current pointer + một conclusion có thẩm quyền PASSED cho current cleaning/rework cycle, không chỉ observed PASS item. Multiple/contradictory conclusions → không Ready; exact 'current inspection' reference thuộc FE05 package sau, không lấy latest inspected_at. Với UC028 mới luôn pending nên không cần implement cả pass/reject writer mới để chạy create; reducer không được cấp Ready khi chưa chứng minh current conclusion.
+
+## Transaction và race proposal
+
+Sorted actor/affected users → existing session/permission/eligibility → retained active Branch → existing feature catalog lock khi reuse → Room row UPDLOCK/HOLDLOCK + sidecar range/current row → task/cycle/reference/item reads → task/pointer/readiness event/audit → fresh gate → one commit. A1/time locks chỉ cần cho execution/reassign, phải lấy trước location/source locks; không gọi A1 từ sâu trong Batch sau Room lock. Notification reservation ordering phải reconcile với DEV2 trước UC029; không tuyên bố global lock order đã proven.
+
+Create duplicate predicate V1: bất kỳ task cùng Room có logical workflow không COMPLETED/CANCELLED là open; null/unknown workflow coi là blocker, không đoán từ coarse COMPLETED. Các open states bao gồm PENDING_INSPECTION và REWORK_REQUIRED. Pointer không được dùng để bỏ qua orphan open tasks. Khi pointer+tasks không nhất quán → conflict/integrity unavailable, không tự sửa. Room lock/range protocol phải áp dụng cho mọi activated writer thay cycle/block/inspection của phòng đó; enumerate actual entrypoints trước activation, không dùng SELECT Any ngoài transaction.
+
+Block-index conflict (`UX_room_blocks_active` unique room) không cản phép đọc EXISTS unreleased trong create; UC028 không ghi RoomBlock. Có thể tách sửa multi-incident index thành package DEV2 riêng nếu không mở block mutation và đủ room-writer cooperation cho phạm vi create. Không tuyên bố full cardinality V1 accepted khi index cũ còn tồn tại. Các writer Incident đang không gọi RoomBlock coordinator không được tự biến thành active block producers.
+
+## Schema/compatibility acceptance
+
+Exact forward/verify/recovery scripts, source SHA256, duplicate legacy report, trusted FK/constraints, task↔room lineage (composite FK hoặc validated invariant có test), unique pointer, rowversion8, old data preserved, idempotent installer/refusal partial version, immutable history, same scoped DbContext/transaction; no generated entity edit. Không drop populated evidence tables để rollback. Compatibility reads của RoomDirectory/UC023/UC038 và legacy status unchanged phải pass. New sidecar version absent → future Create fails dependency-unavailable without write. Source adoption cần approval/data scope riêng. FS007 không tạo executable SQL.
