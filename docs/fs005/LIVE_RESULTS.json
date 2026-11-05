@@ -1,0 +1,49 @@
+{
+  "interception": false,
+  "businessWrites": false,
+  "checks": [
+    {
+      "name": "live-read-acceptance",
+      "data": {
+        "anonymous": 401,
+        "ownMonitor": 403,
+        "foreignList": 403,
+        "foreignDetail": 403,
+        "missing": 404,
+        "invalidPage": 400,
+        "task": 3,
+        "branch": 1,
+        "total": 2,
+        "percent": 40,
+        "progressCount": 4,
+        "auditCount": 4,
+        "readinessNavigation": true,
+        "uc032Read": true
+      }
+    },
+    {
+      "name": "test-result",
+      "data": "passed"
+    },
+    {
+      "name": "unchanged-SQL-business-state",
+      "data": {
+        "result": "READ_ONLY_OBSERVATION",
+        "status": "IN_PROGRESS",
+        "percent": 40,
+        "logCount": 4,
+        "auditCount": 4,
+        "evidenceCount": 2,
+        "evidenceFilesPrivate": true,
+        "ownerIsAuthor": true,
+        "auditMatches": true
+      }
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS005 real authentication, branch scope, filters, paging and SQL-backed detail",
+      "status": "passed"
+    }
+  ]
+}

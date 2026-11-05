@@ -1,6 +1,6 @@
-﻿import { BedDouble } from "lucide-react";
+import { BedDouble } from "lucide-react";
 import { useEffect, useState, type FormEvent } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { errorMessage } from "../../api/dev1/client";
 import {
   listRooms,
@@ -155,6 +155,11 @@ export default function RoomReadinessBoardScreen() {
                       <strong>{room.roomNumber}</strong>
                       <span>{room.roomType.name}</span>
                       <span>{room.operationalStatusCode}</span>
+                      <Link
+                        to={`/cleaning/tasks?branchId=${branch}&search=${encodeURIComponent(room.roomNumber)}`}
+                      >
+                        Xem công việc vệ sinh
+                      </Link>
                       {!room.isActive && <span>Ngừng hoạt động</span>}
                     </article>
                   ))}

@@ -1,153 +1,207 @@
-import { Plus } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { domainFor, pathFor, type RecordData } from "../../domain";
-import { t, useLanguage } from "../../i18n";
-import { EntityInsights } from "../../insights";
-import * as service from "../../services";
-import "../../styles.css";
+﻿import { useEffect, useState, type FormEvent } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import {
-  DataTable,
-  createLabel,
-  DomainFilterPanel,
-  EntityForm,
-  FieldControl,
-  Modal,
-  PageHeader,
-  StatusBadge,
-  Summary,
-  date,
-  name,
-  useDB,
-} from "../../ui";
+  listCleaning,
+  monitorError,
+  type MonitorPage,
+} from "../../api/dev1/cleaningMonitor";
+import { PageHeader } from "../../ui";
 export default function CleaningTaskListScreen() {
-  useLanguage();
-  const id: number = 24;
-  const db = useDB();
-  const d = domainFor(id);
-  const nav = useNavigate();
-  const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState<RecordData>();
-  const [filters, setFilters] = useState<Record<string, string>>({});
-  let rows = service
-    .visible(d.key)
-    .filter((r) =>
-      Object.entries(filters).every(
-        ([key, value]) => !value || r[key] === value,
-      ),
-    );
-  const filterFields = d.fields.filter(
-    (f) =>
-      ["select", "room", "roomType", "location", "asset", "warehouse"].includes(
-        f.type || "",
-      ) && !["branch", "department", "submission"].includes(f.key),
+  const [params, setParams] = useSearchParams();
+  const key = params.toString(),
+    branch = params.get("branchId") || "";
+  const [result, setResult] = useState<{
+    key: string;
+    data: MonitorPage;
+  } | null>(null);
+  const [error, setError] = useState<{ key: string; message: string } | null>(
+    null,
   );
-  filterFields.push({
-    key: "assignee",
-    label: "Assigned employee",
-    type: "user",
-  });
-  const count = (status: string) =>
-    rows.filter((r) => r.status === status).length;
-  const overdue = rows.filter(
-    (r) =>
-      r.due &&
-      new Date(r.due) < new Date() &&
-      !["Closed", "Completed", "Cancelled"].includes(r.status),
-  ).length;
-  const columns = [
-    { key: "name", label: "Cleaning cycle" },
-    {
-      key: "room",
-      label: "Room",
-      render: (r: RecordData) => name("rooms", r.room),
-    },
-    {
-      key: "assignee",
-      label: "Assigned employee",
-      render: (r: RecordData) => name("users", r.assignee),
-    },
-    { key: "priority", label: "Priority" },
-    { key: "due", label: "Deadline", render: (r: RecordData) => date(r.due) },
-    {
-      key: "status",
-      label: "Status",
-      render: (r: RecordData) => <StatusBadge status={r.status} />,
-    },
-  ];
-  const createRoute = 25;
+  const [retry, setRetry] = useState(0),
+    [loading, setLoading] = useState(false);
+  useEffect(() => {
+    const abort = new AbortController();
+    setResult(null);
+    setError(null);
+    setLoading(Boolean(branch));
+    if (branch)
+      listCleaning(branch, new URLSearchParams(key), abort.signal)
+        .then((data) => {
+          if (!abort.signal.aborted) setResult({ key, data });
+        })
+        .catch((e) => {
+          if (!abort.signal.aborted)
+            setError({ key, message: monitorError(e) });
+        })
+        .finally(() => {
+          if (!abort.signal.aborted) setLoading(false);
+        });
+    return () => abort.abort();
+  }, [branch, key, retry]);
+  function submit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const next = new URLSearchParams();
+    new FormData(e.currentTarget).forEach((v, k) => {
+      if (String(v).trim()) next.set(k, String(v).trim());
+    });
+    next.set("page", "1");
+    setParams(next);
+    setRetry((v) => v + 1);
+  }
+  const data = result?.key === key ? result.data : null;
+  function changePage(page: number) {
+    const next = new URLSearchParams(params);
+    next.set("page", String(page));
+    setParams(next);
+  }
   return (
     <>
-      <PageHeader id={id}>
-        {d.createUC && service.can(d.createUC) && (
-          <button
-            className="primary"
-            onClick={() =>
-              createRoute ? nav(pathFor(createRoute)) : setCreating(true)
-            }
-          >
-            <Plus size={16} />
-            {t(createLabel(d.key))}
-          </button>
-        )}
-      </PageHeader>
-      <Summary
-        items={[
-          { label: "Pending cleaning", value: count("Pending Assignment") },
-          { label: "In progress", value: count("In Progress") },
-          { label: "Overdue", value: overdue },
-          { label: "Awaiting inspection", value: count("Pending Inspection") },
-        ]}
-      />
-      <EntityInsights
-        domain={d}
-        rows={rows}
-        onFilter={(key, value) => setFilters({ ...filters, [key]: value })}
-      />
-      <DataTable
-        extraFilters={
-          filterFields.length > 0 && (
-            <DomainFilterPanel
-              activeCount={Object.values(filters).filter(Boolean).length}
-            >
-              {filterFields.map((f) => (
-                <FieldControl
-                  key={f.key}
-                  field={{ ...f, required: false }}
-                  value={filters[f.key]}
-                  onChange={(v) => setFilters({ ...filters, [f.key]: v })}
-                />
-              ))}
-              <button className="secondary" onClick={() => setFilters({})}>
-                {t("Clear domain filters")}
-              </button>
-            </DomainFilterPanel>
-          )
-        }
-        columns={columns}
-        rows={rows}
-        onOpen={(r) => nav(pathFor(d.detail, r.id))}
-      />
-      {creating && (
-        <Modal title={t(createLabel(d.key))} onClose={() => setCreating(false)}>
-          <EntityForm
-            d={d}
-            onCancel={() => setCreating(false)}
-            onDone={(r) => {
-              setCreating(false);
-              nav(pathFor(d.detail, r.id));
-            }}
+      <PageHeader id={24} />
+      <p>
+        Cleaning Monitor · dữ liệu máy chủ, theo quyền CLEANING_VIEW. Chi nhánh
+        là bộ lọc, không cấp quyền.
+      </p>
+      <form key={key} className="filter-bar" onSubmit={submit}>
+        <label>
+          Chi nhánh (ID)
+          <input
+            name="branchId"
+            required
+            inputMode="numeric"
+            defaultValue={branch}
           />
-        </Modal>
+        </label>
+        {[
+          ["fromDate", "Từ ngày", "date"],
+          ["toDate", "Đến ngày", "date"],
+          ["floorId", "Tầng (ID)", "number"],
+          ["assigneeId", "Nhân viên (ID)", "number"],
+          ["priorityId", "Ưu tiên (ID)", "number"],
+          ["status", "Trạng thái (mã)", "text"],
+          ["search", "Tìm kiếm", "search"],
+        ].map(([name, label, type]) => (
+          <label key={name}>
+            {label}
+            <input
+              name={name}
+              type={type}
+              min={type === "number" ? 1 : undefined}
+              defaultValue={params.get(name) || ""}
+            />
+          </label>
+        ))}
+        <label>
+          Loại
+          <select name="kind" defaultValue={params.get("kind") || ""}>
+            <option value="">Tất cả</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="rework">Rework</option>
+          </select>
+        </label>
+        <label>
+          Quá hạn
+          <select name="overdue" defaultValue={params.get("overdue") || ""}>
+            <option value="">Tất cả</option>
+            <option value="true">Có</option>
+            <option value="false">Không</option>
+          </select>
+        </label>
+        <label>
+          Số dòng
+          <select name="pageSize" defaultValue={params.get("pageSize") || "20"}>
+            {[10, 20, 50, 100].map((n) => (
+              <option key={n}>{n}</option>
+            ))}
+          </select>
+        </label>
+        <button className="primary">Tải dữ liệu</button>
+      </form>
+      {!branch && <p>Nhập chi nhánh được cấp quyền để xem công việc.</p>}
+      {loading && <p role="status">Đang tải công việc…</p>}
+      {error?.key === key && (
+        <p role="alert">
+          {error.message}{" "}
+          <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
+        </p>
       )}
-      {editing && (
-        <Modal title={editing.name} onClose={() => setEditing(undefined)}>
-          <EntityForm
-            d={d}
-            record={editing}
-            onDone={() => setEditing(undefined)}
-          />
-        </Modal>
+      {data && (
+        <>
+          <p>
+            {data.total} công việc · {data.fromDate} → {data.toDate} ·{" "}
+            {data.timezone} · Chi nhánh {branch}
+          </p>
+          {data.items.length === 0 ? (
+            <p>Không có công việc phù hợp bộ lọc.</p>
+          ) : (
+            <div className="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    {[
+                      "Công việc",
+                      "Phòng",
+                      "Loại",
+                      "Trạng thái",
+                      "Nhân viên",
+                      "Ưu tiên",
+                      "Hạn UTC",
+                      "Quá hạn",
+                      "Tiến độ",
+                    ].map((s) => (
+                      <th key={s}>{s}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.items.map((r) => (
+                    <tr key={`${r.kind}:${r.id}`}>
+                      <td>
+                        <Link
+                          to={`/cleaning/tasks/${r.id}?branchId=${branch}&monitor=1&kind=${r.kind}`}
+                        >
+                          {r.taskNumber}
+                        </Link>
+                      </td>
+                      <td>{r.roomNumber}</td>
+                      <td>{r.kind}</td>
+                      <td>{r.workflowState ?? r.recordedStatus}</td>
+                      <td>{r.assigneeName ?? "Chưa phân công"}</td>
+                      <td>{r.priorityCode ?? "—"}</td>
+                      <td>{r.dueAtUtc ?? "—"}</td>
+                      <td>
+                        {r.isOverdue === null
+                          ? "Chưa xác định"
+                          : r.isOverdue
+                            ? "Có"
+                            : "Không"}
+                      </td>
+                      <td>
+                        {r.progressPercent === null
+                          ? "—"
+                          : `${r.progressPercent}%`}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="filter-bar">
+            <button
+              disabled={data.page <= 1}
+              onClick={() => changePage(data.page - 1)}
+            >
+              Trang trước
+            </button>
+            <span>Trang {data.page}</span>
+            <button
+              disabled={data.page * data.pageSize >= data.total}
+              onClick={() => changePage(data.page + 1)}
+            >
+              Trang sau
+            </button>
+          </div>
+        </>
       )}
     </>
   );

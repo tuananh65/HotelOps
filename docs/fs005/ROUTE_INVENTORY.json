@@ -1,0 +1,14 @@
+﻿{
+  "scope": "FS005 user-approved activation only",
+  "controller": "CleaningMonitorController",
+  "authentication": "existing HotelOps Cookie scheme and SQL Session",
+  "permission": "CLEANING_VIEW branch/global; OWN denied",
+  "routes": [
+    {"method":"GET","template":"api/branches/{branchId:long}/cleaning-monitor","request":"CleaningMonitorQuery","response":"CleaningMonitorPage"},
+    {"method":"GET","template":"api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}","request":"CleaningMonitorTimelineQuery","response":"CleaningMonitorDetail"}
+  ],
+  "otherRecoveryControllersActivated": false,
+  "DIChanged": false,
+  "securityInfrastructureChanged": false,
+  "verification": "CleaningMonitorRouteTests MVC ActionDescriptor collision/exact-action test plus real HTTPS startup/list/detail"
+}

@@ -1,0 +1,54 @@
+[
+  {
+    "path": "frontend/playwright.dev1.config.ts",
+    "sha256": "792b01beb7e82af6b3c96d54b7f25260124c3679434fc5e3ddae45cf42e769e7"
+  },
+  {
+    "path": "frontend/playwright.fs005-live.config.ts",
+    "sha256": "8610981e8e733fa7441c349a511fe3c299255bea8e35d4f4441ac2552c1eee87"
+  },
+  {
+    "path": "frontend/src/api/dev1/cleaningMonitor.ts",
+    "sha256": "fbf12797c5193ce1969804511c276a51559ea14f5b125b293dfbf4436f176282"
+  },
+  {
+    "path": "frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx",
+    "sha256": "f34cd47a6449f17e4172a4d8ab74863aaf814f9b9f3e5a2a630ae60f34400a34"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx",
+    "sha256": "01a9237580f83ab2edc58368b1086b0b1da354f7b705fcfe885f4434913a8400"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+    "sha256": "d60d2bd238ac2302ec330b4973e9929ec3470faca9a9d69227e2a4b3aac2dc1f"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+    "sha256": "848f32bce13663a13ae0df21e58ffac04c8a389eff0637d5c64aee321e6567e5"
+  },
+  {
+    "path": "frontend/tests/cleaning-monitor.spec.ts",
+    "sha256": "34803c52df89210de836c85592c33b79b6a04ea1144130d140242015ee7863e7"
+  },
+  {
+    "path": "frontend/tests/cleaning-monitor.test.mjs",
+    "sha256": "b357a90816cd748315e368cd7992e9e09a8d7c5708da719dee6cfca5d7750ea2"
+  },
+  {
+    "path": "frontend/tests/fs005-live.spec.ts",
+    "sha256": "ee7c7c4a41fd871fb00f17277acaa989a16a05f4a9affd96ba1747054f61d0e8"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "sha256": "78290a75daa821681d3c84c2fb749c73f02ff8e5cd73b67d4e162d11d01531ff"
+  },
+  {
+    "path": "tests/HotelOps.Dev1.RegressionTests/CleaningMonitorRouteTests.cs",
+    "sha256": "23432c2276014db28b37469d747d1f373721c00bd28b31fe12b37ec6e32c340e"
+  },
+  {
+    "path": "tests/HotelOps.Dev1.RegressionTests/FullstackCompositionTests.cs",
+    "sha256": "3f7447af3df9534afbfe3ce3cc4e3d07356ae71ec4801cb62bc2414853e96102"
+  }
+]

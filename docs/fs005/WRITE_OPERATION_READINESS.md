@@ -1,0 +1,16 @@
+﻿# Write operation readiness / FS006
+
+Audit only; no new write operation in FS005.
+
+| Operation | Current source / route | Transaction, permission, concurrency | Missing acceptance / dependencies |
+| --- | --- | --- | --- |
+| Create UC028 | No cleaning create HTTP action in current Controllers | Must define confirmed room/cycle identity, allowed creation state, scope and atomic audit | Approved lifecycle writer/current-cycle and permission contract; do not infer from mock save |
+| Assign UC029 | POST branches/{b}/cleaning-tasks/{id}/assign → HousekeepingAssignmentsService.AssignCleaningAsync | Existing BatchAsync Serializable, user/branch/catalog locks, session/permission recheck, CLEANING_ASSIGN, strong If-Match/revision, eligible active HK assignee/shift, atomic assignment/history audit | Existing code handles initial PENDING_ASSIGNMENT / explicit legacy adoption, not reassignment; durable notification/lifecycle integration pending |
+| Reassign UC030 | No reassign HTTP action | Need source/assignment revision and responsibility preservation, old/new assignee and lock set, audit/interval semantics | Exact state/time/notification contracts; never reuse initial assign to overwrite ACTIVE responsibility |
+| Start UC031 | No cleaning start HTTP action | Need assigned actor, current-cycle/revision, A1 open interval and source state + audit in caller transaction | Approved room lifecycle + time participant, rollback/race proof |
+| Complete UC034 | No cleaning complete HTTP action | Must validate frozen items/evidence, source owner/state/revision; close interval, pending inspection and audit atomically | Progress100 does not complete; approved lifecycle and mandatory durable notification intent/delivery |
+| Rework UC035/036 / request UC046 | POST branches/{b}/inspections/{id}/reworks exists → RequestCleaningReworkAsync; no receive/start/complete rework actions | INSPECTION_PERFORM, If-Match, FAILED inspection + REWORK_REQUIRED task, selected valid defects, eligible assignee, BatchAsync + audit | Initial request is not execution lifecycle; recipient resolution, durable delivery, source/time/current-cycle/reinspection remain pending |
+
+Existing immutable coordination contracts at28f0a5e4f582bc56ba101b48915d33baadeb7b95: DEV1_NOTIFICATION_INTEGRATION_CONTRACT.md and DEV1_ROOM_WORKDAY_SHARED_CONTRACT.md under scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/. Read via git show; no archive copied or proposal applied. Caller owns one transaction; mandatory source/audit/interval/notification intent failure must roll back together. Enqueue alone does not certify delivered readable notification. Do not implement guessed branch-level Department Head routing.
+
+Recommended FS006 order: (1) close approved lifecycle/current-cycle, A1 time and DEV2 notification contracts with exact reviewed diffs; (2) create + initial assign and authorized discovery; (3) start with atomic time tracking; (4) complete + inspection handoff; (5) reassign with preserved responsibility/time history; (6) receive/start/complete rework + reinspection. Implement only confirmed states/permissions, with source-specific SQL races and rollback/delivery verification before UC credit.

@@ -1,0 +1,1468 @@
+diff --git a/frontend/playwright.dev1.config.ts b/frontend/playwright.dev1.config.ts
+index 8886140..73a83ac 100644
+--- a/frontend/playwright.dev1.config.ts
++++ b/frontend/playwright.dev1.config.ts
+@@ -5 +5,5 @@ export default defineConfig({
+-  testMatch: ["dev1-room-read.spec.ts", "cleaning-progress.spec.ts"],
++  testMatch: [
++    "dev1-room-read.spec.ts",
++    "cleaning-progress.spec.ts",
++    "cleaning-monitor.spec.ts",
++  ],
+diff --git a/frontend/playwright.fs005-live.config.ts b/frontend/playwright.fs005-live.config.ts
+new file mode 100644
+index 0000000..d21392d
+--- /dev/null
++++ b/frontend/playwright.fs005-live.config.ts
+@@ -0,0 +1,20 @@
++﻿import { defineConfig } from "@playwright/test";
++if (process.env.FS005_LIVE_ENABLED !== "APPROVED_FS005_READ_ONLY")
++  throw Error("Explicit FS005 read-only approval required");
++export default defineConfig({
++  testDir: "./tests",
++  testMatch: "fs005-live.spec.ts",
++  workers: 1,
++  retries: 0,
++  timeout: 60000,
++  outputDir: "test-results/fs005-live",
++  reporter: "list",
++  use: {
++    baseURL: "https://localhost:5173",
++    channel: "msedge",
++    ignoreHTTPSErrors: false,
++    trace: "off",
++    screenshot: "off",
++    video: "off",
++  },
++});
+diff --git a/frontend/src/api/dev1/cleaningMonitor.ts b/frontend/src/api/dev1/cleaningMonitor.ts
+new file mode 100644
+index 0000000..a17ed53
+--- /dev/null
++++ b/frontend/src/api/dev1/cleaningMonitor.ts
+@@ -0,0 +1,242 @@
++﻿import { ApiError, getJson } from "./client";
++import { positiveId } from "./rooms";
++export interface MonitorItem {
++  kind: "cleaning" | "rework";
++  id: number;
++  cleaningTaskId: number;
++  taskNumber: string;
++  roomId: number;
++  roomNumber: string;
++  floorId: number;
++  floorName: string | null;
++  recordedStatus: string;
++  workflowState: string | null;
++  priorityId: number | null;
++  priorityCode: string | null;
++  assigneeId: number | null;
++  assigneeName: string | null;
++  dueAtUtc: string | null;
++  isOverdue: boolean | null;
++  progressPercent: number | null;
++  blockerCode: string | null;
++  blockerNote: string | null;
++  description: string | null;
++}
++export interface MonitorPage {
++  items: MonitorItem[];
++  total: number;
++  page: number;
++  pageSize: number;
++  fromDate: string;
++  toDate: string;
++  timezone: string;
++  asOfUtc: string;
++}
++export interface MonitorDetail {
++  item: MonitorItem;
++  assignments: {
++    id: number;
++    assigneeId: number;
++    status: string;
++    assignedAtUtc: string;
++    endedAtUtc: string | null;
++    reason: string | null;
++  }[];
++  assignmentCount: number;
++  progress: {
++    id: number;
++    percent: number;
++    status: string | null;
++    blockerCode: string | null;
++    note: string | null;
++    loggedBy: number;
++    loggedAtUtc: string;
++  }[];
++  progressCount: number;
++  audit: {
++    id: number;
++    entityType: string;
++    action: string;
++    actorId: number | null;
++    occurredAtUtc: string;
++  }[];
++  auditCount: number;
++  timelineLimit: number;
++  asOfUtc: string;
++  timelinePage: number;
++}
++const object = (v: unknown): v is Record<string, unknown> =>
++  typeof v === "object" && v !== null && !Array.isArray(v);
++const integer = (v: unknown, min = 1): v is number =>
++  typeof v === "number" && Number.isSafeInteger(v) && v >= min;
++const text = (v: unknown): v is string => typeof v === "string";
++const nullableText = (v: unknown) => v === null || text(v);
++const nullableId = (v: unknown) => v === null || integer(v);
++const stamp = (v: unknown) =>
++  text(v) && /Z$/.test(v) && Number.isFinite(Date.parse(v));
++const nullableStamp = (v: unknown) => v === null || stamp(v);
++function invalid(): never {
++  throw new ApiError(502, "INVALID_MONITOR_RESPONSE");
++}
++function item(v: unknown): asserts v is MonitorItem {
++  if (
++    !object(v) ||
++    !["cleaning", "rework"].includes(String(v.kind)) ||
++    ![v.id, v.cleaningTaskId, v.roomId, v.floorId].every((n) => integer(n)) ||
++    ![v.taskNumber, v.roomNumber, v.recordedStatus].every(text) ||
++    ![
++      v.floorName,
++      v.workflowState,
++      v.priorityCode,
++      v.assigneeName,
++      v.blockerCode,
++      v.blockerNote,
++      v.description,
++    ].every(nullableText) ||
++    ![v.priorityId, v.assigneeId].every(nullableId) ||
++    !nullableStamp(v.dueAtUtc) ||
++    !(v.isOverdue === null || typeof v.isOverdue === "boolean") ||
++    !(
++      v.progressPercent === null ||
++      (integer(v.progressPercent, 0) && v.progressPercent <= 100)
++    )
++  )
++    invalid();
++}
++export async function listCleaning(
++  branch: string,
++  params: URLSearchParams,
++  signal?: AbortSignal,
++): Promise<MonitorPage> {
++  const b = positiveId(branch);
++  const query = new URLSearchParams();
++  for (const key of [
++    "fromDate",
++    "toDate",
++    "floorId",
++    "status",
++    "assigneeId",
++    "priorityId",
++    "overdue",
++    "search",
++    "kind",
++    "page",
++    "pageSize",
++  ]) {
++    const value = params.get(key);
++    if (value) query.set(key, value);
++  }
++  for (const key of ["floorId", "assigneeId", "priorityId"])
++    if (query.has(key)) positiveId(query.get(key)!);
++  const page = positiveId(query.get("page") || "1"),
++    pageSize = positiveId(query.get("pageSize") || "20");
++  if (pageSize > 100 || page > Math.floor(2147483647 / pageSize))
++    throw new Error("Invalid pagination");
++  query.set("page", String(page));
++  query.set("pageSize", String(pageSize));
++  const v = await getJson(`/branches/${b}/cleaning-monitor?${query}`, signal);
++  if (
++    !object(v) ||
++    !Array.isArray(v.items) ||
++    !integer(v.total, 0) ||
++    v.page !== page ||
++    v.pageSize !== pageSize ||
++    !text(v.fromDate) ||
++    !text(v.toDate) ||
++    !text(v.timezone) ||
++    !stamp(v.asOfUtc) ||
++    v.items.length > pageSize ||
++    v.items.length > v.total
++  )
++    invalid();
++  v.items.forEach(item);
++  return v as unknown as MonitorPage;
++}
++export async function readCleaning(
++  branch: string,
++  kind: string,
++  id: string,
++  page = 1,
++  signal?: AbortSignal,
++): Promise<MonitorDetail> {
++  if (
++    !["cleaning", "rework"].includes(kind) ||
++    !integer(page) ||
++    page > Math.floor(2147483647 / 20)
++  )
++    throw new Error("Invalid detail");
++  const v = await getJson(
++    `/branches/${positiveId(branch)}/cleaning-monitor/${kind}/${positiveId(id)}?timelinePage=${page}&timelinePageSize=20`,
++    signal,
++  );
++  if (!object(v)) invalid();
++  item(v.item);
++  if (
++    v.item.kind !== kind ||
++    v.item.id !== Number(id) ||
++    v.timelinePage !== page ||
++    v.timelineLimit !== 20 ||
++    !stamp(v.asOfUtc)
++  )
++    invalid();
++  for (const [key, count] of [
++    ["assignments", "assignmentCount"],
++    ["progress", "progressCount"],
++    ["audit", "auditCount"],
++  ]) {
++    const rows = v[key];
++    if (
++      !Array.isArray(rows) ||
++      !integer(v[count], 0) ||
++      rows.length > 20 ||
++      rows.length > (v[count] as number)
++    )
++      invalid();
++    for (const r of rows) {
++      if (!object(r) || !integer(r.id)) invalid();
++      if (
++        key === "assignments" &&
++        (!integer(r.assigneeId) ||
++          !text(r.status) ||
++          !stamp(r.assignedAtUtc) ||
++          !nullableStamp(r.endedAtUtc) ||
++          !nullableText(r.reason))
++      )
++        invalid();
++      if (
++        key === "progress" &&
++        (!integer(r.percent, 0) ||
++          r.percent > 100 ||
++          !integer(r.loggedBy) ||
++          !stamp(r.loggedAtUtc) ||
++          ![r.status, r.blockerCode, r.note].every(nullableText))
++      )
++        invalid();
++      if (
++        key === "audit" &&
++        (!text(r.entityType) ||
++          !text(r.action) ||
++          !nullableId(r.actorId) ||
++          !stamp(r.occurredAtUtc))
++      )
++        invalid();
++    }
++  }
++  return v as unknown as MonitorDetail;
++}
++export function monitorError(error: unknown): string {
++  if (error instanceof ApiError) {
++    if (error.status === 401)
++      return "Phiên đăng nhập không hợp lệ hoặc đã hết hạn.";
++    if (error.status === 403)
++      return "Không có quyền CLEANING_VIEW tại chi nhánh này; OWN không cấp quyền xem monitor.";
++    if (error.status === 404)
++      return "Không tìm thấy công việc trong chi nhánh được phép.";
++    if (error.status === 400)
++      return "Bộ lọc không hợp lệ hoặc yêu cầu chưa dùng HTTPS.";
++    if (error.status === 503)
++      return "Dịch vụ hoặc cơ sở dữ liệu tạm thời không khả dụng.";
++    if (error.status === 502) return "Phản hồi API không hợp lệ.";
++  }
++  return "Không tải được công việc. Kiểm tra kết nối và bộ lọc rồi thử lại.";
++}
+diff --git a/frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx b/frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx
+index 47d08e4..dc7ab2a 100644
+--- a/frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx
++++ b/frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx
+@@ -1 +1 @@
+-﻿import { BedDouble } from "lucide-react";
++import { BedDouble } from "lucide-react";
+@@ -3 +3 @@ import { useEffect, useState, type FormEvent } from "react";
+-import { useSearchParams } from "react-router-dom";
++import { Link, useSearchParams } from "react-router-dom";
+@@ -157,0 +158,5 @@ export default function RoomReadinessBoardScreen() {
++                      <Link
++                        to={`/cleaning/tasks?branchId=${branch}&search=${encodeURIComponent(room.roomNumber)}`}
++                      >
++                        Xem công việc vệ sinh
++                      </Link>
+diff --git a/frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx b/frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx
+new file mode 100644
+index 0000000..e6d6957
+--- /dev/null
++++ b/frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx
+@@ -0,0 +1,136 @@
++﻿import { useEffect, useState } from "react";
++import { Link } from "react-router-dom";
++import {
++  readCleaning,
++  monitorError,
++  type MonitorDetail,
++} from "../../api/dev1/cleaningMonitor";
++export default function CleaningMonitorDetail({
++  branch,
++  kind,
++  id,
++}: {
++  branch: string;
++  kind: string;
++  id: string;
++}) {
++  const [page, setPage] = useState(1),
++    [retry, setRetry] = useState(0);
++  const [result, setResult] = useState<MonitorDetail | null>(null),
++    [error, setError] = useState(""),
++    [loading, setLoading] = useState(true);
++  useEffect(() => {
++    const abort = new AbortController();
++    setResult(null);
++    setError("");
++    setLoading(true);
++    readCleaning(branch, kind, id, page, abort.signal)
++      .then((data) => {
++        if (!abort.signal.aborted) setResult(data);
++      })
++      .catch((e) => {
++        if (!abort.signal.aborted) setError(monitorError(e));
++      })
++      .finally(() => {
++        if (!abort.signal.aborted) setLoading(false);
++      });
++    return () => abort.abort();
++  }, [branch, kind, id, page, retry]);
++  return (
++    <>
++      <h1>Cleaning Task Detail</h1>
++      <Link to={`/cleaning/tasks?branchId=${branch}`}>Danh sách công việc</Link>
++      {loading && <p role="status">Đang tải chi tiết…</p>}
++      {error && (
++        <p role="alert">
++          {error}{" "}
++          <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
++        </p>
++      )}
++      {result && (
++        <>
++          <h2>
++            {result.item.taskNumber} · {result.item.roomNumber}
++          </h2>
++          <p>
++            Chi nhánh {branch} · {result.item.kind} ·{" "}
++            {result.item.workflowState ?? result.item.recordedStatus}
++          </p>
++          <dl>
++            <dt>Nhân viên</dt>
++            <dd>{result.item.assigneeName ?? "Chưa phân công"}</dd>
++            <dt>Tiến độ</dt>
++            <dd>
++              {result.item.progressPercent === null
++                ? "—"
++                : `${result.item.progressPercent}%`}
++            </dd>
++            <dt>Hạn UTC</dt>
++            <dd>{result.item.dueAtUtc ?? "—"}</dd>
++            <dt>Mô tả</dt>
++            <dd>{result.item.description ?? "—"}</dd>
++            <dt>Blocker</dt>
++            <dd>
++              {result.item.blockerCode ?? "—"} {result.item.blockerNote}
++            </dd>
++          </dl>
++          {kind === "cleaning" && (
++            <Link to={`/cleaning/tasks/${id}?branchId=${branch}`}>
++              Mở UC032 · tiến độ của người được phân công
++            </Link>
++          )}
++          <h2>Phân công ({result.assignmentCount})</h2>
++          {result.assignments.length === 0 && (
++            <p>Không có phân công trên trang này.</p>
++          )}
++          <ul>
++            {result.assignments.map((r) => (
++              <li key={r.id}>
++                {r.assigneeId} · {r.status} · {r.assignedAtUtc} · {r.reason}
++              </li>
++            ))}
++          </ul>
++          <h2>Tiến độ ({result.progressCount})</h2>
++          {result.progress.length === 0 && (
++            <p>Không có tiến độ trên trang này.</p>
++          )}
++          <ul>
++            {result.progress.map((r) => (
++              <li key={r.id}>
++                {r.percent}% · {r.loggedAtUtc} · {r.status} · {r.blockerCode} ·{" "}
++                {r.note}
++              </li>
++            ))}
++          </ul>
++          <h2>Audit ({result.auditCount})</h2>
++          {result.audit.length === 0 && <p>Không có audit trên trang này.</p>}
++          <ul>
++            {result.audit.map((r) => (
++              <li key={r.id}>
++                {r.action} · {r.entityType} · {r.actorId ?? "—"} ·{" "}
++                {r.occurredAtUtc}
++              </li>
++            ))}
++          </ul>
++          <button disabled={page <= 1} onClick={() => setPage((v) => v - 1)}>
++            Timeline trước
++          </button>
++          <span> Trang {page} </span>
++          <button
++            disabled={
++              page * result.timelineLimit >=
++              Math.max(
++                result.assignmentCount,
++                result.progressCount,
++                result.auditCount,
++              )
++            }
++            onClick={() => setPage((v) => v + 1)}
++          >
++            Timeline sau
++          </button>
++        </>
++      )}
++    </>
++  );
++}
+diff --git a/frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx b/frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx
+index 7c8501f..f1e5468 100644
+--- a/frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx
++++ b/frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx
+@@ -1 +1 @@
+-import { useParams, useSearchParams } from "react-router-dom";
++﻿import { useParams, useSearchParams } from "react-router-dom";
+@@ -3,14 +3 @@ import CleaningProgressPanel from "./CleaningProgressPanel";
+-import { t, useLanguage } from "../../i18n";
+-import * as service from "../../services";
+-import { DetailPage, RelatedRecords, Summary, useDB } from "../../ui";
+-const informationFields: string[] = [
+-  "room",
+-  "cleaningType",
+-  "assignee",
+-  "priority",
+-  "severity",
+-  "asset",
+-  "due",
+-  "detectedAt",
+-];
+-const workflowUCs = ["UC-031", "UC-032", "UC-033", "UC-034", "UC-037"];
++import CleaningMonitorDetail from "./CleaningMonitorDetail";
+@@ -20,2 +7,13 @@ export default function CleaningTaskDetailScreen() {
+-  if (params.has("branchId")) {
+-    const branch = params.get("branchId") || "";
++  const branch = params.get("branchId") || "";
++  if (params.get("monitor") === "1") {
++    const kind = params.get("kind") || "cleaning";
++    return (
++      <CleaningMonitorDetail
++        key={`${branch}:${kind}:${id}`}
++        branch={branch}
++        kind={kind}
++        id={id || ""}
++      />
++    );
++  }
++  if (branch)
+@@ -29,15 +26,0 @@ export default function CleaningTaskDetailScreen() {
+-  }
+-  return (
+-    <>
+-      <p>
+-        Dữ liệu minh họa. Tiến độ máy chủ cần mã công việc và chi nhánh hợp lệ.
+-      </p>
+-      <PrototypeCleaningTaskDetail />
+-    </>
+-  );
+-}
+-function PrototypeCleaningTaskDetail() {
+-  useLanguage();
+-  const { id } = useParams();
+-  const db = useDB();
+-  const record = service.visible("cleaning").find((r) => r.id === id);
+@@ -45,29 +28,4 @@ function PrototypeCleaningTaskDetail() {
+-    <DetailPage
+-      id={26}
+-      overview={
+-        record && (
+-          <Summary
+-            items={[
+-              { label: "Cleaning type", value: record.cleaningType },
+-              {
+-                label: "Completed checks",
+-                value: record.completedItems?.length || 0,
+-              },
+-              {
+-                label: "Required checks",
+-                value: record.criteria?.split("\n").filter(Boolean).length || 0,
+-              },
+-            ]}
+-          />
+-        )
+-      }
+-      informationFields={informationFields}
+-      workflowUCs={workflowUCs}
+-      related={
+-        <RelatedRecords
+-          entity="cleaning"
+-          recordId={id}
+-          title={t("Cleaning Task Detail · related activity")}
+-        />
+-      }
+-    />
++    <p role="alert">
++      Cần ID chi nhánh hợp lệ để tải chi tiết từ máy chủ. Mở công việc từ
++      Cleaning Monitor hoặc dùng liên kết UC032 được cấp quyền.
++    </p>
+diff --git a/frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx b/frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx
+index 645c089..c41e9e4 100644
+--- a/frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx
++++ b/frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx
+@@ -1,8 +1,2 @@
+-import { Plus } from "lucide-react";
+-import { useState } from "react";
+-import { useNavigate } from "react-router-dom";
+-import { domainFor, pathFor, type RecordData } from "../../domain";
+-import { t, useLanguage } from "../../i18n";
+-import { EntityInsights } from "../../insights";
+-import * as service from "../../services";
+-import "../../styles.css";
++﻿import { useEffect, useState, type FormEvent } from "react";
++import { Link, useSearchParams } from "react-router-dom";
+@@ -10,13 +4,5 @@ import {
+-  DataTable,
+-  createLabel,
+-  DomainFilterPanel,
+-  EntityForm,
+-  FieldControl,
+-  Modal,
+-  PageHeader,
+-  StatusBadge,
+-  Summary,
+-  date,
+-  name,
+-  useDB,
+-} from "../../ui";
++  listCleaning,
++  monitorError,
++  type MonitorPage,
++} from "../../api/dev1/cleaningMonitor";
++import { PageHeader } from "../../ui";
+@@ -24,20 +10,9 @@ export default function CleaningTaskListScreen() {
+-  useLanguage();
+-  const id: number = 24;
+-  const db = useDB();
+-  const d = domainFor(id);
+-  const nav = useNavigate();
+-  const [creating, setCreating] = useState(false);
+-  const [editing, setEditing] = useState<RecordData>();
+-  const [filters, setFilters] = useState<Record<string, string>>({});
+-  let rows = service
+-    .visible(d.key)
+-    .filter((r) =>
+-      Object.entries(filters).every(
+-        ([key, value]) => !value || r[key] === value,
+-      ),
+-    );
+-  const filterFields = d.fields.filter(
+-    (f) =>
+-      ["select", "room", "roomType", "location", "asset", "warehouse"].includes(
+-        f.type || "",
+-      ) && !["branch", "department", "submission"].includes(f.key),
++  const [params, setParams] = useSearchParams();
++  const key = params.toString(),
++    branch = params.get("branchId") || "";
++  const [result, setResult] = useState<{
++    key: string;
++    data: MonitorPage;
++  } | null>(null);
++  const [error, setError] = useState<{ key: string; message: string } | null>(
++    null,
+@@ -45,34 +20,37 @@ export default function CleaningTaskListScreen() {
+-  filterFields.push({
+-    key: "assignee",
+-    label: "Assigned employee",
+-    type: "user",
+-  });
+-  const count = (status: string) =>
+-    rows.filter((r) => r.status === status).length;
+-  const overdue = rows.filter(
+-    (r) =>
+-      r.due &&
+-      new Date(r.due) < new Date() &&
+-      !["Closed", "Completed", "Cancelled"].includes(r.status),
+-  ).length;
+-  const columns = [
+-    { key: "name", label: "Cleaning cycle" },
+-    {
+-      key: "room",
+-      label: "Room",
+-      render: (r: RecordData) => name("rooms", r.room),
+-    },
+-    {
+-      key: "assignee",
+-      label: "Assigned employee",
+-      render: (r: RecordData) => name("users", r.assignee),
+-    },
+-    { key: "priority", label: "Priority" },
+-    { key: "due", label: "Deadline", render: (r: RecordData) => date(r.due) },
+-    {
+-      key: "status",
+-      label: "Status",
+-      render: (r: RecordData) => <StatusBadge status={r.status} />,
+-    },
+-  ];
+-  const createRoute = 25;
++  const [retry, setRetry] = useState(0),
++    [loading, setLoading] = useState(false);
++  useEffect(() => {
++    const abort = new AbortController();
++    setResult(null);
++    setError(null);
++    setLoading(Boolean(branch));
++    if (branch)
++      listCleaning(branch, new URLSearchParams(key), abort.signal)
++        .then((data) => {
++          if (!abort.signal.aborted) setResult({ key, data });
++        })
++        .catch((e) => {
++          if (!abort.signal.aborted)
++            setError({ key, message: monitorError(e) });
++        })
++        .finally(() => {
++          if (!abort.signal.aborted) setLoading(false);
++        });
++    return () => abort.abort();
++  }, [branch, key, retry]);
++  function submit(e: FormEvent<HTMLFormElement>) {
++    e.preventDefault();
++    const next = new URLSearchParams();
++    new FormData(e.currentTarget).forEach((v, k) => {
++      if (String(v).trim()) next.set(k, String(v).trim());
++    });
++    next.set("page", "1");
++    setParams(next);
++    setRetry((v) => v + 1);
++  }
++  const data = result?.key === key ? result.data : null;
++  function changePage(page: number) {
++    const next = new URLSearchParams(params);
++    next.set("page", String(page));
++    setParams(next);
++  }
+@@ -81,59 +59,13 @@ export default function CleaningTaskListScreen() {
+-      <PageHeader id={id}>
+-        {d.createUC && service.can(d.createUC) && (
+-          <button
+-            className="primary"
+-            onClick={() =>
+-              createRoute ? nav(pathFor(createRoute)) : setCreating(true)
+-            }
+-          >
+-            <Plus size={16} />
+-            {t(createLabel(d.key))}
+-          </button>
+-        )}
+-      </PageHeader>
+-      <Summary
+-        items={[
+-          { label: "Pending cleaning", value: count("Pending Assignment") },
+-          { label: "In progress", value: count("In Progress") },
+-          { label: "Overdue", value: overdue },
+-          { label: "Awaiting inspection", value: count("Pending Inspection") },
+-        ]}
+-      />
+-      <EntityInsights
+-        domain={d}
+-        rows={rows}
+-        onFilter={(key, value) => setFilters({ ...filters, [key]: value })}
+-      />
+-      <DataTable
+-        extraFilters={
+-          filterFields.length > 0 && (
+-            <DomainFilterPanel
+-              activeCount={Object.values(filters).filter(Boolean).length}
+-            >
+-              {filterFields.map((f) => (
+-                <FieldControl
+-                  key={f.key}
+-                  field={{ ...f, required: false }}
+-                  value={filters[f.key]}
+-                  onChange={(v) => setFilters({ ...filters, [f.key]: v })}
+-                />
+-              ))}
+-              <button className="secondary" onClick={() => setFilters({})}>
+-                {t("Clear domain filters")}
+-              </button>
+-            </DomainFilterPanel>
+-          )
+-        }
+-        columns={columns}
+-        rows={rows}
+-        onOpen={(r) => nav(pathFor(d.detail, r.id))}
+-      />
+-      {creating && (
+-        <Modal title={t(createLabel(d.key))} onClose={() => setCreating(false)}>
+-          <EntityForm
+-            d={d}
+-            onCancel={() => setCreating(false)}
+-            onDone={(r) => {
+-              setCreating(false);
+-              nav(pathFor(d.detail, r.id));
+-            }}
++      <PageHeader id={24} />
++      <p>
++        Cleaning Monitor · dữ liệu máy chủ, theo quyền CLEANING_VIEW. Chi nhánh
++        là bộ lọc, không cấp quyền.
++      </p>
++      <form key={key} className="filter-bar" onSubmit={submit}>
++        <label>
++          Chi nhánh (ID)
++          <input
++            name="branchId"
++            required
++            inputMode="numeric"
++            defaultValue={branch}
+@@ -141 +73,53 @@ export default function CleaningTaskListScreen() {
+-        </Modal>
++        </label>
++        {[
++          ["fromDate", "Từ ngày", "date"],
++          ["toDate", "Đến ngày", "date"],
++          ["floorId", "Tầng (ID)", "number"],
++          ["assigneeId", "Nhân viên (ID)", "number"],
++          ["priorityId", "Ưu tiên (ID)", "number"],
++          ["status", "Trạng thái (mã)", "text"],
++          ["search", "Tìm kiếm", "search"],
++        ].map(([name, label, type]) => (
++          <label key={name}>
++            {label}
++            <input
++              name={name}
++              type={type}
++              min={type === "number" ? 1 : undefined}
++              defaultValue={params.get(name) || ""}
++            />
++          </label>
++        ))}
++        <label>
++          Loại
++          <select name="kind" defaultValue={params.get("kind") || ""}>
++            <option value="">Tất cả</option>
++            <option value="cleaning">Cleaning</option>
++            <option value="rework">Rework</option>
++          </select>
++        </label>
++        <label>
++          Quá hạn
++          <select name="overdue" defaultValue={params.get("overdue") || ""}>
++            <option value="">Tất cả</option>
++            <option value="true">Có</option>
++            <option value="false">Không</option>
++          </select>
++        </label>
++        <label>
++          Số dòng
++          <select name="pageSize" defaultValue={params.get("pageSize") || "20"}>
++            {[10, 20, 50, 100].map((n) => (
++              <option key={n}>{n}</option>
++            ))}
++          </select>
++        </label>
++        <button className="primary">Tải dữ liệu</button>
++      </form>
++      {!branch && <p>Nhập chi nhánh được cấp quyền để xem công việc.</p>}
++      {loading && <p role="status">Đang tải công việc…</p>}
++      {error?.key === key && (
++        <p role="alert">
++          {error.message}{" "}
++          <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
++        </p>
+@@ -143,8 +127,78 @@ export default function CleaningTaskListScreen() {
+-      {editing && (
+-        <Modal title={editing.name} onClose={() => setEditing(undefined)}>
+-          <EntityForm
+-            d={d}
+-            record={editing}
+-            onDone={() => setEditing(undefined)}
+-          />
+-        </Modal>
++      {data && (
++        <>
++          <p>
++            {data.total} công việc · {data.fromDate} → {data.toDate} ·{" "}
++            {data.timezone} · Chi nhánh {branch}
++          </p>
++          {data.items.length === 0 ? (
++            <p>Không có công việc phù hợp bộ lọc.</p>
++          ) : (
++            <div className="table-wrap">
++              <table>
++                <thead>
++                  <tr>
++                    {[
++                      "Công việc",
++                      "Phòng",
++                      "Loại",
++                      "Trạng thái",
++                      "Nhân viên",
++                      "Ưu tiên",
++                      "Hạn UTC",
++                      "Quá hạn",
++                      "Tiến độ",
++                    ].map((s) => (
++                      <th key={s}>{s}</th>
++                    ))}
++                  </tr>
++                </thead>
++                <tbody>
++                  {data.items.map((r) => (
++                    <tr key={`${r.kind}:${r.id}`}>
++                      <td>
++                        <Link
++                          to={`/cleaning/tasks/${r.id}?branchId=${branch}&monitor=1&kind=${r.kind}`}
++                        >
++                          {r.taskNumber}
++                        </Link>
++                      </td>
++                      <td>{r.roomNumber}</td>
++                      <td>{r.kind}</td>
++                      <td>{r.workflowState ?? r.recordedStatus}</td>
++                      <td>{r.assigneeName ?? "Chưa phân công"}</td>
++                      <td>{r.priorityCode ?? "—"}</td>
++                      <td>{r.dueAtUtc ?? "—"}</td>
++                      <td>
++                        {r.isOverdue === null
++                          ? "Chưa xác định"
++                          : r.isOverdue
++                            ? "Có"
++                            : "Không"}
++                      </td>
++                      <td>
++                        {r.progressPercent === null
++                          ? "—"
++                          : `${r.progressPercent}%`}
++                      </td>
++                    </tr>
++                  ))}
++                </tbody>
++              </table>
++            </div>
++          )}
++          <div className="filter-bar">
++            <button
++              disabled={data.page <= 1}
++              onClick={() => changePage(data.page - 1)}
++            >
++              Trang trước
++            </button>
++            <span>Trang {data.page}</span>
++            <button
++              disabled={data.page * data.pageSize >= data.total}
++              onClick={() => changePage(data.page + 1)}
++            >
++              Trang sau
++            </button>
++          </div>
++        </>
+diff --git a/frontend/tests/cleaning-monitor.spec.ts b/frontend/tests/cleaning-monitor.spec.ts
+new file mode 100644
+index 0000000..544a899
+--- /dev/null
++++ b/frontend/tests/cleaning-monitor.spec.ts
+@@ -0,0 +1,149 @@
++﻿import { test, expect } from "@playwright/test";
++// HTTP interception only; separate from FS005 live SQL acceptance.
++const item = {
++  kind: "cleaning",
++  id: 12,
++  cleaningTaskId: 12,
++  taskNumber: "API-CL-12",
++  roomId: 3,
++  roomNumber: "101",
++  floorId: 2,
++  floorName: null,
++  recordedStatus: "IN_PROGRESS",
++  workflowState: null,
++  priorityId: null,
++  priorityCode: null,
++  assigneeId: 5,
++  assigneeName: "API Staff",
++  dueAtUtc: null,
++  isOverdue: null,
++  progressPercent: 40,
++  blockerCode: null,
++  blockerNote: null,
++  description: null,
++};
++const meta = {
++  fromDate: "2026-11-06",
++  toDate: "2026-11-06",
++  timezone: "Asia/Ho_Chi_Minh",
++  asOfUtc: "2026-11-06T00:00:00Z",
++};
++test("monitor list filters, paginates and opens real detail mode", async ({
++  page,
++}) => {
++  const requests: URL[] = [];
++  await page.route("**/api/branches/7/cleaning-monitor?**", (route) => {
++    const q = new URL(route.request().url());
++    requests.push(q);
++    return route.fulfill({
++      json: {
++        ...meta,
++        items: [item],
++        total: 21,
++        page: Number(q.searchParams.get("page")),
++        pageSize: 20,
++      },
++    });
++  });
++  await page.route(
++    "**/api/branches/7/cleaning-monitor/cleaning/12?**",
++    (route) =>
++      route.fulfill({
++        json: {
++          item,
++          assignments: [],
++          assignmentCount: 0,
++          progress: [],
++          progressCount: 0,
++          audit: [],
++          auditCount: 0,
++          timelineLimit: 20,
++          timelinePage: 1,
++          asOfUtc: meta.asOfUtc,
++        },
++      }),
++  );
++  await page.goto("/cleaning/tasks?branchId=7");
++  await expect(
++    page.getByRole("link", { name: "API-CL-12", exact: true }),
++  ).toBeVisible();
++  await page.getByLabel("Tìm kiếm", { exact: true }).fill("101");
++  await page.getByRole("button", { name: "Tải dữ liệu", exact: true }).click();
++  await expect
++    .poll(() => requests.at(-1)?.searchParams.get("search"))
++    .toBe("101");
++  await page.getByRole("button", { name: "Trang sau", exact: true }).click();
++  await expect.poll(() => requests.at(-1)?.searchParams.get("page")).toBe("2");
++  await page.getByRole("link", { name: "API-CL-12", exact: true }).click();
++  await expect(
++    page.getByRole("heading", { name: "API-CL-12 · 101" }),
++  ).toBeVisible();
++  await expect(page.getByText("API Staff", { exact: true })).toBeVisible();
++  await expect(page.getByRole("link", { name: /Mở UC032/ })).toHaveAttribute(
++    "href",
++    "/cleaning/tasks/12?branchId=7",
++  );
++});
++for (const status of [401, 403, 404, 503])
++  test(`monitor ${status} never falls back`, async ({ page }) => {
++    await page.route("**/api/branches/7/cleaning-monitor?**", (r) =>
++      r.fulfill({ status, json: { title: "DENIED" } }),
++    );
++    await page.goto("/cleaning/tasks?branchId=7");
++    await expect(page.getByRole("alert")).toBeVisible();
++    await expect(page.locator("tbody tr")).toHaveCount(0);
++  });
++test("monitor empty response", async ({ page }) => {
++  await page.route("**/api/branches/7/cleaning-monitor?**", (r) =>
++    r.fulfill({
++      json: { ...meta, items: [], total: 0, page: 1, pageSize: 20 },
++    }),
++  );
++  await page.goto("/cleaning/tasks?branchId=7");
++  await expect(
++    page.getByText("Không có công việc phù hợp bộ lọc."),
++  ).toBeVisible();
++});
++
++test("monitor ignores a stale branch response after filter cancellation", async ({
++  page,
++}) => {
++  let release!: () => void;
++  const held = new Promise<void>((resolve) => {
++    release = resolve;
++  });
++  await page.route("**/api/branches/7/cleaning-monitor?**", async (r) => {
++    await held;
++    await r
++      .fulfill({
++        json: { ...meta, items: [item], total: 1, page: 1, pageSize: 20 },
++      })
++      .catch(() => {});
++  });
++  await page.route("**/api/branches/8/cleaning-monitor?**", (r) =>
++    r.fulfill({
++      json: { ...meta, items: [], total: 0, page: 1, pageSize: 20 },
++    }),
++  );
++  await page.goto("/cleaning/tasks?branchId=7", {
++    waitUntil: "domcontentloaded",
++  });
++  await page.getByLabel("Chi nhánh (ID)", { exact: true }).fill("8");
++  await page.getByRole("button", { name: "Tải dữ liệu", exact: true }).click();
++  await expect(
++    page.getByText("Không có công việc phù hợp bộ lọc."),
++  ).toBeVisible();
++  release();
++  await expect(
++    page.getByRole("link", { name: "API-CL-12", exact: true }),
++  ).toHaveCount(0);
++});
++for (const status of [401, 403, 404, 503])
++  test(`detail ${status} has no prototype fallback`, async ({ page }) => {
++    await page.route("**/api/branches/7/cleaning-monitor/cleaning/12?**", (r) =>
++      r.fulfill({ status, json: { title: "DENIED" } }),
++    );
++    await page.goto("/cleaning/tasks/12?branchId=7&monitor=1");
++    await expect(page.getByRole("alert")).toBeVisible();
++    await expect(page.getByRole("link", { name: /Mở UC032/ })).toHaveCount(0);
++  });
+diff --git a/frontend/tests/cleaning-monitor.test.mjs b/frontend/tests/cleaning-monitor.test.mjs
+new file mode 100644
+index 0000000..b8e74db
+--- /dev/null
++++ b/frontend/tests/cleaning-monitor.test.mjs
+@@ -0,0 +1,134 @@
++﻿import { test } from "node:test";
++import assert from "node:assert/strict";
++import { build } from "esbuild";
++await build({
++  entryPoints: ["src/api/dev1/cleaningMonitor.ts"],
++  bundle: true,
++  platform: "node",
++  format: "esm",
++  outfile: ".test-output/fs005/monitor.mjs",
++  define: { "import.meta.env": "{}" },
++});
++const { listCleaning, readCleaning } =
++  await import("../.test-output/fs005/monitor.mjs");
++const item = {
++  kind: "cleaning",
++  id: 12,
++  cleaningTaskId: 12,
++  taskNumber: "API-CL-12",
++  roomId: 3,
++  roomNumber: "101",
++  floorId: 2,
++  floorName: null,
++  recordedStatus: "IN_PROGRESS",
++  workflowState: null,
++  priorityId: null,
++  priorityCode: null,
++  assigneeId: 5,
++  assigneeName: "API Staff",
++  dueAtUtc: null,
++  isOverdue: null,
++  progressPercent: 40,
++  blockerCode: null,
++  blockerNote: null,
++  description: null,
++};
++const page = {
++  items: [item],
++  total: 1,
++  page: 1,
++  pageSize: 20,
++  fromDate: "2026-11-06",
++  toDate: "2026-11-06",
++  timezone: "Asia/Ho_Chi_Minh",
++  asOfUtc: "2026-11-06T00:00:00Z",
++};
++test("monitor uses existing cookie transport, scoped route, allowlisted query and cancellation", async () => {
++  const abort = new AbortController();
++  globalThis.fetch = async (url, options) => {
++    assert.match(url, /\/api\/branches\/7\/cleaning-monitor\?/);
++    const q = new URL(url, "https://localhost").searchParams;
++    assert.equal(q.get("search"), "101 & 102");
++    assert.equal(q.has("actorId"), false);
++    assert.equal(options.credentials, "include");
++    assert.equal(options.signal, abort.signal);
++    return Response.json(page);
++  };
++  assert.equal(
++    (
++      await listCleaning(
++        "7",
++        new URLSearchParams({ search: "101 & 102", actorId: "999" }),
++        abort.signal,
++      )
++    ).items[0].progressPercent,
++    40,
++  );
++});
++test("monitor rejects malformed rows and wrong pagination instead of mock fallback", async () => {
++  for (const value of [
++    { ...page, items: [{ ...item, id: Number.MAX_SAFE_INTEGER + 1 }] },
++    { ...page, page: 2 },
++    { ...page, items: [{ ...item, progressPercent: 101 }] },
++  ]) {
++    globalThis.fetch = async () => Response.json(value);
++    await assert.rejects(
++      listCleaning("7", new URLSearchParams()),
++      /INVALID_MONITOR_RESPONSE/,
++    );
++  }
++});
++test("monitor propagates 401/403/404/503 once without fallback", async () => {
++  for (const status of [401, 403, 404, 503]) {
++    let calls = 0;
++    globalThis.fetch = async () => {
++      calls++;
++      return Response.json({ title: "DENIED" }, { status });
++    };
++    await assert.rejects(
++      listCleaning("7", new URLSearchParams()),
++      (e) => e.status === status,
++    );
++    assert.equal(calls, 1);
++  }
++});
++test("monitor rejects unsafe inputs before fetch", async () => {
++  globalThis.fetch = () => {
++    throw Error("must not fetch");
++  };
++  await assert.rejects(listCleaning("demo", new URLSearchParams()));
++  await assert.rejects(
++    listCleaning("7", new URLSearchParams({ pageSize: "101" })),
++  );
++  await assert.rejects(readCleaning("7", "other", "12"));
++});
++test("detail validates exact identity, timeline and nullable fields", async () => {
++  const value = {
++    item,
++    assignments: [],
++    assignmentCount: 0,
++    progress: [],
++    progressCount: 0,
++    audit: [],
++    auditCount: 0,
++    timelineLimit: 20,
++    asOfUtc: page.asOfUtc,
++    timelinePage: 1,
++  };
++  globalThis.fetch = async () => Response.json(value);
++  assert.equal((await readCleaning("7", "cleaning", "12")).item.id, 12);
++  await assert.rejects(
++    readCleaning("7", "cleaning", "13"),
++    /INVALID_MONITOR_RESPONSE/,
++  );
++  globalThis.fetch = async () =>
++    Response.json({
++      ...value,
++      progress: [{ id: 1, percent: 40 }],
++      progressCount: 1,
++    });
++  await assert.rejects(
++    readCleaning("7", "cleaning", "12"),
++    /INVALID_MONITOR_RESPONSE/,
++  );
++});
+diff --git a/frontend/tests/fs005-live.spec.ts b/frontend/tests/fs005-live.spec.ts
+new file mode 100644
+index 0000000..a0277e4
+--- /dev/null
++++ b/frontend/tests/fs005-live.spec.ts
+@@ -0,0 +1,225 @@
++import { test, expect, type BrowserContext } from "@playwright/test";
++import fs from "node:fs";
++import path from "node:path";
++import { spawnSync } from "node:child_process";
++const root = path.resolve(".."),
++  directory = path.join(root, "scripts/verification/FS004");
++const fixture = JSON.parse(
++  fs
++    .readFileSync(path.join(directory, ".private/fixture.json"), "utf8")
++    .replace(/^\uFEFF/, ""),
++);
++if (
++  process.env.FS005_LIVE_ENABLED !== "APPROVED_FS005_READ_ONLY" ||
++  fixture.database !== "HotelOps_Canonical_20261105_180000_f040001_Fresh" ||
++  fixture.owner !== "DEV1_FS004"
++)
++  throw Error("TRIAL_SCOPE_MISMATCH");
++const helper = path.join(directory, "bin/Debug/net10.0/FS004.Verification.dll");
++function privateCall(args: string[]) {
++  const r = spawnSync("dotnet", [helper, ...args], {
++    encoding: "utf8",
++    env: { ...process.env, FS004_LIVE_ENABLED: "APPROVED_FS004_LOCAL_TRIAL" },
++    windowsHide: true,
++    timeout: 30000,
++  });
++  if (r.status !== 0) throw Error("HELPER_FAILED; private output redacted");
++  return JSON.parse(r.stdout.replace(/^\uFEFF/, ""));
++}
++const accounts = privateCall(["credentials-ipc", "--private-ipc"]);
++const before = privateCall(["inspect", "--local-sql-certificate-exception"]);
++const report: {
++  interception: boolean;
++  businessWrites: boolean;
++  checks: unknown[];
++  tests: unknown[];
++} = { interception: false, businessWrites: false, checks: [], tests: [] };
++function record(name: string, data: unknown) {
++  report.checks.push({ name, data });
++  fs.writeFileSync(
++    path.join(root, "docs/fs005/LIVE_RESULTS.json"),
++    JSON.stringify(report, null, 2) + "\n",
++  );
++}
++async function login(context: BrowserContext, key: string) {
++  const csrf = await context.request.get("/api/auth/csrf");
++  expect(csrf.status()).toBe(200);
++  const token = await csrf.json();
++  const r = await context.request.post("/api/auth/login", {
++    headers: { "X-CSRF-TOKEN": token.csrfToken },
++    data: {
++      username: accounts[key].username,
++      password: accounts[key].password,
++    },
++  });
++  expect(r.status(), "real fixture login").toBe(200);
++  expect((await context.request.get("/api/auth/session")).status()).toBe(200);
++}
++const b = fixture.branchId,
++  task = fixture.taskId;
++const base = `/api/branches/${b}/cleaning-monitor`;
++// Inclusive dates cover the retained FS004 task without changing/reseeding its schedule.
++const range = "fromDate=2026-11-05&toDate=2026-11-06";
++test.afterEach(async ({}, info) => {
++  report.tests.push({ name: info.title, status: info.status });
++  record("test-result", info.status);
++});
++test.afterAll(() => {
++  const after = privateCall(["inspect", "--local-sql-certificate-exception"]);
++  expect(after).toEqual(before);
++  record("unchanged-SQL-business-state", after);
++});
++test("FS005 real authentication, branch scope, filters, paging and SQL-backed detail", async ({
++  page,
++  browser,
++}) => {
++  const anonymous = await browser.newContext();
++  try {
++    expect((await anonymous.request.get(base)).status()).toBe(401);
++  } finally {
++    await anonymous.close();
++  }
++  await login(page.context(), "owner");
++  expect((await page.request.get(`${base}?${range}`)).status()).toBe(403);
++  const progress = await page.request.get(
++    `/api/branches/${b}/cleaning-tasks/${task}/progress`,
++  );
++  expect(progress.status()).toBe(200);
++  expect((await progress.json()).percent).toBe(before.percent);
++  await page.context().clearCookies();
++  await login(page.context(), "admin");
++  const r = await page.request.get(`${base}?${range}&pageSize=1`);
++  expect(r.status()).toBe(200);
++  const list = await r.json();
++  expect(list.total).toBeGreaterThan(0);
++  expect(list.items).toHaveLength(1);
++  const detail = await page.request.get(
++    `${base}/cleaning/${task}?timelinePage=1&timelinePageSize=20`,
++  );
++  expect(detail.status()).toBe(200);
++  const d = await detail.json();
++  expect(d.item.id).toBe(task);
++  expect(d.item.progressPercent).toBe(before.percent);
++  expect(d.progressCount).toBe(before.logCount);
++  expect(d.auditCount).toBe(before.auditCount);
++  expect(d.item.recordedStatus).toBe(before.status ?? before.Status);
++  for (const suffix of [
++    `floorId=${d.item.floorId}`,
++    `status=${d.item.recordedStatus}`,
++    "kind=cleaning",
++    "overdue=true",
++    ...(d.item.priorityId ? [`priorityId=${d.item.priorityId}`] : []),
++  ]) {
++    const response = await page.request.get(`${base}?${range}&${suffix}`);
++    expect(response.status()).toBe(200);
++    const body = await response.json();
++    if (suffix !== "overdue=true")
++      expect(body.items.some((x: { id: number }) => x.id === task)).toBe(true);
++    else
++      expect(
++        body.items.every((x: { isOverdue: boolean }) => x.isOverdue === true),
++      ).toBe(true);
++  }
++  expect(
++    (
++      await page.request.get(`${base}?${range}&status=INVALID%20STATE`)
++    ).status(),
++  ).toBe(400);
++  const own = await page.request.get(
++    `${base}?${range}&assigneeId=${accounts.owner.userId}&kind=cleaning`,
++  );
++  expect(own.status()).toBe(200);
++  expect(
++    (await own.json()).items.some((x: { id: number }) => x.id === task),
++  ).toBe(true);
++  const search = await page.request.get(
++    `${base}?${range}&search=${encodeURIComponent(d.item.taskNumber)}`,
++  );
++  expect(search.status()).toBe(200);
++  expect(
++    (await search.json()).items.some((x: { id: number }) => x.id === task),
++  ).toBe(true);
++  const empty = await page.request.get(
++    `${base}?${range}&search=FS005_NO_MATCH_8391`,
++  );
++  expect(empty.status()).toBe(200);
++  expect((await empty.json()).total).toBe(0);
++  const later = await page.request.get(`${base}?${range}&page=2&pageSize=1`);
++  expect(later.status()).toBe(200);
++  const second = await later.json();
++  expect(second.page).toBe(2);
++  if (list.total > 1) {
++    expect(second.items).toHaveLength(1);
++    expect(second.items[0].id).not.toBe(list.items[0].id);
++  }
++  expect(
++    (await page.request.get(`${base}?${range}&pageSize=101`)).status(),
++  ).toBe(400);
++  expect(
++    (await page.request.get(`${base}/cleaning/9223372036854775807`)).status(),
++  ).toBe(404);
++  expect(
++    (
++      await page.request.get(
++        `/api/branches/${fixture.foreignBranchId}/cleaning-monitor?${range}`,
++      )
++    ).status(),
++  ).toBe(403);
++  expect(
++    (
++      await page.request.get(
++        `/api/branches/${fixture.foreignBranchId}/cleaning-monitor/cleaning/${task}`,
++      )
++    ).status(),
++  ).toBe(403);
++  await page.goto(`/cleaning/tasks?branchId=${b}&${range}`);
++  await expect(
++    page.getByRole("link", { name: d.item.taskNumber, exact: true }),
++  ).toBeVisible();
++  await page
++    .getByRole("link", { name: d.item.taskNumber, exact: true })
++    .click();
++  await expect(
++    page.getByRole("heading", {
++      name: `${d.item.taskNumber} · ${d.item.roomNumber}`,
++    }),
++  ).toBeVisible();
++  await expect(
++    page.getByText(d.item.assigneeName, { exact: true }),
++  ).toBeVisible();
++  await page.goto(
++    `/room-readiness?branchId=${b}&search=${encodeURIComponent(d.item.roomNumber)}`,
++  );
++  await page
++    .getByRole("link", { name: "Xem công việc vệ sinh", exact: true })
++    .click();
++  await expect(page).toHaveURL(/\/cleaning\/tasks\?/);
++  // Retained trial schedule is yesterday; select dates through the actual UI.
++  await page.getByLabel("Từ ngày", { exact: true }).fill("2026-11-05");
++  await page.getByLabel("Đến ngày", { exact: true }).fill("2026-11-06");
++  await page.getByRole("button", { name: "Tải dữ liệu", exact: true }).click();
++  await page
++    .getByRole("link", { name: d.item.taskNumber, exact: true })
++    .click();
++  await expect(
++    page.getByRole("heading", {
++      name: `${d.item.taskNumber} · ${d.item.roomNumber}`,
++    }),
++  ).toBeVisible();
++  record("live-read-acceptance", {
++    anonymous: 401,
++    ownMonitor: 403,
++    foreignList: 403,
++    foreignDetail: 403,
++    missing: 404,
++    invalidPage: 400,
++    task,
++    branch: b,
++    total: list.total,
++    percent: d.item.progressPercent,
++    progressCount: d.progressCount,
++    auditCount: d.auditCount,
++    readinessNavigation: true,
++    uc032Read: true,
++  });
++});
+diff --git a/src/HotelOps.Api/Controllers/CleaningMonitorController.cs b/src/HotelOps.Api/Controllers/CleaningMonitorController.cs
+index b3742d3..2d92c51 100644
+--- a/src/HotelOps.Api/Controllers/CleaningMonitorController.cs
++++ b/src/HotelOps.Api/Controllers/CleaningMonitorController.cs
+@@ -10 +10 @@ namespace HotelOps.Api.Controllers;
+-[NonController] // FS-001: imported source; route/security activation awaits DEV1/DEV3 review.
++// FS-005: user approved activation of the two GET actions only.
+diff --git a/tests/HotelOps.Dev1.RegressionTests/CleaningMonitorRouteTests.cs b/tests/HotelOps.Dev1.RegressionTests/CleaningMonitorRouteTests.cs
+new file mode 100644
+index 0000000..91dc160
+--- /dev/null
++++ b/tests/HotelOps.Dev1.RegressionTests/CleaningMonitorRouteTests.cs
+@@ -0,0 +1,36 @@
++using System.Reflection;
++using HotelOps.Api.Controllers;
++using HotelOps.Api.Security;
++using Microsoft.AspNetCore.Authorization;
++using Microsoft.AspNetCore.Mvc;
++using Microsoft.AspNetCore.Mvc.Controllers;
++using Microsoft.AspNetCore.Mvc.Infrastructure;
++using Microsoft.Extensions.DependencyInjection;
++using Xunit;
++namespace HotelOps.Dev1.RegressionTests;
++
++public sealed class CleaningMonitorRouteTests
++{
++    [Fact]
++    public void Monitor_exposes_exactly_two_cookie_authenticated_GETs_without_collisions()
++    {
++        var services = new ServiceCollection();
++        services.AddLogging();
++        services.AddControllers().AddApplicationPart(typeof(CleaningMonitorController).Assembly);
++        using var provider = services.BuildServiceProvider();
++        var actions = provider.GetRequiredService<IActionDescriptorCollectionProvider>().ActionDescriptors.Items
++            .OfType<ControllerActionDescriptor>().ToArray();
++        var monitor = actions.Where(a => a.ControllerTypeInfo.AsType() == typeof(CleaningMonitorController)).ToArray();
++        Assert.Equal(2, monitor.Length);
++        Assert.Equal(new[] { "api/branches/{branchId:long}/cleaning-monitor", "api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}" },
++            monitor.Select(a => a.AttributeRouteInfo!.Template).OrderBy(x => x).ToArray());
++        Assert.All(monitor, action =>
++        {
++            Assert.NotNull(action.MethodInfo.GetCustomAttribute<HttpGetAttribute>());
++            Assert.Null(action.MethodInfo.GetCustomAttribute<AllowAnonymousAttribute>());
++            Assert.Null(action.ControllerTypeInfo.GetCustomAttribute<AllowAnonymousAttribute>());
++            Assert.Equal(HotelOpsCookieTicket.Scheme, action.ControllerTypeInfo.GetCustomAttribute<AuthorizeAttribute>()!.AuthenticationSchemes);
++            Assert.Single(actions, a => a.AttributeRouteInfo?.Template == action.AttributeRouteInfo!.Template);
++        });
++    }
++}
+diff --git a/tests/HotelOps.Dev1.RegressionTests/FullstackCompositionTests.cs b/tests/HotelOps.Dev1.RegressionTests/FullstackCompositionTests.cs
+index 54929c7..51e8f62 100644
+--- a/tests/HotelOps.Dev1.RegressionTests/FullstackCompositionTests.cs
++++ b/tests/HotelOps.Dev1.RegressionTests/FullstackCompositionTests.cs
+@@ -1 +1 @@
+-﻿using HotelOps.Api.Controllers;
++using HotelOps.Api.Controllers;
+@@ -44 +44 @@ public sealed class FullstackCompositionTests
+-        Assert.DoesNotContain(typeof(CleaningMonitorController), active);
++        Assert.Contains(typeof(CleaningMonitorController), active);

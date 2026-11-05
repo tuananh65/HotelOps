@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace HotelOps.Api.Controllers;
 
-[NonController] // FS-001: imported source; route/security activation awaits DEV1/DEV3 review.
+// FS-005: user approved activation of the two GET actions only.
 [ApiController]
 [Route("api/branches/{branchId:long}/cleaning-monitor")]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]

@@ -1,4 +1,4 @@
-﻿using HotelOps.Api.Controllers;
+using HotelOps.Api.Controllers;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -41,7 +41,7 @@ public sealed class FullstackCompositionTests
         Assert.DoesNotContain(typeof(BranchAdministrationController), active);
         Assert.DoesNotContain(typeof(RoomTypeDirectoryController), active);
         Assert.DoesNotContain(typeof(TurnoverHistoryController), active);
-        Assert.DoesNotContain(typeof(CleaningMonitorController), active);
+        Assert.Contains(typeof(CleaningMonitorController), active);
         Assert.DoesNotContain(typeof(WorkdaysController), active);
     }
 }
