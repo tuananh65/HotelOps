@@ -1,0 +1,68 @@
+{
+  "status": "PARTIAL_READ_WIRED_NOT_LIVE_ACCEPTED",
+  "branch": "feature/dev1-room-ops",
+  "head": "e7f84422a33a8a65c771efdfb248e8231e83bb6a",
+  "newUcCredit": 0,
+  "backendBuild": {
+    "status": "Passed",
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionTest": {
+    "exitCode": 0,
+    "cases": 0
+  },
+  "xunit": {
+    "passed": 93,
+    "failed": 0,
+    "skipped": 0,
+    "warnings": [
+      "NU1900 vulnerability feed unavailable"
+    ]
+  },
+  "frontend": {
+    "build": "Passed",
+    "nodeTests": {
+      "passed": 20,
+      "failed": 0
+    },
+    "browser": {
+      "passed": 5,
+      "failed": 0,
+      "exitCode": 0,
+      "mode": "HTTP interception; external task-owned Vite port 5189; Edge"
+    },
+    "scopedFormatting": "Passed",
+    "fullLint": {
+      "status": "Failed",
+      "inheritedFiles": 116
+    },
+    "warnings": [
+      "React Router use-client directives ignored",
+      "Chunks over 500kB",
+      "Inherited npm deprecations",
+      "core-js/esbuild install scripts blocked"
+    ]
+  },
+  "di": {
+    "status": "Passed",
+    "controllers": 31,
+    "methodEntries": 186,
+    "collisions": 0,
+    "sql": false,
+    "warnings": [
+      "NU1900"
+    ]
+  },
+  "liveHttpsApiSql": "Not Run",
+  "commitPush": "Not performed",
+  "diffCheck": {
+    "status": "Passed",
+    "scope": "tracked modified and all untracked files",
+    "warnings": [
+      "Git LF-to-CRLF normalization"
+    ],
+    "initialFailure": "generator extra EOF blank fixed"
+  },
+  "browserServerStopped": true
+}

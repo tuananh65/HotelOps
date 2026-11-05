@@ -1,0 +1,296 @@
+[
+  {
+    "controller": "RoomsController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/rooms",
+    "source": "src/HotelOps.Api/Controllers/RoomsController.cs"
+  },
+  {
+    "controller": "RoomsController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/rooms/{roomId}",
+    "source": "src/HotelOps.Api/Controllers/RoomsController.cs"
+  },
+  {
+    "controller": "RoomsController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/rooms/{roomId}/history",
+    "source": "src/HotelOps.Api/Controllers/RoomsController.cs"
+  },
+  {
+    "controller": "CleaningMonitorController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/cleaning-monitor",
+    "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+  },
+  {
+    "controller": "CleaningMonitorController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}",
+    "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branch:long}/room-types/{id:long}/cleaning-items",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress-initialization",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "PUT",
+    "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "PUT",
+    "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress/evidence/{attachment:long}",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "WorkProgressController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress/evidence/{attachment:long}",
+    "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+  },
+  {
+    "controller": "HousekeepingPlanningController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/assignment-options",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+  },
+  {
+    "controller": "HousekeepingPlanningController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/inspection-options",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "PUT",
+    "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "HousekeepingWorkflowController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+    "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+  },
+  {
+    "controller": "OperationalHistoryController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/inspection-history",
+    "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+  },
+  {
+    "controller": "OperationalHistoryController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/inspection-history/{id:long}",
+    "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+  },
+  {
+    "controller": "OperationalHistoryController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/inspection-history/{id:long}/evidence/{attachmentId:long}",
+    "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+  },
+  {
+    "controller": "OperationalHistoryController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/rooms/{roomId:long}/turnover-history",
+    "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+  },
+  {
+    "controller": "OperationalHistoryController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+    "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+  },
+  {
+    "controller": "OperationalHistoryController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+    "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+  },
+  {
+    "controller": "TurnoverHistoryController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/rooms/{roomId:long}/turnover-history",
+    "source": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+  },
+  {
+    "controller": "TurnoverHistoryController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+    "source": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+  },
+  {
+    "controller": "TurnoverHistoryController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+    "source": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+  },
+  {
+    "controller": "InspectionChecklistsController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspection-checklists",
+    "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+  },
+  {
+    "controller": "InspectionChecklistsController",
+    "active": true,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}",
+    "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+  },
+  {
+    "controller": "InspectionChecklistsController",
+    "active": true,
+    "method": "PUT",
+    "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}",
+    "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+  },
+  {
+    "controller": "InspectionChecklistsController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}/publish",
+    "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+  },
+  {
+    "controller": "InspectionChecklistsController",
+    "active": true,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}/retire",
+    "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+  },
+  {
+    "controller": "WorkdaysController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/workdays/current",
+    "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+  },
+  {
+    "controller": "WorkdaysController",
+    "active": false,
+    "method": "GET",
+    "route": "/api/branches/{branchId:long}/workdays/own-shifts",
+    "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+  },
+  {
+    "controller": "WorkdaysController",
+    "active": false,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/workdays",
+    "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+  },
+  {
+    "controller": "WorkdaysController",
+    "active": false,
+    "method": "POST",
+    "route": "/api/branches/{branchId:long}/workdays/{workdayId:long}/end",
+    "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+  }
+]

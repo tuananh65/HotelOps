@@ -1,0 +1,2131 @@
+[
+  {
+    "id": 23,
+    "screen": "Room Readiness Board",
+    "route": "/room-readiness",
+    "feature": "Room Operations (FE-03)",
+    "component": "RoomReadinessBoardScreen",
+    "file": "frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx",
+    "frontendUCs": [
+      "UC-027"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-027",
+        "title": "Manage Operational Room Status",
+        "feature": "FE-03",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Reception occupancy/release contract và model chưa chốt; DEV2 Incident/RoomBlock precedence"
+      }
+    ],
+    "mockService": "REMOVED from board; shell remains prototype",
+    "controllers": "RoomsController",
+    "dto": "RoomDirectoryResponse / RoomDirectoryItemDto",
+    "dbEntities": "Room, Floor, Area, RoomType",
+    "permission": "ROOM_VIEW branch; SQL session initial/final",
+    "gap": "Stored codes only; no approved current-cycle readiness projection",
+    "status": "API_READ_WIRED_NOT_LIVE_ACCEPTED",
+    "apiCandidates": [
+      {
+        "controller": "RoomsController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms",
+        "source": "src/HotelOps.Api/Controllers/RoomsController.cs"
+      },
+      {
+        "controller": "RoomsController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId}",
+        "source": "src/HotelOps.Api/Controllers/RoomsController.cs"
+      },
+      {
+        "controller": "RoomsController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId}/history",
+        "source": "src/HotelOps.Api/Controllers/RoomsController.cs"
+      }
+    ]
+  },
+  {
+    "id": 24,
+    "screen": "Cleaning Task List",
+    "route": "/cleaning/tasks",
+    "feature": "Housekeeping (FE-04)",
+    "component": "CleaningTaskListScreen",
+    "file": "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+    "frontendUCs": [
+      "UC-031",
+      "UC-037"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-031",
+        "title": "Start Cleaning Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Start requires workday/interval and room state; resolver không phải workflow"
+      },
+      {
+        "uc": "UC-037",
+        "title": "Monitor Cleaning Tasks",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "PARTIAL",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Current CleaningMonitorService.ListAsync/DetailAsync read-only; Cancel writer absent; notification/room lifecycle remain missing."
+      }
+    ],
+    "mockService": "src/services.ts: visible, can",
+    "controllers": "CleaningMonitorController (NonController)",
+    "dto": "CleaningMonitorPage / CleaningMonitorDetail",
+    "dbEntities": "CleaningTask, CleaningAssignment, CleaningProgressLog, CleaningRework, Room",
+    "permission": "CLEANING_VIEW branch/global",
+    "gap": "Recovery list/detail inactive; cancel missing",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      }
+    ]
+  },
+  {
+    "id": 25,
+    "screen": "Create Cleaning Task",
+    "route": "/cleaning/tasks/new",
+    "feature": "Housekeeping (FE-04)",
+    "component": "CreateCleaningTaskScreen",
+    "file": "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+    "frontendUCs": [
+      "UC-028"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-028",
+        "title": "Create Cleaning Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Task74 cleaning-item foundation supplied; GBR043/044 room lifecycle/effective-block precedence and DEV2 writer coordination not approved/verified; no create/room-status mutation or points (§22)"
+      }
+    ],
+    "mockService": "src/services.ts: snapshot, save",
+    "controllers": "NONE",
+    "dto": "NONE",
+    "dbEntities": "CleaningTask, Room",
+    "permission": "Pending lifecycle/permission contract",
+    "gap": "No create-cleaning-task HTTP writer",
+    "status": "MOCK_ONLY",
+    "apiCandidates": []
+  },
+  {
+    "id": 26,
+    "screen": "Cleaning Task Detail",
+    "route": "/cleaning/tasks/:id",
+    "feature": "Housekeeping (FE-04)",
+    "component": "CleaningTaskDetailScreen",
+    "file": "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+    "frontendUCs": [
+      "UC-031",
+      "UC-032",
+      "UC-033",
+      "UC-034",
+      "UC-037"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-031",
+        "title": "Start Cleaning Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Start requires workday/interval and room state; resolver không phải workflow"
+      },
+      {
+        "uc": "UC-032",
+        "title": "Update Cleaning Progress",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 2,
+        "creditedPoints": 2,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Task74:87 per-UC HTTPS/SQL checks; scoped current-assignee OWN, distinct frozen cleaning items, notes/private evidence, actual rowversion, 100% not completion, atomic audit/expiry rollback, real race/DMV cancellation and legacy parent revision; §22"
+      },
+      {
+        "uc": "UC-033",
+        "title": "Report Cleaning Blocker",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Report blocker + hold/resume + work interval và room status"
+      },
+      {
+        "uc": "UC-034",
+        "title": "Complete Cleaning Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Complete + interval close + inspection/room state/audit atomic"
+      },
+      {
+        "uc": "UC-037",
+        "title": "Monitor Cleaning Tasks",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "PARTIAL",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Current CleaningMonitorService.ListAsync/DetailAsync read-only; Cancel writer absent; notification/room lifecycle remain missing."
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "WorkProgressController; HousekeepingPlanningController; HousekeepingWorkflowController",
+    "dto": "WorkProgressDto / SaveProgressRequest; HousekeepingPlanningDto; HousekeepingWriteDto",
+    "dbEntities": "CleaningTask, CleaningAssignment, CleaningProgressLog, Room; opt-in progress SQL schema",
+    "permission": "CLEANING_EXECUTE OWN/current assignment; CLEANING_ASSIGN branch",
+    "gap": "Progress/assignment only; start/blocker/complete and lifecycle/time not supplied",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/room-types/{id:long}/cleaning-items",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "HousekeepingPlanningController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/assignment-options",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+      },
+      {
+        "controller": "HousekeepingPlanningController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/inspection-options",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      }
+    ]
+  },
+  {
+    "id": 27,
+    "screen": "Cleaning Assignment",
+    "route": "/cleaning/assignment",
+    "feature": "Housekeeping (FE-04)",
+    "component": "CleaningAssignmentScreen",
+    "file": "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+    "frontendUCs": [
+      "UC-029",
+      "UC-030"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-029",
+        "title": "Assign Cleaning Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "PARTIAL",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Historical cf8fb02 AssignCleaningAsync core exists but writer/controllers/shared partials absent current tree. Notification/lifecycle integration pending; PARTIAL historical evidence, not live route."
+      },
+      {
+        "uc": "UC-030",
+        "title": "Reassign Cleaning Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Assign/reassign + retained Users + close interval + actor eligibility"
+      }
+    ],
+    "mockService": "src/services.ts: visible, inScope, assign",
+    "controllers": "HousekeepingPlanningController; HousekeepingWorkflowController",
+    "dto": "HousekeepingPlanningDto / AssignCleaningRequest / HousekeepingWriteDto",
+    "dbEntities": "CleaningTask, CleaningAssignment, User, ShiftAssignment",
+    "permission": "CLEANING_ASSIGN branch",
+    "gap": "Reassign workflow absent; assignment notification NOT_INTEGRATED",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "HousekeepingPlanningController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/assignment-options",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+      },
+      {
+        "controller": "HousekeepingPlanningController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/inspection-options",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      }
+    ]
+  },
+  {
+    "id": 28,
+    "screen": "Rework Task List",
+    "route": "/rework",
+    "feature": "Housekeeping (FE-04)",
+    "component": "ReworkTaskListScreen",
+    "file": "frontend/src/screens/housekeeping/ReworkTaskListScreen.tsx",
+    "frontendUCs": [
+      "UC-035"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-035",
+        "title": "Receive Rework Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Start rework + original defect/assignee/time checks"
+      }
+    ],
+    "mockService": "src/services.ts: visible, can",
+    "controllers": "CleaningMonitorController (NonController); HousekeepingWorkflowController",
+    "dto": "CleaningMonitorPage / CleaningMonitorDetail; RequestReworkRequest / HousekeepingWriteDto",
+    "dbEntities": "CleaningRework, CleaningTask, RoomInspection, InspectionDefect",
+    "permission": "CLEANING_VIEW read; INSPECTION_PERFORM request",
+    "gap": "Receive/start/complete rework absent; request notification/lifecycle pending",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      }
+    ]
+  },
+  {
+    "id": 29,
+    "screen": "Rework Task Detail",
+    "route": "/rework/:id",
+    "feature": "Housekeeping (FE-04)",
+    "component": "ReworkTaskDetailScreen",
+    "file": "frontend/src/screens/housekeeping/ReworkTaskDetailScreen.tsx",
+    "frontendUCs": [
+      "UC-035",
+      "UC-036"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-035",
+        "title": "Receive Rework Task",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Start rework + original defect/assignee/time checks"
+      },
+      {
+        "uc": "UC-036",
+        "title": "Complete Cleaning Rework",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Complete rework + verification/defect/room state coordination"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "CleaningMonitorController (NonController); HousekeepingWorkflowController",
+    "dto": "CleaningMonitorPage / CleaningMonitorDetail; RequestReworkRequest / HousekeepingWriteDto",
+    "dbEntities": "CleaningRework, CleaningTask, RoomInspection, InspectionDefect",
+    "permission": "CLEANING_VIEW read; INSPECTION_PERFORM request",
+    "gap": "Receive/start/complete rework absent; request notification/lifecycle pending",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      }
+    ]
+  },
+  {
+    "id": 30,
+    "screen": "Room Turnover History",
+    "route": "/rooms/turnover",
+    "feature": "Housekeeping (FE-04)",
+    "component": "RoomTurnoverHistoryScreen",
+    "file": "frontend/src/screens/housekeeping/RoomTurnoverHistoryScreen.tsx",
+    "frontendUCs": [
+      "UC-038"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-038",
+        "title": "View Room Turnover History",
+        "feature": "FE-04",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 2,
+        "creditedPoints": 2,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Production scoped cycle/detail/private evidence; real HTTPS/SQL and revocation/cancellation evidence (§20)"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "OperationalHistoryController active; TurnoverHistoryController inactive replacement",
+    "dto": "OperationalHistoryPage<HistoryCycleDto> / HistoryCycleDetailDto",
+    "dbEntities": "Room, CleaningTask, CleaningAssignment, CleaningProgressLog, RoomInspection, CleaningRework, Attachment",
+    "permission": "CLEANING_VIEW + INSPECTION_VIEW branch",
+    "gap": "Legacy read active; recovered source/evidence/DTO replacement needs review",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "TurnoverHistoryController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history",
+        "source": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+      },
+      {
+        "controller": "TurnoverHistoryController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+      },
+      {
+        "controller": "TurnoverHistoryController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+      }
+    ]
+  },
+  {
+    "id": 31,
+    "screen": "Inspection Checklist List",
+    "route": "/checklists",
+    "feature": "Room Inspection (FE-05)",
+    "component": "InspectionChecklistListScreen",
+    "file": "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+    "frontendUCs": [
+      "UC-039"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-039",
+        "title": "Create Room Inspection Checklist",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 2,
+        "creditedPoints": 2,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Conditionally approved trial extension; SQL-scoped multi-type Draft/create/publish/group/mandatory, atomic audit, fresh/upgrade/replay/fault/rollback verified (§20)"
+      }
+    ],
+    "mockService": "src/services.ts: visible, can",
+    "controllers": "InspectionChecklistsController",
+    "dto": "CreateChecklistRequest / UpdateChecklistRequest / ChecklistDetailsDto",
+    "dbEntities": "InspectionChecklist; opt-in checklist/version/item mappings",
+    "permission": "CHECKLIST_MANAGE branch; cookie session",
+    "gap": "Create/detail/update/publish/retire exist; no collection GET",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspection-checklists",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}/publish",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}/retire",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      }
+    ]
+  },
+  {
+    "id": 32,
+    "screen": "Inspection Checklist Detail",
+    "route": "/checklists/:id",
+    "feature": "Room Inspection (FE-05)",
+    "component": "InspectionChecklistDetailScreen",
+    "file": "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+    "frontendUCs": [
+      "UC-039",
+      "UC-040"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-039",
+        "title": "Create Room Inspection Checklist",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 2,
+        "creditedPoints": 2,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Conditionally approved trial extension; SQL-scoped multi-type Draft/create/publish/group/mandatory, atomic audit, fresh/upgrade/replay/fault/rollback verified (§20)"
+      },
+      {
+        "uc": "UC-040",
+        "title": "Update Room Inspection Checklist",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 3,
+        "creditedPoints": 3,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Real rowversion If-Match; edit Draft/new Draft; immutable published/used content; atomic replacement/retirement; HTTPS/SQL races and historical version preservation verified (§20)"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "InspectionChecklistsController",
+    "dto": "CreateChecklistRequest / UpdateChecklistRequest / ChecklistDetailsDto",
+    "dbEntities": "InspectionChecklist; opt-in checklist/version/item mappings",
+    "permission": "CHECKLIST_MANAGE branch; cookie session",
+    "gap": "Create/detail/update/publish/retire exist; no collection GET",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspection-checklists",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}/publish",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      },
+      {
+        "controller": "InspectionChecklistsController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspection-checklists/{id:long}/retire",
+        "source": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs"
+      }
+    ]
+  },
+  {
+    "id": 33,
+    "screen": "Inspection Queue",
+    "route": "/inspections/queue",
+    "feature": "Room Inspection (FE-05)",
+    "component": "InspectionQueueScreen",
+    "file": "frontend/src/screens/inspections/InspectionQueueScreen.tsx",
+    "frontendUCs": [
+      "UC-041"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-041",
+        "title": "Assign Room Inspection",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "PARTIAL",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Historical cf8fb02 AssignInspectionAsync inspector/SoD/checklist core; absent current tree; notification/replay pending."
+      }
+    ],
+    "mockService": "src/services.ts: visible, can",
+    "controllers": "HousekeepingPlanningController (per cleaning task only)",
+    "dto": "HousekeepingPlanningDto",
+    "dbEntities": "CleaningTask, RoomInspection, User, checklist versions",
+    "permission": "INSPECTION_VIEW planning",
+    "gap": "No inspection queue collection endpoint",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "HousekeepingPlanningController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/assignment-options",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+      },
+      {
+        "controller": "HousekeepingPlanningController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/inspection-options",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs"
+      }
+    ]
+  },
+  {
+    "id": 34,
+    "screen": "Room Inspection",
+    "route": "/inspections/:id/perform",
+    "feature": "Room Inspection (FE-05)",
+    "component": "RoomInspectionScreen",
+    "file": "frontend/src/screens/inspections/RoomInspectionScreen.tsx",
+    "frontendUCs": [
+      "UC-042",
+      "UC-043"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-042",
+        "title": "Perform Room Inspection",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 3,
+        "creditedPoints": 3,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Task73: assigned-inspector Start/Save Draft/Finish, exact frozen version, PASS/FAIL/photo evidence, mandatory/defect validation, Pending Conclusion distinct from conclusion; HTTPS/SQL/rowversion/audit/cancellation verified (§21)"
+      },
+      {
+        "uc": "UC-043",
+        "title": "Record Inspection Defects",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 3,
+        "creditedPoints": 3,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Task73: assigned inspector + failed criterion, severity/location/private evidence links, Inspecting/Pending Conclusion only, concluded rejection, atomic audit/files rollback and stale-write race verified (§21)"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "HousekeepingWorkflowController",
+    "dto": "InspectionExecutionDto / SaveInspectionRequest / RecordInspectionDefectRequest",
+    "dbEntities": "RoomInspection, InspectionItemResult, InspectionDefect, Attachment; checklist versions",
+    "permission": "INSPECTION_PERFORM + assigned inspector",
+    "gap": "read/start/save/finish/defect active; finish is PENDING_CONCLUSION, not approval",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      }
+    ]
+  },
+  {
+    "id": 35,
+    "screen": "Inspection Result",
+    "route": "/inspections/:id/result",
+    "feature": "Room Inspection (FE-05)",
+    "component": "InspectionResultScreen",
+    "file": "frontend/src/screens/inspections/InspectionResultScreen.tsx",
+    "frontendUCs": [
+      "UC-044",
+      "UC-045"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-044",
+        "title": "Approve Room Inspection",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "No Approve writer current or inspected snapshot; ExecuteInspectionAsync finish only PENDING_CONCLUSION, not PASSED/Ready."
+      },
+      {
+        "uc": "UC-045",
+        "title": "Reject Room Inspection",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "No Reject writer current or inspected snapshot; record defect/FAIL criterion is not FAILED conclusion/lifecycle."
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "OperationalHistoryController read; no conclusion writer",
+    "dto": "HistoryInspectionDetailDto",
+    "dbEntities": "RoomInspection, InspectionItemResult, InspectionDefect, CleaningRework",
+    "permission": "INSPECTION_VIEW read; conclusion binding unresolved",
+    "gap": "Approve/reject missing; current-cycle/lifecycle/durable notification blocked",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      }
+    ]
+  },
+  {
+    "id": 36,
+    "screen": "Request Rework",
+    "route": "/inspections/:id/rework",
+    "feature": "Room Inspection (FE-05)",
+    "component": "RequestReworkScreen",
+    "file": "frontend/src/screens/inspections/RequestReworkScreen.tsx",
+    "frontendUCs": [
+      "UC-046"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-046",
+        "title": "Request Cleaning Rework",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "PARTIAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Historical cf8fb02 RequestCleaningReworkAsync and selected-defect links; absent current tree; no delivery/retry integration."
+      }
+    ],
+    "mockService": "src/services.ts: snapshot, save",
+    "controllers": "CleaningMonitorController (NonController); HousekeepingWorkflowController",
+    "dto": "CleaningMonitorPage / CleaningMonitorDetail; RequestReworkRequest / HousekeepingWriteDto",
+    "dbEntities": "CleaningRework, CleaningTask, RoomInspection, InspectionDefect",
+    "permission": "CLEANING_VIEW read; INSPECTION_PERFORM request",
+    "gap": "Receive/start/complete rework absent; request notification/lifecycle pending",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "CleaningMonitorController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/cleaning-monitor/{kind}/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/execution",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/start",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/results",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/finish",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/defects",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      },
+      {
+        "controller": "HousekeepingWorkflowController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/inspections/{id:long}/reworks",
+        "source": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs"
+      }
+    ]
+  },
+  {
+    "id": 37,
+    "screen": "Reinspection",
+    "route": "/inspections/:id/reinspect",
+    "feature": "Room Inspection (FE-05)",
+    "component": "ReinspectionScreen",
+    "file": "frontend/src/screens/inspections/ReinspectionScreen.tsx",
+    "frontendUCs": [
+      "UC-047"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-047",
+        "title": "Reinspect Room",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Exception/reinspection path + current-cycle evidence/SoD"
+      }
+    ],
+    "mockService": "src/services.ts: visible, createReinspection",
+    "controllers": "OperationalHistoryController read; no conclusion writer",
+    "dto": "HistoryInspectionDetailDto",
+    "dbEntities": "RoomInspection, InspectionItemResult, InspectionDefect, CleaningRework",
+    "permission": "INSPECTION_VIEW read; conclusion binding unresolved",
+    "gap": "Approve/reject missing; current-cycle/lifecycle/durable notification blocked",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      }
+    ]
+  },
+  {
+    "id": 38,
+    "screen": "Inspection History",
+    "route": "/inspections/history",
+    "feature": "Room Inspection (FE-05)",
+    "component": "InspectionHistoryScreen",
+    "file": "frontend/src/screens/inspections/InspectionHistoryScreen.tsx",
+    "frontendUCs": [
+      "UC-048"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-048",
+        "title": "View Room Inspection History",
+        "feature": "FE-05",
+        "owner": "DEV1",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 2,
+        "creditedPoints": 2,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Production SQL-scoped filters/detail/exact historical criteria/results/reworks/private evidence; HTTPS/SQL verified (§20)"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "OperationalHistoryController",
+    "dto": "OperationalHistoryPage<HistoryInspectionDto> / HistoryInspectionDetailDto",
+    "dbEntities": "RoomInspection, CleaningTask, InspectionItemResult, InspectionDefect, Attachment",
+    "permission": "INSPECTION_VIEW branch",
+    "gap": "Read exists; no new historical UC credit",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/inspection-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      },
+      {
+        "controller": "OperationalHistoryController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+        "source": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs"
+      }
+    ]
+  },
+  {
+    "id": 47,
+    "screen": "Reference Data",
+    "route": "/reference-data",
+    "feature": "Incident & Maintenance (FE-06), Task (FE-11)",
+    "component": "ReferenceDataScreen",
+    "file": "frontend/src/screens/maintenance/ReferenceDataScreen.tsx",
+    "frontendUCs": [
+      "UC-063",
+      "UC-064"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-063",
+        "title": "Manage Work Categories",
+        "feature": "FE-06 + FE-11",
+        "owner": "SHARED",
+        "classification": "NOT_ASSESSED_OUTSIDE_CODEX_A_LEDGER",
+        "weight": null,
+        "creditedPoints": null,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "DEV2/other owner handover required; no Codex A credit claim"
+      },
+      {
+        "uc": "UC-064",
+        "title": "Manage Operational Reference Data",
+        "feature": "FE-06 + FE-11",
+        "owner": "SHARED",
+        "classification": "NOT_ASSESSED_OUTSIDE_CODEX_A_LEDGER",
+        "weight": null,
+        "creditedPoints": null,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "DEV2/other owner handover required; no Codex A credit claim"
+      }
+    ],
+    "mockService": "src/services.ts: visible, can",
+    "controllers": "NONE in DEV1 controllers",
+    "dto": "NONE",
+    "dbEntities": "WorkCategory, TaskPriority (schema reference only)",
+    "permission": "DEV2/DEV1 contract review",
+    "gap": "Do not reuse unrelated structure API",
+    "status": "MOCK_ONLY",
+    "apiCandidates": []
+  },
+  {
+    "id": 66,
+    "screen": "Task List",
+    "route": "/tasks",
+    "feature": "Task Assignment (FE-11)",
+    "component": "TaskListScreen",
+    "file": "frontend/src/screens/tasks/TaskListScreen.tsx",
+    "frontendUCs": [
+      "UC-102",
+      "UC-107"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-102",
+        "title": "Create Operational Task",
+        "feature": "FE-11",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Recurring series/JOB05/completion criteria model missing; ad-hoc alone partial"
+      },
+      {
+        "uc": "UC-107",
+        "title": "Accept Assigned Task",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Accept/decline + assigned actor + status/concurrency/audit"
+      }
+    ],
+    "mockService": "src/services.ts: visible, can, generateRecurringTasks",
+    "controllers": "WorkProgressController only",
+    "dto": "WorkProgressDto / SaveProgressRequest / InitializeProgressRequest",
+    "dbEntities": "OperationalTask, OperationalTaskAssignment, OperationalTaskProgress; opt-in progress schema",
+    "permission": "TASK_EXECUTE OWN/current assignment; TASK_MANAGE initialization",
+    "gap": "No task collection/create/assign/accept/start/pause/complete endpoints; progress is not full workflow",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/room-types/{id:long}/cleaning-items",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      }
+    ]
+  },
+  {
+    "id": 67,
+    "screen": "Task Detail",
+    "route": "/tasks/:id",
+    "feature": "Task Assignment (FE-11)",
+    "component": "TaskDetailScreen",
+    "file": "frontend/src/screens/tasks/TaskDetailScreen.tsx",
+    "frontendUCs": [
+      "UC-103",
+      "UC-105",
+      "UC-106",
+      "UC-107",
+      "UC-108",
+      "UC-109",
+      "UC-110",
+      "UC-111",
+      "UC-112"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-103",
+        "title": "Set Task Priority and Deadline",
+        "feature": "FE-11",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Priority/deadline/cancel includes recurrence stop; source planning fields only"
+      },
+      {
+        "uc": "UC-105",
+        "title": "Review and Verify Task Completion",
+        "feature": "FE-11",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Pending Verification/Closed/Return semantics differ SQL status support; decision required"
+      },
+      {
+        "uc": "UC-106",
+        "title": "Reopen Assigned Task",
+        "feature": "FE-11",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Reopen verification cycle/status + last eligible assignee needs approved mapping"
+      },
+      {
+        "uc": "UC-107",
+        "title": "Accept Assigned Task",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Accept/decline + assigned actor + status/concurrency/audit"
+      },
+      {
+        "uc": "UC-108",
+        "title": "Start Assigned Task",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Start requires Working workday + one open interval; models missing"
+      },
+      {
+        "uc": "UC-109",
+        "title": "Update Task Progress",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "COMPLETE_VERIFIED_V1",
+        "weight": 2,
+        "creditedPoints": 2,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Task74:89 per-UC HTTPS/SQL checks; IN_PROGRESS/explicit PAUSED current assignee, immutable completion criteria/results, private evidence, rowversion/audit/expiry rollback, real race/DMV cancellation; no fake time or auto-completion; §22"
+      },
+      {
+        "uc": "UC-110",
+        "title": "Pause/Resume Task",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Pause/resume opens/closes intervals; no interval model"
+      },
+      {
+        "uc": "UC-111",
+        "title": "Record Actual Working Time",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Task77 A1 interval/correction model and math SQL foundation verified; no complete own time-log/correction API, permission/SoD/notification workflow or PM integration;0 earned."
+      },
+      {
+        "uc": "UC-112",
+        "title": "Complete Assigned Task",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Complete -> Pending Verification + close interval + criteria/evidence missing mapping"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "WorkProgressController only",
+    "dto": "WorkProgressDto / SaveProgressRequest / InitializeProgressRequest",
+    "dbEntities": "OperationalTask, OperationalTaskAssignment, OperationalTaskProgress; opt-in progress schema",
+    "permission": "TASK_EXECUTE OWN/current assignment; TASK_MANAGE initialization",
+    "gap": "No task collection/create/assign/accept/start/pause/complete endpoints; progress is not full workflow",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/room-types/{id:long}/cleaning-items",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      }
+    ]
+  },
+  {
+    "id": 68,
+    "screen": "Task Assignment",
+    "route": "/tasks/assignment",
+    "feature": "Task Assignment (FE-11)",
+    "component": "TaskAssignmentScreen",
+    "file": "frontend/src/screens/tasks/TaskAssignmentScreen.tsx",
+    "frontendUCs": [
+      "UC-104"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-104",
+        "title": "Assign/Reassign Task",
+        "feature": "FE-11",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Reassign closes work interval; interval model/contract required"
+      }
+    ],
+    "mockService": "src/services.ts: visible, inScope, assign",
+    "controllers": "WorkProgressController only",
+    "dto": "WorkProgressDto / SaveProgressRequest / InitializeProgressRequest",
+    "dbEntities": "OperationalTask, OperationalTaskAssignment, OperationalTaskProgress; opt-in progress schema",
+    "permission": "TASK_EXECUTE OWN/current assignment; TASK_MANAGE initialization",
+    "gap": "No task collection/create/assign/accept/start/pause/complete endpoints; progress is not full workflow",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/room-types/{id:long}/cleaning-items",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "POST",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "PUT",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/cleaning-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      },
+      {
+        "controller": "WorkProgressController",
+        "active": true,
+        "method": "GET",
+        "route": "/api/branches/{branch:long}/operational-tasks/{id:long}/progress/evidence/{attachment:long}",
+        "source": "src/HotelOps.Api/Controllers/WorkProgressController.cs"
+      }
+    ]
+  },
+  {
+    "id": 69,
+    "screen": "Workload & Time Logs",
+    "route": "/workload",
+    "feature": "Task Assignment (FE-11), Work-Time (FE-12)",
+    "component": "WorkloadTimeLogsScreen",
+    "file": "frontend/src/screens/tasks/WorkloadTimeLogsScreen.tsx",
+    "frontendUCs": [
+      "UC-113"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-113",
+        "title": "Review Task Workload and Time Logs",
+        "feature": "FE-11 + FE-12",
+        "owner": "SHARED",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Effort from intervals not ShiftAttendance duration; model missing"
+      }
+    ],
+    "mockService": "src/services.ts: currentUser, visible, inScope, branchContext, can, applyCorrection, requestCorrection",
+    "controllers": "NONE (WorkdaysController inactive belongs DEV3)",
+    "dto": "NONE for workload report",
+    "dbEntities": "OperationalTask, CleaningTask; Workday/WorkInterval partial mapping",
+    "permission": "Unresolved report contract; no invented permission",
+    "gap": "No workload report; elapsed assignment time is not effort",
+    "status": "MOCK_ONLY",
+    "apiCandidates": [
+      {
+        "controller": "WorkdaysController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/workdays/current",
+        "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+      },
+      {
+        "controller": "WorkdaysController",
+        "active": false,
+        "method": "GET",
+        "route": "/api/branches/{branchId:long}/workdays/own-shifts",
+        "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+      },
+      {
+        "controller": "WorkdaysController",
+        "active": false,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/workdays",
+        "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+      },
+      {
+        "controller": "WorkdaysController",
+        "active": false,
+        "method": "POST",
+        "route": "/api/branches/{branchId:long}/workdays/{workdayId:long}/end",
+        "source": "src/HotelOps.Api/Controllers/WorkdaysController.cs"
+      }
+    ]
+  },
+  {
+    "id": 70,
+    "screen": "Overdue Work",
+    "route": "/overdue",
+    "feature": "Task Assignment (FE-11)",
+    "component": "OverdueWorkScreen",
+    "file": "frontend/src/screens/tasks/OverdueWorkScreen.tsx",
+    "frontendUCs": [
+      "UC-127"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-127",
+        "title": "Receive Overdue Work Alerts",
+        "feature": "FE-14",
+        "owner": "DEV2",
+        "classification": "NOT_ASSESSED_OUTSIDE_CODEX_A_LEDGER",
+        "weight": null,
+        "creditedPoints": null,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "DEV2/other owner handover required; no Codex A credit claim"
+      }
+    ],
+    "mockService": "src/services.ts: currentUser, visible, inScope, can, applyCorrection, requestCorrection",
+    "controllers": "NONE",
+    "dto": "NONE",
+    "dbEntities": "OperationalTask, CleaningTask, Notification",
+    "permission": "UC127 belongs FE14 DEV2; frontend label is not permission",
+    "gap": "No overdue aggregation/notification contract; shared screen",
+    "status": "MOCK_ONLY",
+    "apiCandidates": []
+  },
+  {
+    "id": 76,
+    "screen": "Internal Request List",
+    "route": "/internal-requests",
+    "feature": "Internal Request (FE-13)",
+    "component": "InternalRequestListScreen",
+    "file": "frontend/src/screens/internalRequests/InternalRequestListScreen.tsx",
+    "frontendUCs": [
+      "UC-114",
+      "UC-123"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-114",
+        "title": "Create Internal Request",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Create request + receiving branch department + notifications/audit"
+      },
+      {
+        "uc": "UC-123",
+        "title": "View Internal Request History",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "History includes withdraw write and authorized linked work; not read-only list alone"
+      }
+    ],
+    "mockService": "src/services.ts: visible, can",
+    "controllers": "NONE",
+    "dto": "NONE",
+    "dbEntities": "InternalRequest, InternalRequestAssignment, InternalRequestEvent, InternalRequestFeedback",
+    "permission": "Permission/scope/withdrawal bindings unresolved",
+    "gap": "No internal request HTTP workflow/history/withdrawal endpoint",
+    "status": "MOCK_ONLY",
+    "apiCandidates": []
+  },
+  {
+    "id": 77,
+    "screen": "Internal Request Detail",
+    "route": "/internal-requests/:id",
+    "feature": "Internal Request (FE-13)",
+    "component": "InternalRequestDetailScreen",
+    "file": "frontend/src/screens/internalRequests/InternalRequestDetailScreen.tsx",
+    "frontendUCs": [
+      "UC-115",
+      "UC-116",
+      "UC-117",
+      "UC-118",
+      "UC-119",
+      "UC-120",
+      "UC-121",
+      "UC-122",
+      "UC-123"
+    ],
+    "ledger": [
+      {
+        "uc": "UC-115",
+        "title": "Route and Assign Internal Request",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Route/assign + authoritative handler reread + Users lock + notification"
+      },
+      {
+        "uc": "UC-116",
+        "title": "Accept/Reject Internal Request",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Accept/reject + scoped DH policy + atomic decision/audit"
+      },
+      {
+        "uc": "UC-117",
+        "title": "Update Internal Request Progress",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Progress/deadline change + reason/notification/audit"
+      },
+      {
+        "uc": "UC-118",
+        "title": "Create Linked Operational Work",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Generic mandatory linked work contract/storage absent; DEV2 Incident/MR adapters"
+      },
+      {
+        "uc": "UC-119",
+        "title": "Record Request Handover",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Acknowledged handover must retain sender until receiver accepts; model absent"
+      },
+      {
+        "uc": "UC-120",
+        "title": "Complete Internal Request",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Close requires mandatory linked work closed/no pending handover; model/contract required"
+      },
+      {
+        "uc": "UC-121",
+        "title": "Reopen Internal Request",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 5,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Reopen window/cycle + last handler eligible; approved policy needed"
+      },
+      {
+        "uc": "UC-122",
+        "title": "Escalate Overdue Internal Request",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "BLOCKED_EXTERNAL",
+        "weight": 3,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "Escalation alert requires acknowledgment; DEV2 notification contract/storage dependency"
+      },
+      {
+        "uc": "UC-123",
+        "title": "View Internal Request History",
+        "feature": "FE-13",
+        "owner": "DEV1",
+        "classification": "NOT_IMPLEMENTED",
+        "weight": 2,
+        "creditedPoints": 0,
+        "currentRuntime": "NOT_REACCEPTED_BY_HANDOVER",
+        "evidence": "History includes withdraw write and authorized linked work; not read-only list alone"
+      }
+    ],
+    "mockService": "src/services.ts: visible",
+    "controllers": "NONE",
+    "dto": "NONE",
+    "dbEntities": "InternalRequest, InternalRequestAssignment, InternalRequestEvent, InternalRequestFeedback",
+    "permission": "Permission/scope/withdrawal bindings unresolved",
+    "gap": "No internal request HTTP workflow/history/withdrawal endpoint",
+    "status": "MOCK_ONLY",
+    "apiCandidates": []
+  }
+]

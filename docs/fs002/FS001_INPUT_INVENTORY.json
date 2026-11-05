@@ -1,0 +1,252 @@
+[
+  {
+    "file": "docs/fullstack-integration/API_ROUTES.json",
+    "bytes": 28114,
+    "sha256": "27b10d095606045bb36f7f06de46781ecca2727044da36e9fd354edac97abfc6"
+  },
+  {
+    "file": "docs/fullstack-integration/AUTH_SESSION_API_CONTRACT.md",
+    "bytes": 1506,
+    "sha256": "946f830a58cb91f09ef46d938f7c79be9a859338ba102d46e6ec5636190681f5"
+  },
+  {
+    "file": "docs/fullstack-integration/BACKEND_SOURCE_DECISIONS.json",
+    "bytes": 19305,
+    "sha256": "e7d3becba22c52867c4a8823ecb13b159daeae70bcecf93221c311d29991d1e0"
+  },
+  {
+    "file": "docs/fullstack-integration/BE_BUILD_FINAL.txt",
+    "bytes": 552,
+    "sha256": "228b35077197d31b5c3094f0576e3d13e80f4b2d918d22c87a710a4fc85f75b3"
+  },
+  {
+    "file": "docs/fullstack-integration/BE_FRAMEWORK_TEST.txt",
+    "bytes": 1938,
+    "sha256": "cc6865bf32033e65de9e3b9a38f0748c3514675b18edade95c896ce1f052f6e6"
+  },
+  {
+    "file": "docs/fullstack-integration/BE_SOLUTION_TEST.txt",
+    "bytes": 166,
+    "sha256": "ddf68db3d8d2f9572a71c51f3f3fdb8d71553978fea549cde378875132e4b7b4"
+  },
+  {
+    "file": "docs/fullstack-integration/BRANCH_INTEGRATION_HISTORY.md",
+    "bytes": 1295,
+    "sha256": "1547bfba5724e46b67d954b7e5ec51cae67427a195f93729dbcbc88221d51754"
+  },
+  {
+    "file": "docs/fullstack-integration/BUILD_TEST_RESULTS.md",
+    "bytes": 2229,
+    "sha256": "15ba4fe982597e18269f0ebddae8aedffbbd613d6de01db8a7804013c77fae5e"
+  },
+  {
+    "file": "docs/fullstack-integration/CHANGESET_FILES.txt",
+    "bytes": 23401,
+    "sha256": "c755485f32fb139e7ef91331717db101d3892fcddfe43fc9def6b740d796799e"
+  },
+  {
+    "file": "docs/fullstack-integration/DEV1_NEXT_ACTIONS.md",
+    "bytes": 1006,
+    "sha256": "48a968201529aeb8315e5a4e04c70d8ef3f39bbd960b2bbebc735b6c1da13739"
+  },
+  {
+    "file": "docs/fullstack-integration/DEV3_ONBOARDING.md",
+    "bytes": 2571,
+    "sha256": "0c396da257411b90672209600d656cde1a8d95270da9a71ba0974c4dc053d2ff"
+  },
+  {
+    "file": "docs/fullstack-integration/DEV_OWNERSHIP_MATRIX.md",
+    "bytes": 995,
+    "sha256": "f4b578493cf5f4ac83294c6ecc3ae3230cb03f1a938ee1f178f60381dccad33c"
+  },
+  {
+    "file": "docs/fullstack-integration/DI_PROBE.txt",
+    "bytes": 386,
+    "sha256": "422081b8cc22018914401ba0b2965e77985cc5844fb62a3006a6ed9455bc83c7"
+  },
+  {
+    "file": "docs/fullstack-integration/DI_PROBE_ENVIRONMENT_FAILURE.txt",
+    "bytes": 2670,
+    "sha256": "0ca0377dd2772b1fec0f05fe14024eb897bad33f76af7409a0c26888fd94f883"
+  },
+  {
+    "file": "docs/fullstack-integration/DI_PROBE_INITIAL.txt",
+    "bytes": 1752,
+    "sha256": "571693578f687d3f0b20f49d22472cca853c959a309b36fe1235b9548b7996a3"
+  },
+  {
+    "file": "docs/fullstack-integration/DI_PROBE_PATH_FAILURE.txt",
+    "bytes": 2916,
+    "sha256": "a2829f74959329e260a06188118da374285f3613c5849ce1e98f1b589acefdfd"
+  },
+  {
+    "file": "docs/fullstack-integration/DI_REPRODUCIBLE_PROBE.txt",
+    "bytes": 386,
+    "sha256": "422081b8cc22018914401ba0b2965e77985cc5844fb62a3006a6ed9455bc83c7"
+  },
+  {
+    "file": "docs/fullstack-integration/ENVIRONMENT_SETUP.md",
+    "bytes": 1849,
+    "sha256": "9e4837ae63e6d6a8d0ecfd9f28adef15b0ca5f07e651aaac9fce4d6016d199fc"
+  },
+  {
+    "file": "docs/fullstack-integration/FE_BUILD.txt",
+    "bytes": 3746,
+    "sha256": "ecddde4625f9d211822f953a982774d6eeae5f1be861b9dc52a8ec44ccd96d39"
+  },
+  {
+    "file": "docs/fullstack-integration/FE_BUILD_FINAL.txt",
+    "bytes": 3746,
+    "sha256": "affd4a4b8189ea8281a789da5d237d137f919ecb59fa10a3f37c3335ff7d8702"
+  },
+  {
+    "file": "docs/fullstack-integration/FE_LINT.txt",
+    "bytes": 12342,
+    "sha256": "18dd6612d3a6db12af1459b29d41bd895e417e05799d12931dc8adbfc027c5c5"
+  },
+  {
+    "file": "docs/fullstack-integration/FE_TEST.txt",
+    "bytes": 3372,
+    "sha256": "36522cdb548156a974c9b4230409f56c0070a237b6b9277aa4a18420254588e2"
+  },
+  {
+    "file": "docs/fullstack-integration/framework-results/fs001.trx",
+    "bytes": 125488,
+    "sha256": "332bcdf5880c157d7818a529d03d0bc2e807f3470cdc5b4aa9aeec7886271ab2"
+  },
+  {
+    "file": "docs/fullstack-integration/FRAMEWORK_SUMMARY.json",
+    "bytes": 573,
+    "sha256": "041d239f476b55f78fd3198a0861eb1078b6801e619643deab7ca9474d5454f3"
+  },
+  {
+    "file": "docs/fullstack-integration/FRONTEND_EXCLUDED_DIFF.txt",
+    "bytes": 110248,
+    "sha256": "8178865913f45098a21873eb936e1a1fe2d136f49849091018068d6333eae9e6"
+  },
+  {
+    "file": "docs/fullstack-integration/FRONTEND_IMPORTED_FILES.json",
+    "bytes": 15340,
+    "sha256": "42b647bc853d8e599882be00a73d64f85cda27a8e0bbb0e90a99187ca72fda9c"
+  },
+  {
+    "file": "docs/fullstack-integration/FRONTEND_INVENTORY.md",
+    "bytes": 1684,
+    "sha256": "98a37e6062e9014129350dd12a434790331bc61d74b321e966618389f2d62164"
+  },
+  {
+    "file": "docs/fullstack-integration/FRONTEND_PACKAGE_VERSIONS.json",
+    "bytes": 165,
+    "sha256": "b85804e5640e59f33d1e1d22b814ac0fe550b580e6b7ac4a4aea714654a30d69"
+  },
+  {
+    "file": "docs/fullstack-integration/FS001_VALIDATION.json",
+    "bytes": 2300,
+    "sha256": "98e9266cf21885b3bed5e755827bf7bf8a72afb10d7dc82fd71cc17c699f7b39"
+  },
+  {
+    "file": "docs/fullstack-integration/HANDOVER_READ_MANIFEST.json",
+    "bytes": 261374,
+    "sha256": "df8efbc55f16191d3cef7ab4280436f9bd924d5f8335f798fcf42b4c018f3425"
+  },
+  {
+    "file": "docs/fullstack-integration/KNOWN_BLOCKERS.md",
+    "bytes": 1063,
+    "sha256": "63a87da40b8eea81ad020a1c8604b7c355732e080ca28c095c5667ed349895a6"
+  },
+  {
+    "file": "docs/fullstack-integration/LEGACY_BACKEND_RECONCILIATION.md",
+    "bytes": 2392,
+    "sha256": "62c8cc7ac0db3d1abfc55d29590e725e38efa373eaaf45a6d60e39a65d233ee5"
+  },
+  {
+    "file": "docs/fullstack-integration/LOCAL_REFS_BEFORE.txt",
+    "bytes": 1182,
+    "sha256": "f20d3c965365a0f8a37692b95a4a0745363931cdaa2c094dec0789311950979e"
+  },
+  {
+    "file": "docs/fullstack-integration/PENDING_APPROVALS.md",
+    "bytes": 1349,
+    "sha256": "8011bccf779ee003e51ff16775be805637afb8699d0d154bf103aa8ec9708e26"
+  },
+  {
+    "file": "docs/fullstack-integration/PUBLICATION.md",
+    "bytes": 1686,
+    "sha256": "8220e5f4d33de8c0f0f711434aa2709a29f10d9c050203728ba63b8e2475cf43"
+  },
+  {
+    "file": "docs/fullstack-integration/README.md",
+    "bytes": 905,
+    "sha256": "7849d23968c2ec367a5f695ad8c583cd4e3a114a4e4aaa0bcb0a20cba659cf17"
+  },
+  {
+    "file": "docs/fullstack-integration/REMOTE_REFS_BEFORE.txt",
+    "bytes": 2530,
+    "sha256": "5b94af26cf8eb937aff730d80808b55026d866837f265041a9b5897e5d7ca0b0"
+  },
+  {
+    "file": "docs/fullstack-integration/SCREEN_UC_API_MAPPING.md",
+    "bytes": 21876,
+    "sha256": "8fb05e7677649b326782c1697770e2869dd1f100d4eb3607f70bcf8a18acd0f4"
+  },
+  {
+    "file": "docs/fullstack-integration/SECRET_CANDIDATES.json",
+    "bytes": 1103,
+    "sha256": "b59ec535cc9100acc19a7a8a3b85dcc16d731edf7b99d5bd154d070413d04dda"
+  },
+  {
+    "file": "docs/fullstack-integration/SECRET_REVIEW.json",
+    "bytes": 1608,
+    "sha256": "49dd94e166f274d6c2ed7978420634b1e685c7e6e8415af11934157e29f6cdcb"
+  },
+  {
+    "file": "docs/fullstack-integration/SOURCE_BASELINE.md",
+    "bytes": 1247,
+    "sha256": "ccce44aede8bc715707c05a6b9c949c9155bb240b032847b48995124494e9cb7"
+  },
+  {
+    "file": "docs/fullstack-integration/SOURCE_FILE_OWNERSHIP.csv",
+    "bytes": 30528,
+    "sha256": "a2bd0e1f565c949ff302d9d1696b7040227c8bbac40c567e3b413a196062633f"
+  },
+  {
+    "file": "docs/fullstack-integration/SOURCE_INTEGRITY.json",
+    "bytes": 375,
+    "sha256": "bdefe3c5e902d8b3a8d5608b7822e2114c3eda24e58b2c0c1ae0a26fbbfb90ed"
+  },
+  {
+    "file": "docs/fullstack-integration/SOURCE_REFS.json",
+    "bytes": 341,
+    "sha256": "9c4577c2bbf66ce3b00a4f25577c6499817fc319537eab87095905a2d1bf7aa4"
+  },
+  {
+    "file": "docs/fullstack-integration/STAGED_DIFF_CHECK.txt",
+    "bytes": 5198,
+    "sha256": "eb0a234a00b5900a2041585a0282a89a32d8abdd8805fd08b6ed7a35bee9202f"
+  },
+  {
+    "file": "docs/fullstack-integration/STAGED_SECRET_REVIEW.json",
+    "bytes": 1062,
+    "sha256": "0750e1020ad7e5cf72d0a97c48a577aee49768f836d43c8e7b0dc97851232dd1"
+  },
+  {
+    "file": "docs/fullstack-integration/UC_LEDGER_SUMMARY.md",
+    "bytes": 626,
+    "sha256": "41b153c2d9586a225c32c7ab11d2a93b0f5720bc43eb66e8e18cfdca49b06c2e"
+  },
+  {
+    "file": "docs/fullstack-integration/verify-di.cjs",
+    "bytes": 4420,
+    "sha256": "41d0b9a0494215ce02992aaf82ab272ca91e07d366e1b6e16c888fd5c56d10fd"
+  },
+  {
+    "file": "docs/fullstack-integration/WORKTREES_BEFORE.json",
+    "bytes": 694088,
+    "sha256": "4890d8aaa6ef595c2c3d734f6e720287ecfcb646b20b6f12009bfb02699712fc"
+  },
+  {
+    "file": "docs/fullstack-integration/WORKTREE_INTEGRITY.json",
+    "bytes": 1263,
+    "sha256": "7b1d2cec7a922d319981ac54184b47422d77ffa1e76132ca1605a2b30cebbd21"
+  }
+]
