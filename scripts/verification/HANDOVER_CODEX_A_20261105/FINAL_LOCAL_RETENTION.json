@@ -1,0 +1,24 @@
+﻿{
+    "localOnlyAdditionalPayloads":  {
+                                        "additionalSchemaScriptUniqueBlobs":  26,
+                                        "ignoredEvidenceUniqueBlobs":  1597
+                                    },
+    "protectedSqlAccess":  false,
+    "noWorkaround":  true,
+    "publishedSourceVerified":  true,
+    "sourceCommit":  "e859006fcff91b1b913b18c27844a73809a18d8a",
+    "index":  [
+
+              ],
+    "reason":  "Automatic approval review rejected bulk historical archive publication; ownership/sensitivity not fully established",
+    "userApprovalRequested":  true,
+    "localPayloadInventoryFiles":  [
+                                       "IGNORED_EVIDENCE_INVENTORY.json",
+                                       "ADDITIONAL_SCRATCH_INVENTORY.json"
+                                   ],
+    "status":  "INTENTIONAL_LOCAL_RETENTION_APPROVED_BY_USER",
+    "productionDiff":  [
+
+                       ],
+    "userDecision":  "Giữ local, bàn giao inventory/hash"
+}

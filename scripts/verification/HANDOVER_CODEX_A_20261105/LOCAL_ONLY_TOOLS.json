@@ -1,0 +1,26 @@
+﻿{
+    "scope":  "Supplementary local-only archival preparation tools/lists",
+    "files":  [
+                  {
+                      "path":  "Preserve-IgnoredEvidence.ps1",
+                      "sha256":  "2E691E1179E61DB2B05D76789AE32350161B3CAC69170D71343B46E5FA13B1A2",
+                      "bytes":  2974
+                  },
+                  {
+                      "path":  "Preserve-AdditionalScratch.ps1",
+                      "sha256":  "18788C61C33D6CFB76E8ABFBF1D73633844DD15D427A9B33488539C4ACF1FB93",
+                      "bytes":  2982
+                  },
+                  {
+                      "path":  "IGNORED_EVIDENCE_PATHS.json",
+                      "sha256":  "21C726F13DA74740D4A45CF7407FECB5E258025A208BAB90AAAE4A833F91822A",
+                      "bytes":  456065
+                  },
+                  {
+                      "path":  "ADDITIONAL_SCRATCH_PATHS.json",
+                      "sha256":  "43A66C7CD57EEB51304D32A3C632679416DBC4905950EBEC1ABEF8A345E25E94",
+                      "bytes":  49086
+                  }
+              ],
+    "userDecision":  "Keep local, publish inventory/hash only"
+}

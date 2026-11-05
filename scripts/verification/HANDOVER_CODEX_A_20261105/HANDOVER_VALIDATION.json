@@ -10,7 +10,7 @@
                       "passed":  91
                   },
     "permissions":  "Git index writes required sandbox escalation; authorized by explicit handover request",
-    "publication":  "READY_FOR_AUTHORIZED_COMMIT_AND_PUSH; exact result in PUBLICATION_RECEIPT.json",
+    "publication":  "Source snapshot e859006fcff91b1b913b18c27844a73809a18d8a pushed and verified. User chose LOCAL retention for supplementary archive contents; metadata-only receipt/inventory commit follows. Final remote SHA is verified at completion.",
     "build":  "Passed",
     "newSqlAccess":  false,
     "productionChangedDuringHandover":  [
@@ -63,5 +63,33 @@
                           "NU1900",
                           "NU1900"
                       ],
-    "productionFallbackChecks":  93
+    "productionFallbackChecks":  93,
+    "historicalLedger":  {
+                             "complete":  26,
+                             "creditedPoints":  60,
+                             "totalUCs":  75,
+                             "partial":  10,
+                             "blockedExternal":  21,
+                             "notImplemented":  18,
+                             "totalWeight":  256
+                         },
+    "supplementaryArchives":  {
+                                  "ignoredEvidenceUnique":  1597,
+                                  "sqlExecuted":  false,
+                                  "additionalSchemaScriptsUnique":  26,
+                                  "credentialsFindingPaths":  0
+                              },
+    "approvalReview":  {
+                           "action":  "Publish newly discovered historical ignored-evidence/SQL-schema archive payloads",
+                           "rejected":  true,
+                           "explicitUserApprovalRequested":  true,
+                           "workaroundAttempted":  false,
+                           "reason":  "Codex A ownership and full sensitivity not sufficiently established; broad sensitive egress not specifically authorized",
+                           "archivePayloadsKeptLocal":  [
+                                                            "ignored-evidence-archive/",
+                                                            "additional-scratch-archive/"
+                                                        ],
+                           "resolution":  "User explicitly chose: Giữ local, bàn giao inventory/hash",
+                           "pendingApproval":  false
+                       }
 }

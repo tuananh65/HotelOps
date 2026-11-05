@@ -1,0 +1,15 @@
+﻿{
+    "url":  "https://github.com/tuananh65/HotelOps/tree/handoff/codex-a-20261105",
+    "branch":  "handoff/codex-a-20261105",
+    "protectedDatabaseAccess":  false,
+    "branchSwitched":  false,
+    "note":  "Source preservation snapshot pushed and verified. Publication receipt follows in an evidence-only commit.",
+    "sourceCommit":  "e859006fcff91b1b913b18c27844a73809a18d8a",
+    "forcePush":  false,
+    "recordedUtc":  "2026-11-05T08:57:46.7929065Z",
+    "remoteSha":  "e859006fcff91b1b913b18c27844a73809a18d8a",
+    "verified":  true,
+    "status":  "SOURCE_PUBLICATION_VERIFIED_SUPPLEMENT_LOCAL_BY_USER_DECISION",
+    "supplement":  "User chose LOCAL retention for1597 historical evidence archives +26 schema/review script archives and companion preparation tools; only metadata inventories/hashes and receipt published in the evidence child commit.",
+    "userDecision":  "Giữ local, bàn giao inventory/hash"
+}

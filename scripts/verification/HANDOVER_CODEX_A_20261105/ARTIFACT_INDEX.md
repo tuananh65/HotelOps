@@ -19,3 +19,15 @@
 - PUBLICATION_RECEIPT.json:added after initial push, identifies exact source commit and remote verification.
 
 Historical Task75–87 source/evidence remain in their original verification directories; private instance literals are sanitized in the exported Git snapshot. No fresh SQL acceptance is claimed. No build output, dumps or private certificates are packaged.
+
+Supplemental audit: IGNORED_EVIDENCE_INVENTORY.json + ignored-evidence-archive1597 unique text blobs; ADDITIONAL_SCRATCH_INVENTORY.json + additional-scratch-archive26 unique schema/review script blobs; SUPPLEMENTARY_SECURITY_REVIEW.json; Preserve-IgnoredEvidence.ps1 / Preserve-AdditionalScratch.ps1. These archives are historical only and not executable deployment artifacts. Database-export/build-only metadata excluded as recorded. PUBLICATION_RECEIPT documents the verified initial source commit; the final child commit adds only evidence.
+
+## Publication restriction — resolved by explicit local-retention decision
+
+Status: HANDOVER_COMPLETE within the clarified scope. User explicitly chose “Giữ local, bàn giao inventory/hash” after review rejection. Source snapshot e859006fcff91b1b913b18c27844a73809a18d8a was already pushed and verified. Automatic approval review rejected the later bulk publish of1597 ignored-evidence text archives and26 additional schema/review script archives: Codex A ownership and sensitivity of the full historical set were not sufficiently established. No workaround or indirect publication of that content was attempted.
+
+The supplementary archive contents remain LOCAL ONLY in ignored-evidence-archive/ and additional-scratch-archive/. Published supplementary inventories contain paths/hashes/classification only; these are not the contents. An explicit decision was requested; the user chose LOCAL retention and inventory/hash handover, so no further archive upload is authorized or pending. Earlier sections describing these archives describe local preservation, not GitHub availability. The476 source backup blobs, expanded ZIP text, current source/tests/Task75-87 evidence in the original e859006f snapshot remain published.
+
+The next evidence-only commit is deliberately limited to receipt, corrected handover reports and path/hash inventories. It excludes all newly blocked archive payloads and their SQL/text contents. Historical SQL integration remains NOT RUN in this handover. Partial/blocked UC classifications and60points are unchanged.
+
+Final user decision: “Giữ local, bàn giao inventory/hash”. The local-only archives and their supplementary preparation scripts are intentionally excluded from publication. This resolves the rejected bulk-egress step by reducing scope; it does not approve or indirectly publish the archive contents. Handover is complete when the metadata/receipt commit is pushed and final remote SHA verified.
