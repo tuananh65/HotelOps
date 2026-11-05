@@ -1,0 +1,59 @@
+﻿
+database_name                                    
+-------------                                    
+HotelOps_RBAC_Upgrade_Trial_20261021_380b6cc4b282
+
+
+
+
+warehouse_id warehouse_code is_active
+------------ -------------- ---------
+           4 WH-FB               True
+           8 WH-SEC             False
+           9 WH-LAU             False
+
+
+
+
+request_type_id type_code   is_active
+--------------- ---------   ---------
+              4 LAUNDRY         False
+              5 SECURITY        False
+              6 FB_ORDER         True
+              9 EVENT_SETUP     False
+
+
+
+
+category_id category_code   is_active
+----------- -------------   ---------
+          2 LAUNDRY             False
+         10 SECURITY_PATROL     False
+         11 FB_SERVICE          False
+
+
+
+
+entity_type            entity_id action old_active new_active actor_user_id
+-----------            --------- ------ ---------- ---------- -------------
+warehouses             8         UPDATE true       false                   
+warehouses             9         UPDATE true       false                   
+internal_request_types 4         UPDATE true       false                   
+internal_request_types 5         UPDATE true       false                   
+internal_request_types 9         UPDATE true       false                   
+work_categories        2         UPDATE true       false                   
+work_categories        10        UPDATE true       false                   
+work_categories        11        UPDATE true       false                   
+
+
+
+
+user_id account_status
+------- --------------
+     11 ACTIVE        
+     17 ACTIVE        
+     18 ACTIVE        
+     20 ACTIVE        
+
+
+

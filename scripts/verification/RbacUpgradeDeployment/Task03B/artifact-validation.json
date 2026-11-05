@@ -1,0 +1,32 @@
+﻿{
+    "checkedUtc":  "2026-10-21T13:39:48.1473526Z",
+    "protectedFilesUnchanged":  126,
+    "task03aArtifactsUnchanged":  27,
+    "jsonParsing":  "PASS",
+    "powershellParsing":  "PASS",
+    "gitDiffCheck":  "PASS",
+    "consoleChecksPassed":  14,
+    "solutionBuild":  "NOT_RUN",
+    "solutionTests":  "NOT_RUN",
+    "httpIntegration":  "NOT_RUN",
+    "filesCreated":  [
+                         "actual-changeset.json",
+                         "artifact-validation.json",
+                         "authentication-console-results.txt",
+                         "backup-verification.json",
+                         "Deploy-Task03B.ps1",
+                         "DEPLOYMENT_EXECUTION_REPORT.md",
+                         "execution-evidence.json",
+                         "Inspect-Task03B.ps1",
+                         "postdeployment-fingerprints.json",
+                         "postdeployment-results.txt",
+                         "predicted-grant-changes.json",
+                         "preflight-evidence.json",
+                         "preservation-baseline.json",
+                         "read-only-harness-error.json",
+                         "README.md",
+                         "RECOVERY_AND_INCIDENT_NOTES.md",
+                         "release04-results.txt",
+                         "task03a-package-digests.json"
+                     ]
+}

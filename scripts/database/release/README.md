@@ -96,3 +96,46 @@ scripts/database/
 - [ ] DEV1/DEV2 review PR trước khi merge. Không tự chạy trên production hay merge nhánh khi chưa được thống nhất.
 
 **Nguồn chuẩn:** File Full Schema cho cấu trúc; RBAC Catalog Seed cho quyền chính thức; dữ liệu demo/Authentication session/user thực không nằm trong bản cài schema + quyền.
+
+## 8. UC017 explicit disposable deployment (Task69)
+
+The existing canonical workflow accepts an opt-in -Uc017 module. Default execution is unchanged.
+For a NEW unique RunId use Run-Canonical.ps1 -Stage Trial -RunId <new-canonical-run-id> -Uc017;
+recheck with -Stage Verify using the same RunId. The workflow creates/checks three disposable DBs.
+Never use the full installer to upgrade an existing database. This package rejects shared/production
+names, including HotelOpsDB; no production deployment occurs.
+
+For a provisioned disposable canonical clone with its existing Task17 marker, invoke
+[Run-Uc017.ps1](uc017/Run-Uc017.ps1) with -Stage Preflight, then Apply, then Verify. Every call requires
+-Server <exact-reviewed-server>, -Database <trial-name> and -Receipt <unused-json-path>.
+Use a different receipt path per call. No credentials or connection strings are embedded in source.
+
+Pause writers for DDL/cutover. Preflight verifies exact server/database/disposable marker and schema.
+Apply executes 05 and strict read-only 06 in one outer transaction; SQL errors, postflight failure
+or source-hash change fail the operation. Receipts record source SHA256, timestamps, before/after
+state and success without credentials. HotelOps.UC017.Contract=branch-v1 and Deployment=Task69-v1
+track installed state. Reapply never repairs unknown/damaged definitions silently. No startup DDL.
+
+Legacy global rows and Room FKs remain unchanged; new records are branch-owned. SQL triggers reject
+cross-branch new-type Room INSERT/UPDATE and any RoomType branch reassignment. These are V1
+safeguards, not authorization for legacy conversion. Future Room writers should lock the chosen
+type before the Room and reread scope; the trigger is the final database invariant. No UC020 or
+arbitrary external-writer deadlock acceptance is implied.
+
+The existing approved auth/user-rowversion prerequisite must be present for API startup; UC017
+does not mutate authentication. Canonical foundation/module verification have separate scopes.
+Task69 API trials explicitly apply the unchanged guarded Task26 prerequisite before startup.
+Real active/published generic checklist data must exist; deployment never fabricates templates.
+Production planning requires a reviewed clone/backup and independent restore proof; this trial
+package is not authorized for a shared/live target.
+
+Recovery: preserve failed receipt/database, stop writers, inspect the error and verify the previous
+state was restored. Fix the demonstrated prerequisite/fault and rerun Apply with a new receipt.
+Do not disable constraints or force a marker. With no scoped/operational rows, -Stage Rollback
+validates before removal and restores the original unique constraint. Once scoped data exists,
+rollback refuses before DDL: retain schema and forward-fix, or use a separately reviewed restore
+accounting for later writes. Rollback never deletes rows or guesses branch ownership.
+
+Database First retains a read-only V1 projection and six-column legacy projection; see
+[regeneration notes](../../../docs/database/DATABASE_FIRST_REGENERATION.md) and
+[Task69 acceptance](../../verification/HotelStructure/TASK69_UC017_DEPLOYMENT_ACCEPTANCE.md).

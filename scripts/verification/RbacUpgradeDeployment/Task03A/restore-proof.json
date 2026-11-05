@@ -1,0 +1,30 @@
+﻿{
+    "identity":  {
+                     "database":  "HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f",
+                     "databaseId":  28,
+                     "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                     "createStamp":  "2026-10-21 19:51:35.320"
+                 },
+    "files":  [
+                  {
+                      "name":  "HotelOpsDB",
+                      "physical_name":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f.mdf"
+                  },
+                  {
+                      "name":  "HotelOpsDB_log",
+                      "physical_name":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f_log.ldf"
+                  }
+              ],
+    "sourceFiles":  [
+                        {
+                            "name":  "HotelOpsDB",
+                            "physical_name":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\HotelOpsDB.mdf"
+                        },
+                        {
+                            "name":  "HotelOpsDB_log",
+                            "physical_name":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\HotelOpsDB_log.ldf"
+                        }
+                    ],
+    "all72TableContentMatch":  true,
+    "allSchemaHashesMatch":  true
+}

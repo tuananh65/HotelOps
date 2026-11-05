@@ -1,0 +1,124 @@
+{
+  "database": "HotelOps_Canonical_20261028_230643_ed7b848b_Fresh",
+  "predicateChecks": 9,
+  "gateCases": null,
+  "returnWorkEvidence": {
+    "Cases": [
+      "ReturnWork actual lock order is retained User -\u003E Incident -\u003E MaintenanceWork",
+      "actual Deactivate waits for ReturnWork retained User lock",
+      "ReturnWork-first performs a real commit retaining the eligible assignee",
+      "actual Deactivate after ReturnWork commit denies on remaining unresolved gates",
+      "concrete integrated review sees committed MAINTENANCE_ASSIGNEE while retaining User lock",
+      "verified ReturnWork missing-writer gate is closed while full DEV2 and global lock-order safety gates remain",
+      "ReturnWork commit atomically updates pair and adds one log one event and both audits",
+      "ReturnWork waits on actual Deactivate Users lock before either feature lock",
+      "actual Deactivate-first rolls back at business gates; this is not successful deactivation",
+      "ReturnWork proceeds after actual Deactivate denial releases retained User lock",
+      "standalone INACTIVE-first rejects stale tracked ACTIVE User before feature locks and releases transaction",
+      "standalone eligibility rejection leaves completed pair and all history unchanged",
+      "authoritative reread rejects stale assignee and rolls back SQL fixture drift without partial writes",
+      "authoritative reread rejects stale state and rolls back SQL fixture drift without partial writes",
+      "authoritative reread rejects stale linkage and rolls back SQL fixture drift without partial writes",
+      "authoritative reread rejects stale incident and rolls back SQL fixture drift without partial writes",
+      "Return cancellation rolls back and releases actual User wait without partial writes",
+      "Return bounded SQL lock timeout1222 rolls back without partial writes",
+      "Return failure after real business and audit flush atomically rolls back pair log event and both audits",
+      "Return actual SQL deadlock1205 propagates and releases its owned transaction",
+      "post-flush SQL deadlock rolls back all Return business and audit writes",
+      "explicit fresh Return retry rereads eligibility and commits exactly once after deadlock",
+      "all owned ReturnWork SQL fixtures cleaned; shared catalog and existing business data unchanged"
+    ],
+    "Waits": [
+      {
+        "Case": "ReturnWork-first actual Deactivate",
+        "Waiter": 51,
+        "Owner": 63,
+        "WaitType": "LCK_M_X",
+        "ObservedUtc": "2026-10-29T16:33:01.4902338Z"
+      },
+      {
+        "Case": "Actual Deactivate-first denial",
+        "Waiter": 51,
+        "Owner": 63,
+        "WaitType": "LCK_M_IX",
+        "ObservedUtc": "2026-10-29T16:33:02.6515116Z"
+      },
+      {
+        "Case": "Standalone INACTIVE-first eligibility",
+        "Waiter": 51,
+        "Owner": 63,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:33:03.8238476Z"
+      },
+      {
+        "Case": "Return cancellation",
+        "Waiter": 51,
+        "Owner": 63,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:33:04.912306Z"
+      },
+      {
+        "Case": "Return lock timeout",
+        "Waiter": 51,
+        "Owner": 63,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:33:05.0821366Z"
+      },
+      {
+        "Case": "Injected post-flush deadlock",
+        "Waiter": 63,
+        "Owner": 51,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:33:07.6047273Z"
+      }
+    ],
+    "StandaloneRace": "PASS",
+    "IntegratedWriterFirst": "PASS (blocking and concrete review; public result unresolved)",
+    "IntegratedDeactivateFirstDenial": "PASS (denial/release only)",
+    "FullDeactivateFirstSuccess": "BLOCKED",
+    "FullUc006Acceptance": "BLOCKED"
+  },
+  "before": null,
+  "after": {
+    "Blockers": [],
+    "Unresolved": [
+      "DEV1_WRITER_COORDINATION",
+      "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+      "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE",
+      "INTERNAL_REQUEST_CONTRACT",
+      "LINE_MANAGER_CONTRACT",
+      "OPERATIONAL_TASK_CONTRACT",
+      "SHIFT_CONTRACT",
+      "WORKDAY_CONTRACT"
+    ],
+    "Unsupported": [
+      "UNSCHEDULED_WORKDAY_MODEL",
+      "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+    ]
+  },
+  "successPath": "BLOCKED",
+  "serviceStatus": "ResponsibilitiesUnresolved",
+  "Blockers": [],
+  "Unresolved": [
+    "DEV1_WRITER_COORDINATION",
+    "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+    "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE",
+    "INTERNAL_REQUEST_CONTRACT",
+    "LINE_MANAGER_CONTRACT",
+    "OPERATIONAL_TASK_CONTRACT",
+    "SHIFT_CONTRACT",
+    "WORKDAY_CONTRACT"
+  ],
+  "Unsupported": [
+    "UNSCHEDULED_WORKDAY_MODEL",
+    "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+  ],
+  "eligibleOtherAdministratorVerified": true,
+  "zeroModeledResponsibilityReferencesVerified": true,
+  "missingModelTreatedAsClear": false,
+  "targetUnchanged": true,
+  "endpointEnabled": false,
+  "lastAdminPoststate": "BLOCKED",
+  "deactivationRevocationAndAuditRollback": "BLOCKED",
+  "writerRacesCertified": false
+}

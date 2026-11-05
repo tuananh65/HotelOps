@@ -1,0 +1,15 @@
+﻿{
+    "checks":  26,
+    "trials":  [
+                   {
+                       "kind":  "fresh",
+                       "database":  "HotelOps_Canonical_20261026_183526_47e07e90_Fresh"
+                   },
+                   {
+                       "kind":  "upgrade",
+                       "database":  "HotelOps_Canonical_20261026_183544_0136aa42_Fresh"
+                   }
+               ],
+    "success":  true,
+    "secretsPersisted":  false
+}

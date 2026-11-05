@@ -1,0 +1,32 @@
+﻿{
+    "clone":  {
+                  "database":  "HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f",
+                  "databaseId":  28,
+                  "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                  "createStamp":  "2026-10-21 19:51:35.320"
+              },
+    "backup":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\Backup\\RBAC03A_20261021_24e14e196c6a.bak",
+    "restore":  "PASS",
+    "approvalGate":  "PASS_53001",
+    "dryRun":  "PASS_ROLLBACK_72_TABLES_AND_SCHEMA",
+    "commit":  "PASS_CLONE_ONLY",
+    "catalog":  "PASS_EXACT",
+    "integrity":  "PASS",
+    "authenticationFields":  "UNCHANGED",
+    "sessions":  "UNCHANGED",
+    "departmentsAndBusinessTables":  "UNCHANGED",
+    "oldAudits":  "UNCHANGED",
+    "newMigrationAudits":  6,
+    "sourceAll72Tables":  "UNCHANGED",
+    "sourceSchema":  "UNCHANGED",
+    "mainUpgradeExecuted":  false,
+    "mainScriptSha256":  "C1FD3904871107F0284CDC8ADF5CFF8193972B408ECBCBC3F3EBE51AF29B3A64",
+    "separateTask03BApprovalRequired":  true,
+    "repeatedDriftGuards":  {
+                                "allBatchesRejectDrift":  4,
+                                "error":  53005,
+                                "noDatabaseWrites":  true,
+                                "mutationBodyReproducedAgainstInitialCandidate":  true,
+                                "note":  "Only repeated read-only baseline guards added; mutation body was already dry-run/commit tested on fresh clone. Main script never executed."
+                            }
+}

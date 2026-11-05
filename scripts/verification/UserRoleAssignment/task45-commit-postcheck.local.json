@@ -1,0 +1,31 @@
+﻿{
+    "success":  true,
+    "commit":  "6278a8807bb72ff72c16f8173748ff48f5260794",
+    "message":  "feat(users): implement secure role assignment v1",
+    "files":  [
+                  "scripts/verification/LastAdminProtection/MUTATION_PATH_MATRIX.md",
+                  "scripts/verification/LastAdminProtection/REMAINING_UNPROTECTED_PATHS.md",
+                  "scripts/verification/UserRoleAssignment/AssignmentHttpSuite.cs",
+                  "scripts/verification/UserRoleAssignment/CONTRACT_AND_AUTHORIZATION.md",
+                  "scripts/verification/UserRoleAssignment/Inspect-TrialSchema.ps1",
+                  "scripts/verification/UserRoleAssignment/OUTSTANDING_BLOCKERS.md",
+                  "scripts/verification/UserRoleAssignment/PRIVILEGE_ESCALATION_REVIEW.md",
+                  "scripts/verification/UserRoleAssignment/Program.cs",
+                  "scripts/verification/UserRoleAssignment/README.md",
+                  "scripts/verification/UserRoleAssignment/RELEASE_SUMMARY.md",
+                  "scripts/verification/UserRoleAssignment/TRANSACTION_AND_CONCURRENCY.md",
+                  "scripts/verification/UserRoleAssignment/UserRoleAssignment.Verification.csproj",
+                  "scripts/verification/UserRoleAssignment/VERIFICATION_RESULTS.md",
+                  "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+                  "src/HotelOps.Api/DTOs/Users/AssignUserRoleRequest.cs",
+                  "src/HotelOps.Api/Program.cs",
+                  "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+                  "src/HotelOps.Api/Services/Users/UserRoleDelegationPolicy.cs"
+              ],
+    "indexEmpty":  true,
+    "trackedTreeClean":  true,
+    "excludedArtifactsUnchanged":  274,
+    "pushed":  false,
+    "merged":  false,
+    "hotelOpsDbAccessed":  false
+}

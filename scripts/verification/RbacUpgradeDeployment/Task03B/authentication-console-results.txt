@@ -1,0 +1,17 @@
+Executed after main deployment: dotnet run --no-restore --project scripts/verification/CurrentUserAccessor/CurrentUserAccessor.Verification.csproj
+Exit code: 0
+PASS: No HttpContext
+PASS: Unauthenticated principal with claims and snapshot
+PASS: Missing ticket claim
+PASS: Duplicate ticket claim
+PASS: Missing verified snapshot
+PASS: Wrong snapshot type
+PASS: Mismatched UserId
+PASS: Mismatched SessionId
+PASS: Mismatched IsRestricted
+PASS: Mismatched CreatedAtUtc
+PASS: Valid normal session
+PASS: Valid restricted identity preserves restriction
+PASS: No identity cached across requests
+PASS: DI resolution; 14 checks passed.
+HTTP authentication integration: NOT RUN. This console result does not verify SQL session validation end-to-end.

@@ -1,0 +1,324 @@
+﻿{
+    "startedUtc":  "2026-10-21T13:28:05.8934543Z",
+    "status":  "BLOCKED",
+    "candidateSha256":  "C1FD3904871107F0284CDC8ADF5CFF8193972B408ECBCBC3F3EBE51AF29B3A64",
+    "completedBatches":  [
+
+                         ],
+    "commitAcknowledged":  false,
+    "checks":  [
+                   "Exact identity, 72 data fingerprints, 5 schema groups, 126 protected files and candidate digest",
+                   "preflight DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS,NO_INFOMSGS",
+                   "preflight DBCC CHECKDB WITH NO_INFOMSGS,ALL_ERRORMSGS",
+                   "preflight trusted FK/CHECK and enabled unique indexes",
+                   "Exact predicted 18 added, 60 removed, 33 scope changes"
+               ],
+    "maintenance":  [
+                        {
+                            "phase":  "before-final-preflight",
+                            "utc":  "2026-10-21T13:28:11.4699324Z",
+                            "appWriters":  0,
+                            "potentialScheduledWriters":  0,
+                            "serviceWriters":  0,
+                            "unexpectedSqlSessions":  0,
+                            "note":  "Only previously observed sleeping SSMS/CEIP sessions in master allowed; no KILL or database mode change"
+                        }
+                    ],
+    "backup":  null,
+    "error":  "Exception calling \"Fill\" with \"1\" argument(s): \"An object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as \"\" or [] are not allowed. Change the alias to a valid name.\r\nAn object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as \"\" or [] are not allowed. Change the alias to a valid name.\r\nAn object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as \"\" or [] are not allowed. Change the alias to a valid name.\r\nAn object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as \"\" or [] are not allowed. Change the alias to a valid name.\r\nAn object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as \"\" or [] are not allowed. Change the alias to a valid name.\r\nAn object or column name is missing or empty. For SELECT INTO statements, verify each column has a name. For other statements, look for empty alias names. Aliases defined as \"\" or [] are not allowed. Change the alias to a valid name.\"",
+    "transactionOnError":  {
+                               "count":  0,
+                               "state":  0
+                           },
+    "errorSnapshot":  {
+                          "[dbo].[areas]":  {
+                                                "count":  12,
+                                                "hash":  "581247F519A5FBB4888AD8ECCEE4D2E0045191CADEAE49365994BFE94509DB17"
+                                            },
+                          "[dbo].[asset_condition_history]":  {
+                                                                  "count":  15,
+                                                                  "hash":  "B963DD15B5F3BA97A8714F50ABD77F9D84A1F90DA14AC3FC4E6A576DDB14C695"
+                                                              },
+                          "[dbo].[asset_handovers]":  {
+                                                          "count":  10,
+                                                          "hash":  "8EE500CEEC79721FEB79E870B2ADCCD79319B90D9EDC0A24CC98A4825D718260"
+                                                      },
+                          "[dbo].[asset_location_history]":  {
+                                                                 "count":  14,
+                                                                 "hash":  "341994F04038286B8D8E10B0022732E6F4C351DAC5BBB80994E6BF7956BB8C4A"
+                                                             },
+                          "[dbo].[asset_types]":  {
+                                                      "count":  10,
+                                                      "hash":  "B62B9DF0FACB83B3FA156E9ED6CB19FFE16EE8D140A6DD3C3726B40AE537189B"
+                                                  },
+                          "[dbo].[assets]":  {
+                                                 "count":  15,
+                                                 "hash":  "95A57987FB9C17D667510286AFD6C8A75B4B4FAB1E426A8FB30DF3700117CE38"
+                                             },
+                          "[dbo].[attachments]":  {
+                                                      "count":  12,
+                                                      "hash":  "3D82AF9A334B05E2E7964AA5D3CF6F5A9830538917D3B551CF2211346F653081"
+                                                  },
+                          "[dbo].[audit_logs]":  {
+                                                     "count":  14,
+                                                     "hash":  "93B7614882CBF6727CD4DEF1BF920BB43666D6E2083C10F26AAEE522EF59948C"
+                                                 },
+                          "[dbo].[branches]":  {
+                                                   "count":  2,
+                                                   "hash":  "874190641D8BCD3D14FEBFFF3F6FC3EE0D389E260B6B1C6E962F484C12778BD2"
+                                               },
+                          "[dbo].[cleaning_assignments]":  {
+                                                               "count":  15,
+                                                               "hash":  "D8BE6457699FB9F6194BE65CD1823AA3351F478B92CC5AC860674D372A8AE91C"
+                                                           },
+                          "[dbo].[cleaning_progress_logs]":  {
+                                                                 "count":  15,
+                                                                 "hash":  "8A8E3EDEDACA724F0F4C2CB58DBF7AFC9809154FDBBB8F1C2B0B7C3A8AC54B8E"
+                                                             },
+                          "[dbo].[cleaning_reworks]":  {
+                                                           "count":  10,
+                                                           "hash":  "4961A1DBF70903CF0395656086B94248D675D03ACD8F2115FB7C3228616488E7"
+                                                       },
+                          "[dbo].[cleaning_tasks]":  {
+                                                         "count":  15,
+                                                         "hash":  "D62DDD1CA50F4135B8ED4AA68A76D1AEE6706D57350DCBD34EF5F22F97F3DDAF"
+                                                     },
+                          "[dbo].[departments]":  {
+                                                      "count":  12,
+                                                      "hash":  "D3B8357ECDC612513B03187E4754F39AB67BCE6FF933213F46DA4611338A8215"
+                                                  },
+                          "[dbo].[floors]":  {
+                                                 "count":  12,
+                                                 "hash":  "7114D9D9D02CCBE04A0348CEB1B6A86E807B875BAB28AC6C840B2D68E9869C58"
+                                             },
+                          "[dbo].[incident_events]":  {
+                                                          "count":  15,
+                                                          "hash":  "CE25C5C069DEE92B7589D84B94B8CFF2DF6A045A83CBCFDB6FFDB59286E1C0B8"
+                                                      },
+                          "[dbo].[incidents]":  {
+                                                    "count":  12,
+                                                    "hash":  "A7EB25B0C2BCF6C2B28CB9B77892D296E42683B7708EFD8F070C8CF99F8B85D3"
+                                                },
+                          "[dbo].[inspection_checklist_items]":  {
+                                                                     "count":  15,
+                                                                     "hash":  "0A5E4432DC148BDAC96D44FB58F5FA9B8037967DDEBB1543E7E25A9D5E84AAA4"
+                                                                 },
+                          "[dbo].[inspection_checklist_versions]":  {
+                                                                        "count":  10,
+                                                                        "hash":  "FAD591F85F27C053866605F445B60E02F270744E538FC2F1442BC6F65F87CAF8"
+                                                                    },
+                          "[dbo].[inspection_checklists]":  {
+                                                                "count":  10,
+                                                                "hash":  "94EB0C78DE103AF6841F2C60F61E3257D910A6421C9C650ACBB2F3237ADB918A"
+                                                            },
+                          "[dbo].[inspection_defects]":  {
+                                                             "count":  12,
+                                                             "hash":  "EDD265D3C0C43002BF48BD9F14A387E2CA8F6BFAAF6670FCAE761C05AADFB46C"
+                                                         },
+                          "[dbo].[inspection_results]":  {
+                                                             "count":  15,
+                                                             "hash":  "0273AC818994A37B461F485D2BFBC716A8DC9715C4180F5C1C1761F48383B8D1"
+                                                         },
+                          "[dbo].[internal_request_assignments]":  {
+                                                                       "count":  12,
+                                                                       "hash":  "72E4C3B70C3790C49FC594A2D3CD06D1D85AD5A520235A8331E3591471AB12C8"
+                                                                   },
+                          "[dbo].[internal_request_events]":  {
+                                                                  "count":  14,
+                                                                  "hash":  "8742C1A65C96FE906F7A9F53F5F791E165E398FEDFECCD70A7174683B4506AD2"
+                                                              },
+                          "[dbo].[internal_request_feedback]":  {
+                                                                    "count":  10,
+                                                                    "hash":  "CD0E644029123D859FFDA9936AB10AE9D9A1191584E280859A5EC7BF5D75E3AA"
+                                                                },
+                          "[dbo].[internal_request_types]":  {
+                                                                 "count":  10,
+                                                                 "hash":  "9E1C37DA9F6A412B39E27E987593AC5F37B874B6A0C82BF58AAD58BA69712BF2"
+                                                             },
+                          "[dbo].[internal_requests]":  {
+                                                            "count":  15,
+                                                            "hash":  "8030BF07700368B9CF2E018078901E9B8336C352C5809E58DDAFF98EC5BC7275"
+                                                        },
+                          "[dbo].[inventory_items]":  {
+                                                          "count":  15,
+                                                          "hash":  "3EC32E1C20139394856DBC06E75A5F32E2AA4F43348642EDA925C82C52736DA7"
+                                                      },
+                          "[dbo].[item_categories]":  {
+                                                          "count":  10,
+                                                          "hash":  "30CD7B8353F3EEA8CD495BB6B3A7E9653A6C0741C258229FC529B057A994309C"
+                                                      },
+                          "[dbo].[maintenance_work_logs]":  {
+                                                                "count":  12,
+                                                                "hash":  "DE1B862C221D8BBC04172691ABE07822CA414B1FD3DF6989E9FA58ABA6EEBB3E"
+                                                            },
+                          "[dbo].[maintenance_works]":  {
+                                                            "count":  12,
+                                                            "hash":  "EB43BFCE561E9C6EA940A77184B0529F03A6219FCB6DC3F2AE057EC8D4C8EB74"
+                                                        },
+                          "[dbo].[material_fulfillment_lines]":  {
+                                                                     "count":  11,
+                                                                     "hash":  "D8964FDB02547F7541857DFC46CABD144154F9A9B402F142DB533795268FB15E"
+                                                                 },
+                          "[dbo].[material_fulfillments]":  {
+                                                                "count":  10,
+                                                                "hash":  "5A02DFF2487B0F1F5377A25EE6097A058F71110B335651D5FD85218AADCE02C7"
+                                                            },
+                          "[dbo].[material_request_approvals]":  {
+                                                                     "count":  12,
+                                                                     "hash":  "2453CF7F1DEBACC116DD4B7CF1C65ADC47CD8C0420D59D2E82E98F322495604F"
+                                                                 },
+                          "[dbo].[material_request_lines]":  {
+                                                                 "count":  14,
+                                                                 "hash":  "15774A5BFC22DBC7DC2A4B2312CADC71E819C76237D9E4A5A596ACEB81337EA3"
+                                                             },
+                          "[dbo].[material_requests]":  {
+                                                            "count":  13,
+                                                            "hash":  "0EA3D340A5F3133497217CD08F96F1E569BC4B358F86E8EFE8DF533B2040366B"
+                                                        },
+                          "[dbo].[notification_recipients]":  {
+                                                                  "count":  15,
+                                                                  "hash":  "7F9530A540FBB60543C5EB45CE0EA6505B1559899CAF9BCF5155C6B440E7B766"
+                                                              },
+                          "[dbo].[notifications]":  {
+                                                        "count":  10,
+                                                        "hash":  "AF0C9F56C9FFD5411DBC5AD75797701936C7B75AF94D0CCB1D5C1918FB60CF3B"
+                                                    },
+                          "[dbo].[operational_task_assignments]":  {
+                                                                       "count":  15,
+                                                                       "hash":  "4D87B81EDA23D3E5F886AD442C1F900F3C7B7FBE98DDCEF8E4BC3BE2835E3BC2"
+                                                                   },
+                          "[dbo].[operational_task_dependencies]":  {
+                                                                        "count":  10,
+                                                                        "hash":  "4EA4C42FF2DCE755543ECB54C1B02BF7872073159F8D2A220627F7D3F9994E88"
+                                                                    },
+                          "[dbo].[operational_task_progress]":  {
+                                                                    "count":  12,
+                                                                    "hash":  "419E2D42BC856FDF4C77C89CFE16D52207237AB05472232A47D0C65B3F500D86"
+                                                                },
+                          "[dbo].[operational_tasks]":  {
+                                                            "count":  15,
+                                                            "hash":  "4B43846EF67781D01A1E89EAFBA7031C7C1007FB5DB91B19CD9259CD067F0B9D"
+                                                        },
+                          "[dbo].[permissions]":  {
+                                                      "count":  47,
+                                                      "hash":  "B587BBBC41E5631608ACC9BD6F37F9BE83E85667729003ACE0C09492F9311360"
+                                                  },
+                          "[dbo].[preventive_maintenance_runs]":  {
+                                                                      "count":  12,
+                                                                      "hash":  "C23359AF098CAFDCAC9083860B168066D915C1FF04AA14A3E365BCC6FC197AAC"
+                                                                  },
+                          "[dbo].[preventive_maintenance_schedules]":  {
+                                                                           "count":  10,
+                                                                           "hash":  "466E57A3E0C481A5C469CCE212D7581393438351E0895B26B3210B8F0F1E6418"
+                                                                       },
+                          "[dbo].[reference_values]":  {
+                                                           "count":  15,
+                                                           "hash":  "46B687179E95CBEE4D54F00E24F05BE1E17382E356A7CA301864B90D71136872"
+                                                       },
+                          "[dbo].[role_permissions]":  {
+                                                           "count":  182,
+                                                           "hash":  "8CDECEF2BE15E05397C2895B808BB17BBCC81BB7B6FFC90143A2697DE00CA34C"
+                                                       },
+                          "[dbo].[roles]":  {
+                                                "count":  11,
+                                                "hash":  "68FEE49DAD7ED1A99BAA0534887EA3D1137B1B078C25DCEF861F70D5009415D9"
+                                            },
+                          "[dbo].[room_blocks]":  {
+                                                      "count":  11,
+                                                      "hash":  "B04A446DF67BA596D4F2F806FC0271CA9EE7E92534D03A84DF08FDDEEB41596C"
+                                                  },
+                          "[dbo].[room_inspections]":  {
+                                                           "count":  13,
+                                                           "hash":  "93AF5D2E5BBAE58A8A83624BFACC8271F8D1E20803977363085A1F3666BD0B38"
+                                                       },
+                          "[dbo].[room_status_history]":  {
+                                                              "count":  31,
+                                                              "hash":  "B8C5C45F6EB1A4EF5A17DBF0F435D8AC25EF1A83FC2676C65F9C442CFA52B514"
+                                                          },
+                          "[dbo].[room_types]":  {
+                                                     "count":  10,
+                                                     "hash":  "EAA21374EE29836514D2530A512B8156A32AEAC1E2DB02A5BC2DE789A4058CA8"
+                                                 },
+                          "[dbo].[rooms]":  {
+                                                "count":  15,
+                                                "hash":  "52ABEDF832B6FEFD02AECD534E947C2E6DEE43291F0D2B35B90A8483F5040573"
+                                            },
+                          "[dbo].[shift_assignments]":  {
+                                                            "count":  17,
+                                                            "hash":  "2297B8E3BC77BB806E25393617DB974F21428263CA8E02953F5DBA9767BFFD82"
+                                                        },
+                          "[dbo].[shift_attendance]":  {
+                                                           "count":  15,
+                                                           "hash":  "14ACBA0BB14F74F55CFC94974AC37CCA227E7B2EE342CD20E70EB991B08AE49D"
+                                                       },
+                          "[dbo].[shift_templates]":  {
+                                                          "count":  11,
+                                                          "hash":  "3DA429248220FE4AE4E00FB45F4A7227BE45388EAD245077F7DB8630C008DB79"
+                                                      },
+                          "[dbo].[stock_document_lines]":  {
+                                                               "count":  14,
+                                                               "hash":  "C8ECDC809865F9E1509659BD6F36EE20E3FC8A3B0A74EE73AD9E75987A900990"
+                                                           },
+                          "[dbo].[stock_documents]":  {
+                                                          "count":  12,
+                                                          "hash":  "644E5DF9DD7D0A8DEBDA66C9344CE298085B77CE505EFC3483EB3793F402E900"
+                                                      },
+                          "[dbo].[stock_movements]":  {
+                                                          "count":  15,
+                                                          "hash":  "35609540B1491FFC1E2019C22D43B55F2E88E365AA72B5132D881E92605D0A56"
+                                                      },
+                          "[dbo].[stock_thresholds]":  {
+                                                           "count":  14,
+                                                           "hash":  "2A45FBDA48EA8AD8653D32B48349F9D7C297127A2038F4207D1E32BE2C70C859"
+                                                       },
+                          "[dbo].[stocktake_lines]":  {
+                                                          "count":  12,
+                                                          "hash":  "1E2E134044C44C6FCDA08DA05EB1AF2D770AA5CBF9BB676F54E3A6F92C43E886"
+                                                      },
+                          "[dbo].[stocktakes]":  {
+                                                     "count":  10,
+                                                     "hash":  "05536FD87985BBF26276C6C133226517DEE0D4C19D409BF4A312267103C4CE54"
+                                                 },
+                          "[dbo].[system_settings]":  {
+                                                          "count":  12,
+                                                          "hash":  "778FCFF25B5233B639979F28D873AC3B76609EF71A6F6772DC76714A9F6EA437"
+                                                      },
+                          "[dbo].[units_of_measure]":  {
+                                                           "count":  12,
+                                                           "hash":  "E5C290518CAEA78B1A299ABAD1DA1A78BB0D6A071F8D7B2405F174A2C251A097"
+                                                       },
+                          "[dbo].[uom_conversions]":  {
+                                                          "count":  12,
+                                                          "hash":  "4D6F3162556411AE26C8D1FBC7D26434D1826527512188CBE488A299E0E8431A"
+                                                      },
+                          "[dbo].[user_branch_access]":  {
+                                                             "count":  28,
+                                                             "hash":  "181BDB61F4DD50C399AA57500C01019DA4408821B423003A4E40FA71305ABC6D"
+                                                         },
+                          "[dbo].[user_roles]":  {
+                                                     "count":  30,
+                                                     "hash":  "C2CE3A85D53ECD51B40E23F48AFF20208399936BCFE2F61C730C97A5B0363771"
+                                                 },
+                          "[dbo].[user_sessions]":  {
+                                                        "count":  10,
+                                                        "hash":  "EB605F1F2F01B67CC905A0BBAA64E2ECBF90316629485A391F4C99CC1B3DDD5E"
+                                                    },
+                          "[dbo].[users]":  {
+                                                "count":  26,
+                                                "hash":  "3F9F62FADD0EA1B5A81D04ED6A5FD3D43D617B736233DF84BBA1DBBABE898455"
+                                            },
+                          "[dbo].[warehouses]":  {
+                                                     "count":  10,
+                                                     "hash":  "E4FE54A44128249E731609592D980152126D0F14FD41E461F185A44DE698D4A6"
+                                                 },
+                          "[dbo].[work_categories]":  {
+                                                          "count":  12,
+                                                          "hash":  "38DB6D6D7C6ADF46643AA516043CE519895874BA5EDEB0269B684DFA7BB9C81D"
+                                                      },
+                          "[dbo].[work_shifts]":  {
+                                                      "count":  13,
+                                                      "hash":  "8F6FB639F7D92FA3CC52A03077F6646F0BC4976954172707CEEBFF6F4E95F930"
+                                                  }
+                      },
+    "finishedUtc":  "2026-10-21T13:31:32.4919825Z"
+}

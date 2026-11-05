@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "checks": 17,
+  "cases": [
+    "patched trial startup compatible",
+    "existing valid branch role cannot grant without membership",
+    "actual schema permits new nonprimary branch membership",
+    "child membership INSERT does not automatically advance User.RowVersion",
+    "child membership does not automatically move primary branch or department",
+    "next real SQL grant evaluation activates existing branch role after membership add",
+    "authority changed without editing existing UserRole",
+    "actual unique constraint rejects duplicate effective membership",
+    "next evaluation denies after membership revocation without permission cache",
+    "unique constraint also rejects second row for revoked membership",
+    "trial-only regrant simulation also restores pre-existing role authority",
+    "rollback restores revoked membership and denied authority atomically",
+    "two actual SQL inserts same tuple yield one success and one uniqueness conflict",
+    "SQL concurrency retains exactly one membership row",
+    "aggregate token can be explicitly advanced under caller transaction without new column",
+    "actual SQL rowversion rejects stale second compare-and-swap",
+    "rollback restores original aggregate token value"
+  ],
+  "scope": "Schema and existing foundation evidence only; no UC007 authorization or mutation approval",
+  "uc007EndpointVerified": false,
+  "secretsPersisted": false
+}

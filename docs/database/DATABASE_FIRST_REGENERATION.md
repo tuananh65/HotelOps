@@ -55,3 +55,20 @@ Review each generated-model change against the approved patch. Validate the
 affected functionality against real SQL Server. Remove the temporary scaffold
 directory after resolving and verifying its absolute path under the project's
 `obj` directory. Confirm no temporary artifacts or secrets appear in Git status.
+
+## UC017 dual-schema compatibility (Task69)
+
+The generated RoomType remains the six-column table projection needed by legacy installations.
+Adding V1 columns there would make legacy materialization and INSERTs query nonexistent columns.
+The controlled HotelOpsDbContext.RoomTypes.cs partial mapping removes its obsolete global-index
+snapshot and maps RoomTypeBranchV1/BranchRoomTypes to the same SQL object as a read-only view
+projection: all nine post-upgrade columns, nullable operational fields for legacy rows, actual
+filtered unique indexes and Branch/default-checklist FKs. No SQL view is created. Use it only after
+RoomTypeSchema reports BranchV1; model construction never detects or mutates SQL schema.
+
+Rooms and the legacy RoomType projection disable EF bare SQL OUTPUT for compatibility with
+installed triggers; the same commands work before deployment. No DEV2 entity/navigation or unrelated
+mapping is regenerated. Future scaffolding must preserve these explicit compatibility choices.
+UC017 writes remain parameterized on the existing scoped context transaction. Task69 verifies
+actual V1 scalar/navigation materialization, index/FK metadata, read-only write rejection and old/
+new consumers. Production regeneration needs its own reviewed target/backup; HotelOpsDB is not opened.

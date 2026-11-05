@@ -1,0 +1,107 @@
+{
+  "database": "HotelOps_Canonical_20261029_165835_4b1df255_Fresh",
+  "predicateChecks": 9,
+  "gateCases": [
+    "release acceptance retains all three original release gates independently of target data",
+    "caller cannot mutate the pending release gate collection",
+    "mandatory release fuse rejects independently; no approval flag or injected clear evaluator exists",
+    "actual SQL confirms attendance cannot represent an unscheduled workday without a shift assignment",
+    "canonical trial has no independent Workday table; absence is not a safe responsibility result",
+    "actual SQL event actor and free text do not supply designated receiver acknowledgment",
+    "empty modeled target has five business contracts, not three release predicates mixed into responsibility",
+    "missing models remain Unsupported even though no controller or workflow writer is implemented",
+    "nondeleted active employee\u0027s explicit manager designation is positive V1 obligation evidence",
+    "inactive login does not end an active employee\u0027s management designation",
+    "deleted subordinate reference is not current positive evidence and never clears the unresolved manager release contract",
+    "no manager designation is not invented from role or department membership",
+    "roster reference and elapsed scheduled end alone neither prove current attendance nor resolve release semantics",
+    "NOT_STARTED row without actual timestamps is not fabricated open attendance",
+    "explicit ASSIGNED open actual attendance blocks even after scheduled end; unknown lifecycle mapping still fails closed",
+    "closed timestamp history does not imply handover acknowledgment or safe Workday release",
+    "invalid attendance evidence is unresolved, not a false history/clear result: out-before-in",
+    "invalid attendance evidence is unresolved, not a false history/clear result: out-without-in",
+    "invalid attendance evidence is unresolved, not a false history/clear result: future-in",
+    "unmapped assignment vocabulary cannot silently clear actual open attendance",
+    "contract fixtures including manager links and attendance roll back without schema or catalog writes"
+  ],
+  "returnWorkEvidence": null,
+  "dev1WriterEvidence": {
+    "Cases": [
+      "actual DEV1 activation retains User lock through business and audit flush until commit",
+      "actual DEV1 activation commits one account/version change and one audit; waiter rereads ACTIVE",
+      "actual DEV1 activation after User wait rereads version and rejects committed stale state without partial audit",
+      "actual DEV1 writer cancellation releases retained User locks and leaves account version and audit unchanged",
+      "actual DEV1 writer failure after persisted account and audit flush rolls both back atomically",
+      "LastAdmin foundation allows one eligible owned administrator remaining under canonical locks",
+      "LastAdmin foundation rejects zero eligible administrators; actual Deactivate poststate branch is still BLOCKED",
+      "owned DEV1 writer fixtures removed without RBAC catalog or business assignment writes"
+    ],
+    "Waits": [
+      {
+        "Case": "Actual DEV1 activation-first",
+        "Waiter": 60,
+        "Owner": 61,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:59:33.7726055Z"
+      },
+      {
+        "Case": "User-lock-first stale DEV1 activation",
+        "Waiter": 60,
+        "Owner": 61,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:59:33.9483834Z"
+      },
+      {
+        "Case": "DEV1 activation cancellation",
+        "Waiter": 60,
+        "Owner": 61,
+        "WaitType": "LCK_M_U",
+        "ObservedUtc": "2026-10-29T16:59:34.2538459Z"
+      }
+    ],
+    "LastAdminFoundation": "PASS foundation only; actual Deactivate branch BLOCKED",
+    "MissingBusinessWriterRaces": "BLOCKED: no DEV1 assignment/workday/handover writer implementation to exercise; external writer inventory unverified"
+  },
+  "pendingReleaseGates": [
+    "DEV1_WRITER_COORDINATION",
+    "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+    "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE"
+  ],
+  "before": null,
+  "after": {
+    "Blockers": [],
+    "Unresolved": [
+      "INTERNAL_REQUEST_CONTRACT",
+      "LINE_MANAGER_CONTRACT",
+      "OPERATIONAL_TASK_CONTRACT",
+      "SHIFT_CONTRACT",
+      "WORKDAY_CONTRACT"
+    ],
+    "Unsupported": [
+      "UNSCHEDULED_WORKDAY_MODEL",
+      "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+    ]
+  },
+  "successPath": "BLOCKED",
+  "serviceStatus": "ResponsibilitiesUnresolved",
+  "Blockers": [],
+  "Unresolved": [
+    "INTERNAL_REQUEST_CONTRACT",
+    "LINE_MANAGER_CONTRACT",
+    "OPERATIONAL_TASK_CONTRACT",
+    "SHIFT_CONTRACT",
+    "WORKDAY_CONTRACT"
+  ],
+  "Unsupported": [
+    "UNSCHEDULED_WORKDAY_MODEL",
+    "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+  ],
+  "eligibleOtherAdministratorVerified": true,
+  "zeroModeledResponsibilityReferencesVerified": true,
+  "missingModelTreatedAsClear": false,
+  "targetUnchanged": true,
+  "endpointEnabled": false,
+  "lastAdminPoststate": "BLOCKED",
+  "deactivationRevocationAndAuditRollback": "BLOCKED",
+  "writerRacesCertified": false
+}

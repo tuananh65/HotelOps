@@ -221,10 +221,18 @@ var commitFault = new FailAfterCommit();
 var lostCode = prefix + "lost";
 var lostRequest = new CreateEmployeeAccountRequest(lostCode, lostCode, "Commit boundary fixture",
     lostCode + "@example.invalid", null, branch.BranchId, department.DepartmentId, "HK_STAFF");
+// The actual account writer now revalidates its authenticated SQL session. Earlier
+// StageInitial tests intentionally use an inactive trusted audit actor; activate only
+// this owned identity and supply a real session for the separate CreateAsync boundary.
+await db.Users.Where(u => u.UserId == actor.UserId).ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, "ACTIVE"), ct);
+var actorSessionAt = DateTime.UtcNow;
+var actorSession = new UserSession { UserId = actor.UserId, SessionKeyHash = SessionCredential.Hash(SessionCredential.Generate()),
+    CreatedAt = actorSessionAt, LastUsedAt = actorSessionAt, ExpiresAt = actorSessionAt.AddMinutes(30) };
+db.Add(actorSession); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
 UserAccountCreationService Creation(HotelOpsDbContext context)
 {
     var credentialService = Credentials(context);
-    return new(context, new CreationIdentity(actor.UserId), new CreationGrants(), credentialService,
+    return new(context, new CreationIdentity(actor.UserId, actorSession.SessionId), new CreationGrants(), credentialService,
         credentialService, TimeProvider.System);
 }
 var commitFailureObserved = false;
@@ -274,9 +282,9 @@ sealed class FailAfterCommit : DbTransactionInterceptor
     }
 }
 // Authorization doubles isolate the commit boundary; actual permissions are covered by the HTTP suite.
-sealed class CreationIdentity(long actorId) : ICurrentUserAccessor
+sealed class CreationIdentity(long actorId, long sessionId) : ICurrentUserAccessor
 {
-    public bool TryGetCurrentUser(out CurrentUserInfo user) { user = new(actorId, 1, false); return true; }
+    public bool TryGetCurrentUser(out CurrentUserInfo user) { user = new(actorId, sessionId, false); return true; }
 }
 sealed class CreationGrants : IPermissionService
 {

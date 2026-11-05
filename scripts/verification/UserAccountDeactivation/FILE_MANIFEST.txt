@@ -1,3 +1,26 @@
+Task51 exact change manifest (relative to post-sync 71a17f9):
+NEW src/HotelOps.Api/DTOs/Users/UserAccountDeactivationRequest.cs
+NEW src/HotelOps.Api/Services/Users/UserAccountDeactivationService.cs
+NEW src/HotelOps.Api/Services/Users/IntegratedDeactivationResponsibilityQueries.cs
+NEW scripts/verification/UserAccountDeactivation/UserAccountDeactivation.Verification.csproj
+NEW scripts/verification/UserAccountDeactivation/Program.cs
+MODIFIED scripts/verification/UserAccountDeactivation/README.md
+MODIFIED scripts/verification/UserAccountDeactivation/INTEGRATION_DEPENDENCIES.md
+MODIFIED scripts/verification/UserAccountDeactivation/OPEN_WORK_PREDICATES.md
+MODIFIED scripts/verification/UserAccountDeactivation/LOCK_ORDER.md
+MODIFIED scripts/verification/UserAccountDeactivation/VERIFICATION_RESULTS.md
+MODIFIED scripts/verification/UserAccountDeactivation/REMAINING_BLOCKERS.md
+MODIFIED scripts/verification/UserAccountDeactivation/FILE_MANIFEST.txt
+
+REUSED UNCHANGED (pre-existing untracked runtime dependency):
+src/HotelOps.Api/Services/Users/DeactivationResponsibilityQueries.cs
+Developer must include this protected helper when packaging the new wrapper; Task51 does not stage/overwrite it.
+
+Local evidence: obj/task51-preflight-hashes.local.json, obj/task51-*.log,
+obj/task51-regression-summary.local.json and task51-*.local.json receipts in this directory.
+Incoming DEV2 files are recorded by git diff f0de446..71a17f9 (16 files); no manual DEV2 edits.
+
+Historical Tasks46-48 manifest:
 src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs
 src/HotelOps.Api/Services/Users/Dev1DeactivationPredicates.cs
 scripts/verification/UserAccountStatus/Program.cs

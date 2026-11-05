@@ -49,11 +49,9 @@ public sealed class PermissionService(ICurrentUserAccessor currentUser, IPermiss
             foreach (var path in paths)
             {
                 if (!string.Equals(path.PermissionCode, permissionCode, StringComparison.Ordinal)
-                    || !path.AssignmentActive || !path.RoleActive || path.AssignedAt > now
-                    || (path.ExpiresAt is { } expiry && expiry <= now)) continue;
+                    || !PermissionGrantRules.IsEligible(path, now)) continue;
 
                 // A branch-bound path never borrows another role's assignment/access.
-                if (path.BranchId is not null && (!path.BranchActive || !path.BranchAccessActive)) continue;
                 switch (path.DataScope)
                 {
                     case "ALL":

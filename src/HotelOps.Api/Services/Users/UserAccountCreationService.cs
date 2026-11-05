@@ -39,6 +39,7 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
         catch (GlobalAdminLockException) { return new(AccountCreationStatus.SerializationUnavailable); }
         var before = await guard.ReadSnapshotAsync(ct);
         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted
+            || !await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)
             || !(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
             return new(AccountCreationStatus.Forbidden);
@@ -108,7 +109,8 @@ public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUse
             try { await guard.EnsurePreservedAsync(before, ct); }
             catch (GlobalAdministrationInvariantException) { return new(AccountCreationStatus.LastAdministrator); }
         }
-        if (!(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
+        if (!await AccountWriterSessionGate.IsValidAsync(db, actor, clock, ct)
+            || !(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
             return new(AccountCreationStatus.Forbidden);
         await transaction.CommitAsync(ct);

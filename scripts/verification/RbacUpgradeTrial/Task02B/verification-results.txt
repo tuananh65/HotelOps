@@ -1,0 +1,132 @@
+﻿PASS: exact bidirectional catalog comparison including metadata: roles
+PASS: exact bidirectional catalog comparison including metadata: permissions
+PASS: exact bidirectional catalog comparison including metadata: grants
+PASS: approved DH/OM/Storekeeper assignments and scopes
+
+user_id role_code          branch_id is_active
+------- ---------          --------- ---------
+      4 DEPT_MANAGER               1      True
+      5 DEPT_MANAGER               1     False
+     17 DEPT_MANAGER               1     False
+     18 DEPT_MANAGER               1     False
+     23 DEPT_MANAGER               1     False
+     19 DEPT_MANAGER               2      True
+     20 DEPT_MANAGER               2     False
+     25 DEPT_MANAGER               2     False
+      1 OPERATIONS_MANAGER         1      True
+      5 STOREKEEPER                1      True
+     19 STOREKEEPER                2     False
+
+
+
+
+user_id branch_id access_level revoked_at           
+------- --------- ------------ ----------           
+      1         1 MANAGER                           
+      1         2 MANAGER      10/21/2026 6:44:53 AM
+
+
+
+PASS: DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS, NO_INFOMSGS
+PASS: DBCC CHECKDB WITH NO_INFOMSGS, ALL_ERRORMSGS
+PASS: all FKs/CHECKs trusted and enabled; no disabled unique index
+
+tables foreign_keys checks defaults indexes
+------ ------------ ------ -------- -------
+    72          201     40       78     337
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+warehouses                1 FB                             1
+warehouses                1 LAU                            1
+warehouses                2 SEC                            1
+
+
+
+
+
+referencing_table      branch_id department_code references_count
+-----------------      --------- --------------- ----------------
+internal_request_types         1 FB                             2
+internal_request_types         1 LAU                            1
+internal_request_types         1 SEC                            1
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+internal_requests         1 SEC                            1
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+internal_requests         1 FB                             2
+internal_requests         1 LAU                            2
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+work_categories           1 FB                             1
+work_categories           1 LAU                            1
+work_categories           1 SEC                            1
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+operational_tasks         1 LAU                            1
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+work_shifts               1 LAU                            2
+
+
+
+
+referencing_table branch_id department_code references_count
+----------------- --------- --------------- ----------------
+users                     1 FB                             1
+users                     1 LAU                            1
+users                     1 SEC                            1
+users                     2 SEC                            1
+
+
+
+
+
+
+
+
+Full Schema column comparison: expected 712, actual 712, differences 0
+PASS: source all 72 tables retain exact row counts and SHA256 fingerprints
+
+db         roles active_roles permissions grants
+--         ----- ------------ ----------- ------
+HotelOpsDB    11           11          47    182
+
+
+
+
+data_scope grants
+---------- ------
+ALL            27
+BRANCH         57
+DEPARTMENT     45
+OWN            53
+
+
+
+PASS: source table/column schema matches pre-upgrade clone
+PASS: Task 01 files and standard release files unchanged

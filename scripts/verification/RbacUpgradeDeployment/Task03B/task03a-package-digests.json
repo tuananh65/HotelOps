@@ -1,0 +1,137 @@
+﻿[
+    {
+        "File":  "backup-evidence.json",
+        "Bytes":  1400,
+        "Sha256":  "74DDAD52A599483FD4F7540794F81D5AD69FD268D93DDBFBAF082C137B78D0A2"
+    },
+    {
+        "File":  "backup-rehearsal-state.json",
+        "Bytes":  820,
+        "Sha256":  "6BEAFC35211141EE3D0C701F22CB81624807CE89D0F27FB5C7073A2436D013AA"
+    },
+    {
+        "File":  "BACKUP_RECOVERY_PLAN.md",
+        "Bytes":  6749,
+        "Sha256":  "165EFA661830927A9C8C6E9E0DBC3D3DD5744C80CBBAB122B77B812897918363"
+    },
+    {
+        "File":  "deployment-state.json",
+        "Bytes":  48259,
+        "Sha256":  "2B7391F13BAA08387E775130A9BF74DB07E62AA3DF93E5F5E76020A6A96FA07D"
+    },
+    {
+        "File":  "DEPLOYMENT_READINESS_REPORT.md",
+        "Bytes":  14005,
+        "Sha256":  "691B15A08298A82659BD5BC89B425A0ECBD76331275AB91124F91AF8C43823AE"
+    },
+    {
+        "File":  "EXPECTED_CHANGES_FOR_TASK03B.json",
+        "Bytes":  54141,
+        "Sha256":  "060FC2BC062810F15C13A47F16C28BFB9D053109AB578DCE514AC9B24B7D887E"
+    },
+    {
+        "File":  "postdeployment-readonly.sql",
+        "Bytes":  20642,
+        "Sha256":  "3A0FAA5FDD104F754F9D2D34944F1ACE72789AFD2F6CC05448D230D4DB419355"
+    },
+    {
+        "File":  "preflight-readonly.sql",
+        "Bytes":  2024,
+        "Sha256":  "371F3C8C66C0E7D7762D74F68619A97DB1FFF95D27596168E508D92B3838C1A0"
+    },
+    {
+        "File":  "preflight-results.txt",
+        "Bytes":  6057,
+        "Sha256":  "8D2ECD6EE18EE74965AE4C9693D268C4EA9A348CE01DDC0C19B1EEE788CCF60D"
+    },
+    {
+        "File":  "PREFLIGHT_RESULTS.md",
+        "Bytes":  2284,
+        "Sha256":  "C0E76D32921FCDDA03EFCC3A2FB8D06F19B205CEFD692A518BA340DEA397D247"
+    },
+    {
+        "File":  "Prepare-Task03A.ps1",
+        "Bytes":  37637,
+        "Sha256":  "F1229BBA6E81D27CD64B9F30E02E987E3152DCF4AE7117543DE2BCF52DBFC058"
+    },
+    {
+        "File":  "README.md",
+        "Bytes":  4549,
+        "Sha256":  "87B8A100B4C0D9C92DB0C852188300EC4E7ED919DD4A86FED45521764077DD51"
+    },
+    {
+        "File":  "recovery-preflight-results.txt",
+        "Bytes":  966,
+        "Sha256":  "817BC4CFF78E05CB84D588FC5DC25A9CB69454EE7C289A1842CC3EBF65A91716"
+    },
+    {
+        "File":  "rehearsal-after.json",
+        "Bytes":  17412,
+        "Sha256":  "68EF4546426CDA7CE2494EFAAD041CBA846FB996209AE9FB145A6D0F2753C023"
+    },
+    {
+        "File":  "rehearsal-commit.sql",
+        "Bytes":  144614,
+        "Sha256":  "5C405F41A972BBEA5E36635C8811EFB6DA80D526672713224E8A7F36CF842364"
+    },
+    {
+        "File":  "rehearsal-dry-run.sql",
+        "Bytes":  144628,
+        "Sha256":  "932AD3F5BDFBCB8159C4965885147A6E54B8EACABFDEEFFB000E81C4D659329D"
+    },
+    {
+        "File":  "rehearsal-result.json",
+        "Bytes":  1571,
+        "Sha256":  "24F692DACE8825177EDC838347B3B0D609990085B40709EA33BD218726348C59"
+    },
+    {
+        "File":  "rehearsal-verification.txt",
+        "Bytes":  2841,
+        "Sha256":  "03AD46D42E57127E1E8D6CF053A5E1F50F8288DFD8A97F8E9B7A7E436307ED75"
+    },
+    {
+        "File":  "restore-proof.json",
+        "Bytes":  1483,
+        "Sha256":  "D2156879DEA2261B12503BA03EAD5AFC1FC46D9B9A7ED04173B23206DF013CB4"
+    },
+    {
+        "File":  "REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+        "Bytes":  144308,
+        "Sha256":  "C1FD3904871107F0284CDC8ADF5CFF8193972B408ECBCBC3F3EBE51AF29B3A64"
+    },
+    {
+        "File":  "source-after-readonly.json",
+        "Bytes":  22903,
+        "Sha256":  "AC696E0E343AE8167672D737EB48909015AAE87204F5D1F94DB693E5A76C2EA1"
+    },
+    {
+        "File":  "VERIFICATION_PLAN.md",
+        "Bytes":  5729,
+        "Sha256":  "DBD508155E4534FDDDAFBCC9484B7B64146125A499CC13F19F37B15F5DC225BF"
+    },
+    {
+        "File":  "Verify-Rehearsal.ps1",
+        "Bytes":  4102,
+        "Sha256":  "F105C3AE607239171126B87D9C57004D7D3D9A73682AEC7635272743E13D1F43"
+    },
+    {
+        "File":  "initial-rehearsal-evidence\\rehearsal-commit.sql",
+        "Bytes":  69620,
+        "Sha256":  "1B3DC99121E55A01006C7775C433D37434D3A4219413BA6BB36CC8D5A0437BEB"
+    },
+    {
+        "File":  "initial-rehearsal-evidence\\rehearsal-dry-run.sql",
+        "Bytes":  69634,
+        "Sha256":  "84D42C42D8D180ED7CDF9F95BD225E15FD11AA078690E0648394636E21F38685"
+    },
+    {
+        "File":  "initial-rehearsal-evidence\\rehearsal-result.json",
+        "Bytes":  1064,
+        "Sha256":  "544303FDEEF6EA8EA54B6932BB544F4DC471A20410FD471464A6A914A5336960"
+    },
+    {
+        "File":  "initial-rehearsal-evidence\\REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+        "Bytes":  69314,
+        "Sha256":  "E77AC074EFF72F8F8A0D863B4B080E559699ED8A44A7D1DCEF7DB9C25BCF1793"
+    }
+]

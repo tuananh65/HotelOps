@@ -112,7 +112,17 @@ public sealed class GlobalAdminTransaction
         // intentionally trades concurrency for proof; integration/load/legacy lock-order review is separate.
         // Take the write lock up front. A retained table S lock followed by a User UPDLOCK
         // can deadlock with authentication holding U and waiting to promote it to X.
-        var users = await db.Users.FromSqlRaw("SELECT * FROM dbo.users WITH (TABLOCKX,HOLDLOCK)").AsNoTracking().ToArrayAsync(ct);
+        Entities.User[] users;
+        try
+        {
+            users = await db.Users.FromSqlRaw("SELECT * FROM dbo.users WITH (TABLOCKX,HOLDLOCK)").AsNoTracking().ToArrayAsync(ct);
+        }
+        catch (SqlException error) when (ct.IsCancellationRequested)
+        {
+            // SqlClient may surface command attention as SqlException rather than OCE.
+            // Preserve cancellation semantics; the caller still owns rollback/disposal.
+            throw new OperationCanceledException("Global administration snapshot was cancelled.", error, ct);
+        }
         // Shared row/range locks remain compatible with Create's existing Role UPDLOCK.
         // Forcing catalog table S locks would conflict with its intent locks while it awaits User INSERT.
         _ = await db.UserRoles.FromSqlRaw("SELECT * FROM dbo.user_roles WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);

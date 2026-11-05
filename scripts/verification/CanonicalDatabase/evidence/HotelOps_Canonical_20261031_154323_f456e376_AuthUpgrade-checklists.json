@@ -1,0 +1,15 @@
+{
+    "stage":  "Apply",
+    "database":  "HotelOps_Canonical_20261031_154323_f456e376_AuthUpgrade",
+    "startedUtc":  "2026-10-31T08:48:21.8426225Z",
+    "sourceHashes":  {
+                         "01_Checklists.sql":  "10B1E29979B18014E9005CF7DC17B36FD51C0EBD3A61A63CDEB0F17851A97851",
+                         "02_Verify.sql":  "20F797C9B1D26AE5B285C152A4301A3DEECED17A76256E67F31352E32EAF41D6",
+                         "03_Rollback.sql":  "EBC5664DF9A7740935E22F4C6ECF47CF26E7E0317FC15A937AEB61D7730B2AD3",
+                         "Run-Checklists.ps1":  "C16E5E7A8CDBCB56305CD4533CBF13DC82F801DDA03243F46F80C35BD9D7791D"
+                     },
+    "success":  true,
+    "trialOnly":  true,
+    "error":  null,
+    "finishedUtc":  "2026-10-31T08:48:22.1004227Z"
+}

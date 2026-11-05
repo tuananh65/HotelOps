@@ -1,0 +1,25 @@
+{
+  "checks": 17,
+  "cases": [
+    "two guarded canonical branches available",
+    "SQL current assignee blocks across primary-branch boundary",
+    "SQL other user has no proven cleaning execution",
+    "SQL historical assignment excluded: COMPLETED",
+    "SQL historical assignment excluded: REASSIGNED",
+    "SQL historical assignment excluded: CANCELLED",
+    "SQL future assignment outside proven subset",
+    "SQL exact time boundary included",
+    "SQL parent outside proven subset: PENDING",
+    "SQL parent outside proven subset: COMPLETED",
+    "SQL parent outside proven subset: CANCELLED",
+    "SQL inactive room remains unresolved outside proven subset",
+    "SQL helper keeps caller context untracked",
+    "cancelled query cannot produce clear result",
+    "query failure propagates instead of returning no responsibility",
+    "helper preserves caller transaction ownership",
+    "caller rollback removes fixture writes after query failure"
+  ],
+  "database": "HotelOps_Canonical_20261028_173107_1eb02a2d_Fresh",
+  "scope": "Task47 known cleaning subset only",
+  "racesCertified": false
+}

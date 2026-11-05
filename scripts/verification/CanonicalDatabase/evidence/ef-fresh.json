@@ -1,0 +1,461 @@
+{
+  "database": "HotelOps_Canonical_20261026_123559_826e9eff_Fresh",
+  "success": true,
+  "entityCount": 82,
+  "rowversions": [
+    "inventory_items.row_version",
+    "material_replenishments.row_version",
+    "material_requests.row_version",
+    "stock_documents.row_version",
+    "stock_thresholds.row_version",
+    "stocktakes.row_version",
+    "units_of_measure.row_version",
+    "uom_conversions.row_version",
+    "warehouses.row_version"
+  ],
+  "branches": [
+    {
+      "BranchCode": "BR001",
+      "departments": 4
+    },
+    {
+      "BranchCode": "BR002",
+      "departments": 4
+    }
+  ],
+  "grants": [
+    {
+      "scope": "ALL",
+      "count": 8
+    },
+    {
+      "scope": "BRANCH",
+      "count": 81
+    },
+    {
+      "scope": "OWN",
+      "count": 51
+    }
+  ],
+  "observations": [
+    {
+      "table": "areas",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "assets",
+      "efColumns": 20,
+      "sqlColumns": 20
+    },
+    {
+      "table": "asset_condition_history",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "asset_handovers",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "asset_location_history",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "asset_types",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "attachments",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "audit_logs",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "branches",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "cleaning_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "cleaning_progress_logs",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "cleaning_reworks",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "cleaning_tasks",
+      "efColumns": 15,
+      "sqlColumns": 15
+    },
+    {
+      "table": "departments",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "floors",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "incidents",
+      "efColumns": 17,
+      "sqlColumns": 17
+    },
+    {
+      "table": "incident_events",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inspection_checklists",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inspection_checklist_items",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inspection_checklist_versions",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "inspection_defects",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "inspection_results",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "internal_requests",
+      "efColumns": 22,
+      "sqlColumns": 22
+    },
+    {
+      "table": "internal_request_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "internal_request_events",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "internal_request_feedback",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "internal_request_types",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inventory_items",
+      "efColumns": 12,
+      "sqlColumns": 12
+    },
+    {
+      "table": "item_categories",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "maintenance_material_usages",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "maintenance_works",
+      "efColumns": 18,
+      "sqlColumns": 18
+    },
+    {
+      "table": "maintenance_work_logs",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "material_fulfillments",
+      "efColumns": 12,
+      "sqlColumns": 12
+    },
+    {
+      "table": "material_fulfillment_lines",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "material_replenishments",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "material_replenishment_lines",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "material_replenishment_receipt_lines",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "material_requests",
+      "efColumns": 22,
+      "sqlColumns": 22
+    },
+    {
+      "table": "material_request_approvals",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "material_request_approval_cycles",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "material_request_approval_line_snapshots",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "material_request_lines",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "notifications",
+      "efColumns": 11,
+      "sqlColumns": 11
+    },
+    {
+      "table": "notification_recipients",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "operational_tasks",
+      "efColumns": 23,
+      "sqlColumns": 23
+    },
+    {
+      "table": "operational_task_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "operational_task_dependencies",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "operational_task_progress",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "permissions",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "preventive_maintenance_runs",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "preventive_maintenance_schedules",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "reference_values",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "roles",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "role_permissions",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "rooms",
+      "efColumns": 11,
+      "sqlColumns": 11
+    },
+    {
+      "table": "room_blocks",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "room_inspections",
+      "efColumns": 12,
+      "sqlColumns": 12
+    },
+    {
+      "table": "room_status_history",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "room_types",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "shift_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "shift_attendance",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "shift_templates",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "stock_documents",
+      "efColumns": 20,
+      "sqlColumns": 20
+    },
+    {
+      "table": "stock_document_lines",
+      "efColumns": 11,
+      "sqlColumns": 11
+    },
+    {
+      "table": "stock_movements",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "stock_receipt_line_details",
+      "efColumns": 4,
+      "sqlColumns": 4
+    },
+    {
+      "table": "stock_return_line_details",
+      "efColumns": 4,
+      "sqlColumns": 4
+    },
+    {
+      "table": "stock_thresholds",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "stock_transfer_receipts",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "stock_transfer_receipt_lines",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "stocktakes",
+      "efColumns": 14,
+      "sqlColumns": 14
+    },
+    {
+      "table": "stocktake_lines",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "system_settings",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "units_of_measure",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "uom_conversions",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "users",
+      "efColumns": 20,
+      "sqlColumns": 20
+    },
+    {
+      "table": "user_branch_access",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "user_roles",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "user_sessions",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "warehouses",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "work_categories",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "work_shifts",
+      "efColumns": 12,
+      "sqlColumns": 12
+    }
+  ],
+  "errors": [],
+  "checks": [
+    "EF model validation",
+    "All mapped column SQL types/nullability",
+    "No shadow properties",
+    "Rowversion concurrency/value generation",
+    "Read-only EF query per entity",
+    "Branch and grant projections"
+  ]
+}

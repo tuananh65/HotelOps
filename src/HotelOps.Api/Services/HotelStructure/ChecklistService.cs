@@ -1,0 +1,160 @@
+using System.ComponentModel.DataAnnotations;
+using System.Security.Cryptography;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.HotelStructure;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.HotelStructure;
+
+public sealed partial class RoomTypeCreationService
+{
+    private static string ChecklistText(string? text, int max, bool required = true)
+    {
+        var value = text?.Trim() ?? "";
+        if (required && value.Length == 0 || value.Length > max || value.Any(char.IsControl)) throw new ValidationException("Invalid checklist text.");
+        return value;
+    }
+    private static ChecklistCriterionRequest[] ValidateCriteria(IReadOnlyList<ChecklistCriterionRequest>? criteria)
+    {
+        if (criteria == null || criteria.Count is < 1 or > 200 || criteria.Any(x => x == null || x.Mandatory == null)) throw new ValidationException("Checklist requires 1–200 criteria with an explicit mandatory flag.");
+        return criteria.Select(c => c with { Text = ChecklistText(c.Text, 250), Group = ChecklistText(c.Group, 100, false),
+            PassCondition = ChecklistText(c.PassCondition, 4000, false), Description = ChecklistText(c.Description, 4000, false) }).ToArray();
+    }
+    private async Task<bool> ApplicableTypes(long branch, long[] types, CancellationToken ct) => types.Length > 0 && await db.BranchRoomTypes.AsNoTracking()
+        .CountAsync(t => types.Contains(t.RoomTypeId) && t.BranchId == branch && t.IsActive, ct) == types.Length;
+
+    public Task<RoomTypeBatchResult> CreateChecklistAsync(SessionReference ticket, long sid, long branch, CreateChecklistRequest request, CancellationToken ct)
+    {
+        var code = ChecklistText(request.Code, 40).ToUpperInvariant();
+        if (code.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '_' and not '-') || !char.IsAsciiLetterOrDigit(code[0])) throw new ValidationException("Invalid checklist code.");
+        var name = ChecklistText(request.Name, 200); var description = ChecklistText(request.Description, 4000, false);
+        var criteria = ValidateCriteria(request.Criteria); var types = request.RoomTypeIds?.ToArray();
+        if (types == null || types.Length is < 1 or > 100 || types.Any(x => x <= 0) || types.Distinct().Count() != types.Length) throw new ValidationException("Select distinct applicable RoomTypes.");
+        return BatchAsync(ticket, sid, branch, async (actor, token) =>
+        {
+            if (await ChecklistSchema.StateAsync(db, token) != 1) return new(RoomTypeBatchStatus.SchemaRequired);
+            if (!await ApplicableTypes(branch, types, token)) return new(RoomTypeBatchStatus.InvalidReference);
+            if (await db.InspectionChecklists.AnyAsync(c => c.ChecklistCode == code, token)) return new(RoomTypeBatchStatus.Duplicate);
+            var created = clock.GetUtcNow().UtcDateTime;
+            var inserted = await db.Database.SqlQuery<long>($"INSERT dbo.inspection_checklists(checklist_code,checklist_name,description,is_active,created_by,created_at,branch_id) VALUES({code},{name},{description},1,{actor},{created},{branch}); SELECT CONVERT(bigint,SCOPE_IDENTITY()) AS [Value];").ToArrayAsync(token);
+            var id = inserted.Single();
+            foreach (var type in types) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.inspection_checklist_room_types(checklist_id,room_type_id) VALUES({id},{type})", token);
+            await SaveDraft(id, null, 1, criteria, token);
+            var value = await ChecklistDetails(id, branch, token);
+            await BatchAuditAsync(actor, branch, "inspection_checklists", id, null, new { reason = "Create checklist Draft", entity = value }, ["name", "roomTypeIds", "criteria", "version"], token);
+            return new(RoomTypeBatchStatus.Success, value, await ChecklistTag(value, token));
+        }, ct, permissionCode: "CHECKLIST_MANAGE");
+    }
+
+    public Task<RoomTypeBatchResult> ReadChecklistAsync(SessionReference ticket, long sid, long branch, long id, CancellationToken ct)
+        => ChangeChecklist(ticket, sid, branch, id, null, null, null, null, ct);
+
+    public Task<RoomTypeBatchResult> UpdateChecklistAsync(SessionReference ticket, long sid, long branch, long id, string tag, UpdateChecklistRequest request, CancellationToken ct)
+        => ChangeChecklist(ticket, sid, branch, id, tag, ValidateCriteria(request.Criteria), ChecklistText(request.Reason, 500), "draft", ct);
+
+    public Task<RoomTypeBatchResult> TransitionChecklistAsync(SessionReference ticket, long sid, long branch, long id, string tag, string transition, ChecklistTransitionRequest request, CancellationToken ct)
+    {
+        if (transition is not ("publish" or "retire") || !request.Confirmation) throw new ValidationException("Confirmation is required.");
+        return ChangeChecklist(ticket, sid, branch, id, tag, null, ChecklistText(request.Reason, 500), transition, ct);
+    }
+
+    private Task<RoomTypeBatchResult> ChangeChecklist(SessionReference ticket, long sid, long branch, long id, string? expected,
+        ChecklistCriterionRequest[]? criteria, string? reason, string? action, CancellationToken ct)
+    {
+        if (id <= 0) throw new ValidationException("Checklist ID must be positive.");
+        if (action != null && !HotelStructureUpdateService.IsStrongTag(expected ?? "")) throw new ValidationException("A strong If-Match is required.");
+        return BatchAsync(ticket, sid, branch, async (actor, token) =>
+        {
+            if (await ChecklistSchema.StateAsync(db, token) != 1) return new(RoomTypeBatchStatus.SchemaRequired);
+            if (!await db.ChecklistScopes.AsNoTracking().AnyAsync(c => c.ChecklistId == id && c.BranchId == branch, token)) return new(RoomTypeBatchStatus.NotFound);
+            var before = await ChecklistDetails(id, branch, token); var tag = await ChecklistTag(before, token);
+            if (action == null) return new(RoomTypeBatchStatus.Success, before, tag);
+            if (expected != tag) return new(RoomTypeBatchStatus.Stale);
+            if (!before.Active) return new(RoomTypeBatchStatus.Inactive);
+            var draft = before.Versions.SingleOrDefault(v => v.Status == "DRAFT");
+            if (action == "draft")
+            {
+                if (draft?.UsedByInspection == true) return new(RoomTypeBatchStatus.Inactive);
+                await SaveDraft(id, draft?.Id, draft?.Number ?? before.Versions.Max(v => v.Number) + 1, criteria!, token);
+            }
+            else if (action == "publish")
+            {
+                if (draft == null || draft.UsedByInspection || draft.Criteria.Count == 0 || !await ApplicableTypes(branch, before.RoomTypeIds.ToArray(), token)) return new(RoomTypeBatchStatus.InvalidReference);
+                // Retirement changes lifecycle only; historical content and assigned inspection FK stay intact.
+                await db.InspectionChecklistVersions.Where(v => v.ChecklistId == id && v.Status == "PUBLISHED").ExecuteUpdateAsync(s => s.SetProperty(v => v.Status, "RETIRED"), token);
+                // Publication is checked against SYSUTCDATETIME by the SQL guard;
+                // use that same authority rather than a second process clock.
+                var now = await db.Database.SqlQueryRaw<DateTime>("SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(token);
+                await db.InspectionChecklistVersions.Where(v => v.VersionId == draft.Id && v.Status == "DRAFT").ExecuteUpdateAsync(s => s.SetProperty(v => v.Status, "PUBLISHED")
+                    .SetProperty(v => v.EffectiveAt, now).SetProperty(v => v.PublishedBy, actor), token);
+            }
+            else
+            {
+                if (!before.Versions.Any(v => v.Status == "PUBLISHED")) return new(RoomTypeBatchStatus.Inactive);
+                await db.InspectionChecklistVersions.Where(v => v.ChecklistId == id && v.Status == "PUBLISHED").ExecuteUpdateAsync(s => s.SetProperty(v => v.Status, "RETIRED"), token);
+            }
+            // Advance real SQL rowversion for every aggregate mutation (GBR-005).
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.inspection_checklists SET checklist_name=checklist_name WHERE checklist_id={id} AND branch_id={branch}", token);
+            var after = await ChecklistDetails(id, branch, token);
+            await BatchAuditAsync(actor, branch, "inspection_checklists", id, before, new { reason, entity = after }, ["versions", "criteria", action], token);
+            return new(RoomTypeBatchStatus.Success, after, await ChecklistTag(after, token));
+        }, ct, permissionCode: "CHECKLIST_MANAGE");
+    }
+
+    private async Task SaveDraft(long checklist, long? version, int number, ChecklistCriterionRequest[] criteria, CancellationToken ct)
+    {
+        if (version == null)
+        {
+            var row = new InspectionChecklistVersion { ChecklistId = checklist, VersionNo = number, Status = "DRAFT" };
+            db.Add(row); await db.SaveChangesAsync(ct); version = row.VersionId;
+        }
+        else await db.InspectionChecklistItems.Where(i => i.VersionId == version).ExecuteDeleteAsync(ct);
+        for (var index = 0; index < criteria.Length; index++)
+        {
+            var item = criteria[index];
+            var row = new InspectionChecklistItem { VersionId = version.Value, Criterion = item.Text, Description = item.Description,
+                PassCondition = item.PassCondition, IsRequired = item.Mandatory!.Value, SortOrder = index + 1, IsActive = true };
+            db.Add(row); await db.SaveChangesAsync(ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.inspection_checklist_items SET criterion_group={item.Group} WHERE item_id={row.ItemId}", ct);
+        }
+        db.ChangeTracker.Clear();
+    }
+    private async Task<ChecklistDetailsDto> ChecklistDetails(long id, long branch, CancellationToken ct)
+    {
+        var root = await db.InspectionChecklists.AsNoTracking().SingleAsync(c => c.ChecklistId == id, ct);
+        var types = await db.ChecklistRoomTypes.AsNoTracking().Where(a => a.ChecklistId == id).OrderBy(a => a.RoomTypeId).Select(a => a.RoomTypeId).ToArrayAsync(ct);
+        var versions = await db.InspectionChecklistVersions.AsNoTracking().Where(v => v.ChecklistId == id).OrderBy(v => v.VersionNo).ToArrayAsync(ct);
+        var ids = versions.Select(v => v.VersionId).ToArray();
+        var items = await db.InspectionChecklistItems.AsNoTracking().Where(i => ids.Contains(i.VersionId)).OrderBy(i => i.SortOrder).ThenBy(i => i.ItemId).ToArrayAsync(ct);
+        var itemIds = items.Select(i => i.ItemId).ToArray();
+        var groups = await db.ChecklistCriteria.AsNoTracking().Where(i => itemIds.Contains(i.ItemId)).ToDictionaryAsync(i => i.ItemId, i => i.Group, ct);
+        var used = await db.RoomInspections.AsNoTracking().Where(i => ids.Contains(i.VersionId)).Select(i => i.VersionId).Distinct().ToArrayAsync(ct);
+        return new(root.ChecklistId, branch, root.ChecklistCode, root.ChecklistName, root.Description, root.IsActive, types,
+            versions.Select(v => new ChecklistVersionDto(v.VersionId, v.VersionNo, v.Status, v.EffectiveAt, v.PublishedBy, used.Contains(v.VersionId),
+                items.Where(i => i.VersionId == v.VersionId && i.IsActive).Select(i => new ChecklistCriterionDto(i.ItemId, i.Criterion, groups[i.ItemId], i.IsRequired, i.PassCondition, i.Description, i.SortOrder)).ToArray())).ToArray());
+    }
+    private async Task<string> ChecklistTag(ChecklistDetailsDto value, CancellationToken ct)
+    {
+        var id = value.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var revision = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "inspection_checklists" && a.EntityId == id).Select(a => (long?)a.AuditId).MaxAsync(ct);
+        var rowVersion = await db.ChecklistScopes.AsNoTracking().Where(c => c.ChecklistId == value.Id).Select(c => c.RowVersion).SingleAsync(ct);
+        return '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision, rowVersion }))) + '"';
+    }
+
+    private async Task<bool> ChecklistEligible(long checklist, long branch, long? type, CancellationToken ct)
+    {
+        var state = await ChecklistSchema.StateAsync(db, ct);
+        if (state == 2) return false;
+        if (state == 1)
+        {
+            var scope = await db.ChecklistScopes.AsNoTracking().Where(c => c.ChecklistId == checklist).Select(c => c.BranchId).SingleOrDefaultAsync(ct);
+            if (scope != null && (scope != branch || type == null || !await db.ChecklistRoomTypes.AsNoTracking().AnyAsync(a => a.ChecklistId == checklist && a.RoomTypeId == type, ct))) return false;
+        }
+        var now = clock.GetUtcNow().UtcDateTime;
+        return await db.InspectionChecklists.AsNoTracking().AnyAsync(c => c.ChecklistId == checklist && c.IsActive && c.RoomTypeId == null
+            && c.InspectionChecklistVersions.Any(v => v.Status == "PUBLISHED" && (v.EffectiveAt == null || v.EffectiveAt <= now) && v.InspectionChecklistItems.Any(i => i.IsActive)), ct);
+    }
+}

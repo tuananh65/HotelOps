@@ -1,0 +1,17 @@
+﻿{
+    "stage":  "Apply",
+    "database":  "HotelOps_Canonical_20261031_073240_c8d317ae_Fresh",
+    "startedUtc":  "2026-10-31T00:32:45.6186257Z",
+    "sourceHashes":  {
+                         "05_UC017_Branch_RoomTypes.sql":  "F6F966F51407119964344BC1D1C99B004FA9CB45E61EE54E598E49604B0B8017",
+                         "06_UC017_Verify.sql":  "79E12296BBDEB6E87AAC640760D3A4474FFC034D2500925593C0685945DE0627",
+                         "07_UC017_Rollback.sql":  "FBBAA973F23D95C803236BE6B736E93E742542BEC875A51DE947469811476925",
+                         "Run-Uc017.ps1":  "FC58AF011AD601BA9EB3895E807EF4B5BE1BA0E3C163EE966266D4326CE49C0F"
+                     },
+    "trialOnly":  true,
+    "success":  true,
+    "stateBefore":  "Legacy",
+    "stateAfter":  "BranchV1",
+    "error":  null,
+    "finishedUtc":  "2026-10-31T00:32:46.2486708Z"
+}

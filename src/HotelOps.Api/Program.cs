@@ -21,6 +21,12 @@ builder.Services.AddDbContext<HotelOpsDbContext>(options =>
 
 // Add services to the container.
 builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccessReviewService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.HotelStructureCreationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.BranchStructureService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.HotelStructureUpdateService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Rooms.RoomDirectoryService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeCreationService>();
 builder.Services.AddScoped<IIncidentService, IncidentService>();
 builder.Services.AddScoped<IAssetService, AssetService>();
 builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();

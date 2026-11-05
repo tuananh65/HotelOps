@@ -1,0 +1,84 @@
+﻿User FK: FK_departments_manager_user_id
+
+department_id branch_id manager_user_id is_active
+------------- --------- --------------- ---------
+            5         1              17      True
+            6         1              18      True
+           10         2              20      True
+
+
+
+User FK: FK_incidents_reported_by
+
+incident_id branch_id room_id area_id asset_id severity_id priority_id status   discovered_at         reported_at          
+----------- --------- ------- ------- -------- ----------- ----------- ------   -------------         -----------          
+          4         1               1        5          10           7 RESOLVED 10/9/2026 7:30:00 AM  10/9/2026 7:40:00 AM 
+          8         1               7        7          10           7 RESOLVED 10/11/2026 8:00:00 AM 10/11/2026 8:10:00 AM
+
+
+
+User FK: FK_internal_request_assignments_assignee_id
+
+assignment_id internal_request_id assignee_id assigned_at           ended_at              status   
+------------- ------------------- ----------- -----------           --------              ------   
+            4                   4          11 10/16/2026 8:10:00 AM 10/16/2026 9:35:00 AM COMPLETED
+            8                   8          11 10/14/2026 4:12:00 PM 10/14/2026 4:35:00 PM COMPLETED
+
+
+
+User FK: FK_internal_request_events_actor_id
+
+event_id internal_request_id old_status  new_status actor_id occurred_at          
+-------- ------------------- ----------  ---------- -------- -----------          
+      12                   8 IN_PROGRESS COMPLETED        11 10/14/2026 4:35:00 PM
+
+
+
+User FK: FK_internal_request_feedback_submitted_by
+
+feedback_id internal_request_id submitted_at          
+----------- ------------------- ------------          
+          5                   5 10/12/2026 10:00:00 AM
+
+
+
+User FK: FK_internal_requests_requester_id
+
+internal_request_id branch_id request_type_id requester_id requester_department_id receiving_department_id room_id area_id related_incident_id priority_id
+------------------- --------- --------------- ------------ ----------------------- ----------------------- ------- ------- ------------------- -----------
+                  5         1               2           17                       5                       2               7                   8           7
+
+
+
+User FK: FK_operational_task_assignments_assignee_id
+
+assignment_id task_id assignee_id assigned_at           ended_at              assignment_status
+------------- ------- ----------- -----------           --------              -----------------
+           14      14          11 10/16/2026 8:10:00 AM 10/16/2026 9:35:00 AM COMPLETED        
+
+
+
+User FK: FK_operational_task_progress_reported_by
+
+progress_id task_id old_status  new_status reported_at          
+----------- ------- ----------  ---------- -----------          
+         10      14 IN_PROGRESS COMPLETED  10/16/2026 9:35:00 AM
+
+
+
+User FK: FK_shift_assignments_user_id
+
+shift_assignment_id shift_id user_id assignment_status assigned_at           confirmed_at         
+------------------- -------- ------- ----------------- -----------           ------------         
+                  7        4      11 CONFIRMED         10/14/2026 4:30:00 PM 10/14/2026 6:00:00 PM
+
+
+
+User FK: FK_warehouses_manager_user_id
+
+warehouse_id branch_id department_id manager_user_id is_active created_at          
+------------ --------- ------------- --------------- --------- ----------          
+           8         2            10              20      True 3/20/2024 8:00:00 AM
+
+
+

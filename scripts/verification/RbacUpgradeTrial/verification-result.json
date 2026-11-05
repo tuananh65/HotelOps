@@ -1,0 +1,9 @@
+﻿{
+    "catalog":  "PASS",
+    "personnel":  "PASS",
+    "checkdb":  "PASS",
+    "constraints":  "PASS",
+    "source":  "PASS",
+    "protectedFiles":  "PASS",
+    "fullSchemaColumnDifferences":  0
+}

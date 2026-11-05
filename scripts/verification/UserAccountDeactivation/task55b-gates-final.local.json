@@ -1,0 +1,109 @@
+{
+  "database": "HotelOps_Canonical_20261029_165835_4b1df255_Fresh",
+  "predicateChecks": 9,
+  "gateCases": [
+    "DEV2 state gate is clear only after actual SQL reads of an empty modeled target",
+    "Maintenance exact current/history state: PENDING",
+    "Maintenance exact current/history state: IN_PROGRESS",
+    "Maintenance exact current/history state: ON_HOLD",
+    "Maintenance exact current/history state: COMPLETED",
+    "Maintenance exact current/history state: CLOSED",
+    "Maintenance exact current/history state: CANCELLED",
+    "incomplete Maintenance completion evidence is unresolved",
+    "corrective Work/Incident state mismatch is unresolved",
+    "synchronized completed corrective work is historical",
+    "active Warehouse manager blocks",
+    "inactive Warehouse manager reference is historical",
+    "Asset exact custody/history: IN_USE",
+    "Asset exact custody/history: UNDER_REPAIR",
+    "Asset exact custody/history: RETIRED",
+    "noncanonical Asset vocabulary fails closed despite SQL CI matching",
+    "Handover current/history: PENDING",
+    "Handover current/history: ACCEPTED",
+    "Handover current/history: REJECTED",
+    "unknown Handover state cannot produce clear responsibility",
+    "PENDING handover with acceptance marker is inconsistent",
+    "MR DRAFT requester blocks without inventing an approval cycle",
+    "legacy MR state is contract-required rather than silently historical",
+    "current latest PENDING approval cycle blocks",
+    "MR parent/cycle inconsistency fails closed",
+    "newer resolved revision supersedes older PENDING target approver without a false blocker",
+    "latest resolved cycle without resolution marker is unresolved",
+    "current NEEDS_INFORMATION cycle returns requester responsibility, not historical approver responsibility",
+    "all gate fixtures roll back, including users, responsibilities and reference types"
+  ],
+  "returnWorkEvidence": null,
+  "dev1WriterEvidence": null,
+  "pendingReleaseGates": [
+    "DEV1_WRITER_COORDINATION",
+    "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+    "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE"
+  ],
+  "before": {
+    "database": "HotelOps_Canonical_20261028_230643_ed7b848b_Fresh",
+    "predicateChecks": 9,
+    "successPath": "BLOCKED",
+    "serviceStatus": "ResponsibilitiesUnresolved",
+    "Blockers": [],
+    "Unresolved": [
+      "DEV1_WRITER_COORDINATION",
+      "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+      "DEV2_UNKNOWN_STATE_COVERAGE",
+      "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE",
+      "INTERNAL_REQUEST_CONTRACT",
+      "LINE_MANAGER_CONTRACT",
+      "MAINTENANCE_RETURN_WRITER_COORDINATION",
+      "OPERATIONAL_TASK_CONTRACT",
+      "SHIFT_CONTRACT",
+      "WORKDAY_CONTRACT"
+    ],
+    "Unsupported": [
+      "UNSCHEDULED_WORKDAY_MODEL",
+      "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+    ],
+    "eligibleOtherAdministratorVerified": true,
+    "zeroModeledResponsibilityReferencesVerified": true,
+    "missingModelTreatedAsClear": false,
+    "targetUnchanged": true,
+    "endpointEnabled": false,
+    "lastAdminPoststate": "BLOCKED",
+    "deactivationRevocationAndAuditRollback": "BLOCKED",
+    "writerRacesCertified": false
+  },
+  "after": {
+    "Blockers": [],
+    "Unresolved": [
+      "INTERNAL_REQUEST_CONTRACT",
+      "LINE_MANAGER_CONTRACT",
+      "OPERATIONAL_TASK_CONTRACT",
+      "SHIFT_CONTRACT",
+      "WORKDAY_CONTRACT"
+    ],
+    "Unsupported": [
+      "UNSCHEDULED_WORKDAY_MODEL",
+      "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+    ]
+  },
+  "successPath": "BLOCKED",
+  "serviceStatus": "ResponsibilitiesUnresolved",
+  "Blockers": [],
+  "Unresolved": [
+    "INTERNAL_REQUEST_CONTRACT",
+    "LINE_MANAGER_CONTRACT",
+    "OPERATIONAL_TASK_CONTRACT",
+    "SHIFT_CONTRACT",
+    "WORKDAY_CONTRACT"
+  ],
+  "Unsupported": [
+    "UNSCHEDULED_WORKDAY_MODEL",
+    "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+  ],
+  "eligibleOtherAdministratorVerified": true,
+  "zeroModeledResponsibilityReferencesVerified": true,
+  "missingModelTreatedAsClear": false,
+  "targetUnchanged": true,
+  "endpointEnabled": false,
+  "lastAdminPoststate": "BLOCKED",
+  "deactivationRevocationAndAuditRollback": "BLOCKED",
+  "writerRacesCertified": false
+}

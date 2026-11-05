@@ -1,0 +1,106 @@
+using System.Globalization;
+using System.Text.Json;
+using System.Transactions;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Users;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.Users;
+
+public enum AccountDeactivationStatus
+{
+    Success, SessionInvalid, Forbidden, NotFound, Stale, Conflict,
+    ResponsibilitiesBlocked, ResponsibilitiesUnresolved, LastAdministrator, SerializationUnavailable,
+    ReleaseAcceptanceRequired
+}
+
+// Deliberately contains no resource identifiers or cross-branch responsibility details.
+public sealed record AccountDeactivationResult(AccountDeactivationStatus Status, byte[]? Version = null);
+
+/// <summary>
+/// Internal integration primitive: no HTTP endpoint or DI registration until acceptance passes.
+/// The concrete responsibility review cannot be replaced by an injected "clear" evaluator.
+/// Current unresolved contracts always prevent mutation, including direct service calls.
+/// </summary>
+public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAccountStatusAccess access,
+    ICurrentUserAccessor current, ISqlSessionService sessions, TimeProvider clock)
+{
+    public async Task<AccountDeactivationResult> DeactivateAsync(SessionReference reference, long sessionId,
+        long targetId, byte[] expectedVersion, UserAccountDeactivationRequest request, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(reference);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
+        ArgumentNullException.ThrowIfNull(expectedVersion);
+        ArgumentNullException.ThrowIfNull(request);
+        if (expectedVersion.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
+        if (!request.IsValid) throw new ArgumentException("A trimmed reason of at least ten characters is required.", nameof(request));
+        ct.ThrowIfCancellationRequested();
+        if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
+            return new(AccountDeactivationStatus.SessionInvalid);
+        if (actor.IsRestricted || actor.UserId == targetId) return new(AccountDeactivationStatus.Forbidden);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null || Transaction.Current is not null
+            || db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Deactivation requires a clean context and its own SQL transaction.");
+        var expected = expectedVersion.ToArray();
+        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+        GlobalAdminTransaction guard;
+        try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
+        catch (GlobalAdminLockException) { return new(AccountDeactivationStatus.SerializationUnavailable); }
+        // Existing LastAdmin foundation retains the Users universe FIRST. Never upgrade
+        // individual User locks to this table lock after taking authority/feature locks.
+        var before = await guard.ReadSnapshotAsync(ct);
+        _ = await new UserEligibilityLock(db).LockAsync([actor.UserId, targetId], ct);
+        async Task<AccountDeactivationStatus?> Gate()
+        {
+            await access.LockAuthorityAsync(actor.UserId, targetId, ct);
+            var validation = await sessions.ValidateSessionAsync(reference, ct);
+            if (!validation.IsValid || validation.Session?.SessionId != sessionId || validation.Session.IsRestricted)
+                return AccountDeactivationStatus.SessionInvalid;
+            if (!await access.CanManageAsync(targetId, ct)) return AccountDeactivationStatus.Forbidden;
+            return null;
+        }
+        if (await Gate() is { } denied) return new(denied);
+        var target = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserId == targetId && u.DeletedAt == null, ct);
+        if (target is null) return new(AccountDeactivationStatus.NotFound);
+        if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AccountDeactivationStatus.Stale);
+        if (target.AccountStatus != "ACTIVE") return new(AccountDeactivationStatus.Conflict);
+        var review = await new IntegratedDeactivationResponsibilityQueries(db).ReadAsync(targetId, ct);
+        // Unresolved takes precedence: a known blocker never masks incomplete coverage.
+        if (review.Unsupported.Count != 0 || review.Unresolved.Count != 0)
+            return new(AccountDeactivationStatus.ResponsibilitiesUnresolved);
+        if (review.Blockers.Count != 0) return new(AccountDeactivationStatus.ResponsibilitiesBlocked);
+        // Mandatory immutable release fuse. Even if a future target's runtime review
+        // is fully clear, no direct service call may mutate before release acceptance.
+        try { UserAccountDeactivationReleaseAcceptance.EnsureAccepted(); }
+        catch (DeactivationReleaseNotAcceptedException) { return new(AccountDeactivationStatus.ReleaseAcceptanceRequired); }
+        var now = clock.GetUtcNow().UtcDateTime;
+        var count = await db.Users.Where(u => u.UserId == targetId && u.DeletedAt == null
+                && u.AccountStatus == "ACTIVE" && u.RowVersion == expected)
+            .ExecuteUpdateAsync(s => s.SetProperty(u => u.AccountStatus, "INACTIVE").SetProperty(u => u.UpdatedAt, now), ct);
+        if (count != 1) return new(AccountDeactivationStatus.Stale);
+        var revoked = await new SessionRevocationService(db).RevokeAllAsync(targetId, now, ct);
+        var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
+        var audit = new AuditLog
+        {
+            ActorUserId = actor.UserId, EntityType = "users", EntityId = targetId.ToString(CultureInfo.InvariantCulture),
+            Action = "UPDATE", OccurredAt = now,
+            OldValues = JsonSerializer.Serialize(new { accountStatus = target.AccountStatus, rowVersion = Convert.ToHexString(expected) }),
+            NewValues = JsonSerializer.Serialize(new { accountStatus = "INACTIVE", rowVersion = Convert.ToHexString(version),
+                reason = request.Reason, revokedSessions = revoked }),
+            ChangedFields = JsonSerializer.Serialize(new[] { "accountStatus" })
+        };
+        db.AuditLogs.Add(audit);
+        try { await db.SaveChangesAsync(ct); }
+        finally { db.Entry(audit).State = EntityState.Detached; }
+        try { await guard.EnsurePreservedAsync(before, ct); }
+        catch (GlobalAdministrationInvariantException) { return new(AccountDeactivationStatus.LastAdministrator); }
+        if (await Gate() is { } finalDenied) return new(finalDenied);
+        await transaction.CommitAsync(ct);
+        return new(AccountDeactivationStatus.Success, version);
+        // Every early return / exception disposes the uncommitted transaction (rollback).
+        // Timeout/deadlock/cancellation propagate; callers must not retry stale authority/version.
+    }
+}

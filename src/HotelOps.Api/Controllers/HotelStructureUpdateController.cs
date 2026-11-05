@@ -1,0 +1,62 @@
+using System.ComponentModel.DataAnnotations;
+using HotelOps.Api.DTOs.HotelStructure;
+using HotelOps.Api.Security;
+using HotelOps.Api.Services.HotelStructure;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace HotelOps.Api.Controllers;
+
+[ApiController]
+[Route("api/branches/{branchId}")]
+[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+[UserAccountActivationErrors]
+public sealed class HotelStructureUpdateController(HotelStructureUpdateService structures) : ControllerBase
+{
+    [HttpPost("floors/{id}/deactivate")][RequestSizeLimit(32*1024)]
+    public Task<IActionResult> DeactivateFloor([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id,
+        [FromBody] DeactivateStructureRequest request, CancellationToken ct) => Execute((ticket,sid) =>
+            structures.DeactivateAsync(ticket,sid,branchId,id,false,Request.Headers.IfMatch.ToString(),request,ct), true);
+    [HttpPost("areas/{id}/deactivate")][RequestSizeLimit(32*1024)]
+    public Task<IActionResult> DeactivateArea([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id,
+        [FromBody] DeactivateStructureRequest request, CancellationToken ct) => Execute((ticket,sid) =>
+            structures.DeactivateAsync(ticket,sid,branchId,id,true,Request.Headers.IfMatch.ToString(),request,ct), true);
+    [HttpGet("floors/{id}")]
+    public Task<IActionResult> Floor([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id, CancellationToken ct) =>
+        Execute((ticket, sid) => structures.ReadAsync(ticket, sid, branchId, id, false, ct), false);
+    [HttpGet("areas/{id}")]
+    public Task<IActionResult> Area([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id, CancellationToken ct) =>
+        Execute((ticket, sid) => structures.ReadAsync(ticket, sid, branchId, id, true, ct), false);
+    [HttpPut("floors/{id}")][RequestSizeLimit(32*1024)]
+    public Task<IActionResult> UpdateFloor([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id,
+        [FromBody] UpdateFloorRequest request, CancellationToken ct) => Execute((ticket,sid) => structures.UpdateFloorAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),request,ct), true);
+    [HttpPut("areas/{id}")][RequestSizeLimit(32*1024)]
+    public Task<IActionResult> UpdateArea([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id,
+        [FromBody] UpdateAreaRequest request, CancellationToken ct) => Execute((ticket,sid) => structures.UpdateAreaAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),request,ct), true);
+    private async Task<IActionResult> Execute(Func<HotelOps.Api.Services.Authentication.SessionReference,long,Task<StructureUpdateResult>> work, bool write)
+    {
+        if (!Request.IsHttps) return Error(400,"HTTPS_REQUIRED");
+        if (!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid)) return Error(401,"SESSION_INVALID");
+        if (write && !Request.Headers.ContainsKey("If-Match")) return Error(428,"IF_MATCH_REQUIRED");
+        if (write && (Request.Headers.IfMatch.Count != 1 || !HotelStructureUpdateService.IsStrongTag(Request.Headers.IfMatch.ToString()))) return Error(400,"INVALID_IF_MATCH");
+        try
+        {
+            var result = await work(ticket!,sid);
+            if (result.Status == StructureUpdateStatus.Success) { Response.Headers.ETag=result.ETag; return Ok(result.Value); }
+            if (result.Status == StructureUpdateStatus.DependenciesExist)
+                return Problem(statusCode:409,title:"STRUCTURE_DEPENDENCIES_EXIST",extensions:new Dictionary<string,object?>
+                { ["code"]="STRUCTURE_DEPENDENCIES_EXIST", ["dependencies"]=result.Dependencies });
+            return result.Status switch {
+                StructureUpdateStatus.SessionInvalid => Error(401,"SESSION_INVALID"), StructureUpdateStatus.Forbidden => Error(403,"PERMISSION_DENIED"),
+                StructureUpdateStatus.NotFound => Error(404,"STRUCTURE_NODE_NOT_FOUND"), StructureUpdateStatus.Inactive => Error(409,"STRUCTURE_NOT_ACTIVE"),
+                StructureUpdateStatus.InvalidParent => Error(400,"PARENT_FLOOR_UNAVAILABLE"), StructureUpdateStatus.ParentConflict => Error(409,"PARENT_CHANGE_CONFLICT"),
+                StructureUpdateStatus.DuplicateCode => Error(409,"STRUCTURE_CODE_EXISTS"), StructureUpdateStatus.Stale => Error(412,"STALE_STRUCTURE_VERSION"),
+                StructureUpdateStatus.Unavailable => Error(503,"STRUCTURE_WRITE_UNAVAILABLE"),
+                StructureUpdateStatus.WriterCoordinationRequired => Error(503,"STRUCTURE_WRITER_COORDINATION_REQUIRED"),
+                _ => throw new InvalidOperationException("Unknown update result.") };
+        }
+        catch (ValidationException error) { return Problem(statusCode:400,title:"VALIDATION_FAILED",detail:error.Message); }
+    }
+    private ObjectResult Error(int status,string code) => Problem(statusCode:status,title:code,extensions:new Dictionary<string,object?>{["code"]=code});
+}

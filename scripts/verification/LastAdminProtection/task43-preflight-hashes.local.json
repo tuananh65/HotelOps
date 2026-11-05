@@ -1,0 +1,70 @@
+[
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\AdminCredentialResetController.cs",
+        "Hash":  "2E57D56D19C5D22D98FF1A6AEA000C602D70969AC73F7CC67AA9E14494294BAC"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IConditionalCredentialResetService.cs",
+        "Hash":  "B4B20FAB8A88176007E3E0D6ED2BDDE99F7E7B31B4C9C1A11C9FAEB16CD118CA"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\PasswordCredentialService.cs",
+        "Hash":  "50FACBBFDE270EB1D0479EB4E6447EF9DB44446B6E465FA5F8225B841B608333"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\TemporaryCredentialService.cs",
+        "Hash":  "8271CEB29EB594C959F37707E903CF8419E0F04749B7B2770F443A9A4A3F0838"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\EFFECTIVE_ADMIN_DEFINITION.md",
+        "Hash":  "74F9D43DDC3B7E54BD01E59D27EB878569DF2577773BC58308FF70A51184B08B"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\INTEGRATION_BLOCKERS.md",
+        "Hash":  "E198353B853656864251CAE631C322EC7CC68B3E37B0004E4BB8DC2B1E5080DA"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\INTEGRATION_DECISION.md",
+        "Hash":  "3777E74B646D47B5969BB99D248B82E214F2F3FBC05EC4BEFBBFCC0736F795D3"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\INTEGRATION_VERIFICATION.md",
+        "Hash":  "1F9E218728F9E327A583A1D9CEC9D4F542E66C3A8F5AA11FA4DFE1439C30B482"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\LastAdminProtection.Verification.csproj",
+        "Hash":  "63814D451ECE23C4504640B5FF12D104759ACA8470EA120844BC12140F2E5BC8"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\LOCK_PROTOCOL.md",
+        "Hash":  "A30929474EF05E4EFB1A447E9265205B861DD0DEED87D358AC9C929D414D5345"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\MUTATION_PATH_MATRIX.md",
+        "Hash":  "8ABBFE6F64FF68A8C1092CF41AA3BBDAAD002A8072CD89A16CFA40429FB913EC"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\Program.cs",
+        "Hash":  "F6C5C5DCC780ECDD9D0069CF52EFF3FE02C92ACDA0DB7881BD2B35C7EC9F88DA"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\README.md",
+        "Hash":  "7DBDD7FBFA89CEAC563F39EEBEE5AB1B52CE6DF59221848B7A13674C832900A7"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\REMAINING_UNPROTECTED_PATHS.md",
+        "Hash":  "8405678435EAAA3C274830C081E79DA81D0E94419F8C66E1FA200BF33CF7099B"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\ResetHttpIntegration.cs",
+        "Hash":  "BDE18E262603E248BA2E02FBB4C05FB3AB10E4A5AC8DCC753C83A16A5175DA0C"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\LastAdminProtection\\SQL_VERIFICATION_RESULTS.md",
+        "Hash":  "2275A6741539FF2883688F7D15A11ECBD67B7BB5024EA5FB5292B2AD038F4232"
+    },
+    {
+        "Path":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\GlobalAdminSerialization.cs",
+        "Hash":  "8C6AF774789F863C5D0326E77CCA285F3C7294C78846BC0C6B41527745C7E931"
+    }
+]

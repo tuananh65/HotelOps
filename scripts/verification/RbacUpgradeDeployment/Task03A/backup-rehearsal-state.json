@@ -1,0 +1,13 @@
+﻿{
+    "clone":  "HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f",
+    "backup":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\Backup\\RBAC03A_20261021_24e14e196c6a.bak",
+    "data":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f.mdf",
+    "log":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\DATA\\HotelOps_RBAC03A_Rehearsal_20261021_a236462a264f_log.ldf",
+    "sourceIdentity":  {
+                           "database":  "HotelOpsDB",
+                           "databaseId":  22,
+                           "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                           "createStamp":  "2026-10-18 02:41:14.627"
+                       },
+    "upgradeOnMain":  false
+}

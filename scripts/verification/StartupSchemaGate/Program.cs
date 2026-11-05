@@ -222,7 +222,7 @@ try
         await using var candidateDb = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(candidate).Options);
         Check(await new StartupSchemaValidator(candidateDb).ValidateAsync(ct) == expected, label + " validator classification");
         start.Environment["ConnectionStrings__HotelOpsDb"] = candidate;
-        using var child = Process.Start(start) ?? throw new InvalidOperationException("Child not started");
+        using var child = StartupProbeProcess.Start(start);
         var output = child.StandardOutput.ReadToEndAsync(ct); var error = child.StandardError.ReadToEndAsync(ct);
         var elapsed = Stopwatch.StartNew();
         var served = false;

@@ -1,0 +1,31 @@
+{
+  "database": "HotelOps_Canonical_20261028_230643_ed7b848b_Fresh",
+  "predicateChecks": 9,
+  "successPath": "BLOCKED",
+  "serviceStatus": "ResponsibilitiesUnresolved",
+  "Blockers": [],
+  "Unresolved": [
+    "DEV1_WRITER_COORDINATION",
+    "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+    "DEV2_UNKNOWN_STATE_COVERAGE",
+    "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE",
+    "INTERNAL_REQUEST_CONTRACT",
+    "LINE_MANAGER_CONTRACT",
+    "MAINTENANCE_RETURN_WRITER_COORDINATION",
+    "OPERATIONAL_TASK_CONTRACT",
+    "SHIFT_CONTRACT",
+    "WORKDAY_CONTRACT"
+  ],
+  "Unsupported": [
+    "UNSCHEDULED_WORKDAY_MODEL",
+    "MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"
+  ],
+  "eligibleOtherAdministratorVerified": true,
+  "zeroModeledResponsibilityReferencesVerified": true,
+  "missingModelTreatedAsClear": false,
+  "targetUnchanged": true,
+  "endpointEnabled": false,
+  "lastAdminPoststate": "BLOCKED",
+  "deactivationRevocationAndAuditRollback": "BLOCKED",
+  "writerRacesCertified": false
+}

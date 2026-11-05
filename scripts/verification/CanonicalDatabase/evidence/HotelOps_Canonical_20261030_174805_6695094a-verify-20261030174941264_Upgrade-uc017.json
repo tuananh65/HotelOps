@@ -1,0 +1,17 @@
+﻿{
+    "stage":  "Verify",
+    "database":  "HotelOps_Canonical_20261030_174805_6695094a_Upgrade",
+    "startedUtc":  "2026-10-30T17:51:33.8715904Z",
+    "sourceHashes":  {
+                         "05_UC017_Branch_RoomTypes.sql":  "3DAD31B548E2C15CB7B7C38461D94F65B214878919D0E5BC0F494DC860E18C21",
+                         "06_UC017_Verify.sql":  "DA9194F8DB46F8711E0B95789C87C263CF757A8B62BC6F41970759BA7868CD03",
+                         "07_UC017_Rollback.sql":  "62755148B909A02FC0938386A191ED4D79FCEC9597143D0BBC8DFF4D856CDAB1",
+                         "Run-Uc017.ps1":  "FC58AF011AD601BA9EB3895E807EF4B5BE1BA0E3C163EE966266D4326CE49C0F"
+                     },
+    "trialOnly":  true,
+    "success":  true,
+    "stateBefore":  "BranchV1",
+    "stateAfter":  "BranchV1",
+    "error":  null,
+    "finishedUtc":  "2026-10-30T17:51:34.4833344Z"
+}

@@ -1,0 +1,15 @@
+{
+    "stage":  "Apply",
+    "database":  "HotelOps_Canonical_20261031_155719_2f54a88f_Fresh",
+    "startedUtc":  "2026-10-31T08:57:25.2853467Z",
+    "sourceHashes":  {
+                         "01_Housekeeping.sql":  "4041A56F4C0AE061B4EF777BB9F834C53249F6A5E9F2C52253B88117B89024DA",
+                         "02_Verify.sql":  "DF9CD0C4021F63C2F832C4CB1F0C05E29244B68CBC14E52FBD07BD3874EAF6B7",
+                         "03_Rollback.sql":  "65B0970D68B193D76029253976654BA8D8A26E1AD4B69BBA29ADA7C6A5040503",
+                         "Run-Housekeeping.ps1":  "E6A2FC2A8769868981BAE025614CD103623680380091E0EF4247F2EF52F6A174"
+                     },
+    "success":  true,
+    "trialOnly":  true,
+    "error":  null,
+    "finishedUtc":  "2026-10-31T08:57:25.4907932Z"
+}

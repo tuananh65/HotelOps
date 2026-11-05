@@ -1,0 +1,633 @@
+{
+  "database": "HotelOps_Canonical_20261026_123559_826e9eff_Fresh",
+  "success": true,
+  "entityCount": 82,
+  "rowversions": [
+    "inventory_items.row_version",
+    "material_replenishments.row_version",
+    "material_requests.row_version",
+    "stock_documents.row_version",
+    "stock_thresholds.row_version",
+    "stocktakes.row_version",
+    "units_of_measure.row_version",
+    "uom_conversions.row_version",
+    "warehouses.row_version"
+  ],
+  "relationshipChecks": 238,
+  "indexChecks": 279,
+  "branches": [
+    {
+      "BranchCode": "BR001",
+      "departments": 4
+    },
+    {
+      "BranchCode": "BR002",
+      "departments": 4
+    }
+  ],
+  "grants": [
+    {
+      "scope": "ALL",
+      "count": 8
+    },
+    {
+      "scope": "BRANCH",
+      "count": 81
+    },
+    {
+      "scope": "OWN",
+      "count": 51
+    }
+  ],
+  "observations": [
+    {
+      "table": "areas",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "assets",
+      "efColumns": 20,
+      "sqlColumns": 20
+    },
+    {
+      "table": "asset_condition_history",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "asset_handovers",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "asset_location_history",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "asset_types",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "attachments",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "audit_logs",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "branches",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "cleaning_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "cleaning_progress_logs",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "cleaning_reworks",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "cleaning_tasks",
+      "efColumns": 15,
+      "sqlColumns": 15
+    },
+    {
+      "table": "departments",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "floors",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "incidents",
+      "efColumns": 17,
+      "sqlColumns": 17
+    },
+    {
+      "table": "incident_events",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inspection_checklists",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inspection_checklist_items",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inspection_checklist_versions",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "inspection_defects",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "inspection_results",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "internal_requests",
+      "efColumns": 22,
+      "sqlColumns": 22
+    },
+    {
+      "table": "internal_request_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "internal_request_events",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "internal_request_feedback",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "internal_request_types",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "inventory_items",
+      "efColumns": 12,
+      "sqlColumns": 12
+    },
+    {
+      "table": "item_categories",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "maintenance_material_usages",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "maintenance_works",
+      "efColumns": 18,
+      "sqlColumns": 18
+    },
+    {
+      "table": "maintenance_work_logs",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "material_fulfillments",
+      "efColumns": 12,
+      "sqlColumns": 12
+    },
+    {
+      "table": "material_fulfillment_lines",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "material_replenishments",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "material_replenishment_lines",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "material_replenishment_receipt_lines",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "material_requests",
+      "efColumns": 22,
+      "sqlColumns": 22
+    },
+    {
+      "table": "material_request_approvals",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "material_request_approval_cycles",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "material_request_approval_line_snapshots",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "material_request_lines",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "notifications",
+      "efColumns": 11,
+      "sqlColumns": 11
+    },
+    {
+      "table": "notification_recipients",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "operational_tasks",
+      "efColumns": 23,
+      "sqlColumns": 23
+    },
+    {
+      "table": "operational_task_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "operational_task_dependencies",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "operational_task_progress",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "permissions",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "preventive_maintenance_runs",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "preventive_maintenance_schedules",
+      "efColumns": 13,
+      "sqlColumns": 13
+    },
+    {
+      "table": "reference_values",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "roles",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "role_permissions",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "rooms",
+      "efColumns": 11,
+      "sqlColumns": 11
+    },
+    {
+      "table": "room_blocks",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "room_inspections",
+      "efColumns": 12,
+      "sqlColumns": 12
+    },
+    {
+      "table": "room_status_history",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "room_types",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "shift_assignments",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "shift_attendance",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "shift_templates",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "stock_documents",
+      "efColumns": 20,
+      "sqlColumns": 20
+    },
+    {
+      "table": "stock_document_lines",
+      "efColumns": 11,
+      "sqlColumns": 11
+    },
+    {
+      "table": "stock_movements",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "stock_receipt_line_details",
+      "efColumns": 4,
+      "sqlColumns": 4
+    },
+    {
+      "table": "stock_return_line_details",
+      "efColumns": 4,
+      "sqlColumns": 4
+    },
+    {
+      "table": "stock_thresholds",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "stock_transfer_receipts",
+      "efColumns": 5,
+      "sqlColumns": 5
+    },
+    {
+      "table": "stock_transfer_receipt_lines",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "stocktakes",
+      "efColumns": 14,
+      "sqlColumns": 14
+    },
+    {
+      "table": "stocktake_lines",
+      "efColumns": 9,
+      "sqlColumns": 9
+    },
+    {
+      "table": "system_settings",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "units_of_measure",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "uom_conversions",
+      "efColumns": 7,
+      "sqlColumns": 7
+    },
+    {
+      "table": "users",
+      "efColumns": 20,
+      "sqlColumns": 20
+    },
+    {
+      "table": "user_branch_access",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "user_roles",
+      "efColumns": 8,
+      "sqlColumns": 8
+    },
+    {
+      "table": "user_sessions",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "warehouses",
+      "efColumns": 10,
+      "sqlColumns": 10
+    },
+    {
+      "table": "work_categories",
+      "efColumns": 6,
+      "sqlColumns": 6
+    },
+    {
+      "table": "work_shifts",
+      "efColumns": 12,
+      "sqlColumns": 12
+    }
+  ],
+  "errors": [],
+  "advisories": [
+    "Missing index areas(floor_id), unique=False",
+    "Missing index assets(asset_type_id), unique=False",
+    "Missing index assets(current_area_id), unique=False",
+    "Missing index assets(current_department_id), unique=False",
+    "Missing index assets(current_room_id), unique=False",
+    "Missing index assets(custodian_user_id), unique=False",
+    "Missing index asset_condition_history(asset_id), unique=False",
+    "Missing index asset_condition_history(changed_by), unique=False",
+    "Missing index asset_condition_history(related_incident_id), unique=False",
+    "Missing index asset_handovers(asset_id), unique=False",
+    "Missing index asset_handovers(created_by), unique=False",
+    "Missing index asset_handovers(from_department_id), unique=False",
+    "Missing index asset_handovers(from_user_id), unique=False",
+    "Missing index asset_handovers(to_department_id), unique=False",
+    "Missing index asset_handovers(to_user_id), unique=False",
+    "Missing index asset_location_history(asset_id), unique=False",
+    "Missing index asset_location_history(moved_by), unique=False",
+    "Missing index attachments(uploaded_by), unique=False",
+    "Missing index audit_logs(branch_id), unique=False",
+    "Missing index cleaning_assignments(assigned_by), unique=False",
+    "Missing index cleaning_progress_logs(blocker_type_id), unique=False",
+    "Missing index cleaning_progress_logs(cleaning_task_id), unique=False",
+    "Missing index cleaning_progress_logs(logged_by), unique=False",
+    "Missing index cleaning_reworks(assignee_user_id), unique=False",
+    "Missing index cleaning_reworks(cleaning_task_id), unique=False",
+    "Missing index cleaning_reworks(inspection_id), unique=False",
+    "Missing index cleaning_tasks(cleaning_type_id), unique=False",
+    "Missing index cleaning_tasks(created_by), unique=False",
+    "Missing index cleaning_tasks(priority_id), unique=False",
+    "Missing index departments(manager_user_id), unique=False",
+    "Missing index incidents(area_id), unique=False",
+    "Missing index incidents(asset_id), unique=False",
+    "Missing index incidents(priority_id), unique=False",
+    "Missing index incidents(reported_by), unique=False",
+    "Missing index incidents(severity_id), unique=False",
+    "Missing index incident_events(actor_id), unique=False",
+    "Missing index incident_events(incident_id), unique=False",
+    "Missing index inspection_checklists(created_by), unique=False",
+    "Missing index inspection_checklists(room_type_id), unique=False",
+    "Missing index inspection_checklist_items(version_id), unique=False",
+    "Missing index inspection_checklist_versions(published_by), unique=False",
+    "Missing index inspection_defects(assigned_to), unique=False",
+    "Missing index inspection_defects(checklist_item_id), unique=False",
+    "Missing index inspection_defects(inspection_id), unique=False",
+    "Missing index inspection_defects(severity_id), unique=False",
+    "Missing index inspection_results(checklist_item_id), unique=False",
+    "Missing index internal_requests(area_id), unique=False",
+    "Missing index internal_requests(priority_id), unique=False",
+    "Missing index internal_requests(related_incident_id), unique=False",
+    "Missing index internal_requests(request_type_id), unique=False",
+    "Missing index internal_requests(requester_department_id), unique=False",
+    "Missing index internal_requests(requester_id), unique=False",
+    "Missing index internal_requests(room_id), unique=False",
+    "Missing index internal_request_assignments(assigned_by), unique=False",
+    "Missing index internal_request_assignments(assignee_id), unique=False",
+    "Missing index internal_request_assignments(internal_request_id), unique=False",
+    "Missing index internal_request_events(actor_id), unique=False",
+    "Missing index internal_request_feedback(submitted_by), unique=False",
+    "Missing index internal_request_types(default_department_id), unique=False",
+    "Missing index internal_request_types(default_priority_id), unique=False",
+    "Missing index inventory_items(base_uom_id), unique=False",
+    "Missing index inventory_items(category_id), unique=False",
+    "Missing index maintenance_works(assignee_id), unique=False",
+    "Missing index maintenance_works(created_by), unique=False",
+    "Missing index maintenance_works(department_id), unique=False",
+    "Missing index maintenance_works(incident_id), unique=False",
+    "Missing index maintenance_works(priority_id), unique=False",
+    "Missing index maintenance_works(reviewed_by), unique=False",
+    "Missing index maintenance_work_logs(logged_by), unique=False",
+    "Missing index maintenance_work_logs(maintenance_work_id), unique=False",
+    "Missing index maintenance_work_logs(material_issue_id), unique=False",
+    "Missing index material_fulfillments(fulfilled_by), unique=False",
+    "Missing index material_fulfillments(received_by), unique=False",
+    "Missing index material_fulfillments(warehouse_id), unique=False",
+    "Missing index material_fulfillment_lines(item_id), unique=False",
+    "Missing index material_fulfillment_lines(uom_id), unique=False",
+    "Missing index material_requests(department_id), unique=False",
+    "Missing index material_requests(incident_id), unique=False",
+    "Missing index material_requests(priority_id), unique=False",
+    "Missing index material_requests(receiving_area_id), unique=False",
+    "Missing index material_requests(receiving_room_id), unique=False",
+    "Missing index material_requests(remainder_closed_by), unique=False",
+    "Missing index material_requests(requester_id), unique=False",
+    "Missing index material_requests(source_warehouse_id), unique=False",
+    "Missing index material_request_approvals(approver_id), unique=False",
+    "Missing index material_request_approval_cycles(assigned_approver_id), unique=False",
+    "Missing index material_request_approval_cycles(submitted_by), unique=False",
+    "Missing index material_request_approval_line_snapshots(item_id), unique=False",
+    "Missing index material_request_approval_line_snapshots(request_line_id), unique=False",
+    "Missing index material_request_approval_line_snapshots(uom_id), unique=False",
+    "Missing index material_request_lines(item_id), unique=False",
+    "Missing index material_request_lines(uom_id), unique=False",
+    "Missing index notifications(created_by), unique=False",
+    "Missing index operational_tasks(area_id), unique=False",
+    "Missing index operational_tasks(category_id), unique=False",
+    "Missing index operational_tasks(created_by), unique=False",
+    "Missing index operational_tasks(department_id), unique=False",
+    "Missing index operational_tasks(parent_task_id), unique=False",
+    "Missing index operational_tasks(priority_id), unique=False",
+    "Missing index operational_tasks(room_id), unique=False",
+    "Missing index operational_task_assignments(assigned_by), unique=False",
+    "Missing index operational_task_assignments(assignee_id), unique=False",
+    "Missing index operational_task_assignments(task_id), unique=False",
+    "Missing index operational_task_dependencies(successor_task_id), unique=False",
+    "Missing index operational_task_progress(reported_by), unique=False",
+    "Missing index operational_task_progress(task_id), unique=False",
+    "Missing index preventive_maintenance_runs(maintenance_work_id), unique=False",
+    "Missing index preventive_maintenance_runs(performed_by), unique=False",
+    "Missing index preventive_maintenance_schedules(area_id), unique=False",
+    "Missing index preventive_maintenance_schedules(asset_id), unique=False",
+    "Missing index preventive_maintenance_schedules(assigned_department_id), unique=False",
+    "Missing index preventive_maintenance_schedules(created_by), unique=False",
+    "Missing index preventive_maintenance_schedules(room_id), unique=False",
+    "Missing index role_permissions(granted_by), unique=False",
+    "Missing index role_permissions(permission_id), unique=False",
+    "Missing index rooms(area_id), unique=False",
+    "Missing index rooms(floor_id), unique=False",
+    "Missing index rooms(room_type_id), unique=False",
+    "Missing index room_blocks(blocked_by), unique=False",
+    "Missing index room_blocks(incident_id), unique=False",
+    "Missing index room_blocks(released_by), unique=False",
+    "Missing index room_blocks(room_id), unique=False",
+    "Missing index room_inspections(cleaning_task_id), unique=False",
+    "Missing index room_inspections(inspector_user_id), unique=False",
+    "Missing index room_inspections(version_id), unique=False",
+    "Missing index room_status_history(changed_by), unique=False",
+    "Missing index shift_assignments(assigned_by), unique=False",
+    "Missing index shift_assignments(user_id), unique=False",
+    "Missing index shift_attendance(verified_by), unique=False",
+    "Missing index stock_documents(approved_by), unique=False",
+    "Missing index stock_documents(created_by), unique=False",
+    "Missing index stock_documents(destination_warehouse_id), unique=False",
+    "Missing index stock_documents(posted_by), unique=False",
+    "Missing index stock_documents(reversal_of_document_id), unique=False",
+    "Missing index stock_documents(source_warehouse_id), unique=False",
+    "Missing index stock_document_lines(item_id), unique=False",
+    "Missing index stock_document_lines(uom_id), unique=False",
+    "Missing index stock_movements(created_by), unique=False",
+    "Missing index stock_movements(document_line_id), unique=False",
+    "Missing index stock_movements(item_id), unique=False",
+    "Missing index stock_thresholds(item_id), unique=False",
+    "Missing index stocktakes(adjustment_document_id), unique=False",
+    "Missing index stocktakes(approved_by), unique=False",
+    "Missing index stocktakes(counted_by), unique=False",
+    "Missing index stocktakes(warehouse_id), unique=False",
+    "Missing index stocktake_lines(counted_by), unique=False",
+    "Missing index stocktake_lines(item_id), unique=False",
+    "Missing index system_settings(updated_by), unique=False",
+    "Missing index uom_conversions(from_uom_id), unique=False",
+    "Missing index uom_conversions(to_uom_id), unique=False",
+    "Missing index users(department_id), unique=False",
+    "Missing index users(manager_user_id), unique=False",
+    "Missing index user_branch_access(branch_id), unique=False",
+    "Missing index user_branch_access(granted_by), unique=False",
+    "Missing index user_roles(assigned_by), unique=False",
+    "Missing index user_roles(branch_id), unique=False",
+    "Missing index user_roles(role_id), unique=False",
+    "Missing index user_sessions(user_id), unique=False",
+    "Missing index warehouses(department_id), unique=False",
+    "Missing index warehouses(manager_user_id), unique=False",
+    "Missing index work_categories(department_id), unique=False",
+    "Missing index work_shifts(branch_id), unique=False",
+    "Missing index work_shifts(created_by), unique=False",
+    "Missing index work_shifts(department_id), unique=False",
+    "Missing index work_shifts(shift_template_id), unique=False"
+  ],
+  "checks": [
+    "EF model validation",
+    "All mapped column SQL types/nullability",
+    "No shadow properties",
+    "Rowversion concurrency/value generation",
+    "Unique keys",
+    "Trusted FK column mappings",
+    "Index keys and uniqueness",
+    "Read-only EF query per entity",
+    "Branch and grant projections"
+  ]
+}

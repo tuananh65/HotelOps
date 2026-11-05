@@ -1,0 +1,36 @@
+﻿{
+    "identifier":  "RBAC03B_20261021_133605_d707920c940243b19f38814fcd69f6bb",
+    "database":  "HotelOpsDB",
+    "location":  "SQL Server configured backup directory, outside repository",
+    "verifyOnly":  "PASS",
+    "metadata":  [
+                     {
+                         "backup_set_id":  9383,
+                         "backup_set_uuid":  "58B5E174-851A-4330-8DA2-AFE78306EF1A",
+                         "database_name":  "HotelOpsDB",
+                         "server_name":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                         "start_server_local":  "2026-10-21 20:36:05.000",
+                         "finish_server_local":  "2026-10-21 20:36:05.000",
+                         "backup_size":  18563072,
+                         "compressed_backup_size":  18563072,
+                         "is_copy_only":  true,
+                         "has_backup_checksums":  true,
+                         "is_damaged":  false,
+                         "recovery_model":  "SIMPLE",
+                         "first_lsn":  43000000024700001,
+                         "last_lsn":  43000000025000001
+                     }
+                 ],
+    "logicalFiles":  [
+                         {
+                             "name":  "HotelOpsDB",
+                             "type":  "D",
+                             "size":  75497472
+                         },
+                         {
+                             "name":  "HotelOpsDB_log",
+                             "type":  "L",
+                             "size":  8388608
+                         }
+                     ]
+}

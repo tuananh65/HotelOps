@@ -1,0 +1,5 @@
+﻿{
+    "HotelOps_Canonical_20261026_124702_3bcc1bfa_Fresh":  "PASS: exact role/permission/grant set matches release 03",
+    "HotelOps_Canonical_20261026_124702_3bcc1bfa_Upgrade":  "PASS: exact role/permission/grant set matches release 03",
+    "HotelOps_Canonical_20261026_124702_3bcc1bfa_AuthUpgrade":  "PASS: exact role/permission/grant set matches release 03"
+}

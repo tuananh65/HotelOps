@@ -1,0 +1,6 @@
+﻿{
+    "database":  "HotelOps_RBAC_Upgrade_Trial_20261021_380b6cc4b282",
+    "backup":  "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.SQLEXPRESS\\MSSQL\\Backup\\HotelOps_Task02C_24301ed38d4d4064b8ff7ca6e4b6abea.bak",
+    "verifyOnly":  "PASS",
+    "copyOnly":  true
+}

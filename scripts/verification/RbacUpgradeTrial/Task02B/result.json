@@ -1,0 +1,10 @@
+﻿{
+    "dryRun":  "PASS_ROLLBACK",
+    "commit":  "BLOCKED_SQL_52005",
+    "trialUnchanged":  true,
+    "sourceUnchanged":  true,
+    "integrity":  "PASS",
+    "rbac":  "PASS",
+    "departmentAcceptance":  "BLOCKED_LIVE_DEPENDENCIES",
+    "protectedFiles":  "PASS"
+}
