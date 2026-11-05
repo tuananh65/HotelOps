@@ -1,0 +1,77 @@
+﻿[
+    {
+        "path":  "codex-b-smoke.txt",
+        "bytes":  33,
+        "sha256":  "368E7738B5E4D6990FA1693A1C77A54199EECDD20F87525D6FB218FDC6982646"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-01/BTASK01_ACCEPTANCE_MATRIX.md",
+        "bytes":  1384,
+        "sha256":  "53F2B680770853A9802D6DCB3CF54F75FA78D9457C1379D50FEA91D9C8076027"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-01/BTASK01_CHANGELOG.md",
+        "bytes":  430,
+        "sha256":  "371E0FD9C9926BD0EA09547BFB1E27CA6309CDBF844674ECF38ED98449654DF4"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-01/BTASK01_IMPLEMENTATION_REPORT.md",
+        "bytes":  2388,
+        "sha256":  "D9A3C92CA7A331EA87E20DFA7D2E3D7F081B6D445FBE8C7CC31D557381892AF1"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-01/BTASK01_INTEGRATION_HANDOFF.md",
+        "bytes":  2182,
+        "sha256":  "0AEF815B16E330122B6E4E2B4589A78B0B14B54C9EB1C0783DE3B40F1F8DFE34"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-01/BTASK01_UC_SELECTION.md",
+        "bytes":  2523,
+        "sha256":  "7E6A9FE87EB7D6BC3D8DF16A039C49E31722262E5B612C2C04CA949630E25F5B"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-01/BTASK01_VALIDATION.json",
+        "bytes":  1246,
+        "sha256":  "646BC7E56505F4B929650F48EA0C2F375010BE69C1E8EA199A0D305FAAE15004"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-03/BTASK03_ACCEPTANCE_MATRIX.md",
+        "bytes":  1080,
+        "sha256":  "6C9B67047C3DC7AEEB12F82FB5F6F6778D78853080205DAD1E07F0BAE71E347E"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-03/BTASK03_CHANGELOG.md",
+        "bytes":  514,
+        "sha256":  "663E5326833D392FBB10638FA0986935B3A8E3CC5C3428A0645FEF81357C9540"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-03/BTASK03_CODEX_A_INTEGRATION_HANDOFF.md",
+        "bytes":  2154,
+        "sha256":  "C4674E34098E0925755C12F31A6F66DE76D525FED3E1C71FF6C37C1936D6B1A8"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-03/BTASK03_IMPLEMENTATION_REPORT.md",
+        "bytes":  1561,
+        "sha256":  "D1C982B2E73060C595A3CEB799CE1DECA75B0878DFDE215C30589C4655D9B06F"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-03/BTASK03_UC_ELIGIBILITY_DECISION.md",
+        "bytes":  4297,
+        "sha256":  "CDBA6CB46D0F1FF28AF427F797ECB2769DCD8D40E913424450188D09AE5F815C"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-03/BTASK03_VALIDATION.json",
+        "bytes":  903,
+        "sha256":  "7A6774B9C884C40C71BB7ECAF10DD58FF2473DC5EA30DD98A6EC5CCE986914F7"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-04/BTASK04_REPORT.md",
+        "bytes":  6289,
+        "sha256":  "BE6B6C90C69681AC50B47D8AD95A451804322787E793FF97367D9259F8E59FFD"
+    },
+    {
+        "path":  "scripts/verification/CodexB/B-TASK-04/BTASK04_VALIDATION.json",
+        "bytes":  1169,
+        "sha256":  "D5A42D9FA0342F95368DBBF352922E8F8068C1E6CF610DF87A237C4C184EDF8E"
+    }
+]

@@ -1,0 +1,32 @@
+{
+  "task": "B-TASK-04",
+  "uc": "UC107",
+  "status": "BLOCKED_PRECONDITIONS",
+  "branch": "ai/codex-b",
+  "head": "4a187320643d0c82f232c6b9dd5a667b8401c280",
+  "buildCommand": "dotnet build HotelOps.slnx",
+  "build": "Passed (baseline source only)",
+  "buildExitCode": 0,
+  "buildWarnings": 0,
+  "buildErrors": 0,
+  "tests": "Not Run",
+  "testReason": "UC107 implementation blocked; no UC107 executable test suite found in B. No framework discovery or test command executed.",
+  "testCasesExecuted": 0,
+  "diffCheckCommand": "git diff --check",
+  "diffCheck": "Passed for tracked diff; new report files reviewed separately",
+  "https": "Not Run: no approved isolated trial",
+  "sql": "Not Run: database access prohibited by task",
+  "databaseConnectionsAttempted": false,
+  "productionSourceFilesChanged": [],
+  "createdFiles": [
+    "scripts/verification/CodexB/B-TASK-04/BTASK04_REPORT.md",
+    "scripts/verification/CodexB/B-TASK-04/BTASK04_VALIDATION.json"
+  ],
+  "expectedUcWeightHistoricalSnapshot": 2,
+  "pointsClaimed": 0,
+  "IMPLEMENTED_IN_B": false,
+  "INTEGRATED_MAIN": false,
+  "COMPLETED_VERIFIED": false,
+  "ledgerChanged": false,
+  "committed": false
+}
