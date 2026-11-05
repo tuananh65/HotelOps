@@ -7,6 +7,7 @@ docs/fullstack-integration/BE_FRAMEWORK_TEST.txt
 docs/fullstack-integration/BE_SOLUTION_TEST.txt
 docs/fullstack-integration/BRANCH_INTEGRATION_HISTORY.md
 docs/fullstack-integration/BUILD_TEST_RESULTS.md
+docs/fullstack-integration/CHANGESET_FILES.txt
 docs/fullstack-integration/DEV1_NEXT_ACTIONS.md
 docs/fullstack-integration/DEV3_ONBOARDING.md
 docs/fullstack-integration/DEV_OWNERSHIP_MATRIX.md
@@ -31,6 +32,7 @@ docs/fullstack-integration/KNOWN_BLOCKERS.md
 docs/fullstack-integration/LEGACY_BACKEND_RECONCILIATION.md
 docs/fullstack-integration/LOCAL_REFS_BEFORE.txt
 docs/fullstack-integration/PENDING_APPROVALS.md
+docs/fullstack-integration/PUBLICATION.md
 docs/fullstack-integration/README.md
 docs/fullstack-integration/REMOTE_REFS_BEFORE.txt
 docs/fullstack-integration/SCREEN_UC_API_MAPPING.md
@@ -40,6 +42,8 @@ docs/fullstack-integration/SOURCE_BASELINE.md
 docs/fullstack-integration/SOURCE_FILE_OWNERSHIP.csv
 docs/fullstack-integration/SOURCE_INTEGRITY.json
 docs/fullstack-integration/SOURCE_REFS.json
+docs/fullstack-integration/STAGED_DIFF_CHECK.txt
+docs/fullstack-integration/STAGED_SECRET_REVIEW.json
 docs/fullstack-integration/UC_LEDGER_SUMMARY.md
 docs/fullstack-integration/WORKTREES_BEFORE.json
 docs/fullstack-integration/WORKTREE_INTEGRITY.json

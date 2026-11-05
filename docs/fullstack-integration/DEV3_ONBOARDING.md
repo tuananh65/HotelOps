@@ -27,3 +27,5 @@ DEV3 owns FE01 Authentication/User/Role/Permission,FE02 Structure/room master da
 UC012 remains PARTIAL; UC013 historically credited; UC138 full workflow missing; UC139 B1.2 blocked; UC142 recovery HTTP inactive. Reconcile frontend RoomTypeList UC017 with backend recovery UC142. SCREEN_UC_API_MAPPING covers all80 screens but is not an approved backend permission matrix.
 
 For API run/SQL configuration, follow ENVIRONMENT_SETUP after separate trial approval. COMMON files requiring review: Program.cs,DbContext/entities/schema,authorization policies,source-read/transaction/lifecycle/notification participants. Initial priorities: real auth transport/protected routes,route/security review,Workday dependencies with DEV1/DEV2. Do not infer schema rollout approval from a successful source build.
+
+Exact tested source baseline: a02cb2f27e9f7944b4e7f8b03da9f6f22bf3808f. Before branching, run the pinned tree/history checks in PUBLICATION.md and compare final remote SHA with the FS-001 completion receipt. The final documentation commit has the same src/frontend trees.

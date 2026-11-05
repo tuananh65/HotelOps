@@ -54,7 +54,7 @@
   "secrets": "Five quoted candidates reviewed as public prototype fixtures; no private-key/token candidate",
   "sourcePreservation": "270 frontend original paths unchanged; no missing develop source; only Program.cs/DbContext.cs modified in existing source",
   "oldWorktreeIntegrity": "Five existing worktrees HEAD/branch/index/status/changed-file hashes match initial capture",
-  "gitPublish": "To be verified externally after commit",
+  "gitPublish": "Final publication SHA must be verified externally after the documentation commit; see session receipt.",
   "stagedDiffCheck": {
     "exitCode": 2,
     "status": "Failed on inherited whitespace only",
@@ -63,5 +63,8 @@
       "tests/HotelOps.Dev1.RegressionTests/AuthorizationTests.cs",
       "tests/HotelOps.Dev1.RegressionTests/BoundaryTests.cs"
     ]
-  }
+  },
+  "testedSourceCommit": "a02cb2f27e9f7944b4e7f8b03da9f6f22bf3808f",
+  "sourceTree": "d89db530b7c1bf313d984ddbb9b7eaa7b705c13e",
+  "frontendTree": "577b17911c4ebf96483efb174d86ff0c22c1209f"
 }
