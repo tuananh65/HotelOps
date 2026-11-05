@@ -21,6 +21,7 @@ import "./styles/theme.css";
 import HistoryScreen from "./screens/dev1/HistoryScreen";
 import Dev1Screen, { Dev1Navigation } from "./screens/dev1/Dev1Screen";
 import { routeKinds } from "./screens/dev1/model";
+import AdminAccountsScreen from "./screens/users/AdminAccountsScreen";
 initializeTheme();
 function Screen({ id }: { id: number }) {
   useDB();
@@ -29,6 +30,16 @@ function Screen({ id }: { id: number }) {
     const Component = requiredRoutes[id - 1].Component;
     return <Component />;
   }
+  if ([8, 9].includes(id))
+    return (
+      <SessionGate>
+        <Shell screen={id}>
+          <ScreenBoundary key={`account:${params.id ?? "list"}`}>
+            <AdminAccountsScreen accountId={params.id} />
+          </ScreenBoundary>
+        </Shell>
+      </SessionGate>
+    );
   if ([30, 38].includes(id))
     return (
       <SessionGate>

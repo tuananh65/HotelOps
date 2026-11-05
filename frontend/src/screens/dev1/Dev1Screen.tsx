@@ -19,6 +19,7 @@ import {
 } from "./model";
 import "./dev1.css";
 const links: [string, string][] = [
+  ["/users", "Quản lý tài khoản"],
   ["/branches", "Chi nhánh"],
   ["/locations", "Tầng / khu vực"],
   ["/room-types", "Loại phòng"],
