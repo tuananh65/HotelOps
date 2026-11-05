@@ -20,6 +20,15 @@ builder.Services.AddDbContext<HotelOpsDbContext>(options =>
         builder.Configuration.GetConnectionString("HotelOpsDb")));
 
 // Add services to the container.
+// FS-001: additive source integration; preserve all develop registrations.
+builder.Services.AddScoped<HotelOps.Api.Services.Housekeeping.CleaningMonitorService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeDirectoryService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.TurnoverHistoryService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.BranchAdministrationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.WorkdayService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccessReviewService>();
 builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.HotelStructureCreationService>();
@@ -70,7 +79,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 builder.Services.AddScoped<IPermissionDataSource, EfPermissionDataSource>();
 builder.Services.AddScoped<ICleaningTaskAccessReader, EfCleaningTaskAccessReader>();
-builder.Services.AddScoped<IPermissionResourceResolver, CleaningTaskResourceResolver>();
+builder.Services.AddScoped<IPermissionResourceResolver>(sp => new HotelOps.Api.Services.WorkTime.WorkdayPermissionResourceResolver(
+    sp.GetRequiredService<HotelOpsDbContext>(),
+    ActivatorUtilities.CreateInstance<CleaningTaskResourceResolver>(sp)));
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddHotelOpsPermissionAuthorization();
 

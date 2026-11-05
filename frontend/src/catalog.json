@@ -1,0 +1,5182 @@
+{
+  "screens": [
+    {
+      "id": 1,
+      "name": "Sign In",
+      "feature": "Authentication (FE-01)",
+      "description": "Allows any user to log in with username/email and password and reach the role-specific dashboard.",
+      "ucs": [
+        "UC-001"
+      ],
+      "route": "/login",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Forgot Password",
+      "feature": "Authentication (FE-01)",
+      "description": "Shows the instruction to contact the Administrator for a password reset (no self-service reset).",
+      "ucs": [
+        "UC-001"
+      ],
+      "route": "/forgot-password",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Change Password",
+      "feature": "Authentication (FE-01)",
+      "description": "Allows users to change their own password, including the mandatory change after receiving a temporary password.",
+      "ucs": [
+        "UC-003"
+      ],
+      "route": "/change-password",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Profile",
+      "feature": "Authentication (FE-01)",
+      "description": "Displays the current user's account, roles and branch/department; provides Change Password and Logout.",
+      "ucs": [
+        "UC-002",
+        "UC-003"
+      ],
+      "route": "/profile",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Dashboard",
+      "feature": "Dashboard (FE-14)",
+      "description": "Role-specific home page; for Operations Manager and Owner it shows room readiness, task workload, incident/maintenance and inventory indicators.",
+      "ucs": [
+        "UC-131",
+        "UC-132",
+        "UC-133",
+        "UC-134"
+      ],
+      "route": "/dashboard",
+      "roles": [
+        "Operations Manager",
+        "Owner"
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Notification Center",
+      "feature": "Notification (FE-14)",
+      "description": "Lists notifications and alerts; search and filter by type, time, priority and read status.",
+      "ucs": [
+        "UC-124",
+        "UC-125",
+        "UC-126",
+        "UC-127",
+        "UC-128",
+        "UC-129"
+      ],
+      "route": "/notifications",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Notification Detail",
+      "feature": "Notification (FE-14)",
+      "description": "Displays a notification, marks it as read/acknowledged and opens the related record.",
+      "ucs": [
+        "UC-130"
+      ],
+      "route": "/notifications/:id",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 8,
+      "name": "User List",
+      "feature": "User Management (FE-01)",
+      "description": "Searches and filters user accounts; creates and activates/deactivates accounts.",
+      "ucs": [
+        "UC-004",
+        "UC-006"
+      ],
+      "route": "/users",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 9,
+      "name": "User Detail",
+      "feature": "User Management (FE-01)",
+      "description": "Displays and updates an account, resets its password, assigns branch/department and roles, and shows effective permissions.",
+      "ucs": [
+        "UC-005",
+        "UC-006",
+        "UC-007",
+        "UC-010",
+        "UC-011"
+      ],
+      "route": "/users/:id",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Role List",
+      "feature": "Access Control (FE-01)",
+      "description": "Lists system roles and creates a new role.",
+      "ucs": [
+        "UC-008"
+      ],
+      "route": "/roles",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 11,
+      "name": "Role Detail",
+      "feature": "Access Control (FE-01)",
+      "description": "Updates a role and configures its permissions by feature.",
+      "ucs": [
+        "UC-008",
+        "UC-009"
+      ],
+      "route": "/roles/:id",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 12,
+      "name": "Permission Matrix",
+      "feature": "Access Control (FE-01)",
+      "description": "Displays the permissions of all roles in one matrix (read-only overview).",
+      "ucs": [
+        "UC-009"
+      ],
+      "route": "/permissions",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 13,
+      "name": "Branch List",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Lists branches and creates a new branch.",
+      "ucs": [
+        "UC-012"
+      ],
+      "route": "/branches",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 14,
+      "name": "Branch Detail",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Displays, updates and deactivates a branch; shows its structure tree of floors, areas, rooms and departments.",
+      "ucs": [
+        "UC-012",
+        "UC-013"
+      ],
+      "route": "/branches/:id",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 15,
+      "name": "Floor/Area List",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Lists floors and areas of a branch and creates a new floor/area.",
+      "ucs": [
+        "UC-014"
+      ],
+      "route": "/locations",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 16,
+      "name": "Floor/Area Detail",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Displays, updates and deactivates a floor/area.",
+      "ucs": [
+        "UC-015",
+        "UC-016"
+      ],
+      "route": "/locations/:id",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 17,
+      "name": "Room Type List",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Lists room types of a branch and creates a new room type.",
+      "ucs": [
+        "UC-017"
+      ],
+      "route": "/room-types",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 18,
+      "name": "Room Type Detail",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Displays, updates and deactivates a room type.",
+      "ucs": [
+        "UC-018",
+        "UC-019"
+      ],
+      "route": "/room-types/:id",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 19,
+      "name": "Room List",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Searches and filters rooms by branch, floor, area, room type and status; creates a new room.",
+      "ucs": [
+        "UC-020",
+        "UC-023"
+      ],
+      "route": "/rooms",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 20,
+      "name": "Room Detail",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Displays room information, current status reason and status history; updates, deactivates or reactivates the room.",
+      "ucs": [
+        "UC-021",
+        "UC-022",
+        "UC-023"
+      ],
+      "route": "/rooms/:id",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 21,
+      "name": "Department List",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Lists departments of a branch and creates a new department.",
+      "ucs": [
+        "UC-024"
+      ],
+      "route": "/departments",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 22,
+      "name": "Department Detail",
+      "feature": "Hotel Structure (FE-02)",
+      "description": "Displays, updates and deactivates a department.",
+      "ucs": [
+        "UC-025",
+        "UC-026"
+      ],
+      "route": "/departments/:id",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 23,
+      "name": "Room Readiness Board",
+      "feature": "Room Operations (FE-03)",
+      "description": "Displays rooms by floor with operational status (Ready, Pending Cleaning, Cleaning, Pending Inspection, Rework, Blocked) and counts; opens next actions.",
+      "ucs": [
+        "UC-027"
+      ],
+      "route": "/room-readiness",
+      "roles": [
+        "Housekeeping Supervisor",
+        "Operations Manager"
+      ]
+    },
+    {
+      "id": 24,
+      "name": "Cleaning Task List",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Supervisor monitors tasks by status/overdue and cancels tasks; staff see their own cleaning tasks.",
+      "ucs": [
+        "UC-031",
+        "UC-037"
+      ],
+      "route": "/cleaning/tasks",
+      "roles": [
+        "Housekeeping Staff",
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 25,
+      "name": "Create Cleaning Task",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Creates a cleaning task for a room with cleaning type, priority and due time.",
+      "ucs": [
+        "UC-028"
+      ],
+      "route": "/cleaning/tasks/new",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 26,
+      "name": "Cleaning Task Detail",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Displays a cleaning task; staff start it, update progress, report blockers and complete it.",
+      "ucs": [
+        "UC-031",
+        "UC-032",
+        "UC-033",
+        "UC-034",
+        "UC-037"
+      ],
+      "route": "/cleaning/tasks/:id",
+      "roles": [
+        "Housekeeping Staff",
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 27,
+      "name": "Cleaning Assignment",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Assigns or reassigns a cleaning task based on area and current workload.",
+      "ucs": [
+        "UC-029",
+        "UC-030"
+      ],
+      "route": "/cleaning/assignment",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 28,
+      "name": "Rework Task List",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Lists rework tasks; staff see their own rework tasks.",
+      "ucs": [
+        "UC-035"
+      ],
+      "route": "/rework",
+      "roles": [
+        "Housekeeping Staff"
+      ]
+    },
+    {
+      "id": 29,
+      "name": "Rework Task Detail",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Displays defects to fix; staff accept, start and submit the rework with remediation notes.",
+      "ucs": [
+        "UC-035",
+        "UC-036"
+      ],
+      "route": "/rework/:id",
+      "roles": [
+        "Housekeeping Staff"
+      ]
+    },
+    {
+      "id": 30,
+      "name": "Room Turnover History",
+      "feature": "Housekeeping (FE-04)",
+      "description": "Displays cleaning cycles of a room with assignees, times, inspection results and rework count.",
+      "ucs": [
+        "UC-038"
+      ],
+      "route": "/rooms/turnover",
+      "roles": [
+        "Housekeeping Supervisor",
+        "Operations Manager"
+      ]
+    },
+    {
+      "id": 31,
+      "name": "Inspection Checklist List",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Lists inspection checklists and creates a new checklist.",
+      "ucs": [
+        "UC-039"
+      ],
+      "route": "/checklists",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 32,
+      "name": "Inspection Checklist Detail",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Edits criteria, manages versions, publishes or retires a checklist.",
+      "ucs": [
+        "UC-039",
+        "UC-040"
+      ],
+      "route": "/checklists/:id",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 33,
+      "name": "Inspection Queue",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Lists rooms pending inspection/reinspection and failed inspections without rework; assigns the inspector.",
+      "ucs": [
+        "UC-041"
+      ],
+      "route": "/inspections/queue",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 34,
+      "name": "Room Inspection",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Records Pass/Fail for each checklist criterion and defects with photos.",
+      "ucs": [
+        "UC-042",
+        "UC-043"
+      ],
+      "route": "/inspections/:id/perform",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 35,
+      "name": "Inspection Result",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Displays the inspection summary and approves or rejects the room.",
+      "ucs": [
+        "UC-044",
+        "UC-045"
+      ],
+      "route": "/inspections/:id/result",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 36,
+      "name": "Request Rework",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Creates a rework task from a failed inspection with defects, assignee and due time.",
+      "ucs": [
+        "UC-046"
+      ],
+      "route": "/inspections/:id/rework",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 37,
+      "name": "Reinspection",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Records Fixed/Not Fixed for each defect of a submitted rework and concludes.",
+      "ucs": [
+        "UC-047"
+      ],
+      "route": "/inspections/:id/reinspect",
+      "roles": [
+        "Housekeeping Supervisor"
+      ]
+    },
+    {
+      "id": 38,
+      "name": "Inspection History",
+      "feature": "Room Inspection (FE-05)",
+      "description": "Searches inspections with results, defects, inspectors, housekeepers and checklist version.",
+      "ucs": [
+        "UC-048"
+      ],
+      "route": "/inspections/history",
+      "roles": [
+        "Housekeeping Supervisor",
+        "Operations Manager"
+      ]
+    },
+    {
+      "id": 39,
+      "name": "Incident List",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Lists incidents by status, severity, location and deadline.",
+      "ucs": [
+        "UC-049"
+      ],
+      "route": "/incidents",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 40,
+      "name": "Report Incident",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Creates an incident with location/asset, description and evidence; shows similar open incidents.",
+      "ucs": [
+        "UC-049",
+        "UC-051"
+      ],
+      "route": "/incidents/new",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 41,
+      "name": "Incident Detail",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Classifies, triages, blocks room, escalates, verifies/closes or reopens an incident; adds evidence.",
+      "ucs": [
+        "UC-050",
+        "UC-051",
+        "UC-052",
+        "UC-056",
+        "UC-057",
+        "UC-059",
+        "UC-060"
+      ],
+      "route": "/incidents/:id",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 42,
+      "name": "Maintenance Assignment",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Assigns a technician and deadline to an incident.",
+      "ucs": [
+        "UC-053"
+      ],
+      "route": "/maintenance/assignment",
+      "roles": [
+        "Maintenance Lead"
+      ]
+    },
+    {
+      "id": 43,
+      "name": "Maintenance Task List",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Lists maintenance work from incidents and schedules; technicians see their own tasks.",
+      "ucs": [
+        "UC-054",
+        "UC-062"
+      ],
+      "route": "/maintenance/tasks",
+      "roles": [
+        "Maintenance Lead",
+        "Maintenance Staff"
+      ]
+    },
+    {
+      "id": 44,
+      "name": "Maintenance Task Detail",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Technician accepts, starts, updates progress and materials, and resolves the work.",
+      "ucs": [
+        "UC-054",
+        "UC-055",
+        "UC-058",
+        "UC-062"
+      ],
+      "route": "/maintenance/tasks/:id",
+      "roles": [
+        "Maintenance Lead",
+        "Maintenance Staff"
+      ]
+    },
+    {
+      "id": 45,
+      "name": "Preventive Maintenance Schedule List",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Lists preventive maintenance schedules and creates a new schedule.",
+      "ucs": [
+        "UC-061"
+      ],
+      "route": "/maintenance/schedules",
+      "roles": [
+        "Maintenance Lead"
+      ]
+    },
+    {
+      "id": 46,
+      "name": "Preventive Maintenance Schedule Detail",
+      "feature": "Incident & Maintenance (FE-06)",
+      "description": "Updates a schedule and shows its executions and next due date.",
+      "ucs": [
+        "UC-061",
+        "UC-062"
+      ],
+      "route": "/maintenance/schedules/:id",
+      "roles": [
+        "Maintenance Lead",
+        "Maintenance Staff"
+      ]
+    },
+    {
+      "id": 47,
+      "name": "Reference Data",
+      "feature": "Incident & Maintenance (FE-06), Task (FE-11)",
+      "description": "Manages work categories, priority levels, status groups and interruption reasons.",
+      "ucs": [
+        "UC-063",
+        "UC-064"
+      ],
+      "route": "/reference-data",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 48,
+      "name": "Asset List",
+      "feature": "Asset (FE-07)",
+      "description": "Searches assets by branch, location, type and status; registers assets; shows statistics by location.",
+      "ucs": [
+        "UC-065",
+        "UC-071",
+        "UC-073"
+      ],
+      "route": "/assets",
+      "roles": [
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 49,
+      "name": "Asset Detail",
+      "feature": "Asset (FE-07)",
+      "description": "Displays and updates an asset; assigns/transfers location, records handover, updates condition, retires it.",
+      "ucs": [
+        "UC-066",
+        "UC-067",
+        "UC-068",
+        "UC-069",
+        "UC-070",
+        "UC-071",
+        "UC-074"
+      ],
+      "route": "/assets/:id",
+      "roles": [
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Owner",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 50,
+      "name": "Asset Maintenance History",
+      "feature": "Asset (FE-07)",
+      "description": "Displays incidents, repairs and preventive maintenance history of an asset.",
+      "ucs": [
+        "UC-072"
+      ],
+      "route": "/assets/:id/history",
+      "roles": [
+        "Maintenance Lead",
+        "Operations Manager"
+      ]
+    },
+    {
+      "id": 51,
+      "name": "Warehouse List",
+      "feature": "Inventory (FE-08)",
+      "description": "Lists warehouses and creates a new warehouse.",
+      "ucs": [
+        "UC-075"
+      ],
+      "route": "/inventory/warehouses",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 52,
+      "name": "Warehouse Detail",
+      "feature": "Inventory (FE-08)",
+      "description": "Updates and deactivates a warehouse.",
+      "ucs": [
+        "UC-075"
+      ],
+      "route": "/inventory/warehouses/:id",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 53,
+      "name": "Inventory Dashboard",
+      "feature": "Inventory (FE-08)",
+      "description": "Displays stock levels and items below minimum stock for the storekeeper.",
+      "ucs": [
+        "UC-089",
+        "UC-128"
+      ],
+      "route": "/inventory/dashboard",
+      "roles": [
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 54,
+      "name": "Item List",
+      "feature": "Inventory (FE-08)",
+      "description": "Lists inventory items and creates a new item.",
+      "ucs": [
+        "UC-076"
+      ],
+      "route": "/inventory/items",
+      "roles": [
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 55,
+      "name": "Item Detail",
+      "feature": "Inventory (FE-08)",
+      "description": "Updates an item, its unit conversions and minimum stock levels per warehouse.",
+      "ucs": [
+        "UC-076",
+        "UC-077",
+        "UC-078"
+      ],
+      "route": "/inventory/items/:id",
+      "roles": [
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 56,
+      "name": "Unit of Measurement",
+      "feature": "Inventory (FE-08)",
+      "description": "Manages units of measurement.",
+      "ucs": [
+        "UC-077"
+      ],
+      "route": "/inventory/units",
+      "roles": [
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 57,
+      "name": "Stock Transaction List",
+      "feature": "Inventory (FE-08)",
+      "description": "Lists receipts, issues, returns and transfers by type; creates a new transaction.",
+      "ucs": [
+        "UC-079",
+        "UC-081",
+        "UC-082",
+        "UC-083"
+      ],
+      "route": "/inventory/transactions",
+      "roles": [
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 58,
+      "name": "Stock Transaction Detail",
+      "feature": "Inventory (FE-08)",
+      "description": "Verifies and posts a transaction, confirms transfer receipt, or reverses a posted transaction.",
+      "ucs": [
+        "UC-080",
+        "UC-082",
+        "UC-084",
+        "UC-088"
+      ],
+      "route": "/inventory/transactions/:id",
+      "roles": [
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 59,
+      "name": "Stocktake List",
+      "feature": "Inventory (FE-08)",
+      "description": "Lists stocktakes and starts a new stocktake.",
+      "ucs": [
+        "UC-085"
+      ],
+      "route": "/inventory/stocktakes",
+      "roles": [
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 60,
+      "name": "Stocktake Detail",
+      "feature": "Inventory (FE-08)",
+      "description": "Records counted quantities, reconciles discrepancies and confirms stock adjustment.",
+      "ucs": [
+        "UC-085",
+        "UC-086",
+        "UC-087"
+      ],
+      "route": "/inventory/stocktakes/:id",
+      "roles": [
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 61,
+      "name": "Stock Balance & Ledger",
+      "feature": "Inventory (FE-08)",
+      "description": "Displays current stock and movement history by warehouse, item and period.",
+      "ucs": [
+        "UC-089"
+      ],
+      "route": "/inventory/ledger",
+      "roles": [
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 62,
+      "name": "Material Request List",
+      "feature": "Material Request (FE-09)",
+      "description": "Lists my requests, requests pending my approval and approved requests to issue; creates a request.",
+      "ucs": [
+        "UC-091",
+        "UC-099"
+      ],
+      "route": "/material-requests",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 63,
+      "name": "Material Request Detail",
+      "feature": "Material Request (FE-09)",
+      "description": "Updates/cancels, links to work, reviews, approves/rejects, checks availability, issues (full/partial) and returns unused materials.",
+      "ucs": [
+        "UC-090",
+        "UC-092",
+        "UC-093",
+        "UC-094",
+        "UC-095",
+        "UC-096",
+        "UC-097",
+        "UC-098",
+        "UC-099"
+      ],
+      "route": "/material-requests/:id",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 64,
+      "name": "Replenishment List",
+      "feature": "Replenishment (FE-10)",
+      "description": "Lists replenishment requests and creates a new one.",
+      "ucs": [
+        "UC-100",
+        "UC-101"
+      ],
+      "route": "/replenishments",
+      "roles": [
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 65,
+      "name": "Replenishment Detail",
+      "feature": "Replenishment (FE-10)",
+      "description": "Tracks requested, pending and received quantities of a replenishment request.",
+      "ucs": [
+        "UC-101"
+      ],
+      "route": "/replenishments/:id",
+      "roles": [
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 66,
+      "name": "Task List",
+      "feature": "Task Assignment (FE-11)",
+      "description": "Lists operational tasks (department or my tasks); creates a new task.",
+      "ucs": [
+        "UC-102",
+        "UC-107"
+      ],
+      "route": "/tasks",
+      "roles": [
+        "Department Head",
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 67,
+      "name": "Task Detail",
+      "feature": "Task Assignment (FE-11)",
+      "description": "Sets priority/deadline, accepts, starts, pauses/resumes, updates, completes, verifies or reopens a task; logs working time.",
+      "ucs": [
+        "UC-103",
+        "UC-105",
+        "UC-106",
+        "UC-107",
+        "UC-108",
+        "UC-109",
+        "UC-110",
+        "UC-111",
+        "UC-112"
+      ],
+      "route": "/tasks/:id",
+      "roles": [
+        "Department Head",
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 68,
+      "name": "Task Assignment",
+      "feature": "Task Assignment (FE-11)",
+      "description": "Assigns or reassigns a task based on department and workload.",
+      "ucs": [
+        "UC-104"
+      ],
+      "route": "/tasks/assignment",
+      "roles": [
+        "Department Head"
+      ]
+    },
+    {
+      "id": 69,
+      "name": "Workload & Time Logs",
+      "feature": "Task Assignment (FE-11), Work-Time (FE-12)",
+      "description": "Displays tasks and time logs by employee, department, status and deadline.",
+      "ucs": [
+        "UC-113"
+      ],
+      "route": "/workload",
+      "roles": [
+        "Department Head",
+        "Operations Manager"
+      ]
+    },
+    {
+      "id": 70,
+      "name": "Overdue Work",
+      "feature": "Task Assignment (FE-11)",
+      "description": "Lists overdue tasks, incidents and internal requests and opens the related record.",
+      "ucs": [
+        "UC-127"
+      ],
+      "route": "/overdue",
+      "roles": [
+        "Department Head",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Operations Manager"
+      ]
+    },
+    {
+      "id": 71,
+      "name": "Shift Management",
+      "feature": "Work-Time (FE-12)",
+      "description": "Displays the workday calendar; creates and updates shifts and their assignees.",
+      "ucs": [
+        "UC-138"
+      ],
+      "route": "/shifts",
+      "roles": [
+        "Department Head"
+      ]
+    },
+    {
+      "id": 72,
+      "name": "Shift Detail",
+      "feature": "Work-Time (FE-12)",
+      "description": "Displays shift time, assigned employees and status.",
+      "ucs": [
+        "UC-138"
+      ],
+      "route": "/shifts/:id",
+      "roles": [
+        "Department Head"
+      ]
+    },
+    {
+      "id": 73,
+      "name": "Workday Record",
+      "feature": "Work-Time (FE-12)",
+      "description": "Staff start/end their workday; Department Head views actual start/end times.",
+      "ucs": [
+        "UC-139"
+      ],
+      "route": "/workdays",
+      "roles": [
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 74,
+      "name": "Shift Handover List",
+      "feature": "Work-Time (FE-12)",
+      "description": "Lists shift handovers and their acknowledgement status.",
+      "ucs": [
+        "UC-140"
+      ],
+      "route": "/handovers",
+      "roles": [
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 75,
+      "name": "Shift Handover Detail",
+      "feature": "Work-Time (FE-12)",
+      "description": "Records pending tasks, unready rooms, open incidents and requests; receiver acknowledges.",
+      "ucs": [
+        "UC-140"
+      ],
+      "route": "/handovers/:id",
+      "roles": [
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 76,
+      "name": "Internal Request List",
+      "feature": "Internal Request (FE-13)",
+      "description": "Lists internal requests in scope; creates a new request.",
+      "ucs": [
+        "UC-114",
+        "UC-123"
+      ],
+      "route": "/internal-requests",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 77,
+      "name": "Internal Request Detail",
+      "feature": "Internal Request (FE-13)",
+      "description": "Routes, accepts/rejects, updates progress, links work, hands over, completes, reopens or escalates a request.",
+      "ucs": [
+        "UC-115",
+        "UC-116",
+        "UC-117",
+        "UC-118",
+        "UC-119",
+        "UC-120",
+        "UC-121",
+        "UC-122",
+        "UC-123"
+      ],
+      "route": "/internal-requests/:id",
+      "roles": [
+        "Administrator",
+        "Department Head",
+        "Housekeeping Staff",
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Operations Manager",
+        "Storekeeper"
+      ]
+    },
+    {
+      "id": 78,
+      "name": "Operational Reports",
+      "feature": "Reporting (FE-15)",
+      "description": "Generates and exports reports by type (room, housekeeping/inspection, incident/maintenance, asset, inventory, task), period, branch and department.",
+      "ucs": [
+        "UC-135"
+      ],
+      "route": "/reports",
+      "roles": [
+        "Operations Manager",
+        "Owner"
+      ]
+    },
+    {
+      "id": 79,
+      "name": "Audit Log",
+      "feature": "Audit (FE-15)",
+      "description": "Searches audit entries by period, actor, entity and action.",
+      "ucs": [
+        "UC-136"
+      ],
+      "route": "/audit-logs",
+      "roles": [
+        "Administrator"
+      ]
+    },
+    {
+      "id": 80,
+      "name": "Audit Log Detail",
+      "feature": "Audit (FE-15)",
+      "description": "Displays the actor, time, action and before/after values of a change.",
+      "ucs": [
+        "UC-137"
+      ],
+      "route": "/audit-logs/:id",
+      "roles": [
+        "Administrator"
+      ]
+    }
+  ],
+  "ucs": {
+    "UC-001": {
+      "id": "UC-001",
+      "name": "Login",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Owner",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-002",
+        "GBR-003",
+        "GBR-008",
+        "GBR-019",
+        "GBR-020",
+        "GBR-021",
+        "GBR-023",
+        "GBR-024"
+      ]
+    },
+    "UC-002": {
+      "id": "UC-002",
+      "name": "Logout",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Owner",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-008",
+        "GBR-021"
+      ]
+    },
+    "UC-003": {
+      "id": "UC-003",
+      "name": "Change Password",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Owner",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-008",
+        "GBR-019",
+        "GBR-021",
+        "GBR-022",
+        "GBR-023"
+      ]
+    },
+    "UC-004": {
+      "id": "UC-004",
+      "name": "Create User Account",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-023",
+        "GBR-025",
+        "GBR-031"
+      ]
+    },
+    "UC-005": {
+      "id": "UC-005",
+      "name": "Update User Account",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-023",
+        "GBR-024",
+        "GBR-025"
+      ]
+    },
+    "UC-006": {
+      "id": "UC-006",
+      "name": "Activate/Deactivate User Account",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-012",
+        "GBR-021",
+        "GBR-026",
+        "GBR-027",
+        "GBR-028"
+      ]
+    },
+    "UC-007": {
+      "id": "UC-007",
+      "name": "Assign User to Branch/Department",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-028",
+        "GBR-031"
+      ]
+    },
+    "UC-008": {
+      "id": "UC-008",
+      "name": "Create/Update User Role",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-026",
+        "GBR-029"
+      ]
+    },
+    "UC-009": {
+      "id": "UC-009",
+      "name": "Configure Role Permissions",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-026",
+        "GBR-030"
+      ]
+    },
+    "UC-010": {
+      "id": "UC-010",
+      "name": "Assign/Revoke User Roles",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-018",
+        "GBR-026",
+        "GBR-027",
+        "GBR-028"
+      ]
+    },
+    "UC-011": {
+      "id": "UC-011",
+      "name": "Review User Access Permissions",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002"
+      ]
+    },
+    "UC-012": {
+      "id": "UC-012",
+      "name": "Update Branch Information",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-032",
+        "GBR-033"
+      ]
+    },
+    "UC-013": {
+      "id": "UC-013",
+      "name": "View Branch Structure",
+      "actors": [
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head",
+        "Administrator",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015"
+      ]
+    },
+    "UC-014": {
+      "id": "UC-014",
+      "name": "Create Floor/Area",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-034"
+      ]
+    },
+    "UC-015": {
+      "id": "UC-015",
+      "name": "Update Floor/Area",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-034"
+      ]
+    },
+    "UC-016": {
+      "id": "UC-016",
+      "name": "Deactivate Floor/Area",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-012",
+        "GBR-035"
+      ]
+    },
+    "UC-017": {
+      "id": "UC-017",
+      "name": "Create Room Type",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-036"
+      ]
+    },
+    "UC-018": {
+      "id": "UC-018",
+      "name": "Update Room Type",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-036",
+        "GBR-057"
+      ]
+    },
+    "UC-019": {
+      "id": "UC-019",
+      "name": "Deactivate Room Type",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-012",
+        "GBR-037"
+      ]
+    },
+    "UC-020": {
+      "id": "UC-020",
+      "name": "Create Room",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-038",
+        "GBR-039",
+        "GBR-043"
+      ]
+    },
+    "UC-021": {
+      "id": "UC-021",
+      "name": "Update Room Information",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-038"
+      ]
+    },
+    "UC-022": {
+      "id": "UC-022",
+      "name": "Deactivate Room",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-039",
+        "GBR-040",
+        "GBR-043",
+        "GBR-044"
+      ]
+    },
+    "UC-023": {
+      "id": "UC-023",
+      "name": "View Room Directory",
+      "actors": [
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head",
+        "Administrator",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015"
+      ]
+    },
+    "UC-024": {
+      "id": "UC-024",
+      "name": "Create Department",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-041"
+      ]
+    },
+    "UC-025": {
+      "id": "UC-025",
+      "name": "Update Department",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-041",
+        "GBR-111"
+      ]
+    },
+    "UC-026": {
+      "id": "UC-026",
+      "name": "Deactivate Department",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-012",
+        "GBR-042"
+      ]
+    },
+    "UC-027": {
+      "id": "UC-027",
+      "name": "Manage Operational Room Status",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-043",
+        "GBR-044"
+      ]
+    },
+    "UC-028": {
+      "id": "UC-028",
+      "name": "Create Cleaning Task",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-014",
+        "GBR-043",
+        "GBR-044",
+        "GBR-045"
+      ]
+    },
+    "UC-029": {
+      "id": "UC-029",
+      "name": "Assign Cleaning Task",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-046"
+      ]
+    },
+    "UC-030": {
+      "id": "UC-030",
+      "name": "Reassign Cleaning Task",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-043",
+        "GBR-046",
+        "GBR-047",
+        "GBR-138"
+      ]
+    },
+    "UC-031": {
+      "id": "UC-031",
+      "name": "Start Cleaning Task",
+      "actors": [
+        "Housekeeping Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-043",
+        "GBR-044",
+        "GBR-049",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138"
+      ]
+    },
+    "UC-032": {
+      "id": "UC-032",
+      "name": "Update Cleaning Progress",
+      "actors": [
+        "Housekeeping Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016",
+        "GBR-050"
+      ]
+    },
+    "UC-033": {
+      "id": "UC-033",
+      "name": "Report Cleaning Blocker",
+      "actors": [
+        "Housekeeping Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-043",
+        "GBR-051",
+        "GBR-138"
+      ]
+    },
+    "UC-034": {
+      "id": "UC-034",
+      "name": "Complete Cleaning Task",
+      "actors": [
+        "Housekeeping Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-043",
+        "GBR-044",
+        "GBR-052",
+        "GBR-138"
+      ]
+    },
+    "UC-035": {
+      "id": "UC-035",
+      "name": "Receive Rework Task",
+      "actors": [
+        "Housekeeping Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-053",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138"
+      ]
+    },
+    "UC-036": {
+      "id": "UC-036",
+      "name": "Complete Cleaning Rework",
+      "actors": [
+        "Housekeeping Staff"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-044",
+        "GBR-054",
+        "GBR-138"
+      ]
+    },
+    "UC-037": {
+      "id": "UC-037",
+      "name": "Monitor Cleaning Tasks",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-015",
+        "GBR-044",
+        "GBR-048",
+        "GBR-055"
+      ]
+    },
+    "UC-038": {
+      "id": "UC-038",
+      "name": "View Room Turnover History",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-016"
+      ]
+    },
+    "UC-039": {
+      "id": "UC-039",
+      "name": "Create Room Inspection Checklist",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-007",
+        "GBR-008",
+        "GBR-056"
+      ]
+    },
+    "UC-040": {
+      "id": "UC-040",
+      "name": "Update Room Inspection Checklist",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-056",
+        "GBR-057"
+      ]
+    },
+    "UC-041": {
+      "id": "UC-041",
+      "name": "Assign Room Inspection",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-056",
+        "GBR-058",
+        "GBR-059"
+      ]
+    },
+    "UC-042": {
+      "id": "UC-042",
+      "name": "Perform Room Inspection",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016",
+        "GBR-060"
+      ]
+    },
+    "UC-043": {
+      "id": "UC-043",
+      "name": "Record Inspection Defects",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016",
+        "GBR-061"
+      ]
+    },
+    "UC-044": {
+      "id": "UC-044",
+      "name": "Approve Room Inspection",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-043",
+        "GBR-044",
+        "GBR-059",
+        "GBR-062"
+      ]
+    },
+    "UC-045": {
+      "id": "UC-045",
+      "name": "Reject Room Inspection",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-044",
+        "GBR-060",
+        "GBR-063"
+      ]
+    },
+    "UC-046": {
+      "id": "UC-046",
+      "name": "Request Cleaning Rework",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-046",
+        "GBR-064"
+      ]
+    },
+    "UC-047": {
+      "id": "UC-047",
+      "name": "Reinspect Room",
+      "actors": [
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-044",
+        "GBR-059",
+        "GBR-065"
+      ]
+    },
+    "UC-048": {
+      "id": "UC-048",
+      "name": "View Room Inspection History",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-016",
+        "GBR-057"
+      ]
+    },
+    "UC-049": {
+      "id": "UC-049",
+      "name": "Report Incident",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-016",
+        "GBR-066",
+        "GBR-067"
+      ]
+    },
+    "UC-050": {
+      "id": "UC-050",
+      "name": "Classify Incident",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-068",
+        "GBR-159"
+      ]
+    },
+    "UC-051": {
+      "id": "UC-051",
+      "name": "Attach Incident Evidence",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016"
+      ]
+    },
+    "UC-052": {
+      "id": "UC-052",
+      "name": "Triage Incident",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-014",
+        "GBR-043",
+        "GBR-069",
+        "GBR-070",
+        "GBR-075"
+      ]
+    },
+    "UC-053": {
+      "id": "UC-053",
+      "name": "Assign Maintenance Work",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-071"
+      ]
+    },
+    "UC-054": {
+      "id": "UC-054",
+      "name": "Accept and Start Maintenance",
+      "actors": [
+        "Maintenance Staff",
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-072",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138"
+      ]
+    },
+    "UC-055": {
+      "id": "UC-055",
+      "name": "Update Maintenance Progress",
+      "actors": [
+        "Maintenance Staff",
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016",
+        "GBR-050",
+        "GBR-073",
+        "GBR-074",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138"
+      ]
+    },
+    "UC-056": {
+      "id": "UC-056",
+      "name": "Block Room Due to Incident",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-044",
+        "GBR-075"
+      ]
+    },
+    "UC-057": {
+      "id": "UC-057",
+      "name": "Escalate Critical Incident",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-076"
+      ]
+    },
+    "UC-058": {
+      "id": "UC-058",
+      "name": "Resolve Maintenance Incident",
+      "actors": [
+        "Maintenance Staff",
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-074",
+        "GBR-077",
+        "GBR-138"
+      ]
+    },
+    "UC-059": {
+      "id": "UC-059",
+      "name": "Verify and Close Incident",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-013",
+        "GBR-044",
+        "GBR-075",
+        "GBR-078"
+      ]
+    },
+    "UC-060": {
+      "id": "UC-060",
+      "name": "Reopen Incident",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-016",
+        "GBR-079"
+      ]
+    },
+    "UC-061": {
+      "id": "UC-061",
+      "name": "Create Preventive Maintenance Schedule",
+      "actors": [
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-014",
+        "GBR-081",
+        "GBR-082",
+        "GBR-083"
+      ]
+    },
+    "UC-062": {
+      "id": "UC-062",
+      "name": "Execute Scheduled Maintenance",
+      "actors": [
+        "Maintenance Staff",
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-016",
+        "GBR-083",
+        "GBR-084",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138"
+      ]
+    },
+    "UC-063": {
+      "id": "UC-063",
+      "name": "Manage Work Categories",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-085"
+      ]
+    },
+    "UC-064": {
+      "id": "UC-064",
+      "name": "Manage Operational Reference Data",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-085"
+      ]
+    },
+    "UC-065": {
+      "id": "UC-065",
+      "name": "Register Asset/Equipment",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016",
+        "GBR-086"
+      ]
+    },
+    "UC-066": {
+      "id": "UC-066",
+      "name": "Update Asset Information",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-086",
+        "GBR-087"
+      ]
+    },
+    "UC-067": {
+      "id": "UC-067",
+      "name": "Assign Asset to Location",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-086",
+        "GBR-087"
+      ]
+    },
+    "UC-068": {
+      "id": "UC-068",
+      "name": "Transfer Asset Location",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-087"
+      ]
+    },
+    "UC-069": {
+      "id": "UC-069",
+      "name": "Record Asset Handover",
+      "actors": [
+        "Operations Manager",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-016",
+        "GBR-088"
+      ]
+    },
+    "UC-070": {
+      "id": "UC-070",
+      "name": "Update Asset Condition",
+      "actors": [
+        "Operations Manager",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-089"
+      ]
+    },
+    "UC-071": {
+      "id": "UC-071",
+      "name": "View Asset Profile",
+      "actors": [
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-016"
+      ]
+    },
+    "UC-072": {
+      "id": "UC-072",
+      "name": "Review Asset Maintenance History",
+      "actors": [
+        "Maintenance Lead",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-161"
+      ]
+    },
+    "UC-073": {
+      "id": "UC-073",
+      "name": "Review Assets by Location",
+      "actors": [
+        "Operations Manager",
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-090",
+        "GBR-161"
+      ]
+    },
+    "UC-074": {
+      "id": "UC-074",
+      "name": "Retire/Deactivate Asset",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-012",
+        "GBR-090"
+      ]
+    },
+    "UC-075": {
+      "id": "UC-075",
+      "name": "Manage Warehouses",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-091"
+      ]
+    },
+    "UC-076": {
+      "id": "UC-076",
+      "name": "Manage Inventory Items",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-009",
+        "GBR-092"
+      ]
+    },
+    "UC-077": {
+      "id": "UC-077",
+      "name": "Manage Units of Measurement",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-093"
+      ]
+    },
+    "UC-078": {
+      "id": "UC-078",
+      "name": "Configure Minimum Stock Levels",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-094",
+        "GBR-095"
+      ]
+    },
+    "UC-079": {
+      "id": "UC-079",
+      "name": "Create Stock Receipt",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-093",
+        "GBR-095",
+        "GBR-096",
+        "GBR-099",
+        "GBR-100",
+        "GBR-121"
+      ]
+    },
+    "UC-080": {
+      "id": "UC-080",
+      "name": "Verify and Post Stock Receipt",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-093",
+        "GBR-095",
+        "GBR-096",
+        "GBR-098",
+        "GBR-099",
+        "GBR-121"
+      ]
+    },
+    "UC-081": {
+      "id": "UC-081",
+      "name": "Issue Stock",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-093",
+        "GBR-095",
+        "GBR-096",
+        "GBR-097",
+        "GBR-101",
+        "GBR-116"
+      ]
+    },
+    "UC-082": {
+      "id": "UC-082",
+      "name": "Return Materials to Stock",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-095",
+        "GBR-102"
+      ]
+    },
+    "UC-083": {
+      "id": "UC-083",
+      "name": "Create Stock Transfer",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-093",
+        "GBR-095",
+        "GBR-097",
+        "GBR-103"
+      ]
+    },
+    "UC-084": {
+      "id": "UC-084",
+      "name": "Confirm Stock Transfer Receipt",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-095",
+        "GBR-104"
+      ]
+    },
+    "UC-085": {
+      "id": "UC-085",
+      "name": "Conduct Stocktake",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-095",
+        "GBR-105"
+      ]
+    },
+    "UC-086": {
+      "id": "UC-086",
+      "name": "Reconcile Stocktake Discrepancies",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-105",
+        "GBR-106"
+      ]
+    },
+    "UC-087": {
+      "id": "UC-087",
+      "name": "Adjust Stock Balance",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-013",
+        "GBR-097",
+        "GBR-107"
+      ]
+    },
+    "UC-088": {
+      "id": "UC-088",
+      "name": "Reverse Stock Transaction",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-006",
+        "GBR-007",
+        "GBR-008",
+        "GBR-012",
+        "GBR-098",
+        "GBR-108"
+      ]
+    },
+    "UC-089": {
+      "id": "UC-089",
+      "name": "View Stock Balance and Movement Ledger",
+      "actors": [
+        "Storekeeper",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-109"
+      ]
+    },
+    "UC-090": {
+      "id": "UC-090",
+      "name": "Return Unused Materials",
+      "actors": [
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-095",
+        "GBR-096",
+        "GBR-102"
+      ]
+    },
+    "UC-091": {
+      "id": "UC-091",
+      "name": "Create Material Request",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-093",
+        "GBR-095",
+        "GBR-110",
+        "GBR-111"
+      ]
+    },
+    "UC-092": {
+      "id": "UC-092",
+      "name": "Link Material Request to Work",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-118"
+      ]
+    },
+    "UC-093": {
+      "id": "UC-093",
+      "name": "Update/Cancel Material Request",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-095",
+        "GBR-110",
+        "GBR-112",
+        "GBR-113"
+      ]
+    },
+    "UC-094": {
+      "id": "UC-094",
+      "name": "Review Material Request",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-111",
+        "GBR-114"
+      ]
+    },
+    "UC-095": {
+      "id": "UC-095",
+      "name": "Approve/Reject Material Request",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-013",
+        "GBR-111",
+        "GBR-115",
+        "GBR-117"
+      ]
+    },
+    "UC-096": {
+      "id": "UC-096",
+      "name": "Check Material Availability",
+      "actors": [
+        "Storekeeper",
+        "Department Head",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-114",
+        "GBR-116"
+      ]
+    },
+    "UC-097": {
+      "id": "UC-097",
+      "name": "Issue Approved Materials",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-097",
+        "GBR-101",
+        "GBR-116"
+      ]
+    },
+    "UC-098": {
+      "id": "UC-098",
+      "name": "Manage Partial Material Fulfillment",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-101",
+        "GBR-116"
+      ]
+    },
+    "UC-099": {
+      "id": "UC-099",
+      "name": "Track Material Request History",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-008",
+        "GBR-015",
+        "GBR-119"
+      ]
+    },
+    "UC-100": {
+      "id": "UC-100",
+      "name": "Create Replenishment Request",
+      "actors": [
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-017",
+        "GBR-093",
+        "GBR-095",
+        "GBR-120"
+      ]
+    },
+    "UC-101": {
+      "id": "UC-101",
+      "name": "Track Material Replenishment",
+      "actors": [
+        "Storekeeper",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-015",
+        "GBR-121",
+        "GBR-122"
+      ]
+    },
+    "UC-102": {
+      "id": "UC-102",
+      "name": "Create Operational Task",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-014",
+        "GBR-123",
+        "GBR-124",
+        "GBR-125",
+        "GBR-126"
+      ]
+    },
+    "UC-103": {
+      "id": "UC-103",
+      "name": "Set Task Priority and Deadline",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-014",
+        "GBR-124",
+        "GBR-125",
+        "GBR-128"
+      ]
+    },
+    "UC-104": {
+      "id": "UC-104",
+      "name": "Assign/Reassign Task",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-126",
+        "GBR-127",
+        "GBR-138"
+      ]
+    },
+    "UC-105": {
+      "id": "UC-105",
+      "name": "Review and Verify Task Completion",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-013",
+        "GBR-133"
+      ]
+    },
+    "UC-106": {
+      "id": "UC-106",
+      "name": "Reopen Assigned Task",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-126",
+        "GBR-134"
+      ]
+    },
+    "UC-107": {
+      "id": "UC-107",
+      "name": "Accept Assigned Task",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-129"
+      ]
+    },
+    "UC-108": {
+      "id": "UC-108",
+      "name": "Start Assigned Task",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-130",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138"
+      ]
+    },
+    "UC-109": {
+      "id": "UC-109",
+      "name": "Update Task Progress",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-016",
+        "GBR-050"
+      ]
+    },
+    "UC-110": {
+      "id": "UC-110",
+      "name": "Pause/Resume Task",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-130",
+        "GBR-131",
+        "GBR-136",
+        "GBR-137",
+        "GBR-138",
+        "GBR-140"
+      ]
+    },
+    "UC-112": {
+      "id": "UC-112",
+      "name": "Complete Assigned Task",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-132",
+        "GBR-138"
+      ]
+    },
+    "UC-113": {
+      "id": "UC-113",
+      "name": "Review Task Workload and Time Logs",
+      "actors": [
+        "Department Head",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-135",
+        "GBR-140"
+      ]
+    },
+    "UC-111": {
+      "id": "UC-111",
+      "name": "Record Actual Working Time",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-013",
+        "GBR-014",
+        "GBR-138",
+        "GBR-139",
+        "GBR-140"
+      ]
+    },
+    "UC-138": {
+      "id": "UC-138",
+      "name": "Manage Operational Workday and Shift Records",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-017",
+        "GBR-141"
+      ]
+    },
+    "UC-139": {
+      "id": "UC-139",
+      "name": "Record Workday Start and End",
+      "actors": [
+        "Housekeeping Staff",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Housekeeping Supervisor",
+        "Maintenance Lead"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-014",
+        "GBR-138",
+        "GBR-140",
+        "GBR-142",
+        "GBR-143"
+      ]
+    },
+    "UC-140": {
+      "id": "UC-140",
+      "name": "Manage Operational Shift Handover",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-144"
+      ]
+    },
+    "UC-114": {
+      "id": "UC-114",
+      "name": "Create Internal Request",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-016",
+        "GBR-110",
+        "GBR-145"
+      ]
+    },
+    "UC-115": {
+      "id": "UC-115",
+      "name": "Route and Assign Internal Request",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-147",
+        "GBR-148"
+      ]
+    },
+    "UC-116": {
+      "id": "UC-116",
+      "name": "Accept/Reject Internal Request",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-014",
+        "GBR-146"
+      ]
+    },
+    "UC-117": {
+      "id": "UC-117",
+      "name": "Update Internal Request Progress",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-016",
+        "GBR-050",
+        "GBR-149"
+      ]
+    },
+    "UC-118": {
+      "id": "UC-118",
+      "name": "Create Linked Operational Work",
+      "actors": [
+        "Department Head",
+        "Housekeeping Supervisor"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-150"
+      ]
+    },
+    "UC-119": {
+      "id": "UC-119",
+      "name": "Record Request Handover",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-004",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-151"
+      ]
+    },
+    "UC-120": {
+      "id": "UC-120",
+      "name": "Complete Internal Request",
+      "actors": [
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-003",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-152"
+      ]
+    },
+    "UC-121": {
+      "id": "UC-121",
+      "name": "Reopen Internal Request",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-153"
+      ]
+    },
+    "UC-122": {
+      "id": "UC-122",
+      "name": "Escalate Overdue Internal Request",
+      "actors": [
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-005",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-012",
+        "GBR-155",
+        "GBR-156"
+      ]
+    },
+    "UC-123": {
+      "id": "UC-123",
+      "name": "View Internal Request History",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-007",
+        "GBR-008",
+        "GBR-010",
+        "GBR-015",
+        "GBR-154",
+        "GBR-156"
+      ]
+    },
+    "UC-124": {
+      "id": "UC-124",
+      "name": "Receive Assignment Notifications",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-010",
+        "GBR-011",
+        "GBR-157",
+        "GBR-159"
+      ]
+    },
+    "UC-125": {
+      "id": "UC-125",
+      "name": "Receive Approval Notifications",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-010",
+        "GBR-011",
+        "GBR-157",
+        "GBR-159"
+      ]
+    },
+    "UC-126": {
+      "id": "UC-126",
+      "name": "Receive Inspection and Incident Alerts",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-010",
+        "GBR-011",
+        "GBR-157",
+        "GBR-159"
+      ]
+    },
+    "UC-127": {
+      "id": "UC-127",
+      "name": "Receive Overdue Work Alerts",
+      "actors": [
+        "Housekeeping Supervisor",
+        "Maintenance Lead",
+        "Department Head",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-010",
+        "GBR-011",
+        "GBR-055",
+        "GBR-080",
+        "GBR-135",
+        "GBR-156",
+        "GBR-157",
+        "GBR-158",
+        "GBR-159"
+      ]
+    },
+    "UC-128": {
+      "id": "UC-128",
+      "name": "Receive Low Stock Alerts",
+      "actors": [
+        "Storekeeper",
+        "Operations Manager"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-010",
+        "GBR-011",
+        "GBR-094",
+        "GBR-157",
+        "GBR-158",
+        "GBR-159"
+      ]
+    },
+    "UC-129": {
+      "id": "UC-129",
+      "name": "View Notification Center",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Owner",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-157",
+        "GBR-160"
+      ]
+    },
+    "UC-130": {
+      "id": "UC-130",
+      "name": "Acknowledge Notifications",
+      "actors": [
+        "Administrator",
+        "Operations Manager",
+        "Owner",
+        "Housekeeping Supervisor",
+        "Housekeeping Staff",
+        "Maintenance Lead",
+        "Maintenance Staff",
+        "Storekeeper",
+        "Department Head"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-008",
+        "GBR-011",
+        "GBR-157",
+        "GBR-159"
+      ]
+    },
+    "UC-131": {
+      "id": "UC-131",
+      "name": "View Room Readiness Dashboard",
+      "actors": [
+        "Operations Manager",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-161",
+        "GBR-162"
+      ]
+    },
+    "UC-132": {
+      "id": "UC-132",
+      "name": "View Task Workload Dashboard",
+      "actors": [
+        "Operations Manager",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-161",
+        "GBR-162"
+      ]
+    },
+    "UC-133": {
+      "id": "UC-133",
+      "name": "View Incident and Maintenance Dashboard",
+      "actors": [
+        "Operations Manager",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-161",
+        "GBR-162"
+      ]
+    },
+    "UC-134": {
+      "id": "UC-134",
+      "name": "View Inventory and Material Dashboard",
+      "actors": [
+        "Operations Manager",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-161",
+        "GBR-162"
+      ]
+    },
+    "UC-135": {
+      "id": "UC-135",
+      "name": "Generate and Export Operational Reports",
+      "actors": [
+        "Operations Manager",
+        "Owner"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-008",
+        "GBR-015",
+        "GBR-161",
+        "GBR-162",
+        "GBR-163"
+      ]
+    },
+    "UC-136": {
+      "id": "UC-136",
+      "name": "View Audit Logs",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-015",
+        "GBR-164"
+      ]
+    },
+    "UC-137": {
+      "id": "UC-137",
+      "name": "Inspect Record Change History",
+      "actors": [
+        "Administrator"
+      ],
+      "rules": [
+        "GBR-001",
+        "GBR-002",
+        "GBR-008",
+        "GBR-164"
+      ]
+    }
+  },
+  "rules": {
+    "GBR-001": "Every request except Login and Forgot Password requires a valid, unexpired and unrevoked session.",
+    "GBR-002": "A user may perform a UC only when one of the user's active roles grants the UC permission (Permission Matrix 4.4) and the target record belongs to the user's assigned branch/department scope. A user may hold several roles; effective permissions are the union of the roles' grants, limited by scope.",
+    "GBR-003": "Mandatory fields must not be empty; leading and trailing spaces are trimmed from codes and names; codes are compared case-insensitively.",
+    "GBR-004": "Every referenced record must exist within the user's scope; records selected for a new business operation must be Active.",
+    "GBR-005": "An update is accepted only if the record's row_version equals the version the user loaded; otherwise the update is rejected and the user must reload.",
+    "GBR-006": "Actions that post, approve, complete or hand over re-check the record's current status inside the same transaction; a repeated submission (double click or retry) of an action already processed is rejected and the current result is shown.",
+    "GBR-007": "A business operation, its status changes, stock ledger entries, room status recalculation and audit record are saved in one transaction; if any part fails nothing is saved.",
+    "GBR-008": "Every create, update, status change, approval, posting, reversal, permission change and login/logout is recorded in the audit log with actor, time (UTC), entity, action and before/after values. Passwords, password hashes and tokens are never recorded.",
+    "GBR-009": "Master data and business records that have been referenced are never physically deleted; they are deactivated, cancelled or reversed, and their history remains viewable.",
+    "GBR-010": "Each committed business event creates at most one in-app notification per recipient, who must have read permission on the source record. If a notification cannot be created, the business operation is still kept and the notification job retries it.",
+    "GBR-011": "Reading or acknowledging a notification never approves, accepts, closes or changes the source record.",
+    "GBR-012": "Cancellation, rejection, reversal, reopening, deactivation and manual overrides require a reason of at least 10 characters.",
+    "GBR-013": "The user who approves, verifies or concludes a result must not be the requester, submitter or performer of the same processing cycle. Each cycle stores submitted_by, performed_by and verified_by.",
+    "GBR-014": "All timestamps are generated by the server, stored in UTC and displayed/calculated in SYS-PAR-10. An end time must not be earlier than its start time; a deadline must not be earlier than its planned start.",
+    "GBR-015": "Lists are paginated (default SYS-PAR-11), sorted by the UC's default order with the record ID as tie-breaker, and only contain records in the user's scope. A date range end must not precede its start.",
+    "GBR-016": "Attachments must have an allowed format (SYS-PAR-07), at most SYS-PAR-08 MB per file and SYS-PAR-09 files per upload, and must be fully uploaded before the record is saved. Files are stored privately and every download re-checks permission on the source record.",
+    "GBR-017": "HotelOps V1 does not handle reservations, room sales, check-in/check-out, guest payment, OTA, accounting, payroll or purchasing approval. PMS integration is optional and not required in V1.",
+    "GBR-018": "Department Head is the head of any department (including Housekeeping, Maintenance and Warehouse). A user may additionally hold Housekeeping Supervisor or Maintenance Lead roles; such a user is still subject to segregation of duties.",
+    "GBR-019": "Login accepts a username or email with a password. Wrong password, unknown account and Inactive account all return the same message (MSG11) so that account existence is not disclosed.",
+    "GBR-020": "After SYS-PAR-01 consecutive failed attempts the account is locked until now + SYS-PAR-02 minutes (locked_until). A successful login resets the counter. While locked, a correct password returns MSG12; an incorrect password returns MSG11.",
+    "GBR-021": "A session expires after SYS-PAR-06 minutes without activity; each valid request extends it. Logout and password change revoke the session(s).",
+    "GBR-022": "A password must have at least SYS-PAR-03 characters and contain an uppercase letter, a lowercase letter, a digit and a special character (SYS-PAR-04), and must differ from the current password.",
+    "GBR-023": "New accounts and credential resets receive a random temporary password shown once to the Administrator and valid for SYS-PAR-05 hours. A session created with a temporary password can only change the password; all other functions are blocked until it is changed.",
+    "GBR-024": "Forgot Password never reveals whether an account exists; it always shows MSG14 and the user contacts the Administrator, who resets the credential in UC-005.",
+    "GBR-025": "Username and email are unique across the whole system.",
+    "GBR-026": "At least one Active account must keep an active Administrator role with permission administration; deactivating, revoking or reconfiguring that would remove the last one is rejected.",
+    "GBR-027": "An Administrator cannot deactivate their own account or revoke their own Administrator role.",
+    "GBR-028": "An account with open assigned work (tasks, cleaning, rework, incidents, internal requests) can be deactivated or moved to another scope only after that work has been reassigned or handed over.",
+    "GBR-029": "Role code is unique; system roles (the nine actors) cannot be deleted, only their permissions adjusted.",
+    "GBR-030": "Permissions are chosen only from the system permission list (one permission per use case, see 4.4); granting a permission does not bypass scope or segregation-of-duty rules.",
+    "GBR-031": "A user is assigned to one or more branches; within a branch, to one or more departments. The department must belong to the branch. Owner and Operations Manager may be assigned to several branches.",
+    "GBR-032": "Branch code is unique; branch name and address are mandatory. All branches use the system timezone SYS-PAR-10.",
+    "GBR-033": "A branch can be deactivated only when it has no active rooms, warehouses with stock, open tasks, open incidents or open requests.",
+    "GBR-034": "Floor/area code is unique within its branch; an area may belong to a floor of the same branch; the parent chain must not form a cycle.",
+    "GBR-035": "A floor/area can be deactivated only when it has no active rooms, active child areas, active assets or open incidents/tasks located there.",
+    "GBR-036": "Room type code is unique within the branch; room type attributes are used only for operations (cleaning standard, default checklist), never for pricing.",
+    "GBR-037": "A room type can be deactivated only when no active room uses it.",
+    "GBR-038": "Room number is unique within the branch; the room's floor and room type must be active and belong to the same branch.",
+    "GBR-039": "A newly created room starts with operational status Pending Cleaning; it can only become Ready through a passed inspection.",
+    "GBR-040": "A room can be deactivated only when it has no open cleaning task, rework, inspection, incident or effective block; its assets must be moved first.",
+    "GBR-041": "Department code is unique within the branch; a department may have one Department Head user.",
+    "GBR-042": "A department can be deactivated only when it has no active users, warehouses, open tasks, open internal requests or assets in custody.",
+    "GBR-043": "Room operational status is calculated by the system, never typed by users. It is recalculated in the same transaction as every source event (cleaning, inspection, rework, block, room activation) and each change is stored in room status history with old/new status, source event and time.",
+    "GBR-044": "Room status is the first matching condition: (1) Inactive if the room is inactive; (2) Blocked if it has at least one effective block; (3) Rework Required if the current cleaning cycle needs rework that is not yet submitted; (4) Cleaning In Progress if its cleaning task is In Progress; (5) Pending Cleaning if its cleaning task is Pending Assignment, Assigned or On Hold, or the room has never passed inspection; (6) Pending Inspection if cleaning or rework has been submitted and awaits inspection; (7) Ready if the latest cleaning cycle is Completed. Cancelled cleaning tasks are ignored.",
+    "GBR-045": "A room may have only one open cleaning task (any status other than Completed or Cancelled).",
+    "GBR-046": "A cleaning or rework task can be assigned only to an Active user holding the Housekeeping Staff role in the room's branch and Housekeeping department.",
+    "GBR-047": "Reassignment is allowed while the cleaning task is Assigned, In Progress or On Hold; the previous assignee's open work interval is closed at the reassignment time and the task returns to Assigned.",
+    "GBR-048": "Only a Housekeeping Supervisor can cancel a cleaning task, and only while it is Pending Assignment or Assigned (no work started). Cancelled tasks remain in history.",
+    "GBR-049": "Only the current assignee can start or resume a cleaning task, and only from Assigned or On Hold.",
+    "GBR-050": "Progress is 0 to 100 percent; reaching 100 does not complete the task.",
+    "GBR-051": "Reporting a blocker puts the cleaning task On Hold, closes the assignee's open work interval and notifies the Housekeeping Supervisor. The same open blocker reason cannot be reported twice for one task.",
+    "GBR-052": "A cleaning task can be completed only from In Progress, when all mandatory cleaning items are ticked and no blocker is open; it then becomes Pending Inspection.",
+    "GBR-053": "Only the assigned Housekeeping Staff can accept and start a rework task; acceptance is from Pending Acceptance, start is from Accepted.",
+    "GBR-054": "A rework task can be submitted only from In Progress and only when every defect listed in it has a remediation note; it then becomes Pending Reinspection.",
+    "GBR-055": "A cleaning or rework task is overdue when it is not Completed/Cancelled and the current time is after its due time.",
+    "GBR-056": "A checklist has at least one criterion; each criterion states whether it is mandatory. Only a Published checklist version can be used for inspections.",
+    "GBR-057": "A checklist version that has been used by an inspection is never edited; changes create a new version, and the previous version is Retired. Past inspections always show the version they used.",
+    "GBR-058": "An inspection can be assigned only for a room whose cleaning task is Pending Inspection (or whose rework is Pending Reinspection), to an Active user with the Housekeeping Supervisor role; one open inspection per cleaning cycle.",
+    "GBR-059": "The inspector must not be the person who performed the cleaning or rework being inspected.",
+    "GBR-060": "Only the assigned inspector can record results; every mandatory criterion must have a Pass/Fail result, and each Fail must have at least one defect with a description before the inspection can be concluded.",
+    "GBR-061": "Defects can be added or changed only while the inspection is Inspecting or Pending Conclusion; they are locked after the conclusion.",
+    "GBR-062": "An inspection can be concluded Passed only when all mandatory criteria are Pass. Passing sets the cleaning task Completed; the room becomes Ready unless it has an effective block (MSG17).",
+    "GBR-063": "An inspection concluded Failed sets the cleaning task to Rework Required and the room to Rework Required (unless Blocked). A rework request must then be created.",
+    "GBR-064": "A rework task is created from a Failed inspection with the defects to fix, a due time and an assignee; one open rework task per inspection.",
+    "GBR-065": "A reinspection checks every defect of the rework task and is linked to the original inspection. If all are fixed, the rework task, the reinspection and the cleaning task are completed; otherwise the rework task becomes Failed and a new rework task must be requested.",
+    "GBR-066": "An incident must have a branch and at least one of room, area or asset; an asset must belong to the selected branch.",
+    "GBR-067": "Before saving a new incident the system shows open incidents at the same room/area/asset; the reporter may add evidence to an existing one instead.",
+    "GBR-068": "Category and severity (Low, Normal, High, Critical) must be set before triage. Severity Critical immediately alerts the Maintenance Lead and Operations Manager.",
+    "GBR-069": "Triage is done only on Pending Triage incidents and sets priority, response deadline and resolution deadline. Default deadlines are calculated from detected time and the SLA targets of the priority (reference data); changing them requires a reason.",
+    "GBR-070": "An incident can be cancelled as Duplicate or Invalid only while Pending Triage; a duplicate must reference the original incident.",
+    "GBR-071": "Maintenance work can be assigned or reassigned only when the incident is Pending Assignment or Assigned, to an Active Maintenance Staff or Maintenance Lead in the incident's branch. A Maintenance Lead may be assigned only if another active Maintenance Lead of the branch can verify the result.",
+    "GBR-072": "Only the assignee can accept and start the work, from Assigned; acceptance time is the response time used for SLA.",
+    "GBR-073": "The assignee can put an In Progress incident On Hold with a reason (e.g. waiting for materials) and resume it later; holding closes the open work interval. SLA time is not paused.",
+    "GBR-074": "Materials recorded as used on an incident must come from material issues linked to that incident and cannot exceed the issued quantity not yet returned.",
+    "GBR-075": "A room block links one incident to one room; each incident-room pair has at most one effective block. A block can be removed early by the Maintenance Lead with a reason, and is removed automatically when the incident is closed or cancelled.",
+    "GBR-076": "An incident can be escalated to the Operations Manager when its severity is Critical or it is at risk (SYS-PAR-21 of the resolution time used) or overdue; only one Open escalation per incident.",
+    "GBR-077": "Resolution results (diagnosis, action taken, actual end time) can be submitted only by the assignee from In Progress; the incident becomes Pending Verification and the work interval is closed.",
+    "GBR-078": "Only Pending Verification incidents can be verified. The verifier is a Maintenance Lead of the branch who did not submit or perform the work. Returning results sends the incident back to In Progress with a reason.",
+    "GBR-079": "A Closed incident can be reopened within SYS-PAR-19 days with a reason; it returns to Pending Triage as a new processing cycle and previous cycles are kept.",
+    "GBR-080": "An incident is overdue when it is not Closed/Cancelled and now is after its resolution deadline; response is overdue when it has not been accepted by the response deadline.",
+    "GBR-081": "A preventive maintenance schedule targets one asset, room or area, has an interval greater than 0 (days, weeks or months), a first due date and a work description; an object cannot have two Active schedules with the same title.",
+    "GBR-082": "Editing a schedule affects only future occurrences; deactivating it does not cancel occurrences already generated.",
+    "GBR-083": "The system generates a maintenance occurrence SYS-PAR-16 days before each due date; it is Assigned to the schedule's default assignee or Pending Assignment if none. The next due date is calculated from the scheduled due date, not from the completion date.",
+    "GBR-084": "Only the assignee can start and complete an occurrence; every mandatory check item needs a result. Problems found are reported as new incidents linked to the occurrence.",
+    "GBR-085": "Reference codes (task categories, incident categories, blocker/pause reasons, request types, cleaning types, priorities) are unique within their group; used values can only be deactivated and keep their meaning in history. Priority codes LOW, NORMAL, HIGH, CRITICAL are fixed; only their labels and SLA targets can be changed.",
+    "GBR-086": "Asset code is unique; an asset belongs to one branch, one category and has exactly one current location (room or area) and one custodian department at a time.",
+    "GBR-087": "A location change is recorded as a movement with old/new location, time, actor and reason; transferring to another branch requires scope in both branches. An asset with an open incident or maintenance occurrence needs a confirmation note before moving.",
+    "GBR-088": "A custody handover moves responsibility only when the designated receiver (Department Head of the receiving department) acknowledges it; until then the sender remains responsible. A rejected handover needs a reason and may be resubmitted as a new version.",
+    "GBR-089": "Asset condition is In Use, Damaged or Under Repair. Setting In Use after Damaged/Under Repair requires that linked incidents are Closed or a reason is given.",
+    "GBR-090": "An asset can be retired only when it has no open incident, open maintenance occurrence, active schedule or pending handover; retired assets are excluded from active statistics but keep their history.",
+    "GBR-091": "Warehouse code is unique within the branch; a warehouse belongs to one branch and one responsible department. A warehouse can be deactivated only when all balances are zero and it has no Draft, In Transit or Partially Received documents.",
+    "GBR-092": "Item code is unique; each item has one base unit that cannot change after the first stock transaction.",
+    "GBR-093": "Each additional unit of an item has exactly one positive conversion factor to the base unit. All stock quantities are stored in the base unit and documents keep the factor used.",
+    "GBR-094": "Minimum stock level is ≥ 0 and set per warehouse and item; items without a minimum never raise low-stock alerts.",
+    "GBR-095": "Requested, received, issued, transferred and returned quantities must be greater than 0; counted quantities must be ≥ 0.",
+    "GBR-096": "Only Posted (or dispatched/received transfer) documents change stock; drafts, requests and approvals never change stock.",
+    "GBR-097": "Available stock of a warehouse/item must never become negative after an issue, transfer dispatch, adjustment or reversal.",
+    "GBR-098": "A Posted document is never edited or deleted; corrections are made only by reversal (UC-088) or adjustment (UC-087).",
+    "GBR-099": "A receipt has at least one line. When posting, the received quantity of each line is entered; a difference from the expected quantity needs a reason. Rejected (damaged) quantities do not increase stock.",
+    "GBR-100": "A Draft receipt can be edited or cancelled (with reason) by a Storekeeper; a Cancelled receipt never changes stock.",
+    "GBR-101": "Every stock issue to a department is linked to an Approved or Partially Issued material request line, and the issued quantity cannot exceed that line's remaining approved quantity.",
+    "GBR-102": "A return refers to a previous issue; the cumulative returned quantity cannot exceed the issued quantity. Only quantities accepted as usable increase stock; damaged quantities are recorded with a reason. Returns do not restore the request's approved quantity.",
+    "GBR-103": "Source and destination warehouses differ. Dispatch requires sufficient source stock and moves the quantity out of the source into in-transit in one transaction.",
+    "GBR-104": "The destination confirms received, damaged and missing quantities per line, possibly in several batches; their total cannot exceed the dispatched quantity not yet confirmed. The transfer is Received when everything dispatched is confirmed, otherwise Partially Received. Damaged and missing quantities need a reason and are reported as transfer losses.",
+    "GBR-105": "A stocktake fixes a cutoff time for one warehouse; system quantities are the balances at the cutoff, and movements after the cutoff are excluded. Only one open stocktake per warehouse.",
+    "GBR-106": "Discrepancy = counted quantity − system quantity at cutoff; every non-zero discrepancy needs a cause. A stocktake without discrepancies is Reconciled without an adjustment.",
+    "GBR-107": "An adjustment is posted only by the Operations Manager, based on a Pending Adjustment stocktake or an error-correction reason; a stocktake can be the basis of only one adjustment.",
+    "GBR-108": "Only Posted receipts, issues, returns and adjustments can be reversed, once, by the Operations Manager, by creating an offsetting document. A reversal is rejected if it would make stock negative or if later dependent documents (e.g. returns of the reversed issue) exist; reversing an issue reduces the request's issued quantity.",
+    "GBR-109": "The stock ledger lists only posted movements; balance at a date = sum of posted movements up to that date. No movement in a period does not mean zero balance.",
+    "GBR-110": "A material request has at least one line (item, quantity, unit), a purpose, a receiving department/location and a needed-by time. Material needs must use a material request, not an internal request.",
+    "GBR-111": "The approver is the Department Head of the requester's department; when the requester is that Department Head, the approver is the Department Head of the department responsible for the issuing warehouse. The approver must always differ from the requester.",
+    "GBR-112": "Only the creator can edit a request while Draft, Pending Approval or Needs Information. Editing an Approved request that has nothing issued returns it to Pending Approval and clears approved quantities.",
+    "GBR-113": "Only the creator can cancel a request with nothing issued (Draft, Pending Approval, Needs Information or Approved). A Partially Issued request cannot be cancelled; its remainder can be closed by the approver.",
+    "GBR-114": "Reviewing a request does not reserve stock. The approver may return it for more information; the creator then edits and resubmits it.",
+    "GBR-115": "Approval is only from Pending Approval; each approved quantity is between 0 and the requested quantity and at least one line must be greater than 0; approving all lines with 0 is a rejection. Rejection needs a reason.",
+    "GBR-116": "Fulfillable quantity = min(available stock, remaining approved quantity). Issuing the whole remainder sets Fully Issued; issuing less sets Partially Issued and keeps the remainder open.",
+    "GBR-117": "The approver can close the unissued remainder of a Partially Issued request with a reason; issued quantities are unchanged.",
+    "GBR-118": "A request can be linked only to an open work record (cleaning task, incident, maintenance occurrence or operational task) of the same branch; Cancelled or Rejected requests cannot be linked.",
+    "GBR-119": "A user can view requests they created, requests of their department (Department Head), requests they approve, and requests to fulfil (Storekeeper); Operations Manager sees all in scope.",
+    "GBR-120": "A replenishment request is created for items below minimum stock or for shortages of approved material requests; it has lines (item, unit, quantity), the receiving warehouse and optional supplier name and expected date. The same shortage cannot be requested twice in open replenishments.",
+    "GBR-121": "Received quantities of a replenishment come only from Posted receipts linked to it; each receipt line counts once. Status becomes Partially Received or Fully Received automatically.",
+    "GBR-122": "An open replenishment can be closed by the Storekeeper with a reason when the remaining quantity will not arrive.",
+    "GBR-123": "An operational task has a title, category, location or department, expected outcome and at least one completion criterion. A need that has a specialised process (cleaning, incident, material) must use that process instead.",
+    "GBR-124": "A recurring task series defines a rule (daily, weekly on chosen days, or monthly on a day), a default assignee and an end date (optional). The system creates each occurrence SYS-PAR-17 days before it is due; deactivating the series stops future occurrences only.",
+    "GBR-125": "Priority is Low, Normal, High or Critical. Changing a deadline after assignment requires a reason and keeps the previous deadline in history.",
+    "GBR-126": "A task is assigned only to an Active user holding an executor role (Housekeeping Staff, Maintenance Staff or Storekeeper) in the task's department and branch.",
+    "GBR-127": "Reassignment is allowed before the task is Pending Verification; the previous assignee's open work interval is closed and the task returns to Assigned for the new assignee.",
+    "GBR-128": "A task can be cancelled by the Department Head only while it has no recorded work time (Pending Assignment, Assigned or Accepted).",
+    "GBR-129": "Only the assignee can accept or decline an Assigned task; declining requires a reason and returns it to Pending Assignment.",
+    "GBR-130": "Only the assignee can start an Accepted task or resume a Paused task.",
+    "GBR-131": "Only In Progress tasks can be paused, with a pause reason; pausing closes the work interval.",
+    "GBR-132": "A task can be submitted only from In Progress by the assignee, when every mandatory completion criterion has a result; it becomes Pending Verification.",
+    "GBR-133": "The Department Head verifies Pending Verification tasks: Accept closes the task; Return requires a reason and sends it back to Accepted for the same assignee.",
+    "GBR-134": "A Closed task can be reopened by the Department Head with a reason and remediation instructions; it becomes Assigned (same or new assignee) as a new cycle.",
+    "GBR-135": "A task is overdue when it is not Closed/Cancelled and now is after its deadline.",
+    "GBR-136": "A user must have a Working workday before starting or resuming any work item (cleaning, rework, maintenance, occurrence, task).",
+    "GBR-137": "A user has at most one open work interval at any time; to start another work item the current one must be paused, put on hold or completed.",
+    "GBR-138": "Work intervals are opened and closed automatically by start/resume and pause/hold/complete/reassign events, using server time. Users cannot type or back-date intervals.",
+    "GBR-139": "An executor can request a correction of their own interval with a reason; only a Department Head with the work_interval.correct permission applies it. The change keeps old and new values, must not create overlaps and is audited.",
+    "GBR-140": "Task effort = sum of closed work intervals of the task; open intervals are shown separately as provisional; shift duration never replaces task time.",
+    "GBR-141": "Shift definitions have a code, start and end time; an employee cannot have overlapping shift assignments. Shifts are for operational coordination only, not attendance or payroll.",
+    "GBR-142": "A user can start a workday when assigned to a shift for that date; starting without an assignment requires a reason and notifies the Department Head. A user cannot have two Working workdays.",
+    "GBR-143": "A workday can be ended only when the user has no open work interval; the user may choose to pause all open work items first.",
+    "GBR-144": "A shift handover snapshots the sender's open items (tasks, cleaning, incidents, internal requests, unready rooms) and notes at submission time. Acknowledgment by the receiver confirms awareness; reassignment of individual items is still done through the corresponding assign UCs.",
+    "GBR-145": "An internal request has a request type, receiving department, title, description, priority and desired deadline; the receiving department must be active.",
+    "GBR-146": "Only the Department Head of the current receiving department can accept, reject or route a Pending Acceptance request; rejection needs a reason.",
+    "GBR-147": "Routing changes the receiving department; the request stays Pending Acceptance and the previous department keeps no responsibility.",
+    "GBR-148": "An Accepted or In Progress request is assigned to a handler of the receiving department; the first assignment moves it to In Progress.",
+    "GBR-149": "Only the current handler (or the receiving Department Head) can update progress; progress 0–100 does not close the request; only the Department Head can change the deadline, with a reason.",
+    "GBR-150": "Work created from a request uses the target process and its permissions (UC-028 for cleaning, UC-049 for incidents, UC-091 for materials, UC-102 for tasks); creating linked work does not close the request.",
+    "GBR-151": "A handler handover becomes effective only when the designated new handler acknowledges it; until then the sender remains the handler.",
+    "GBR-152": "A request can be completed only when all mandatory linked work is closed and no handover is pending; the result note is mandatory.",
+    "GBR-153": "The requester (or requesting Department Head) can reopen a Closed request within SYS-PAR-18 days with a reason; it returns to In Progress with the last handler.",
+    "GBR-154": "The requester can withdraw a request only while it is Pending Acceptance; it becomes Cancelled.",
+    "GBR-155": "An overdue or at-risk (SYS-PAR-21) request can be escalated by the Operations Manager, who may change priority, deadline, receiving department or handler; one Open escalation per request.",
+    "GBR-156": "An internal request is overdue when it is not Closed/Rejected/Cancelled and now is after its deadline.",
+    "GBR-157": "Users see only notifications addressed to them; opening a notification re-checks permission on the source record.",
+    "GBR-158": "Overdue and low-stock alerts are checked every SYS-PAR-15 minutes and sent once per violation episode; a new alert is sent only after the condition has ended and occurred again.",
+    "GBR-159": "Marking read sets read time once; acknowledging is required for Critical incident alerts and escalations and records the acknowledgment time once.",
+    "GBR-160": "Notifications are kept for SYS-PAR-14 days.",
+    "GBR-161": "A dashboard or report uses one snapshot time for all figures, counts each record once by ID, shows its filters and snapshot time, never treats missing data as 0, and shows N/A when a denominator is 0. Period figures default to the last SYS-PAR-20 days.",
+    "GBR-162": "Dashboards and reports are available to the Operations Manager and the Owner only, limited to the branches in their scope.",
+    "GBR-163": "Preview and export use the same filters and snapshot; exports are CSV, XLSX or PDF, contain only permitted fields and at most SYS-PAR-12 data rows (larger results are refused, never truncated).",
+    "GBR-164": "Audit records are append-only, read-only for everyone and kept for SYS-PAR-13 days."
+  },
+  "parameters": [
+    [
+      "SYS-PAR-01",
+      "Login lock threshold",
+      "5",
+      "consecutive failed attempts"
+    ],
+    [
+      "SYS-PAR-02",
+      "Login lock duration",
+      "30",
+      "minutes"
+    ],
+    [
+      "SYS-PAR-03",
+      "Minimum password length",
+      "8",
+      "characters"
+    ],
+    [
+      "SYS-PAR-04",
+      "Password complexity",
+      "Uppercase + lowercase + digit + special character",
+      "required"
+    ],
+    [
+      "SYS-PAR-05",
+      "Temporary password validity",
+      "24",
+      "hours"
+    ],
+    [
+      "SYS-PAR-06",
+      "Session idle timeout",
+      "30",
+      "minutes (sliding)"
+    ],
+    [
+      "SYS-PAR-07",
+      "Attachment formats",
+      "JPG, PNG, PDF",
+      "file type (extension and content)"
+    ],
+    [
+      "SYS-PAR-08",
+      "Attachment maximum size",
+      "10",
+      "MB per file"
+    ],
+    [
+      "SYS-PAR-09",
+      "Attachments per upload",
+      "5",
+      "files"
+    ],
+    [
+      "SYS-PAR-10",
+      "System timezone",
+      "Asia/Ho_Chi_Minh",
+      "UTC+7 (storage in UTC)"
+    ],
+    [
+      "SYS-PAR-11",
+      "List page size",
+      "20 (maximum 100)",
+      "rows per page"
+    ],
+    [
+      "SYS-PAR-12",
+      "Export row limit",
+      "50,000",
+      "data rows per file"
+    ],
+    [
+      "SYS-PAR-13",
+      "Audit log retention",
+      "365",
+      "days"
+    ],
+    [
+      "SYS-PAR-14",
+      "Notification retention",
+      "365",
+      "days"
+    ],
+    [
+      "SYS-PAR-15",
+      "Alert scan interval (overdue, low stock)",
+      "5",
+      "minutes"
+    ],
+    [
+      "SYS-PAR-16",
+      "Preventive maintenance generation lead time",
+      "3",
+      "days before due date"
+    ],
+    [
+      "SYS-PAR-17",
+      "Recurring task generation lead time",
+      "1",
+      "day before due date"
+    ],
+    [
+      "SYS-PAR-18",
+      "Internal request reopen window",
+      "7",
+      "days after closing"
+    ],
+    [
+      "SYS-PAR-19",
+      "Incident reopen window",
+      "30",
+      "days after closing"
+    ],
+    [
+      "SYS-PAR-20",
+      "Default dashboard/report period",
+      "30",
+      "days"
+    ],
+    [
+      "SYS-PAR-21",
+      "At-risk threshold",
+      "80",
+      "% of the allowed time elapsed"
+    ]
+  ],
+  "statuses": [
+    [
+      "User",
+      "Active, Inactive",
+      "Active: Can log in (unless locked_until is in the future, shown as Temporarily Locked); Inactive: Cannot log in; history kept"
+    ],
+    [
+      "Branch / Location / RoomType / Department / Warehouse / Item / Role / TaskCategory / ReferenceValue",
+      "Active, Inactive",
+      "Active: Can be used for new records; Inactive: Kept for history only"
+    ],
+    [
+      "Room (operational_status, derived)",
+      "Ready, Pending Cleaning, Cleaning In Progress, Pending Inspection, Rework Required, Blocked, Inactive",
+      "Ready: Latest cleaning cycle completed and inspected, no effective block; Pending Cleaning: Cleaning task not started/on hold, or never inspected; Cleaning In Progress: Cleaning task In Progress; Pending Inspection: Cleaning or rework submitted, waiting for (re)inspection; Rework Required: Inspection failed, rework not yet submitted; Blocked: At least one effective block; Inactive: Room deactivated"
+    ],
+    [
+      "CleaningTask",
+      "Pending Assignment, Assigned, In Progress, On Hold, Pending Inspection, Rework Required, Completed*, Cancelled*",
+      "On Hold: Open blocker"
+    ],
+    [
+      "ChecklistVersion",
+      "Draft, Published, Retired*",
+      ""
+    ],
+    [
+      "Inspection",
+      "Assigned, Inspecting, Pending Conclusion, Passed*, Failed*",
+      ""
+    ],
+    [
+      "ReworkTask",
+      "Pending Acceptance, Accepted, In Progress, Pending Reinspection, Completed*, Failed*",
+      "Failed: a new rework task follows"
+    ],
+    [
+      "Incident",
+      "Pending Triage, Pending Assignment, Assigned, In Progress, On Hold, Pending Verification, Closed, Cancelled*",
+      "On Hold: SLA clock keeps running; Closed: Can be reopened within SYS-PAR-19 days; Cancelled: Duplicate/invalid"
+    ],
+    [
+      "RoomBlock",
+      "Effective, Removed*",
+      ""
+    ],
+    [
+      "Escalation",
+      "Open, Closed",
+      "Closed: Closed automatically with the source record"
+    ],
+    [
+      "MaintenanceSchedule",
+      "Active, Inactive",
+      "Inactive: No new occurrences"
+    ],
+    [
+      "MaintenanceOccurrence",
+      "Pending Assignment, Assigned, In Progress, Completed*, Cancelled*",
+      ""
+    ],
+    [
+      "Asset (lifecycle / condition)",
+      "Active, Retired*, In Use, Damaged, Under Repair",
+      "Active: lifecycle; Retired: lifecycle; In Use: condition; Damaged: condition; Under Repair: condition"
+    ],
+    [
+      "Handover (asset, request, shift)",
+      "Pending Acknowledgment, Acknowledged*, Rejected*",
+      "Rejected: a new version may be submitted"
+    ],
+    [
+      "StockDocument",
+      "Draft, Posted, In Transit, Partially Received, Received*, Reversed*, Cancelled*",
+      "Draft: Receipt, transfer, or return request (Pending Receipt); Posted: Receipt, issue, return, adjustment, reversal; In Transit: Transfer dispatched; Partially Received: Transfer partly confirmed; Received: Transfer fully confirmed; Reversed: Offset by a reversal; Cancelled: Draft cancelled"
+    ],
+    [
+      "Stocktake",
+      "In Progress, Counted, Pending Adjustment, Reconciled*, Cancelled*",
+      ""
+    ],
+    [
+      "MaterialRequest",
+      "Draft, Pending Approval, Needs Information, Approved, Partially Issued, Fully Issued*, Rejected*, Cancelled*, Remainder Closed*",
+      ""
+    ],
+    [
+      "Replenishment",
+      "Requested, Partially Received, Fully Received*, Closed*",
+      "Closed: Closed with remainder"
+    ],
+    [
+      "Task",
+      "Pending Assignment, Assigned, Accepted, In Progress, Paused, Pending Verification, Closed, Cancelled*",
+      "Closed: Can be reopened"
+    ],
+    [
+      "TaskSeries",
+      "Active, Inactive",
+      ""
+    ],
+    [
+      "InternalRequest",
+      "Pending Acceptance, Accepted, In Progress, Closed, Rejected*, Cancelled*",
+      "Closed: Can be reopened within SYS-PAR-18 days; Cancelled: Withdrawn"
+    ],
+    [
+      "Workday",
+      "Working, Ended*",
+      ""
+    ],
+    [
+      "ShiftAssignment",
+      "Scheduled, Cancelled",
+      ""
+    ],
+    [
+      "WorkInterval",
+      "Open, Closed",
+      ""
+    ],
+    [
+      "TimeCorrectionRequest",
+      "Pending, Applied, Rejected",
+      ""
+    ],
+    [
+      "Notification",
+      "Unread, Read, Acknowledged",
+      "Acknowledged: For alerts requiring acknowledgment"
+    ],
+    [
+      "NotificationOutbox",
+      "Pending, Sent, Failed",
+      "Failed: After the last retry"
+    ]
+  ],
+  "transitions": [
+    [
+      "User",
+      "ACTIVE",
+      "INACTIVE",
+      "UC-006",
+      "Administrator",
+      "GBR-026, GBR-027, GBR-028"
+    ],
+    [
+      "User",
+      "INACTIVE",
+      "ACTIVE",
+      "UC-006",
+      "Administrator",
+      "GBR-012"
+    ],
+    [
+      "CleaningTask",
+      "(new)",
+      "PENDING_ASSIGNMENT",
+      "UC-028",
+      "Housekeeping Supervisor",
+      "GBR-045"
+    ],
+    [
+      "CleaningTask",
+      "PENDING_ASSIGNMENT",
+      "ASSIGNED",
+      "UC-029",
+      "Housekeeping Supervisor",
+      "GBR-046"
+    ],
+    [
+      "CleaningTask",
+      "ASSIGNED / IN_PROGRESS / ON_HOLD",
+      "ASSIGNED",
+      "UC-030",
+      "Housekeeping Supervisor",
+      "GBR-047"
+    ],
+    [
+      "CleaningTask",
+      "ASSIGNED / ON_HOLD",
+      "IN_PROGRESS",
+      "UC-031",
+      "Housekeeping Staff",
+      "GBR-049, GBR-136, GBR-137"
+    ],
+    [
+      "CleaningTask",
+      "IN_PROGRESS",
+      "ON_HOLD",
+      "UC-033",
+      "Housekeeping Staff",
+      "GBR-051"
+    ],
+    [
+      "CleaningTask",
+      "IN_PROGRESS",
+      "PENDING_INSPECTION",
+      "UC-034",
+      "Housekeeping Staff",
+      "GBR-052"
+    ],
+    [
+      "CleaningTask",
+      "PENDING_ASSIGNMENT / ASSIGNED",
+      "CANCELLED",
+      "UC-037",
+      "Housekeeping Supervisor",
+      "GBR-048"
+    ],
+    [
+      "CleaningTask",
+      "PENDING_INSPECTION",
+      "COMPLETED",
+      "UC-044",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-062"
+    ],
+    [
+      "CleaningTask",
+      "PENDING_INSPECTION",
+      "REWORK_REQUIRED",
+      "UC-045",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-063"
+    ],
+    [
+      "CleaningTask",
+      "REWORK_REQUIRED",
+      "COMPLETED",
+      "UC-047",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-065"
+    ],
+    [
+      "ChecklistVersion",
+      "(new)",
+      "DRAFT",
+      "UC-039 / UC-040",
+      "Housekeeping Supervisor",
+      "GBR-056, GBR-057"
+    ],
+    [
+      "ChecklistVersion",
+      "DRAFT",
+      "PUBLISHED",
+      "UC-039 / UC-040",
+      "Housekeeping Supervisor",
+      "GBR-056"
+    ],
+    [
+      "ChecklistVersion",
+      "PUBLISHED",
+      "RETIRED",
+      "UC-040",
+      "Housekeeping Supervisor",
+      "GBR-057"
+    ],
+    [
+      "Inspection",
+      "(new)",
+      "ASSIGNED",
+      "UC-041",
+      "Housekeeping Supervisor",
+      "GBR-058, GBR-059"
+    ],
+    [
+      "Inspection",
+      "ASSIGNED",
+      "INSPECTING",
+      "UC-042",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-060"
+    ],
+    [
+      "Inspection",
+      "INSPECTING",
+      "PENDING_CONCLUSION",
+      "UC-042",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-060"
+    ],
+    [
+      "Inspection",
+      "PENDING_CONCLUSION",
+      "PASSED",
+      "UC-044",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-062"
+    ],
+    [
+      "Inspection",
+      "PENDING_CONCLUSION",
+      "FAILED",
+      "UC-045",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-063"
+    ],
+    [
+      "Inspection (reinspection)",
+      "ASSIGNED",
+      "PASSED / FAILED",
+      "UC-047",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-065"
+    ],
+    [
+      "ReworkTask",
+      "(new)",
+      "PENDING_ACCEPTANCE",
+      "UC-046",
+      "Housekeeping Supervisor",
+      "GBR-064, GBR-046"
+    ],
+    [
+      "ReworkTask",
+      "PENDING_ACCEPTANCE",
+      "ACCEPTED",
+      "UC-035",
+      "Housekeeping Staff",
+      "GBR-053"
+    ],
+    [
+      "ReworkTask",
+      "ACCEPTED",
+      "IN_PROGRESS",
+      "UC-035",
+      "Housekeeping Staff",
+      "GBR-053, GBR-136"
+    ],
+    [
+      "ReworkTask",
+      "IN_PROGRESS",
+      "PENDING_REINSPECTION",
+      "UC-036",
+      "Housekeeping Staff",
+      "GBR-054"
+    ],
+    [
+      "ReworkTask",
+      "PENDING_REINSPECTION",
+      "COMPLETED / FAILED",
+      "UC-047",
+      "Housekeeping Supervisor (inspector)",
+      "GBR-065"
+    ],
+    [
+      "Room",
+      "any",
+      "(recalculated)",
+      "UC-020, 022, 028, 030, 031, 033, 034, 036, 037, 044, 045, 047, 052, 056, 059",
+      "System",
+      "GBR-043, GBR-044"
+    ],
+    [
+      "Incident",
+      "(new)",
+      "PENDING_TRIAGE",
+      "UC-049",
+      "Reporter",
+      "GBR-066"
+    ],
+    [
+      "Incident",
+      "PENDING_TRIAGE",
+      "PENDING_ASSIGNMENT",
+      "UC-052",
+      "Maintenance Lead",
+      "GBR-068, GBR-069"
+    ],
+    [
+      "Incident",
+      "PENDING_TRIAGE",
+      "CANCELLED",
+      "UC-052",
+      "Maintenance Lead",
+      "GBR-070"
+    ],
+    [
+      "Incident",
+      "PENDING_ASSIGNMENT / ASSIGNED",
+      "ASSIGNED",
+      "UC-053",
+      "Maintenance Lead",
+      "GBR-071"
+    ],
+    [
+      "Incident",
+      "ASSIGNED",
+      "IN_PROGRESS",
+      "UC-054",
+      "Assigned technician",
+      "GBR-072, GBR-136"
+    ],
+    [
+      "Incident",
+      "ASSIGNED",
+      "PENDING_ASSIGNMENT",
+      "UC-054 (decline)",
+      "Assigned technician",
+      "GBR-012"
+    ],
+    [
+      "Incident",
+      "IN_PROGRESS",
+      "ON_HOLD",
+      "UC-055",
+      "Assigned technician",
+      "GBR-073"
+    ],
+    [
+      "Incident",
+      "ON_HOLD",
+      "IN_PROGRESS",
+      "UC-055",
+      "Assigned technician",
+      "GBR-073, GBR-136"
+    ],
+    [
+      "Incident",
+      "IN_PROGRESS",
+      "PENDING_VERIFICATION",
+      "UC-058",
+      "Assigned technician",
+      "GBR-077"
+    ],
+    [
+      "Incident",
+      "PENDING_VERIFICATION",
+      "CLOSED",
+      "UC-059",
+      "Maintenance Lead (not the performer)",
+      "GBR-078, GBR-013"
+    ],
+    [
+      "Incident",
+      "PENDING_VERIFICATION",
+      "IN_PROGRESS",
+      "UC-059 (return)",
+      "Maintenance Lead (not the performer)",
+      "GBR-078"
+    ],
+    [
+      "Incident",
+      "CLOSED",
+      "PENDING_TRIAGE",
+      "UC-060",
+      "Maintenance Lead",
+      "GBR-079"
+    ],
+    [
+      "RoomBlock",
+      "(new)",
+      "EFFECTIVE",
+      "UC-056",
+      "Maintenance Lead",
+      "GBR-075"
+    ],
+    [
+      "RoomBlock",
+      "EFFECTIVE",
+      "REMOVED",
+      "UC-056 / UC-059 / UC-052 (cancel)",
+      "Maintenance Lead / System",
+      "GBR-075"
+    ],
+    [
+      "Escalation",
+      "(new)",
+      "OPEN",
+      "UC-057 / UC-122",
+      "Maintenance Lead / Operations Manager",
+      "GBR-076, GBR-155"
+    ],
+    [
+      "Escalation",
+      "OPEN",
+      "CLOSED",
+      "UC-059 / UC-052 / UC-120",
+      "System",
+      "GBR-076, GBR-155"
+    ],
+    [
+      "MaintenanceSchedule",
+      "(new)",
+      "ACTIVE",
+      "UC-061",
+      "Maintenance Lead",
+      "GBR-081"
+    ],
+    [
+      "MaintenanceSchedule",
+      "ACTIVE",
+      "INACTIVE",
+      "UC-061",
+      "Maintenance Lead",
+      "GBR-082"
+    ],
+    [
+      "MaintenanceOccurrence",
+      "(new)",
+      "ASSIGNED / PENDING_ASSIGNMENT",
+      "Scheduled job",
+      "System",
+      "GBR-083"
+    ],
+    [
+      "MaintenanceOccurrence",
+      "PENDING_ASSIGNMENT / ASSIGNED",
+      "ASSIGNED / CANCELLED",
+      "UC-062",
+      "Maintenance Lead",
+      "GBR-084, GBR-012"
+    ],
+    [
+      "MaintenanceOccurrence",
+      "ASSIGNED",
+      "IN_PROGRESS",
+      "UC-062",
+      "Assigned technician",
+      "GBR-084, GBR-136"
+    ],
+    [
+      "MaintenanceOccurrence",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "UC-062",
+      "Assigned technician",
+      "GBR-084"
+    ],
+    [
+      "Asset",
+      "(new)",
+      "ACTIVE / IN_USE",
+      "UC-065",
+      "Operations Manager",
+      "GBR-086"
+    ],
+    [
+      "Asset (condition)",
+      "IN_USE / DAMAGED / UNDER_REPAIR",
+      "IN_USE / DAMAGED / UNDER_REPAIR",
+      "UC-070",
+      "OM / DH",
+      "GBR-089"
+    ],
+    [
+      "Asset",
+      "ACTIVE",
+      "RETIRED",
+      "UC-074",
+      "Operations Manager",
+      "GBR-090"
+    ],
+    [
+      "Handover",
+      "(new)",
+      "PENDING_ACKNOWLEDGMENT",
+      "UC-069 / UC-119 / UC-140",
+      "Sender",
+      "GBR-088, GBR-151, GBR-144"
+    ],
+    [
+      "Handover",
+      "PENDING_ACKNOWLEDGMENT",
+      "ACKNOWLEDGED / REJECTED",
+      "UC-069 / UC-119 / UC-140",
+      "Designated receiver",
+      "GBR-088, GBR-151, GBR-144"
+    ],
+    [
+      "StockDocument (receipt)",
+      "(new)",
+      "DRAFT",
+      "UC-079",
+      "Storekeeper",
+      "GBR-099"
+    ],
+    [
+      "StockDocument (receipt)",
+      "DRAFT",
+      "CANCELLED",
+      "UC-079",
+      "Storekeeper",
+      "GBR-100"
+    ],
+    [
+      "StockDocument (receipt)",
+      "DRAFT",
+      "POSTED",
+      "UC-080",
+      "Storekeeper",
+      "GBR-099"
+    ],
+    [
+      "StockDocument (issue)",
+      "(new)",
+      "POSTED",
+      "UC-081 (via UC-097/098)",
+      "Storekeeper",
+      "GBR-101, GBR-097"
+    ],
+    [
+      "StockDocument (return)",
+      "(new)",
+      "DRAFT",
+      "UC-090",
+      "Requester",
+      "GBR-102"
+    ],
+    [
+      "StockDocument (return)",
+      "DRAFT",
+      "POSTED",
+      "UC-082",
+      "Storekeeper",
+      "GBR-102"
+    ],
+    [
+      "StockDocument (return)",
+      "DRAFT",
+      "CANCELLED",
+      "UC-090 (withdraw)",
+      "Requester",
+      "GBR-102"
+    ],
+    [
+      "StockDocument (transfer)",
+      "(new)",
+      "DRAFT",
+      "UC-083",
+      "Storekeeper",
+      "GBR-103"
+    ],
+    [
+      "StockDocument (transfer)",
+      "DRAFT",
+      "IN_TRANSIT / CANCELLED",
+      "UC-083",
+      "Storekeeper",
+      "GBR-103"
+    ],
+    [
+      "StockDocument (transfer)",
+      "IN_TRANSIT / PARTIALLY_RECEIVED",
+      "PARTIALLY_RECEIVED / RECEIVED",
+      "UC-084",
+      "Storekeeper (destination)",
+      "GBR-104"
+    ],
+    [
+      "StockDocument (adjustment)",
+      "(new)",
+      "POSTED",
+      "UC-087",
+      "Operations Manager",
+      "GBR-107"
+    ],
+    [
+      "StockDocument",
+      "POSTED",
+      "REVERSED",
+      "UC-088",
+      "Operations Manager",
+      "GBR-108"
+    ],
+    [
+      "Stocktake",
+      "(new)",
+      "IN_PROGRESS",
+      "UC-085",
+      "Storekeeper",
+      "GBR-105"
+    ],
+    [
+      "Stocktake",
+      "IN_PROGRESS",
+      "COUNTED / CANCELLED",
+      "UC-085",
+      "Storekeeper",
+      "GBR-105"
+    ],
+    [
+      "Stocktake",
+      "COUNTED",
+      "PENDING_ADJUSTMENT / RECONCILED",
+      "UC-086",
+      "Storekeeper",
+      "GBR-106"
+    ],
+    [
+      "Stocktake",
+      "PENDING_ADJUSTMENT",
+      "RECONCILED",
+      "UC-087",
+      "Operations Manager",
+      "GBR-107"
+    ],
+    [
+      "Stocktake",
+      "PENDING_ADJUSTMENT",
+      "COUNTED",
+      "UC-087 (return)",
+      "Operations Manager",
+      "GBR-012"
+    ],
+    [
+      "MaterialRequest",
+      "(new)",
+      "DRAFT / PENDING_APPROVAL",
+      "UC-091",
+      "Requester",
+      "GBR-110, GBR-111"
+    ],
+    [
+      "MaterialRequest",
+      "DRAFT / NEEDS_INFORMATION / APPROVED",
+      "PENDING_APPROVAL",
+      "UC-093",
+      "Requester",
+      "GBR-112"
+    ],
+    [
+      "MaterialRequest",
+      "DRAFT / PENDING_APPROVAL / NEEDS_INFORMATION / APPROVED",
+      "CANCELLED",
+      "UC-093",
+      "Requester",
+      "GBR-113"
+    ],
+    [
+      "MaterialRequest",
+      "PENDING_APPROVAL",
+      "NEEDS_INFORMATION",
+      "UC-094",
+      "Approver",
+      "GBR-114"
+    ],
+    [
+      "MaterialRequest",
+      "PENDING_APPROVAL",
+      "APPROVED / REJECTED",
+      "UC-095",
+      "Approver",
+      "GBR-115, GBR-013"
+    ],
+    [
+      "MaterialRequest",
+      "PARTIALLY_ISSUED",
+      "REMAINDER_CLOSED",
+      "UC-095",
+      "Approver",
+      "GBR-117"
+    ],
+    [
+      "MaterialRequest",
+      "APPROVED / PARTIALLY_ISSUED",
+      "FULLY_ISSUED",
+      "UC-097 / UC-098",
+      "Storekeeper",
+      "GBR-116"
+    ],
+    [
+      "MaterialRequest",
+      "APPROVED / PARTIALLY_ISSUED",
+      "PARTIALLY_ISSUED",
+      "UC-098",
+      "Storekeeper",
+      "GBR-116"
+    ],
+    [
+      "Replenishment",
+      "(new)",
+      "REQUESTED",
+      "UC-100",
+      "Storekeeper",
+      "GBR-120"
+    ],
+    [
+      "Replenishment",
+      "REQUESTED / PARTIALLY_RECEIVED",
+      "PARTIALLY_RECEIVED / FULLY_RECEIVED",
+      "UC-080",
+      "System (on posting)",
+      "GBR-121"
+    ],
+    [
+      "Replenishment",
+      "REQUESTED / PARTIALLY_RECEIVED",
+      "CLOSED",
+      "UC-101",
+      "Storekeeper",
+      "GBR-122"
+    ],
+    [
+      "Task",
+      "(new)",
+      "PENDING_ASSIGNMENT",
+      "UC-102 / scheduled job",
+      "Department Head / System",
+      "GBR-123, GBR-124"
+    ],
+    [
+      "Task",
+      "PENDING_ASSIGNMENT / ASSIGNED / ACCEPTED / IN_PROGRESS / PAUSED",
+      "ASSIGNED",
+      "UC-104",
+      "Department Head",
+      "GBR-126, GBR-127"
+    ],
+    [
+      "Task",
+      "ASSIGNED",
+      "ACCEPTED",
+      "UC-107",
+      "Assignee",
+      "GBR-129"
+    ],
+    [
+      "Task",
+      "ASSIGNED",
+      "PENDING_ASSIGNMENT",
+      "UC-107 (decline)",
+      "Assignee",
+      "GBR-129"
+    ],
+    [
+      "Task",
+      "ACCEPTED / PAUSED",
+      "IN_PROGRESS",
+      "UC-108 / UC-110",
+      "Assignee",
+      "GBR-130, GBR-136"
+    ],
+    [
+      "Task",
+      "IN_PROGRESS",
+      "PAUSED",
+      "UC-110",
+      "Assignee",
+      "GBR-131"
+    ],
+    [
+      "Task",
+      "IN_PROGRESS",
+      "PENDING_VERIFICATION",
+      "UC-112",
+      "Assignee",
+      "GBR-132"
+    ],
+    [
+      "Task",
+      "PENDING_VERIFICATION",
+      "CLOSED",
+      "UC-105",
+      "Department Head",
+      "GBR-133, GBR-013"
+    ],
+    [
+      "Task",
+      "PENDING_VERIFICATION",
+      "ACCEPTED",
+      "UC-105 (return)",
+      "Department Head",
+      "GBR-133"
+    ],
+    [
+      "Task",
+      "CLOSED",
+      "ASSIGNED",
+      "UC-106",
+      "Department Head",
+      "GBR-134"
+    ],
+    [
+      "Task",
+      "PENDING_ASSIGNMENT / ASSIGNED / ACCEPTED",
+      "CANCELLED",
+      "UC-103",
+      "Department Head",
+      "GBR-128"
+    ],
+    [
+      "InternalRequest",
+      "(new)",
+      "PENDING_ACCEPTANCE",
+      "UC-114",
+      "Requester",
+      "GBR-145"
+    ],
+    [
+      "InternalRequest",
+      "PENDING_ACCEPTANCE",
+      "PENDING_ACCEPTANCE (new department)",
+      "UC-115 (route)",
+      "Receiving Department Head",
+      "GBR-147"
+    ],
+    [
+      "InternalRequest",
+      "PENDING_ACCEPTANCE",
+      "ACCEPTED / REJECTED",
+      "UC-116",
+      "Receiving Department Head",
+      "GBR-146"
+    ],
+    [
+      "InternalRequest",
+      "ACCEPTED",
+      "IN_PROGRESS",
+      "UC-115",
+      "Receiving Department Head",
+      "GBR-148"
+    ],
+    [
+      "InternalRequest",
+      "IN_PROGRESS",
+      "CLOSED",
+      "UC-120",
+      "Receiving Department Head",
+      "GBR-152"
+    ],
+    [
+      "InternalRequest",
+      "CLOSED",
+      "IN_PROGRESS",
+      "UC-121",
+      "Requester / requesting Department Head",
+      "GBR-153"
+    ],
+    [
+      "InternalRequest",
+      "PENDING_ACCEPTANCE",
+      "CANCELLED",
+      "UC-123 (withdraw)",
+      "Requester",
+      "GBR-154"
+    ],
+    [
+      "Workday",
+      "(new)",
+      "WORKING",
+      "UC-139",
+      "Employee",
+      "GBR-142"
+    ],
+    [
+      "Workday",
+      "WORKING",
+      "ENDED",
+      "UC-139",
+      "Employee",
+      "GBR-143"
+    ],
+    [
+      "WorkInterval",
+      "(new)",
+      "OPEN",
+      "UC-031, 035, 054, 055, 062, 108, 110",
+      "System",
+      "GBR-138, GBR-137"
+    ],
+    [
+      "WorkInterval",
+      "OPEN",
+      "CLOSED",
+      "UC-030, 033, 034, 036, 055, 058, 062, 104, 110, 112, 139",
+      "System",
+      "GBR-138"
+    ],
+    [
+      "TimeCorrectionRequest",
+      "PENDING",
+      "APPLIED / REJECTED",
+      "UC-111",
+      "Department Head",
+      "GBR-139"
+    ],
+    [
+      "Notification",
+      "UNREAD",
+      "READ / ACKNOWLEDGED",
+      "UC-124 to UC-130",
+      "Recipient",
+      "GBR-159"
+    ]
+  ]
+}

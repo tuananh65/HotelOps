@@ -1,0 +1,67 @@
+{
+  "status": "PARTIAL_WIP",
+  "newBusinessUcImplemented": false,
+  "newUcCredit": 0,
+  "backendBuild": {
+    "status": "Passed",
+    "errors": 0,
+    "warnings": 0
+  },
+  "solutionTest": {
+    "exitCode": 0,
+    "discovered": 0
+  },
+  "framework": {
+    "total": 93,
+    "executed": 93,
+    "passed": 93,
+    "failed": 0,
+    "error": 0,
+    "timeout": 0,
+    "aborted": 0,
+    "inconclusive": 0,
+    "passedButRunAborted": 0,
+    "notRunnable": 0,
+    "notExecuted": 0,
+    "disconnected": 0,
+    "warning": 0,
+    "completed": 0,
+    "inProgress": 0,
+    "pending": 0
+  },
+  "frontend": {
+    "build": "Passed",
+    "nodeTestsPassed": 13,
+    "lint": "Failed:117 inherited formatting findings",
+    "browserTests": "Not Run",
+    "mockOnly": true
+  },
+  "di": {
+    "activeControllers": 31,
+    "activeActionMethodEntries": 186,
+    "normalizedRouteCollisions": 0,
+    "sqlAccess": false
+  },
+  "apiHttpsSql": "Not Run: no approved trial and frontend mock-only",
+  "pendingRecoveredControllers": [
+    "BranchAdministration",
+    "RoomTypeDirectory",
+    "TurnoverHistory",
+    "CleaningMonitor",
+    "Workdays"
+  ],
+  "userApprovedScope": "DI/WorkTime only; preserve existing develop route/security",
+  "secrets": "Five quoted candidates reviewed as public prototype fixtures; no private-key/token candidate",
+  "sourcePreservation": "270 frontend original paths unchanged; no missing develop source; only Program.cs/DbContext.cs modified in existing source",
+  "oldWorktreeIntegrity": "Five existing worktrees HEAD/branch/index/status/changed-file hashes match initial capture",
+  "gitPublish": "To be verified externally after commit",
+  "stagedDiffCheck": {
+    "exitCode": 2,
+    "status": "Failed on inherited whitespace only",
+    "files": [
+      "frontend/docs/requirements/Report-3_Software Requirement Specification.txt",
+      "tests/HotelOps.Dev1.RegressionTests/AuthorizationTests.cs",
+      "tests/HotelOps.Dev1.RegressionTests/BoundaryTests.cs"
+    ]
+  }
+}

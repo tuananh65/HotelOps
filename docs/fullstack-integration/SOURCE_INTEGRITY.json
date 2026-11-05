@@ -1,0 +1,14 @@
+{
+  "frontendOriginalFiles": 270,
+  "frontendMismatches": [],
+  "developSourceMissing": [],
+  "existingDevelopSourceModified": [
+    "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+    "src/HotelOps.Api/Program.cs"
+  ],
+  "expectedModified": [
+    "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+    "src/HotelOps.Api/Program.cs"
+  ],
+  "aSnapshotSourceDiff": ""
+}

@@ -1,0 +1,68 @@
+﻿{
+    "scope":  "Metadata only; user explicitly chose local retention for supplementary archive payloads",
+    "entries":  [
+                    {
+                        "gitBlob":  "58bf516040a3f46a4724fea7f3a510fd70013b97",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/ADDITIONAL_SCRATCH_INVENTORY.json"
+                    },
+                    {
+                        "gitBlob":  "2ceda459a1034bded6cca957133516c84bc71d2c",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/APPROVAL_REVIEW_OUTCOME.json"
+                    },
+                    {
+                        "gitBlob":  "a66518f691feefbde9643340a19e5f287ce309ae",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/ARTIFACT_INDEX.md"
+                    },
+                    {
+                        "gitBlob":  "440640d2b2f5909fc94345fba1cdd44e9732ca4e",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/FINAL_HANDOVER_REPORT.md"
+                    },
+                    {
+                        "gitBlob":  "eee2fe4ecf7c75a85e582ad8f7cb6cd10f505688",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/FINAL_LOCAL_RETENTION.json"
+                    },
+                    {
+                        "gitBlob":  "424839c21ebcd0f3157dee1a4ec2508a1b1c1f1c",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/HANDOVER_VALIDATION.json"
+                    },
+                    {
+                        "gitBlob":  "d7cac1237b9f9a6fb0e05e6f160a3e14c30a8df8",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/IGNORED_EVIDENCE_INVENTORY.json"
+                    },
+                    {
+                        "gitBlob":  "6f36275b96639272f47003ba6ecfc404a0eeb527",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/LOCAL_ONLY_TOOLS.json"
+                    },
+                    {
+                        "gitBlob":  "98100b142cac8d3f909306a3960ec3c37075536b",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/LOCAL_POSTCOMMIT_STATUS.json"
+                    },
+                    {
+                        "gitBlob":  "e5082145f8140cd4dd224b693d083bfcf1560e49",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/METADATA_PUBLICATION_ALLOWLIST.json"
+                    },
+                    {
+                        "gitBlob":  "1d543df21c13088208d828a9b671983335997be6",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/PUBLICATION_RECEIPT.json"
+                    },
+                    {
+                        "gitBlob":  "52d627b25975b3d4dedd24edf798802a50f77757",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/README.md"
+                    },
+                    {
+                        "gitBlob":  "a6a72ea4f713d42d7dc440b7af66add7fd2a90bb",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/SECURITY_REVIEW_FINAL.json"
+                    },
+                    {
+                        "gitBlob":  "b9e543c97d4ff7f6bd3bc7b05d2b4d5ba4cbe5b1",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/SUPPLEMENTARY_SECURITY_REVIEW.json"
+                    },
+                    {
+                        "gitBlob":  "fb3d8179639fae7dfab1c386a9eb469b15aece7d",
+                        "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/UNPUSHED_ANALYSIS.json"
+                    }
+                ],
+    "sourceCommit":  "e859006fcff91b1b913b18c27844a73809a18d8a",
+    "archivePayloadsIncluded":  false,
+    "selfHashExcluded":  true
+}

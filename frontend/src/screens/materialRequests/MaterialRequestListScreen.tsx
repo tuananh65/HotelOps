@@ -1,0 +1,149 @@
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { domainFor, pathFor, type RecordData } from "../../domain";
+import { t, useLanguage } from "../../i18n";
+import { EntityInsights } from "../../insights";
+import * as service from "../../services";
+import "../../styles.css";
+import {
+  DataTable,
+  createLabel,
+  DomainFilterPanel,
+  EntityForm,
+  FieldControl,
+  Modal,
+  PageHeader,
+  StatusBadge,
+  Summary,
+  date,
+  name,
+  useDB,
+} from "../../ui";
+export default function MaterialRequestListScreen() {
+  useLanguage();
+  const id: number = 62;
+  const db = useDB();
+  const d = domainFor(id);
+  const nav = useNavigate();
+  const [creating, setCreating] = useState(false);
+  const [editing, setEditing] = useState<RecordData>();
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  let rows = service
+    .visible(d.key)
+    .filter((r) =>
+      Object.entries(filters).every(
+        ([key, value]) => !value || r[key] === value,
+      ),
+    );
+  const filterFields = d.fields.filter(
+    (f) =>
+      ["select", "room", "roomType", "location", "asset", "warehouse"].includes(
+        f.type || "",
+      ) && !["branch", "department", "submission"].includes(f.key),
+  );
+  const count = (status: string) =>
+    rows.filter((r) => r.status === status).length;
+  const overdue = rows.filter(
+    (r) =>
+      r.due &&
+      new Date(r.due) < new Date() &&
+      !["Closed", "Completed", "Cancelled"].includes(r.status),
+  ).length;
+  const columns = [
+    { key: "name", label: "Material request" },
+    {
+      key: "creator",
+      label: "Requested by",
+      render: (r: RecordData) => name("users", r.creator),
+    },
+    { key: "department", label: "Department" },
+    {
+      key: "warehouse",
+      label: "Issue warehouse",
+      render: (r: RecordData) => name("warehouses", r.warehouse),
+    },
+    { key: "due", label: "Needed by", render: (r: RecordData) => date(r.due) },
+    {
+      key: "status",
+      label: "Approval / issue",
+      render: (r: RecordData) => <StatusBadge status={r.status} />,
+    },
+  ];
+  const createRoute = undefined;
+  return (
+    <>
+      <PageHeader id={id}>
+        {d.createUC && service.can(d.createUC) && (
+          <button
+            className="primary"
+            onClick={() =>
+              createRoute ? nav(pathFor(createRoute)) : setCreating(true)
+            }
+          >
+            <Plus size={16} />
+            {t(createLabel(d.key))}
+          </button>
+        )}
+      </PageHeader>
+      <Summary
+        items={[
+          { label: "Material requests", value: rows.length },
+          { label: "Pending approval", value: count("Pending Approval") },
+          { label: "Ready to issue", value: count("Approved") },
+          { label: "Partially issued", value: count("Partially Issued") },
+        ]}
+      />
+      <EntityInsights
+        domain={d}
+        rows={rows}
+        onFilter={(key, value) => setFilters({ ...filters, [key]: value })}
+      />
+      <DataTable
+        extraFilters={
+          filterFields.length > 0 && (
+            <DomainFilterPanel
+              activeCount={Object.values(filters).filter(Boolean).length}
+            >
+              {filterFields.map((f) => (
+                <FieldControl
+                  key={f.key}
+                  field={{ ...f, required: false }}
+                  value={filters[f.key]}
+                  onChange={(v) => setFilters({ ...filters, [f.key]: v })}
+                />
+              ))}
+              <button className="secondary" onClick={() => setFilters({})}>
+                {t("Clear domain filters")}
+              </button>
+            </DomainFilterPanel>
+          )
+        }
+        columns={columns}
+        rows={rows}
+        onOpen={(r) => nav(pathFor(d.detail, r.id))}
+      />
+      {creating && (
+        <Modal title={t(createLabel(d.key))} onClose={() => setCreating(false)}>
+          <EntityForm
+            d={d}
+            onCancel={() => setCreating(false)}
+            onDone={(r) => {
+              setCreating(false);
+              nav(pathFor(d.detail, r.id));
+            }}
+          />
+        </Modal>
+      )}
+      {editing && (
+        <Modal title={editing.name} onClose={() => setEditing(undefined)}>
+          <EntityForm
+            d={d}
+            record={editing}
+            onDone={() => setEditing(undefined)}
+          />
+        </Modal>
+      )}
+    </>
+  );
+}

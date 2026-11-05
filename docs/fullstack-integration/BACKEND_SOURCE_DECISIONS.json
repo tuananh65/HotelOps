@@ -1,0 +1,542 @@
+[
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "decision": "PRESERVE_A_NONCONTROLLER_PENDING_ROUTE_SECURITY_APPROVAL",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/BranchMaintenanceController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/BranchStructureController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "decision": "PRESERVE_A_NONCONTROLLER_PENDING_ROUTE_SECURITY_APPROVAL",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/Filters/UserAccessReviewAttribute.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Controllers/HealthController.cs",
+    "decision": "KEEP_DEVELOP_SECURITY_PENDING_REVIEW",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/HotelStructureCreationController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/RoomTypeBatchController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "decision": "PRESERVE_A_NONCONTROLLER_PENDING_ROUTE_SECURITY_APPROVAL",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/RoomTypesController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/RoomsController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "R065",
+    "path": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "decision": "PRESERVE_A_NONCONTROLLER_PENDING_ROUTE_SECURITY_APPROVAL",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/UserAccessReviewController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/WeatherForecastController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Controllers/WorkProgressController.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "decision": "PRESERVE_A_NONCONTROLLER_PENDING_ROUTE_SECURITY_APPROVAL",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccessReviewDto.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountDeactivationRequest.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/DTOs/WorkTime/WorkdayRequests.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Data/ChecklistSchema.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+    "decision": "RECONCILE_ADDITIVELY",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Data/HousekeepingSchema.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Data/ProgressSchema.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Entities/ChecklistV1.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Entities/RoomTypeBranchV1.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Entities/WorkInterval.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Entities/Workday.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/HotelOps.Api.http",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Program.cs",
+    "decision": "RECONCILE_ADDITIVELY",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs",
+    "decision": "KEEP_DEVELOP_SECURITY_PENDING_REVIEW",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionGrantRules.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs",
+    "decision": "KEEP_DEVELOP_SECURITY_PENDING_REVIEW",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationSchema.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchMaintenanceService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/DepartmentBatch2Service.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomBatch2Service.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomCreationService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "R074",
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+    "decision": "IMPORT_A_RENAMED_WITHOUT_DELETING_DEVELOP_SOURCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/HotelStructure/StructureDeactivationDependencies.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "R097",
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs",
+    "decision": "IMPORT_A_RENAMED_WITHOUT_DELETING_DEVELOP_SOURCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "R077",
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "decision": "IMPORT_A_RENAMED_WITHOUT_DELETING_DEVELOP_SOURCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Housekeeping/WorkProgressService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/AccountWriterSessionGate.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/DeactivationResponsibilityQueries.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/Dev2ResponsibilityStateQueries.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/IntegratedDeactivationResponsibilityQueries.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/UserAccessReviewService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/UserAccountDeactivationReleaseAcceptance.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/UserAccountDeactivationService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "M",
+    "path": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkdayPermissionResourceResolver.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "A",
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "decision": "IMPORT_A_ADDITIVE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  },
+  {
+    "diff": "D",
+    "path": "src/HotelOps.Api/WeatherForecast.cs",
+    "decision": "KEEP_DEVELOP_REVIEW_A_DIFFERENCE",
+    "source": "28f0a5e4f582bc56ba101b48915d33baadeb7b95"
+  }
+]

@@ -1,0 +1,1118 @@
+[
+  {
+    "method": "POST",
+    "route": "api/users/{userId}/reset-credential",
+    "controller": "AdminCredentialReset",
+    "action": "Reset"
+  },
+  {
+    "method": "POST",
+    "route": "api/auth/reauthenticate",
+    "controller": "AdminReauthentication",
+    "action": "Reauthenticate"
+  },
+  {
+    "method": "POST",
+    "route": "api/assets/{assetId:long}/handovers",
+    "controller": "Assets",
+    "action": "CreateHandover"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets/{assetId:long}/handovers",
+    "controller": "Assets",
+    "action": "GetHandovers"
+  },
+  {
+    "method": "GET",
+    "route": "api/asset-handovers/{handoverId:long}",
+    "controller": "Assets",
+    "action": "GetHandover"
+  },
+  {
+    "method": "POST",
+    "route": "api/asset-handovers/{handoverId:long}/accept",
+    "controller": "Assets",
+    "action": "AcceptHandover"
+  },
+  {
+    "method": "POST",
+    "route": "api/asset-handovers/{handoverId:long}/reject",
+    "controller": "Assets",
+    "action": "RejectHandover"
+  },
+  {
+    "method": "POST",
+    "route": "api/assets/{assetId:long}/retire",
+    "controller": "Assets",
+    "action": "RetireAsset"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets/{assetId:long}/maintenance-history",
+    "controller": "Assets",
+    "action": "GetMaintenanceHistory"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets/statistics/by-location",
+    "controller": "Assets",
+    "action": "GetStatistics"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets",
+    "controller": "Assets",
+    "action": "GetAssets"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets/{id:long}",
+    "controller": "Assets",
+    "action": "GetAsset"
+  },
+  {
+    "method": "GET",
+    "route": "api/asset-types",
+    "controller": "Assets",
+    "action": "GetAssetTypes"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets/{id:long}/condition-history",
+    "controller": "Assets",
+    "action": "GetConditionHistory"
+  },
+  {
+    "method": "GET",
+    "route": "api/assets/{id:long}/location-history",
+    "controller": "Assets",
+    "action": "GetLocationHistory"
+  },
+  {
+    "method": "POST",
+    "route": "api/assets",
+    "controller": "Assets",
+    "action": "CreateAsset"
+  },
+  {
+    "method": "PUT",
+    "route": "api/assets/{id:long}",
+    "controller": "Assets",
+    "action": "UpdateAsset"
+  },
+  {
+    "method": "POST",
+    "route": "api/assets/{id:long}/location",
+    "controller": "Assets",
+    "action": "AssignLocation"
+  },
+  {
+    "method": "POST",
+    "route": "api/assets/{id:long}/location-transfers",
+    "controller": "Assets",
+    "action": "TransferLocation"
+  },
+  {
+    "method": "POST",
+    "route": "api/assets/{id:long}/condition",
+    "controller": "Assets",
+    "action": "ChangeCondition"
+  },
+  {
+    "method": "POST",
+    "route": "api/auth/login",
+    "controller": "Auth",
+    "action": "Login"
+  },
+  {
+    "method": "GET",
+    "route": "api/auth/session",
+    "controller": "Auth",
+    "action": "Session"
+  },
+  {
+    "method": "POST",
+    "route": "api/auth/logout",
+    "controller": "Auth",
+    "action": "Logout"
+  },
+  {
+    "method": "POST",
+    "route": "api/auth/change-password",
+    "controller": "Auth",
+    "action": "ChangePassword"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches",
+    "controller": "BranchMaintenance",
+    "action": "Create"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{id:long}/edit",
+    "controller": "BranchMaintenance",
+    "action": "Read"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{id:long}",
+    "controller": "BranchMaintenance",
+    "action": "Update"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId}/structure",
+    "controller": "BranchStructure",
+    "action": "Get"
+  },
+  {
+    "method": "GET",
+    "route": "api/auth/csrf",
+    "controller": "Csrf",
+    "action": "Get"
+  },
+  {
+    "method": "GET",
+    "route": "api/health/database",
+    "controller": "Health",
+    "action": "CheckDatabase"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId}/floors",
+    "controller": "HotelStructureCreation",
+    "action": "CreateFloor"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId}/areas",
+    "controller": "HotelStructureCreation",
+    "action": "CreateArea"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId}/floors/{id}/deactivate",
+    "controller": "HotelStructureUpdate",
+    "action": "DeactivateFloor"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId}/areas/{id}/deactivate",
+    "controller": "HotelStructureUpdate",
+    "action": "DeactivateArea"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId}/floors/{id}",
+    "controller": "HotelStructureUpdate",
+    "action": "Floor"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId}/areas/{id}",
+    "controller": "HotelStructureUpdate",
+    "action": "Area"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branchId}/floors/{id}",
+    "controller": "HotelStructureUpdate",
+    "action": "UpdateFloor"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branchId}/areas/{id}",
+    "controller": "HotelStructureUpdate",
+    "action": "UpdateArea"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/assignment-options",
+    "controller": "HousekeepingPlanning",
+    "action": "Assignment"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId:long}/cleaning-tasks/{taskId:long}/inspection-options",
+    "controller": "HousekeepingPlanning",
+    "action": "Inspection"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId:long}/inspections/{id:long}/execution",
+    "controller": "HousekeepingWorkflow",
+    "action": "Read"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspections/{id:long}/start",
+    "controller": "HousekeepingWorkflow",
+    "action": "Start"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branchId:long}/inspections/{id:long}/results",
+    "controller": "HousekeepingWorkflow",
+    "action": "Save"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspections/{id:long}/finish",
+    "controller": "HousekeepingWorkflow",
+    "action": "Finish"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspections/{id:long}/defects",
+    "controller": "HousekeepingWorkflow",
+    "action": "Defect"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign",
+    "controller": "HousekeepingWorkflow",
+    "action": "AssignCleaning"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections",
+    "controller": "HousekeepingWorkflow",
+    "action": "AssignInspection"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspections/{id:long}/reworks",
+    "controller": "HousekeepingWorkflow",
+    "action": "Rework"
+  },
+  {
+    "method": "PATCH",
+    "route": "api/incidents/{id:long}/status",
+    "controller": "Incidents",
+    "action": "ChangeIncidentStatus"
+  },
+  {
+    "method": "PATCH",
+    "route": "api/incidents/{id:long}/triage",
+    "controller": "Incidents",
+    "action": "TriageIncident"
+  },
+  {
+    "method": "POST",
+    "route": "api/incidents",
+    "controller": "Incidents",
+    "action": "CreateIncident"
+  },
+  {
+    "method": "GET",
+    "route": "api/incidents",
+    "controller": "Incidents",
+    "action": "GetIncidents"
+  },
+  {
+    "method": "GET",
+    "route": "api/incidents/{id:long}",
+    "controller": "Incidents",
+    "action": "GetIncident"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspection-checklists",
+    "controller": "InspectionChecklists",
+    "action": "Create"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId:long}/inspection-checklists/{id:long}",
+    "controller": "InspectionChecklists",
+    "action": "Read"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branchId:long}/inspection-checklists/{id:long}",
+    "controller": "InspectionChecklists",
+    "action": "Update"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspection-checklists/{id:long}/publish",
+    "controller": "InspectionChecklists",
+    "action": "Publish"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/inspection-checklists/{id:long}/retire",
+    "controller": "InspectionChecklists",
+    "action": "Retire"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/items",
+    "controller": "Inventory",
+    "action": "Items"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/items/{id:long}",
+    "controller": "Inventory",
+    "action": "Item"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/items",
+    "controller": "Inventory",
+    "action": "CreateItem"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/items/{id:long}",
+    "controller": "Inventory",
+    "action": "UpdateItem"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/item-categories",
+    "controller": "Inventory",
+    "action": "Categories"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/units",
+    "controller": "Inventory",
+    "action": "Units"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/units/{id:long}",
+    "controller": "Inventory",
+    "action": "Unit"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/units",
+    "controller": "Inventory",
+    "action": "CreateUnit"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/units/{id:long}",
+    "controller": "Inventory",
+    "action": "UpdateUnit"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/items/{id:long}/conversions",
+    "controller": "Inventory",
+    "action": "Conversions"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/items/{id:long}/conversions/{conversionId:long}",
+    "controller": "Inventory",
+    "action": "Conversion"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/items/{id:long}/conversions",
+    "controller": "Inventory",
+    "action": "CreateConversion"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/items/{id:long}/conversions/{conversionId:long}",
+    "controller": "Inventory",
+    "action": "UpdateConversion"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/warehouses",
+    "controller": "Inventory",
+    "action": "Warehouses"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/warehouses/{id:long}",
+    "controller": "Inventory",
+    "action": "Warehouse"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/warehouses",
+    "controller": "Inventory",
+    "action": "CreateWarehouse"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/warehouses/{id:long}",
+    "controller": "Inventory",
+    "action": "UpdateWarehouse"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/warehouses/{warehouseId:long}/thresholds",
+    "controller": "Inventory",
+    "action": "Thresholds"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/warehouses/{warehouseId:long}/items/{itemId:long}/threshold",
+    "controller": "Inventory",
+    "action": "Threshold"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/stock",
+    "controller": "Inventory",
+    "action": "Stock"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/low-stock",
+    "controller": "Inventory",
+    "action": "LowStock"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/warehouses/{warehouseId:long}/items/{itemId:long}/stock",
+    "controller": "Inventory",
+    "action": "StockPair"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/movements",
+    "controller": "Inventory",
+    "action": "Movements"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/warehouses/{warehouseId:long}/items/{itemId:long}/ledger",
+    "controller": "Inventory",
+    "action": "Ledger"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/documents",
+    "controller": "Inventory",
+    "action": "Documents"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/documents/{id:long}",
+    "controller": "Inventory",
+    "action": "Document"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/documents/{id:long}/history",
+    "controller": "Inventory",
+    "action": "History"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/documents/{id:long}/cancel",
+    "controller": "Inventory",
+    "action": "Cancel"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/documents/{id:long}/reverse",
+    "controller": "Inventory",
+    "action": "Reverse"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/receipts",
+    "controller": "Inventory",
+    "action": "CreateReceipt"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/receipts/{id:long}",
+    "controller": "Inventory",
+    "action": "EditReceipt"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/receipts/{id:long}/post",
+    "controller": "Inventory",
+    "action": "PostReceipt"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/returns",
+    "controller": "Inventory",
+    "action": "CreateReturn"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/returns/{id:long}",
+    "controller": "Inventory",
+    "action": "EditReturn"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/returns/{id:long}/post",
+    "controller": "Inventory",
+    "action": "PostReturn"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/transfers",
+    "controller": "Inventory",
+    "action": "CreateTransfer"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/transfers/{id:long}",
+    "controller": "Inventory",
+    "action": "EditTransfer"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/transfers/{id:long}/dispatch",
+    "controller": "Inventory",
+    "action": "Dispatch"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/transfers/{id:long}/receipts",
+    "controller": "Inventory",
+    "action": "Receive"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/adjustments",
+    "controller": "Inventory",
+    "action": "Adjust"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/adjustments/{id:long}/post",
+    "controller": "Inventory",
+    "action": "PostAdjustment"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/reversals/{id:long}/post",
+    "controller": "Inventory",
+    "action": "PostReversal"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/stocktakes",
+    "controller": "Inventory",
+    "action": "Stocktakes"
+  },
+  {
+    "method": "GET",
+    "route": "api/inventory/stocktakes/{id:long}",
+    "controller": "Inventory",
+    "action": "Stocktake"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/stocktakes",
+    "controller": "Inventory",
+    "action": "CreateStocktake"
+  },
+  {
+    "method": "PUT",
+    "route": "api/inventory/stocktakes/{id:long}/counts",
+    "controller": "Inventory",
+    "action": "Counts"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/stocktakes/{id:long}/submit",
+    "controller": "Inventory",
+    "action": "Submit"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/stocktakes/{id:long}/reconcile",
+    "controller": "Inventory",
+    "action": "Reconcile"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/stocktakes/{id:long}/approve-adjustment",
+    "controller": "Inventory",
+    "action": "ApproveAdjustment"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/stocktakes/{id:long}/return",
+    "controller": "Inventory",
+    "action": "ReturnStocktake"
+  },
+  {
+    "method": "POST",
+    "route": "api/inventory/stocktakes/{id:long}/cancel",
+    "controller": "Inventory",
+    "action": "CancelStocktake"
+  },
+  {
+    "method": "POST",
+    "route": "api/incidents/{incidentId:long}/maintenance-works",
+    "controller": "MaintenanceWorks",
+    "action": "CreateWork"
+  },
+  {
+    "method": "PATCH",
+    "route": "api/maintenance-works/{id:long}/assignment",
+    "controller": "MaintenanceWorks",
+    "action": "AssignWork"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/start",
+    "controller": "MaintenanceWorks",
+    "action": "StartWork"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/hold",
+    "controller": "MaintenanceWorks",
+    "action": "HoldWork"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/resume",
+    "controller": "MaintenanceWorks",
+    "action": "ResumeWork"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/logs",
+    "controller": "MaintenanceWorks",
+    "action": "CreateLog"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/submit-result",
+    "controller": "MaintenanceWorks",
+    "action": "SubmitResult"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/verify",
+    "controller": "MaintenanceWorks",
+    "action": "VerifyWork"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/return",
+    "controller": "MaintenanceWorks",
+    "action": "ReturnWork"
+  },
+  {
+    "method": "POST",
+    "route": "api/maintenance-works/{id:long}/cancel",
+    "controller": "MaintenanceWorks",
+    "action": "CancelWork"
+  },
+  {
+    "method": "GET",
+    "route": "api/maintenance-works/{id:long}/material-availability",
+    "controller": "MaintenanceWorks",
+    "action": "MaterialAvailability"
+  },
+  {
+    "method": "GET",
+    "route": "api/maintenance-works",
+    "controller": "MaintenanceWorks",
+    "action": "GetWorks"
+  },
+  {
+    "method": "GET",
+    "route": "api/maintenance-works/{id:long}",
+    "controller": "MaintenanceWorks",
+    "action": "GetWork"
+  },
+  {
+    "method": "GET",
+    "route": "api/material-requests",
+    "controller": "MaterialRequests",
+    "action": "List"
+  },
+  {
+    "method": "GET",
+    "route": "api/material-requests/{id:long}",
+    "controller": "MaterialRequests",
+    "action": "Get"
+  },
+  {
+    "method": "GET",
+    "route": "api/material-requests/{id:long}/history",
+    "controller": "MaterialRequests",
+    "action": "History"
+  },
+  {
+    "method": "GET",
+    "route": "api/material-requests/{id:long}/availability",
+    "controller": "MaterialRequests",
+    "action": "Availability"
+  },
+  {
+    "method": "GET",
+    "route": "api/material-requests/{id:long}/fulfillments",
+    "controller": "MaterialRequests",
+    "action": "Fulfillments"
+  },
+  {
+    "method": "GET",
+    "route": "api/material-requests/{id:long}/fulfillments/{fulfillmentId:long}",
+    "controller": "MaterialRequests",
+    "action": "Fulfillment"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests",
+    "controller": "MaterialRequests",
+    "action": "Create"
+  },
+  {
+    "method": "PUT",
+    "route": "api/material-requests/{id:long}",
+    "controller": "MaterialRequests",
+    "action": "Edit"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/submit",
+    "controller": "MaterialRequests",
+    "action": "Submit"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/request-information",
+    "controller": "MaterialRequests",
+    "action": "Information"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/approve",
+    "controller": "MaterialRequests",
+    "action": "Approve"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/reject",
+    "controller": "MaterialRequests",
+    "action": "Reject"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/cancel",
+    "controller": "MaterialRequests",
+    "action": "Cancel"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/close-remainder",
+    "controller": "MaterialRequests",
+    "action": "Close"
+  },
+  {
+    "method": "POST",
+    "route": "api/material-requests/{id:long}/fulfillments",
+    "controller": "MaterialRequests",
+    "action": "Issue"
+  },
+  {
+    "method": "GET",
+    "route": "api/inspection-history",
+    "controller": "OperationalHistory",
+    "action": "Inspections"
+  },
+  {
+    "method": "GET",
+    "route": "api/inspection-history/{id:long}",
+    "controller": "OperationalHistory",
+    "action": "Inspection"
+  },
+  {
+    "method": "GET",
+    "route": "api/inspection-history/{id:long}/evidence/{attachmentId:long}",
+    "controller": "OperationalHistory",
+    "action": "InspectionEvidence"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms/{roomId:long}/turnover-history",
+    "controller": "OperationalHistory",
+    "action": "Turnovers"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms/{roomId:long}/turnover-history/{id:long}",
+    "controller": "OperationalHistory",
+    "action": "Turnover"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}",
+    "controller": "OperationalHistory",
+    "action": "TurnoverEvidence"
+  },
+  {
+    "method": "GET",
+    "route": "api/replenishments",
+    "controller": "Replenishments",
+    "action": "List"
+  },
+  {
+    "method": "GET",
+    "route": "api/replenishments/{id:long}",
+    "controller": "Replenishments",
+    "action": "Get"
+  },
+  {
+    "method": "GET",
+    "route": "api/replenishments/{id:long}/history",
+    "controller": "Replenishments",
+    "action": "History"
+  },
+  {
+    "method": "GET",
+    "route": "api/replenishments/{id:long}/receipts",
+    "controller": "Replenishments",
+    "action": "Receipts"
+  },
+  {
+    "method": "POST",
+    "route": "api/replenishments",
+    "controller": "Replenishments",
+    "action": "Create"
+  },
+  {
+    "method": "POST",
+    "route": "api/replenishments/{id:long}/close",
+    "controller": "Replenishments",
+    "action": "Close"
+  },
+  {
+    "method": "POST",
+    "route": "api/replenishments/{id:long}/receipts/link",
+    "controller": "Replenishments",
+    "action": "Link"
+  },
+  {
+    "method": "POST",
+    "route": "api/replenishments/{id:long}/receipts/post",
+    "controller": "Replenishments",
+    "action": "Post"
+  },
+  {
+    "method": "GET",
+    "route": "api/replenishment-shortages/low-stock",
+    "controller": "Replenishments",
+    "action": "Low"
+  },
+  {
+    "method": "GET",
+    "route": "api/replenishment-shortages/material-requests",
+    "controller": "Replenishments",
+    "action": "Material"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms",
+    "controller": "Rooms",
+    "action": "List"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms/{roomId}",
+    "controller": "Rooms",
+    "action": "Detail"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms/{roomId}/history",
+    "controller": "Rooms",
+    "action": "History"
+  },
+  {
+    "method": "GET",
+    "route": "api/room-types",
+    "controller": "RoomTypeBatch",
+    "action": "List"
+  },
+  {
+    "method": "GET",
+    "route": "api/room-types/{id:long}",
+    "controller": "RoomTypeBatch",
+    "action": "Detail"
+  },
+  {
+    "method": "PUT",
+    "route": "api/room-types/{id:long}",
+    "controller": "RoomTypeBatch",
+    "action": "Update"
+  },
+  {
+    "method": "POST",
+    "route": "api/room-types/{id:long}/deactivate",
+    "controller": "RoomTypeBatch",
+    "action": "DeactivateType"
+  },
+  {
+    "method": "GET",
+    "route": "api/rooms/{id:long}/edit",
+    "controller": "RoomTypeBatch",
+    "action": "EditRoom"
+  },
+  {
+    "method": "PUT",
+    "route": "api/rooms/{id:long}",
+    "controller": "RoomTypeBatch",
+    "action": "UpdateRoom"
+  },
+  {
+    "method": "POST",
+    "route": "api/rooms",
+    "controller": "RoomTypeBatch",
+    "action": "CreateRoom"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branchId:long}/departments",
+    "controller": "RoomTypeBatch",
+    "action": "CreateDepartment"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branchId:long}/departments/{id:long}",
+    "controller": "RoomTypeBatch",
+    "action": "Department"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branchId:long}/departments/{id:long}",
+    "controller": "RoomTypeBatch",
+    "action": "UpdateDepartment"
+  },
+  {
+    "method": "POST",
+    "route": "api/room-types",
+    "controller": "RoomTypes",
+    "action": "Create"
+  },
+  {
+    "method": "GET",
+    "route": "api/users/{userId}/effective-access",
+    "controller": "UserAccessReview",
+    "action": "Get"
+  },
+  {
+    "method": "PATCH",
+    "route": "api/users/{userId}/activate",
+    "controller": "UserAccountActivation",
+    "action": "Activate"
+  },
+  {
+    "method": "POST",
+    "route": "api/users",
+    "controller": "UserAccountCreation",
+    "action": "Create"
+  },
+  {
+    "method": "POST",
+    "route": "api/users/{userId}/branches",
+    "controller": "UserBranchAssignment",
+    "action": "Add"
+  },
+  {
+    "method": "GET",
+    "route": "api/users/{userId}/profile",
+    "controller": "UserProfile",
+    "action": "Read"
+  },
+  {
+    "method": "PATCH",
+    "route": "api/users/{userId}",
+    "controller": "UserProfile",
+    "action": "Patch"
+  },
+  {
+    "method": "POST",
+    "route": "api/users/{userId}/roles",
+    "controller": "UserRoleAssignment",
+    "action": "Assign"
+  },
+  {
+    "method": "GET",
+    "route": "api/users/{userId}",
+    "controller": "Users",
+    "action": "Detail"
+  },
+  {
+    "method": "GET",
+    "route": "api/users",
+    "controller": "Users",
+    "action": "List"
+  },
+  {
+    "method": "GET",
+    "route": "WeatherForecast",
+    "controller": "WeatherForecast",
+    "action": "Get"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branch:long}/room-types/{id:long}/cleaning-items",
+    "controller": "WorkProgress",
+    "action": "Template"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branch:long}/cleaning-tasks/{id:long}/progress-initialization",
+    "controller": "WorkProgress",
+    "action": "InitializeCleaning"
+  },
+  {
+    "method": "POST",
+    "route": "api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization",
+    "controller": "WorkProgress",
+    "action": "InitializeTask"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+    "controller": "WorkProgress",
+    "action": "ReadCleaning"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+    "controller": "WorkProgress",
+    "action": "ReadTask"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branch:long}/cleaning-tasks/{id:long}/progress",
+    "controller": "WorkProgress",
+    "action": "SaveCleaning"
+  },
+  {
+    "method": "PUT",
+    "route": "api/branches/{branch:long}/operational-tasks/{id:long}/progress",
+    "controller": "WorkProgress",
+    "action": "SaveTask"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branch:long}/cleaning-tasks/{id:long}/progress/evidence/{attachment:long}",
+    "controller": "WorkProgress",
+    "action": "CleaningEvidence"
+  },
+  {
+    "method": "GET",
+    "route": "api/branches/{branch:long}/operational-tasks/{id:long}/progress/evidence/{attachment:long}",
+    "controller": "WorkProgress",
+    "action": "TaskEvidence"
+  }
+]

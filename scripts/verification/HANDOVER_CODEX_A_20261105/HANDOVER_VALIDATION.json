@@ -1,0 +1,95 @@
+﻿{
+    "buildErrors":  0,
+    "sourcePreserved":  true,
+    "historicalRegressions":  "Task87:49 ResourceAuthorization,43 PermissionService,14 CurrentUserAccessor,21 Hardening,14 UC037,26 UC038,19 UC142,39 UC012",
+    "stagedWhitespaceCheck":  "FAILED: preserved historical archive/evidence whitespace and2 EOF blanks in tests; see staged-diff-check.log",
+    "framework":  {
+                      "discovered":  91,
+                      "skipped":  0,
+                      "failed":  0,
+                      "passed":  91
+                  },
+    "permissions":  "Git index writes required sandbox escalation; authorized by explicit handover request",
+    "publication":  "Source snapshot e859006fcff91b1b913b18c27844a73809a18d8a pushed and verified. User chose LOCAL retention for supplementary archive contents; metadata-only receipt/inventory commit follows. Final remote SHA is verified at completion.",
+    "build":  "Passed",
+    "newSqlAccess":  false,
+    "productionChangedDuringHandover":  [
+
+                                        ],
+    "otherWorktrees":  [
+                           {
+                               "indexSha256":  "195806902B080FA559F3706522126E27ABF671252640DC037FFF31B82A3FCCDB",
+                               "indexPreserved":  true,
+                               "statusPreserved":  true,
+                               "branchPreserved":  true,
+                               "branch":  "integration/task11-dev1-dev2-rehearsal",
+                               "head":  "3688ba9959984deb24f179bd41a4820df1ecfebd",
+                               "path":  "D:/SEP490/Projects/HotelOps/obj/task11-dev2-rehearsal",
+                               "headPreserved":  true
+                           },
+                           {
+                               "indexSha256":  "9F1B40A091F5006DB8B043EC416791EA8732FEF410BEB2C1BC78FCD47D9ACF39",
+                               "indexPreserved":  true,
+                               "statusPreserved":  true,
+                               "branchPreserved":  true,
+                               "branch":  "integration/task12-pr7-conflict-resolution",
+                               "head":  "d6ef057bb0980b1763b1c4870a25316f35d9add9",
+                               "path":  "D:/SEP490/Projects/HotelOps/obj/task12-pr7-resolution",
+                               "headPreserved":  true
+                           },
+                           {
+                               "indexSha256":  "434619B74FED3C9200F697E111305988857205D46831B3AF7FB416967E524419",
+                               "indexPreserved":  true,
+                               "statusPreserved":  true,
+                               "branchPreserved":  true,
+                               "branch":  "ai/hotelops-loop-test",
+                               "head":  "8e0b67303c4c72b982ba3ca92d84cff654cf5b5d",
+                               "path":  "D:/SEP490/Projects/HotelOps-AI-Loop",
+                               "headPreserved":  true
+                           },
+                           {
+                               "indexSha256":  "F9A581464B8D690524E7A066AF55206D5B19F65C651F1D94A61E2FE62B99975C",
+                               "indexPreserved":  true,
+                               "statusPreserved":  true,
+                               "branchPreserved":  true,
+                               "branch":  "handoff/codex-b-20261105",
+                               "head":  "21c06bf51bcbcf0c99e8c711302b71682590e41f",
+                               "path":  "D:/SEP490/Projects/HotelOps-Codex-B",
+                               "headPreserved":  true
+                           }
+                       ],
+    "newUCImplementation":  false,
+    "buildWarnings":  [
+                          "NU1900",
+                          "NU1900"
+                      ],
+    "productionFallbackChecks":  93,
+    "historicalLedger":  {
+                             "complete":  26,
+                             "creditedPoints":  60,
+                             "totalUCs":  75,
+                             "partial":  10,
+                             "blockedExternal":  21,
+                             "notImplemented":  18,
+                             "totalWeight":  256
+                         },
+    "supplementaryArchives":  {
+                                  "ignoredEvidenceUnique":  1597,
+                                  "sqlExecuted":  false,
+                                  "additionalSchemaScriptsUnique":  26,
+                                  "credentialsFindingPaths":  0
+                              },
+    "approvalReview":  {
+                           "action":  "Publish newly discovered historical ignored-evidence/SQL-schema archive payloads",
+                           "rejected":  true,
+                           "explicitUserApprovalRequested":  true,
+                           "workaroundAttempted":  false,
+                           "reason":  "Codex A ownership and full sensitivity not sufficiently established; broad sensitive egress not specifically authorized",
+                           "archivePayloadsKeptLocal":  [
+                                                            "ignored-evidence-archive/",
+                                                            "additional-scratch-archive/"
+                                                        ],
+                           "resolution":  "User explicitly chose: Giữ local, bàn giao inventory/hash",
+                           "pendingApproval":  false
+                       }
+}

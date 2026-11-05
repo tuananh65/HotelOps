@@ -1,0 +1,19 @@
+﻿worktree D:/SEP490/Projects/HotelOps
+HEAD 4a187320643d0c82f232c6b9dd5a667b8401c280
+branch refs/heads/feature/BE1-database-integration
+
+worktree D:/SEP490/Projects/HotelOps/obj/task11-dev2-rehearsal
+HEAD 3688ba9959984deb24f179bd41a4820df1ecfebd
+branch refs/heads/integration/task11-dev1-dev2-rehearsal
+
+worktree D:/SEP490/Projects/HotelOps/obj/task12-pr7-resolution
+HEAD d6ef057bb0980b1763b1c4870a25316f35d9add9
+branch refs/heads/integration/task12-pr7-conflict-resolution
+
+worktree D:/SEP490/Projects/HotelOps-AI-Loop
+HEAD 8e0b67303c4c72b982ba3ca92d84cff654cf5b5d
+branch refs/heads/ai/hotelops-loop-test
+
+worktree D:/SEP490/Projects/HotelOps-Codex-B
+HEAD 4a187320643d0c82f232c6b9dd5a667b8401c280
+branch refs/heads/ai/codex-b

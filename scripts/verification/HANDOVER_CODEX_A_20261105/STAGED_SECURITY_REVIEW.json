@@ -1,0 +1,482 @@
+﻿{
+    "excludedBinaryAndBuildTypes":  true,
+    "findings":  [
+                     {
+                         "addedLine":  2,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  5,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  8,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  9,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  10,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  11,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  12,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  13,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  14,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  15,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  16,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  17,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  18,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  19,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  20,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  21,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  22,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  23,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  24,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  25,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  26,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  27,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  28,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  29,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  30,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  31,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  32,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  33,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  34,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  35,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  36,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  37,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  38,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  39,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  40,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  41,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  42,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  43,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  44,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  45,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  46,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  47,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  48,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  49,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  50,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  51,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  52,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  53,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  54,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  55,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  56,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  57,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  58,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  59,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  60,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  61,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  62,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  63,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  64,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  65,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  66,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  67,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  68,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  69,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  70,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  71,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  72,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  73,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  74,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  75,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  76,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  77,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  78,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  79,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  80,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  81,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  82,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  83,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  84,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  85,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  86,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  87,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  88,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  89,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  90,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  91,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  92,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  93,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  94,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  95,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  96,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  97,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  98,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/framework-results/task87.trx",
+                         "kind":  "PRIVATE_HOST"
+                     },
+                     {
+                         "addedLine":  249,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/scratch-archive/9E027D7D9FCF008A902BDF7BC7335765DDC39C8DA6A9FFAEB46C8DA3BD314F09.txt",
+                         "kind":  "LITERAL_REVIEW"
+                     },
+                     {
+                         "addedLine":  124,
+                         "path":  "scripts/verification/HANDOVER_CODEX_A_20261105/scratch-archive/F92B91885BB5A85D530C7ACDBBA8A27E8F22B2F49878210613BD58222917AEF9.txt",
+                         "kind":  "LITERAL_REVIEW"
+                     }
+                 ],
+    "addedLinesScanned":  559324,
+    "scanner":  "Heuristic staged-added-lines review; not a guarantee of absence of every secret"
+}

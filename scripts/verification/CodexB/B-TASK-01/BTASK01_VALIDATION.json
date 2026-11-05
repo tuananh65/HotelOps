@@ -1,0 +1,34 @@
+{
+  "task": "B-TASK-01",
+  "status": "BLOCKED",
+  "workspace": "D:/SEP490/Projects/HotelOps-Codex-B",
+  "branch": "ai/codex-b",
+  "head": "4a187320643d0c82f232c6b9dd5a667b8401c280",
+  "selectedUc": null,
+  "candidatesReviewed": ["UC-013", "UC-113", "UC-123"],
+  "sourceFilesChanged": [],
+  "existingChangesPreserved": ["codex-b-smoke.txt"],
+  "build": "Not Run",
+  "tests": "Not Run",
+  "testCasesExecuted": 0,
+  "https": "Not Run",
+  "sql": "Not Run",
+  "securityRuntime": "Not Run",
+  "regression": "Not Run",
+  "trackedDiffCheck": "Passed",
+  "portAvailability": "Unverified: probe exit 1",
+  "otherWorktreeFileStates": "Not independently verified",
+  "databaseConnectionsAttempted": false,
+  "ledgerUpdated": false,
+  "committed": false,
+  "blockers": [
+    "Current completion ledger and Codex A active UC reservation unavailable in B",
+    "UC-013 approved read permission and scope mapping unavailable",
+    "UC-113 required work interval model unavailable",
+    "UC-123 activated notification publisher and approved scoped read mapping unavailable"
+  ],
+  "diagnosticFailures": [
+    "git write-tree failed to create index.lock; not retried",
+    "Convert.ToHexString unavailable; fingerprint calculation corrected to BitConverter"
+  ]
+}

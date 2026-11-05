@@ -1,0 +1,12 @@
+﻿{
+    "literalReviewsResolved":  2,
+    "finalCachedHandoverGrepFindingPaths":  [
+
+                                            ],
+    "method":  "Heuristic staged diff review + cached grep, file-type exclusions, manual resolution of dynamic credential-prefix/invalid-CSRF fixtures",
+    "limitations":  "Heuristic scan is not a guarantee of absence of all possible secrets; inherited history not rewritten",
+    "stagedAddedLinesReviewed":  559324,
+    "connectionPasswordFindings":  0,
+    "strongSecretPatternFindings":  0,
+    "hostMetadataRedacted":  true
+}

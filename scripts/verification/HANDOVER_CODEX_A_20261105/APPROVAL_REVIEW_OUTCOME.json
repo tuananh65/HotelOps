@@ -1,0 +1,8 @@
+﻿{
+    "allowedSourceAlreadyPublished":  true,
+    "blockedContentsPublished":  false,
+    "unaffectedAlternative":  "Only corrected reports, receipt, and metadata inventories; no blocked artifact contents",
+    "rejection":  "CreateProcess rejected before staging/commit/push; source HEAD unchanged",
+    "userDecision":  "Keep supplementary archives local; publish inventory/hash only",
+    "resolved":  true
+}

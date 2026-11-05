@@ -1,0 +1,15 @@
+refs/heads/ai/codex-b 4a187320643d0c82f232c6b9dd5a667b8401c280
+refs/heads/ai/hotelops-loop-test 8e0b67303c4c72b982ba3ca92d84cff654cf5b5d
+refs/heads/backup/ai-loop-before-sync-20261027 54c8649f098284fb4e162046c8ad341fa39f4ad5
+refs/heads/develop 5299b5e9e8dd917abef327ab9f9bd5494064ccf9
+refs/heads/docs/codex-project-context 82f803b10e41ca49c574555a02d17abfe7af7400
+refs/heads/feature/BE1-authentication e85be221f8d17693929e468c3f5ff36d9e51c859
+refs/heads/feature/BE1-authorization 9a1082d05d8ca798cc8ccab09a1cd7f275055c71
+refs/heads/feature/BE1-database-integration 28f0a5e4f582bc56ba101b48915d33baadeb7b95
+refs/heads/feature/BE1-project-bootstrap dc4972ce52d86a6c9b8811b5149ead6f5a88cde7
+refs/heads/handoff/codex-b-20261105 21c06bf51bcbcf0c99e8c711302b71682590e41f
+refs/heads/integration/dev1-fe-handoff cf8fb020362f8f64192e7f2f14a10547cebe5b91
+refs/heads/integration/fullstack-base 6aee2a0e692a7814f41c81224709cddfbe1e2ec4
+refs/heads/integration/task11-dev1-dev2-rehearsal 3688ba9959984deb24f179bd41a4820df1ecfebd
+refs/heads/integration/task12-pr7-conflict-resolution d6ef057bb0980b1763b1c4870a25316f35d9add9
+refs/heads/main e0d99f306ed9f75677cacf1628f52905e2fd0f6f

@@ -1,0 +1,36 @@
+{
+  "tested": 80,
+  "issues": [
+    {
+      "id": "75",
+      "href": "/handovers/BV-HO-001-1",
+      "overflow": true,
+      "width": 397,
+      "offenders": [
+        {
+          "tag": "SPAN",
+          "class": "status pending",
+          "right": 396.5625
+        }
+      ]
+    },
+    {
+      "id": "78",
+      "href": "/reports",
+      "overflow": true,
+      "width": 410,
+      "offenders": [
+        {
+          "tag": "LABEL",
+          "class": "",
+          "right": 410.390625
+        },
+        {
+          "tag": "SELECT",
+          "class": "",
+          "right": 410.390625
+        }
+      ]
+    }
+  ]
+}

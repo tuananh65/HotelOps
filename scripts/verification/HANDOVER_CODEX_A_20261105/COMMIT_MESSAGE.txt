@@ -1,0 +1,23 @@
+﻿chore(handoff): preserve Codex A source, WIP and DEV1/DEV3 handover
+
+Preserve the current DEV1 runtime and Task75-87 evidence without adding a use
+case or changing credited progress (26/75 UCs, 60/256 points). Include the
+full SRS ownership catalog and historical/current-runtime distinctions.
+
+Retain unapproved/partial/blocked source as archival text with provenance,
+including 476 unique scratch source blobs and 222 expanded ZIP entries.
+Do not adopt other worktrees' staged changes or Codex B implementation.
+Reference the existing cf8fb02 historical integration snapshot separately.
+
+Stage sanitized verification/evidence files at their original paths while
+leaving private local SQL host originals untouched in the working tree.
+Exclude opaque ZIP duplicates, build outputs, secrets and database dumps.
+See PRESERVATION_MANIFEST.json, STAGED_FILES.json and security resolution.
+
+Validation: solution build passed (2 NU1900), xUnit 91/91 passed, production
+fallback 93 checks passed. SQL/HTTPS acceptance remains historical; no SQL
+was accessed for this handover. Preserved evidence contains whitespace
+warnings (git diff --cached --check fails); see handover validation.
+
+Authorized destination: handoff/codex-a-20261105; no main/develop push,
+branch switch, merge, reset, clean or force-push.

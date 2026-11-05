@@ -1,0 +1,1010 @@
+﻿[
+    {
+        "uc":  "UC-001",
+        "title":  "Login",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-002",
+        "title":  "Logout",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-003",
+        "title":  "Change Password",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-004",
+        "title":  "Create User Account",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-005",
+        "title":  "Update User Account",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-006",
+        "title":  "Activate/Deactivate User Account",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-007",
+        "title":  "Assign User to Branch/Department",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-008",
+        "title":  "Create/Update User Role",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-009",
+        "title":  "Configure Role Permissions",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-010",
+        "title":  "Assign/Revoke User Roles",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-011",
+        "title":  "Review User Access Permissions",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-012",
+        "title":  "Update Branch Information",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-013",
+        "title":  "View Branch Structure",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-014",
+        "title":  "Create Floor/Area",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-015",
+        "title":  "Update Floor/Area",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-016",
+        "title":  "Deactivate Floor/Area",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-017",
+        "title":  "Create Room Type",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-018",
+        "title":  "Update Room Type",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-019",
+        "title":  "Deactivate Room Type",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-020",
+        "title":  "Create Room",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-021",
+        "title":  "Update Room Information",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-022",
+        "title":  "Deactivate Room",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-023",
+        "title":  "View Room Directory",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-024",
+        "title":  "Create Department",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-025",
+        "title":  "Update Department",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-026",
+        "title":  "Deactivate Department",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-027",
+        "title":  "Manage Operational Room Status",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-03"
+    },
+    {
+        "uc":  "UC-028",
+        "title":  "Create Cleaning Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-029",
+        "title":  "Assign Cleaning Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-030",
+        "title":  "Reassign Cleaning Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-031",
+        "title":  "Start Cleaning Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-032",
+        "title":  "Update Cleaning Progress",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-033",
+        "title":  "Report Cleaning Blocker",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-034",
+        "title":  "Complete Cleaning Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-035",
+        "title":  "Receive Rework Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-036",
+        "title":  "Complete Cleaning Rework",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-037",
+        "title":  "Monitor Cleaning Tasks",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-038",
+        "title":  "View Room Turnover History",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-04"
+    },
+    {
+        "uc":  "UC-039",
+        "title":  "Create Room Inspection Checklist",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-040",
+        "title":  "Update Room Inspection Checklist",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-041",
+        "title":  "Assign Room Inspection",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-042",
+        "title":  "Perform Room Inspection",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-043",
+        "title":  "Record Inspection Defects",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-044",
+        "title":  "Approve Room Inspection",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-045",
+        "title":  "Reject Room Inspection",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-046",
+        "title":  "Request Cleaning Rework",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-047",
+        "title":  "Reinspect Room",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-048",
+        "title":  "View Room Inspection History",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-05"
+    },
+    {
+        "uc":  "UC-049",
+        "title":  "Report Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-050",
+        "title":  "Classify Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-051",
+        "title":  "Attach Incident Evidence",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-052",
+        "title":  "Triage Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-053",
+        "title":  "Assign Maintenance Work",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-054",
+        "title":  "Accept and Start Maintenance",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-055",
+        "title":  "Update Maintenance Progress",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-056",
+        "title":  "Block Room Due to Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-057",
+        "title":  "Escalate Critical Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-058",
+        "title":  "Resolve Maintenance Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-059",
+        "title":  "Verify and Close Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-060",
+        "title":  "Reopen Incident",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-061",
+        "title":  "Create Preventive Maintenance Schedule",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-062",
+        "title":  "Execute Scheduled Maintenance",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-063",
+        "title":  "Manage Work Categories",
+        "codexALedgerContains":  false,
+        "owner":  "SHARED",
+        "feature":  "FE-06 + FE-11"
+    },
+    {
+        "uc":  "UC-064",
+        "title":  "Manage Operational Reference Data",
+        "codexALedgerContains":  false,
+        "owner":  "SHARED",
+        "feature":  "FE-06 + FE-11"
+    },
+    {
+        "uc":  "UC-065",
+        "title":  "Register Asset/Equipment",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-066",
+        "title":  "Update Asset Information",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-067",
+        "title":  "Assign Asset to Location",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-068",
+        "title":  "Transfer Asset Location",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-069",
+        "title":  "Record Asset Handover",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-070",
+        "title":  "Update Asset Condition",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-071",
+        "title":  "View Asset Profile",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-072",
+        "title":  "Review Asset Maintenance History",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-073",
+        "title":  "Review Assets by Location",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-074",
+        "title":  "Retire/Deactivate Asset",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-07"
+    },
+    {
+        "uc":  "UC-075",
+        "title":  "Manage Warehouses",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-076",
+        "title":  "Manage Inventory Items",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-077",
+        "title":  "Manage Units of Measurement",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-078",
+        "title":  "Configure Minimum Stock Levels",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-079",
+        "title":  "Create Stock Receipt",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-080",
+        "title":  "Verify and Post Stock Receipt",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-081",
+        "title":  "Issue Stock",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-082",
+        "title":  "Return Materials to Stock",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-083",
+        "title":  "Create Stock Transfer",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-084",
+        "title":  "Confirm Stock Transfer Receipt",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-085",
+        "title":  "Conduct Stocktake",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-086",
+        "title":  "Reconcile Stocktake Discrepancies",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-087",
+        "title":  "Adjust Stock Balance",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-088",
+        "title":  "Reverse Stock Transaction",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-089",
+        "title":  "View Stock Balance and Movement Ledger",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-090",
+        "title":  "Return Unused Materials",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-08"
+    },
+    {
+        "uc":  "UC-091",
+        "title":  "Create Material Request",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-092",
+        "title":  "Link Material Request to Work",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-093",
+        "title":  "Update/Cancel Material Request",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-094",
+        "title":  "Review Material Request",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-095",
+        "title":  "Approve/Reject Material Request",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-096",
+        "title":  "Check Material Availability",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-097",
+        "title":  "Issue Approved Materials",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-098",
+        "title":  "Manage Partial Material Fulfillment",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-099",
+        "title":  "Track Material Request History",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-09"
+    },
+    {
+        "uc":  "UC-100",
+        "title":  "Create Replenishment Request",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-10"
+    },
+    {
+        "uc":  "UC-101",
+        "title":  "Track Material Replenishment",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-10"
+    },
+    {
+        "uc":  "UC-102",
+        "title":  "Create Operational Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-11"
+    },
+    {
+        "uc":  "UC-103",
+        "title":  "Set Task Priority and Deadline",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-11"
+    },
+    {
+        "uc":  "UC-104",
+        "title":  "Assign/Reassign Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-11"
+    },
+    {
+        "uc":  "UC-105",
+        "title":  "Review and Verify Task Completion",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-11"
+    },
+    {
+        "uc":  "UC-106",
+        "title":  "Reopen Assigned Task",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-11"
+    },
+    {
+        "uc":  "UC-107",
+        "title":  "Accept Assigned Task",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-108",
+        "title":  "Start Assigned Task",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-109",
+        "title":  "Update Task Progress",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-110",
+        "title":  "Pause/Resume Task",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-111",
+        "title":  "Record Actual Working Time",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-112",
+        "title":  "Complete Assigned Task",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-113",
+        "title":  "Review Task Workload and Time Logs",
+        "codexALedgerContains":  true,
+        "owner":  "SHARED",
+        "feature":  "FE-11 + FE-12"
+    },
+    {
+        "uc":  "UC-114",
+        "title":  "Create Internal Request",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-115",
+        "title":  "Route and Assign Internal Request",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-116",
+        "title":  "Accept/Reject Internal Request",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-117",
+        "title":  "Update Internal Request Progress",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-118",
+        "title":  "Create Linked Operational Work",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-119",
+        "title":  "Record Request Handover",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-120",
+        "title":  "Complete Internal Request",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-121",
+        "title":  "Reopen Internal Request",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-122",
+        "title":  "Escalate Overdue Internal Request",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-123",
+        "title":  "View Internal Request History",
+        "codexALedgerContains":  true,
+        "owner":  "DEV1",
+        "feature":  "FE-13"
+    },
+    {
+        "uc":  "UC-124",
+        "title":  "Receive Assignment Notifications",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-125",
+        "title":  "Receive Approval Notifications",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-126",
+        "title":  "Receive Inspection and Incident Alerts",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-127",
+        "title":  "Receive Overdue Work Alerts",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-128",
+        "title":  "Receive Low Stock Alerts",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-129",
+        "title":  "View Notification Center",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-130",
+        "title":  "Acknowledge Notifications",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-131",
+        "title":  "View Room Readiness Dashboard",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-132",
+        "title":  "View Task Workload Dashboard",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-133",
+        "title":  "View Incident and Maintenance Dashboard",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-134",
+        "title":  "View Inventory and Material Dashboard",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-14"
+    },
+    {
+        "uc":  "UC-135",
+        "title":  "Generate and Export Operational Reports",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-15"
+    },
+    {
+        "uc":  "UC-136",
+        "title":  "View Audit Logs",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-15"
+    },
+    {
+        "uc":  "UC-137",
+        "title":  "Inspect Record Change History",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-15"
+    },
+    {
+        "uc":  "UC-138",
+        "title":  "Manage Operational Workday and Shift Records",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-12"
+    },
+    {
+        "uc":  "UC-139",
+        "title":  "Record Workday Start and End",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-12"
+    },
+    {
+        "uc":  "UC-140",
+        "title":  "Manage Operational Shift Handover",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-12"
+    },
+    {
+        "uc":  "UC-141",
+        "title":  "View User List",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-01"
+    },
+    {
+        "uc":  "UC-142",
+        "title":  "View Room Types List",
+        "codexALedgerContains":  true,
+        "owner":  "DEV3",
+        "feature":  "FE-02"
+    },
+    {
+        "uc":  "UC-143",
+        "title":  "View Incidents List",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    },
+    {
+        "uc":  "UC-144",
+        "title":  "View Maintenance List",
+        "codexALedgerContains":  false,
+        "owner":  "DEV2",
+        "feature":  "FE-06"
+    }
+]
