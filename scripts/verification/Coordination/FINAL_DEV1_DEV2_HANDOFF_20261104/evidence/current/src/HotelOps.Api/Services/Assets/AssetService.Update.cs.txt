@@ -1,0 +1,35 @@
+5: namespace HotelOps.Api.Services.Assets;
+6: 
+7: public sealed partial class AssetService
+8: {
+9:     public async Task<AssetDetailDto?> UpdateAssetAsync(long id, UpdateAssetRequest request, CancellationToken cancellationToken)
+10:     {
+11:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+12:         var asset = await LockAssetAsync(id, cancellationToken);
+13:         if (asset is null) return null;
+14:         RequireOperational(asset);
+15:         await ValidateMasterAsync(request, cancellationToken);
+16:         var before = Snapshot(asset);
+17:         ApplyMaster(asset, request);
+18:         if (Snapshot(asset).All(pair => Equals(before[pair.Key], pair.Value)))
+19:         {
+20:             var unchanged = await RequireDetailAsync(id, cancellationToken);
+21:             await transaction.CommitAsync(cancellationToken);
+22:             return unchanged;
+23:         }
+24:         var now = DateTime.UtcNow;
+25:         asset.UpdatedAt = now;
+26:         Audit("assets", id, asset, request.ActorUserId, now, before, Snapshot(asset));
+27:         try
+28:         {
+29:             await _dbContext.SaveChangesAsync(cancellationToken);
+30:         }
+31:         catch (DbUpdateException exception) when (IsDuplicateAssetCode(exception))
+32:         {
+33:             throw new ValidationException("AssetCode already exists.", exception);
+34:         }
+35:         var result = await RequireDetailAsync(id, cancellationToken);
+36:         await transaction.CommitAsync(cancellationToken);
+37:         return result;
+38:     }
+39: }

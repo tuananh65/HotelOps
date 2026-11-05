@@ -1,0 +1,136 @@
+8: namespace HotelOps.Api.Services.Assets;
+9: 
+10: public sealed partial class AssetService
+11: {
+12:     private static readonly Expression<Func<AssetHandover, AssetHandoverDto>> HandoverProjection = h => new()
+13:     {
+17:         FromUserId = h.FromUserId, FromUserName = h.FromUser == null ? null : h.FromUser.FullName,
+18:         ToUserId = h.ToUserId, ToUserName = h.ToUser == null ? null : h.ToUser.FullName,
+19:         ConditionNote = h.ConditionNote, HandoverStatus = h.HandoverStatus, HandedOverAt = h.HandedOverAt,
+20:         AcceptedAt = h.AcceptedAt, CreatedBy = h.CreatedBy, CreatedAt = h.CreatedAt
+21:     };
+22: 
+23:     public Task<AssetHandoverDto?> GetHandoverAsync(long handoverId, CancellationToken cancellationToken) =>
+24:         _dbContext.AssetHandovers.AsNoTracking().Where(h => h.HandoverId == handoverId)
+25:             .Select(HandoverProjection).SingleOrDefaultAsync(cancellationToken);
+26: 
+27:     public async Task<AssetPagedResponse<AssetHandoverDto>?> GetHandoversAsync(long assetId, AssetPageRequest request, CancellationToken cancellationToken)
+28:     {
+29:         var offset = Offset(request);
+30:         if (!await _dbContext.Assets.AsNoTracking().AnyAsync(a => a.AssetId == assetId, cancellationToken)) return null;
+36:     }
+37: 
+38:     private async Task ValidateHandoverTargetAsync(Asset asset, long? departmentId, long? userId, CancellationToken cancellationToken)
+39:     {
+40:         if (departmentId is null || !await _dbContext.Departments.AsNoTracking().AnyAsync(
+41:             d => d.DepartmentId == departmentId && d.BranchId == asset.BranchId && d.IsActive, cancellationToken))
+42:             throw new ValidationException("ToDepartmentId must identify an active department in the Asset branch.");
+43:         if (userId is null) throw new ValidationException("ToUserId is required.");
+44:         // The future receiver was already validated under a retained User lock.
+45:     }
+46: 
+47:     public async Task<AssetHandoverDto?> CreateHandoverAsync(long assetId, CreateAssetHandoverRequest request, CancellationToken cancellationToken)
+48:     {
+49:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+50:         await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ToUserId, cancellationToken);
+51:         var asset = await LockAssetAsync(assetId, cancellationToken);
+52:         if (asset is null) return null;
+53:         await _dbContext.Entry(asset).ReloadAsync(cancellationToken);
+54:         RequireOperational(asset);
+55:         await RequireActorAsync(request.ActorUserId, cancellationToken);
+56:         await ValidateHandoverTargetAsync(asset, request.ToDepartmentId, request.ToUserId, cancellationToken);
+57:         if (asset.CurrentDepartmentId == request.ToDepartmentId && asset.CustodianUserId == request.ToUserId)
+58:             throw new ValidationException("Target custody must differ from current custody.");
+59:         if (await _dbContext.AssetHandovers.AsNoTracking().AnyAsync(
+60:             h => h.AssetId == assetId && h.HandoverStatus == "PENDING", cancellationToken))
+61:             throw new ValidationException("The Asset already has a pending handover.");
+62:         var now = DateTime.UtcNow;
+63:         var handover = new AssetHandover
+66:             FromDepartmentId = asset.CurrentDepartmentId, FromUserId = asset.CustodianUserId,
+67:             ToDepartmentId = request.ToDepartmentId, ToUserId = request.ToUserId,
+68:             ConditionNote = OptionalNote(request.ConditionNote), HandoverStatus = "PENDING",
+69:             HandedOverAt = now, CreatedAt = now, CreatedBy = request.ActorUserId
+70:         };
+71:         _dbContext.AssetHandovers.Add(handover);
+72:         await _dbContext.SaveChangesAsync(cancellationToken);
+73:         Audit("asset_handovers", handover.HandoverId, asset, request.ActorUserId, now, null, HandoverSnapshot(handover));
+74:         await _dbContext.SaveChangesAsync(cancellationToken);
+75:         var result = await GetHandoverAsync(handover.HandoverId, cancellationToken);
+76:         await transaction.CommitAsync(cancellationToken);
+77:         return result;
+78:     }
+79: 
+80:     public Task<AssetHandoverDto?> AcceptHandoverAsync(long handoverId, AcceptAssetHandoverRequest request, CancellationToken cancellationToken) =>
+81:         FinalizeHandoverAsync(handoverId, request.ActorUserId, null, cancellationToken);
+82: 
+83:     public Task<AssetHandoverDto?> RejectHandoverAsync(long handoverId, RejectAssetHandoverRequest request, CancellationToken cancellationToken) =>
+84:         FinalizeHandoverAsync(handoverId, request.ActorUserId, Required(request.Reason, "Reason", minimum: 10), cancellationToken);
+85: 
+86:     private async Task<AssetHandoverDto?> FinalizeHandoverAsync(long handoverId, long actor, string? rejectionReason, CancellationToken cancellationToken)
+87:     {
+88:         var discovered = await _dbContext.AssetHandovers.AsNoTracking().Where(h => h.HandoverId == handoverId)
+89:             .Select(h => new { h.AssetId, h.FromUserId, h.ToUserId }).SingleOrDefaultAsync(cancellationToken);
+90:         if (discovered is null) return null;
+91:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+92:         if (rejectionReason is null)
+93:         {
+94:             if (discovered.ToUserId is not long receiver) throw new ValidationException("ToUserId is required.");
+95:             var ids = new[] { discovered.FromUserId, discovered.ToUserId }.Where(x => x.HasValue).Select(x => x!.Value);
+96:             var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).LockAsync(ids, cancellationToken);
+97:             HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(receiver, locked);
+98:         }
+99:         // Accept: sorted custody Users -> Asset -> Handover. Reject: Asset -> Handover.
+100:         var asset = await LockAssetAsync(discovered.AssetId, cancellationToken);
+101:         var handover = await _dbContext.AssetHandovers
+102:             .FromSqlInterpolated($"SELECT * FROM asset_handovers WITH (UPDLOCK, HOLDLOCK) WHERE handover_id = {handoverId}")
+103:             .AsTracking().SingleOrDefaultAsync(cancellationToken);
+104:         if (handover is null) return null;
+105:         await _dbContext.Entry(handover).ReloadAsync(cancellationToken);
+109:         if (rejectionReason is null && (handover.FromUserId != discovered.FromUserId || handover.ToUserId != discovered.ToUserId))
+110:             throw new ValidationException("Handover custody identifiers changed after discovery. Reload before retrying.");
+111:         RequireOperational(asset);
+112:         await RequireActorAsync(actor, cancellationToken);
+113:         if (handover.HandoverStatus != "PENDING") throw new ValidationException("Only a PENDING handover can be finalized.");
+114:         if (handover.ToUserId != actor) throw new ValidationException("Only the designated receiver can finalize this handover.");
+115:         var now = DateTime.UtcNow;
+116:         var beforeHandover = HandoverSnapshot(handover);
+121:                 throw new ValidationException("Current custody no longer matches the source snapshot.");
+122:             await ValidateHandoverTargetAsync(asset, handover.ToDepartmentId, handover.ToUserId, cancellationToken);
+123:             handover.HandoverStatus = "ACCEPTED";
+124:             handover.AcceptedAt = now;
+125:             asset.CurrentDepartmentId = handover.ToDepartmentId;
+126:             asset.CustodianUserId = handover.ToUserId;
+127:             asset.UpdatedAt = now;
+128:         }
+129:         else handover.HandoverStatus = "REJECTED";
+130:         await _dbContext.SaveChangesAsync(cancellationToken);
+131:         Audit("asset_handovers", handoverId, asset, actor, now, beforeHandover, HandoverSnapshot(handover), rejectionReason);
+132:         if (rejectionReason is null)
+133:             Audit("assets", asset.AssetId, asset, actor, now, beforeAsset, Snapshot(asset));
+134:         await _dbContext.SaveChangesAsync(cancellationToken);
+135:         var result = await GetHandoverAsync(handoverId, cancellationToken);
+136:         await transaction.CommitAsync(cancellationToken);
+137:         return result;
+138:     }
+139: 
+143:         ["from_department_id"] = h.FromDepartmentId, ["from_user_id"] = h.FromUserId,
+144:         ["to_department_id"] = h.ToDepartmentId, ["to_user_id"] = h.ToUserId, ["condition_note"] = h.ConditionNote,
+145:         ["handover_status"] = h.HandoverStatus, ["handed_over_at"] = h.HandedOverAt, ["accepted_at"] = h.AcceptedAt,
+146:         ["created_by"] = h.CreatedBy, ["created_at"] = h.CreatedAt
+147:     };
+148: 
+149:     private async Task<string> AllocateHandoverNoAsync(DateTime now, CancellationToken cancellationToken)
+150:     {
+151:         var prefix = "HO-" + now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
+152:         var resource = "HotelOps:AssetHandoverNo:" + prefix;
+153:         await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+154:             DECLARE @result int;
+155:             EXEC @result = sys.sp_getapplock @Resource = {resource},
+156:                 @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000;
+157:             IF @result < 0 THROW 50003, 'Could not acquire handover number allocation lock.', 1;", cancellationToken);
+158:         var maximum = await _dbContext.Database.SqlQuery<long>($@"
+159:             SELECT COALESCE(MAX(TRY_CONVERT(bigint, SUBSTRING(handover_no, 13, 40))), CAST(0 AS bigint)) AS [Value]
+160:             FROM asset_handovers WITH (UPDLOCK, HOLDLOCK) WHERE handover_no LIKE {prefix + "%"}")
+161:             .SingleAsync(cancellationToken);
+162:         return prefix + checked(maximum + 1).ToString("D3", CultureInfo.InvariantCulture);
+163:     }

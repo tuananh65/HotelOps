@@ -1,0 +1,39 @@
+10: 
+11: [ApiController]
+12: [Route("api/users")]
+13: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+14: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+15: [UserAccountActivationErrors] // Existing route-local413 translation; other failures retain middleware500/503.
+16: public sealed class UserBranchAssignmentController(UserBranchAssignmentService assignments) : ControllerBase
+17: {
+18:     [HttpPost("{userId}/branches")]
+19:     [RequestSizeLimit(16 * 1024)]
+20:     public async Task<IActionResult> Add([FromRoute, Range(1, long.MaxValue)] long userId, [FromBody] JsonElement body, CancellationToken ct)
+21:     {
+22:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS is required");
+23:         if (!HotelOpsCookieTicket.TryRead(User, out var reference, out var sessionId)) return Failure(401, "SESSION_INVALID");
+24:         if (!Request.Headers.TryGetValue("If-Match", out var header)) return Failure(428, "IF_MATCH_REQUIRED");
+25:         var tag = header.ToString();
+28:         if (!AddUserBranchRequest.TryParse(body, out var request)) return Failure(400, "VALIDATION_FAILED");
+29:         var result = await assignments.AddAsync(reference!, sessionId, userId, request!.BranchId, Convert.FromHexString(tag[1..^1]), ct);
+30:         switch (result.Status)
+31:         {
+32:             case AddBranchStatus.Success:
+33:                 Response.Headers.ETag = "\"" + Convert.ToHexString(result.Version!) + "\"";
+34:                 return StatusCode(201, result.Membership);
+35:             case AddBranchStatus.SessionInvalid: return Failure(401, "SESSION_INVALID");
+36:             case AddBranchStatus.Forbidden: return Failure(403, "BRANCH_ASSIGNMENT_NOT_ALLOWED");
+37:             case AddBranchStatus.NotFound: return Failure(404, "USER_NOT_FOUND");
+38:             case AddBranchStatus.Inactive: return Failure(409, "TARGET_NOT_ACTIVE");
+39:             case AddBranchStatus.InvalidBranch: return Failure(400, "BRANCH_UNAVAILABLE");
+40:             case AddBranchStatus.Stale: return Failure(412, "STALE_USER_VERSION");
+41:             case AddBranchStatus.Duplicate: return Failure(409, "MEMBERSHIP_EXISTS");
+42:             case AddBranchStatus.RoleConflict: return Failure(409, "EXISTING_ROLE_PATH_CONFLICT");
+43:             case AddBranchStatus.OperationsManagerConflict: return Failure(409, "OPERATIONS_MANAGER_SCOPE_CONFLICT");
+44:             default: throw new InvalidOperationException("Unknown branch assignment result.");
+45:         }
+46:     }
+47:     private ObjectResult Failure(int status, string code) => Problem(statusCode: status, title: code,
+48:         extensions: new Dictionary<string, object?> { ["code"] = code });
+49: }
+50: 

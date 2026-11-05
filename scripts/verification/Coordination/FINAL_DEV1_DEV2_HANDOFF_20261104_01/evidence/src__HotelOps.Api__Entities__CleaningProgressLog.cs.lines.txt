@@ -1,0 +1,33 @@
+﻿SOURCE: src/HotelOps.Api/Entities/CleaningProgressLog.cs
+SHA256: 7189E7C99C985455C24C35303B655600650D51A8752C954656197DB84652E8FD
+Ranges: 1-70 (original source line numbers)
+    1: using System;
+    2: using System.Collections.Generic;
+    3: 
+    4: namespace HotelOps.Api.Entities;
+    5: 
+    6: public partial class CleaningProgressLog
+    7: {
+    8:     public long ProgressId { get; set; }
+    9: 
+   10:     public long CleaningTaskId { get; set; }
+   11: 
+   12:     public int ProgressPercent { get; set; }
+   13: 
+   14:     public string? Status { get; set; }
+   15: 
+   16:     public long? BlockerTypeId { get; set; }
+   17: 
+   18:     public string? Note { get; set; }
+   19: 
+   20:     public long LoggedBy { get; set; }
+   21: 
+   22:     public DateTime LoggedAt { get; set; }
+   23: 
+   24:     public virtual ReferenceValue? BlockerType { get; set; }
+   25: 
+   26:     public virtual CleaningTask CleaningTask { get; set; } = null!;
+   27: 
+   28:     public virtual User LoggedByNavigation { get; set; } = null!;
+   29: }
+

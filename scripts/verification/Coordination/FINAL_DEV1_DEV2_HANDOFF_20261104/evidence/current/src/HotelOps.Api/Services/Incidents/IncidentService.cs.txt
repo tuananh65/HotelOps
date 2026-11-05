@@ -1,0 +1,293 @@
+9: namespace HotelOps.Api.Services.Incidents;
+10: 
+11: public sealed class IncidentService : IIncidentService
+12: {
+13:     private readonly HotelOpsDbContext _dbContext;
+14: 
+15:     public IncidentService(HotelOpsDbContext dbContext)
+16:     {
+17:         _dbContext = dbContext;
+18:     }
+19: 
+20:     public async Task<IncidentDetailDto?> ChangeIncidentStatusAsync(long id, ChangeIncidentStatusRequest request, CancellationToken cancellationToken)
+21:     {
+22:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+23:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+24:         var incident = await _dbContext.Incidents
+25:             .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
+26:             .AsTracking()
+27:             .SingleOrDefaultAsync(cancellationToken);
+28:         if (incident is null)
+32: 
+33:         if (!await _dbContext.Users.AsNoTracking()
+34:             .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+35:             throw new ValidationException("ActorUserId does not exist.");
+36: 
+37:         var status = request.Status.Trim().ToUpperInvariant();
+38:         if (status is not ("OPEN" or "IN_PROGRESS" or "RESOLVED" or "CLOSED" or "CANCELLED"))
+39:             throw new ValidationException("Status must be OPEN, IN_PROGRESS, RESOLVED, CLOSED, or CANCELLED.");
+40: 
+41:         if (incident.Status != status)
+42:         {
+43:             // The Incident row is already locked: corrective creation takes the same
+44:             // lock before linking a work, so this check cannot race with creation.
+45:             await RequireGenericStatusOwnershipAsync(incident.IncidentId, cancellationToken);
+46:             var allowed = (incident.Status, status) switch
+47:             {
+48:                 ("OPEN", "IN_PROGRESS" or "CANCELLED") => true,
+49:                 ("IN_PROGRESS", "RESOLVED" or "CANCELLED") => true,
+52:             };
+53:             if (!allowed)
+54:                 throw new ValidationException($"Transition from {incident.Status} to {status} is not allowed.");
+55: 
+56:             var note = string.IsNullOrWhiteSpace(request.Note) ? null : request.Note.Trim();
+57:             if (status is "CLOSED" or "CANCELLED" && note is null)
+58:                 throw new ValidationException("Note is required when closing or cancelling an incident.");
+59:             if (incident.Status == "RESOLVED" && status == "IN_PROGRESS" && note is null)
+60:                 throw new ValidationException("A reason is required when returning a resolved incident for rework.");
+61: 
+62:             var occurredAt = DateTime.UtcNow;
+63:             var previousStatus = incident.Status;
+64:             var previousResolvedAt = incident.ResolvedAt;
+65:             var previousClosedAt = incident.ClosedAt;
+66:             var previousClosureNote = incident.ClosureNote;
+67:             var oldValues = JsonSerializer.Serialize(new
+68:             {
+69:                 status = previousStatus,
+70:                 resolved_at = previousResolvedAt,
+71:                 closed_at = previousClosedAt,
+72:                 closure_note = previousClosureNote
+73:             });
+74: 
+75:             incident.Status = status;
+76:             if (status == "RESOLVED")
+77:             {
+78:                 incident.ResolvedAt = occurredAt;
+79:             }
+80:             else if (previousStatus == "RESOLVED" && status == "IN_PROGRESS")
+81:             {
+82:                 incident.ResolvedAt = null;
+83:             }
+100:                 IncidentId = incident.IncidentId,
+101:                 EventType = "STATUS_CHANGED",
+102:                 FromStatus = previousStatus,
+103:                 ToStatus = status,
+104:                 ActorId = request.ActorUserId,
+105:                 Note = note,
+106:                 OccurredAt = occurredAt
+107:             });
+111:                 EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
+112:                 Action = "UPDATE",
+113:                 ActorUserId = request.ActorUserId,
+114:                 BranchId = incident.BranchId,
+115:                 OccurredAt = occurredAt,
+116:                 OldValues = oldValues,
+117:                 NewValues = JsonSerializer.Serialize(new
+118:                 {
+119:                     status = incident.Status,
+120:                     resolved_at = incident.ResolvedAt,
+121:                     closed_at = incident.ClosedAt,
+122:                     closure_note = incident.ClosureNote
+124:                 ChangedFields = JsonSerializer.Serialize(changedFields)
+125:             });
+126:             await _dbContext.SaveChangesAsync(cancellationToken);
+127:         }
+128: 
+129:         var result = await GetIncidentAsync(id, cancellationToken)
+130:             ?? throw new InvalidOperationException("Incident could not be read after status operation.");
+131:         await transaction.CommitAsync(cancellationToken);
+132:         return result;
+133:     }
+134: 
+135:     private async Task RequireGenericStatusOwnershipAsync(long incidentId, CancellationToken cancellationToken)
+136:     {
+137:         if (await _dbContext.MaintenanceWorks.AsNoTracking()
+138:             .AnyAsync(work => work.IncidentId == incidentId, cancellationToken))
+140:     }
+141: 
+142:     public async Task<IncidentDetailDto?> TriageIncidentAsync(long id, TriageIncidentRequest request, CancellationToken cancellationToken)
+143:     {
+144:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+145:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+146: 
+147:         // Hold the target row's update lock through validation, change detection, and commit.
+148:         var incident = await _dbContext.Incidents
+149:             .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
+150:             .AsTracking()
+151:             .SingleOrDefaultAsync(cancellationToken);
+152:         if (incident is null)
+156: 
+157:         if (!await _dbContext.Users.AsNoTracking()
+158:             .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+159:             throw new ValidationException("ActorUserId does not exist.");
+160:         if (incident.Status is not ("OPEN" or "IN_PROGRESS"))
+161:             throw new ValidationException("Triage is allowed only for OPEN or IN_PROGRESS incidents.");
+162: 
+163:         var severityChanged = incident.SeverityId != request.SeverityId;
+165:         if (severityChanged && !await _dbContext.ReferenceValues.AsNoTracking()
+166:             .AnyAsync(value => value.ReferenceId == request.SeverityId &&
+167:                 value.GroupCode == "SEVERITY" && value.IsActive, cancellationToken))
+168:             throw new ValidationException("SeverityId must identify an active SEVERITY reference value.");
+169:         if (priorityChanged && !await _dbContext.ReferenceValues.AsNoTracking()
+170:             .AnyAsync(value => value.ReferenceId == request.PriorityId &&
+171:                 value.GroupCode == "PRIORITY" && value.IsActive, cancellationToken))
+172:             throw new ValidationException("PriorityId must identify an active PRIORITY reference value.");
+173: 
+174:         if (severityChanged || priorityChanged)
+192:                 IncidentId = incident.IncidentId,
+193:                 EventType = "TRIAGED",
+194:                 FromStatus = null,
+195:                 ToStatus = null,
+196:                 ActorId = request.ActorUserId,
+197:                 Note = null,
+198:                 OccurredAt = occurredAt
+199:             });
+201:             {
+202:                 BranchId = incident.BranchId,
+203:                 ActorUserId = request.ActorUserId,
+204:                 EntityType = "incidents",
+205:                 EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
+206:                 Action = "UPDATE",
+214:                 OccurredAt = occurredAt
+215:             });
+216:             await _dbContext.SaveChangesAsync(cancellationToken);
+217:         }
+218: 
+219:         var result = await GetIncidentAsync(id, cancellationToken)
+220:             ?? throw new InvalidOperationException("Triaged incident could not be read.");
+221:         await transaction.CommitAsync(cancellationToken);
+222:         return result;
+223:     }
+224: 
+225:     public async Task<IncidentDetailDto> CreateIncidentAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
+226:     {
+227:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+228:         await ValidateCreateAsync(request, cancellationToken);
+230:         var reportedAt = DateTime.UtcNow;
+231:         var prefix = "INC-" + reportedAt.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
+232:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+233: 
+234:         // Serialize allocation across application instances until this transaction ends.
+235:         // Asset -> Incident number allocation. Retirement and handover writers also
+238:         {
+239:             var asset = await _dbContext.Assets
+240:                 .FromSqlInterpolated($"SELECT * FROM assets WITH (UPDLOCK, HOLDLOCK) WHERE asset_id = {assetId}")
+241:                 .AsTracking().SingleOrDefaultAsync(cancellationToken);
+242:             if (asset is null || asset.BranchId != request.BranchId)
+243:                 throw new ValidationException("AssetId must identify an asset in the specified branch.");
+244:             if (asset.LifecycleStatus == "RETIRED")
+245:                 throw new ValidationException("A retired Asset cannot receive a new Incident.");
+246:         }
+247: 
+250:         await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+251:             DECLARE @result int;
+252:             EXEC @result = sys.sp_getapplock @Resource = {resource},
+253:                 @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000;
+254:             IF @result < 0 THROW 50001, 'Could not acquire incident number allocation lock.', 1;",
+255:             cancellationToken);
+257:         var maximum = await _dbContext.Database.SqlQuery<long>($@"
+258:             SELECT COALESCE(MAX(TRY_CONVERT(bigint, SUBSTRING(incident_no, 14, 40))), CAST(0 AS bigint)) AS [Value]
+259:             FROM incidents WITH (UPDLOCK, HOLDLOCK)
+260:             WHERE incident_no LIKE {prefix + "%"}")
+261:             .SingleAsync(cancellationToken);
+262:         var number = prefix + checked(maximum + 1).ToString("D3", CultureInfo.InvariantCulture);
+275:             SeverityId = request.SeverityId,
+276:             PriorityId = request.PriorityId,
+277:             Status = "OPEN",
+278:             ReportedAt = reportedAt,
+279:             ResolvedAt = null,
+280:             ClosedAt = null,
+284:         {
+285:             EventType = "CREATED",
+286:             FromStatus = null,
+287:             ToStatus = "OPEN",
+288:             ActorId = request.ReportedBy,
+289:             OccurredAt = reportedAt,
+290:             Note = null
+291:         });
+292:         _dbContext.Incidents.Add(incident);
+293:         await _dbContext.SaveChangesAsync(cancellationToken);
+294: 
+295:         _dbContext.AuditLogs.Add(new AuditLog
+296:         {
+297:             BranchId = incident.BranchId,
+298:             ActorUserId = request.ReportedBy,
+299:             EntityType = "incidents",
+300:             EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
+301:             Action = "CREATE",
+306:             {
+307:                 incident_no = incident.IncidentNo,
+308:                 status = incident.Status,
+309:                 room_id = incident.RoomId
+310:             })
+311:         });
+312:         await _dbContext.SaveChangesAsync(cancellationToken);
+313:         var result = await GetIncidentAsync(incident.IncidentId, cancellationToken)
+314:             ?? throw new InvalidOperationException("Created incident could not be read.");
+315:         await transaction.CommitAsync(cancellationToken);
+316:         return result;
+317:     }
+318: 
+319:     private async Task ValidateCreateAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
+320:     {
+321:         if (!await _dbContext.Branches.AsNoTracking().AnyAsync(x => x.BranchId == request.BranchId, cancellationToken))
+322:             throw new ValidationException("BranchId does not exist.");
+333:             throw new ValidationException("AssetId must identify an asset in the specified branch.");
+334:         if (request.SeverityId is long severityId && !await _dbContext.ReferenceValues.AsNoTracking()
+335:             .AnyAsync(x => x.ReferenceId == severityId && x.GroupCode == "SEVERITY" && x.IsActive, cancellationToken))
+336:             throw new ValidationException("SeverityId must identify an active SEVERITY reference value.");
+337:         if (request.PriorityId is long priorityId && !await _dbContext.ReferenceValues.AsNoTracking()
+338:             .AnyAsync(x => x.ReferenceId == priorityId && x.GroupCode == "PRIORITY" && x.IsActive, cancellationToken))
+339:             throw new ValidationException("PriorityId must identify an active PRIORITY reference value.");
+340:     }
+341: 
+342:     public async Task<IncidentPagedResponse> GetIncidentsAsync(IncidentQueryRequest request, CancellationToken cancellationToken)
+343:     {
+344:         if (request.Page <= 0)
+345:             throw new ValidationException("Page must be greater than zero.");
+351:             throw new ValidationException("Pagination offset exceeds the supported range.");
+352: 
+353:         var status = request.Status?.Trim();
+354:         if (status is { Length: > 40 })
+355:             throw new ValidationException("Status must not exceed 40 characters.");
+356:         status = status?.ToUpperInvariant();
+357:         if (!string.IsNullOrEmpty(status) &&
+358:             status is not ("OPEN" or "IN_PROGRESS" or "RESOLVED" or "CLOSED" or "CANCELLED"))
+359:             throw new ValidationException("Status must be OPEN, IN_PROGRESS, RESOLVED, CLOSED, or CANCELLED.");
+360: 
+361:         var query = _dbContext.Incidents.AsNoTracking();
+362:         if (request.BranchId is long branchId)
+363:             query = query.Where(incident => incident.BranchId == branchId);
+364:         if (!string.IsNullOrEmpty(status))
+365:             query = query.Where(incident => incident.Status == status);
+366:         if (request.PriorityId is long priorityId)
+367:             query = query.Where(incident => incident.PriorityId == priorityId);
+368:         if (request.SeverityId is long severityId)
+394:                 PriorityId = incident.PriorityId,
+395:                 PriorityName = incident.Priority == null ? null : incident.Priority.DisplayName,
+396:                 Status = incident.Status,
+397:                 ReportedBy = incident.ReportedBy,
+398:                 ReportedByName = incident.ReportedByNavigation.FullName,
+399:                 DiscoveredAt = incident.DiscoveredAt,
+414:     }
+415: 
+416:     public async Task<IncidentDetailDto?> GetIncidentAsync(long id, CancellationToken cancellationToken)
+417:     {
+418:         return await _dbContext.Incidents
+419:             .AsNoTracking()
+436:                 PriorityId = incident.PriorityId,
+437:                 PriorityName = incident.Priority == null ? null : incident.Priority.DisplayName,
+438:                 Status = incident.Status,
+439:                 ReportedBy = incident.ReportedBy,
+440:                 ReportedByName = incident.ReportedByNavigation.FullName,
+441:                 DiscoveredAt = incident.DiscoveredAt,
+453:                         IncidentId = incidentEvent.IncidentId,
+454:                         EventType = incidentEvent.EventType,
+455:                         FromStatus = incidentEvent.FromStatus,
+456:                         ToStatus = incidentEvent.ToStatus,
+457:                         Note = incidentEvent.Note,
+458:                         ActorId = incidentEvent.ActorId,
+459:                         ActorName = incidentEvent.Actor.FullName,
+460:                         OccurredAt = incidentEvent.OccurredAt
+461:                     })
+462:                     .ToList()

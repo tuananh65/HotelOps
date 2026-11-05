@@ -1,0 +1,21 @@
+﻿SOURCE src/HotelOps.Api/Services/Assets/AssetService.Validation.cs
+SHA256 326C4AA1AC08A7CFB5107156381B38047D8DE09594BFC120A1EE7C0A56DB3826
+   22:         if (maximum.HasValue && value?.Length > maximum.Value)
+   23:             throw new ValidationException($"{field} must not exceed {maximum} characters.");
+   24:     }
+   25: 
+   26:     private static string? OptionalNote(string? value) =>
+   27:         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+   28: 
+   29:     private async Task RequireActorAsync(long actor, CancellationToken cancellationToken)
+   30:     {
+   31:         if (!await _dbContext.Users.AsNoTracking().AnyAsync(u => u.UserId == actor, cancellationToken))
+   32:             throw new ValidationException("ActorUserId does not exist.");
+   33:     }
+   34: 
+   35:     private async Task ValidateMasterAsync(AssetMasterRequest request, CancellationToken cancellationToken)
+   36:     {
+   37:         Required(request.AssetCode, "AssetCode", 50);
+   38:         Required(request.AssetName, "AssetName", 200);
+   39:         CheckLength(request.SerialNumber, "SerialNumber", 100);
+   40:         CheckLength(request.Brand, "Brand", 100);

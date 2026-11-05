@@ -1,0 +1,62 @@
+8: namespace HotelOps.Api.Services.Authentication;
+9: 
+10: public sealed class AuthenticationLoginService(HotelOpsDbContext db, ICredentialLockoutService lockout,
+11:     ISqlSessionService sessions, IPasswordCredentialService passwords, TimeProvider clock) : IAuthenticationLoginService
+12: {
+13:     public Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default)
+14:         => RunAsync<LoginResult>(async () =>
+15:         {
+16:             ArgumentNullException.ThrowIfNull(request);
+17:             var identifier = request.Username?.Trim();
+20:                 throw new ArgumentException("Invalid login input.");
+21: 
+22:             await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+23:             // Individual UNIQUE indexes do not prevent username/email cross-collisions.
+24:             // Use database collation, not application case folding or email heuristics.
+25:             var candidates = await Candidates(identifier).ToListAsync(cancellationToken);
+40:             // A deadline can cross during verification; never clear its non-NULL marker.
+41:             temporaryExpired = verifiedUser?.TemporaryPasswordExpiresAt <= clock.GetUtcNow().UtcDateTime;
+42:             if (result.Status != CredentialLockoutStatus.Verified)
+43:             {
+44:                 await transaction.CommitAsync(cancellationToken); // Persist ordinary failure counters/lockout audit.
+45:                 return result.Status == CredentialLockoutStatus.Locked
+46:                     ? new(LoginStatus.Locked, lockedUntil: Utc(result.LockedUntil))
+47:                     : new(temporaryExpired ? LoginStatus.TemporaryExpired : LoginStatus.InvalidCredentials);
+48:             }
+49:             if (temporaryExpired)
+50:                 return new(LoginStatus.TemporaryExpired); // Dispose rolls back provisional counter reset.
+51: 
+52:             var user = verifiedUser ?? throw new InvalidOperationException("Verified user is missing.");
+53:             // Consumes proof and rechecks hash/expiry under the SAME user-first transaction.
+64:             if (changed != 1) throw new DbUpdateConcurrencyException("Credential state changed during login.");
+65:             var audit = AuthenticationAudit.ForUser(user.UserId, "LOGIN", now, new { authenticationEvent = "LOGIN_SUCCESS" });
+66:             audit.ActorUserId = user.UserId;
+67:             db.AuditLogs.Add(audit);
+68:             try { await db.SaveChangesAsync(cancellationToken); }
+69:             finally { db.Entry(audit).State = EntityState.Detached; }
+70:             await transaction.CommitAsync(cancellationToken);
+71:             return new(LoginStatus.Succeeded, Dto(user), created);
+72:         }, cancellationToken);
+73: 
+74:     public Task<CurrentSession?> GetSessionAsync(SessionReference reference, long sessionId,
+75:         CancellationToken cancellationToken = default)
+76:         => RunAsync<CurrentSession?>(async () =>
+77:         {
+78:             await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+79:             // Revalidate within the read transaction so a reset after middleware cannot expose stale data.
+80:             var valid = await sessions.ValidateSessionAsync(reference, cancellationToken);
+81:             if (!valid.IsValid || valid.Session is not { } snapshot || snapshot.SessionId != sessionId
+82:                 || snapshot.UserId != reference.UserId) return null;
+83:             var user = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == reference.UserId, cancellationToken);
+84:             await transaction.CommitAsync(cancellationToken);
+85:             return new(Dto(user), snapshot);
+86:         }, cancellationToken);
+87: 
+89:         .Where(u => u.Username == identifier || u.Email == identifier).Select(u => u.UserId).Take(2);
+90: 
+91:     private async Task<T> RunAsync<T>(Func<Task<T>> work, CancellationToken ct)
+92:     {
+93:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null
+94:             || System.Transactions.Transaction.Current != null || db.ChangeTracker.Entries().Any())
+95:             throw new InvalidOperationException("Authentication orchestration requires a clean SQL Server context without an existing transaction.");
+96:         try { return await work(); }

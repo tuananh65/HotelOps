@@ -1,0 +1,11 @@
+4: namespace HotelOps.Api.Services.Maintenance;
+5: 
+6: public sealed partial class MaintenanceWorkService : IMaintenanceWorkService
+7: {
+8:     private readonly HotelOpsDbContext _dbContext;
+9:     private readonly IInventoryIssueCapacity _issueCapacity;
+10: 
+11:     public MaintenanceWorkService(HotelOpsDbContext dbContext, IInventoryIssueCapacity issueCapacity)
+12:     {
+13:         _dbContext = dbContext;
+14:         _issueCapacity = issueCapacity;

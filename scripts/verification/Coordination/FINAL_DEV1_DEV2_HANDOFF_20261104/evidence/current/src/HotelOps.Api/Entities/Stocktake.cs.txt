@@ -1,0 +1,46 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class Stocktake
+7: {
+8:     public long StocktakeId { get; set; }
+9: 
+10:     public string StocktakeNo { get; set; } = null!;
+11: 
+12:     public long WarehouseId { get; set; }
+13: 
+14:     public DateTime SnapshotAt { get; set; }
+15: 
+16:     public string Status { get; set; } = null!;
+17: 
+18:     public long? CountedBy { get; set; }
+19: 
+20:     public long? ApprovedBy { get; set; }
+21: 
+22:     public DateTime? StartedAt { get; set; }
+23: 
+24:     public DateTime? CompletedAt { get; set; }
+25: 
+26:     public DateTime? ApprovedAt { get; set; }
+27: 
+28:     public long? AdjustmentDocumentId { get; set; }
+29: 
+30:     public string? Note { get; set; }
+31: 
+32:     public DateTime CreatedAt { get; set; }
+33: 
+34:     public byte[] RowVersion { get; set; } = null!;
+35: 
+36:     public virtual StockDocument? AdjustmentDocument { get; set; }
+37: 
+38:     public virtual User? ApprovedByNavigation { get; set; }
+39: 
+40:     public virtual User? CountedByNavigation { get; set; }
+41: 
+42:     public virtual ICollection<StocktakeLine> StocktakeLines { get; set; } = new List<StocktakeLine>();
+43: 
+44:     public virtual Warehouse Warehouse { get; set; } = null!;
+45: }
+46: 

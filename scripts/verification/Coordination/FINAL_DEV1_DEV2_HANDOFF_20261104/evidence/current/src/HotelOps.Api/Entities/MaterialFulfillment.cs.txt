@@ -1,0 +1,44 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialFulfillment
+7: {
+8:     public long FulfillmentId { get; set; }
+9: 
+10:     public string FulfillmentNo { get; set; } = null!;
+11: 
+12:     public long RequestId { get; set; }
+13: 
+14:     public long? StockDocumentId { get; set; }
+15: 
+16:     public long WarehouseId { get; set; }
+17: 
+18:     public long FulfilledBy { get; set; }
+19: 
+20:     public long? ReceivedBy { get; set; }
+21: 
+22:     public string Status { get; set; } = null!;
+23: 
+24:     public DateTime? FulfilledAt { get; set; }
+25: 
+26:     public DateTime? ReceivedAt { get; set; }
+27: 
+28:     public string? Note { get; set; }
+29: 
+30:     public DateTime CreatedAt { get; set; }
+31: 
+32:     public virtual User FulfilledByNavigation { get; set; } = null!;
+33: 
+34:     public virtual ICollection<MaterialFulfillmentLine> MaterialFulfillmentLines { get; set; } = new List<MaterialFulfillmentLine>();
+35: 
+36:     public virtual User? ReceivedByNavigation { get; set; }
+37: 
+38:     public virtual MaterialRequest Request { get; set; } = null!;
+39: 
+40:     public virtual StockDocument? StockDocument { get; set; }
+41: 
+42:     public virtual Warehouse Warehouse { get; set; } = null!;
+43: }
+44: 

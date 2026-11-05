@@ -1,0 +1,52 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class StockDocumentLine
+7: {
+8:     public long LineId { get; set; }
+9: 
+10:     public long DocumentId { get; set; }
+11: 
+12:     public int LineNo { get; set; }
+13: 
+14:     public long ItemId { get; set; }
+15: 
+16:     public long UomId { get; set; }
+17: 
+18:     public decimal ConversionFactor { get; set; }
+19: 
+20:     public decimal? RequestedQty { get; set; }
+21: 
+22:     public decimal ActualQty { get; set; }
+23: 
+24:     public decimal BaseQty { get; set; }
+25: 
+26:     public decimal? UnitCost { get; set; }
+27: 
+28:     public string? Note { get; set; }
+29: 
+30:     public virtual StockDocument Document { get; set; } = null!;
+31: 
+32:     public virtual InventoryItem Item { get; set; } = null!;
+33: 
+34:     public virtual ICollection<StockMovement> StockMovements { get; set; } = new List<StockMovement>();
+35: 
+36:     public virtual StockReceiptLineDetail? StockReceiptLineDetail { get; set; }
+37: 
+38:     public virtual ICollection<StockReturnLineDetail> StockReturnLineDetailOriginalIssueLines { get; set; } = new List<StockReturnLineDetail>();
+39: 
+40:     public virtual StockReturnLineDetail? StockReturnLineDetailStockDocumentLine { get; set; }
+41: 
+42:     public virtual ICollection<StockTransferReceiptLine> StockTransferReceiptLines { get; set; } = new List<StockTransferReceiptLine>();
+43: 
+44:     public virtual UnitsOfMeasure Uom { get; set; } = null!;
+45: 
+46:     public virtual MaterialFulfillmentLine? MaterialFulfillmentLine { get; set; }
+47: 
+48:     public virtual MaterialReplenishmentReceiptLine? MaterialReplenishmentReceiptLine { get; set; }
+49: 
+50:     public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
+51: }
+52: 

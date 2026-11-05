@@ -1,0 +1,15 @@
+﻿{
+    "recordedUtc":  "2026-11-04T17:16:24.5289836+00:00",
+    "archive":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_02\\DEV1_DEV2_FINAL_HANDOFF.zip",
+    "sha256":  "34D937F23872ACB8948FBC493D6B81F1E919459F3188FECF27092DAA0D729CFD",
+    "bytes":  315196,
+    "entries":  92,
+    "entriesByteAndHashVerified":  92,
+    "failures":  [
+
+                 ],
+    "pass":  true,
+    "manifestVerified":  true,
+    "sourceSnapshotConsistent":  true,
+    "note":  "Outside ZIP to avoid recursive self hashing"
+}

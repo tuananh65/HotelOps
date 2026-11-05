@@ -1,0 +1,42 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialReplenishment
+7: {
+8:     public long ReplenishmentId { get; set; }
+9: 
+10:     public string ReplenishmentNo { get; set; } = null!;
+11: 
+12:     public long WarehouseId { get; set; }
+13: 
+14:     public long RequestedBy { get; set; }
+15: 
+16:     public string? SupplierName { get; set; }
+17: 
+18:     public DateOnly? ExpectedOn { get; set; }
+19: 
+20:     public string Status { get; set; } = null!;
+21: 
+22:     public DateTime? ClosedAt { get; set; }
+23: 
+24:     public long? ClosedBy { get; set; }
+25: 
+26:     public string? CloseReason { get; set; }
+27: 
+28:     public DateTime CreatedAt { get; set; }
+29: 
+30:     public DateTime? UpdatedAt { get; set; }
+31: 
+32:     public byte[] RowVersion { get; set; } = null!;
+33: 
+34:     public virtual User? ClosedByNavigation { get; set; }
+35: 
+36:     public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
+37: 
+38:     public virtual User RequestedByNavigation { get; set; } = null!;
+39: 
+40:     public virtual Warehouse Warehouse { get; set; } = null!;
+41: }
+42: 

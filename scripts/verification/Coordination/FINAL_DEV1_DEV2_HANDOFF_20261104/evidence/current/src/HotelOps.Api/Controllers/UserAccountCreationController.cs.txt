@@ -1,0 +1,27 @@
+9: 
+10: [ApiController]
+11: [Route("api/users")]
+12: [Authorize(Policy = "HotelOps.Permission:Global:USER_MANAGE")]
+13: [Authorize(Policy = "HotelOps.Permission:Global:ROLE_MANAGE")]
+14: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+15: public sealed class UserAccountCreationController(UserAccountCreationService accounts) : ControllerBase
+16: {
+17:     [HttpPost]
+18:     public async Task<ActionResult<CreateEmployeeAccountResponse>> Create([FromBody] JsonElement body, CancellationToken ct)
+19:     {
+20:         try
+21:         {
+22:             using var result = await accounts.CreateAsync(CreateEmployeeAccountRequest.Parse(body), ct);
+23:             return result.Status switch
+24:             {
+25:                 AccountCreationStatus.Success => Created($"/api/users/{result.User!.Id}",
+26:                     new CreateEmployeeAccountResponse(result.User,
+27:                         new InitialCredentialHandoffDto(result.Credential!.TakePasswordOnce(), result.Credential.ExpiresAtUtc))),
+28:                 AccountCreationStatus.Forbidden => Forbid(),
+29:                 AccountCreationStatus.LastAdministrator => Problem(statusCode: 409, title: "LAST_DURABLE_ADMIN"),
+30:                 AccountCreationStatus.SerializationUnavailable => Problem(statusCode: 503, title: "GLOBAL_ADMIN_SERIALIZATION_UNAVAILABLE"),
+31:                 AccountCreationStatus.InvalidReference => Problem(statusCode: 400, title: "Invalid active branch, department or initial role relationship"),
+32:                 AccountCreationStatus.Duplicate => Problem(statusCode: 409, title: "Employee code, username or email already exists",
+33:                     extensions: new Dictionary<string, object?> { ["duplicateFields"] = result.DuplicateFields }),
+34:                 _ => throw new InvalidOperationException("Unknown account creation outcome.")
+35:             };

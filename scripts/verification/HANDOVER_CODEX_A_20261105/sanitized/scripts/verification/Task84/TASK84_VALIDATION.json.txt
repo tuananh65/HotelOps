@@ -1,0 +1,247 @@
+{
+    "status":  "DONE",
+    "CURRENT_CHECKOUT_RUNTIME_STATUS":  {
+                                            "UC142":  "RESTORED \u0026 REVERIFIED",
+                                            "environment":  "Approved disposable V1 SQL trial, actual production API source/build",
+                                            "productionDatabaseDeployment":  false
+                                        },
+    "startedUtc":  "2026-11-04T04:26:25.6370913+00:00",
+    "finishedUtc":  "2026-11-04T05:08:18.8132074+00:00",
+    "elapsedSeconds":  2513.18,
+    "elapsedDisplay":  "00:41:53",
+    "timing":  "Recorded preflight through final checks; initial attachment/history reading excluded. Includes approvals, fixture failure/recovery and all verification.",
+    "baselineTiming":  {
+                           "firstSourceWriteUtc":  "2026-11-04T04:30:19.8323687+00:00",
+                           "fullCaptureBeforeAnySourceEditOrBuild":  true,
+                           "fullCaptureFinishedUtc":  "2026-11-04T04:29:52.7605218+00:00"
+                       },
+    "progress":  {
+                     "newPoints":  0,
+                     "uc138":  "NOT_IMPLEMENTED",
+                     "uc139":  "BLOCKED_EXTERNAL",
+                     "uc037":  "PARTIAL",
+                     "weightedPercent":  23.4375,
+                     "pointDenominator":  256,
+                     "uc142AlreadyEarned":  1,
+                     "earnedPoints":  60,
+                     "ucDenominator":  75,
+                     "ledgerModified":  false,
+                     "completeUCs":  26,
+                     "newUCs":  0
+                 },
+    "sourceChanges":  [
+                          {
+                              "path":  "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+                              "sha256":  "0102E5F301A52DDE085C9C8D3D645809BBDDBCEF4F115CBEB394F7DF948AE746",
+                              "status":  "NEW_DEV1_SOURCE"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+                              "sha256":  "21649003343219A8BBA9B333B79C7AE5151C51AD4F2CC74D08BDF18A9B027E19",
+                              "status":  "NEW_DEV1_SOURCE"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+                              "sha256":  "22675D6639366F703543BB921392B093720383ADBAA8D64BEF0EDC12EDFF4A81",
+                              "status":  "NEW_DEV1_SOURCE"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Program.cs",
+                              "sha256":  "145B736DE14ECD931F704DC5F7E9B24A80AF2A136718F4000200B2D40C51EF5E",
+                              "status":  "MODIFIED_APPROVED_ONE_LINE"
+                          }
+                      ],
+    "sharedChanges":  {
+                          "otherSharedChanges":  0,
+                          "receipt":  "DI_APPROVAL_APPLIED.json",
+                          "change":  "AddScoped\u003cHotelOps.Api.Services.HotelStructure.RoomTypeDirectoryService\u003e() only",
+                          "explicitUserApproved":  true,
+                          "count":  1,
+                          "file":  "src/HotelOps.Api/Program.cs"
+                      },
+    "productionBuild":  {
+                            "exitCode":  0,
+                            "apiAssemblySha256":  "28D245B04792D7810E6D09BCEDE54F72E6C20E2F5D29391D57BF7AB11E2224D8",
+                            "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task84/artifacts/production -p:RestoreIgnoreFailedSources=true",
+                            "errors":  0,
+                            "apiAssembly":  "scripts/verification/Task84/artifacts/production/bin/HotelOps.Api/debug/HotelOps.Api.dll",
+                            "warnings":  "2 NU1900",
+                            "log":  "production-build.log"
+                        },
+    "productionDi":  {
+                         "actualProductionStartupAndServiceResolution":  "Also proven by main and supplemental actual HTTPS requests",
+                         "exitCode":  0,
+                         "receipt":  "production-di-receipt.json",
+                         "checks":  19,
+                         "kind":  "Fresh production-assembly graph/static/boundaries; verification container"
+                     },
+    "realHttpsSql":  {
+                         "accountExitCode":  0,
+                         "supplementalAccountChecks":  6,
+                         "mainExitCode":  0,
+                         "receipts":  [
+                                          "https-sql-resume-receipt.json",
+                                          "account-https-receipt.json"
+                                      ],
+                         "result":  "PASS",
+                         "mainChecks":  125,
+                         "mainCommand":  "dotnet scripts/verification/Task84/artifacts/https-resume/bin/Task84.HttpsResumeVerification/debug/Task84.HttpsResumeVerification.dll HotelOps_Canonical_20261104_044211_7a6d6e19_Fresh scripts/verification/Task84/https-sql-resume-receipt.json",
+                         "rolePermissionCatalogUnchanged":  true,
+                         "accountCommand":  "dotnet scripts/verification/Task84/artifacts/account/bin/Task84.AccountVerification/debug/Task84.AccountVerification.dll HotelOps_Canonical_20261104_044211_7a6d6e19_Fresh scripts/verification/Task84/account-https-receipt.json",
+                         "apiUsesCurrentProductionBuild":  true,
+                         "businessAuditReadFingerprintsUnchanged":  true,
+                         "totalChecks":  131,
+                         "actualDmvWaitAndRollback":  true,
+                         "fakeSqlSessions":  false,
+                         "frameworkCases":  false
+                     },
+    "catalogScopeCoverage":  {
+                                 "actualTested":  "Global assignment and branch-bound ALL assignment; cross-branch/missing permission/revocation; no role bypass",
+                                 "MASTER_DATA_MANAGE_CanonicalGrant":  "ALL only",
+                                 "OWN_MASTER_liveGrant":  "N/A: absent canonical grant, not invented",
+                                 "genericAllBranchOwnCoreCoverage":  "Existing core security regressions, isolated, separate from live SQL"
+                             },
+    "securityRegression":  {
+                               "totalChecks":  199,
+                               "freshSourcePostDi":  true,
+                               "results":  [
+                                               {
+                                                   "name":  "Authorization",
+                                                   "checks":  93,
+                                                   "exitCode":  0,
+                                                   "kind":  "FRESH_SOURCE_POST_APPROVED_DI_ISOLATED_REGRESSION",
+                                                   "log":  "postdi-Authorization.log",
+                                                   "command":  "dotnet run --project scripts/verification/Authorization/Authorization.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/postdi-Authorization -p:RestoreIgnoreFailedSources=true -- --production-fallback"
+                                               },
+                                               {
+                                                   "name":  "PermissionService",
+                                                   "checks":  43,
+                                                   "exitCode":  0,
+                                                   "kind":  "FRESH_SOURCE_POST_APPROVED_DI_ISOLATED_REGRESSION",
+                                                   "log":  "postdi-PermissionService.log",
+                                                   "command":  "dotnet run --project scripts/verification/PermissionService/PermissionService.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/postdi-PermissionService -p:RestoreIgnoreFailedSources=true"
+                                               },
+                                               {
+                                                   "name":  "CurrentUserAccessor",
+                                                   "checks":  14,
+                                                   "exitCode":  0,
+                                                   "kind":  "FRESH_SOURCE_POST_APPROVED_DI_ISOLATED_REGRESSION",
+                                                   "log":  "postdi-CurrentUserAccessor.log",
+                                                   "command":  "dotnet run --project scripts/verification/CurrentUserAccessor/CurrentUserAccessor.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/postdi-CurrentUserAccessor -p:RestoreIgnoreFailedSources=true"
+                                               },
+                                               {
+                                                   "name":  "ResourceAuthorization",
+                                                   "checks":  49,
+                                                   "exitCode":  0,
+                                                   "kind":  "FRESH_SOURCE_POST_APPROVED_DI_ISOLATED_REGRESSION",
+                                                   "log":  "postdi-ResourceAuthorization.log",
+                                                   "command":  "dotnet run --project scripts/verification/ResourceAuthorization/ResourceAuthorization.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/postdi-ResourceAuthorization -p:RestoreIgnoreFailedSources=true"
+                                               }
+                                           ],
+                               "kind":  "Console verification with doubles/loopback, not live business SQL"
+                           },
+    "framework":  {
+                      "exitCode":  0,
+                      "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task84/artifacts/production --no-restore",
+                      "executedCases":  0,
+                      "result":  "NOT_AVAILABLE_NO_FRAMEWORK_CASES",
+                      "log":  "framework-postdi.log"
+                  },
+    "sqlTrial":  {
+                     "setup":  "Prepare-Task84Trial.ps1",
+                     "roles":  12,
+                     "permissions":  62,
+                     "grants":  140,
+                     "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+                     "preexistingBusinessDatabasesOpened":  0,
+                     "users":  13,
+                     "resetOrDrop":  false,
+                     "deployment":  "Task69-v1",
+                     "scriptScopeReview":  "SQL_SCOPE_REVIEW.json",
+                     "createdDatabaseCount":  1,
+                     "explicitUserApproved":  true,
+                     "retained":  true,
+                     "setupLog":  "trial-setup.log",
+                     "name":  "HotelOps_Canonical_20261104_044211_7a6d6e19_Fresh",
+                     "rooms":  6,
+                     "setupExitCode":  0,
+                     "protectedDatabaseAccess":  false,
+                     "roomTypes":  4
+                 },
+    "initialFailures":  [
+                            {
+                                "log":  "di-boundary.log",
+                                "exitCode":  1,
+                                "failure":  "CS0117 internal CookieTicket.TryRead not available in separate assembly",
+                                "stage":  "proposal verifier compile",
+                                "resolution":  "Validation-only controller compile inclusion into API, no auth API change"
+                            },
+                            {
+                                "failure":  "Mixed LF/CRLF artifact",
+                                "stage":  "patch check",
+                                "resolution":  "Normalized proposal artifact; final patch check0; production changed only after explicit approval"
+                            },
+                            {
+                                "failure":  "Convert.ToHexString unavailable in Windows PowerShell",
+                                "stage":  "approval receipt serialization",
+                                "resolution":  "BitConverter receipt only; before-hash scope verified"
+                            },
+                            {
+                                "resolution":  "Retain failed fixture rows; verify checkpoint; add fresh owned identities and missing rooms through parameterized INSERT, not global mapping/trigger modification",
+                                "httpsChecksExecuted":  0,
+                                "exitCode":  -532462766,
+                                "stage":  "first SQL fixtures",
+                                "failure":  "SQL334 EF OUTPUT not supported on rooms with INSERT trigger",
+                                "log":  "https-sql.log"
+                            }
+                        ],
+    "notClaimed":  [
+                       "Shared/production database deployment",
+                       "Unrestored FE-02 writer runtime acceptance",
+                       "Wholly legacy schema success: original V1 gate intentionally fails closed",
+                       "Historical Task70 checks rerun or earned again"
+                   ],
+    "preservation":  {
+                         "missingFiles":  0,
+                         "task82SourceHashesUnchanged":  true,
+                         "readErrors":  0,
+                         "externalSiblingWorktree":  "Registration/HEAD checked, no writes attempted; outside root physical hash inventory",
+                         "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+                         "branchUnchanged":  true,
+                         "preexistingGitStatusUnchanged":  true,
+                         "checkedPreexistingFiles":  25596,
+                         "afterAcceptanceSourceHashesRechecked":  true,
+                         "headUnchanged":  true,
+                         "expectedExistingChanges":  [
+                                                         "src/HotelOps.Api/Program.cs"
+                                                     ],
+                         "indexUnchanged":  true,
+                         "newSourcePaths":  [
+                                                "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+                                                "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+                                                "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs"
+                                            ],
+                         "unexpectedExistingChanges":  0,
+                         "upstreamUnchanged":  true,
+                         "programExactOneLineProof":  "DI_APPROVAL_APPLIED.json"
+                     },
+    "diffCheck":  {
+                      "command":  "git diff --check",
+                      "exitCode":  0
+                  },
+    "dev2SourceChanges":  0,
+    "sharedSchemaOrEfEntityChanges":  0,
+    "rbacSourceChanges":  0,
+    "gitMutations":  0,
+    "task85Started":  false,
+    "deliverables":  [
+                         "TASK84_UC142_HISTORICAL_DIFF.md",
+                         "TASK84_INTEGRATION_REPORT.md",
+                         "TASK84_SHARED_APPROVAL_REQUEST.md",
+                         "TASK84_ACCEPTANCE_MATRIX.md",
+                         "TASK84_VALIDATION.json",
+                         "TASK84_CHANGELOG.md",
+                         "TASK84_DEV1_RUNTIME_STATUS.md"
+                     ],
+    "serializationCorrection":  "Normalized nested sourceChanges array from Windows PowerShell value/Count wrapper; all4 actual file hashes explicitly rechecked. No production or test result change."
+}

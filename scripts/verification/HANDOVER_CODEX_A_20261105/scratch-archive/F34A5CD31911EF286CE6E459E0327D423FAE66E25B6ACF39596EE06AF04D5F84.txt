@@ -1,0 +1,35 @@
+﻿{
+    "Result":  "PASS",
+    "ExclusiveUcs":  75,
+    "SharedUcs":  2,
+    "Points":  256,
+    "VerifiedPoints":  12,
+    "RemainingUcHours":  790,
+    "FullScopeHours":  814,
+    "ScheduledNewUcs":  14,
+    "ScheduledNewPoints":  31,
+    "DailyRows":  21,
+    "Budget":  {
+                   "Testing":  24,
+                   "Integration":  14,
+                   "Buffer":  18,
+                   "Implementation":  70
+               },
+    "ExistingFilesPreserved":  384,
+    "LocalLinks":  30,
+    "IndexUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "OnlyNewDeliverable":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+    "DiffCheckExit":  0,
+    "CachedDiffCheckExit":  0,
+    "DiffMessages":  [
+                         "warning: in the working copy of \u0027scripts/verification/StartupSchemaGate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                         "warning: in the working copy of \u0027scripts/verification/UserAccountCreation/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                         "warning: in the working copy of \u0027scripts/verification/UserProfileUpdate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                         "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                         "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/UserAccountCreationService.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                         "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/UserProfileService.cs\u0027, LF will be replaced by CRLF the next time Git touches it"
+                     ],
+    "RuntimeTests":  "NOT RUN - docs-only",
+    "ProductionSqlAccess":  "NONE"
+}

@@ -1,0 +1,15 @@
+{
+    "server_name":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+    "database_name":  "HotelOps_Canonical_20261104_133500_c03885b1_Fresh",
+    "trial_marker":  "Task17",
+    "roles":  12,
+    "permissions":  62,
+    "grants":  140,
+    "fixture_users":  24,
+    "fixture_role_assignments":  18,
+    "rooms":  3,
+    "cleaning_cycles":  3,
+    "operational_all_grants":  0,
+    "retained":  true,
+    "verifiedUtc":  "2026-11-04T07:11:32.9010688Z"
+}

@@ -1,0 +1,7 @@
+-- Trial-only SQL audit fault injection. Requires separate SQL approval; not production DDL.
+IF DB_NAME()<>N'HotelOps_Canonical_20261104_223000_c01286a1_Fresh'
+ THROW 51986,'Exact Task86 trial required',1;
+ALTER TABLE dbo.audit_logs ADD CONSTRAINT CK_Task86_BranchAuditFailure CHECK
+ (NOT (entity_type=N'branches' AND
+  (COALESCE(JSON_VALUE(new_values,'$.Code'),N'')=N'T86_FAIL_CREATE'
+   OR COALESCE(JSON_VALUE(new_values,'$.entity.Name'),N'')=N'T86_FAIL_UPDATE')));

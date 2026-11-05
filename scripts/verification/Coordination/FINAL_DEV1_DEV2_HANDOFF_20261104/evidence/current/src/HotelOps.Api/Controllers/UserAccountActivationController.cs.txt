@@ -1,0 +1,52 @@
+11: 
+12: [ApiController]
+13: [Route("api/users")]
+14: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+15: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+16: [UserAccountActivationErrors]
+17: public sealed class UserAccountActivationController(UserAccountActivationService activation) : ControllerBase
+18: {
+19:     [HttpPatch("{userId}/activate")]
+20:     [RequestSizeLimit(16 * 1024)]
+21:     public async Task<IActionResult> Activate([FromRoute, Range(1, long.MaxValue)] long userId,
+22:         [FromBody] JsonElement body, CancellationToken ct)
+23:     {
+24:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS is required");
+25:         if (!HotelOpsCookieTicket.TryRead(User, out var reference, out var sessionId)) return Failure(401, "SESSION_INVALID");
+26:         if (!Request.Headers.TryGetValue("If-Match", out var header)) return Failure(428, "IF_MATCH_REQUIRED");
+27:         var tag = header.ToString();
+32:         var result = await activation.ActivateAsync(reference!, sessionId, userId, Convert.FromHexString(tag[1..^1]),
+33:             new("ACTIVE", request!.Reason), ct);
+34:         switch (result.Status)
+35:         {
+36:             case AccountActivationStatus.Success:
+37:                 Response.Headers.ETag = "\"" + Convert.ToHexString(result.Version!) + "\"";
+38:                 return Ok(new UserAccountActivationDto(userId, "ACTIVE"));
+39:             case AccountActivationStatus.SessionInvalid: return Failure(401, "SESSION_INVALID");
+40:             case AccountActivationStatus.Forbidden: return Failure(403, "ACTIVATION_NOT_ALLOWED");
+41:             case AccountActivationStatus.NotFound: return Failure(404, "USER_NOT_FOUND");
+42:             case AccountActivationStatus.Stale: return Failure(412, "STALE_USER_VERSION");
+43:             case AccountActivationStatus.Conflict: return Failure(409, "INVALID_STATUS_TRANSITION");
+44:             default: throw new InvalidOperationException("Unexpected activation result.");
+45:         }
+46:     }
+47: 
+48:     private ObjectResult Failure(int status, string code) => Problem(statusCode: status, title: code,
+49:         extensions: new Dictionary<string, object?> { ["code"] = code });
+50: }
+51: 
+52: /// <summary>Translate only the route's body limit; preserve existing middleware for all other failures.</summary>
+53: public sealed class UserAccountActivationErrorsAttribute : ExceptionFilterAttribute
+54: {
+55:     public override void OnException(ExceptionContext context)
+56:     {
+57:         if (context.Exception is not BadHttpRequestException { StatusCode: 413 }) return;
+58:         context.HttpContext.Response.Headers.CacheControl = "no-store";
+59:         context.Result = new ObjectResult(new ProblemDetails
+60:         {
+61:             Status = 413, Title = "REQUEST_TOO_LARGE", Type = "about:blank",
+62:             Extensions = { ["code"] = "REQUEST_TOO_LARGE", ["traceId"] = context.HttpContext.TraceIdentifier }
+63:         }) { StatusCode = 413, ContentTypes = { "application/problem+json" } };
+64:         context.ExceptionHandled = true;
+65:     }
+66: }

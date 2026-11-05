@@ -1,0 +1,108 @@
+﻿SOURCE: src/HotelOps.Api/Controllers/IncidentsController.cs
+SHA256: CC59C101A762BFB516F1CC3CDD4CEF2C5B8BAA785AC03B2D260F24C5D8168A77
+Ranges: 1-130 (original source line numbers)
+    1: using HotelOps.Api.DTOs.Incidents;
+    2: using HotelOps.Api.Services.Incidents;
+    3: using Microsoft.AspNetCore.Mvc;
+    4: using System.ComponentModel.DataAnnotations;
+    5: 
+    6: namespace HotelOps.Api.Controllers;
+    7: 
+    8: [ApiController]
+    9: [Route("api/incidents")]
+   10: public class IncidentsController : ControllerBase
+   11: {
+   12:     private readonly IIncidentService _incidentService;
+   13: 
+   14:     public IncidentsController(IIncidentService incidentService)
+   15:     {
+   16:         _incidentService = incidentService;
+   17:     }
+   18: 
+   19:     [HttpPatch("{id:long}/status")]
+   20:     public async Task<ActionResult<IncidentDetailDto>> ChangeIncidentStatus(
+   21:         long id, ChangeIncidentStatusRequest request, CancellationToken cancellationToken)
+   22:     {
+   23:         try
+   24:         {
+   25:             var incident = await _incidentService.ChangeIncidentStatusAsync(id, request, cancellationToken);
+   26:             if (incident is null)
+   27:             {
+   28:                 return NotFound();
+   29:             }
+   30: 
+   31:             return Ok(incident);
+   32:         }
+   33:         catch (ValidationException exception)
+   34:         {
+   35:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+   36:                 title: "Incident status validation failed", detail: exception.Message);
+   37:         }
+   38:     }
+   39: 
+   40:     [HttpPatch("{id:long}/triage")]
+   41:     public async Task<ActionResult<IncidentDetailDto>> TriageIncident(
+   42:         long id, TriageIncidentRequest request, CancellationToken cancellationToken)
+   43:     {
+   44:         try
+   45:         {
+   46:             var incident = await _incidentService.TriageIncidentAsync(id, request, cancellationToken);
+   47:             if (incident is null)
+   48:             {
+   49:                 return NotFound();
+   50:             }
+   51: 
+   52:             return Ok(incident);
+   53:         }
+   54:         catch (ValidationException exception)
+   55:         {
+   56:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+   57:                 title: "Incident triage validation failed", detail: exception.Message);
+   58:         }
+   59:     }
+   60: 
+   61:     [HttpPost]
+   62:     public async Task<ActionResult<IncidentDetailDto>> CreateIncident(
+   63:         CreateIncidentRequest request, CancellationToken cancellationToken)
+   64:     {
+   65:         try
+   66:         {
+   67:             var incident = await _incidentService.CreateIncidentAsync(request, cancellationToken);
+   68:             return CreatedAtAction(nameof(GetIncident), new { id = incident.IncidentId }, incident);
+   69:         }
+   70:         catch (ValidationException exception)
+   71:         {
+   72:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+   73:                 title: "Incident validation failed", detail: exception.Message);
+   74:         }
+   75:     }
+   76: 
+   77:     [HttpGet]
+   78:     public async Task<ActionResult<IncidentPagedResponse>> GetIncidents(
+   79:         [FromQuery] IncidentQueryRequest request, CancellationToken cancellationToken)
+   80:     {
+   81:         try
+   82:         {
+   83:             var incidents = await _incidentService.GetIncidentsAsync(request, cancellationToken);
+   84:             return Ok(incidents);
+   85:         }
+   86:         catch (ValidationException exception)
+   87:         {
+   88:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+   89:                 title: "Incident query validation failed", detail: exception.Message);
+   90:         }
+   91:     }
+   92: 
+   93:     [HttpGet("{id:long}")]
+   94:     public async Task<ActionResult<IncidentDetailDto>> GetIncident(long id, CancellationToken cancellationToken)
+   95:     {
+   96:         var incident = await _incidentService.GetIncidentAsync(id, cancellationToken);
+   97:         if (incident is null)
+   98:         {
+   99:             return NotFound();
+  100:         }
+  101: 
+  102:         return Ok(incident);
+  103:     }
+  104: }
+

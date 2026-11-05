@@ -1,0 +1,264 @@
+﻿{
+    "status":  "A1_IMPLEMENTED_COMPONENT_ACCEPTANCE_PASS_FULL_UCS_INCOMPLETE",
+    "approval":  "USER_APPROVED_STRICT_A1",
+    "validationPassed":  true,
+    "startedUtc":  "2026-11-03T08:41:08.7454748Z",
+    "finishedUtc":  "2026-11-03T09:41:30.2092869+00:00",
+    "elapsedSeconds":  3621.464,
+    "elapsedDisplay":  "01:00:21",
+    "protectedExistingPaths":  719,
+    "preservedExistingPaths":  709,
+    "changedExistingPaths":  [
+                                 "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                                 "scripts/verification/Task77/APPROVAL_SCOPE.md",
+                                 "scripts/verification/Task77/DEV2_WORKTIME_CONTRACT.md",
+                                 "scripts/verification/Task77/Program.cs",
+                                 "scripts/verification/Task77/TASK77_WORKDAY_FOUNDATION.md",
+                                 "scripts/verification/Task77/UC_LEDGER_TASK77.json",
+                                 "scripts/verification/Task77/WorkTime.Verification.csproj",
+                                 "scripts/verification/UserAccountCreation/Program.cs",
+                                 "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+                                 "src/HotelOps.Api/Program.cs"
+                             ],
+    "unexpectedExistingChanges":  [
+
+                                  ],
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+    "otherWorktrees":  "Read-only status unchanged: rehearsal103 pre-existing staged entries, resolution clean, AI-Loop clean; no writes targeted them.",
+    "dbContextExactlyApprovedInsertion":  true,
+    "programExactlyApprovedDiInsertion":  true,
+    "fiveModelInterfaceFilesByteExact":  true,
+    "allApprovedProposalHashesUnchanged":  true,
+    "userHarnessExactlyOneEntityTypePredicate":  true,
+    "userProductionOrUc006FilesChanged":  [
+
+                                          ],
+    "dev2FilesChanged":  [
+
+                         ],
+    "authorizationFoundationChanged":  false,
+    "sharedChanges":  [
+                          "Data/HotelOpsDbContext.cs one ConfigureWorkTime call",
+                          "Program.cs one scoped registration",
+                          "five exact approved Entity/partial mapping/interface additions"
+                      ],
+    "componentChecks":  96,
+    "componentScope":  "Real SQL and HTTPS verification caller host; not public Workday UC endpoints",
+    "productionProgramChecks":  7,
+    "userSqlRegressionChecks":  26,
+    "securityChecks":  199,
+    "timeMathChecks":  422,
+    "build":  {
+                  "result":  "PASS",
+                  "errors":  0,
+                  "warnings":  2,
+                  "warningCode":  "NU1900",
+                  "log":  "obj/task77-a1-completion-build.local.log"
+              },
+    "harnessBuild":  {
+                         "result":  "PASS",
+                         "errors":  0,
+                         "warnings":  4,
+                         "warningCode":  "NU1900"
+                     },
+    "frameworkTests":  "dotnet test HotelOps.slnx exit0; no framework cases; NOT_AVAILABLE, not PASS",
+    "efEntityCount":  85,
+    "newTimeTables":  3,
+    "trials":  [
+                   "HotelOps_Canonical_20261103_154643_a503a8b5_Fresh",
+                   "HotelOps_Canonical_20261103_155759_76f7a208_Fresh",
+                   "HotelOps_Canonical_20261103_160111_c0d20839_Fresh",
+                   "HotelOps_Canonical_20261103_160559_ca6151b0_Fresh",
+                   "HotelOps_Canonical_20261103_161043_6d1349fe_Fresh",
+                   "HotelOps_Canonical_20261103_161348_26e5bc01_Fresh",
+                   "HotelOps_Canonical_20261103_162910_76025447_Fresh"
+               ],
+    "trialsDropped":  0,
+    "hotelOpsDbAccessed":  false,
+    "sharedOrProductionDbAccessed":  false,
+    "migrationReplay":  "Guarded refusal51773, state unchanged; successful no-op replay NOT_SUPPORTED by approved A1",
+    "rollbackRecovery":  "PASS empty-owned rollback/reapply; nonempty rollback refused51775",
+    "pmAdapter":  "NOT_READY: INCIDENT/MAINTENANCE_OCCURRENCE fail closed until source identity/ownership contract approved",
+    "publicWorkdayEndpoints":  "NOT_IMPLEMENTED: permission binding/unscheduled notification/Pause All outside A1",
+    "fullUcAcceptance":  false,
+    "classifications":  {
+                            "UC111":  "BLOCKED_EXTERNAL",
+                            "UC138":  "NOT_IMPLEMENTED",
+                            "UC139":  "BLOCKED_EXTERNAL"
+                        },
+    "completedUCs":  26,
+    "points":  60,
+    "totalPoints":  256,
+    "weightedPercent":  23.4375,
+    "newlyCompletedUCs":  0,
+    "pointsGained":  0,
+    "remainingUCs":  49,
+    "remainingPoints":  196,
+    "allLedgerClassificationsWeightsPointsUnchanged":  true,
+    "evidenceUpdates":  [
+                            "UC-111",
+                            "UC-138",
+                            "UC-139"
+                        ],
+    "diffCheck":  "PASS",
+    "newAndChangedFileWhitespace":  "PASS",
+    "apiAssemblySha256":  "48B55F541FB006E726D90843B6C4FEED0D499EA6EAABC7C9711858A06D6AA7BC",
+    "createdGitVisiblePaths":  [
+                                   "scripts/verification/Task77/ProductionHostProbe.cs",
+                                   "scripts/verification/Task77/RuntimeDiVerification.cs",
+                                   "scripts/verification/Task77/task77-a1-accepted.local.json",
+                                   "scripts/verification/Task77/task77-a1-attempt3.local.json",
+                                   "scripts/verification/Task77/task77-a1-complete-accepted.local.json",
+                                   "scripts/verification/Task77/task77-a1-final-accepted.local.json",
+                                   "scripts/verification/Task77/task77-a1-production-host.local.json",
+                                   "scripts/verification/Task77/task77-a1-production-host-final.local.json",
+                                   "scripts/verification/Task77/task77-a1-source-accepted.local.json",
+                                   "scripts/verification/Task77/task77-a1-user-regression.local.json",
+                                   "scripts/verification/Task77/task77-a1-user-regression-scoped.local.json",
+                                   "scripts/verification/Task77/WorkTimeHttpsAcceptance.cs",
+                                   "scripts/verification/Task77/WorkTimeSqlAcceptance.cs",
+                                   "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+                                   "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+                                   "src/HotelOps.Api/Entities/Workday.cs",
+                                   "src/HotelOps.Api/Entities/WorkInterval.cs",
+                                   "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+                                   "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs"
+                               ],
+    "receipts":  [
+                     {
+                         "name":  "component",
+                         "path":  "scripts/verification/Task77/task77-a1-complete-accepted.local.json",
+                         "sha256":  "72D7333D4F49AD98ABA9F04F7394101FEB276172E1FF21E1D472B5C553C47DF6"
+                     },
+                     {
+                         "name":  "productionHost",
+                         "path":  "scripts/verification/Task77/task77-a1-production-host-final.local.json",
+                         "sha256":  "1E4D6B4CDC844FB51B7DE047F66A08A87FFF64C2142FD75F4A0554AF9B484998"
+                     },
+                     {
+                         "name":  "userRegression",
+                         "path":  "scripts/verification/Task77/task77-a1-user-regression-scoped.local.json",
+                         "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+                     }
+                 ],
+    "fileHashes":  [
+                       {
+                           "path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                           "sha256":  "62CB387ABC833E631D7BA82D13F68F47F9F3C2E859B281E4FE535C55274776D2"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/APPROVAL_SCOPE.md",
+                           "sha256":  "471DCF38D587229C935B9CA011CFBBB2077203ED8C13329C188B1C3D469B25D5"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/DEV2_WORKTIME_CONTRACT.md",
+                           "sha256":  "3E386FC007D68E5FD9ADA941023A120BE4337F8A61CAEAA2A7ACADFB320F2681"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/ProductionHostProbe.cs",
+                           "sha256":  "54422E8A80592A2BAA220DF0CB5F247E070D0B33BD58429DC3D901CE4E1A2AA5"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/Program.cs",
+                           "sha256":  "012E2ACDBBF3D65DCE71DADFCD14BF80A15B1161446A1F38140FFA3181F5BF75"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/RuntimeDiVerification.cs",
+                           "sha256":  "A22B806A0787054F49A71D515E04BC95C5C08E3570A274CD6179BC83640BFF68"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/TASK77_WORKDAY_FOUNDATION.md",
+                           "sha256":  "068A207C4CA9D37B33E829CF28893197DFC2221191E2A00663E7E8362998FFA8"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-accepted.local.json",
+                           "sha256":  "2CEF2C6B9A700F8612DBEA6C49801A42281C23D32D22312D9CE1EBDBBAD57F04"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-attempt3.local.json",
+                           "sha256":  "9E9925F9163E0BD0B3DEBE4A75FDA54ACBFB0A8096134096A826FC4A562880DE"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-complete-accepted.local.json",
+                           "sha256":  "72D7333D4F49AD98ABA9F04F7394101FEB276172E1FF21E1D472B5C553C47DF6"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-final-accepted.local.json",
+                           "sha256":  "B52742E75C54142C5317C3CFC67D33DB3A40FFFC12385BBDCA4D4579FED941CD"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-production-host.local.json",
+                           "sha256":  "00CC52048F7B83EE30564D515EADB8492267B6544076E7E4EC16ABE5BA24FC1F"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-production-host-final.local.json",
+                           "sha256":  "1E4D6B4CDC844FB51B7DE047F66A08A87FFF64C2142FD75F4A0554AF9B484998"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-source-accepted.local.json",
+                           "sha256":  "6595032581AFCB7FA35CB31442A36F797CF1803C0A298C637F1DB07512AEA560"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-user-regression.local.json",
+                           "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/task77-a1-user-regression-scoped.local.json",
+                           "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/UC_LEDGER_TASK77.json",
+                           "sha256":  "3E9AEF04ABA7184D29F65F1CCCB59136F75308484DBA8868725333D9B5D333A5"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/WorkTime.Verification.csproj",
+                           "sha256":  "C430F35377661C58C502BEB7F498F69B01B4004A767D54A1C4D583CFDC7FC03D"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/WorkTimeHttpsAcceptance.cs",
+                           "sha256":  "696CE8BF0B8FC3DEC5652D263C09BC84F06040E5A4ACE0381746F4A0336C35AC"
+                       },
+                       {
+                           "path":  "scripts/verification/Task77/WorkTimeSqlAcceptance.cs",
+                           "sha256":  "03A86791F48CF4F0CA6DC3986F0F54B5C3FC96F28515DEAFAC1FE9E77D078857"
+                       },
+                       {
+                           "path":  "scripts/verification/UserAccountCreation/Program.cs",
+                           "sha256":  "C33AE9D3682B1E5B3C729C07FEC12702D02CC6D9A22FF63C022D4B4BC90A2027"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+                           "sha256":  "FBA0FE330B5C32A7D66D6112C23A5E003FD9DEB49097630A47D2C42373276BBD"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+                           "sha256":  "66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+                           "sha256":  "95A627D304B5D921997FD38F3ADC0EE176DB1EA29E3A4AB6719064B31ED3C6E3"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Entities/Workday.cs",
+                           "sha256":  "E4BF214DCDA01A5032D91DDF579C2635B1E01E5CC07D99C5261F649185284EEF"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Entities/WorkInterval.cs",
+                           "sha256":  "48F3CB02DED43DF0B67404E04DD5BF3450325AC7DE82DA951E16400BEE653573"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Program.cs",
+                           "sha256":  "56B67061534D3C2B14E423BBA01362F2F0AA8FB827D78D8700101154CF51CD64"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+                           "sha256":  "FF148586AE64FD9090B8E802D629435C1EAD486908FFCBDD3DD7BA24A2B6C2FB"
+                       },
+                       {
+                           "path":  "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+                           "sha256":  "9341FA79ED19A327C792AD666490759A54FBE2F549A0BFB33B859808A93F75AD"
+                       }
+                   ]
+}

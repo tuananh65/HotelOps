@@ -1,0 +1,1297 @@
+[
+  {
+    "file": "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "line": 33,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 33,
+    "text": "        var items = await query.OrderByDescending(h => h.CreatedAt).ThenByDescending(h => h.HandoverId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 50,
+    "text": "        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ToUserId, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 53,
+    "text": "        await _dbContext.Entry(asset).ReloadAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 96,
+    "text": "            var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).LockAsync(ids, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 97,
+    "text": "            HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(receiver, locked);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 102,
+    "text": "            .FromSqlInterpolated($\"SELECT * FROM asset_handovers WITH (UPDLOCK, HOLDLOCK) WHERE handover_id = {handoverId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 105,
+    "text": "        await _dbContext.Entry(handover).ReloadAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 106,
+    "text": "        if (asset is not null) await _dbContext.Entry(asset).ReloadAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 155,
+    "text": "            EXEC @result = sys.sp_getapplock @Resource = {resource},"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 160,
+    "text": "            FROM asset_handovers WITH (UPDLOCK, HOLDLOCK) WHERE handover_no LIKE {prefix + \"%\"}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.MaintenanceHistory.cs",
+    "line": 50,
+    "text": "        var items = await query.OrderByDescending(h => h.OccurredAt).ThenBy(h => h.Type)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "line": 29,
+    "text": "        var items = await query.OrderBy(a => a.AssetCode).ThenBy(a => a.AssetId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "line": 63,
+    "text": "            .OrderBy(t => t.TypeCode).ThenBy(t => t.AssetTypeId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "line": 78,
+    "text": "        var items = await query.OrderByDescending(h => h.ChangedAt).ThenByDescending(h => h.ConditionHistoryId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "line": 96,
+    "text": "        var items = await query.OrderByDescending(h => h.EffectiveAt).ThenByDescending(h => h.LocationHistoryId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Statistics.cs",
+    "line": 35,
+    "text": "                .OrderBy(g => g.Key.BranchId).ThenBy(g => g.Key.LocationType, StringComparer.Ordinal).ThenBy(g => g.Key.LocationId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Statistics.cs",
+    "line": 42,
+    "text": "                    LifecycleCounts = g.OrderBy(x => x.LifecycleStatus, StringComparer.Ordinal)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.cs",
+    "line": 14,
+    "text": "            .FromSqlInterpolated($\"SELECT * FROM assets WITH (UPDLOCK, HOLDLOCK) WHERE asset_id = {id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "line": 21,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 21,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 42,
+    "text": "                await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 43,
+    "text": "                // Validate acquires users UPDLOCK,HOLDLOCK before the session lock; keep both until commit."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 22,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 78,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "line": 32,
+    "text": "        if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "line": 33,
+    "text": "            is not (IsolationLevel.ReadCommitted or IsolationLevel.RepeatableRead or IsolationLevel.Serializable))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "line": 42,
+    "text": "                $\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId.Value}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "line": 22,
+    "text": "        if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "line": 23,
+    "text": "            is not (IsolationLevel.ReadCommitted or IsolationLevel.RepeatableRead or IsolationLevel.Serializable))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "line": 30,
+    "text": "            $\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 96,
+    "text": "        => (await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 101,
+    "text": "            $\"SELECT * FROM dbo.user_sessions WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {ticket.UserId} AND session_key_hash = {ticket.KeyHash}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 108,
+    "text": "        if (!db.Database.IsSqlServer() || tx.GetDbTransaction().IsolationLevel"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 109,
+    "text": "            is not (IsolationLevel.ReadCommitted or IsolationLevel.RepeatableRead or IsolationLevel.Serializable))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 64,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 120,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 129,
+    "text": "            foreach (var id in new[] { actorUserId, prepared.UserId }.Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 130,
+    "text": "                _ = await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 135,
+    "text": "            $\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {prepared.UserId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 169,
+    "text": "                $\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 35,
+    "text": "            command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:Branches:Create:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r;\";"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 119,
+    "text": "        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 122,
+    "text": "            var locked=await new UserEligibilityLock(db).LockAsync([actor.UserId],ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 154,
+    "text": "        FROM dbo.branches WITH(UPDLOCK,HOLDLOCK)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+    "line": 19,
+    "text": "        if(db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel!=IsolationLevel.Serializable)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 52,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 57,
+    "text": "            await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 63,
+    "text": "                    $\"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={branchId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 69,
+    "text": "                        $\"SELECT * FROM dbo.floors WITH (HOLDLOCK) WHERE floor_id={parent}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 56,
+    "text": "                (\"name\", false) => rows.OrderBy(x => x.TypeName), (\"name\", true) => rows.OrderByDescending(x => x.TypeName),"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 57,
+    "text": "                (\"status\", false) => rows.OrderBy(x => x.IsActive), (\"status\", true) => rows.OrderByDescending(x => x.IsActive),"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 58,
+    "text": "                (_, true) => rows.OrderByDescending(x => x.TypeCode), _ => rows.OrderBy(x => x.TypeCode)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 116,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 119,
+    "text": "            var locked = await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 125,
+    "text": "                var parent = await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 130,
+    "text": "            var locks = await db.Database.SqlQuery<int>($\"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:RoomTypes:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];\").ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "line": 30,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "line": 33,
+    "text": "            var locked = await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "line": 39,
+    "text": "                var parent = await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "line": 44,
+    "text": "            var locks = await db.Database.SqlQuery<int>($\"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:RoomTypes:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];\").ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 80,
+    "text": "            if (q.Result != null) tasks = tasks.Where(t => t.RoomInspections.Where(i => i.RoomId == t.RoomId).OrderByDescending(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 84,
+    "text": "            var page = await tasks.OrderByDescending(t => t.ActualStartAt ?? t.ScheduledStartAt ?? t.CreatedAt).ThenByDescending(t => t.CleaningTaskId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 92,
+    "text": "                    .OrderBy(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt).ThenBy(i => i.InspectionId)).ToArrayAsync(token);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 95,
+    "text": "                var progress = await db.CleaningProgressLogs.AsNoTracking().Where(p => ids.Contains(p.CleaningTaskId)).OrderBy(p => p.LoggedAt).ThenBy(p => p.ProgressId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 127,
+    "text": "            inspections.Where(i => i.CleaningTaskId == t.CleaningTaskId).OrderByDescending(i => i.At).ThenByDescending(i => i.Id).Select(i => i.Result).FirstOrDefault(),"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 128,
+    "text": "            reworks.Count(r => r.CleaningTaskId == t.CleaningTaskId), Reason(cancellations.Where(c => c.EntityId == t.CleaningTaskId.ToString(CultureInfo.InvariantCulture)).OrderByDescending(c => c.AuditId).Select(c => c.NewValues).FirstOrDefault()),"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 139,
+    "text": "        .OrderBy(a => a.AssignedAt).ThenBy(a => a.AssignmentId).Select(a => new AssignmentRow(a.CleaningTaskId,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 142,
+    "text": "        && r.Inspection.RoomId == r.CleaningTask.RoomId && r.Inspection.CleaningTaskId == r.CleaningTaskId).OrderBy(r => r.RequestedAt).ThenBy(r => r.ReworkId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 148,
+    "text": "        var items = await db.InspectionChecklistItems.AsNoTracking().Where(x => versions.Contains(x.VersionId)).OrderBy(x => x.SortOrder).ThenBy(x => x.ItemId).ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 155,
+    "text": "            .OrderBy(d => d.DefectId).ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 158,
+    "text": "            .OrderBy(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt).ThenBy(i => i.InspectionId)).ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "line": 191,
+    "text": "        .OrderBy(a => a.UploadedAt).ThenBy(a => a.AttachmentId).Select(a => new HistoryEvidenceDto(a.AttachmentId, a.EntityType, a.EntityId,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 57,
+    "text": "            var page = await rows.OrderBy(x => x.DueAt == null).ThenBy(x => x.DueAt).ThenBy(x => x.Id).ThenBy(x => x.Kind)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 85,
+    "text": "            var assignmentRows = await assignments.OrderByDescending(x => x.AssignedAt).ThenByDescending(x => x.AssignmentId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 90,
+    "text": "            var progressRows = await progress.OrderByDescending(x => x.LoggedAt).ThenByDescending(x => x.ProgressId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 99,
+    "text": "            var auditRows = await audit.OrderByDescending(x => x.OccurredAt).ThenByDescending(x => x.AuditId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 119,
+    "text": "            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 25,
+    "text": "            .FromSqlInterpolated($\"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 149,
+    "text": "            .FromSqlInterpolated($\"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 240,
+    "text": "                .FromSqlInterpolated($\"SELECT * FROM assets WITH (UPDLOCK, HOLDLOCK) WHERE asset_id = {assetId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 252,
+    "text": "            EXEC @result = sys.sp_getapplock @Resource = {resource},"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 259,
+    "text": "            FROM incidents WITH (UPDLOCK, HOLDLOCK)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 375,
+    "text": "            .OrderByDescending(incident => incident.ReportedAt)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 448,
+    "text": "                    .OrderBy(incidentEvent => incidentEvent.OccurredAt)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "line": 101,
+    "text": "            .OrderBy(x => x.MovementId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "line": 147,
+    "text": "        foreach (var key in new[] { (long?)id, sourceId }.Where(x => x.HasValue).Select(x => x!.Value).Distinct().Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 14,
+    "text": "        var root = await db.StockDocuments.FromSqlInterpolated($\"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={id}\").SingleOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 18,
+    "text": "            if (tracked) await db.Entry(root).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 19,
+    "text": "            foreach (var line in trackedLines) await db.Entry(line).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 130,
+    "text": "                d.StockDocumentLines.OrderBy(x => x.LineNo).Select(x => (x.ItemId, x.UomId, x.RequestedQty, x.ConversionFactor)).SequenceEqual(lines.Select(x => (x.ItemId, x.UomId, x.RequestedQty, x.ConversionFactor)));"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 134,
+    "text": "                same &= d.StockDocumentLines.OrderBy(x => x.LineNo).Select(x => x.StockReturnLineDetailStockDocumentLine?.OriginalIssueLineId).SequenceEqual(lines.Select(x => (long?)x.StockReturnLineDetailStockDocumentLine!.OriginalIssueLineId));"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.IssueCapacity.cs",
+    "line": 20,
+    "text": "        foreach (var id in documents.Distinct().Order()) await Document(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Issues.cs",
+    "line": 44,
+    "text": "        return new(d.DocumentId, d.StockDocumentLines.OrderBy(x => x.LineNo).Select((x, i) => new InventoryIssueCorrelation(r.Lines[i].RequestLineId, x.LineId)).ToList());"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 18,
+    "text": "        var x = id.HasValue ? await db.InventoryItems.FromSqlInterpolated($\"SELECT * FROM dbo.inventory_items WITH (UPDLOCK,HOLDLOCK) WHERE item_id={id}\").SingleOrDefaultAsync(ct) : new InventoryItem();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 38,
+    "text": "        var x = id.HasValue ? await db.UnitsOfMeasures.FromSqlInterpolated($\"SELECT * FROM dbo.units_of_measure WITH (UPDLOCK,HOLDLOCK) WHERE uom_id={id}\").SingleOrDefaultAsync(ct) : new UnitsOfMeasure();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 50,
+    "text": "        var x = id.HasValue ? await db.UomConversions.FromSqlInterpolated($\"SELECT * FROM dbo.uom_conversions WITH (UPDLOCK,HOLDLOCK) WHERE conversion_id={id}\").SingleOrDefaultAsync(ct) : new UomConversion();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 73,
+    "text": "            var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync(ids, token);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 75,
+    "text": "            if (r.ManagerUserId is long proposed) HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(proposed, locked);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 81,
+    "text": "            await db.Entry(x).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 109,
+    "text": "        var x = await db.StockThresholds.FromSqlInterpolated($\"SELECT * FROM dbo.stock_thresholds WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={warehouse} AND item_id={item}\").SingleOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 118,
+    "text": "        (await db.StockThresholds.AsNoTracking().Where(x => x.WarehouseId == warehouse).OrderBy(x => x.ItemId).ToListAsync(ct)).Select(Dto).ToList();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 23,
+    "text": "    public Task<InventoryPaged<InventoryItemDto>> GetItems(InventoryPage page, CancellationToken ct) => Page(db.InventoryItems.AsNoTracking().OrderBy(x => x.ItemId), page, Dto, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 25,
+    "text": "    public Task<List<InventoryLookup>> GetCategories(CancellationToken ct) => db.ItemCategories.AsNoTracking().OrderBy(x => x.ItemCategoryId).Select(x => new InventoryLookup(x.ItemCategoryId, x.CategoryCode, x.CategoryName, x.IsActive)).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 26,
+    "text": "    public Task<InventoryPaged<InventoryUnitDto>> GetUnits(InventoryPage page, CancellationToken ct) => Page(db.UnitsOfMeasures.AsNoTracking().OrderBy(x => x.UomId), page, Dto, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 32,
+    "text": "        return (await db.UomConversions.AsNoTracking().Where(x => x.ItemId == item || x.ItemId == null).OrderBy(x => x.ConversionId).ToListAsync(ct)).Select(Dto).ToList();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 34,
+    "text": "    public Task<InventoryPaged<InventoryWarehouseDto>> GetWarehouses(InventoryPage page, CancellationToken ct) => Page(ReadWarehouses().AsNoTracking().OrderBy(x => x.WarehouseId), page, Dto, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 57,
+    "text": "        Page(ReadStock().Where(x => !lowOnly || x.BelowMinimum).OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId), page, x => x, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 79,
+    "text": "        Page(MovementQuery().OrderBy(x => x.OccurredAt).ThenBy(x => x.MovementId), page, x => x, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 87,
+    "text": "            .OrderBy(x => x.OccurredAt).ThenBy(x => x.MovementId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 97,
+    "text": "        var batches = x.StockTransferReceipts.OrderBy(r => r.TransferReceiptId).Select(r => new InventoryBatchDto(r.TransferReceiptId, r.ReceivedBy, r.ReceivedAt, r.Note,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 98,
+    "text": "            r.StockTransferReceiptLines.OrderBy(l => l.TransferReceiptLineId).Select(l => new InventoryBatchLineDto(l.TransferLineId, l.ReceivedQty, l.DamagedQty, l.MissingQty, l.Note)).ToList())).ToList();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 100,
+    "text": "        var lines = x.StockDocumentLines.OrderBy(l => l.LineNo).Select(l =>"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 117,
+    "text": "        var count = await q.CountAsync(ct); var ids = await q.OrderBy(x => x.DocumentId).Skip(offset).Take(size).Select(x => x.DocumentId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 126,
+    "text": "            .OrderBy(x => x.OccurredAt).ThenBy(x => x.AuditId).Select(x => new InventoryHistoryDto(x.AuditId, x.BranchId, x.ActorUserId, x.Action, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields)).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 132,
+    "text": "            Convert.ToBase64String(x.RowVersion), x.StocktakeLines.OrderBy(l => l.StocktakeLineId).Select(l => new InventoryStocktakeLineDto(l.StocktakeLineId, l.ItemId, l.SystemQty, l.CountedQty, l.VarianceQty, l.DiscrepancyReason, l.CountedBy, l.CountedAt)).ToList());"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "line": 137,
+    "text": "        var ids = await ReadStocktakes().AsNoTracking().OrderBy(x => x.StocktakeId).Skip(offset).Take(size).Select(x => x.StocktakeId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "line": 12,
+    "text": "        var x = await db.Stocktakes.FromSqlInterpolated($\"SELECT * FROM dbo.stocktakes WITH (UPDLOCK,HOLDLOCK) WHERE stocktake_id={id}\").SingleOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "line": 33,
+    "text": "        foreach (var item in balances.Where(b => b.Value != 0).Select(b => b.Key).Union(thresholds).Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 75,
+    "text": "        command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;\";"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 111,
+    "text": "        foreach (var id in ids.Distinct().Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 115,
+    "text": "                $\"SELECT * FROM dbo.warehouses WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 124,
+    "text": "        foreach (var pair in pairs.Distinct().OrderBy(x => x.Warehouse).ThenBy(x => x.Item))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 23,
+    "text": "            new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.AssigneeId, token));"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 46,
+    "text": "            await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 54,
+    "text": "            .FromSqlInterpolated($\"SELECT * FROM maintenance_works WITH (UPDLOCK, HOLDLOCK) WHERE maintenance_work_id = {id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 59,
+    "text": "        await _dbContext.Entry(work).ReloadAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 60,
+    "text": "        if (incident is not null) await _dbContext.Entry(incident).ReloadAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 128,
+    "text": "            .FromSqlInterpolated($\"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "line": 71,
+    "text": "            EXEC @result = sys.sp_getapplock @Resource = {resource},"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "line": 77,
+    "text": "            FROM maintenance_works WITH (UPDLOCK, HOLDLOCK)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 46,
+    "text": "        var cycle = await _dbContext.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 64,
+    "text": "        foreach (var entry in input.OrderBy(x => x.StockDocumentLineId))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 100,
+    "text": "        .Where(x => x.MaintenanceWorkId == work).OrderBy(x => x.UsageId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 116,
+    "text": "        var work = await _dbContext.MaintenanceWorks.FromSqlInterpolated($\"SELECT * FROM maintenance_works WITH (UPDLOCK, HOLDLOCK) WHERE maintenance_work_id={id}\").SingleAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 121,
+    "text": "            .OrderBy(x => x.StockDocumentLine!.Document.PostedAt).ThenBy(x => x.StockDocumentLine!.DocumentId).ThenBy(x => x.StockDocumentLine!.LineNo).ThenBy(x => x.StockDocumentLineId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 138,
+    "text": "        var ordered = result.OrderBy(x => x.PostedAt).ThenBy(x => x.DocumentId).ThenBy(x => x.LineNo).ThenBy(x => x.StockDocumentLineId).ToArray();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Queries.cs",
+    "line": 35,
+    "text": "        var items = await query.OrderByDescending(work => work.CreatedAt)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Queries.cs",
+    "line": 93,
+    "text": "                    .OrderBy(log => log.LoggedAt).ThenBy(log => log.LogId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 19,
+    "text": "            .Where(x => x.RequestId == id.Value).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct) : null;"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 27,
+    "text": "            var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 28,
+    "text": "            UserEligibilityLock.RequireEligible(input.ActorUserId, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 29,
+    "text": "            UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 30,
+    "text": "            if (needsCycle && approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 34,
+    "text": "            if (id != null) RecheckDiscovery(r, discovered);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 57,
+    "text": "            var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 98,
+    "text": "            var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 99,
+    "text": "            UserEligibilityLock.RequireEligible(input.ActorUserId, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 100,
+    "text": "            if (needsRequester) UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 101,
+    "text": "            if (approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 103,
+    "text": "            RecheckDiscovery(r, discovered);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 150,
+    "text": "            var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 161,
+    "text": "            await new UserEligibilityLock(db).RequireEligibleAsync(input.ActorUserId, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 24,
+    "text": "        var rows = await q.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.RequestId).Skip((p.Page - 1) * p.PageSize).Take(p.PageSize)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 32,
+    "text": "        var cycles = await db.MaterialRequestApprovalCycles.AsNoTracking().Include(x => x.MaterialRequestApprovalLineSnapshots).Where(x => x.RequestId == id).OrderBy(x => x.RevisionNo).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 33,
+    "text": "        var decisions = await db.MaterialRequestApprovals.AsNoTracking().Where(x => x.RequestId == id).OrderBy(x => x.DecidedAt).ThenBy(x => x.ApprovalId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 45,
+    "text": "            r.MaterialRequestLines.OrderBy(x => x.LineNo).Select(x => new MaterialLineDto(x.LineId, x.LineNo, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.ApprovedQty - x.FulfilledQty,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 48,
+    "text": "                x.MaterialRequestApprovalLineSnapshots.OrderBy(l => l.LineNo).Select(l => new MaterialCycleLineDto(l.RequestLineId, l.LineNo, l.ItemId, l.UomId, l.RequestedQty, l.ApprovedQty, l.Note)).ToArray())).ToArray(),"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 54,
+    "text": "        var rows = await db.MaterialFulfillments.AsNoTracking().Include(x => x.StockDocument).Include(x => x.MaterialFulfillmentLines).Where(x => x.RequestId == id).OrderBy(x => x.FulfillmentId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 56,
+    "text": "            x.MaterialFulfillmentLines.OrderBy(l => l.FulfillmentLineId).Select(l => new MaterialFulfillmentLineDto(l.FulfillmentLineId, l.RequestLineId, l.ItemId, l.UomId, l.IssuedQty, l.ReceivedQty, l.StockDocumentLineId)).ToArray())).ToArray();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "line": 64,
+    "text": "            .OrderBy(x => x.OccurredAt).ThenBy(x => x.AuditId).Select(x => new MaterialAuditDto(x.AuditId, x.EntityType, x.EntityId, x.Action, x.ActorUserId, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields)).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 29,
+    "text": "        command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;\";"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 51,
+    "text": "    private static void RecheckDiscovery(MaterialRequest current, MaterialRequest discovered)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 72,
+    "text": "        var r = await db.MaterialRequests.FromSqlInterpolated($\"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 75,
+    "text": "        if (trackedRequest) await db.Entry(r).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 76,
+    "text": "        foreach (var line in trackedLines) await db.Entry(line).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 93,
+    "text": "        Lines = r.MaterialRequestLines.OrderBy(x => x.LineNo).Select(x => new { x.LineId, x.LineNo, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.Note, x.IsActive }).ToArray()"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 125,
+    "text": "            .Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct) ?? throw Invalid(\"Approval cycle missing.\");"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 128,
+    "text": "            await db.Entry(cycle).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 129,
+    "text": "            foreach (var line in cycle.MaterialRequestApprovalLineSnapshots.ToArray()) await db.Entry(line).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 134,
+    "text": "        IReadOnlyDictionary<long, UserEligibilityLock.LockedUser?> lockedUsers, CancellationToken ct)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 139,
+    "text": "        UserEligibilityLock.RequireEligible(approver!.Value, lockedUsers);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 140,
+    "text": "        var prior = await db.MaterialRequestApprovalCycles.Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 141,
+    "text": "        if (prior != null) await db.Entry(prior).ReloadAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 19,
+    "text": "        command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;\";"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 29,
+    "text": "        return await db.MaterialReplenishments.FromSqlInterpolated($\"SELECT * FROM dbo.material_replenishments WITH (UPDLOCK,HOLDLOCK) WHERE replenishment_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 34,
+    "text": "        foreach (var p in lines.Select(x => (x.WarehouseId, x.ItemId)).Distinct().OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 57,
+    "text": "        Lines = r.MaterialReplenishmentLines.OrderBy(x => x.LineNo).Select(x => new { x.ReplenishmentLineId, x.LineNo, x.ItemId, x.BaseUomId, x.SourceType, x.SourceThresholdId,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 135,
+    "text": "        var ids = await db.MaterialReplenishmentReceiptLines.Where(x => x.StockDocumentLine.DocumentId == original.DocumentId).Select(x => x.ReplenishmentLine.ReplenishmentId).Distinct().OrderBy(x => x).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 31,
+    "text": "        var rows = await q.OrderBy(x => x.ExpectedOn == null).ThenBy(x => x.ExpectedOn).ThenBy(x => x.ReplenishmentId).Skip(offset).Take(p.PageSize)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 43,
+    "text": "            r.MaterialReplenishmentLines.OrderBy(x => x.LineNo).Select(x => new ReplenishmentLineDto(x.ReplenishmentLineId, x.LineNo, x.ItemId, x.BaseUomId, x.SourceType, x.SourceThresholdId, x.SourceMaterialRequestLineId, x.SourceMaterialRequestLine?.RequestId,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 45,
+    "text": "            links.OrderBy(x => x.ReplenishmentReceiptLineId).Select(x => new ReplenishmentReceiptDto(x.ReplenishmentReceiptLineId, x.ReplenishmentLineId, x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo, x.StockDocumentLineId,"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 60,
+    "text": "            .OrderBy(x => x.OccurredAt).ThenBy(x => x.AuditId).Select(x => new ReplenishmentAuditDto(x.AuditId, x.EntityType, x.EntityId, x.Action, x.ActorUserId, x.BranchId, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields)).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 67,
+    "text": "            .Where(x => x.Warehouse.IsActive && x.Warehouse.Branch.IsActive && x.Item.IsActive && x.Item.Category.IsActive && x.Item.BaseUom.IsActive && (p.WarehouseId == null || x.WarehouseId == p.WarehouseId) && (p.BranchId == null || x.Warehouse.BranchId == p.BranchId) && (p.ItemId == null || x.ItemId == p.ItemId)).OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 84,
+    "text": "            .OrderBy(x => x.RequestId).ThenBy(x => x.LineId).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 19,
+    "text": "        var query = locking ? db.Warehouses.FromSqlInterpolated($\"SELECT * FROM dbo.warehouses WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={id}\") : db.Warehouses.AsNoTracking().Where(x => x.WarehouseId == id);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 56,
+    "text": "            var requestIds = await db.MaterialRequestLines.Where(x => sources.Contains(x.LineId)).Select(x => x.RequestId).Distinct().OrderBy(x => x).ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 60,
+    "text": "                await db.MaterialRequests.FromSqlInterpolated($\"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}\").SingleAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 66,
+    "text": "            foreach (var l in root.MaterialReplenishmentLines.OrderBy(x => x.ItemId))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 119,
+    "text": "            foreach (var doc in documents.Distinct().Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 122,
+    "text": "                await db.StockDocuments.FromSqlInterpolated($\"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={doc}\").SingleAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+    "line": 96,
+    "text": "        return new(blockers.Order(StringComparer.Ordinal).ToArray(), unresolved.Order(StringComparer.Ordinal).ToArray());"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 30,
+    "text": "        if (transaction.GetDbTransaction().IsolationLevel is not (System.Data.IsolationLevel.ReadCommitted"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 31,
+    "text": "            or System.Data.IsolationLevel.RepeatableRead or System.Data.IsolationLevel.Serializable))"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 38,
+    "text": "        command.CommandText = \"DECLARE @result int; EXEC @result=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=@timeout,@DbPrincipal='public'; SELECT @result;\";"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 113,
+    "text": "        // Take the write lock up front. A retained table S lock followed by a User UPDLOCK"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 115,
+    "text": "        var users = await db.Users.FromSqlRaw(\"SELECT * FROM dbo.users WITH (TABLOCKX,HOLDLOCK)\").AsNoTracking().ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 116,
+    "text": "        // Shared row/range locks remain compatible with Create's existing Role UPDLOCK."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 118,
+    "text": "        _ = await db.UserRoles.FromSqlRaw(\"SELECT * FROM dbo.user_roles WITH (ROWLOCK,HOLDLOCK)\").AsNoTracking().ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 119,
+    "text": "        _ = await db.Roles.FromSqlRaw(\"SELECT * FROM dbo.roles WITH (ROWLOCK,HOLDLOCK)\").AsNoTracking().ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 120,
+    "text": "        _ = await db.RolePermissions.FromSqlRaw(\"SELECT * FROM dbo.role_permissions WITH (ROWLOCK,HOLDLOCK)\").AsNoTracking().ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 121,
+    "text": "        _ = await db.Permissions.FromSqlRaw(\"SELECT * FROM dbo.permissions WITH (ROWLOCK,HOLDLOCK)\").AsNoTracking().ToListAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 134,
+    "text": "            .Select(g => g.Key).Order().ToArray();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "line": 39,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "line": 40,
+    "text": "        foreach (var id in new[] { actor.UserId, targetId }.Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "line": 41,
+    "text": "            _ = await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 36,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 48,
+    "text": "        var branch = await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={request.BranchId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 50,
+    "text": "        var department = await db.Departments.FromSqlInterpolated($\"SELECT * FROM dbo.departments WITH (UPDLOCK,HOLDLOCK) WHERE department_id={request.DepartmentId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 52,
+    "text": "        var role = await db.Roles.FromSqlInterpolated($\"SELECT * FROM dbo.roles WITH (UPDLOCK,HOLDLOCK) WHERE role_code={request.RoleCode}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentAccess.cs",
+    "line": 26,
+    "text": "            .Select(a => a.BranchId).Distinct().OrderBy(id => id).ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 33,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 34,
+    "text": "        foreach (var id in new[] { actor.UserId, targetId }.Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 35,
+    "text": "            _ = await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 39,
+    "text": "        _ = await db.UserRoles.FromSqlInterpolated($\"SELECT * FROM dbo.user_roles WITH (HOLDLOCK) WHERE user_id={targetId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 41,
+    "text": "        _ = await db.Roles.FromSqlInterpolated($\"SELECT * FROM dbo.roles r WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.user_roles ur WHERE ur.user_id={targetId} AND ur.role_id=r.role_id)\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 43,
+    "text": "        _ = await db.RolePermissions.FromSqlInterpolated($\"SELECT * FROM dbo.role_permissions rp WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.user_roles ur WHERE ur.user_id={targetId} AND ur.role_id=rp.role_id)\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 45,
+    "text": "        var branch = (await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={branchId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 20,
+    "text": "        // SQL UPDATE/DELETE/INSERT writers conflict with HOLDLOCK without a new writer protocol."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 21,
+    "text": "        _ = await db.UserRoles.FromSqlInterpolated($\"SELECT * FROM dbo.user_roles WITH (HOLDLOCK) WHERE user_id={actorId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 23,
+    "text": "        _ = await db.Roles.FromSqlInterpolated($\"SELECT * FROM dbo.roles r WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.user_roles ur WHERE ur.user_id={actorId} AND ur.role_id=r.role_id)\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 25,
+    "text": "        _ = await db.RolePermissions.FromSqlInterpolated($\"SELECT * FROM dbo.role_permissions rp WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.user_roles ur WHERE ur.user_id={actorId} AND ur.role_id=rp.role_id)\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 27,
+    "text": "        _ = await db.Permissions.FromSqlInterpolated($\"SELECT * FROM dbo.permissions WITH (HOLDLOCK) WHERE permission_code={\"USER_MANAGE\"}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 29,
+    "text": "        foreach (var id in new[] { actorId, targetId }.Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 30,
+    "text": "            _ = await db.UserBranchAccesses.FromSqlInterpolated($\"SELECT * FROM dbo.user_branch_access WITH (HOLDLOCK) WHERE user_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 32,
+    "text": "        _ = await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches b WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.user_branch_access a WHERE a.user_id IN ({actorId},{targetId}) AND a.branch_id=b.branch_id) OR EXISTS (SELECT 1 FROM dbo.user_roles ur WHERE ur.user_id={actorId} AND ur.branch_id=b.branch_id)\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "line": 46,
+    "text": "            .Select(a => a.BranchId).Distinct().OrderBy(id => id).ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserDirectoryQueries.cs",
+    "line": 30,
+    "text": "        .OrderBy(user => user.FullName).ThenBy(user => user.UserId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserDirectoryQueries.cs",
+    "line": 40,
+    "text": "                .OrderBy(assignment => assignment.Role.RoleCode).ThenBy(assignment => assignment.UserRoleId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "line": 8,
+    "text": "public sealed class UserEligibilityLock(HotelOpsDbContext db)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "line": 16,
+    "text": "        var ids = userIds.Distinct().Order().ToArray();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "line": 24,
+    "text": "                $\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserProfileAccess.cs",
+    "line": 26,
+    "text": "            .Select(a => a.BranchId).Distinct().OrderBy(id => id).ToArrayAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "line": 34,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 35,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 41,
+    "text": "        foreach (var id in new[] { actor.UserId, targetId }.Order())"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 42,
+    "text": "            _ = await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 47,
+    "text": "        _ = await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH (HOLDLOCK) WHERE branch_id={request.BranchId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 49,
+    "text": "        _ = await db.Departments.FromSqlInterpolated($\"SELECT * FROM dbo.departments WITH (HOLDLOCK) WHERE EXISTS (SELECT 1 FROM dbo.users u WHERE u.user_id={targetId} AND u.department_id=dbo.departments.department_id)\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleDelegationPolicy.cs",
+    "line": 25,
+    "text": "            && policy.Grants.Order(StringComparer.Ordinal).SequenceEqual(grants.Order(StringComparer.Ordinal), StringComparer.Ordinal);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+    "line": 15,
+    "text": "    Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 28,
+    "text": "    public Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken) => RunAsync(async () =>"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 32,
+    "text": "        var ids = actorAndOwnerIds.Distinct().Order().ToArray();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 39,
+    "text": "        await new UserEligibilityLock(db).LockAsync(ids, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 45,
+    "text": "                EXEC @result=sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive',"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 68,
+    "text": "            $\"SELECT * FROM dbo.shift_assignments WITH(UPDLOCK,HOLDLOCK) WHERE shift_assignment_id={shiftAssignmentId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 74,
+    "text": "            $\"SELECT * FROM dbo.work_shifts WITH(UPDLOCK,HOLDLOCK) WHERE shift_id={assignment.ShiftId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 80,
+    "text": "                $\"SELECT * FROM dbo.shift_templates WITH(HOLDLOCK) WHERE shift_template_id={shift.ShiftTemplateId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 84,
+    "text": "                $\"SELECT * FROM dbo.departments WITH(HOLDLOCK) WHERE department_id={shift.DepartmentId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 180,
+    "text": "        $\"SELECT * FROM dbo.workdays WITH(UPDLOCK,HOLDLOCK) WHERE user_id={userId} AND status='WORKING'\").AsNoTracking();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 182,
+    "text": "        $\"SELECT * FROM dbo.work_intervals WITH(UPDLOCK,HOLDLOCK) WHERE user_id={userId} AND closed_at IS NULL\").AsNoTracking();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 186,
+    "text": "        if (transaction.GetDbTransaction().IsolationLevel != IsolationLevel.ReadCommitted"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 187,
+    "text": "            && transaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 209,
+    "text": "        if (!await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH(HOLDLOCK) WHERE branch_id={branchId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 212,
+    "text": "                $\"SELECT * FROM dbo.user_branch_access WITH(HOLDLOCK) WHERE user_id={userId} AND branch_id={branchId}\")"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs",
+    "line": 43,
+    "text": "            .OrderBy(range => range.StartUtc).ToArray();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 76,
+    "text": "                .OrderBy(a => a.Shift.ScheduledStartAt).ThenBy(a => a.ShiftAssignmentId)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 98,
+    "text": "            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 99,
+    "text": "            await participant.LockUsersAsync([actor.UserId], ct);"
+  }
+]

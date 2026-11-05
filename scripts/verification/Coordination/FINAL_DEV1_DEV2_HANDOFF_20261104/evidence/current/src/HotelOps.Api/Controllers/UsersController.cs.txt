@@ -1,0 +1,28 @@
+9: 
+10: [ApiController]
+11: [Route("api/users")]
+12: [Authorize(Policy = PermissionPolicy.Prefix + "Global:USER_VIEW")]
+13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+14: public sealed class UsersController(IUserDirectoryService users) : ControllerBase
+15: {
+16:     [HttpGet("{userId}")]
+17:     public async Task<ActionResult<UserAccountDetailDto>> Detail([FromRoute, Range(1, long.MaxValue)] long userId,
+18:         CancellationToken cancellationToken)
+19:     {
+20:         var user = await users.GetAsync(userId, cancellationToken);
+21:         return user is null
+22:             ? Problem(statusCode: StatusCodes.Status404NotFound, title: "User account not found")
+23:             : Ok(user);
+24:     }
+25: 
+26:     [HttpGet]
+27:     public async Task<ActionResult<UserDirectoryResponse>> List([FromQuery] UserDirectoryQuery query,
+28:         CancellationToken cancellationToken)
+29:     {
+30:         try
+34:         catch (ValidationException exception)
+35:         {
+36:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+37:                 title: "User directory validation failed", detail: exception.Message);
+38:         }
+39:     }

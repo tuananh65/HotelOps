@@ -1,0 +1,22 @@
+{
+  "checkedFiles": 23708,
+  "changes": [
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+      "bytesUnchanged": false,
+      "lastWriteUnchanged": false
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+      "bytesUnchanged": false,
+      "lastWriteUnchanged": false
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+      "bytesUnchanged": false,
+      "lastWriteUnchanged": false
+    }
+  ],
+  "readErrors": [],
+  "finishedUtc": "2026-11-04T01:12:01.9841877+00:00"
+}

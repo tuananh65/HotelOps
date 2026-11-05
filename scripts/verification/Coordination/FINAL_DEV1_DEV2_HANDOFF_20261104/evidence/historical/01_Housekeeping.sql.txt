@@ -1,0 +1,129 @@
+1: SET XACT_ABORT ON;
+2: IF DB_NAME() NOT LIKE N'HotelOps[_]Canonical[_]%' OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.UserDirectory.Trial' AND CONVERT(nvarchar(128),value)=N'Task17')
+3:  THROW 51730,'Guarded disposable trial required.',1;
+4: IF COL_LENGTH(N'dbo.inspection_checklists',N'branch_id') IS NULL OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Checklists.V1')
+5:  THROW 51730,'Checklist V1 prerequisite required.',1;
+6: IF COL_LENGTH(N'dbo.cleaning_tasks',N'workflow_status') IS NOT NULL OR COL_LENGTH(N'dbo.room_inspections',N'workflow_status') IS NOT NULL
+7:  OR COL_LENGTH(N'dbo.cleaning_reworks',N'workflow_status') IS NOT NULL OR COL_LENGTH(N'dbo.inspection_defects',N'room_location') IS NOT NULL
+8:  OR OBJECT_ID(N'dbo.cleaning_rework_defects') IS NOT NULL OR OBJECT_ID(N'dbo.inspection_defect_attachments') IS NOT NULL OR OBJECT_ID(N'dbo.inspection_result_attachments') IS NOT NULL
+9:  THROW 51730,'Partial Housekeeping schema requires explicit recovery.',1;
+10: ALTER TABLE dbo.cleaning_tasks ADD workflow_status varchar(30) NULL,row_version rowversion NOT NULL;
+11: ALTER TABLE dbo.room_inspections ADD workflow_status varchar(30) NULL,due_at datetime2(7) NULL,row_version rowversion NOT NULL;
+12: ALTER TABLE dbo.cleaning_reworks ADD workflow_status varchar(30) NULL,due_at datetime2(7) NULL,row_version rowversion NOT NULL;
+13: ALTER TABLE dbo.inspection_defects ADD room_location nvarchar(250) NULL;
+14: GO
+15: ALTER TABLE dbo.cleaning_tasks WITH CHECK ADD CONSTRAINT CK_cleaning_workflow_v1 CHECK(workflow_status IS NULL OR
+16:  (workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED') AND status='PENDING') OR
+17:  (workflow_status IN('IN_PROGRESS','ON_HOLD','PENDING_INSPECTION','REWORK_REQUIRED') AND status='IN_PROGRESS') OR
+18:  (workflow_status='COMPLETED' AND status='COMPLETED') OR (workflow_status='CANCELLED' AND status='CANCELLED'));
+19: ALTER TABLE dbo.room_inspections WITH CHECK ADD CONSTRAINT CK_inspection_workflow_v1 CHECK(workflow_status IS NULL OR
+20:  (workflow_status='ASSIGNED' AND status='PENDING' AND result IS NULL) OR
+21:  (workflow_status IN('INSPECTING','PENDING_CONCLUSION') AND status='IN_PROGRESS' AND result IS NULL) OR
+22:  (workflow_status='PASSED' AND status='COMPLETED' AND result='PASS') OR
+23:  (workflow_status='FAILED' AND status='COMPLETED' AND result='FAIL') OR (workflow_status='CANCELLED' AND status='CANCELLED'));
+24: ALTER TABLE dbo.cleaning_reworks WITH CHECK ADD CONSTRAINT CK_rework_workflow_v1 CHECK(workflow_status IS NULL OR
+25:  (workflow_status='PENDING_ACCEPTANCE' AND status='PENDING') OR
+26:  (workflow_status IN('IN_PROGRESS','PENDING_REINSPECTION') AND status='IN_PROGRESS') OR
+27:  (workflow_status='COMPLETED' AND status='COMPLETED') OR (workflow_status='CANCELLED' AND status='CANCELLED'));
+28: CREATE TABLE dbo.cleaning_rework_defects(rework_id bigint NOT NULL,defect_id bigint NOT NULL,
+29:  CONSTRAINT PK_rework_defects_v1 PRIMARY KEY(rework_id,defect_id),
+30:  CONSTRAINT FK_rework_defects_rework_v1 FOREIGN KEY(rework_id) REFERENCES dbo.cleaning_reworks(rework_id),
+31:  CONSTRAINT FK_rework_defects_defect_v1 FOREIGN KEY(defect_id) REFERENCES dbo.inspection_defects(defect_id));
+32: CREATE INDEX IX_rework_defects_reverse_v1 ON dbo.cleaning_rework_defects(defect_id,rework_id);
+33: CREATE TABLE dbo.inspection_defect_attachments(defect_id bigint NOT NULL,attachment_id bigint NOT NULL,
+34:  CONSTRAINT PK_defect_attachments_v1 PRIMARY KEY(defect_id,attachment_id),
+35:  CONSTRAINT FK_defect_attachment_defect_v1 FOREIGN KEY(defect_id) REFERENCES dbo.inspection_defects(defect_id),
+36:  CONSTRAINT FK_defect_attachment_file_v1 FOREIGN KEY(attachment_id) REFERENCES dbo.attachments(attachment_id));
+37: CREATE TABLE dbo.inspection_result_attachments(result_id bigint NOT NULL,attachment_id bigint NOT NULL,
+38:  CONSTRAINT PK_result_attachments_v1 PRIMARY KEY(result_id,attachment_id),
+39:  CONSTRAINT FK_result_attachment_result_v1 FOREIGN KEY(result_id) REFERENCES dbo.inspection_results(result_id),
+40:  CONSTRAINT FK_result_attachment_file_v1 FOREIGN KEY(attachment_id) REFERENCES dbo.attachments(attachment_id));
+41: CREATE INDEX IX_results_version_lookup_v1 ON dbo.inspection_results(inspection_id,checklist_item_id);
+42: GO
+43: CREATE TRIGGER dbo.TR_hk_inspections_v1 ON dbo.room_inspections AFTER INSERT,UPDATE AS
+44: BEGIN
+45:  SET NOCOUNT ON;
+46:  IF EXISTS(SELECT 1 FROM inserted i JOIN deleted d ON d.inspection_id=i.inspection_id WHERE d.workflow_status IS NOT NULL AND
+47:   (i.workflow_status IS NULL OR i.room_id<>d.room_id OR ISNULL(i.cleaning_task_id,0)<>ISNULL(d.cleaning_task_id,0) OR i.version_id<>d.version_id))
+48:   THROW 51731,'Owned inspection source/version is immutable.',1;
+49:  IF EXISTS(SELECT 1 FROM inserted i LEFT JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=i.cleaning_task_id
+50:   WHERE i.workflow_status IS NOT NULL AND (t.cleaning_task_id IS NULL OR t.room_id<>i.room_id))
+51:   THROW 51731,'Inspection must reference its own cleaning cycle.',1;
+52:  IF EXISTS(SELECT 1 FROM inserted i WHERE i.workflow_status IS NOT NULL AND i.status IN('PENDING','IN_PROGRESS')
+53:   AND EXISTS(SELECT 1 FROM dbo.room_inspections other WITH(UPDLOCK,HOLDLOCK) WHERE other.cleaning_task_id=i.cleaning_task_id AND other.inspection_id<>i.inspection_id AND other.status IN('PENDING','IN_PROGRESS')))
+54:   THROW 51731,'Only one open inspection per cleaning cycle.',1;
+55: END
+56: GO
+57: CREATE TRIGGER dbo.TR_hk_results_v1 ON dbo.inspection_results AFTER INSERT,UPDATE,DELETE AS
+58: BEGIN
+59:  SET NOCOUNT ON;
+60:  IF EXISTS(SELECT 1 FROM (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a
+61:   JOIN dbo.room_inspections r WITH(UPDLOCK,HOLDLOCK) ON r.inspection_id=a.inspection_id WHERE r.workflow_status IS NOT NULL AND r.workflow_status<>'INSPECTING')
+62:   THROW 51731,'Results writable only while Inspecting.',1;
+63:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.room_inspections r ON r.inspection_id=i.inspection_id JOIN dbo.inspection_checklist_items c ON c.item_id=i.checklist_item_id
+64:   WHERE r.workflow_status IS NOT NULL AND (c.version_id<>r.version_id OR c.is_active=0 OR
+65:    EXISTS(SELECT 1 FROM dbo.inspection_results x WITH(UPDLOCK,HOLDLOCK) WHERE x.inspection_id=i.inspection_id AND x.checklist_item_id=i.checklist_item_id AND x.result_id<>i.result_id)))
+66:   THROW 51731,'Result must be unique and belong to assigned active criterion.',1;
+67:  UPDATE r SET summary_note=summary_note FROM dbo.room_inspections r JOIN
+68:   (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a ON a.inspection_id=r.inspection_id WHERE r.workflow_status IS NOT NULL;
+69: END
+70: GO
+71: CREATE TRIGGER dbo.TR_hk_defects_v1 ON dbo.inspection_defects AFTER INSERT,UPDATE,DELETE AS
+72: BEGIN
+73:  SET NOCOUNT ON;
+74:  IF EXISTS(SELECT 1 FROM (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a JOIN dbo.room_inspections r WITH(UPDLOCK,HOLDLOCK) ON r.inspection_id=a.inspection_id
+75:   WHERE r.workflow_status IS NOT NULL AND r.workflow_status NOT IN('INSPECTING','PENDING_CONCLUSION'))
+76:   THROW 51731,'Concluded inspection defects cannot change.',1;
+77:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.room_inspections r ON r.inspection_id=i.inspection_id
+78:   WHERE r.workflow_status IS NOT NULL AND (i.checklist_item_id IS NULL OR LEN(LTRIM(RTRIM(i.description)))=0
+79:    OR NOT EXISTS(SELECT 1 FROM dbo.inspection_results x JOIN dbo.inspection_checklist_items c ON c.item_id=x.checklist_item_id
+80:     WHERE x.inspection_id=r.inspection_id AND x.checklist_item_id=i.checklist_item_id AND x.outcome='FAIL' AND c.version_id=r.version_id)))
+81:   THROW 51731,'Defect requires a failed criterion from this inspection.',1;
+82:  UPDATE r SET summary_note=summary_note FROM dbo.room_inspections r JOIN
+83:   (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a ON a.inspection_id=r.inspection_id WHERE r.workflow_status IS NOT NULL;
+84: END
+85: GO
+86: CREATE TRIGGER dbo.TR_hk_rework_links_v1 ON dbo.cleaning_rework_defects AFTER INSERT,UPDATE AS
+87: BEGIN
+88:  SET NOCOUNT ON;
+89:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.cleaning_reworks r ON r.rework_id=i.rework_id JOIN dbo.inspection_defects d ON d.defect_id=i.defect_id
+90:   JOIN dbo.room_inspections x ON x.inspection_id=r.inspection_id JOIN dbo.cleaning_tasks t ON t.cleaning_task_id=r.cleaning_task_id
+91:   WHERE d.inspection_id<>r.inspection_id OR x.room_id<>t.room_id OR x.cleaning_task_id<>t.cleaning_task_id)
+92:   THROW 51731,'Cross-cycle rework defect link refused.',1;
+93: END
+94: GO
+95: CREATE TRIGGER dbo.TR_hk_defect_files_v1 ON dbo.inspection_defect_attachments AFTER INSERT,UPDATE AS
+96: BEGIN
+97:  SET NOCOUNT ON;
+98:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.inspection_defects d ON d.defect_id=i.defect_id JOIN dbo.attachments a ON a.attachment_id=i.attachment_id
+99:   WHERE a.entity_type<>'INSPECTION' OR a.entity_id<>d.inspection_id OR a.deleted_at IS NOT NULL)
+100:   THROW 51731,'Attachment must belong to this inspection.',1;
+101: END
+102: GO
+103: CREATE TRIGGER dbo.TR_hk_used_criteria_v1 ON dbo.inspection_checklist_items AFTER INSERT,UPDATE,DELETE AS
+104: BEGIN
+105:  SET NOCOUNT ON;
+106:  IF EXISTS(SELECT 1 FROM (SELECT version_id FROM inserted UNION SELECT version_id FROM deleted) v
+107:   JOIN dbo.room_inspections r WITH(HOLDLOCK) ON r.version_id=v.version_id WHERE r.workflow_status IS NOT NULL)
+108:   THROW 51731,'Assigned Housekeeping checklist criteria are immutable, including legacy templates.',1;
+109: END
+110: GO
+111: CREATE TRIGGER dbo.TR_hk_used_version_v1 ON dbo.inspection_checklist_versions AFTER UPDATE,DELETE AS
+112: BEGIN
+113:  SET NOCOUNT ON;
+114:  IF EXISTS(SELECT 1 FROM deleted d LEFT JOIN inserted i ON i.version_id=d.version_id
+115:   WHERE EXISTS(SELECT 1 FROM dbo.room_inspections r WITH(HOLDLOCK) WHERE r.version_id=d.version_id AND r.workflow_status IS NOT NULL)
+116:   AND (i.version_id IS NULL OR i.version_no<>d.version_no OR i.checklist_id<>d.checklist_id
+117:    OR ISNULL(i.effective_at,'19000101')<>ISNULL(d.effective_at,'19000101') OR ISNULL(i.published_by,0)<>ISNULL(d.published_by,0)
+118:    OR i.status<>d.status AND NOT(d.status='PUBLISHED' AND i.status='RETIRED')))
+119:   THROW 51731,'Assigned version content is immutable except retirement.',1;
+120: END
+121: GO
+122: CREATE TRIGGER dbo.TR_hk_result_files_v1 ON dbo.inspection_result_attachments AFTER INSERT,UPDATE AS
+123: BEGIN
+124:  SET NOCOUNT ON;
+125:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.inspection_results r ON r.result_id=i.result_id JOIN dbo.attachments a ON a.attachment_id=i.attachment_id
+126:   WHERE a.entity_type<>'INSPECTION' OR a.entity_id<>r.inspection_id OR a.deleted_at IS NOT NULL)
+127:   THROW 51731,'Attachment must belong to this inspection.',1;
+128: END
+129: 

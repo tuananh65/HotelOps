@@ -1,0 +1,6 @@
+3: namespace HotelOps.Api.Services.Assets;
+4: 
+5: public interface IAssetService
+6: {
+7:     Task<AssetHandoverDto?> CreateHandoverAsync(long assetId, CreateAssetHandoverRequest request, CancellationToken cancellationToken);
+8:     Task<AssetPagedResponse<AssetHandoverDto>?> GetHandoversAsync(long assetId, AssetPageRequest request, CancellationToken cancellationToken);

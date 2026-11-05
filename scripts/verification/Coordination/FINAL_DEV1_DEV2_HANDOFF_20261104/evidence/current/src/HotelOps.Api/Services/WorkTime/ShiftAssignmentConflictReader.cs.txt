@@ -1,0 +1,14 @@
+10: /// No route/DI registration or shift mutation is activated by this component.
+11: /// </summary>
+12: public sealed class ShiftAssignmentConflictReader(HotelOpsDbContext db)
+13: {
+14:     public async Task<bool> HasOverlapAsync(long employeeId, DateTimeOffset startUtc,
+15:         DateTimeOffset endUtc, long? excludeAssignmentId, CancellationToken ct)
+16:     {
+17:         ct.ThrowIfCancellationRequested();
+26:         // Only explicit Cancelled is ignored. Unknown legacy states are never assumed free.
+27:         var rows = await db.ShiftAssignments.AsNoTracking()
+28:             .Where(a => a.UserId == employeeId && a.AssignmentStatus != "CANCELLED"
+29:                 && (excludeAssignmentId == null || a.ShiftAssignmentId != excludeAssignmentId)
+30:                 && ((a.Shift.ScheduledStartAt < end && a.Shift.ScheduledEndAt > start)
+31:                     || a.Shift.ScheduledEndAt <= a.Shift.ScheduledStartAt))

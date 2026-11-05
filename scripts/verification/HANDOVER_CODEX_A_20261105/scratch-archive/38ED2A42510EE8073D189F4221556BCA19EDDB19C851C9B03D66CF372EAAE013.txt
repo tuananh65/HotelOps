@@ -1,0 +1,14 @@
+$ErrorActionPreference='Stop'
+$name=(Get-Content obj/task60-trial-name.local.txt).Trim()
+if($name -cnotmatch '^HotelOps_Canonical_[0-9]{8}_[0-9]{6}_[a-f0-9]{8}_Fresh$'){throw 'Disposable trial required'}
+$connection=New-Object System.Data.SqlClient.SqlConnection "Data Source=localhost\SQLEXPRESS;Initial Catalog=$name;Integrated Security=True;TrustServerCertificate=True;Connect Timeout=5"
+try {
+    $connection.OpenAsync().GetAwaiter().GetResult()
+    $command=$connection.CreateCommand()
+    $command.CommandText='SELECT CONVERT(nvarchar(128),@@SERVERNAME)'
+    if($command.ExecuteScalarAsync().GetAwaiter().GetResult() -cne 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS'){throw 'Wrong instance'}
+    $command.CommandText=[IO.File]::ReadAllText((Join-Path (Get-Location) 'scripts/verification/UserProfileUpdate/rowversion-forward.sql'))
+    $command.CommandTimeout=30
+    [void]$command.ExecuteNonQueryAsync().GetAwaiter().GetResult()
+    'PASS: unchanged approved guarded rowversion prerequisite applied to '+$name
+} finally { $connection.Dispose() }

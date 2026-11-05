@@ -1,0 +1,34 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialRequestApprovalCycle
+7: {
+8:     public long ApprovalCycleId { get; set; }
+9: 
+10:     public long RequestId { get; set; }
+11: 
+12:     public int RevisionNo { get; set; }
+13: 
+14:     public long SubmittedBy { get; set; }
+15: 
+16:     public long AssignedApproverId { get; set; }
+17: 
+18:     public string Status { get; set; } = null!;
+19: 
+20:     public DateTime SubmittedAt { get; set; }
+21: 
+22:     public DateTime? ResolvedAt { get; set; }
+23: 
+24:     public virtual User AssignedApprover { get; set; } = null!;
+25: 
+26:     public virtual MaterialRequestApproval? MaterialRequestApproval { get; set; }
+27: 
+28:     public virtual ICollection<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; } = new List<MaterialRequestApprovalLineSnapshot>();
+29: 
+30:     public virtual MaterialRequest Request { get; set; } = null!;
+31: 
+32:     public virtual User SubmittedByNavigation { get; set; } = null!;
+33: }
+34: 

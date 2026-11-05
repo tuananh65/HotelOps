@@ -1,0 +1,44 @@
+﻿[
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+        "blob":  "1b9f0d49b1a8d4a7435db421733c6472e6864b11",
+        "presentInCurrentTree":  false
+    },
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+        "blob":  "87e1a7d6bbc5496d850253d7a84208de64326ac6",
+        "presentInCurrentTree":  false
+    },
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+        "blob":  "8aba8703a8e26808af57208cdd7439ceb43c099e",
+        "presentInCurrentTree":  false
+    },
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+        "blob":  "6aa05682a9545d5332e6fbe8dc4afc0661d02d2d",
+        "presentInCurrentTree":  false
+    },
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+        "blob":  "f2b771332a2cdb8942c809bfcd339c6d68df6550",
+        "presentInCurrentTree":  false
+    },
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "src/HotelOps.Api/Data/HousekeepingSchema.cs",
+        "blob":  "93cbedf3334efaa61c92098639a1174288abf30e",
+        "presentInCurrentTree":  false
+    },
+    {
+        "snapshot":  "cf8fb02",
+        "path":  "scripts/database/release/housekeeping/01_Housekeeping.sql",
+        "blob":  "622b64f51b2767575575b56a4e9530225cd2534b",
+        "presentInCurrentTree":  false
+    }
+]

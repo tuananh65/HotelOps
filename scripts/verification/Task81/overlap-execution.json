@@ -1,0 +1,5 @@
+﻿{
+    "exitCode":  0,
+    "command":  "dotnet artifacts/overlap/bin/SqlOverlap/debug/SqlOverlap.dll overlap-receipt.json",
+    "finishedUtc":  "2026-11-04T00:42:49.5324984+00:00"
+}

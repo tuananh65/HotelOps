@@ -1,0 +1,68 @@
+10: namespace HotelOps.Api.Services.HotelStructure;
+11: 
+12: public enum TurnoverHistoryStatus { Success, SessionInvalid, Forbidden, NotFound, Inactive, SchemaRequired, Unavailable }
+13: public sealed record TurnoverHistoryResult(TurnoverHistoryStatus Status, object? Value = null);
+14: 
+15: /// <summary>UC038 read-only extraction. Owns only its read transaction; no business writers.</summary>
+16: public sealed partial class TurnoverHistoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
+17:     IPermissionService permissions, ISqlSessionService sessions)
+18: {
+19:     private const string Permission = "CLEANING_VIEW";
+20:     private async Task<TurnoverHistoryResult> ReadAsync(SessionReference ticket, long sessionId, long? branchId,
+21:         Func<CancellationToken, Task<TurnoverHistoryResult>> read, CancellationToken ct, bool allowScopedList = true)
+22:     {
+23:         ArgumentNullException.ThrowIfNull(ticket);
+24:         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
+25:         ct.ThrowIfCancellationRequested();
+26:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+27:             || actor.IsRestricted || ticket.IsRestricted) return new(TurnoverHistoryStatus.SessionInvalid);
+28:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
+29:             || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
+30:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+31:         try
+32:         {
+33:             var locked = await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);
+34:             if (!locked.TryGetValue(actor.UserId, out var user) || user is null || user.DeletedAt != null
+35:                 || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE") return new(TurnoverHistoryStatus.SessionInvalid);
+36:             if (await Gate() is { } denied) return new(denied);
+37:             if (branchId is { } branch)
+38:             {
+39:                 var parent = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}")
+40:                     .AsNoTracking().SingleOrDefaultAsync(ct);
+41:                 if (parent == null) return new(TurnoverHistoryStatus.NotFound);
+42:                 if (!parent.IsActive) return new(TurnoverHistoryStatus.Inactive);
+43:             }
+44:             var locks = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:RoomTypes:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];").ToArrayAsync(ct);
+45:             if (locks.Length != 1 || locks[0] < 0) return new(TurnoverHistoryStatus.Unavailable);
+46: 
+47:             var result = await read(ct);
+48:             if (result.Status != TurnoverHistoryStatus.Success) return result;
+49:             if (await Gate() is { } final) return new(final);
+50:             await tx.CommitAsync(ct);
+51:             return result;
+52:         }
+53:         catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2 or 207 or 208)
+54:         { return new(TurnoverHistoryStatus.Unavailable); }
+55:         catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
+56:         { throw new OperationCanceledException("Turnover history cancelled.", error, ct); }
+57: 
+58:         async Task<TurnoverHistoryStatus?> Gate()
+59:         {
+60:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+61:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return TurnoverHistoryStatus.SessionInvalid;
+62:             var access = branchId is { } branch ? await permissions.EvaluateBranchAsync(Permission, branch, ct)
+63:                 : await permissions.EvaluateGlobalAsync(Permission, ct);
+64:             ct.ThrowIfCancellationRequested();
+65:             if (access.IsGranted) return null;
+66:             if (access.Decision == PermissionDecision.Unavailable) return TurnoverHistoryStatus.Unavailable;
+67:             if (branchId == null && allowScopedList)
+68:                 foreach (var id in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(ct))
+69:                 {
+70:                     var scoped = await permissions.EvaluateBranchAsync(Permission, id, ct);
+71:                     if (scoped.Decision == PermissionDecision.Unavailable) return TurnoverHistoryStatus.Unavailable;
+72:                     if (scoped.IsGranted) return null;
+73:                 }
+74:             return TurnoverHistoryStatus.Forbidden;
+75:         }
+76:     }
+77: 

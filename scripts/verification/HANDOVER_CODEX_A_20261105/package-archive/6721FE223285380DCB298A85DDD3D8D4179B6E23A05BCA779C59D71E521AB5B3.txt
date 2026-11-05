@@ -1,0 +1,27 @@
+﻿SOURCE: src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs
+SHA256: 566D6B984EC2E12C7532C0DCCA19338C9976CD697F3AB13B2B9532D2BED5E8B1
+Ranges: 1-110 (original source line numbers)
+    1: using Microsoft.AspNetCore.Authorization;
+    2: using Microsoft.Extensions.DependencyInjection.Extensions;
+    3: 
+    4: namespace HotelOps.Api.Security.Authorization;
+    5: 
+    6: public static class PermissionAuthorizationRegistration
+    7: {
+    8:     public static IServiceCollection AddHotelOpsPermissionAuthorization(this IServiceCollection services)
+    9:     {
+   10:         services.AddAuthorization(options =>
+   11:         {
+   12:             // Endpoints without authorization metadata still require a validated SQL session.
+   13:             // Explicit permission policies retain their own requirements and scope checks.
+   14:             options.FallbackPolicy = new AuthorizationPolicyBuilder(HotelOpsCookieTicket.Scheme)
+   15:                 .RequireAuthenticatedUser().Build();
+   16:         });
+   17:         services.AddHttpContextAccessor();
+   18:         services.TryAddScoped<IPermissionPolicyCatalog, EfPermissionPolicyCatalog>();
+   19:         services.TryAddEnumerable(ServiceDescriptor.Scoped<IAuthorizationHandler, PermissionAuthorizationHandler>());
+   20:         services.Replace(ServiceDescriptor.Singleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>());
+   21:         return services;
+   22:     }
+   23: }
+

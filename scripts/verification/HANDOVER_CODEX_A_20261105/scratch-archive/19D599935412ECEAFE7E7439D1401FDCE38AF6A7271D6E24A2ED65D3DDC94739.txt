@@ -1,0 +1,302 @@
+{
+    "Snapshots":  [
+                      {
+                          "Path":  "obj/task72-preflight-20261031-070033",
+                          "OriginalFiles":  608
+                      },
+                      {
+                          "Path":  "obj\\task72-checklist-preflight-20261031-072345",
+                          "OriginalFiles":  652
+                      }
+                  ],
+    "UnexpectedChanges":  [
+
+                          ],
+    "BackupHashFailures":  [
+
+                           ],
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "HeadUnchanged":  true,
+    "IndexUnchanged":  true,
+    "FourWorktreesUnchanged":  true,
+    "DiffCheckExit":  0,
+    "WhitespaceFailures":  [
+
+                           ],
+    "NewFiles":  [
+                     "scripts/database/release/checklists/01_Checklists.sql",
+                     "scripts/database/release/checklists/02_Verify.sql",
+                     "scripts/database/release/checklists/03_Rollback.sql",
+                     "scripts/database/release/checklists/README.md",
+                     "scripts/database/release/checklists/Run-Checklists.ps1",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070751_243eeb36.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070751_243eeb36_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070751_243eeb36_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070751_243eeb36_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070953_8bb0c7e5.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070953_8bb0c7e5_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070953_8bb0c7e5_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_070953_8bb0c7e5_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071101_f8c8dd67.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071101_f8c8dd67_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071101_f8c8dd67_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071101_f8c8dd67_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071220_620f730e.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071220_620f730e_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071220_620f730e_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071220_620f730e_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071346_3fd07a6c.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071346_3fd07a6c_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071346_3fd07a6c_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071346_3fd07a6c_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071542_5b143b37.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071542_5b143b37_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071542_5b143b37_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071542_5b143b37_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071555_056ac117.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071555_056ac117_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071555_056ac117_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071555_056ac117_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071725_85c1f456.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071725_85c1f456_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071725_85c1f456_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_071725_85c1f456_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_072748_c93bf833.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_072748_c93bf833_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_072748_c93bf833_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_072748_c93bf833_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_AuthUpgrade-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_AuthUpgrade-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_Fresh-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_Fresh-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_Upgrade-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073240_c8d317ae_Upgrade-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_AuthUpgrade-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_AuthUpgrade-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_Fresh-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_Fresh-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_Upgrade-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073346_77e43a83_Upgrade-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073544_8fa1ef06.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073544_8fa1ef06_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073544_8fa1ef06_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073544_8fa1ef06_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073735_69ed1ceb.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073735_69ed1ceb_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073735_69ed1ceb_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073735_69ed1ceb_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_AuthUpgrade-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_AuthUpgrade-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_Fresh-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_Fresh-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_Upgrade-checklists.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_Upgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073749_7bc2be72_Upgrade-uc017.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073941_c75cc518.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073941_c75cc518_AuthUpgrade-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073941_c75cc518_Fresh-schema.json",
+                     "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261031_073941_c75cc518_Upgrade-schema.json",
+                     "scripts/verification/HotelStructure/TASK72_BATCH3_IMPLEMENTATION.md",
+                     "scripts/verification/HotelStructure/TASK72_CHECKLIST_CONTRACT_PROPOSAL.md",
+                     "scripts/verification/HotelStructure/Task72ChecklistCases.cs",
+                     "scripts/verification/HotelStructure/Task72HistoryCases.cs",
+                     "scripts/verification/HotelStructure/task72-batch-regression-final.local.json",
+                     "scripts/verification/HotelStructure/task72-checklist-attempt3.local.json",
+                     "scripts/verification/HotelStructure/task72-checklist-batch-regression.local.json",
+                     "scripts/verification/HotelStructure/task72-checklist-final.local.json",
+                     "scripts/verification/HotelStructure/task72-checklist-history-regression.local.json",
+                     "scripts/verification/HotelStructure/task72-history-attempt4.local.json",
+                     "scripts/verification/HotelStructure/task72-history-final.local.json",
+                     "scripts/verification/HotelStructure/task72-rooms-regression-final.local.json",
+                     "scripts/verification/HotelStructure/task72-structure-regression-final.local.json",
+                     "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+                     "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+                     "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+                     "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+                     "src/HotelOps.Api/Data/ChecklistSchema.cs",
+                     "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+                     "src/HotelOps.Api/Entities/ChecklistV1.cs",
+                     "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+                     "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+                     "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs"
+                 ],
+    "Receipts":  [
+                     {
+                         "Path":  "scripts\\verification\\HotelStructure\\task72-checklist-final.local.json",
+                         "Success":  true,
+                         "Checks":  282,
+                         "Database":  "HotelOps_Canonical_20261031_073941_c75cc518_Fresh",
+                         "SHA256":  "34CEEFE44D2FB2114AE2F6287C84D8F849DECCB26D1CA68660E74E3B9683F30B"
+                     },
+                     {
+                         "Path":  "scripts\\verification\\HotelStructure\\task72-checklist-history-regression.local.json",
+                         "Success":  true,
+                         "Checks":  208,
+                         "Database":  "HotelOps_Canonical_20261031_073749_7bc2be72_Fresh",
+                         "SHA256":  "787FF47E7D6A03494E0C595B54AAEEBF8DF61598A0AFCFBCBC9A0409D665009D"
+                     },
+                     {
+                         "Path":  "scripts\\verification\\HotelStructure\\task72-checklist-batch-regression.local.json",
+                         "Success":  true,
+                         "Checks":  567,
+                         "Database":  "HotelOps_Canonical_20261031_073735_69ed1ceb_Fresh",
+                         "SHA256":  "B861CDB74CA430B72976CA136A04E163D0CFD9F1E5D3B0D7B9A317A974CF2F49"
+                     },
+                     {
+                         "Path":  "scripts\\verification\\HotelStructure\\task72-structure-regression-final.local.json",
+                         "Success":  true,
+                         "Checks":  590,
+                         "Database":  "HotelOps_Canonical_20261031_071542_5b143b37_Fresh",
+                         "SHA256":  "6DCDE53C34832C7CF45CB42B5078CC973B655CA5B90AE0073017100A7D7C5E6F"
+                     },
+                     {
+                         "Path":  "scripts\\verification\\HotelStructure\\task72-rooms-regression-final.local.json",
+                         "Success":  true,
+                         "Checks":  229,
+                         "Database":  "HotelOps_Canonical_20261031_071555_056ac117_Fresh",
+                         "SHA256":  "50BE98813EFEE45E816ABAA14879D64F165C166460F3C0EFA7055F64DB9580FB"
+                     }
+                 ],
+    "SourceFiles":  [
+                        {
+                            "Path":  "scripts/database/release/canonical/Run-Canonical.ps1",
+                            "SHA256":  "B071485CD6666AA52D367AFFFE54B31E8385F0053E6993E0C065CD84195F1B66"
+                        },
+                        {
+                            "Path":  "scripts/database/release/checklists/01_Checklists.sql",
+                            "SHA256":  "10B1E29979B18014E9005CF7DC17B36FD51C0EBD3A61A63CDEB0F17851A97851"
+                        },
+                        {
+                            "Path":  "scripts/database/release/checklists/02_Verify.sql",
+                            "SHA256":  "20F797C9B1D26AE5B285C152A4301A3DEECED17A76256E67F31352E32EAF41D6"
+                        },
+                        {
+                            "Path":  "scripts/database/release/checklists/03_Rollback.sql",
+                            "SHA256":  "EBC5664DF9A7740935E22F4C6ECF47CF26E7E0317FC15A937AEB61D7730B2AD3"
+                        },
+                        {
+                            "Path":  "scripts/database/release/checklists/README.md",
+                            "SHA256":  "F8F48123ED5BD5DF04EBC81B822A8C5C1BF6EB7F580D8EB8DE2249BEC6286E9B"
+                        },
+                        {
+                            "Path":  "scripts/database/release/checklists/Run-Checklists.ps1",
+                            "SHA256":  "C16E5E7A8CDBCB56305CD4533CBF13DC82F801DDA03243F46F80C35BD9D7791D"
+                        },
+                        {
+                            "Path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                            "SHA256":  "0C59A66A84C80ABC6F292EB8E6ADFF3E184FA2D0F3F7B5C128CC5C716623C8D8"
+                        },
+                        {
+                            "Path":  "scripts/verification/HotelStructure/Program.cs",
+                            "SHA256":  "66432B8ACE21CE49B674A67CB707C5026F89C7D0C46357CE74A21B63862BF71A"
+                        },
+                        {
+                            "Path":  "scripts/verification/HotelStructure/TASK72_BATCH3_IMPLEMENTATION.md",
+                            "SHA256":  "F43B6C02691FF7BA1BC78ABF7ADBC79D6DD430CB865366A5430B9563DFDE572F"
+                        },
+                        {
+                            "Path":  "scripts/verification/HotelStructure/TASK72_CHECKLIST_CONTRACT_PROPOSAL.md",
+                            "SHA256":  "1331442097078532FC1681EACB63D1EE70146DF861B245AB16386F9730A01D79"
+                        },
+                        {
+                            "Path":  "scripts/verification/HotelStructure/Task72ChecklistCases.cs",
+                            "SHA256":  "0F6C341AA28AED0A7B510E983D33A59F66FEC7E0F4B5820147C2B212D5ED3C4D"
+                        },
+                        {
+                            "Path":  "scripts/verification/HotelStructure/Task72HistoryCases.cs",
+                            "SHA256":  "6E02AFA961E0E60C44F4666366A722EDDBE1653A9DF86FF8AFC32594C8A2CC53"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+                            "SHA256":  "22E6DADA3FEA97AB3F49E67C10B20EB0D079857949DDAC828E172B06EB0D9315"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+                            "SHA256":  "7E46CC4C86A17B54713FF326CF3736197BB8A19A83E16440C3E9EF93D542C24D"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Data/ChecklistSchema.cs",
+                            "SHA256":  "7884AB0F5EA32D01BB9587960457C8A05333A931CCDE99375EAA1A13B3015EC3"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+                            "SHA256":  "32447C7E410785BF333CCC2393FC9DD12AC216E4B80EE7455449B9D248F73F19"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+                            "SHA256":  "F6365D5D1C6AAD1310F558BB00F561B8A29283D8C0703E772D2DB288948153CB"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+                            "SHA256":  "D2299755F18923BF64BCF8D782C63DF37B71492D0443A250B49B712494F72B63"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+                            "SHA256":  "F54A270B571B25AAD12056A37EF0F31E295528D3A3EEA0BA4C6712B692231407"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Entities/ChecklistV1.cs",
+                            "SHA256":  "C1A0AFF6237A36B667F94F87871200C0BAB022509B723106B13BA99A2D1C8FFF"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+                            "SHA256":  "165725EA0B6C9D58E96F35751DA07AB642E4E7FB25768C427D25123E676D00FB"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+                            "SHA256":  "28BE7B4E2607BA6C52540A8A6A4C208A5882DB92AD3D0BA7C948277C5A83CAAD"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs",
+                            "SHA256":  "447816AE4026F9FB4036727FC113EE5989D754EF3608BC1F4EFAAEB414682A70"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+                            "SHA256":  "C36CD46A297C8C58CACE40CDA328A84BC990DBA3316057D3C92C68395B38E9BE"
+                        },
+                        {
+                            "Path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+                            "SHA256":  "6E990B0701119DECF71EDE3FD3967AD0B059048412D4EF00BE131E2F85C4145C"
+                        }
+                    ],
+    "UseCases":  75,
+    "VerifiedUseCases":  22,
+    "VerifiedPoints":  50,
+    "Taxonomy":  [
+                     {
+                         "Name":  "COMPLETE_VERIFIED",
+                         "Count":  7
+                     },
+                     {
+                         "Name":  "PARTIAL",
+                         "Count":  5
+                     },
+                     {
+                         "Name":  "BLOCKED_EXTERNAL",
+                         "Count":  19
+                     },
+                     {
+                         "Name":  "NOT_IMPLEMENTED",
+                         "Count":  29
+                     },
+                     {
+                         "Name":  "COMPLETE_VERIFIED_V1",
+                         "Count":  15
+                     }
+                 ],
+    "OriginalTask72StartUtc":  "2026-10-31T00:00:35.4104636Z",
+    "ContinuationSnapshotUtc":  "2026-10-31T00:24:30.5634840Z",
+    "MeasuredEndUtc":  "2026-10-31T00:46:32.4608316Z",
+    "ContinuationWallSeconds":  1321.8973475999999,
+    "TotalTask72PreflightToFinalWallSeconds":  2757.0503679999997
+}

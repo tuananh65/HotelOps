@@ -1,0 +1,48 @@
+8: 
+9: [ApiController]
+10: [Route("api/branches/{branchId:long}/workdays")]
+11: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+12: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+13: public sealed class WorkdaysController(WorkdayService service) : ControllerBase
+14: {
+15:     [HttpGet("current")]
+16:     public Task<IActionResult> Current(long branchId, CancellationToken ct)
+17:         => Execute(() => service.CurrentAsync(branchId, ct));
+18: 
+19:     [HttpGet("own-shifts")]
+20:     public Task<IActionResult> OwnShifts(long branchId, CancellationToken ct)
+21:         => Execute(() => service.OwnShiftsAsync(branchId, ct));
+22: 
+23:     [HttpPost]
+24:     public Task<IActionResult> Start(long branchId, StartWorkdayRequest request, CancellationToken ct)
+25:         => Execute(() => service.StartAsync(branchId, request, ct));
+26: 
+27:     [HttpPost("{workdayId:long}/end")]
+28:     public Task<IActionResult> End(long branchId, long workdayId, EndWorkdayRequest request, CancellationToken ct)
+29:     {
+30:         var header = Request.Headers.IfMatch;
+31:         if (header.Count != 1 || header[0] is not { Length: 14 } text || text[0] != '"' || text[^1] != '"')
+32:             return Task.FromResult<IActionResult>(Problem(statusCode: 400, title: "INVALID_IF_MATCH"));
+33:         byte[] version;
+34:         try { version = Convert.FromBase64String(text[1..^1]); }
+35:         catch (FormatException) { return Task.FromResult<IActionResult>(Problem(statusCode: 400, title: "INVALID_IF_MATCH")); }
+36:         if (version.Length != 8 || Convert.ToBase64String(version) != text[1..^1] || request.PauseAll is null)
+37:             return Task.FromResult<IActionResult>(Problem(statusCode: 400, title: "INVALID_IF_MATCH"));
+38:         return Execute(() => service.EndAsync(branchId, workdayId, version, request.PauseAll.Value, ct));
+39:     }
+40: 
+41:     private async Task<IActionResult> Execute(Func<Task<WorkdayResult>> action)
+42:     {
+43:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
+44:         var result = await action();
+45:         if (result.Status >= 400) return Problem(statusCode: result.Status, title: result.Code);
+46:         var version = result.Value switch
+47:         {
+48:             WorkdayResponse d => d.RowVersion,
+51:         };
+52:         if (version is not null) Response.Headers.ETag = '"' + version + '"';
+53:         if (result.Status == 201) Response.Headers.Location = Url.Action(nameof(Current), new { branchId = RouteData.Values["branchId"] });
+54:         return result.Status == 204 ? NoContent() : StatusCode(result.Status, result.Value);
+55:     }
+56: }
+57: 

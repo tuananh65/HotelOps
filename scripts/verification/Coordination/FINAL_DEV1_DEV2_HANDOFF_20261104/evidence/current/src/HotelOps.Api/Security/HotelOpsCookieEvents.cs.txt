@@ -1,0 +1,26 @@
+5: namespace HotelOps.Api.Security;
+6: 
+7: public sealed class HotelOpsCookieEvents(ICookieSessionValidator validator) : CookieAuthenticationEvents
+8: {
+9:     public override async Task ValidatePrincipal(CookieValidatePrincipalContext context)
+10:     {
+11:         context.ShouldRenew = false;
+12:         if (!HotelOpsCookieTicket.TryRead(context.Principal, out var reference, out var sessionId)
+18:         // Per-request SQL validation only. Middleware touches AFTER security checks.
+19:         // Never manufacture a replacement session from an invalid cookie.
+20:         var result = await validator.ValidateAsync(reference!, context.HttpContext.RequestAborted);
+21:         var s = result.Session;
+22:         if (!result.IsValid || s is null || s.SessionId != sessionId || s.UserId != reference!.UserId
+23:             || s.CreatedAtUtc != reference.CreatedAtUtc || s.IsRestricted != reference.IsRestricted
+28:         // Retain only server-understood identity fields, never role claims from a ticket.
+29:         context.ReplacePrincipal(HotelOpsCookieTicket.BuildPrincipal(reference, sessionId));
+30:         context.HttpContext.Items[typeof(SessionSnapshot)] = s; // Request-local only.
+31:     }
+32: 
+33:     public override Task RedirectToLogin(RedirectContext<CookieAuthenticationOptions> context)
+34:         => AuthenticationProblem.WriteAsync(context.HttpContext, 401, "AUTHENTICATION_REQUIRED");
+35: 
+36:     public override Task RedirectToAccessDenied(RedirectContext<CookieAuthenticationOptions> context)
+37:         => AuthenticationProblem.WriteAsync(context.HttpContext, 403, "FORBIDDEN");
+38: }
+39: 

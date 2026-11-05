@@ -1,0 +1,8 @@
+4: namespace HotelOps.Api.Services.HotelStructure;
+5: 
+6: public sealed partial class TurnoverHistoryService
+7: {
+8:     private async Task<PrivateHistoryFileDto?> HistoryFile(IReadOnlyList<HistoryEvidenceDto> evidence, long id, string? root, CancellationToken ct)
+9:     {
+10:         if (id <= 0 || root == null || !evidence.Any(e => e.Id == id)) return null;
+11:         var row = await db.Attachments.AsNoTracking().SingleOrDefaultAsync(a => a.AttachmentId == id && a.DeletedAt == null, ct);

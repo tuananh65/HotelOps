@@ -1,0 +1,72 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class StockDocument
+7: {
+8:     public long DocumentId { get; set; }
+9: 
+10:     public string DocumentNo { get; set; } = null!;
+11: 
+12:     public string DocumentType { get; set; } = null!;
+13: 
+14:     public long? SourceWarehouseId { get; set; }
+15: 
+16:     public long? DestinationWarehouseId { get; set; }
+17: 
+18:     public string Status { get; set; } = null!;
+19: 
+20:     public string? ReferenceType { get; set; }
+21: 
+22:     public long? ReferenceId { get; set; }
+23: 
+24:     public DateOnly DocumentDate { get; set; }
+25: 
+26:     public string? Reason { get; set; }
+27: 
+28:     public string? Note { get; set; }
+29: 
+30:     public long CreatedBy { get; set; }
+31: 
+32:     public long? ApprovedBy { get; set; }
+33: 
+34:     public long? PostedBy { get; set; }
+35: 
+36:     public DateTime CreatedAt { get; set; }
+37: 
+38:     public DateTime? ApprovedAt { get; set; }
+39: 
+40:     public DateTime? PostedAt { get; set; }
+41: 
+42:     public DateTime? CancelledAt { get; set; }
+43: 
+44:     public long? ReversalOfDocumentId { get; set; }
+45: 
+46:     public byte[] RowVersion { get; set; } = null!;
+47: 
+48:     public virtual User? ApprovedByNavigation { get; set; }
+49: 
+50:     public virtual User CreatedByNavigation { get; set; } = null!;
+51: 
+52:     public virtual Warehouse? DestinationWarehouse { get; set; }
+53: 
+54:     public virtual ICollection<StockDocument> InverseReversalOfDocument { get; set; } = new List<StockDocument>();
+55: 
+56:     public virtual ICollection<MaintenanceWorkLog> MaintenanceWorkLogs { get; set; } = new List<MaintenanceWorkLog>();
+57: 
+58:     public virtual MaterialFulfillment? MaterialFulfillment { get; set; }
+59: 
+60:     public virtual User? PostedByNavigation { get; set; }
+61: 
+62:     public virtual StockDocument? ReversalOfDocument { get; set; }
+63: 
+64:     public virtual Warehouse? SourceWarehouse { get; set; }
+65: 
+66:     public virtual ICollection<StockDocumentLine> StockDocumentLines { get; set; } = new List<StockDocumentLine>();
+67: 
+68:     public virtual ICollection<StockTransferReceipt> StockTransferReceipts { get; set; } = new List<StockTransferReceipt>();
+69: 
+70:     public virtual ICollection<Stocktake> Stocktakes { get; set; } = new List<Stocktake>();
+71: }
+72: 

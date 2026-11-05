@@ -1,0 +1,8 @@
+﻿{
+    "recordedUtc":  "2026-11-04T16:03:59.7453188Z",
+    "approval":  "SQL_RESUME_APPROVAL.json; same trial and fixture set, runner @@SPID cast fix",
+    "harnessSha256":  "206A245669393F08DE2D04040125E7F49865D58231ECE085C18F4C8B616D8C60",
+    "newUsers":  0,
+    "databaseReset":  false,
+    "productionChanges":  0
+}

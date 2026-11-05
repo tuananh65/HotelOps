@@ -1,0 +1,54 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class Department
+7: {
+8:     public long DepartmentId { get; set; }
+9: 
+10:     public long BranchId { get; set; }
+11: 
+12:     public string DepartmentCode { get; set; } = null!;
+13: 
+14:     public string DepartmentName { get; set; } = null!;
+15: 
+16:     public long? ManagerUserId { get; set; }
+17: 
+18:     public string? ScopeDescription { get; set; }
+19: 
+20:     public bool IsActive { get; set; }
+21: 
+22:     public virtual ICollection<AssetHandover> AssetHandoverFromDepartments { get; set; } = new List<AssetHandover>();
+23: 
+24:     public virtual ICollection<AssetHandover> AssetHandoverToDepartments { get; set; } = new List<AssetHandover>();
+25: 
+26:     public virtual ICollection<Asset> Assets { get; set; } = new List<Asset>();
+27: 
+28:     public virtual Branch Branch { get; set; } = null!;
+29: 
+30:     public virtual ICollection<InternalRequest> InternalRequestReceivingDepartments { get; set; } = new List<InternalRequest>();
+31: 
+32:     public virtual ICollection<InternalRequest> InternalRequestRequesterDepartments { get; set; } = new List<InternalRequest>();
+33: 
+34:     public virtual ICollection<InternalRequestType> InternalRequestTypes { get; set; } = new List<InternalRequestType>();
+35: 
+36:     public virtual ICollection<MaintenanceWork> MaintenanceWorks { get; set; } = new List<MaintenanceWork>();
+37: 
+38:     public virtual User? ManagerUser { get; set; }
+39: 
+40:     public virtual ICollection<MaterialRequest> MaterialRequests { get; set; } = new List<MaterialRequest>();
+41: 
+42:     public virtual ICollection<OperationalTask> OperationalTasks { get; set; } = new List<OperationalTask>();
+43: 
+44:     public virtual ICollection<PreventiveMaintenanceSchedule> PreventiveMaintenanceSchedules { get; set; } = new List<PreventiveMaintenanceSchedule>();
+45: 
+46:     public virtual ICollection<User> Users { get; set; } = new List<User>();
+47: 
+48:     public virtual ICollection<Warehouse> Warehouses { get; set; } = new List<Warehouse>();
+49: 
+50:     public virtual ICollection<WorkCategory> WorkCategories { get; set; } = new List<WorkCategory>();
+51: 
+52:     public virtual ICollection<WorkShift> WorkShifts { get; set; } = new List<WorkShift>();
+53: }
+54: 

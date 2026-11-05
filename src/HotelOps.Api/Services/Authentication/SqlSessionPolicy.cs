@@ -13,7 +13,10 @@ public static class SqlSessionPolicy
     public static DateTime AbsoluteDeadline(DateTime created, DateTime? temporaryExpiry)
     {
         var deadline = created.Add(temporaryExpiry.HasValue ? RestrictedLifetime : NormalAbsoluteLifetime);
-        return temporaryExpiry.HasValue && temporaryExpiry.Value < deadline ? temporaryExpiry.Value : deadline;
+        // SQL datetime2 stores UTC ticks but materializes without DateTimeKind metadata.
+        return DateTime.SpecifyKind(
+            temporaryExpiry.HasValue && temporaryExpiry.Value < deadline ? temporaryExpiry.Value : deadline,
+            DateTimeKind.Utc);
     }
 
     public static SessionSnapshot? Validate(User user, UserSession session, SessionReference ticket, DateTime utcNow)

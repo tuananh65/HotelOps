@@ -1,0 +1,28 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class InternalRequestEvent
+7: {
+8:     public long EventId { get; set; }
+9: 
+10:     public long InternalRequestId { get; set; }
+11: 
+12:     public string EventType { get; set; } = null!;
+13: 
+14:     public string? OldStatus { get; set; }
+15: 
+16:     public string? NewStatus { get; set; }
+17: 
+18:     public string? EventNote { get; set; }
+19: 
+20:     public long ActorId { get; set; }
+21: 
+22:     public DateTime OccurredAt { get; set; }
+23: 
+24:     public virtual User Actor { get; set; } = null!;
+25: 
+26:     public virtual InternalRequest InternalRequest { get; set; } = null!;
+27: }
+28: 

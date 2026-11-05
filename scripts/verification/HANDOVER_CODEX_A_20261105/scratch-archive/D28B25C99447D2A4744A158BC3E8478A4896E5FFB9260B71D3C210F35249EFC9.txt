@@ -1,0 +1,29 @@
+$ErrorActionPreference='Stop'
+$manifest=Get-Content obj/task71-preflight-manifest.json -Raw | ConvertFrom-Json
+$allowed=@('src/HotelOps.Api/Controllers/RoomTypeBatchController.cs','src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs','scripts/verification/HotelStructure/Program.cs','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$bad=@();$backupBad=@()
+foreach($item in $manifest){
+ if(!(Test-Path -LiteralPath $item.Path) -or ((Get-FileHash -LiteralPath $item.Path).Hash -ne $item.Hash -and $item.Path -notin $allowed)){$bad+=$item.Path}
+ if((Get-FileHash -LiteralPath (Join-Path 'obj/task71-preflight' $item.Path)).Hash -ne $item.Hash){$backupBad+=$item.Path}
+}
+$indexSame=@(Compare-Object @(Get-Content obj/task71-index-before.txt) @(git ls-files --stage)).Count -eq 0
+$treesSame=@(Compare-Object @(Get-Content obj/task71-worktrees-before.txt) @(git worktree list --porcelain)).Count -eq 0
+$head=(git rev-parse HEAD).Trim()
+git -c core.safecrlf=false diff --check
+$diffExit=$LASTEXITCODE
+$original=@($manifest.Path)
+$new=@(git ls-files --others --exclude-standard | Where-Object {$_ -notin $original})
+$trailing=@()
+foreach($f in $new | Where-Object {$_ -match '\.(cs|md)$'}){
+ if(Select-String -LiteralPath $f -Pattern '[ \t]+$'){$trailing+=$f}
+}
+$receipts=@('task71-complete.local.json','task71-accepted.local.json','task71-structure-regression.local.json','task71-rooms-regression.local.json') | ForEach-Object {
+ $r=Get-Content (Join-Path 'scripts/verification/HotelStructure' $_) -Raw | ConvertFrom-Json
+ [pscustomobject]@{Receipt=$_;Success=$r.success;Checks=$r.checks}
+}
+$sources=@(($allowed + $new) | Where-Object {$_ -match '\.(cs|md)$'} | Sort-Object -Unique)
+$v=[ordered]@{OriginalFiles=$manifest.Count;UnexpectedChanges=$bad;BackupHashFailures=$backupBad;IndexUnchanged=$indexSame;FourWorktreesUnchanged=$treesSame;Head=$head;HeadUnchanged=($head -eq '4a187320643d0c82f232c6b9dd5a667b8401c280');DiffCheckExit=$diffExit;NewFiles=$new;NewTextTrailingWhitespace=$trailing;Receipts=$receipts;SourceFiles=@($sources | ForEach-Object {[pscustomobject]@{Path=$_;SHA256=(Get-FileHash -LiteralPath $_).Hash}})}
+$v | ConvertTo-Json -Depth 8 | Set-Content obj/task71-validation.local.json
+[pscustomobject]@{OriginalFiles=$manifest.Count;UnexpectedChanges=$bad.Count;BackupHashFailures=$backupBad.Count;IndexUnchanged=$indexSame;FourWorktreesUnchanged=$treesSame;HeadUnchanged=$v.HeadUnchanged;DiffExit=$diffExit;NewTextWhitespaceFailures=$trailing.Count;Receipts=$receipts} | ConvertTo-Json -Depth 4
+if($bad.Count -or $backupBad.Count -or !$indexSame -or !$treesSame -or !$v.HeadUnchanged -or $diffExit -or $trailing.Count){throw 'Validation failed'}
+

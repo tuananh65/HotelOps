@@ -1,0 +1,146 @@
+﻿{
+    "Result":  "PASS",
+    "PreexistingFiles":  391,
+    "UnchangedProtectedFiles":  390,
+    "AuthorizedProtectedChanges":  [
+                                       "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md"
+                                   ],
+    "BackupPath":  "obj\\task61-preflight-20261030-052305",
+    "HeadUnchanged":  true,
+    "IndexUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "ModifiedFiles":  [
+                          "src/HotelOps.Api/Controllers/UsersController.cs",
+                          "scripts/verification/UserDirectory/Program.cs",
+                          "scripts/verification/UserDirectory/UserDirectory.Verification.csproj",
+                          "scripts/verification/UserDirectory/API_CONTRACT.md",
+                          "scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md",
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md"
+                      ],
+    "AddedFiles":  [
+                       "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+                       "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs",
+                       "scripts/verification/UserList/Task61AcceptanceCases.cs",
+                       "scripts/verification/UserList/TASK61_UC141_ACCEPTANCE.md",
+                       "scripts/verification/UserList/task61-accepted.local.json",
+                       "scripts/verification/UserList/task61-detail.local.json",
+                       "scripts/verification/UserList/task61-profile.local.json",
+                       "scripts/verification/UserList/task61-accepted-final.local.json",
+                       "scripts/verification/UserList/task61-detail-final.local.json",
+                       "scripts/verification/UserList/task61-profile-final.local.json"
+                   ],
+    "SourceEvidenceHashes":  [
+                                 {
+                                     "Path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                                     "SHA256":  "440B78B9A1AD3AC6A14534FC8E62BA2D3DC16E907343543B2D88556FD27635FF"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserDirectory/API_CONTRACT.md",
+                                     "SHA256":  "DBA00FB4680E73B4D0A71729D7F3B3B14CBC6F845BDE19A256CE9E215CBB7565"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md",
+                                     "SHA256":  "3538C26B178E95A0D42068A339023F380C4A73F7BD9420544145076BE17300A9"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserDirectory/Program.cs",
+                                     "SHA256":  "F6BAB8C78037114ACDCCE255661F48CCF7544963DBBDE332271043EA5C82997F"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserDirectory/UserDirectory.Verification.csproj",
+                                     "SHA256":  "D18948E46F0009DF72A457CA795F3254872B4FD7F1C78A12A1A39439FF4522FB"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/TASK61_UC141_ACCEPTANCE.md",
+                                     "SHA256":  "6FF0E1A57163D578A57DBF4E1633B370CED94AA7711844E6FF76D7EDB85B1B88"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/Task61AcceptanceCases.cs",
+                                     "SHA256":  "025A4897F72915E3D3BA3445F9F8672281DC8BE706AC1657BF55772D7B3AFB54"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/task61-accepted.local.json",
+                                     "SHA256":  "695901C9F6773E1CCCA0B0EE4F2C6AD525A652DF804A1471E6E08AD84D7E1FF1"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/task61-accepted-final.local.json",
+                                     "SHA256":  "12C2CD5F829A0C5ADAB1D0AAA60BEC0B9051D883AD3C870C295F3337263B0761"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/task61-detail.local.json",
+                                     "SHA256":  "345F2F3026FCB56486E4D4AC56530FA1BC8D596CD24188E7A6D3BAC638B6B008"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/task61-detail-final.local.json",
+                                     "SHA256":  "73D0F7B6369AA30D0447E6B14F997A73F98C4EFC46CF136084AFD48EE667EEF4"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/task61-profile.local.json",
+                                     "SHA256":  "5C11C5392170F5E5A41A730421A23D9BBAB2C62DFEF3EC33E6A2173AC5191A9F"
+                                 },
+                                 {
+                                     "Path":  "scripts/verification/UserList/task61-profile-final.local.json",
+                                     "SHA256":  "86D61AEF4B6A158E76865ED74A396E939849A90735C58234B6B69252FC6B51E9"
+                                 },
+                                 {
+                                     "Path":  "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+                                     "SHA256":  "EB9535E3F93D52DE49FE264ACC71B3DE419F3B3073C8C9C3B3A504A0E2F9D96F"
+                                 },
+                                 {
+                                     "Path":  "src/HotelOps.Api/Controllers/UsersController.cs",
+                                     "SHA256":  "CE5CFB226828AD9E5897E73218C1FED3D5973929EAB24A07D78797552EE1D96B"
+                                 },
+                                 {
+                                     "Path":  "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs",
+                                     "SHA256":  "4C33223BB5F9E451AA0C6398A8E84306B15B8A23B19D82F5019516FDD552CCDC"
+                                 }
+                             ],
+    "ValidLocalLinks":  48,
+    "FinalReceipts":  {
+                          "profile-final":  {
+                                                "Checks":  329,
+                                                "Database":  "HotelOps_Canonical_20261029_224233_326886bc_Fresh"
+                                            },
+                          "detail-final":  {
+                                               "Checks":  234,
+                                               "Database":  "HotelOps_Canonical_20261029_224230_4cf65bb0_Fresh"
+                                           },
+                          "accepted-final":  {
+                                                 "Checks":  184,
+                                                 "Database":  "HotelOps_Canonical_20261029_224226_baf36329_Fresh"
+                                             }
+                      },
+    "DmvConfirmedWaits":  8,
+    "AuthFoundations":  {
+                            "PermissionService":  43,
+                            "CurrentUserAccessor":  14,
+                            "ResourceAuthorization":  49,
+                            "Authorization":  61
+                        },
+    "WeightedGain":  0,
+    "VerifiedProgress":  "12/256 = 4.69%",
+    "Uc141":  "PARTIAL",
+    "DiffExit":  0,
+    "CachedDiffExit":  0,
+    "GitLineEndingNotices":  [
+                                 "warning: in the working copy of \u0027scripts/verification/StartupSchemaGate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027scripts/verification/UserAccountCreation/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027scripts/verification/UserDirectory/API_CONTRACT.md\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027scripts/verification/UserDirectory/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027scripts/verification/UserDirectory/UserDirectory.Verification.csproj\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027scripts/verification/UserProfileUpdate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027src/HotelOps.Api/Controllers/UsersController.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/UserAccountCreationService.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                                 "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/UserProfileService.cs\u0027, LF will be replaced by CRLF the next time Git touches it"
+                             ],
+    "Timing":  {
+                   "StartUtc":  "2026-10-29T22:23:06.9710882Z",
+                   "ReportSnapshotUtc":  "2026-10-29T22:49:30.4342429+00:00",
+                   "ElapsedMinutes":  "26.4"
+               },
+    "Build":  "PASS - NU1900 unavailable vulnerability feed, no C# errors/warnings",
+    "DotnetTest":  "Exit0, no discovered tests",
+    "ProductionDatabaseAccess":  "NONE"
+}

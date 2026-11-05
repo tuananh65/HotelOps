@@ -1,0 +1,62 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaintenanceWork
+7: {
+8:     public long MaintenanceWorkId { get; set; }
+9: 
+10:     public string WorkNo { get; set; } = null!;
+11: 
+12:     public long? IncidentId { get; set; }
+13: 
+14:     public long? AssigneeId { get; set; }
+15: 
+16:     public long? DepartmentId { get; set; }
+17: 
+18:     public string Title { get; set; } = null!;
+19: 
+20:     public string? Instruction { get; set; }
+21: 
+22:     public long? PriorityId { get; set; }
+23: 
+24:     public string Status { get; set; } = null!;
+25: 
+26:     public DateTime? PlannedStartAt { get; set; }
+27: 
+28:     public DateTime? PlannedEndAt { get; set; }
+29: 
+30:     public DateTime? ActualStartAt { get; set; }
+31: 
+32:     public DateTime? ResolvedAt { get; set; }
+33: 
+34:     public string? ResolutionNote { get; set; }
+35: 
+36:     public long? ReviewedBy { get; set; }
+37: 
+38:     public DateTime? ReviewedAt { get; set; }
+39: 
+40:     public long CreatedBy { get; set; }
+41: 
+42:     public DateTime CreatedAt { get; set; }
+43: 
+44:     public virtual User? Assignee { get; set; }
+45: 
+46:     public virtual User CreatedByNavigation { get; set; } = null!;
+47: 
+48:     public virtual Department? Department { get; set; }
+49: 
+50:     public virtual Incident? Incident { get; set; }
+51: 
+52:     public virtual ICollection<MaintenanceWorkLog> MaintenanceWorkLogs { get; set; } = new List<MaintenanceWorkLog>();
+53: 
+54:     public virtual ICollection<PreventiveMaintenanceRun> PreventiveMaintenanceRuns { get; set; } = new List<PreventiveMaintenanceRun>();
+55: 
+56:     public virtual ReferenceValue? Priority { get; set; }
+57: 
+58:     public virtual User? ReviewedByNavigation { get; set; }
+59: 
+60:     public virtual ICollection<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; } = new List<MaintenanceMaterialUsage>();
+61: }
+62: 

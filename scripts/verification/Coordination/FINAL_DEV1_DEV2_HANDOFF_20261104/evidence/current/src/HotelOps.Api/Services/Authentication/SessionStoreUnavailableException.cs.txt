@@ -1,0 +1,9 @@
+3: namespace HotelOps.Api.Services.Authentication;
+4: 
+5: public sealed class SessionStoreUnavailableException(Exception innerException)
+6:     : Exception("Session store is unavailable; validity could not be determined.", innerException)
+7: {
+8:     public static bool IsAvailabilityError(int number) => number is
+9:         -2 or 2 or 20 or 53 or 64 or 233 or 4060 or 10928 or 10929
+10:         or 40197 or 40501 or 40613 or 10053 or 10054 or 10060 or 10061 or 11001;
+11: 

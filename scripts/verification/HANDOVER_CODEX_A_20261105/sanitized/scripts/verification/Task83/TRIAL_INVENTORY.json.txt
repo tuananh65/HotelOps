@@ -1,0 +1,1252 @@
+{
+    "readUtc":  "2026-11-04T01:26:16.8697571+00:00",
+    "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+    "command":  "SELECT @@SERVERNAME; SELECT name,state_desc FROM master.sys.databases WHERE name LIKE HotelOps_Canonical prefix",
+    "existingTrials":  [
+                           {
+                               "name":  "HotelOps_Canonical_20261026_123559_826e9eff_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_123559_826e9eff_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_123559_826e9eff_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_124702_3bcc1bfa_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_124702_3bcc1bfa_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_124702_3bcc1bfa_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_132341_3498fdd7_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_134232_1c014600_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_163305_229411ba_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_163815_1788422f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_163954_22ec48e8_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_164407_170000a1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_164407_220000a1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_172849_d1aec966_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_172856_3edc63a3_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_173312_85d6dfd6_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_173845_865687f2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_175320_ddf9e315_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_175328_95368072_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_175417_958e3b62_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_182105_224810e8_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_182110_e53eeb8e_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_182233_12c9189b_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_183526_47e07e90_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_183544_0136aa42_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_183810_0e8a9f8c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_191026_804e427a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_191043_186e4d85_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_191202_44489c10_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_195611_76eb1547_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_195635_1a115a0f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_195637_24aac1e4_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_201207_6674cd6a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261026_201214_f7dc2c11_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_001500_2500a001_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_103537_5c4b26d7_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_103544_1c466ffe_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_104000_31abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_110017_2e3d6dd1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_110022_fdd9c192_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_111500_32abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_111609_fac44932_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_111613_b8c01721_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_113901_63679d64_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_113909_8a7d42ee_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_115500_33abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_121000_34abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_153435_1def3339_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_153441_72eb1c7f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_154000_35abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_155531_ddaa2fd9_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_155536_f7dcdb83_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_160000_36abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_161959_74a7715d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_162006_5ec6f9d6_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_162500_37abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_165031_1c86d5f5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_165037_5c4e2c2b_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_165500_38abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_171611_8a6c5913_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_171624_3bf69d82_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_171700_38bcdef0_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_172804_dd4727ae_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_172810_c7e722a1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_172900_39abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_175714_000e5f91_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_175723_bf6daf55_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_180300_41abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_180301_41bcdef0_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_182032_cbc343d0_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_182037_9b84a79f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_182800_42abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261027_182801_42bcdef0_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_061154_2207a195_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_061201_eb4135c5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_061400_42abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_062426_736b0c6d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_062431_543a230d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_062600_43abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_065050_e3ff8159_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_065101_12592774_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_065600_44abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_071624_767e2578_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_071628_e39c044a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_072000_44abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_074000_44fedcba_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_075103_9e1ee2e8_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_075110_1efcd85c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_075300_45abcdef_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_075301_45fedcba_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_173107_1eb02a2d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_181311_301b8b40_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_181319_0e9e2769_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_181431_4ef90204_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_181436_fc85ec6f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_182048_25fbe881_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_182340_15ff1583_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_182541_ccd4eb42_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_182541_e952c874_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_223304_bfe4a57d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_223309_3b8f31d5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_230638_7e25c5ac_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_230643_ed7b848b_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_230954_09197cf3_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_231728_0f319a56_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_234026_c0b42285_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261028_234045_87616cc9_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_165835_4b1df255_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_222918_4c086575_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_223123_199ff018_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_223337_1666413e_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_223349_77b2c89e_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_223409_782ac453_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_224226_baf36329_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_224230_4cf65bb0_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_224233_326886bc_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_231145_e5636ef5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_231212_6069b085_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_231215_dc84a37f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_231511_aa06de7d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_234401_13d73bc2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_234517_996366f5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_234722_41276be7_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_234845_5bf8e84a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_235037_ed1f6fc3_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261029_235344_7bf00ae3_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_002749_eb7e5304_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_002750_2a5aa073_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_002950_4f4801bd_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_003151_3e5fe3c4_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_003457_da90ba3f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_004941_35686d63_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_004942_dae2c869_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_005150_0fbd0489_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_005426_4f3d446c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_010658_af93dfdc_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_012434_cc6a1808_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_044852_22713f76_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_155050_dfc66c15_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_155153_971b46e2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_155428_ed542d12_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_155809_fddff4dd_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_155910_a966618c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_160012_5f1394be_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_160249_52647412_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_162112_24a9d42a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_162434_372bb7d2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_162707_5a9d0434_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_162822_0225330a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_163135_33e395be_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_170448_0e92a922_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_170700_cefe5c35_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_171217_55936757_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_171442_6745fc1d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_171710_9dd28362_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_171814_269b92a9_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174613_1cde699f_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174613_1cde699f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174613_1cde699f_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174805_6695094a_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174805_6695094a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174805_6695094a_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_174826_0739bf0c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_175003_73c91c8c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_175744_b9211fc1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_175943_68f0919a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_180335_2be94db5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_180508_1a0ca8b3_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_180725_13d936c2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_180751_d3f4880e_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_180859_2e55b7b4_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_181243_928419f1_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_181243_928419f1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261030_181243_928419f1_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_060141_1d98cd0c_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_060141_1d98cd0c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_060141_1d98cd0c_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_060720_d5c7d716_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_060720_d5c7d716_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_060720_d5c7d716_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061032_0550b2b5_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061032_0550b2b5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061032_0550b2b5_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061222_031b4203_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061222_031b4203_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061222_031b4203_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061446_c9b9a07c_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061446_c9b9a07c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061446_c9b9a07c_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061631_f061ee60_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061631_f061ee60_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061631_f061ee60_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061834_35402ed1_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061834_35402ed1_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_061834_35402ed1_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063010_61be3d3a_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063010_61be3d3a_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063010_61be3d3a_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063248_6b2f9a2f_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063248_6b2f9a2f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063248_6b2f9a2f_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063438_1467fa63_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063438_1467fa63_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063438_1467fa63_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063747_2c5b5bf7_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063747_2c5b5bf7_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063747_2c5b5bf7_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063827_9d10008f_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063827_9d10008f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_063827_9d10008f_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_064025_1edcd628_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_064025_1edcd628_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_064025_1edcd628_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_064226_579d7686_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_064226_579d7686_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_064226_579d7686_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_070751_243eeb36_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_070751_243eeb36_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_070751_243eeb36_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_070953_8bb0c7e5_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_070953_8bb0c7e5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_070953_8bb0c7e5_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071101_f8c8dd67_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071101_f8c8dd67_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071101_f8c8dd67_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071220_620f730e_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071220_620f730e_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071220_620f730e_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071346_3fd07a6c_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071346_3fd07a6c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071346_3fd07a6c_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071542_5b143b37_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071542_5b143b37_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071542_5b143b37_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071555_056ac117_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071555_056ac117_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071555_056ac117_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071725_85c1f456_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071725_85c1f456_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_071725_85c1f456_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_072748_c93bf833_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_072748_c93bf833_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_072748_c93bf833_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073240_c8d317ae_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073240_c8d317ae_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073240_c8d317ae_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073346_77e43a83_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073346_77e43a83_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073346_77e43a83_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073544_8fa1ef06_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073544_8fa1ef06_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073544_8fa1ef06_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073735_69ed1ceb_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073735_69ed1ceb_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073735_69ed1ceb_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073749_7bc2be72_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073749_7bc2be72_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073749_7bc2be72_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073941_c75cc518_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073941_c75cc518_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_073941_c75cc518_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_152811_f8c3fc19_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_152811_f8c3fc19_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_152811_f8c3fc19_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_154323_f456e376_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_154323_f456e376_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_154323_f456e376_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_155220_7274251c_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_155220_7274251c_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_155220_7274251c_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_155719_2f54a88f_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_155719_2f54a88f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_155719_2f54a88f_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_160120_8acb3323_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_160120_8acb3323_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_160120_8acb3323_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_161038_2d383b0b_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_161038_2d383b0b_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_161038_2d383b0b_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_163626_bb7835e7_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_163626_bb7835e7_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_163626_bb7835e7_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_163838_f4675cfa_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_163838_f4675cfa_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_163838_f4675cfa_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_164630_c840a2d2_AuthUpgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_164630_c840a2d2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_164630_c840a2d2_Upgrade",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_165746_c739a4d8_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_170002_f130d4bd_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_170249_9fa20458_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_170806_97df0716_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_171032_1156ed0f_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_172625_6dfa4f2b_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_172807_cbceb6ed_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261031_173727_aa1dae75_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_071718_35683f23_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_072220_b2372312_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_075634_d5401ae2_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_154643_a503a8b5_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_155759_76f7a208_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_160111_c0d20839_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_160559_ca6151b0_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_161043_6d1349fe_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_161348_26e5bc01_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261103_162910_76025447_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261104_010556_0c10a82d_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261104_062644_e9f68a23_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261104_063341_c44f2751_Fresh",
+                               "state":  "ONLINE"
+                           },
+                           {
+                               "name":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+                               "state":  "ONLINE"
+                           }
+                       ],
+    "trialCount":  310,
+    "task82TrialPresent":  true,
+    "businessDatabasesOpened":  0,
+    "databaseWrites":  0,
+    "newTrials":  0
+}

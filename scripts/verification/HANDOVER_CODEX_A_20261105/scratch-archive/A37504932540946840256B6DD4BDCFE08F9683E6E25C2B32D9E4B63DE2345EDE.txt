@@ -1,0 +1,32 @@
+﻿{
+    "UC016Checks":  94,
+    "UC023Checks":  117,
+    "Unchanged":  441,
+    "ProtectedFiles":  445,
+    "IntendedEdits":  [
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "scripts/verification/HotelStructure/Program.cs",
+                          "src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs",
+                          "src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs"
+                      ],
+    "VerifiedUCs":  9,
+    "ValidBackups":  445,
+    "WorktreesUnchanged":  true,
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "IndexUnchanged":  true,
+    "UC016Mutation":  "BLOCKED",
+    "Branch":  "feature/BE1-database-integration",
+    "RegressionChecks":  589,
+    "VerifiedPoints":  23,
+    "ValidatedUtc":  "2026-10-30T16:05:24.2942691+00:00",
+    "DotnetTestExit":  "0",
+    "AuthChecks":  174,
+    "ResidualIssue":  "Earlier UC015 Area expiry provider -2; unchanged sequential recheck passed; cause unproven",
+    "Result":  "PASS",
+    "NewDeliveryFiles":  [
+                             "src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs",
+                             "src/HotelOps.Api/Services/HotelStructure/StructureDeactivationDependencies.cs",
+                             "scripts/verification/HotelStructure/Task66StructureCases.cs",
+                             "scripts/verification/HotelStructure/TASK66_UC016_IMPLEMENTATION.md"
+                         ]
+}

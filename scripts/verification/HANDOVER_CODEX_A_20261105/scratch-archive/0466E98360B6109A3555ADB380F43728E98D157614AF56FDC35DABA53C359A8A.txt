@@ -1,0 +1,164 @@
+using System.Data;
+using System.Data.Common;
+using System.Linq.Expressions;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.HotelStructure;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.HotelStructure;
+
+public enum BranchStructureStatus { Success, SessionInvalid, Forbidden, NotFound, Unavailable }
+public sealed record BranchStructureResult(BranchStructureStatus Status, BranchStructureDto? Structure = null);
+
+public sealed class BranchStructureService(HotelOpsDbContext db, ICurrentUserAccessor current,
+    ISqlSessionService sessions, IPermissionService permissions)
+{
+    public async Task<BranchStructureResult> ReadAsync(SessionReference ticket, long branchId,
+        BranchStructureQuery query, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(ticket); ArgumentNullException.ThrowIfNull(query);
+        var (node, collection) = query.Validate();
+        if (branchId <= 0) throw new System.ComponentModel.DataAnnotations.ValidationException("BranchId must be positive.");
+        ct.ThrowIfCancellationRequested();
+        if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.IsRestricted || ticket.IsRestricted)
+            return new(BranchStructureStatus.SessionInvalid);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
+            || System.Transactions.Transaction.Current != null)
+            throw new InvalidOperationException("Branch structure requires a clean local SQL Server context and its own transaction.");
+
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        try
+        {
+            // Existing session service retains the actor User UPDLOCK before Session.
+            // No target/manager User is read after feature locks; DTOs contain no personnel.
+            if (!await Valid()) return new(BranchStructureStatus.SessionInvalid);
+            var access = await Authorize();
+            if (!access.Decision.IsGranted) return Denied(access.Decision);
+            var management = access.Management;
+            // The user-approved ROOM_VIEW V1 path covers physical structure only.
+            // Department metadata and descriptions require the existing management grant.
+            if (!management && (node == "department" || collection == "departments"))
+                return new(BranchStructureStatus.Forbidden);
+            var branch = await db.Branches.AsNoTracking().Where(x => x.BranchId == branchId)
+                .Select(x => new StructureBranchDto(x.BranchId, x.BranchCode, x.BranchName, x.IsActive))
+                .TagWith("UC013:Branch").SingleOrDefaultAsync(ct);
+            if (branch == null) return new(BranchStructureStatus.NotFound);
+
+            var floors = db.Floors.AsNoTracking().Where(x => x.BranchId == branchId);
+            // Do not expose a parent link/name from another branch in legacy inconsistent data.
+            var areas = db.Areas.AsNoTracking().Where(x => x.BranchId == branchId
+                && (x.FloorId == null || x.Floor != null && x.Floor.BranchId == branchId));
+            var rooms = db.Rooms.AsNoTracking().Where(x => x.BranchId == branchId && x.Floor.BranchId == branchId
+                && (x.AreaId == null || x.Area != null && x.Area.BranchId == branchId
+                    && (x.Area.FloorId == null || x.Area.FloorId == x.FloorId)));
+            var departments = db.Departments.AsNoTracking().Where(x => x.BranchId == branchId);
+
+            var floorProjection = FloorProjection(management);
+            var areaProjection = AreaProjection(management);
+            var available = BranchStructureQuery.CollectionsFor(node).Where(x => management || x != "departments").ToArray();
+            var result = new BranchStructureDto(branch, management ? "management" : "basic", node, collection, available, query.IsActive);
+            // Headers describe the explicitly selected node, independent of its children's filter.
+            // Inactive parents remain visible for read-only historical/admin inspection.
+            switch (node)
+            {
+                case "floor":
+                    var floor = await floors.Where(x => x.FloorId == query.NodeId).Select(floorProjection).TagWith("UC013:SelectedFloor").SingleOrDefaultAsync(ct);
+                    if (floor == null) return new(BranchStructureStatus.NotFound);
+                    result = result with { SelectedFloor = floor };
+                    areas = areas.Where(x => x.FloorId == floor.Id);
+                    rooms = rooms.Where(x => x.FloorId == floor.Id);
+                    break;
+                case "area":
+                    var area = await areas.Where(x => x.AreaId == query.NodeId).Select(areaProjection).TagWith("UC013:SelectedArea").SingleOrDefaultAsync(ct);
+                    if (area == null) return new(BranchStructureStatus.NotFound);
+                    result = result with { SelectedArea = area };
+                    rooms = rooms.Where(x => x.AreaId == area.Id);
+                    break;
+                case "room":
+                    var room = await rooms.Where(x => x.RoomId == query.NodeId).Select(RoomProjection).TagWith("UC013:SelectedRoom").SingleOrDefaultAsync(ct);
+                    if (room == null) return new(BranchStructureStatus.NotFound);
+                    result = result with { SelectedRoom = room };
+                    break;
+                case "department":
+                    var department = await departments.Where(x => x.DepartmentId == query.NodeId).Select(DepartmentProjection).TagWith("UC013:SelectedDepartment").SingleOrDefaultAsync(ct);
+                    if (department == null) return new(BranchStructureStatus.NotFound);
+                    result = result with { SelectedDepartment = department };
+                    break;
+                default:
+                    areas = areas.Where(x => x.FloorId == null);
+                    break;
+            }
+            switch (collection)
+            {
+                case "floors":
+                    if (query.IsActive is { } f) floors = floors.Where(x => x.IsActive == f);
+                    result = result with { Floors = await Page(floors.OrderBy(x => x.FloorNumber == null ? 1 : 0)
+                        .ThenBy(x => x.FloorNumber).ThenBy(x => x.FloorCode).ThenBy(x => x.FloorId).Select(floorProjection), "Floors") }; break;
+                case "areas":
+                    if (query.IsActive is { } a) areas = areas.Where(x => x.IsActive == a);
+                    result = result with { Areas = await Page(areas.OrderBy(x => x.AreaCode).ThenBy(x => x.AreaId).Select(areaProjection), "Areas") }; break;
+                case "rooms":
+                    if (query.IsActive is { } r) rooms = rooms.Where(x => x.IsActive == r);
+                    result = result with { Rooms = await Page(rooms.OrderBy(x => x.RoomNumber).ThenBy(x => x.RoomId).Select(RoomProjection), "Rooms") }; break;
+                case "departments":
+                    if (query.IsActive is { } d) departments = departments.Where(x => x.IsActive == d);
+                    result = result with { Departments = await Page(departments.OrderBy(x => x.DepartmentCode).ThenBy(x => x.DepartmentId).Select(DepartmentProjection), "Departments") }; break;
+            }
+            if (!await Valid()) return new(BranchStructureStatus.SessionInvalid);
+            access = await Authorize();
+            if (!access.Decision.IsGranted) return Denied(access.Decision);
+            if (management && !access.Management) return new(BranchStructureStatus.Forbidden);
+            await tx.CommitAsync(ct);
+            return new(BranchStructureStatus.Success, result);
+        }
+        catch (DbException error) when (ct.IsCancellationRequested)
+        { throw new OperationCanceledException("Branch structure read cancelled.", error, ct); }
+        catch (Exception error) when (!ct.IsCancellationRequested && IsContention(error))
+        { return new(BranchStructureStatus.Unavailable); }
+
+        async Task<bool> Valid()
+        {
+            var valid = await sessions.ValidateSessionAsync(ticket, ct);
+            return valid.IsValid && valid.Session is { IsRestricted: false } session
+                && session.UserId == actor.UserId && session.SessionId == actor.SessionId;
+        }
+        async Task<(PermissionEvaluation Decision, bool Management)> Authorize()
+        {
+            var global = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", ct);
+            if (global.IsGranted || global.Decision == PermissionDecision.Unavailable) return (global, global.IsGranted);
+            var scoped = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branchId, ct);
+            if (scoped.IsGranted || scoped.Decision == PermissionDecision.Unavailable) return (scoped, scoped.IsGranted);
+            // Task64 ASSUMED_V1 explicitly approved by user. No role/grant or write-policy change.
+            return (await permissions.EvaluateBranchAsync("ROOM_VIEW", branchId, ct), false);
+        }
+        async Task<StructurePageDto<T>> Page<T>(IQueryable<T> sorted, string kind)
+        {
+            var count = await sorted.TagWith("UC013:" + kind + ":Count").LongCountAsync(ct);
+            var items = await sorted.Skip(checked((query.Page - 1) * query.PageSize)).Take(query.PageSize)
+                .TagWith("UC013:" + kind + ":Page").ToListAsync(ct);
+            return new(items, query.Page, query.PageSize, count);
+        }
+    }
+
+    private static Expression<Func<Floor, StructureFloorDto>> FloorProjection(bool management) =>
+        x => new(x.FloorId, x.BranchId, x.FloorCode, x.FloorName, x.FloorNumber, management ? x.Description : null, x.IsActive);
+    private static Expression<Func<Area, StructureAreaDto>> AreaProjection(bool management) =>
+        x => new(x.AreaId, x.BranchId, x.FloorId, x.AreaCode, x.AreaName, management ? x.Description : null, x.IsActive);
+    private static readonly Expression<Func<Room, StructureRoomDto>> RoomProjection =
+        x => new(x.RoomId, x.BranchId, x.FloorId, x.AreaId, x.RoomNumber, x.IsActive);
+    private static readonly Expression<Func<Department, StructureDepartmentDto>> DepartmentProjection =
+        x => new(x.DepartmentId, x.BranchId, x.DepartmentCode, x.DepartmentName, x.IsActive);
+
+    private static BranchStructureResult Denied(PermissionEvaluation result) => new(
+        result.Decision == PermissionDecision.Unavailable ? BranchStructureStatus.Unavailable : BranchStructureStatus.Forbidden);
+    private static bool IsContention(Exception error)
+    {
+        for (Exception? e = error; e != null; e = e.InnerException)
+            if (e is SqlException { Number: -2 or 1222 or 1205 }) return true;
+        return false;
+    }
+}

@@ -1,0 +1,454 @@
+﻿# Review-only bundle of new DEV1 source plus approved Program diff; not applied/staged automatically.
+diff --git a/src/HotelOps.Api/Controllers/TurnoverHistoryController.cs b/src/HotelOps.Api/Controllers/TurnoverHistoryController.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Controllers/TurnoverHistoryController.cs
+@@ -0,0 +1,56 @@
++using System.ComponentModel.DataAnnotations;
++using HotelOps.Api.DTOs.HotelStructure;
++using HotelOps.Api.Security;
++using HotelOps.Api.Services.Authentication;
++using HotelOps.Api.Services.HotelStructure;
++using Microsoft.AspNetCore.Authorization;
++using Microsoft.AspNetCore.Mvc;
++
++namespace HotelOps.Api.Controllers;
++
++[ApiController]
++[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
++[ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
++[UserAccountActivationErrors]
++public sealed class TurnoverHistoryController(TurnoverHistoryService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
++{
++    private string PrivateRoot => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
++
++    [HttpGet("api/rooms/{roomId:long}/turnover-history")]
++    public Task<IActionResult> Turnovers(long roomId, [FromQuery] OperationalHistoryQuery query, CancellationToken ct)
++        => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, query, null, ct));
++
++    [HttpGet("api/rooms/{roomId:long}/turnover-history/{id:long}")]
++    public Task<IActionResult> Turnover(long roomId, long id, [FromQuery] long? branchId, CancellationToken ct)
++        => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct));
++
++    [HttpGet("api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}")]
++    public Task<IActionResult> TurnoverEvidence(long roomId, long id, long attachmentId, [FromQuery] long? branchId, CancellationToken ct)
++        => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct, attachmentId, PrivateRoot));
++
++    private async Task<IActionResult> Execute(Func<SessionReference, long, Task<TurnoverHistoryResult>> operation)
++    {
++        if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
++        if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out var sid)) return Problem(statusCode: 401, title: "SESSION_INVALID");
++        try
++        {
++            var result = await operation(ticket!, sid);
++            if (result.Status == TurnoverHistoryStatus.Success)
++            {
++                if (result.Value is PrivateHistoryFileDto file)
++                {
++                    Response.Headers["X-Content-Type-Options"] = "nosniff";
++                    return File(file.Content, file.ContentType, file.Name);
++                }
++                return Ok(result.Value);
++            }
++            return Problem(statusCode: result.Status switch
++            {
++                TurnoverHistoryStatus.SessionInvalid => 401, TurnoverHistoryStatus.Forbidden => 403,
++                TurnoverHistoryStatus.NotFound => 404,
++                TurnoverHistoryStatus.Inactive => 409, _ => 503
++            }, title: result.Status.ToString().ToUpperInvariant());
++        }
++        catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
++    }
++}
+diff --git a/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs
+@@ -0,0 +1,193 @@
++using System.ComponentModel.DataAnnotations;
++using System.Globalization;
++using System.Text.Json;
++using HotelOps.Api.Data;
++using HotelOps.Api.DTOs.HotelStructure;
++using HotelOps.Api.Entities;
++using HotelOps.Api.Security.Authorization;
++using HotelOps.Api.Services.Authentication;
++using Microsoft.EntityFrameworkCore;
++
++namespace HotelOps.Api.Services.HotelStructure;
++
++public sealed partial class TurnoverHistoryService
++{
++    private static OperationalHistoryQuery HistoryInput(OperationalHistoryQuery query)
++    {
++        var search = query.Search?.Trim(); var result = query.Result?.Trim().ToUpperInvariant();
++        if (query.BranchId <= 0 || query.RoomId <= 0 || query.InspectorId <= 0 || query.HousekeeperId <= 0
++            || query.Page < 1 || query.PageSize is < 1 or > 100 || query.Page > int.MaxValue / query.PageSize
++            || query.From?.Kind is { } fk && fk != DateTimeKind.Utc || query.To?.Kind is { } tk && tk != DateTimeKind.Utc
++            || query.From > query.To || search?.Length > 150 || search?.Any(char.IsControl) == true
++            || result is not (null or "" or "PASS" or "FAIL" or "CONDITIONAL")) throw new ValidationException("Invalid history filters; dates must be UTC.");
++        return query with { Search = string.IsNullOrEmpty(search) ? null : search, Result = string.IsNullOrEmpty(result) ? null : result };
++    }
++    private async Task<long[]> HistoryBranches(string permission, long? branch, CancellationToken ct)
++    {
++        if (branch is { } id) return [id];
++        var ids = await db.Branches.AsNoTracking().Where(x => x.IsActive).Select(x => x.BranchId).ToArrayAsync(ct);
++        var global = await permissions.EvaluateGlobalAsync(permission, ct);
++        if (global.Decision == PermissionDecision.Unavailable) throw new SessionStoreUnavailableException(new InvalidOperationException("History scope unavailable."));
++        if (global.IsGranted) return ids;
++        var visible = new List<long>();
++        foreach (var candidate in ids)
++        {
++            var access = await permissions.EvaluateBranchAsync(permission, candidate, ct);
++            if (access.Decision == PermissionDecision.Unavailable) throw new SessionStoreUnavailableException(new InvalidOperationException("History scope unavailable."));
++            if (access.IsGranted) visible.Add(candidate);
++        }
++        return visible.ToArray();
++    }
++    private async Task<bool> HistoryFinal(string permission, IEnumerable<long> branches, CancellationToken ct)
++    {
++        foreach (var branch in branches)
++        {
++            var access = await permissions.EvaluateBranchAsync(permission, branch, ct);
++            if (access.Decision == PermissionDecision.Unavailable) throw new SessionStoreUnavailableException(new InvalidOperationException("History scope unavailable."));
++            if (!access.IsGranted) return false;
++        }
++        return true;
++    }
++    private async Task<IQueryable<Room>?> HistoryRooms(CancellationToken ct)
++    {
++        var query = await TurnoverHistorySchema.RoomsAsync(db, ct);
++        return query?.AsNoTracking().Where(r => r.Floor.BranchId == r.BranchId && (r.AreaId == null
++            || r.Area != null && r.Area.BranchId == r.BranchId && (r.Area.FloorId == null || r.Area.FloorId == r.FloorId)));
++    }
++    private static IQueryable<HistoryInspectionDto> HistoryInspectionRows(IQueryable<RoomInspection> source) => source.Select(i =>
++        new HistoryInspectionDto(i.InspectionId, i.InspectionNo, i.RoomId, i.Room.RoomNumber, i.Room.BranchId, i.CleaningTaskId,
++            i.VersionId, i.Version.VersionNo, i.InspectorUserId, i.InspectorUser.FullName, i.Status, i.Result,
++            i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt, i.SummaryNote,
++            i.CleaningReworks.Count(r => r.CleaningTask.RoomId == i.RoomId && r.CleaningTaskId == i.CleaningTaskId)));
++
++    public Task<TurnoverHistoryResult> TurnoverHistoryAsync(SessionReference ticket, long sid, long roomId, OperationalHistoryQuery input, long? cycleId, CancellationToken ct, long? attachmentId = null, string? privateRoot = null)
++    {
++        if (input.RoomId is { } filterRoom && filterRoom != roomId || input.InspectorId != null || input.HousekeeperId != null || !string.IsNullOrWhiteSpace(input.Search))
++            throw new ValidationException("Turnover history supports room, branch, date range, result and pagination filters.");
++        var q = HistoryInput(input with { RoomId = roomId });
++        if (roomId <= 0 || cycleId <= 0) throw new ValidationException("Room and cycle IDs must be positive.");
++        return ReadAsync(ticket, sid, q.BranchId, async token =>
++        {
++            var branches = await HistoryBranches("CLEANING_VIEW", q.BranchId, token); var rooms = await HistoryRooms(token);
++            if (rooms == null) return new(TurnoverHistoryStatus.SchemaRequired);
++            var room = await rooms.Where(x => x.RoomId == roomId && branches.Contains(x.BranchId)).Select(x => new { x.RoomId, x.BranchId }).SingleOrDefaultAsync(token);
++            if (room == null) return new(TurnoverHistoryStatus.NotFound);
++            if (!await HistoryFinal("INSPECTION_VIEW", [room.BranchId], token)) return new(TurnoverHistoryStatus.Forbidden);
++            var tasks = db.CleaningTasks.AsNoTracking().Where(t => t.RoomId == roomId);
++            if (cycleId != null) tasks = tasks.Where(t => t.CleaningTaskId == cycleId);
++            if (q.From is { } from) tasks = tasks.Where(t => (t.ActualStartAt ?? t.ScheduledStartAt ?? t.CreatedAt) >= from);
++            if (q.To is { } to) tasks = tasks.Where(t => (t.ActualStartAt ?? t.ScheduledStartAt ?? t.CreatedAt) <= to);
++            if (q.Result != null) tasks = tasks.Where(t => t.RoomInspections.Where(i => i.RoomId == t.RoomId).OrderByDescending(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt)
++                .ThenByDescending(i => i.InspectionId).Select(i => i.Result).FirstOrDefault() == q.Result);
++            var total = await tasks.CountAsync(token);
++            if (cycleId != null && total == 0) return new(TurnoverHistoryStatus.NotFound);
++            var page = await tasks.OrderByDescending(t => t.ActualStartAt ?? t.ScheduledStartAt ?? t.CreatedAt).ThenByDescending(t => t.CleaningTaskId)
++                .Skip(cycleId != null ? 0 : (q.Page - 1) * q.PageSize).Take(cycleId != null ? 1 : q.PageSize).TagWith("UC038:Page").ToArrayAsync(token);
++            var cycles = await HistoryCycles(page, token);
++            object value = new OperationalHistoryPage<HistoryCycleDto>(cycles, total, q);
++            if (cycleId != null)
++            {
++                var ids = page.Select(x => x.CleaningTaskId).ToArray();
++                var inspectionRows = await HistoryInspectionRows(db.RoomInspections.AsNoTracking().Where(i => ids.Contains(i.CleaningTaskId ?? 0) && i.RoomId == roomId)
++                    .OrderBy(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt).ThenBy(i => i.InspectionId)).ToArrayAsync(token);
++                var inspections = (await HistoryInspectionDetails(inspectionRows, token)).Select(i => i with { Evidence = i.Evidence.Select(e => e with { DownloadPath = $"/api/rooms/{roomId}/turnover-history/{cycleId}/evidence/{e.Id}?branchId={room.BranchId}" }).ToArray() }).ToArray();
++                var reworks = await Reworks(ids, token);
++                var progress = await db.CleaningProgressLogs.AsNoTracking().Where(p => ids.Contains(p.CleaningTaskId)).OrderBy(p => p.LoggedAt).ThenBy(p => p.ProgressId)
++                    .Select(p => new HistoryProgressDto(p.ProgressId, p.ProgressPercent, p.Status, p.BlockerTypeId, p.Note, p.LoggedBy, p.LoggedAt)).ToArrayAsync(token);
++                var evidence = await HistoryEvidence(ids, inspectionRows.Select(i => i.Id).ToArray(), inspections.SelectMany(i => i.Defects).Select(d => d.Id).ToArray(), reworks.Select(r => r.Id).ToArray(),
++                    $"/api/rooms/{roomId}/turnover-history/{cycleId}/evidence", room.BranchId, token);
++                value = new HistoryCycleDetailDto(cycles[0], progress, inspections, reworks, evidence);
++                if (attachmentId is { } aid)
++                {
++                    var file = await HistoryFile(evidence, aid, privateRoot, token);
++                    if (file == null) return new(TurnoverHistoryStatus.NotFound);
++                    value = file;
++                }
++            }
++            if (!await HistoryFinal("CLEANING_VIEW", [room.BranchId], token) || !await HistoryFinal("INSPECTION_VIEW", [room.BranchId], token)) return new(TurnoverHistoryStatus.Forbidden);
++            return new(TurnoverHistoryStatus.Success, value);
++        }, ct);
++    }
++
++    private async Task<HistoryCycleDto[]> HistoryCycles(CleaningTask[] tasks, CancellationToken ct)
++    {
++        var ids = tasks.Select(t => t.CleaningTaskId).ToArray();
++        var assignments = await Assignments(ids, ct);
++        var typeIds = tasks.Select(t => t.CleaningTypeId).Distinct().ToArray();
++        var roomIds = tasks.Select(t => t.RoomId).Distinct().ToArray();
++        var types = await db.ReferenceValues.AsNoTracking().Where(x => typeIds.Contains(x.ReferenceId)).ToDictionaryAsync(x => x.ReferenceId, x => x.DisplayName, ct);
++        var rooms = await db.Rooms.AsNoTracking().Where(x => roomIds.Contains(x.RoomId)).ToDictionaryAsync(x => x.RoomId, ct);
++        var inspections = await HistoryInspectionRows(db.RoomInspections.AsNoTracking().Where(x => ids.Contains(x.CleaningTaskId ?? 0) && x.RoomId == x.CleaningTask!.RoomId)).ToArrayAsync(ct);
++        var reworks = await Reworks(ids, ct);
++        var keys = ids.Select(x => x.ToString(CultureInfo.InvariantCulture)).ToArray();
++        var cancellations = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "cleaning_tasks" && keys.Contains(x.EntityId) && x.Action == "CANCEL")
++            .Select(x => new { x.EntityId, x.AuditId, x.NewValues }).ToArrayAsync(ct);
++        return tasks.Select(t => new HistoryCycleDto(t.CleaningTaskId, t.TaskNo, t.RoomId, rooms[t.RoomId].RoomNumber, rooms[t.RoomId].BranchId,
++            types[t.CleaningTypeId], t.Status, t.ActualStartAt ?? t.ScheduledStartAt ?? t.CreatedAt, t.ActualStartAt, t.ActualEndAt,
++            inspections.Where(i => i.CleaningTaskId == t.CleaningTaskId).OrderByDescending(i => i.At).ThenByDescending(i => i.Id).Select(i => i.Result).FirstOrDefault(),
++            reworks.Count(r => r.CleaningTaskId == t.CleaningTaskId), Reason(cancellations.Where(c => c.EntityId == t.CleaningTaskId.ToString(CultureInfo.InvariantCulture)).OrderByDescending(c => c.AuditId).Select(c => c.NewValues).FirstOrDefault()),
++            assignments.Where(a => a.Task == t.CleaningTaskId).Select(a => a.Value).ToArray())).ToArray();
++        static string? Reason(string? json)
++        {
++            if (json == null) return null;
++            using var value = JsonDocument.Parse(json);
++            return value.RootElement.ValueKind == JsonValueKind.Object && value.RootElement.TryGetProperty("reason", out var reason) && reason.ValueKind == JsonValueKind.String ? reason.GetString() : null;
++        }
++    }
++    private sealed record AssignmentRow(long Task, HistoryAssignmentDto Value);
++    private Task<AssignmentRow[]> Assignments(long[] ids, CancellationToken ct) => db.CleaningAssignments.AsNoTracking().Where(a => ids.Contains(a.CleaningTaskId))
++        .OrderBy(a => a.AssignedAt).ThenBy(a => a.AssignmentId).Select(a => new AssignmentRow(a.CleaningTaskId,
++            new HistoryAssignmentDto(a.AssignmentId, a.AssigneeUserId, a.AssigneeUser.FullName, a.AssignmentStatus, a.AssignedAt, a.EndedAt, a.Reason))).ToArrayAsync(ct);
++    private Task<HistoryReworkDto[]> Reworks(long[] cycles, CancellationToken ct) => db.CleaningReworks.AsNoTracking().Where(r => cycles.Contains(r.CleaningTaskId)
++        && r.Inspection.RoomId == r.CleaningTask.RoomId && r.Inspection.CleaningTaskId == r.CleaningTaskId).OrderBy(r => r.RequestedAt).ThenBy(r => r.ReworkId)
++        .Select(r => new HistoryReworkDto(r.ReworkId, r.CleaningTaskId, r.InspectionId, r.AssigneeUserId, r.Reason, r.Status, r.RequestedAt, r.CompletedAt, r.Note)).ToArrayAsync(ct);
++    private async Task<HistoryInspectionDetailDto[]> HistoryInspectionDetails(HistoryInspectionDto[] rows, CancellationToken ct)
++    {
++        var ids = rows.Select(x => x.Id).ToArray(); var versions = rows.Select(x => x.VersionId).Distinct().ToArray();
++        var cycles = rows.Where(x => x.CleaningTaskId != null).Select(x => x.CleaningTaskId!.Value).Distinct().ToArray();
++        var items = await db.InspectionChecklistItems.AsNoTracking().Where(x => versions.Contains(x.VersionId)).OrderBy(x => x.SortOrder).ThenBy(x => x.ItemId).ToArrayAsync(ct);
++        var itemIds = items.Select(i => i.ItemId).ToArray();
++        var groups = await TurnoverHistorySchema.ChecklistStateAsync(db, ct) == 1
++            ? await db.Database.SqlQueryRaw<CriterionGroupRow>("SELECT item_id AS ItemId,criterion_group AS [Group] FROM dbo.inspection_checklist_items").Where(i => itemIds.Contains(i.ItemId)).ToDictionaryAsync(i => i.ItemId, i => i.Group, ct)
++            : new Dictionary<long, string?>();
++        var results = await db.InspectionResults.AsNoTracking().Where(r => ids.Contains(r.InspectionId) && r.ChecklistItem.VersionId == r.Inspection.VersionId).ToArrayAsync(ct);
++        var defects = await db.InspectionDefects.AsNoTracking().Where(d => ids.Contains(d.InspectionId) && (d.ChecklistItemId == null || d.ChecklistItem!.VersionId == d.Inspection.VersionId))
++            .OrderBy(d => d.DefectId).ToArrayAsync(ct);
++        var reworks = await Reworks(cycles, ct); var assignments = await Assignments(cycles, ct);
++        var related = await HistoryInspectionRows(db.RoomInspections.AsNoTracking().Where(i => cycles.Contains(i.CleaningTaskId ?? 0) && i.RoomId == i.CleaningTask!.RoomId)
++            .OrderBy(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt).ThenBy(i => i.InspectionId)).ToArrayAsync(ct);
++        var evidence = await HistoryEvidence(cycles, ids, defects.Select(d => d.DefectId).ToArray(), reworks.Select(r => r.Id).ToArray(), "", 0, ct);
++        var locations = Array.Empty<DefectLocationRow>(); var defectFiles = Array.Empty<InspectionPhotoRow>(); var resultFiles = Array.Empty<InspectionPhotoRow>();
++        if (await TurnoverHistorySchema.HousekeepingInstalledAsync(db, ct))
++        {
++            locations = await db.Database.SqlQueryRaw<DefectLocationRow>("SELECT inspection_id AS InspectionId,defect_id AS TargetId,room_location AS Location FROM dbo.inspection_defects")
++                .Where(d => ids.Contains(d.InspectionId)).ToArrayAsync(ct);
++            defectFiles = await db.Database.SqlQueryRaw<InspectionPhotoRow>("SELECT d.inspection_id AS InspectionId,l.defect_id AS TargetId,l.attachment_id AS AttachmentId FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id JOIN dbo.attachments a ON a.attachment_id=l.attachment_id WHERE a.deleted_at IS NULL")
++                .Where(d => ids.Contains(d.InspectionId)).ToArrayAsync(ct);
++            resultFiles = await db.Database.SqlQueryRaw<InspectionPhotoRow>("SELECT r.inspection_id AS InspectionId,l.result_id AS TargetId,l.attachment_id AS AttachmentId FROM dbo.inspection_result_attachments l JOIN dbo.inspection_results r ON r.result_id=l.result_id JOIN dbo.attachments a ON a.attachment_id=l.attachment_id WHERE a.deleted_at IS NULL")
++                .Where(d => ids.Contains(d.InspectionId)).ToArrayAsync(ct);
++        }
++        return rows.Select(row => new HistoryInspectionDetailDto(row, assignments.Where(a => a.Task == row.CleaningTaskId).Select(a => a.Value).ToArray(),
++            items.Where(i => i.VersionId == row.VersionId).SelectMany(item =>
++            {
++                var found = results.Where(r => r.InspectionId == row.Id && r.ChecklistItemId == item.ItemId).ToArray();
++                return found.Length == 0 ? [new HistoryCriterionDto(null, item.ItemId, item.Criterion, item.Description, item.IsRequired, item.PassCondition, null, null, null, groups.GetValueOrDefault(item.ItemId))]
++                    : found.Select(r => new HistoryCriterionDto(r.ResultId, item.ItemId, item.Criterion, item.Description, item.IsRequired, item.PassCondition, r.Outcome, r.Note, r.InspectedAt, groups.GetValueOrDefault(item.ItemId),
++                        resultFiles.Where(f => f.TargetId == r.ResultId && f.InspectionId == row.Id).Select(f => f.AttachmentId).ToArray())).ToArray();
++            }).ToArray(), defects.Where(d => d.InspectionId == row.Id).Select(d => new HistoryDefectDto(d.DefectId, d.ChecklistItemId, d.Description, d.Status, d.SeverityId, d.CorrectiveAction, d.ResolvedAt, d.ResolutionNote,
++                locations.FirstOrDefault(l => l.TargetId == d.DefectId)?.Location, defectFiles.Where(f => f.TargetId == d.DefectId && f.InspectionId == row.Id).Select(f => f.AttachmentId).ToArray())).ToArray(),
++            reworks.Where(r => r.InspectionId == row.Id).ToArray(), related.Where(i => i.CleaningTaskId == row.CleaningTaskId).ToArray(),
++            evidence.Where(e => e.EntityType == "INSPECTION" && e.EntityId == row.Id || e.EntityType == "CLEANING_TASK" && e.EntityId == row.CleaningTaskId
++                )
++                .Select(e => e with { DownloadPath = $"/api/inspection-history/{row.Id}/evidence/{e.Id}?branchId={row.BranchId}" }).ToArray())).ToArray();
++    }
++    private sealed class CriterionGroupRow { public long ItemId { get; set; } public string? Group { get; set; } }
++    public sealed class DefectLocationRow { public long InspectionId { get; set; } public long TargetId { get; set; } public string? Location { get; set; } }
++    public sealed class InspectionPhotoRow { public long InspectionId { get; set; } public long TargetId { get; set; } public long AttachmentId { get; set; } }
++    private async Task<HistoryEvidenceDto[]> HistoryEvidence(long[] cycles, long[] inspections, long[] defects, long[] reworks,
++        string path, long branch, CancellationToken ct) => await db.Attachments.AsNoTracking().Where(a => a.DeletedAt == null && (
++            a.EntityType == "CLEANING_TASK" && cycles.Contains(a.EntityId) || a.EntityType == "INSPECTION" && inspections.Contains(a.EntityId)
++            ))
++        .OrderBy(a => a.UploadedAt).ThenBy(a => a.AttachmentId).Select(a => new HistoryEvidenceDto(a.AttachmentId, a.EntityType, a.EntityId,
++            a.OriginalFileName ?? a.FileName, a.MimeType, a.FileSizeBytes, a.UploadedAt, path + "/" + a.AttachmentId + "?branchId=" + branch)).ToArrayAsync(ct);
++}
+diff --git a/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs
+@@ -0,0 +1,80 @@
++using System.ComponentModel.DataAnnotations;
++using System.Data;
++using HotelOps.Api.Data;
++using HotelOps.Api.Security.Authorization;
++using HotelOps.Api.Services.Authentication;
++using HotelOps.Api.Services.Users;
++using Microsoft.Data.SqlClient;
++using Microsoft.EntityFrameworkCore;
++
++namespace HotelOps.Api.Services.HotelStructure;
++
++public enum TurnoverHistoryStatus { Success, SessionInvalid, Forbidden, NotFound, Inactive, SchemaRequired, Unavailable }
++public sealed record TurnoverHistoryResult(TurnoverHistoryStatus Status, object? Value = null);
++
++/// <summary>UC038 read-only extraction. Owns only its read transaction; no business writers.</summary>
++public sealed partial class TurnoverHistoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
++    IPermissionService permissions, ISqlSessionService sessions)
++{
++    private const string Permission = "CLEANING_VIEW";
++    private async Task<TurnoverHistoryResult> ReadAsync(SessionReference ticket, long sessionId, long? branchId,
++        Func<CancellationToken, Task<TurnoverHistoryResult>> read, CancellationToken ct, bool allowScopedList = true)
++    {
++        ArgumentNullException.ThrowIfNull(ticket);
++        if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
++        ct.ThrowIfCancellationRequested();
++        if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
++            || actor.IsRestricted || ticket.IsRestricted) return new(TurnoverHistoryStatus.SessionInvalid);
++        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
++            || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
++        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
++        try
++        {
++            var locked = await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);
++            if (!locked.TryGetValue(actor.UserId, out var user) || user is null || user.DeletedAt != null
++                || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE") return new(TurnoverHistoryStatus.SessionInvalid);
++            if (await Gate() is { } denied) return new(denied);
++            if (branchId is { } branch)
++            {
++                var parent = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}")
++                    .AsNoTracking().SingleOrDefaultAsync(ct);
++                if (parent == null) return new(TurnoverHistoryStatus.NotFound);
++                if (!parent.IsActive) return new(TurnoverHistoryStatus.Inactive);
++            }
++            var locks = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:RoomTypes:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];").ToArrayAsync(ct);
++            if (locks.Length != 1 || locks[0] < 0) return new(TurnoverHistoryStatus.Unavailable);
++
++            var result = await read(ct);
++            if (result.Status != TurnoverHistoryStatus.Success) return result;
++            if (await Gate() is { } final) return new(final);
++            await tx.CommitAsync(ct);
++            return result;
++        }
++        catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2 or 207 or 208)
++        { return new(TurnoverHistoryStatus.Unavailable); }
++        catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
++        { throw new OperationCanceledException("Turnover history cancelled.", error, ct); }
++
++        async Task<TurnoverHistoryStatus?> Gate()
++        {
++            var valid = await sessions.ValidateSessionAsync(ticket, ct);
++            if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return TurnoverHistoryStatus.SessionInvalid;
++            var access = branchId is { } branch ? await permissions.EvaluateBranchAsync(Permission, branch, ct)
++                : await permissions.EvaluateGlobalAsync(Permission, ct);
++            ct.ThrowIfCancellationRequested();
++            if (access.IsGranted) return null;
++            if (access.Decision == PermissionDecision.Unavailable) return TurnoverHistoryStatus.Unavailable;
++            if (branchId == null && allowScopedList)
++                foreach (var id in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(ct))
++                {
++                    var scoped = await permissions.EvaluateBranchAsync(Permission, id, ct);
++                    if (scoped.Decision == PermissionDecision.Unavailable) return TurnoverHistoryStatus.Unavailable;
++                    if (scoped.IsGranted) return null;
++                }
++            return TurnoverHistoryStatus.Forbidden;
++        }
++    }
++
++    private static int? SqlNumber(Exception error)
++    { for (Exception? e = error; e != null; e = e.InnerException) if (e is SqlException sql) return sql.Number; return null; }
++}
+diff --git a/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs
+@@ -0,0 +1,41 @@
++using HotelOps.Api.DTOs.HotelStructure;
++using Microsoft.EntityFrameworkCore;
++
++namespace HotelOps.Api.Services.HotelStructure;
++
++public sealed partial class TurnoverHistoryService
++{
++    private async Task<PrivateHistoryFileDto?> HistoryFile(IReadOnlyList<HistoryEvidenceDto> evidence, long id, string? root, CancellationToken ct)
++    {
++        if (id <= 0 || root == null || !evidence.Any(e => e.Id == id)) return null;
++        var row = await db.Attachments.AsNoTracking().SingleOrDefaultAsync(a => a.AttachmentId == id && a.DeletedAt == null, ct);
++        if (row == null || string.IsNullOrWhiteSpace(row.StorageKey) || Path.IsPathRooted(row.StorageKey)) return null;
++        var parts = row.StorageKey.Replace('\\', '/').Split('/');
++        if (parts.Any(p => p is "" or "." or ".." || p.Contains(':'))) return null;
++        try
++        {
++            var directory = Path.GetFullPath(root);
++            if (!Directory.Exists(directory) || (File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) return null;
++            var path = directory;
++            foreach (var part in parts)
++            {
++                path = Path.Combine(path, part);
++                if (!Path.Exists(path) || (File.GetAttributes(path) & FileAttributes.ReparsePoint) != 0) return null;
++            }
++            await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.Read, 81920, FileOptions.Asynchronous);
++            if (stream.Length is <= 0 or > 10 * 1024 * 1024 || row.FileSizeBytes is { } size && size != stream.Length) return null;
++            var bytes = new byte[(int)stream.Length];
++            await stream.ReadExactlyAsync(bytes, ct);
++            var mime = bytes.AsSpan().StartsWith(new byte[] {137,80,78,71,13,10,26,10}) ? "image/png"
++                : bytes.AsSpan().StartsWith(new byte[] {255,216,255}) ? "image/jpeg"
++                : bytes.AsSpan().StartsWith("%PDF-"u8) ? "application/pdf" : null;
++            if (mime == null || row.MimeType != null && !string.Equals(row.MimeType, mime, StringComparison.OrdinalIgnoreCase)) return null;
++            var name = Path.GetFileName(row.OriginalFileName ?? row.FileName);
++            if (string.IsNullOrWhiteSpace(name) || name.Any(char.IsControl)) name = "evidence";
++            return new(bytes, mime, name);
++        }
++        catch (IOException) { return null; }
++        catch (UnauthorizedAccessException) { return null; }
++        catch (ArgumentException) { return null; }
++    }
++}
+diff --git a/src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs
+@@ -0,0 +1,47 @@
++using HotelOps.Api.Data;
++using HotelOps.Api.Entities;
++using Microsoft.EntityFrameworkCore;
++
++namespace HotelOps.Api.Services.HotelStructure;
++
++// Read-only historical compatibility probes; no DDL or shared EF model changes.
++internal static class TurnoverHistorySchema
++{
++    internal static async Task<IQueryable<Room>?> RoomsAsync(HotelOpsDbContext db, CancellationToken ct)
++        => await RoomTypeDirectorySchema.ReadAsync(db, ct) switch
++        {
++            0 => db.Rooms,
++            1 => db.Rooms.FromSqlRaw("SELECT r.* FROM dbo.rooms r INNER JOIN dbo.room_types t ON t.room_type_id=r.room_type_id WHERE t.branch_id IS NULL OR t.branch_id=r.branch_id"),
++            _ => null
++        };
++
++    // 0 = unmodified legacy, 1 = installed, 2 = partial/incompatible. No startup DDL.
++    public static Task<int> ChecklistStateAsync(HotelOpsDbContext db, CancellationToken ct) => db.Database.SqlQueryRaw<int>("""
++        SELECT CASE WHEN COL_LENGTH(N'dbo.inspection_checklists',N'branch_id') IS NULL
++         AND COL_LENGTH(N'dbo.inspection_checklists',N'row_version') IS NULL
++         AND COL_LENGTH(N'dbo.inspection_checklist_items',N'criterion_group') IS NULL
++         AND OBJECT_ID(N'dbo.inspection_checklist_room_types') IS NULL
++         AND NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Checklists.V1') THEN 0
++        WHEN COL_LENGTH(N'dbo.inspection_checklists',N'branch_id')=8 AND COL_LENGTH(N'dbo.inspection_checklist_items',N'criterion_group')=200
++         AND EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID(N'dbo.inspection_checklists') AND name=N'row_version' AND system_type_id=189 AND is_nullable=0)
++         AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Checklists.V1' AND LEN(CONVERT(nvarchar(128),value))=64)
++         AND (SELECT COUNT(*) FROM sys.foreign_keys WHERE name IN(N'FK_checklists_branch_v1',N'FK_checklist_types_checklist_v1',N'FK_checklist_types_type_v1') AND is_disabled=0 AND is_not_trusted=0)=3
++         AND (SELECT COUNT(*) FROM sys.indexes WHERE name IN(N'IX_checklists_branch_v1',N'IX_checklist_types_reverse_v1',N'PK_checklist_room_types_v1') AND is_disabled=0)=3
++         AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN(N'TR_checklists_scope_v1',N'TR_checklist_types_scope_v1',N'TR_checklist_items_immutable_v1',N'TR_checklist_versions_v1',N'TR_inspection_checklist_selection_v1',N'TR_room_types_checklist_v1') AND is_disabled=0)=6 THEN 1 ELSE 2 END AS [Value]
++        """).SingleAsync(ct);
++
++
++    public static async Task<bool> HousekeepingInstalledAsync(HotelOpsDbContext db, CancellationToken ct) => await db.Database.SqlQueryRaw<int>("""
++        SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Housekeeping.V1' AND LEN(CONVERT(nvarchar(128),value))=64)
++        AND (SELECT COUNT(*) FROM sys.columns WHERE object_id IN(OBJECT_ID(N'dbo.cleaning_tasks'),OBJECT_ID(N'dbo.room_inspections'),OBJECT_ID(N'dbo.cleaning_reworks')) AND name='row_version' AND system_type_id=189 AND is_nullable=0)=3
++        AND COL_LENGTH(N'dbo.inspection_defects',N'room_location')=500
++        AND COL_LENGTH(N'dbo.cleaning_tasks',N'workflow_status')=30 AND COL_LENGTH(N'dbo.room_inspections',N'workflow_status')=30
++        AND COL_LENGTH(N'dbo.cleaning_reworks',N'workflow_status')=30 AND COL_LENGTH(N'dbo.room_inspections',N'due_at')=8
++        AND COL_LENGTH(N'dbo.cleaning_reworks',N'due_at')=8
++        AND (SELECT COUNT(*) FROM sys.check_constraints WHERE name IN('CK_cleaning_workflow_v1','CK_inspection_workflow_v1','CK_rework_workflow_v1') AND is_disabled=0 AND is_not_trusted=0)=3
++        AND (SELECT COUNT(*) FROM sys.foreign_keys WHERE name IN('FK_rework_defects_rework_v1','FK_rework_defects_defect_v1','FK_defect_attachment_defect_v1','FK_defect_attachment_file_v1','FK_result_attachment_result_v1','FK_result_attachment_file_v1') AND is_disabled=0 AND is_not_trusted=0)=6
++        AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_hk_inspections_v1','TR_hk_results_v1','TR_hk_defects_v1','TR_hk_rework_links_v1','TR_hk_defect_files_v1','TR_hk_result_files_v1','TR_hk_used_criteria_v1','TR_hk_used_version_v1') AND is_disabled=0)=8
++        THEN 1 ELSE 0 END AS [Value]
++        """).SingleAsync(ct) == 1 && await ChecklistStateAsync(db, ct) == 1;
++
++}
+diff --git a/src/HotelOps.Api/Program.cs b/src/HotelOps.Api/Program.cs
+--- a/src/HotelOps.Api/Program.cs
++++ b/src/HotelOps.Api/Program.cs
+@@ -23,6 +23,7 @@
+ builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.Housekeeping.CleaningMonitorService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeDirectoryService>();
++builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.TurnoverHistoryService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();

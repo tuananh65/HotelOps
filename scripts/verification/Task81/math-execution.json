@@ -1,0 +1,4 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/Task77/WorkTime.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/math -p:RestoreIgnoreFailedSources=true ",
+    "exitCode":  0
+}

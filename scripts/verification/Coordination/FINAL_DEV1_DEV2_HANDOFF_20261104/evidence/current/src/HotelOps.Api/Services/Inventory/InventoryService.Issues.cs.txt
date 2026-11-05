@@ -1,0 +1,28 @@
+4: namespace HotelOps.Api.Services.Inventory;
+5: 
+6: public sealed partial class InventoryService : IInventoryIssuePosting
+7: {
+8:     public async Task<InventoryIssueResult> PostIssue(InventoryIssueRequest r, CancellationToken ct)
+9:     {
+10:         if (r.DocumentDate == default) throw Invalid("DocumentDate is required.");
+11:         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("FE-09 must own the transaction and DbContext.");
+12:         await Gate("HotelOps:Inventory:Catalog", ct); await Actor(r.ActorUserId, ct);
+13:         await Gate($"HotelOps:Inventory:Fulfillment:{r.FulfillmentId}", ct);
+14:         var fulfillment = await db.MaterialFulfillments.AsNoTracking().SingleOrDefaultAsync(x => x.FulfillmentId == r.FulfillmentId, ct)
+15:             ?? throw Invalid("Fulfillment does not exist.");
+21:         {
+22:             DocumentType = "ISSUE",
+23:             Status = "POSTED",
+24:             SourceWarehouseId = r.WarehouseId,
+25:             CreatedBy = r.ActorUserId,
+26:             PostedBy = r.ActorUserId,
+27:             DocumentDate = r.DocumentDate,
+28:             ReferenceType = "MATERIAL_FULFILLMENT",
+29:             ReferenceId = r.FulfillmentId
+40:         var now = DateTime.UtcNow; d.CreatedAt = now; d.PostedAt = now; d.DocumentNo = await Number("ISS", now, false, ct);
+41:         db.StockDocuments.Add(d);
+42:         foreach (var line in d.StockDocumentLines) db.StockMovements.Add(new() { DocumentLine = line, WarehouseId = r.WarehouseId, ItemId = line.ItemId, SignedBaseQty = -line.BaseQty, CreatedBy = r.ActorUserId, OccurredAt = now });
+43:         await DocumentAudit(d, r.ActorUserId, "CREATE", "ISSUE_POSTED", null, warehouses, now, ct);
+44:         return new(d.DocumentId, d.StockDocumentLines.OrderBy(x => x.LineNo).Select((x, i) => new InventoryIssueCorrelation(r.Lines[i].RequestLineId, x.LineId)).ToList());
+45:     }
+46: }

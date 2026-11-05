@@ -1,0 +1,122 @@
+﻿SOURCE: src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs
+SHA256: 9F7505FBF8793809CB2A1828CF9AA1E565834C53BD15804790844FE500B21ECA
+Ranges: 14-23,46-152 (original source line numbers)
+   14: {
+   15:     private async Task Catalog(CancellationToken ct) => await Gate(db, "HotelOps:Inventory:Catalog", ct);
+   16:     private async Task<Warehouse> Warehouse(long id, bool locking, CancellationToken ct)
+   17:     {
+   18:         if (locking) await Gate(db, $"HotelOps:Inventory:Warehouse:{id}", ct);
+   19:         var query = locking ? db.Warehouses.FromSqlInterpolated($"SELECT * FROM dbo.warehouses WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={id}") : db.Warehouses.AsNoTracking().Where(x => x.WarehouseId == id);
+   20:         var w = await query.SingleOrDefaultAsync(ct);
+   21:         if (w is null || !w.IsActive || !await db.Branches.AnyAsync(x => x.BranchId == w.BranchId && x.IsActive, ct)) throw Invalid("Warehouse/branch must exist and be active.");
+   22:         return w;
+   23:     }
+
+   46:     public async Task<ReplenishmentDto> Create(ReplenishmentCreate input, CancellationToken ct)
+   47:     {
+   48:         await using var tx = await db.Database.BeginTransactionAsync(ct);
+   49:         try
+   50:         {
+   51:             await Catalog(ct); var warehouse = await Warehouse(input.WarehouseId, false, ct);
+   52:             await Actor(db, input.ActorUserId, warehouse.BranchId, ct);
+   53:             var supplier = input.SupplierName?.Trim(); if (supplier?.Length > 200) throw Invalid("SupplierName exceeds 200 characters.");
+   54:             if (input.Lines is null || input.Lines.Count == 0 || input.Lines.Any(x => x is null) || input.Lines.Any(x => x.LineNo <= 0) || input.Lines.Select(x => x.LineNo).Distinct().Count() != input.Lines.Count || input.Lines.Select(x => x.ItemId).Distinct().Count() != input.Lines.Count) throw Invalid("Nonempty lines with unique positive LineNo and unique ItemId per warehouse are required.");
+   55:             var sources = input.Lines.Where(x => x.SourceMaterialRequestLineId != null).Select(x => x.SourceMaterialRequestLineId!.Value).ToArray();
+   56:             var requestIds = await db.MaterialRequestLines.Where(x => sources.Contains(x.LineId)).Select(x => x.RequestId).Distinct().OrderBy(x => x).ToListAsync(ct);
+   57:             foreach (var id in requestIds)
+   58:             {
+   59:                 await Gate(db, $"HotelOps:MaterialRequest:Request:{id}", ct);
+   60:                 await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}").SingleAsync(ct);
+   61:             }
+   62:             var root = new MaterialReplenishment { WarehouseId = warehouse.WarehouseId, Warehouse = warehouse, RequestedBy = input.ActorUserId, SupplierName = string.IsNullOrEmpty(supplier) ? null : supplier, ExpectedOn = input.ExpectedOn, Status = "REQUESTED", CreatedAt = DateTime.UtcNow };
+   63:             foreach (var l in input.Lines) root.MaterialReplenishmentLines.Add(new() { LineNo = l.LineNo, WarehouseId = warehouse.WarehouseId, ItemId = l.ItemId, BaseUomId = await BaseUom(l.ItemId, ct), SourceType = l.SourceType, SourceThresholdId = l.SourceThresholdId, SourceMaterialRequestLineId = l.SourceMaterialRequestLineId, RequestedBaseQty = Quantity(l.RequestedBaseQty), IsOpenCoverage = true, Note = l.Note?.Trim() });
+   64:             await Claims(db, root.MaterialReplenishmentLines, ct);
+   65:             root.Warehouse = await Warehouse(warehouse.WarehouseId, true, ct);
+   66:             foreach (var l in root.MaterialReplenishmentLines.OrderBy(x => x.ItemId))
+   67:             {
+   68:                 await Gate(db, $"HotelOps:Inventory:Stock:{warehouse.WarehouseId}:{l.ItemId}", ct);
+   69:                 if (await db.MaterialReplenishmentLines.AnyAsync(x => x.WarehouseId == warehouse.WarehouseId && x.ItemId == l.ItemId && x.IsOpenCoverage, ct)) throw Invalid("Active Warehouse/Item coverage already exists.");
+   70:                 if (l.SourceType == "LOW_STOCK" && l.SourceThresholdId != null && l.SourceMaterialRequestLineId == null)
+   71:                 {
+   72:                     var t = await db.StockThresholds.AsNoTracking().SingleOrDefaultAsync(x => x.ThresholdId == l.SourceThresholdId && x.WarehouseId == warehouse.WarehouseId && x.ItemId == l.ItemId, ct);
+   73:                     if (t is null || await quantities.ObserveStock(warehouse.WarehouseId, l.ItemId, ct) >= t.MinimumQty) throw Invalid("Threshold missing or warehouse/item no longer below minimum.");
+   74:                 }
+   75:                 else if (l.SourceType == "MATERIAL_REQUEST_SHORTAGE" && l.SourceMaterialRequestLineId != null && l.SourceThresholdId == null)
+   76:                 {
+   77:                     var candidates = await MaterialCandidates(warehouse.WarehouseId, l.ItemId, ct);
+   78:                     var source = candidates.SingleOrDefault(x => x.RequestLineId == l.SourceMaterialRequestLineId);
+   79:                     if (source is null || source.BranchId != warehouse.BranchId || source.PhysicalShortageBaseQty <= 0 || l.RequestedBaseQty > source.RemainingBaseQty) throw Invalid("MR source is legacy, no longer eligible, sufficiently stocked or requested quantity exceeds source remaining base demand.");
+   80:                 }
+   81:                 else throw Invalid("Exactly one valid typed shortage source is required.");
+   82:             }
+   83:             root.ReplenishmentNo = await Number(ct);
+   84:             // Keep header/line Save boundaries observable by SQL fault-injection tests.
+   85:             var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await db.SaveChangesAsync(ct);
+   86:             foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await db.SaveChangesAsync(ct);
+   87:             Audit(db, root, input.ActorUserId, "REPLENISHMENT_CREATED", null);
+   88:             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return (await Get(root.ReplenishmentId, ct))!;
+   89:         }
+   90:         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+   91:     }
+   92:     public async Task<ReplenishmentDto?> Close(long id, ReplenishmentClose input, CancellationToken ct)
+   93:     {
+   94:         await using var tx = await db.Database.BeginTransactionAsync(ct);
+   95:         try
+   96:         {
+   97:             await Catalog(ct); var r = await Owner(db, id, ct); if (r is null) return null;
+   98:             Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, input.ActorUserId, r.Warehouse.BranchId, ct); await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
+   99:             if (!r.MaterialReplenishmentLines.Any(x => x.RequestedBaseQty > x.ReceivedBaseQty)) throw Invalid("Positive remaining is required.");
+  100:             var reason = input.Reason?.Trim(); if (reason is not { Length: >= 10 }) throw Invalid("Close reason must contain at least 10 characters.");
+  101:             var before = Snapshot(r); r.Status = "CLOSED"; r.CloseReason = reason; r.ClosedBy = input.ActorUserId; r.ClosedAt = r.UpdatedAt = DateTime.UtcNow;
+  102:             foreach (var l in r.MaterialReplenishmentLines) l.IsOpenCoverage = false;
+  103:             Audit(db, r, input.ActorUserId, "REMAINDER_CLOSED", before); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+  104:         }
+  105:         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+  106:     }
+  107:     public async Task<ReplenishmentDto?> Receive(long id, ReplenishmentLink input, CancellationToken ct, ReplenishmentPost? post = null)
+  108:     {
+  109:         await using var tx = await db.Database.BeginTransactionAsync(ct);
+  110:         try
+  111:         {
+  112:             await Catalog(ct);
+  113:             if (!await db.MaterialReplenishments.AnyAsync(x => x.ReplenishmentId == id, ct)) return null;
+  114:             if (input.Lines is null || input.Lines.Count == 0 || input.Lines.Any(x => x is null) || input.Lines.Select(x => x.StockDocumentLineId).Distinct().Count() != input.Lines.Count) throw Invalid("Distinct receipt-line mappings are required.");
+  115:             var lineIds = input.Lines.Select(x => x.StockDocumentLineId).ToArray();
+  116:             var documents = await db.StockDocumentLines.Where(x => lineIds.Contains(x.LineId)).Select(x => x.DocumentId).ToListAsync(ct);
+  117:             if (documents.Count != lineIds.Length) throw Invalid("Referenced receipt line is missing.");
+  118:             if (post != null) documents.Add(post.ReceiptDocumentId);
+  119:             foreach (var doc in documents.Distinct().Order())
+  120:             {
+  121:                 await Gate(db, $"HotelOps:Inventory:Document:{doc}", ct);
+  122:                 await db.StockDocuments.FromSqlInterpolated($"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={doc}").SingleAsync(ct);
+  123:             }
+  124:             var r = (await Owner(db, id, ct))!; Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, input.ActorUserId, r.Warehouse.BranchId, ct);
+  125:             await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
+  126:             var before = Snapshot(r);
+  127:             if (post != null)
+  128:             {
+  129:                 if (documents.Any(x => x != post.ReceiptDocumentId)) throw Invalid("Coordinated mappings must belong to ReceiptDocumentId.");
+  130:                 await posting.PostReceipt(post.ReceiptDocumentId, new(input.ActorUserId, post.ReceiptExpectedRowVersion, post.ReceiptLines), ct);
+  131:             }
+  132:             await Warehouse(r.WarehouseId, true, ct);
+  133:             var linked = new List<object>();
+  134:             foreach (var mapping in input.Lines)
+  135:             {
+  136:                 var l = r.MaterialReplenishmentLines.SingleOrDefault(x => x.ReplenishmentLineId == mapping.ReplenishmentLineId) ?? throw Invalid("Mapping does not belong to replenishment.");
+  137:                 var line = await db.StockDocumentLines.Include(x => x.Document).SingleAsync(x => x.LineId == mapping.StockDocumentLineId, ct);
+  138:                 if (line.Document.DocumentType != "RECEIPT" || line.Document.Status != "POSTED" || line.Document.DestinationWarehouseId != r.WarehouseId || line.ItemId != l.ItemId) throw Invalid("Only matching POSTED receipt lines may be credited.");
+  139:                 if (post != null && line.BaseQty == 0) continue; // rejected-only delivery persists in Inventory but gives no positive credit.
+  140:                 await ProveReceipt(db, line, r.WarehouseId, l.ItemId, l.BaseUomId, ct);
+  141:                 if (await db.MaterialReplenishmentReceiptLines.AnyAsync(x => x.StockDocumentLineId == line.LineId, ct)) throw Invalid("Receipt line already credited globally.");
+  142:                 db.MaterialReplenishmentReceiptLines.Add(new() { ReplenishmentLineId = l.ReplenishmentLineId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty, LinkedAt = DateTime.UtcNow, LinkedBy = input.ActorUserId });
+  143:                 linked.Add(new { l.ReplenishmentLineId, StockDocumentId = line.DocumentId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty });
+  144:             }
+  145:             await db.SaveChangesAsync(ct);
+  146:             await Refresh(db, r, null, ct); await NoConflictingClaims(db, [r], ct);
+  147:             Audit(db, r, input.ActorUserId, "RECEIPT_LINKED", before, new { Links = linked });
+  148:             if (r.Status == "FULLY_RECEIVED" || r.Status == "PARTIALLY_RECEIVED") Audit(db, r, input.ActorUserId, r.Status == "FULLY_RECEIVED" ? "REPLENISHMENT_FULLY_RECEIVED" : "REPLENISHMENT_PARTIALLY_RECEIVED", before, new { Links = linked });
+  149:             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+  150:         }
+  151:         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+  152:     }
+

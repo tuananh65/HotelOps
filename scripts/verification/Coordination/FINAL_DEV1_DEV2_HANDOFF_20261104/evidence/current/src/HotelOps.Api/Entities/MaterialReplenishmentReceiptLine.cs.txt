@@ -1,0 +1,26 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialReplenishmentReceiptLine
+7: {
+8:     public long ReplenishmentReceiptLineId { get; set; }
+9: 
+10:     public long ReplenishmentLineId { get; set; }
+11: 
+12:     public long StockDocumentLineId { get; set; }
+13: 
+14:     public decimal CreditedBaseQty { get; set; }
+15: 
+16:     public DateTime LinkedAt { get; set; }
+17: 
+18:     public long LinkedBy { get; set; }
+19: 
+20:     public virtual User LinkedByNavigation { get; set; } = null!;
+21: 
+22:     public virtual MaterialReplenishmentLine ReplenishmentLine { get; set; } = null!;
+23: 
+24:     public virtual StockDocumentLine StockDocumentLine { get; set; } = null!;
+25: }
+26: 

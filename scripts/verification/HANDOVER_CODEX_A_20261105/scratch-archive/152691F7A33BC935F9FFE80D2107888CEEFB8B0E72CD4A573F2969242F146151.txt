@@ -1,0 +1,14 @@
+using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace HotelOps.Api.DTOs.HotelStructure;
+
+[JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
+public sealed record CreateRoomTypeRequest(
+    [Required, StringLength(30)] string Code,
+    [Required, StringLength(150)] string Name,
+    [StringLength(4000)] string? Description = null,
+    [Range(1, int.MaxValue)] int? StandardCapacity = null);
+
+public sealed record CreatedRoomTypeDto(long Id, string Code, string Name, string? Description,
+    int? StandardCapacity, bool IsActive);

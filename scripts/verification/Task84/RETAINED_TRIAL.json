@@ -1,0 +1,13 @@
+{
+    "server":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+    "database":  "HotelOps_Canonical_20261104_044211_7a6d6e19_Fresh",
+    "roles":  12,
+    "permissions":  62,
+    "grants":  140,
+    "users":  13,
+    "roomTypes":  4,
+    "rooms":  6,
+    "deployment":  "Task69-v1",
+    "retained":  true,
+    "readUtc":  "2026-11-04T05:00:40.7670669+00:00"
+}

@@ -1,0 +1,9 @@
+{
+    "appliedUtc":  "2026-11-04T04:41:36.5088499+00:00",
+    "approval":  "Explicit user approved exact single registration",
+    "programChangeOnlySingleRegistration":  true,
+    "beforeSha256":  "62C58AE219A7F2AD9AE9761502EF30AA6EDE005089DEE1E530602FCFE39C48A0",
+    "afterSha256":  "145B736DE14ECD931F704DC5F7E9B24A80AF2A136718F4000200B2D40C51EF5E",
+    "controller":  "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "receiptNote":  "First receipt serialization used Convert.ToHexString unavailable in Windows PowerShell; corrected receipt only, no extra source change"
+}

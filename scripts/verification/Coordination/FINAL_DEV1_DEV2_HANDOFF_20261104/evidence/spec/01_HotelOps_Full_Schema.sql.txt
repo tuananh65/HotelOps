@@ -1,0 +1,238 @@
+887: ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+888: GO
+889: /****** Object:  Table [dbo].[notification_recipients]    Script Date: 10/21/2026 2:27:27 AM ******/
+890: SET ANSI_NULLS ON
+891: GO
+892: SET QUOTED_IDENTIFIER ON
+893: GO
+894: CREATE TABLE [dbo].[notification_recipients](
+895: 	[recipient_id] [bigint] IDENTITY(1,1) NOT NULL,
+896: 	[notification_id] [bigint] NOT NULL,
+897: 	[user_id] [bigint] NOT NULL,
+898: 	[delivery_channel] [varchar](30) NOT NULL,
+899: 	[delivery_status] [varchar](30) NOT NULL,
+900: 	[delivered_at] [datetime2](7) NULL,
+901: 	[read_at] [datetime2](7) NULL,
+902: 	[dismissed_at] [datetime2](7) NULL,
+1161: ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+1162: GO
+1163: /****** Object:  Table [dbo].[room_blocks]    Script Date: 10/21/2026 2:27:27 AM ******/
+1164: SET ANSI_NULLS ON
+1165: GO
+1166: SET QUOTED_IDENTIFIER ON
+1167: GO
+1168: CREATE TABLE [dbo].[room_blocks](
+1169: 	[block_id] [bigint] IDENTITY(1,1) NOT NULL,
+1170: 	[room_id] [bigint] NOT NULL,
+1171: 	[incident_id] [bigint] NULL,
+1172: 	[reason] [nvarchar](max) NOT NULL,
+1173: 	[blocked_at] [datetime2](7) NOT NULL,
+1174: 	[blocked_by] [bigint] NOT NULL,
+1175: 	[expected_release_at] [datetime2](7) NULL,
+1176: 	[released_at] [datetime2](7) NULL,
+1211: ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+1212: GO
+1213: /****** Object:  Table [dbo].[room_status_history]    Script Date: 10/21/2026 2:27:27 AM ******/
+1214: SET ANSI_NULLS ON
+1215: GO
+1216: SET QUOTED_IDENTIFIER ON
+1217: GO
+1218: CREATE TABLE [dbo].[room_status_history](
+1219: 	[history_id] [bigint] IDENTITY(1,1) NOT NULL,
+1220: 	[room_id] [bigint] NOT NULL,
+1221: 	[from_status] [varchar](40) NULL,
+1222: 	[to_status] [varchar](40) NOT NULL,
+1223: 	[trigger_type] [varchar](50) NULL,
+1224: 	[trigger_id] [bigint] NULL,
+1225: 	[changed_by] [bigint] NULL,
+1226: 	[changed_at] [datetime2](7) NOT NULL,
+1642: 	[updated_at] [datetime2](7) NULL,
+1643: 	[deleted_at] [datetime2](7) NULL,
+1644: 	[failed_login_count] [int] NOT NULL,
+1645: 	[locked_until] [datetime2](7) NULL,
+1646: 	[temporary_password_expires_at] [datetime2](7) NULL,
+1647: PRIMARY KEY CLUSTERED
+1648: (
+1649: 	[user_id] ASC
+1650: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+1651: UNIQUE NONCLUSTERED
+1652: (
+1926: SET ANSI_PADDING ON
+1927: GO
+1928: /****** Object:  Index [notification_recipients_index_42]    Script Date: 10/21/2026 2:27:27 AM ******/
+1929: CREATE UNIQUE NONCLUSTERED INDEX [notification_recipients_index_42] ON [dbo].[notification_recipients]
+1930: (
+1931: 	[notification_id] ASC,
+1932: 	[user_id] ASC,
+1933: 	[delivery_channel] ASC
+1934: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+1935: GO
+1936: /****** Object:  Index [notification_recipients_index_43]    Script Date: 10/21/2026 2:27:27 AM ******/
+1937: CREATE NONCLUSTERED INDEX [notification_recipients_index_43] ON [dbo].[notification_recipients]
+1938: (
+1939: 	[user_id] ASC,
+1940: 	[read_at] ASC
+1941: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+1942: GO
+1943: /****** Object:  Index [UX_operational_task_assignments_active]    Script Date: 10/21/2026 2:27:27 AM ******/
+1944: CREATE UNIQUE NONCLUSTERED INDEX [UX_operational_task_assignments_active] ON [dbo].[operational_task_assignments]
+1945: (
+1995: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+1996: GO
+1997: /****** Object:  Index [UX_room_blocks_active]    Script Date: 10/21/2026 2:27:27 AM ******/
+1998: CREATE UNIQUE NONCLUSTERED INDEX [UX_room_blocks_active] ON [dbo].[room_blocks]
+1999: (
+2000: 	[room_id] ASC
+2001: )
+2002: WHERE ([released_at] IS NULL)
+2003: WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+2004: GO
+2005: /****** Object:  Index [room_inspections_index_12]    Script Date: 10/21/2026 2:27:27 AM ******/
+2006: CREATE NONCLUSTERED INDEX [room_inspections_index_12] ON [dbo].[room_inspections]
+2010: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+2011: GO
+2012: /****** Object:  Index [room_status_history_index_10]    Script Date: 10/21/2026 2:27:27 AM ******/
+2013: CREATE NONCLUSTERED INDEX [room_status_history_index_10] ON [dbo].[room_status_history]
+2014: (
+2015: 	[room_id] ASC,
+2016: 	[changed_at] ASC
+2017: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+2018: GO
+2019: SET ANSI_PADDING ON
+2020: GO
+2021: /****** Object:  Index [rooms_index_2]    Script Date: 10/21/2026 2:27:27 AM ******/
+2214: ALTER TABLE [dbo].[material_requests] ADD  DEFAULT ('DRAFT') FOR [status]
+2215: GO
+2216: ALTER TABLE [dbo].[notification_recipients] ADD  DEFAULT ('IN_APP') FOR [delivery_channel]
+2217: GO
+2218: ALTER TABLE [dbo].[notification_recipients] ADD  DEFAULT ('PENDING') FOR [delivery_status]
+2219: GO
+2220: ALTER TABLE [dbo].[notifications] ADD  DEFAULT ('NORMAL') FOR [priority]
+2221: GO
+2222: ALTER TABLE [dbo].[operational_task_assignments] ADD  DEFAULT ('ACTIVE') FOR [assignment_status]
+2223: GO
+2224: ALTER TABLE [dbo].[operational_task_dependencies] ADD  DEFAULT ('FINISH_TO_START') FOR [dependency_type]
+2225: GO
+2226: ALTER TABLE [dbo].[operational_task_dependencies] ADD  DEFAULT ((0)) FOR [lag_minutes]
+2248: ALTER TABLE [dbo].[room_types] ADD  DEFAULT ((1)) FOR [is_active]
+2249: GO
+2250: ALTER TABLE [dbo].[rooms] ADD  CONSTRAINT [DF_rooms_operational_status]  DEFAULT ('DIRTY') FOR [operational_status]
+2251: GO
+2252: ALTER TABLE [dbo].[rooms] ADD  DEFAULT ((1)) FOR [is_active]
+2253: GO
+2254: ALTER TABLE [dbo].[shift_assignments] ADD  DEFAULT ('ASSIGNED') FOR [assignment_status]
+2255: GO
+2256: ALTER TABLE [dbo].[shift_attendance] ADD  DEFAULT ('NOT_STARTED') FOR [attendance_status]
+2257: GO
+2258: ALTER TABLE [dbo].[shift_attendance] ADD  DEFAULT ((0)) FOR [late_minutes]
+2298: ALTER TABLE [dbo].[users] ADD  DEFAULT ('ACTIVE') FOR [account_status]
+2299: GO
+2300: ALTER TABLE [dbo].[users] ADD  CONSTRAINT [DF_users_failed_login_count]  DEFAULT ((0)) FOR [failed_login_count]
+2301: GO
+2302: ALTER TABLE [dbo].[warehouses] ADD  DEFAULT ((1)) FOR [is_active]
+2303: GO
+2304: ALTER TABLE [dbo].[work_categories] ADD  DEFAULT ((1)) FOR [is_active]
+2305: GO
+2306: ALTER TABLE [dbo].[work_shifts] ADD  DEFAULT ((1)) FOR [required_staff_count]
+2307: GO
+2308: ALTER TABLE [dbo].[work_shifts] ADD  DEFAULT ('PLANNED') FOR [status]
+2838: ALTER TABLE [dbo].[material_requests] CHECK CONSTRAINT [FK_material_requests_source_warehouse_id]
+2839: GO
+2840: ALTER TABLE [dbo].[notification_recipients]  WITH CHECK ADD  CONSTRAINT [FK_notification_recipients_notification_id] FOREIGN KEY([notification_id])
+2841: REFERENCES [dbo].[notifications] ([notification_id])
+2842: GO
+2843: ALTER TABLE [dbo].[notification_recipients] CHECK CONSTRAINT [FK_notification_recipients_notification_id]
+2844: GO
+2845: ALTER TABLE [dbo].[notification_recipients]  WITH CHECK ADD  CONSTRAINT [FK_notification_recipients_user_id] FOREIGN KEY([user_id])
+2846: REFERENCES [dbo].[users] ([user_id])
+2847: GO
+2848: ALTER TABLE [dbo].[notification_recipients] CHECK CONSTRAINT [FK_notification_recipients_user_id]
+2849: GO
+2850: ALTER TABLE [dbo].[notifications]  WITH CHECK ADD  CONSTRAINT [FK_notifications_created_by] FOREIGN KEY([created_by])
+2851: REFERENCES [dbo].[users] ([user_id])
+2852: GO
+2853: ALTER TABLE [dbo].[notifications] CHECK CONSTRAINT [FK_notifications_created_by]
+2854: GO
+2855: ALTER TABLE [dbo].[operational_task_assignments]  WITH CHECK ADD  CONSTRAINT [FK_operational_task_assignments_assigned_by] FOREIGN KEY([assigned_by])
+2856: REFERENCES [dbo].[users] ([user_id])
+2983: ALTER TABLE [dbo].[role_permissions] CHECK CONSTRAINT [FK_role_permissions_role_id]
+2984: GO
+2985: ALTER TABLE [dbo].[room_blocks]  WITH CHECK ADD  CONSTRAINT [FK_room_blocks_blocked_by] FOREIGN KEY([blocked_by])
+2986: REFERENCES [dbo].[users] ([user_id])
+2987: GO
+2988: ALTER TABLE [dbo].[room_blocks] CHECK CONSTRAINT [FK_room_blocks_blocked_by]
+2989: GO
+2990: ALTER TABLE [dbo].[room_blocks]  WITH CHECK ADD  CONSTRAINT [FK_room_blocks_incident_id] FOREIGN KEY([incident_id])
+2991: REFERENCES [dbo].[incidents] ([incident_id])
+2992: GO
+2993: ALTER TABLE [dbo].[room_blocks] CHECK CONSTRAINT [FK_room_blocks_incident_id]
+2994: GO
+2995: ALTER TABLE [dbo].[room_blocks]  WITH CHECK ADD  CONSTRAINT [FK_room_blocks_released_by] FOREIGN KEY([released_by])
+2996: REFERENCES [dbo].[users] ([user_id])
+2997: GO
+2998: ALTER TABLE [dbo].[room_blocks] CHECK CONSTRAINT [FK_room_blocks_released_by]
+2999: GO
+3000: ALTER TABLE [dbo].[room_blocks]  WITH CHECK ADD  CONSTRAINT [FK_room_blocks_room_id] FOREIGN KEY([room_id])
+3001: REFERENCES [dbo].[rooms] ([room_id])
+3002: GO
+3003: ALTER TABLE [dbo].[room_blocks] CHECK CONSTRAINT [FK_room_blocks_room_id]
+3004: GO
+3005: ALTER TABLE [dbo].[room_inspections]  WITH CHECK ADD  CONSTRAINT [FK_room_inspections_cleaning_task_id] FOREIGN KEY([cleaning_task_id])
+3006: REFERENCES [dbo].[cleaning_tasks] ([cleaning_task_id])
+3007: GO
+3008: ALTER TABLE [dbo].[room_inspections] CHECK CONSTRAINT [FK_room_inspections_cleaning_task_id]
+3009: GO
+3010: ALTER TABLE [dbo].[room_inspections]  WITH CHECK ADD  CONSTRAINT [FK_room_inspections_inspector_user_id] FOREIGN KEY([inspector_user_id])
+3011: REFERENCES [dbo].[users] ([user_id])
+3023: ALTER TABLE [dbo].[room_inspections] CHECK CONSTRAINT [FK_room_inspections_version_id]
+3024: GO
+3025: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [FK_room_status_history_changed_by] FOREIGN KEY([changed_by])
+3026: REFERENCES [dbo].[users] ([user_id])
+3027: GO
+3028: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [FK_room_status_history_changed_by]
+3029: GO
+3030: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [FK_room_status_history_room_id] FOREIGN KEY([room_id])
+3031: REFERENCES [dbo].[rooms] ([room_id])
+3032: GO
+3033: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [FK_room_status_history_room_id]
+3034: GO
+3035: ALTER TABLE [dbo].[rooms]  WITH CHECK ADD  CONSTRAINT [FK_rooms_area_id] FOREIGN KEY([area_id])
+3036: REFERENCES [dbo].[areas] ([area_id])
+3037: GO
+3038: ALTER TABLE [dbo].[rooms] CHECK CONSTRAINT [FK_rooms_area_id]
+3039: GO
+3040: ALTER TABLE [dbo].[rooms]  WITH CHECK ADD  CONSTRAINT [FK_rooms_branch_id] FOREIGN KEY([branch_id])
+3041: REFERENCES [dbo].[branches] ([branch_id])
+3445: ALTER TABLE [dbo].[room_inspections] CHECK CONSTRAINT [CK_room_inspections_status_result]
+3446: GO
+3447: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [CK_room_status_history_from] CHECK  (([from_status] IS NULL OR ([from_status]='OUT_OF_SERVICE' OR [from_status]='READY' OR [from_status]='INSPECTION' OR [from_status]='CLEANING' OR [from_status]='DIRTY' OR [from_status]='OCCUPIED' OR [from_status]='AVAILABLE')))
+3448: GO
+3449: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [CK_room_status_history_from]
+3450: GO
+3451: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [CK_room_status_history_to] CHECK  (([to_status]='OUT_OF_SERVICE' OR [to_status]='READY' OR [to_status]='INSPECTION' OR [to_status]='CLEANING' OR [to_status]='DIRTY' OR [to_status]='OCCUPIED' OR [to_status]='AVAILABLE'))
+3452: GO
+3453: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [CK_room_status_history_to]
+3454: GO
+3455: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [CK_room_status_history_trigger_type] CHECK  (([trigger_type] IS NULL OR ([trigger_type]='MANUAL_CORRECTION' OR [trigger_type]='MAINTENANCE' OR [trigger_type]='ROOM_BLOCK' OR [trigger_type]='INSPECTION' OR [trigger_type]='CLEANING_TASK' OR [trigger_type]='CHECKOUT' OR [trigger_type]='CHECKIN' OR [trigger_type]='RELEASE' OR [trigger_type]='INIT')))
+3456: GO
+3457: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [CK_room_status_history_trigger_type]
+3458: GO
+3459: ALTER TABLE [dbo].[rooms]  WITH CHECK ADD  CONSTRAINT [CK_rooms_operational_status] CHECK  (([operational_status]='OUT_OF_SERVICE' OR [operational_status]='READY' OR [operational_status]='INSPECTION' OR [operational_status]='CLEANING' OR [operational_status]='DIRTY' OR [operational_status]='OCCUPIED' OR [operational_status]='AVAILABLE'))
+3460: GO
+3461: ALTER TABLE [dbo].[rooms] CHECK CONSTRAINT [CK_rooms_operational_status]
+3462: GO
+3463: ALTER TABLE [dbo].[stock_documents]  WITH CHECK ADD  CONSTRAINT [CK_stock_documents_type] CHECK  (([document_type]='REVERSAL' OR [document_type]='ADJUSTMENT' OR [document_type]='TRANSFER' OR [document_type]='RETURN' OR [document_type]='ISSUE' OR [document_type]='RECEIPT'))
+3464: GO
+3465: ALTER TABLE [dbo].[stock_documents] CHECK CONSTRAINT [CK_stock_documents_type]
+3466: GO
+3467: ALTER TABLE [dbo].[users]  WITH CHECK ADD  CONSTRAINT [CK_users_failed_login_count] CHECK  (([failed_login_count]>=(0)))
+3468: GO
+3469: ALTER TABLE [dbo].[users] CHECK CONSTRAINT [CK_users_failed_login_count]
+3470: GO
+3471: ALTER TABLE [dbo].[users]  WITH CHECK ADD  CONSTRAINT [CK_users_manager_not_self] CHECK  (([manager_user_id] IS NULL OR [manager_user_id]<>[user_id]))
+3472: GO
+3473: ALTER TABLE [dbo].[users] CHECK CONSTRAINT [CK_users_manager_not_self]
+3474: GO
+3475: EXEC sys.sp_addextendedproperty @name=N'Column_Description', @value=N'ROOM, CLEANING_TASK, INSPECTION, INCIDENT, MAINTENANCE, ASSET, STOCK_DOCUMENT, REQUEST, TASK' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'attachments', @level2type=N'COLUMN',@level2name=N'entity_type'
+3476: GO
+3477: EXEC sys.sp_addextendedproperty @name=N'Column_Description', @value=N'CREATE, UPDATE, DELETE, APPROVE, REJECT, CANCEL, LOGIN, LOGOUT' , @level0type=N'SCHEMA',@level0name=N'dbo', @level1type=N'TABLE',@level1name=N'audit_logs', @level2type=N'COLUMN',@level2name=N'action'

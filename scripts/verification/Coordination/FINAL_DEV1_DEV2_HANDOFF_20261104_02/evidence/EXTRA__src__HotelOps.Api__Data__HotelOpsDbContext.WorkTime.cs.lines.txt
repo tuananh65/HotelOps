@@ -1,0 +1,93 @@
+﻿SOURCE src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs
+SHA256 66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9
+    1: using HotelOps.Api.Entities;
+    2: using Microsoft.EntityFrameworkCore;
+    3: 
+    4: namespace HotelOps.Api.Data;
+    5: 
+    6: public partial class HotelOpsDbContext
+    7: {
+    8:     public virtual DbSet<Workday> Workdays { get; set; }
+    9:     public virtual DbSet<WorkInterval> WorkIntervals { get; set; }
+   10:     public virtual DbSet<TimeCorrectionRequest> TimeCorrectionRequests { get; set; }
+   11: 
+   12:     // Called explicitly before the existing OnModelCreatingPartial; no second partial implementation.
+   13:     private static void ConfigureWorkTime(ModelBuilder modelBuilder)
+   14:     {
+   15:         modelBuilder.Entity<Workday>(e =>
+   16:         {
+   17:             e.ToTable("workdays");
+   18:             e.HasKey(x => x.WorkdayId).HasName("PK_workdays");
+   19:             e.HasAlternateKey(x => new { x.WorkdayId, x.UserId, x.BranchId }).HasName("UQ_workdays_identity");
+   20:             e.Property(x => x.WorkdayId).HasColumnName("workday_id");
+   21:             e.Property(x => x.UserId).HasColumnName("user_id");
+   22:             e.Property(x => x.BranchId).HasColumnName("branch_id");
+   23:             e.Property(x => x.DepartmentId).HasColumnName("department_id");
+   24:             e.Property(x => x.WorkDate).HasColumnName("work_date").HasColumnType("date");
+   25:             e.Property(x => x.ShiftAssignmentId).HasColumnName("shift_assignment_id");
+   26:             e.Property(x => x.IsUnscheduled).HasColumnName("is_unscheduled");
+   27:             e.Property(x => x.UnscheduledReason).HasColumnName("unscheduled_reason").HasMaxLength(1000);
+   28:             e.Property(x => x.Status).HasColumnName("status").HasMaxLength(10).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
+   29:             e.Property(x => x.StartedAt).HasColumnName("started_at").HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+   30:             e.Property(x => x.EndedAt).HasColumnName("ended_at").HasColumnType("datetime2(7)");
+   31:             e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
+   32:             e.HasIndex(x => x.UserId).IsUnique().HasFilter("[status] = 'WORKING'").HasDatabaseName("UX_workdays_one_working");
+   33:             e.HasIndex(x => new { x.UserId, x.WorkDate, x.WorkdayId }).HasDatabaseName("IX_workdays_user_date");
+   34:             e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_user");
+   35:             e.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_branch");
+   36:             e.HasOne<Department>().WithMany().HasForeignKey(x => x.DepartmentId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_department");
+   37:             e.HasOne<ShiftAssignment>().WithMany().HasForeignKey(x => x.ShiftAssignmentId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_assignment");
+   38:         });
+   39:         modelBuilder.Entity<WorkInterval>(e =>
+   40:         {
+   41:             e.ToTable("work_intervals");
+   42:             e.HasKey(x => x.IntervalId).HasName("PK_work_intervals");
+   43:             e.Property(x => x.IntervalId).HasColumnName("interval_id");
+   44:             e.Property(x => x.WorkdayId).HasColumnName("workday_id");
+   45:             e.Property(x => x.UserId).HasColumnName("user_id");
+   46:             e.Property(x => x.BranchId).HasColumnName("branch_id");
+   47:             e.Property(x => x.WorkItemKind).HasColumnName("work_item_kind").HasMaxLength(24).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
+   48:             e.Property(x => x.WorkItemId).HasColumnName("work_item_id");
+   49:             e.Property(x => x.OpenedBy).HasColumnName("opened_by");
+   50:             e.Property(x => x.OpenedAt).HasColumnName("opened_at").HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+   51:             e.Property(x => x.ClosedBy).HasColumnName("closed_by");
+   52:             e.Property(x => x.ClosedAt).HasColumnName("closed_at").HasColumnType("datetime2(7)");
+   53:             e.Property(x => x.EffectiveStartedAt).HasColumnName("effective_started_at").HasColumnType("datetime2(7)");
+   54:             e.Property(x => x.EffectiveEndedAt).HasColumnName("effective_ended_at").HasColumnType("datetime2(7)");
+   55:             e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
+   56:             e.HasIndex(x => x.UserId).IsUnique().HasFilter("[closed_at] IS NULL").HasDatabaseName("UX_work_intervals_one_open");
+   57:             e.HasIndex(x => new { x.UserId, x.EffectiveStartedAt, x.IntervalId }).HasDatabaseName("IX_work_intervals_user_time");
+   58:             e.HasIndex(x => new { x.WorkItemKind, x.WorkItemId, x.IntervalId }).HasDatabaseName("IX_work_intervals_item");
+   59:             e.HasOne<Workday>().WithMany().HasForeignKey(x => new { x.WorkdayId, x.UserId, x.BranchId })
+   60:                 .HasPrincipalKey(x => new { x.WorkdayId, x.UserId, x.BranchId }).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_work_intervals_workday");
+   61:             e.HasOne<User>().WithMany().HasForeignKey(x => x.OpenedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_work_intervals_opened_by");
+   62:             e.HasOne<User>().WithMany().HasForeignKey(x => x.ClosedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_work_intervals_closed_by");
+   63:         });
+   64:         modelBuilder.Entity<TimeCorrectionRequest>(e =>
+   65:         {
+   66:             e.ToTable("time_correction_requests");
+   67:             e.HasKey(x => x.CorrectionId).HasName("PK_time_correction_requests");
+   68:             e.Property(x => x.CorrectionId).HasColumnName("correction_id");
+   69:             e.Property(x => x.IntervalId).HasColumnName("interval_id");
+   70:             e.Property(x => x.RequestedBy).HasColumnName("requested_by");
+   71:             e.Property(x => x.RequestedAt).HasColumnName("requested_at").HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
+   72:             e.Property(x => x.OriginalStartedAt).HasColumnName("original_started_at").HasColumnType("datetime2(7)");
+   73:             e.Property(x => x.OriginalEndedAt).HasColumnName("original_ended_at").HasColumnType("datetime2(7)");
+   74:             e.Property(x => x.OriginalIntervalVersion).HasColumnName("original_interval_version").HasColumnType("binary(8)").HasMaxLength(8).IsFixedLength();
+   75:             e.Property(x => x.ProposedStartedAt).HasColumnName("proposed_started_at").HasColumnType("datetime2(7)");
+   76:             e.Property(x => x.ProposedEndedAt).HasColumnName("proposed_ended_at").HasColumnType("datetime2(7)");
+   77:             e.Property(x => x.Reason).HasColumnName("reason").HasMaxLength(1000);
+   78:             e.Property(x => x.Status).HasColumnName("status").HasMaxLength(10).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
+   79:             e.Property(x => x.DecidedBy).HasColumnName("decided_by");
+   80:             e.Property(x => x.DecidedAt).HasColumnName("decided_at").HasColumnType("datetime2(7)");
+   81:             e.Property(x => x.DecisionReason).HasColumnName("decision_reason").HasMaxLength(1000);
+   82:             e.Property(x => x.AppliedStartedAt).HasColumnName("applied_started_at").HasColumnType("datetime2(7)");
+   83:             e.Property(x => x.AppliedEndedAt).HasColumnName("applied_ended_at").HasColumnType("datetime2(7)");
+   84:             e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
+   85:             e.HasIndex(x => new { x.IntervalId, x.RequestedAt, x.CorrectionId }).HasDatabaseName("IX_time_corrections_interval");
+   86:             e.HasOne<WorkInterval>().WithMany().HasForeignKey(x => x.IntervalId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_time_corrections_interval");
+   87:             e.HasOne<User>().WithMany().HasForeignKey(x => x.RequestedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_time_corrections_requester");
+   88:             e.HasOne<User>().WithMany().HasForeignKey(x => x.DecidedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_time_corrections_decider");
+   89:         });
+   90:     }
+   91: }

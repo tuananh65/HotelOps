@@ -1,0 +1,29 @@
+5: namespace HotelOps.Api.Services.Assets;
+6: 
+7: public sealed partial class AssetService
+8: {
+9:     public async Task<AssetPagedResponse<AssetMaintenanceHistoryDto>?> GetMaintenanceHistoryAsync(
+10:         long assetId, AssetMaintenanceHistoryRequest request, CancellationToken cancellationToken)
+11:     {
+12:         var offset = Offset(request);
+23:                 Type = "CORRECTIVE_WORK", SourceId = w.MaintenanceWorkId, OccurredAt = w.CreatedAt,
+24:                 IncidentId = w.IncidentId, MaintenanceWorkId = w.MaintenanceWorkId, ScheduleId = null,
+25:                 WorkNo = w.WorkNo, Status = w.Status, ActorUserId = w.AssigneeId,
+26:                 Note = w.ResolutionNote, Result = null, OldCondition = null, NewCondition = null
+27:             });
+28:         var preventive = _dbContext.PreventiveMaintenanceRuns.AsNoTracking().Where(r => r.Schedule.AssetId == assetId)
+29:             .Select(r => new AssetMaintenanceHistoryDto
+31:                 Type = "PREVENTIVE_RUN", SourceId = r.RunId, OccurredAt = r.PlannedAt,
+32:                 IncidentId = null, MaintenanceWorkId = r.MaintenanceWorkId, ScheduleId = r.ScheduleId,
+33:                 WorkNo = r.MaintenanceWork == null ? null : r.MaintenanceWork.WorkNo, Status = null,
+34:                 ActorUserId = r.PerformedBy, Note = r.Note, Result = r.Result, OldCondition = null, NewCondition = null
+35:             });
+36:         var conditions = _dbContext.AssetConditionHistories.AsNoTracking().Where(h => h.AssetId == assetId)
+37:             .Select(h => new AssetMaintenanceHistoryDto
+39:                 Type = "CONDITION_CHANGE", SourceId = h.ConditionHistoryId, OccurredAt = h.ChangedAt,
+40:                 IncidentId = h.RelatedIncidentId, MaintenanceWorkId = null, ScheduleId = null,
+41:                 WorkNo = null, Status = null, ActorUserId = h.ChangedBy, Note = h.Note,
+42:                 Result = null, OldCondition = h.OldCondition, NewCondition = h.NewCondition
+43:             });
+44:         var query = corrective.Concat(preventive).Concat(conditions);
+45:         if (type is not null) query = query.Where(h => h.Type == type);

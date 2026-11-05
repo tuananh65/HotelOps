@@ -1,0 +1,78 @@
+7: namespace HotelOps.Api.Services.Maintenance;
+8: 
+9: public sealed partial class MaintenanceWorkService
+10: {
+11:     private sealed record UsageSource(MaterialFulfillmentLine FulfillmentLine, StockDocumentLine Line, long BaseUomId);
+12:     private sealed record PreparedUsage(MaintenanceMaterialUsage Row, UsageSource Source, InventoryIssueCapacity Before);
+13: 
+14:     private async Task PrepareMaterialLocks(IReadOnlyList<MaintenanceMaterialUsageWrite> input, CancellationToken ct)
+15:     {
+16:         if (input.Any(x => x is null || x.StockDocumentLineId <= 0 || x.UomId <= 0) || input.Select(x => x.StockDocumentLineId).Distinct().Count() != input.Count)
+17:             throw new ValidationException("Distinct positive ISSUE-line/UOM identities are required.");
+19:         await _issueCapacity.LockSourceDocuments(input.Select(x => x.StockDocumentLineId).ToArray(), ct);
+20:     }
+21:     private async Task<UsageSource> ProveUsageSource(long lineId, Incident incident, CancellationToken ct)
+22:     {
+23:         var matches = await _dbContext.MaterialFulfillmentLines.AsNoTracking()
+24:             .Include(x => x.Fulfillment).ThenInclude(x => x.Request)
+30:         var f = matches[0]; var h = f.Fulfillment; var r = h.Request; var l = f.RequestLine;
+31:         var s = f.StockDocumentLine!; var d = s.Document;
+32:         if (d.DocumentType != "ISSUE" || d.Status != "POSTED" || d.PostedAt == null || d.ReversalOfDocumentId != null ||
+33:             d.ReferenceType != "MATERIAL_FULFILLMENT" || d.ReferenceId != h.FulfillmentId ||
+34:             h.StockDocumentId != d.DocumentId || h.Status != "ISSUED" || l.RequestId != r.RequestId ||
+35:             r.IncidentId != incident.IncidentId || r.BranchId != incident.BranchId || h.Warehouse.BranchId != incident.BranchId ||
+36:             h.WarehouseId != r.SourceWarehouseId || d.SourceWarehouseId != h.WarehouseId ||
+37:             r.Status is not ("PARTIALLY_ISSUED" or "FULLY_ISSUED" or "REMAINDER_CLOSED") || !l.IsActive ||
+38:             f.ItemId != l.ItemId || s.ItemId != f.ItemId || f.UomId != l.UomId || s.UomId != f.UomId ||
+39:             f.IssuedQty <= 0 || s.ActualQty != f.IssuedQty || s.RequestedQty != s.ActualQty ||
+40:             s.ConversionFactor <= 0 || s.BaseQty <= 0 || _issueCapacity.HistoricalBase(s.ActualQty, s.ConversionFactor) != s.BaseQty ||
+45:             throw new ValidationException("ISSUE ownership or reversal lineage is ambiguous.");
+46:         var cycle = await _dbContext.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
+47:         if (cycle is null || cycle.Status != "APPROVED" ||
+48:             await _dbContext.MaterialRequestApprovals.CountAsync(x => x.RequestId == r.RequestId && x.ApprovalCycleId == cycle.ApprovalCycleId && x.Decision == "APPROVED" && x.ApproverId == cycle.AssignedApproverId, ct) != 1)
+49:             throw new ValidationException("Safe approved FE-09 workflow evidence is required.");
+50:         var snapshots = await _dbContext.MaterialRequestApprovalLineSnapshots.AsNoTracking().Where(x => x.ApprovalCycleId == cycle.ApprovalCycleId && x.RequestLineId == l.LineId).ToListAsync(ct);
+58:         return new(f, s, f.Item.BaseUomId);
+59:     }
+60:     private async Task<List<PreparedUsage>> PrepareUsages(MaintenanceWork work, Incident incident, IReadOnlyList<MaintenanceMaterialUsageWrite> input, CancellationToken ct)
+61:     {
+62:         if (await _dbContext.PreventiveMaintenanceRuns.AnyAsync(x => x.MaintenanceWorkId == work.MaintenanceWorkId, ct)) throw new ValidationException("Material Usage V1 requires an unambiguous corrective Work.");
+63:         var result = new List<PreparedUsage>();
+74:         return result;
+75:     }
+76:     private async Task SaveUsages(MaintenanceWorkLog log, List<PreparedUsage> prepared, Incident incident, long actor, DateTime now, CancellationToken ct)
+77:     {
+78:         foreach (var item in prepared) { item.Row.MaintenanceWorkLogId = log.LogId; _dbContext.MaintenanceMaterialUsages.Add(item.Row); }
+79:         await _dbContext.SaveChangesAsync(ct);
+80:         foreach (var item in prepared)
+81:         {
+82:             var u = item.Row; var f = item.Source.FulfillmentLine; var s = item.Source.Line;
+97:         }
+98:     }
+99:     private Task<List<MaintenanceMaterialUsageDto>> UsageDetails(long work, CancellationToken ct) => _dbContext.MaintenanceMaterialUsages.AsNoTracking()
+100:         .Where(x => x.MaintenanceWorkId == work).OrderBy(x => x.UsageId)
+101:         .Select(x => new MaintenanceMaterialUsageDto(x.UsageId, x.MaintenanceWorkId, x.MaintenanceWorkLogId, x.StockDocumentLineId,
+102:             x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo, x.MaintenanceWork.IncidentId!.Value,
+105:             x.StockDocumentLine.MaterialFulfillmentLine.Fulfillment.WarehouseId, x.ItemId, x.BaseUomId, x.UomId, x.UsedQty, x.ConversionFactor, x.UsedBaseQty)).ToListAsync(ct);
+106: 
+107:     public async Task<MaintenanceMaterialAvailability?> MaterialAvailabilityAsync(long id, int page, int pageSize, CancellationToken cancellationToken)
+108:     {
+109:         if (page < 1 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > int.MaxValue) throw new ValidationException("Invalid paging.");
+110:         await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+111:         await _issueCapacity.AcquireCatalog(cancellationToken);
+112:         var discovered = await _dbContext.MaintenanceWorks.AsNoTracking().Where(x => x.MaintenanceWorkId == id).Select(x => new { x.IncidentId }).SingleOrDefaultAsync(cancellationToken);
+113:         if (discovered is null) return null;
+114:         if (discovered.IncidentId is not long incidentId) throw new ValidationException("Corrective Work required.");
+115:         var incident = await LockIncidentAsync(incidentId, cancellationToken);
+116:         var work = await _dbContext.MaintenanceWorks.FromSqlInterpolated($"SELECT * FROM maintenance_works WITH (UPDLOCK, HOLDLOCK) WHERE maintenance_work_id={id}").SingleAsync(cancellationToken);
+117:         if (incident is null || work.IncidentId != incidentId) throw new ValidationException("Corrective linkage changed.");
+118:         RequireSynchronizedPair(work, incident); RequireState(work, "IN_PROGRESS", "ON_HOLD");
+119:         if (await _dbContext.PreventiveMaintenanceRuns.AnyAsync(x => x.MaintenanceWorkId == id, cancellationToken)) throw new ValidationException("Corrective Work required.");
+120:         var ids = await _dbContext.MaterialFulfillmentLines.AsNoTracking().Where(x => x.Fulfillment.Request.IncidentId == incidentId && x.StockDocumentLineId != null)
+121:             .OrderBy(x => x.StockDocumentLine!.Document.PostedAt).ThenBy(x => x.StockDocumentLine!.DocumentId).ThenBy(x => x.StockDocumentLine!.LineNo).ThenBy(x => x.StockDocumentLineId)
+137:         }
+138:         var ordered = result.OrderBy(x => x.PostedAt).ThenBy(x => x.DocumentId).ThenBy(x => x.LineNo).ThenBy(x => x.StockDocumentLineId).ToArray();
+139:         await tx.CommitAsync(cancellationToken);
+140:         return new(page, pageSize, ordered.Length, ordered.Skip((page - 1) * pageSize).Take(pageSize).ToArray());
+141:     }
+142: }

@@ -1,0 +1,10 @@
+20:         // Match CleaningTaskResourceResolver's proven ownership subset. Do not broaden
+21:         // these states or treat its permission-denial cases as absence of responsibility.
+22:         return assignment => assignment.AssigneeUserId == targetId
+23:             && assignment.AssignmentStatus == "ACTIVE" && assignment.EndedAt == null && assignment.AssignedAt <= nowUtc
+24:             && assignment.CleaningTask.Status == "IN_PROGRESS"
+25:             && assignment.CleaningTask.Room.IsActive && assignment.CleaningTask.Room.BranchId > 0
+26:             && assignment.CleaningTask.CleaningAssignments.Count(other => other.AssignmentStatus == "ACTIVE"
+27:                 && other.EndedAt == null && other.AssignedAt <= nowUtc) == 1;
+28:     }
+29: 

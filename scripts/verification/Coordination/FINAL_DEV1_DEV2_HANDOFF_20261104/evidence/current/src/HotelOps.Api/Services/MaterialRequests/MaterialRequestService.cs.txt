@@ -1,0 +1,122 @@
+13: namespace HotelOps.Api.Services.MaterialRequests;
+14: 
+15: public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInventoryIssuePosting posting, InventoryService inventory)
+16: {
+17:     private static ValidationException Invalid(string message) => new(message);
+18:     private static decimal Qty(decimal q)
+22:     }
+23:     private static string Reason(string? s) => s?.Trim() is { Length: >= 10 } text ? text : throw Invalid("Reason must contain at least 10 characters.");
+24:     private async Task Gate(string resource, CancellationToken ct)
+25:     {
+26:         var connection = db.Database.GetDbConnection();
+27:         using var command = connection.CreateCommand();
+28:         command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
+29:         command.CommandText = "DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;";
+30:         var parameter = command.CreateParameter(); parameter.ParameterName = "@resource"; parameter.Value = resource; command.Parameters.Add(parameter);
+31:         object? scalar;
+32:         try { scalar = await command.ExecuteScalarAsync(ct); }
+39:         if (result < 0) { ct.ThrowIfCancellationRequested(); throw new InvalidOperationException("Material Request lock unavailable."); }
+40:     }
+41:     private async Task Participant(long id, long branch, CancellationToken ct)
+42:     {
+43:         // Eligibility is enforced under retained User locks before MR resources.
+44:         if (!await db.Users.AsNoTracking().AnyAsync(x => x.UserId == id && x.PrimaryBranchId == branch, ct) && !await db.UserBranchAccesses.AnyAsync(x => x.UserId == id && x.BranchId == branch && x.RevokedAt == null, ct)) throw Invalid("Participant must be branch-related. This is not authorization.");
+45:     }
+46:     private async Task Approver(MaterialRequest r, long? id, long actor, CancellationToken ct)
+47:     {
+48:         if (id is null || id == r.RequesterId || id == actor) throw Invalid("An independent assigned approver is required.");
+49:         await Participant(id.Value, r.BranchId, ct);
+52:     {
+53:         if (current.RequesterId != discovered.RequesterId || current.BranchId != discovered.BranchId
+54:             || current.Status != discovered.Status || !current.RowVersion.SequenceEqual(discovered.RowVersion))
+55:             throw Invalid("Request context changed during User lock acquisition. Reload.");
+56:     }
+57:     private static void Version(MaterialRequest r, string? expected)
+61:         if (bytes.Length != 8 || !bytes.SequenceEqual(r.RowVersion)) throw Invalid("Stale or missing ExpectedRowVersion. Reload.");
+62:     }
+63:     private async Task<bool> NewWorkflow(MaterialRequest r, CancellationToken ct) =>
+64:         await db.AuditLogs.AnyAsync(x => x.EntityType == "material_requests" && x.EntityId == r.RequestId.ToString() && x.NewValues != null && x.NewValues.Contains("REQUEST_CREATED"), ct)
+65:         || await db.MaterialRequestApprovalCycles.AnyAsync(x => x.RequestId == r.RequestId, ct);
+66:     private async Task<MaterialRequest?> Locked(long id, string? version, CancellationToken ct)
+67:     {
+68:         await Gate("HotelOps:Inventory:Catalog", ct);
+69:         await Gate($"HotelOps:MaterialRequest:Request:{id}", ct);
+70:         var trackedRequest = db.MaterialRequests.Local.Any(x => x.RequestId == id);
+71:         var trackedLines = db.MaterialRequestLines.Local.Where(x => x.RequestId == id).ToArray();
+72:         var r = await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}")
+73:             .Include(x => x.MaterialRequestLines).SingleOrDefaultAsync(ct);
+74:         if (r is null) return null;
+75:         if (trackedRequest) await db.Entry(r).ReloadAsync(ct);
+81:     private static void State(MaterialRequest r, params string[] states)
+82:     {
+83:         if (!states.Contains(r.Status)) throw Invalid("Command is not allowed in the current state.");
+84:     }
+85:     private async Task<bool> EverIssued(MaterialRequest r, CancellationToken ct) =>
+86:         await db.MaterialFulfillments.AnyAsync(x => x.RequestId == r.RequestId && x.StockDocumentId != null, ct)
+87:         || r.MaterialRequestLines.Any(x => x.FulfilledQty != 0);
+88:     private static object Snapshot(MaterialRequest r) => new
+89:     {
+90:         r.RequestNo, r.BranchId, r.DepartmentId, r.RequesterId, r.SourceWarehouseId, r.Purpose, NeededAt = Utc(r.NeededAt), r.PriorityId,
+91:         r.Status, r.SubmittedAt, r.CompletedAt, r.UpdatedAt, r.CancellationReason, r.ReceivingRoomId, r.ReceivingAreaId,
+92:         r.IncidentId, r.RemainderClosedAt, r.RemainderClosedBy, r.RemainderCloseReason,
+93:         Lines = r.MaterialRequestLines.OrderBy(x => x.LineNo).Select(x => new { x.LineId, x.LineNo, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.Note, x.IsActive }).ToArray()
+94:     };
+95:     private void Audit(MaterialRequest r, long actor, string action, string evt, object? before, object? extra = null, string table = "material_requests", long? id = null, object? state = null)
+96:     {
+101:         using var prior = JsonDocument.Parse(oldJson ?? "{}");
+102:         var changed = current.RootElement.EnumerateObject().Where(x => !prior.RootElement.TryGetProperty(x.Name, out var p) || p.GetRawText() != x.Value.GetRawText()).Select(x => x.Name).ToArray();
+103:         db.AuditLogs.Add(new() { BranchId = r.BranchId, ActorUserId = actor, EntityType = table, EntityId = (id ?? r.RequestId).ToString(CultureInfo.InvariantCulture), Action = action,
+104:             OldValues = oldJson, NewValues = JsonSerializer.Serialize(new { BusinessEvent = evt, State = after, Extra = extra }), ChangedFields = JsonSerializer.Serialize(changed), OccurredAt = DateTime.UtcNow });
+105:     }
+106:     private async Task<string> Number(bool fulfillment, CancellationToken ct)
+107:     {
+108:         while (true)
+109:         {
+119:         }
+120:     }
+121:     private async Task<MaterialRequestApprovalCycle> Latest(long id, CancellationToken ct)
+122:     {
+123:         var trackedCycles = db.MaterialRequestApprovalCycles.Local.Where(x => x.RequestId == id).Select(x => x.ApprovalCycleId).ToArray();
+124:         var cycle = await db.MaterialRequestApprovalCycles.Include(x => x.MaterialRequestApprovalLineSnapshots)
+131:         return cycle;
+132:     }
+133:     private async Task Cycle(MaterialRequest r, long actor, long? approver,
+134:         IReadOnlyDictionary<long, UserEligibilityLock.LockedUser?> lockedUsers, CancellationToken ct)
+135:     {
+136:         // BASE routing is the explicit selector (or latest selector on edit).
+137:         // Never select another User or acquire a User lock after MR resources.
+138:         await ValidateContent(r, true, false, ct); await Approver(r, approver, actor, ct);
+139:         UserEligibilityLock.RequireEligible(approver!.Value, lockedUsers);
+140:         var prior = await db.MaterialRequestApprovalCycles.Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
+141:         if (prior != null) await db.Entry(prior).ReloadAsync(ct);
+142:         if (prior?.Status == "PENDING") { prior.Status = "SUPERSEDED"; prior.ResolvedAt = DateTime.UtcNow; }
+143:         var cycle = new MaterialRequestApprovalCycle { Request = r, RevisionNo = (prior?.RevisionNo ?? 0) + 1, SubmittedBy = actor, AssignedApproverId = approver!.Value, Status = "PENDING", SubmittedAt = DateTime.UtcNow };
+144:         foreach (var l in r.MaterialRequestLines.Where(x => x.IsActive))
+145:         {
+146:             l.ApprovedQty = null;
+147:             cycle.MaterialRequestApprovalLineSnapshots.Add(new() { RequestLine = l, LineNo = l.LineNo, ItemId = l.ItemId, UomId = l.UomId, RequestedQty = l.RequestedQty, Note = l.Note });
+148:         }
+149:         db.MaterialRequestApprovalCycles.Add(cycle); r.Status = "PENDING_APPROVAL"; r.SubmittedAt = cycle.SubmittedAt;
+150:     }
+151:     private async Task ValidateContent(MaterialRequest r, bool submit, bool changedIncident, CancellationToken ct)
+152:     {
+153:         if (string.IsNullOrWhiteSpace(r.Purpose)) throw Invalid("Purpose is required.");
+154:         if (!await db.Branches.AnyAsync(x => x.BranchId == r.BranchId && x.IsActive, ct) || !await db.Departments.AnyAsync(x => x.DepartmentId == r.DepartmentId && x.BranchId == r.BranchId && x.IsActive, ct)) throw Invalid("Active branch and receiving department must match.");
+155:         if (submit && (r.SourceWarehouseId is null || r.NeededAt is null)) throw Invalid("Submit requires SourceWarehouseId and NeededAt.");
+156:         if (r.SourceWarehouseId is long w && !await db.Warehouses.AnyAsync(x => x.WarehouseId == w && x.BranchId == r.BranchId && x.IsActive, ct)) throw Invalid("Source warehouse must be active and in request branch.");
+157:         if (r.ReceivingRoomId != null && r.ReceivingAreaId != null) throw Invalid("Choose at most one receiving Room/Area.");
+158:         if (r.ReceivingRoomId is long room && !await db.Rooms.AnyAsync(x => x.RoomId == room && x.BranchId == r.BranchId && x.IsActive, ct)) throw Invalid("Receiving room is invalid.");
+159:         if (r.ReceivingAreaId is long area && !await db.Areas.AnyAsync(x => x.AreaId == area && x.BranchId == r.BranchId && x.IsActive, ct)) throw Invalid("Receiving area is invalid.");
+160:         if (r.PriorityId is long p && !await db.ReferenceValues.AnyAsync(x => x.ReferenceId == p && x.GroupCode == "PRIORITY" && x.IsActive, ct)) throw Invalid("Priority reference is invalid.");
+161:         if (changedIncident && r.IncidentId is long incident && !await db.Incidents.AnyAsync(x => x.IncidentId == incident && x.BranchId == r.BranchId && (x.Status == "OPEN" || x.Status == "IN_PROGRESS" || x.Status == "RESOLVED"), ct)) throw Invalid("Incident must be open and in request branch when linking.");
+162:         var lines = r.MaterialRequestLines.Where(x => x.IsActive).ToArray();
+163:         if (lines.Length == 0) throw Invalid("At least one active line is required.");
+164:         foreach (var l in lines)
+165:         {
+166:             if (Qty(l.RequestedQty) == 0) throw Invalid("Requested quantity must be positive.");
+167:             var item = await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(x => x.ItemId == l.ItemId && x.IsActive, ct);
+168:             if (item is null || !await db.ItemCategories.AnyAsync(x => x.ItemCategoryId == item.CategoryId && x.IsActive, ct) || !await db.UnitsOfMeasures.AnyAsync(x => x.UomId == item.BaseUomId && x.IsActive, ct) || !await db.UnitsOfMeasures.AnyAsync(x => x.UomId == l.UomId && x.IsActive, ct)) throw Invalid("Item/category/UOM must be active.");
+169:             if (l.UomId != item.BaseUomId && !await db.UomConversions.AnyAsync(x => x.ItemId == l.ItemId && x.FromUomId == l.UomId && x.ToUomId == item.BaseUomId && x.IsActive && x.ConversionFactor > 0, ct)) throw Invalid("Active direct item-specific conversion is required.");
+170:         }
+171:     }
+172: }

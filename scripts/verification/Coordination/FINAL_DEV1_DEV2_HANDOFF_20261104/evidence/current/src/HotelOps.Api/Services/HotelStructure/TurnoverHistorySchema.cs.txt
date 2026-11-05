@@ -1,0 +1,12 @@
+17: 
+18:     // 0 = unmodified legacy, 1 = installed, 2 = partial/incompatible. No startup DDL.
+19:     public static Task<int> ChecklistStateAsync(HotelOpsDbContext db, CancellationToken ct) => db.Database.SqlQueryRaw<int>("""
+20:         SELECT CASE WHEN COL_LENGTH(N'dbo.inspection_checklists',N'branch_id') IS NULL
+21:          AND COL_LENGTH(N'dbo.inspection_checklists',N'row_version') IS NULL
+22:          AND COL_LENGTH(N'dbo.inspection_checklist_items',N'criterion_group') IS NULL
+32: 
+33: 
+34:     public static async Task<bool> HousekeepingInstalledAsync(HotelOpsDbContext db, CancellationToken ct) => await db.Database.SqlQueryRaw<int>("""
+35:         SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Housekeeping.V1' AND LEN(CONVERT(nvarchar(128),value))=64)
+36:         AND (SELECT COUNT(*) FROM sys.columns WHERE object_id IN(OBJECT_ID(N'dbo.cleaning_tasks'),OBJECT_ID(N'dbo.room_inspections'),OBJECT_ID(N'dbo.cleaning_reworks')) AND name='row_version' AND system_type_id=189 AND is_nullable=0)=3
+37:         AND COL_LENGTH(N'dbo.inspection_defects',N'room_location')=500

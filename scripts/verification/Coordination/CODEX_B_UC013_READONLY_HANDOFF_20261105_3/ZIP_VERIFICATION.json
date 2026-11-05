@@ -1,0 +1,10 @@
+﻿{
+    "zip":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\CODEX_B_UC013_READONLY_HANDOFF_20261105_3\\CODEX_B_UC013_READONLY_HANDOFF.zip",
+    "sha256":  "55D0A59BE7AC747D8AFA145C92B3CCB14A6AE66B41289600FEB557437D4AAB3E",
+    "entries":  14,
+    "verified":  14,
+    "failures":  [
+
+                 ],
+    "pass":  true
+}

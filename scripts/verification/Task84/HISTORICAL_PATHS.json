@@ -1,0 +1,44 @@
+[
+    {
+        "path":  "src/HotelOps.Api/Controllers/RoomTypeBatchController.cs",
+        "historicalBlob":  "fe3f39385f63ca00a0a1f90318c868fc82364628",
+        "currentWorkingTreePresent":  false,
+        "currentBlob":  null
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+        "historicalBlob":  "6aa05682a9545d5332e6fbe8dc4afc0661d02d2d",
+        "currentWorkingTreePresent":  false,
+        "currentBlob":  null
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+        "historicalBlob":  "8aba8703a8e26808af57208cdd7439ceb43c099e",
+        "currentWorkingTreePresent":  false,
+        "currentBlob":  null
+    },
+    {
+        "path":  "src/HotelOps.Api/Data/RoomTypeSchema.cs",
+        "historicalBlob":  "c9855ea1f4426957ad669563623feceec0609e34",
+        "currentWorkingTreePresent":  false,
+        "currentBlob":  null
+    },
+    {
+        "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+        "historicalBlob":  "ac05132babef0c18ef3b4bf2233bd988c38ca568",
+        "currentWorkingTreePresent":  false,
+        "currentBlob":  null
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs",
+        "historicalBlob":  "71b9ccacca446cceecd0b063d71f8f8dd3c2c6db",
+        "currentWorkingTreePresent":  true,
+        "currentBlob":  "71b9ccacca446cceecd0b063d71f8f8dd3c2c6db"
+    },
+    {
+        "path":  "scripts/verification/HotelStructure/task70-accepted.local.json",
+        "historicalBlob":  "fb377328de39422d17f442a7d4286114d0111abd",
+        "currentWorkingTreePresent":  false,
+        "currentBlob":  null
+    }
+]

@@ -1,0 +1,38 @@
+﻿SOURCE src/HotelOps.Api/Controllers/MaintenanceWorksController.cs
+SHA256 F1392A994987B890129A6C97E2EFD501C73F0DD85BE65E8BD99261F252191D34
+    1: using System.ComponentModel.DataAnnotations;
+    2: using HotelOps.Api.DTOs.Maintenance;
+    3: using HotelOps.Api.Services.Maintenance;
+    4: using Microsoft.AspNetCore.Mvc;
+    5: 
+    6: namespace HotelOps.Api.Controllers;
+    7: 
+    8: [ApiController]
+    9: [Route("api/maintenance-works")]
+   10: public class MaintenanceWorksController : ControllerBase
+   11: {
+   12:     private readonly IMaintenanceWorkService _service;
+   13: 
+   14:     public MaintenanceWorksController(IMaintenanceWorkService service)
+   15:     {
+   16:         _service = service;
+   17:     }
+   18: 
+   19:     [HttpPost("/api/incidents/{incidentId:long}/maintenance-works")]
+   20:     public async Task<ActionResult<MaintenanceWorkDetailDto>> CreateWork(long incidentId,
+   21:         CreateMaintenanceWorkRequest request, CancellationToken cancellationToken)
+   22:     {
+   23:         try
+   24:         {
+   25:             var result = await _service.CreateWorkAsync(incidentId, request, cancellationToken);
+   26:             if (result is null)
+   27:                 return NotFound();
+   28:             return CreatedAtAction(nameof(GetWork), new { id = result.MaintenanceWorkId }, result);
+   29:         }
+   30:         catch (ValidationException exception)
+   31:         {
+   32:             return ValidationFailure(exception);
+   33:         }
+   34:     }
+   35: 
+   36:     [HttpPatch("{id:long}/assignment")]

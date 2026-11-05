@@ -1,0 +1,14 @@
+    var catalog=await Fingerprint("roles","permissions","role_permissions","reference_values");
+    var a=await db.Branches.Where(x=>x.BranchCode=="BR001").Select(x=>x.BranchId).SingleAsync(ct);
+    var b=await db.Branches.Where(x=>x.BranchCode=="BR002").Select(x=>x.BranchId).SingleAsync(ct);
+    var now=DateTime.UtcNow;var password=Convert.ToBase64String(RandomNumberGenerator.GetBytes(24))+"Aa1-";
+    var hasher=new PasswordCredentialService(Options.Create(new PasswordHasherOptions{CompatibilityMode=PasswordHasherCompatibilityMode.IdentityV3,IterationCount=PasswordCredentialService.BaselineIterationCount}));
+    var users=(await db.Users.ToArrayAsync(ct)).ToDictionary(x=>x.Username[4..]);
+    foreach(var user in users.Values)user.PasswordHash=hasher.HashPassword(user,password);
+    var supervisor=new User{EmployeeCode="T86_supervisor",Username="t86.supervisor",Email="t86.supervisor@example.invalid",FullName="Task86 supervisor",PrimaryBranchId=a,DepartmentId=await db.Departments.Where(x=>x.BranchId==a&&x.DepartmentCode=="HK").Select(x=>x.DepartmentId).SingleAsync(ct),AccountStatus="ACTIVE",EmploymentStatus="ACTIVE",CreatedAt=now};
+    supervisor.PasswordHash=hasher.HashPassword(supervisor,password);db.Users.Add(supervisor);await db.SaveChangesAsync(ct);users["supervisor"]=supervisor;
+    db.UserRoles.Add(new UserRole{UserId=supervisor.UserId,RoleId=await db.Roles.Where(x=>x.RoleCode=="HK_SUPERVISOR").Select(x=>x.RoleId).SingleAsync(ct),BranchId=a,IsActive=true,AssignedAt=now.AddMinutes(-1)});
+    db.UserBranchAccesses.Add(new UserBranchAccess{UserId=supervisor.UserId,BranchId=a,AccessLevel="STANDARD",IsPrimary=true,GrantedAt=now.AddMinutes(-1)});
+    await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+    var room=await db.Rooms.Where(x=>x.RoomNumber=="T86_ROOM").Select(x=>x.RoomId).SingleAsync(ct);
+    var cycle=await db.CleaningTasks.SingleAsync(x=>x.TaskNo=="T86_CYCLE",ct);

@@ -1,0 +1,8 @@
+1: namespace HotelOps.Api.Security.Authorization;
+2: 
+3: public readonly record struct CurrentUserInfo(long UserId, long SessionId, bool IsRestricted);
+4: 
+5: public interface ICurrentUserAccessor
+6: {
+7:     bool TryGetCurrentUser(out CurrentUserInfo user);
+8: }

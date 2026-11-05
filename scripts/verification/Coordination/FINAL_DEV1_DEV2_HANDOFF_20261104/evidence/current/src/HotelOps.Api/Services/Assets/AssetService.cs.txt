@@ -1,0 +1,15 @@
+6: namespace HotelOps.Api.Services.Assets;
+7: 
+8: public sealed partial class AssetService(HotelOpsDbContext dbContext) : IAssetService
+9: {
+10:     private readonly HotelOpsDbContext _dbContext = dbContext;
+11: 
+12:     private Task<Asset?> LockAssetAsync(long id, CancellationToken cancellationToken) =>
+13:         _dbContext.Assets
+14:             .FromSqlInterpolated($"SELECT * FROM assets WITH (UPDLOCK, HOLDLOCK) WHERE asset_id = {id}")
+15:             .AsTracking().SingleOrDefaultAsync(cancellationToken);
+16: 
+17:     private async Task<AssetDetailDto> RequireDetailAsync(long id, CancellationToken cancellationToken) =>
+18:         await GetAssetAsync(id, cancellationToken)
+19:         ?? throw new InvalidOperationException("Asset could not be read.");
+20: }

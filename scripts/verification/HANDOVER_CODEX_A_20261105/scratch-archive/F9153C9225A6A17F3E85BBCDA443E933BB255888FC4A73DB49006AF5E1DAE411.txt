@@ -1,0 +1,60 @@
+$ErrorActionPreference = 'Stop'
+$baseline = Get-Content scripts/verification/CleaningMonitor/UC_LEDGER_TASK75.json -Raw -Encoding utf8 | ConvertFrom-Json
+$gates = @{}
+function Gate([string]$Ids, [string]$Reason) { foreach ($id in $Ids.Split(',')) { $gates['UC-' + $id] = $Reason } }
+Gate '004' 'Full selected role(s)/scope exceeds explicitly approved single-role allowlist; full delegation policy unresolved.'
+Gate '006,007,010' 'Deactivation/removed-scope/role revocation requires current-responsibility and retained writer integration; safety gates preserved.'
+Gate '008,009' 'Dynamic role/grant editor conflicts with fixed catalog; approved editable surface/anti-escalation contract missing.'
+Gate '012,016,026' 'Full deactivation needs cross-module dependency and retained writer protocol; metadata-only flow is incomplete.'
+Gate '022' 'Deactivate/reactivate lifecycle differs stored CHECK; Incident Create lacks active-room validation; cross-owner writer protocol required.'
+Gate '027,028' 'Occupancy/current cleaning-cycle and Reception/lifecycle contract/model unresolved.'
+Gate '029,041,046' 'Task73 core remains partial pending durable notification delivery/retry/idempotency and deferred shared baseline closure.'
+Gate '030,033,034,036' 'Mandatory WorkInterval close, lifecycle and notification lack approved contracts; no partial-only target.'
+Gate '031,035' 'Working Workday/one open WorkInterval/start-resume and lifecycle required; dedicated time model/integration missing.'
+Gate '037' 'Verified GET preserved; mandatory Cancel with reason/lifecycle/audit/publication/assignee notification incomplete.'
+Gate '044,045,047' 'Inspection/rework/defect/current-cycle lifecycle and notification required; results alone insufficient.'
+Gate '102,103' 'Full recurrence/series/notification model missing; UC103 cancellation also checks recorded work time.'
+Gate '104,108,110,111,112,113,139' 'Dedicated Workday/WorkInterval/correction/verification/time integration or permission/status contract missing.'
+Gate '105,106,107' 'Approved verification/acceptance/reopen mapping missing; mandatory Decline/unassign/notify cannot be omitted.'
+Gate '138' 'Full shift/assignment/conflict/cancel mandates employee notification; tables do not implement delivery/retry.'
+Gate '140,119' 'Acknowledged handover/retained responsibility/receiver acceptance model and cross-module protocol missing.'
+Gate '114,115,116,117,123' 'Full request state/response/progress/withdraw and notifications required; legacy CHECK lacks Pending Acceptance/Accepted; mapping unapproved.'
+Gate '118,120' 'Mandatory linked-work storage/authorization/close coordination with DEV2 unresolved.'
+Gate '121' 'Approved request reopen window/cycle/last-handler eligibility missing.'
+Gate '122' 'Escalation acknowledgment and notification contract/storage missing.'
+$srs = Get-Content docs/requirements/srs_sections/02_use_case_specifications.md -Encoding utf8
+$anchors = @{}
+for ($i = 0; $i -lt $srs.Length; $i++) {
+    if ($srs[$i] -match '^### .* (UC-\d{3}) (.*)$') { $anchors[$Matches[1]] = @{ line = $i + 1; title = $Matches[2] } }
+}
+$newRows = @($baseline.rows | ForEach-Object {
+    $row = $_
+    if (!$anchors.ContainsKey($row.uc)) { throw ('Missing SRS anchor ' + $row.uc) }
+    if ($row.verifiedPoints -eq 0 -and !$gates.ContainsKey($row.uc)) { throw ('Missing gate ' + $row.uc) }
+    [pscustomobject][ordered]@{
+        uc = $row.uc; title = $row.title; classification = $row.classification; weight = $row.weight
+        verifiedPoints = $row.verifiedPoints; evidenceSummary = $row.evidenceSummary
+        srsPath = 'docs/requirements/srs_sections/02_use_case_specifications.md'
+        srsLine = $anchors[$row.uc].line; srsTitle = $anchors[$row.uc].title
+        selectedForTask76 = $false
+        eligibility = if ($row.verifiedPoints -gt 0) { 'ALREADY_COMPLETE_NOT_SELECTED' } else { 'NOT_ELIGIBLE_WITHIN_APPROVED_SCOPE' }
+        eligibilityReason = if ($row.verifiedPoints -gt 0) { 'Historical completion carried forward; not reimplemented or rerun in Task76.' } else { $gates[$row.uc] }
+        acceptanceThisTask = 'NOT_RUN'
+    }
+})
+$complete = @($newRows | Where-Object { $_.verifiedPoints -gt 0 }).Count
+$points = ($newRows | Measure-Object -Property verifiedPoints -Sum).Sum
+$weight = ($newRows | Measure-Object -Property weight -Sum).Sum
+if ($newRows.Count -ne 75 -or $complete -ne 26 -or $points -ne 60 -or $weight -ne 256 -or $gates.Count -ne 49) { throw 'Ledger invariant failed' }
+$ledger = [ordered]@{
+    status = 'TASK76_BLOCKED_BEFORE_IMPLEMENTATION_NO_NEW_COMPLETION'
+    baseline = 'scripts/verification/CleaningMonitor/UC_LEDGER_TASK75.json'
+    baselineSha256 = (Get-FileHash scripts/verification/CleaningMonitor/UC_LEDGER_TASK75.json).Hash
+    historicalSourceCommit = $baseline.sourceCommit
+    completedUCs = $complete; verifiedPoints = $points; ucDenominator = 75; pointDenominator = 256
+    weightedCompletionPercent = 23.4375; newlyCompletedUCs = 0; pointsGained = 0
+    selectedUCs = @(); unfinishedReviewed = 49; classificationsChanged = @(); rows = $newRows
+}
+$ledger | ConvertTo-Json -Depth 9 | Set-Content scripts/verification/Task76/UC_LEDGER_TASK76.json -Encoding utf8
+'Ledger verified: 75 rows; 26 complete; 60/256; 49 gated; classifications unchanged.'
+$newRows | Where-Object { $_.title -ne $_.srsTitle } | Select-Object uc,title,srsTitle | Format-Table -AutoSize

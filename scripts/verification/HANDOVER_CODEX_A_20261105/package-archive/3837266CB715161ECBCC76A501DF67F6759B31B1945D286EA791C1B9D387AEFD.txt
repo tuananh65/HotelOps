@@ -1,0 +1,238 @@
+﻿{
+    "catalogPath":  "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+    "catalogSha256":  "DD6874DB482B770482B5B8D0B3230F2F4175618433E7A65E29F63C9670DC4F7B",
+    "release":  "2026-10-21 catalog; 12 roles / 62 permissions / 140 grants per release assertions",
+    "parsedGrantCount":  140,
+    "permissions":  [
+                        {
+                            "permission":  "MASTER_DATA_MANAGE",
+                            "line":  42,
+                            "definition":  "(\u0027MASTER_DATA_MANAGE\u0027,N\u0027Quản lý danh mục nền (chi nhánh, tầng, khu vực, phòng, bộ phận)\u0027,\u0027ADMIN\u0027,\u0027master_data\u0027,\u0027manage\u0027,N\u0027Quản lý danh mục nền (chi nhánh, tầng, khu vực, phòng, bộ phận)\u0027),"
+                        },
+                        {
+                            "permission":  "ROOM_VIEW",
+                            "line":  45,
+                            "definition":  "(\u0027ROOM_VIEW\u0027,N\u0027Xem phòng\u0027,\u0027ROOM\u0027,\u0027room\u0027,\u0027view\u0027,N\u0027Xem phòng\u0027),"
+                        }
+                    ],
+    "adminAndOmGrants":  [
+                             {
+                                 "role":  "SYS_ADMIN",
+                                 "permission":  "USER_VIEW",
+                                 "scope":  "ALL",
+                                 "line":  105
+                             },
+                             {
+                                 "role":  "SYS_ADMIN",
+                                 "permission":  "USER_MANAGE",
+                                 "scope":  "ALL",
+                                 "line":  106
+                             },
+                             {
+                                 "role":  "SYS_ADMIN",
+                                 "permission":  "ROLE_MANAGE",
+                                 "scope":  "ALL",
+                                 "line":  107
+                             },
+                             {
+                                 "role":  "SYS_ADMIN",
+                                 "permission":  "MASTER_DATA_MANAGE",
+                                 "scope":  "ALL",
+                                 "line":  108
+                             },
+                             {
+                                 "role":  "SYS_ADMIN",
+                                 "permission":  "SETTINGS_MANAGE",
+                                 "scope":  "ALL",
+                                 "line":  109
+                             },
+                             {
+                                 "role":  "SYS_ADMIN",
+                                 "permission":  "AUDIT_VIEW",
+                                 "scope":  "ALL",
+                                 "line":  110
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "ROOM_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  111
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "CLEANING_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  112
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "INSPECTION_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  113
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "INCIDENT_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  114
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "MAINTENANCE_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  115
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "ASSET_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  116
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "INVENTORY_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  117
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "IR_CREATE",
+                                 "scope":  "BRANCH",
+                                 "line":  118
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "TASK_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  119
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "SHIFT_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  120
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "DASHBOARD_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  121
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "REPORT_VIEW",
+                                 "scope":  "BRANCH",
+                                 "line":  122
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "ASSET_MANAGE",
+                                 "scope":  "BRANCH",
+                                 "line":  227
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "ASSET_RETIRE",
+                                 "scope":  "BRANCH",
+                                 "line":  228
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "ASSET_TRANSFER",
+                                 "scope":  "BRANCH",
+                                 "line":  229
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "INCIDENT_ESCALATION_HANDLE",
+                                 "scope":  "BRANCH",
+                                 "line":  230
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "IR_OVERDUE_HANDLE",
+                                 "scope":  "BRANCH",
+                                 "line":  231
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "MR_APPROVE_FALLBACK",
+                                 "scope":  "BRANCH",
+                                 "line":  232
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "STOCK_ADJUST_POST",
+                                 "scope":  "BRANCH",
+                                 "line":  233
+                             },
+                             {
+                                 "role":  "OPERATIONS_MANAGER",
+                                 "permission":  "STOCK_REVERSE",
+                                 "scope":  "BRANCH",
+                                 "line":  234
+                             }
+                         ],
+    "relevantRoomAndMasterGrants":  [
+                                        {
+                                            "role":  "SYS_ADMIN",
+                                            "permission":  "MASTER_DATA_MANAGE",
+                                            "scope":  "ALL",
+                                            "line":  108
+                                        },
+                                        {
+                                            "role":  "OPERATIONS_MANAGER",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  111
+                                        },
+                                        {
+                                            "role":  "HK_SUPERVISOR",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  123
+                                        },
+                                        {
+                                            "role":  "HK_STAFF",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  136
+                                        },
+                                        {
+                                            "role":  "MAINTENANCE_LEAD",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  149
+                                        },
+                                        {
+                                            "role":  "MAINTENANCE_STAFF",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  165
+                                        },
+                                        {
+                                            "role":  "DEPT_MANAGER",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  189
+                                        },
+                                        {
+                                            "role":  "STAFF",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  206
+                                        },
+                                        {
+                                            "role":  "RECEPTION",
+                                            "permission":  "ROOM_VIEW",
+                                            "scope":  "BRANCH",
+                                            "line":  216
+                                        }
+                                    ],
+    "uc013Binding":  "Task64 recorded developer-approved ASSUMED_V1: independent ROOM_VIEW basic physical read OR MASTER_DATA_MANAGE management read; no grant edits",
+    "dedicatedUc013Permission":  "NONE_FOUND",
+    "liveDatabaseGrants":  "PENDING_EVIDENCE_NOT_QUERIED",
+    "effectiveIndividualUserGrants":  "PENDING_EVIDENCE_NO_USER_OR_SQL_SESSION_EVALUATED",
+    "own":  "Not sufficient for branch read; requires verified ownership resource; no UC013 owner binding",
+    "noRoleNameBypass":  true
+}

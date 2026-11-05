@@ -1,0 +1,77 @@
+﻿{
+    "AuthChecks":  174,
+    "WorktreesUnchanged":  true,
+    "UC017Classification":  "COMPLETE_VERIFIED_V1; disposable deployment acceptance; no production deployment",
+    "Result":  "PASS",
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "IntendedPreexistingEdits":  [
+                                     "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                                     "scripts/verification/HotelStructure/Program.cs",
+                                     "scripts/verification/HotelStructure/Task68RoomTypeCases.cs",
+                                     "src/HotelOps.Api/Data/RoomTypeSchema.cs",
+                                     "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+                                     "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs"
+                                 ],
+    "UC017Checks":  163,
+    "Branch":  "feature/BE1-database-integration",
+    "ValidatedUtc":  "2026-10-30T18:19:24.3494930+00:00",
+    "MigratedStructureChecks":  590,
+    "IndexUnchanged":  true,
+    "UC017Faults":  7,
+    "DeploymentInvocations":  12,
+    "VerifiedUCs":  11,
+    "UC017TotalChecks":  165,
+    "DotnetTest":  "Exit0; no test project; console suites executed",
+    "IntendedCleanTrackedEdits":  [
+                                      "docs/database/DATABASE_FIRST_REGENERATION.md",
+                                      "scripts/database/release/README.md",
+                                      "scripts/database/release/canonical/Run-Canonical.ps1"
+                                  ],
+    "DiffCheck":  "PASS",
+    "ProtectedFiles":  475,
+    "Build":  "PASS; two NU1900 warnings",
+    "UC017Waits":  10,
+    "CanonicalTargets":  3,
+    "UC006UC016UC023RowsUnchanged":  true,
+    "Unchanged":  469,
+    "CanonicalRun":  "HotelOps_Canonical_20261030_181243_928419f1",
+    "MigratedRoomChecks":  227,
+    "NewFiles":  [
+                     {
+                         "SHA256":  "61995637A6769FFC5FDA2A467E863DB7F46C6472E76BC6956747E7076E8CA020",
+                         "Path":  "src/HotelOps.Api/Entities/RoomTypeBranchV1.cs"
+                     },
+                     {
+                         "SHA256":  "E6FD55F1C7D34F9A86745EABD93E3380B589B705A9D0D9A4CBDBA65FEF2A56EA",
+                         "Path":  "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs"
+                     },
+                     {
+                         "SHA256":  "F6F966F51407119964344BC1D1C99B004FA9CB45E61EE54E598E49604B0B8017",
+                         "Path":  "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql"
+                     },
+                     {
+                         "SHA256":  "79E12296BBDEB6E87AAC640760D3A4474FFC034D2500925593C0685945DE0627",
+                         "Path":  "scripts/database/release/uc017/06_UC017_Verify.sql"
+                     },
+                     {
+                         "SHA256":  "FBBAA973F23D95C803236BE6B736E93E742542BEC875A51DE947469811476925",
+                         "Path":  "scripts/database/release/uc017/07_UC017_Rollback.sql"
+                     },
+                     {
+                         "SHA256":  "FC58AF011AD601BA9EB3895E807EF4B5BE1BA0E3C163EE966266D4326CE49C0F",
+                         "Path":  "scripts/database/release/uc017/Run-Uc017.ps1"
+                     },
+                     {
+                         "SHA256":  "8FCC3E0F8FF924776BFD002B0082CB12F9A96273F566A3F361C2770A9E19A856",
+                         "Path":  "scripts/verification/HotelStructure/Task69DeploymentCases.cs"
+                     },
+                     {
+                         "SHA256":  "460CB210BE226BF3746BBEA7DF780C10783A075FA7D7CF1F7343F7AFF59CC566",
+                         "Path":  "scripts/verification/HotelStructure/TASK69_UC017_DEPLOYMENT_ACCEPTANCE.md"
+                     }
+                 ],
+    "ValidBackups":  475,
+    "LegacySqlChecks":  117,
+    "VerifiedPercentage":  10.55,
+    "VerifiedPoints":  27
+}

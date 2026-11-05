@@ -1,0 +1,49 @@
+﻿SOURCE: src/HotelOps.Api/Entities/RoomInspection.cs
+SHA256: 5AE5C94EC3A544024D09831AD559E82DE0E8A7E4807EEC78A07D69C47D33B0D0
+Ranges: 1-100 (original source line numbers)
+    1: using System;
+    2: using System.Collections.Generic;
+    3: 
+    4: namespace HotelOps.Api.Entities;
+    5: 
+    6: public partial class RoomInspection
+    7: {
+    8:     public long InspectionId { get; set; }
+    9: 
+   10:     public string InspectionNo { get; set; } = null!;
+   11: 
+   12:     public long RoomId { get; set; }
+   13: 
+   14:     public long? CleaningTaskId { get; set; }
+   15: 
+   16:     public long VersionId { get; set; }
+   17: 
+   18:     public long InspectorUserId { get; set; }
+   19: 
+   20:     public string Status { get; set; } = null!;
+   21: 
+   22:     public string? Result { get; set; }
+   23: 
+   24:     public DateTime? ScheduledAt { get; set; }
+   25: 
+   26:     public DateTime? InspectedAt { get; set; }
+   27: 
+   28:     public string? SummaryNote { get; set; }
+   29: 
+   30:     public DateTime CreatedAt { get; set; }
+   31: 
+   32:     public virtual ICollection<CleaningRework> CleaningReworks { get; set; } = new List<CleaningRework>();
+   33: 
+   34:     public virtual CleaningTask? CleaningTask { get; set; }
+   35: 
+   36:     public virtual ICollection<InspectionDefect> InspectionDefects { get; set; } = new List<InspectionDefect>();
+   37: 
+   38:     public virtual ICollection<InspectionResult> InspectionResults { get; set; } = new List<InspectionResult>();
+   39: 
+   40:     public virtual User InspectorUser { get; set; } = null!;
+   41: 
+   42:     public virtual Room Room { get; set; } = null!;
+   43: 
+   44:     public virtual InspectionChecklistVersion Version { get; set; } = null!;
+   45: }
+

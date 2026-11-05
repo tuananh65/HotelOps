@@ -1,0 +1,74 @@
+5: namespace HotelOps.Api.Services.Maintenance;
+6: 
+7: public sealed partial class MaintenanceWorkService
+8: {
+9:     public Task<MaintenanceWorkDetailDto?> HoldWorkAsync(long id,
+10:         HoldMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
+11:         ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+12:         {
+13:             RequireState(work, "IN_PROGRESS");
+14:             RequireAssignee(work, request.ActorUserId);
+15:             var reason = RequiredNote(request.Reason, "Reason", 10);
+16:             work.Status = "ON_HOLD";
+17:             AddWorkLog(work, request.ActorUserId, reason, 0, now);
+18:             return Task.CompletedTask;
+19:         }, cancellationToken);
+20: 
+21:     public Task<MaintenanceWorkDetailDto?> ResumeWorkAsync(long id,
+22:         ResumeMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
+23:         ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+24:         {
+25:             RequireState(work, "ON_HOLD");
+26:             RequireAssignee(work, request.ActorUserId);
+27:             work.Status = "IN_PROGRESS";
+28:             var note = NormalizeNote(request.Note);
+29:             if (note is not null)
+30:                 AddWorkLog(work, request.ActorUserId, note, 0, now);
+31:             return Task.CompletedTask;
+32:         }, cancellationToken);
+33: 
+34:     public async Task<MaintenanceWorkLogDto?> CreateLogAsync(long id,
+35:         CreateMaintenanceWorkLogRequest request, CancellationToken cancellationToken)
+36:     {
+37:         MaintenanceWorkLog? log = null;
+38:         var result = await ExecuteCorrectiveAsync(id, request, null, async (work, incident, now, token) =>
+39:         {
+40:             RequireState(work, "IN_PROGRESS", "ON_HOLD");
+41:             RequireAssignee(work, request.ActorUserId);
+42:             var note = RequiredNote(request.WorkNote, "WorkNote");
+43:             var materials = request.MaterialUsages is { Count: > 0 } ? await PrepareUsages(work, incident, request.MaterialUsages, token) : [];
+44:             log = AddWorkLog(work, request.ActorUserId, note, request.SpentMinutes, now);
+45:             await _dbContext.SaveChangesAsync(token);
+46:             if (materials.Count > 0) await SaveUsages(log, materials, incident, request.ActorUserId, now, token);
+47:             // The technical log is a business record, not a substitute for its CREATE audit.
+48:             var values = new Dictionary<string, object?>
+49:                 {
+52:                     ["spent_minutes"] = log.SpentMinutes,
+53:                     ["material_issue_id"] = log.MaterialIssueId,
+54:                     ["status"] = log.Status,
+55:                     ["logged_by"] = log.LoggedBy,
+56:                     ["logged_at"] = log.LoggedAt
+57:                 };
+58:             if (materials.Count > 0) values["material_usages"] = materials.Select(x => new { x.Row.UsageId, x.Row.StockDocumentLineId, x.Row.UsedBaseQty }).ToArray();
+59:             AddAudit("maintenance_work_logs", log.LogId, incident.BranchId, request.ActorUserId, now, null, values);
+60:         }, cancellationToken, request.MaterialUsages is { Count: > 0 } ? token => PrepareMaterialLocks(request.MaterialUsages, token) : null);
+61:         if (result is null)
+62:             return null;
+68:             SpentMinutes = log.SpentMinutes,
+69:             MaterialIssueId = log.MaterialIssueId,
+70:             Status = log.Status,
+71:             LoggedBy = log.LoggedBy,
+72:             LoggedAt = log.LoggedAt,
+73:             MaterialUsages = (await UsageDetails(id, cancellationToken)).Where(x => x.MaintenanceWorkLogId == log.LogId).ToArray()
+84:             SpentMinutes = spentMinutes,
+85:             MaterialIssueId = null,
+86:             Status = work.Status,
+87:             LoggedBy = actorId,
+88:             LoggedAt = now
+89:         };
+95:         string.IsNullOrWhiteSpace(note) ? null : note.Trim();
+96: 
+97:     private static string RequiredNote(string? note, string field, int minimumLength = 1)
+98:     {
+99:         var normalized = NormalizeNote(note);
+100:         if (normalized is null || normalized.Length < minimumLength)

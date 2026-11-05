@@ -1,0 +1,141 @@
+﻿SOURCE: src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs
+SHA256: 67A17D28DA8CF33ABE270EAE43988269ECD9155B2A07FBF0D21A9C39A35119B2
+Ranges: 1-24,77-101,152-205,226-256 (original source line numbers)
+    1: using HotelOps.Api.DTOs.Inventory;
+    2: using HotelOps.Api.Entities;
+    3: using Microsoft.EntityFrameworkCore;
+    4: 
+    5: namespace HotelOps.Api.Services.Inventory;
+    6: 
+    7: public sealed partial class InventoryService
+    8: {
+    9:     private async Task<StockDocument?> Document(long id, CancellationToken ct)
+   10:     {
+   11:         await Gate($"HotelOps:Inventory:Document:{id}", ct);
+   12:         var tracked = db.StockDocuments.Local.Any(x => x.DocumentId == id);
+   13:         var trackedLines = db.StockDocumentLines.Local.Where(x => x.DocumentId == id).ToArray();
+   14:         var root = await db.StockDocuments.FromSqlInterpolated($"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={id}").SingleOrDefaultAsync(ct);
+   15:         if (root is not null)
+   16:         {
+   17:             // A tracking query alone can return stale state after a lock wait.
+   18:             if (tracked) await db.Entry(root).ReloadAsync(ct);
+   19:             foreach (var line in trackedLines) await db.Entry(line).ReloadAsync(ct);
+   20:             await db.Entry(root).Collection(x => x.StockDocumentLines).Query().LoadAsync(ct);
+   21:         }
+   22:         return root;
+   23:     }
+   24:     private static IEnumerable<long> WarehouseIds(StockDocument d) => new[] { d.SourceWarehouseId, d.DestinationWarehouseId }.Where(x => x.HasValue).Select(x => x!.Value);
+
+   77:     public async Task<InventoryDocumentDto?> SaveDraft(string type, long? id, long actorUserId, InventoryDraft request, CancellationToken ct)
+   78:     {
+   79:         if (request.DocumentDate == default) throw Invalid("DocumentDate is required.");
+   80:         if (type is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Unsupported draft type.");
+   81:         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count == 0) throw Invalid("At least one line is required.");
+   82:         await using var tx = await Begin(actorUserId, ct);
+   83:         StockDocument d;
+   84:         object? before = null;
+   85:         if (id.HasValue)
+   86:         {
+   87:             var existing = await Document(id.Value, ct); if (existing is null) return null; d = existing;
+   88:             Version(d.RowVersion, request.ExpectedRowVersion);
+   89:             if (d.DocumentType != type || d.Status != "DRAFT") throw Invalid("Only the matching DRAFT document can be edited.");
+   90:             before = new { document = Scalars(d), lines = d.StockDocumentLines.Select(Scalars).ToList() };
+   91:         }
+   92:         else d = new StockDocument { DocumentType = type, Status = "DRAFT", CreatedBy = actorUserId };
+   93:         if (type == "TRANSFER" && (!request.SourceWarehouseId.HasValue || !request.DestinationWarehouseId.HasValue || request.SourceWarehouseId == request.DestinationWarehouseId))
+   94:             throw Invalid("Transfer requires different source and destination warehouses.");
+   95:         if (type != "TRANSFER" && (request.SourceWarehouseId.HasValue || !request.DestinationWarehouseId.HasValue))
+   96:             throw Invalid("Receipt/return requires only a destination warehouse.");
+   97:         var warehouseIds = new[] { request.SourceWarehouseId, request.DestinationWarehouseId }.Where(x => x.HasValue).Select(x => x!.Value).Concat(WarehouseIds(d));
+   98:         var warehouses = await Warehouses(warehouseIds, true, ct);
+   99:         var now = DateTime.UtcNow;
+  100:         var lines = new List<StockDocumentLine>();
+  101:         foreach (var input in request.Lines)
+
+  152:     public async Task<InventoryDocumentDto?> Post(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
+  153:     {
+  154:         await using var tx = await Begin(actorUserId, ct);
+  155:         var document = await PostCore(type, id, actorUserId, request, ct);
+  156:         if (document is null) return null;
+  157:         await tx.CommitAsync(ct);
+  158:         return await GetDocument(id, ct);
+  159:     }
+  160:     private async Task<StockDocument?> PostCore(string type, long id, long actorUserId, InventoryPost request, CancellationToken ct)
+  161:     {
+  162:         var d = await Document(id, ct); if (d is null) return null;
+  163:         Version(d.RowVersion, request.ExpectedRowVersion);
+  164:         if (d.Status != "DRAFT" || d.DocumentType != type || type is not ("RECEIPT" or "RETURN")) throw Invalid("Only the matching DRAFT receipt/return may be posted.");
+  165:         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count != d.StockDocumentLines.Count || request.Lines.Select(x => x.LineId).Distinct().Count() != request.Lines.Count ||
+  166:             request.Lines.Any(x => !d.StockDocumentLines.Any(l => l.LineId == x.LineId))) throw Invalid("Supply every document line exactly once.");
+  167:         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
+  168:         await StockGates(d.StockDocumentLines.Select(x => (d.DestinationWarehouseId!.Value, x.ItemId)), ct);
+  169:         var now = DateTime.UtcNow; var before = new { document = Scalars(d), lines = d.StockDocumentLines.Select(Scalars).ToList() };
+  170:         foreach (var input in request.Lines)
+  171:         {
+  172:             var l = d.StockDocumentLines.Single(x => x.LineId == input.LineId);
+  173:             Qty(input.AcceptedQty); Qty(input.RejectedQty); Qty(input.DamagedQty);
+  174:             var item = await Item(l.ItemId, ct); l.ConversionFactor = await Factor(item, l.UomId, ct);
+  175:             if (input.AcceptedQty != l.RequestedQty || input.RejectedQty > 0 || input.DamagedQty > 0) Reason(input.DiscrepancyReason);
+  176:             l.ActualQty = input.AcceptedQty; l.BaseQty = Base(input.AcceptedQty, l.ConversionFactor);
+  177:             if (d.DocumentType == "RECEIPT")
+  178:                 l.StockReceiptLineDetail = new() { RejectedQty = input.RejectedQty, DamagedQty = input.DamagedQty, DiscrepancyReason = input.DiscrepancyReason };
+  179:             else
+  180:             {
+  181:                 if (input.RejectedQty != 0) throw Invalid("Returns persist damaged quantity, not rejected quantity.");
+  182:                 await db.Entry(l).Reference(x => x.StockReturnLineDetailStockDocumentLine).LoadAsync(ct);
+  183:                 var detail = l.StockReturnLineDetailStockDocumentLine ?? throw Invalid("Return lineage is missing.");
+  184:                 await Original(detail.OriginalIssueLineId, l.ItemId, ct);
+  185:                 if (input.AcceptedQty + input.DamagedQty > l.RequestedQty) throw Invalid("Accepted usable + damaged exceeds requested return.");
+  186:                 detail.DamagedQty = input.DamagedQty; detail.Note = input.DiscrepancyReason;
+  187:             }
+  188:             if (l.BaseQty > 0) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.DestinationWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = l.BaseQty, CreatedBy = actorUserId, OccurredAt = now });
+  189:         }
+  190:         if (d.DocumentType == "RETURN") foreach (var g in d.StockDocumentLines.GroupBy(x => x.StockReturnLineDetailStockDocumentLine!.OriginalIssueLineId))
+  191:             await ReturnCap(g.Key, g.Sum(x => Base(x.ActualQty + x.StockReturnLineDetailStockDocumentLine!.DamagedQty, x.ConversionFactor)), id, ct);
+  192:         d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now;
+  193:         await DocumentAudit(d, actorUserId, "UPDATE", "POSTED", before, warehouses, now, ct);
+  194:         return d;
+  195:     }
+  196:     public async Task<InventoryDocumentDto?> CancelDocument(long id, long actorUserId, InventoryCommand request, CancellationToken ct)
+  197:     {
+  198:         var reason = Reason(request.Reason); await using var tx = await Begin(actorUserId, ct);
+  199:         var d = await Document(id, ct); if (d is null) return null; Version(d.RowVersion, request.ExpectedRowVersion);
+  200:         if (d.Status != "DRAFT" || d.DocumentType is not ("RECEIPT" or "RETURN" or "TRANSFER")) throw Invalid("Only an eligible DRAFT may be cancelled.");
+  201:         var warehouses = await Warehouses(WarehouseIds(d), false, ct); var before = Scalars(d); var now = DateTime.UtcNow;
+  202:         d.Status = "CANCELLED"; d.CancelledAt = now; d.Reason = reason;
+  203:         await DocumentAudit(d, actorUserId, "CANCEL", "CANCELLED", before, warehouses, now, ct);
+  204:         await tx.CommitAsync(ct); return await GetDocument(id, ct);
+  205:     }
+
+  226:     public async Task<InventoryDocumentDto?> Receive(long id, long actorUserId, InventoryReceive request, CancellationToken ct)
+  227:     {
+  228:         await using var tx = await Begin(actorUserId, ct); var d = await Document(id, ct); if (d is null) return null;
+  229:         Version(d.RowVersion, request.ExpectedRowVersion); if (d.DocumentType != "TRANSFER" || d.Status is not ("IN_TRANSIT" or "PARTIALLY_RECEIVED")) throw Invalid("Transfer must be in transit or partially received.");
+  230:         if (request.Lines is null || request.Lines.Any(x => x is null) || request.Lines.Count == 0 || request.Lines.Select(x => x.TransferLineId).Distinct().Count() != request.Lines.Count) throw Invalid("Supply distinct transfer lines for this batch.");
+  231:         var warehouses = await Warehouses(WarehouseIds(d), true, ct);
+  232:         await StockGates(d.StockDocumentLines.SelectMany(x => WarehouseIds(d).Select(w => (w, x.ItemId))), ct);
+  233:         var before = Scalars(d); var now = DateTime.UtcNow;
+  234:         var previous = await db.StockTransferReceiptLines.Where(x => x.TransferReceipt.TransferDocumentId == id).ToListAsync(ct);
+  235:         var batch = new StockTransferReceipt { TransferDocumentId = id, ReceivedBy = actorUserId, ReceivedAt = now, Note = request.Note };
+  236:         foreach (var input in request.Lines)
+  237:         {
+  238:             var l = d.StockDocumentLines.SingleOrDefault(x => x.LineId == input.TransferLineId) ?? throw Invalid("Transfer line does not belong to this document.");
+  239:             var physical = Qty(input.ReceivedQty) + Qty(input.DamagedQty) + Qty(input.MissingQty);
+  240:             if (physical <= 0) throw Invalid("Batch entry must reconcile a positive quantity.");
+  241:             var reconciled = previous.Where(x => x.TransferLineId == l.LineId).Sum(x => x.ReceivedQty + x.DamagedQty + x.MissingQty);
+  242:             if (reconciled + physical > l.ActualQty) throw Invalid("Batch exceeds remaining dispatched quantity.");
+  243:             // Dispatch factor is immutable once stock effects exist.
+  244:             await Item(l.ItemId, ct);
+  245:             var detail = new StockTransferReceiptLine { TransferLineId = l.LineId, ReceivedQty = input.ReceivedQty, DamagedQty = input.DamagedQty, MissingQty = input.MissingQty, Note = input.Note };
+  246:             batch.StockTransferReceiptLines.Add(detail); previous.Add(detail);
+  247:             var usable = Base(input.ReceivedQty, l.ConversionFactor);
+  248:             if (usable > 0) db.StockMovements.Add(new() { DocumentLine = l, WarehouseId = d.DestinationWarehouseId!.Value, ItemId = l.ItemId, SignedBaseQty = usable, CreatedBy = actorUserId, OccurredAt = now });
+  249:         }
+  250:         db.StockTransferReceipts.Add(batch);
+  251:         d.Status = d.StockDocumentLines.All(l => previous.Where(x => x.TransferLineId == l.LineId).Sum(x => x.ReceivedQty + x.DamagedQty + x.MissingQty) == l.ActualQty) ? "RECEIVED" : "PARTIALLY_RECEIVED";
+  252:         db.Entry(d).Property(x => x.Status).IsModified = true;
+  253:         if (d.Status == "RECEIVED") { d.PostedAt = now; d.PostedBy = actorUserId; }
+  254:         await DocumentAudit(d, actorUserId, "UPDATE", "BATCH_RECEIVED", before, warehouses, now, ct);
+  255:         await tx.CommitAsync(ct); return await GetDocument(id, ct);
+  256:     }
+

@@ -1,0 +1,18 @@
+5: namespace HotelOps.Api.Security;
+6: 
+7: public static class AuthenticationApiBehavior
+8: {
+9:     public static void Configure(ApiBehaviorOptions options)
+10:     {
+11:         var fallback = options.InvalidModelStateResponseFactory;
+12:         options.InvalidModelStateResponseFactory = context =>
+16:                 return fallback(context);
+17:             // Binding errors can contain submitted secrets: never echo values or exception text.
+18:             context.HttpContext.Response.Headers.CacheControl = "no-store";
+19:             return new BadRequestObjectResult(new ProblemDetails
+20:             {
+21:                 Status = 400, Title = "Request validation failed", Type = "about:blank",
+22:                 Extensions = { ["code"] = "VALIDATION_FAILED", ["traceId"] = context.HttpContext.TraceIdentifier }
+23:             }) { ContentTypes = { "application/problem+json" } };
+24:         };
+25:     }

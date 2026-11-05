@@ -1,0 +1,50 @@
+$ErrorActionPreference='Stop'
+$baseline=Get-Content obj/task74-session.local.json -Raw | ConvertFrom-Json
+$allowedPaths=@('scripts/verification/Housekeeping/TASK74_CONTRACT_PROPOSAL.md','src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs','src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs','src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs','scripts/verification/HotelStructure/Program.cs','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$unexpected=@();$preserved=0;$changed=@()
+foreach($entry in $baseline.manifest){
+ $path=$entry.Path.Replace('\','/')
+ if(-not(Test-Path -LiteralPath $entry.Path -PathType Leaf)){throw ('Missing baseline file '+$path)}
+ $hash=(Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash
+ if($hash -ne $entry.Hash){if($allowedPaths -notcontains $path){$unexpected+=@($path)}else{$changed+=@($path)}}elseif($allowedPaths -notcontains $path){$preserved++}
+}
+if($unexpected.Count){throw ('Unexpected changes: '+($unexpected -join ','))}
+$head=git rev-parse HEAD
+$indexHash=git diff --cached --binary | git hash-object --stdin
+$trees=@(git worktree list --porcelain)
+if($head -cne $baseline.head -or $indexHash -cne $baseline.indexHash -or ($trees -join "`n") -cne ($baseline.worktrees -join "`n")){throw 'HEAD/index/worktrees changed'}
+$shape=Get-Content obj/task74-shape-parity.local.json -Raw | ConvertFrom-Json
+$accepted=Get-Content scripts/verification/Housekeeping/task74-accepted.local.json -Raw | ConvertFrom-Json
+if(-not $shape.success -or -not $accepted.success -or $accepted.checks -ne 287){throw 'Final receipts not accepted'}
+$ErrorActionPreference='Continue'
+git diff --check 2> obj/task74-diff-check.local.log
+$diffExit=$LASTEXITCODE
+$ErrorActionPreference='Stop'
+if($diffExit -ne 0){throw 'diff check failed'}
+$end=[DateTimeOffset]::UtcNow
+$elapsed=$end-[DateTimeOffset]::Parse($baseline.started)
+$duration=$elapsed.ToString('hh\:mm\:ss')+' (hh:mm:ss)'
+$reportPath=Join-Path (Get-Location) 'scripts/verification/Housekeeping/TASK74_BATCH5_IMPLEMENTATION.md'
+$report=[IO.File]::ReadAllText($reportPath).Replace('{{BATCH_ELAPSED}}',$duration).Replace('{{BATCH_END_UTC}}',$end.ToString('o'))
+$report=[regex]::Replace($report,'(?m)^Measured interval through final validation/report:.*$',('Measured interval through final validation/report: **'+$duration+'**; end UTC **'+$end.ToString('o')+'**.'))
+[IO.File]::WriteAllText($reportPath,$report,[Text.UTF8Encoding]::new($false))
+$currentPaths=@(git ls-files --modified --others --exclude-standard | ForEach-Object {$_.Replace('\','/')})
+$baselinePaths=@($baseline.manifest | ForEach-Object {$_.Path.Replace('\','/')})
+$newPaths=@($currentPaths | Where-Object {$baselinePaths -notcontains $_})
+$sources=@($newPaths | Where-Object {$_ -like 'src/*' -or $_ -like 'scripts/database/release/progress/*' -or $_ -like 'scripts/verification/HotelStructure/Task74*' -or $_ -like 'scripts/verification/Housekeeping/TASK74*'})+$allowedPaths
+foreach($source in $sources){if([regex]::IsMatch([IO.File]::ReadAllText((Join-Path (Get-Location) $source)),'(?m)[\t ]+\r?$')){throw ('Trailing whitespace: '+$source)}}
+$hashes=@($sources | Sort-Object -Unique | ForEach-Object {[pscustomobject]@{path=$_;sha256=(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash}})
+$validation=[ordered]@{
+ success=$true;startedUtc=$baseline.started;finishedUtc=$end.ToString('o');elapsedSeconds=$elapsed.TotalSeconds;elapsedDisplay=$duration
+ measurement='Recorded preflight to final validation; initial reading excluded';head=$head;indexHash=$indexHash;worktrees=$trees
+ baselineFiles=$baseline.manifest.Count;preservedUnrelatedFiles=$preserved;changedAllowedExistingFiles=$changed;unexpectedChanges=$unexpected
+ newGitPaths=$newPaths;sourceHashes=$hashes;receiptHash=(Get-FileHash scripts/verification/Housekeeping/task74-accepted.local.json).Hash
+ moduleHash=(Get-FileHash scripts/database/release/progress/01_Progress.sql).Hash
+ apiBinaryHash=(Get-FileHash src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll).Hash
+ harnessBinaryHash=(Get-FileHash scripts/verification/HotelStructure/bin/Debug/net10.0/HotelStructure.Verification.dll).Hash
+ acceptanceChecks=287;uc032Checks=87;uc109Checks=89;build='PASS; NU1900 vulnerability-feed warnings'
+ frameworkTests='NONE DISCOVERED; no dotnet test credit';diffCheck='PASS';newSourceWhitespace='PASS';schemaParity=$shape
+ completedUCs=26;verifiedPoints=60;weightedPercent=23.4375;remainingUCs=49
+}
+$validation | ConvertTo-Json -Depth 8 | Set-Content obj/task74-validation.local.json -Encoding UTF8
+[pscustomobject]@{success=$true;duration=$duration;preservedUnrelatedFiles=$preserved;changedAllowedFiles=$changed.Count;unexpected=$unexpected.Count;headSame=$true;indexSame=$true;worktreesSame=$true;sourceFiles=$hashes.Count;acceptance=287;completed=26;points=60} | ConvertTo-Json

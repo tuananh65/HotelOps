@@ -1,0 +1,103 @@
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Data.Common;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Rooms;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.Rooms;
+
+public enum RoomDirectoryStatus { Success, SessionInvalid, Forbidden, AuthorizationUnavailable }
+public sealed record RoomDirectoryResult(RoomDirectoryStatus Status, RoomDirectoryResponse? Directory = null);
+
+/// <summary>
+/// Internal, single-branch room directory. No HTTP registration until the outstanding
+/// UC023 API/visibility decisions are approved. Does not derive room lifecycle state.
+/// </summary>
+public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
+    ISqlSessionService sessions, IPermissionService permissions)
+{
+    /// <param name="authenticatedSession">From a server-authenticated protected ticket, never a request DTO.</param>
+    public async Task<RoomDirectoryResult> ListAsync(SessionReference authenticatedSession,
+        RoomDirectoryQuery query, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(authenticatedSession);
+        ArgumentNullException.ThrowIfNull(query);
+        ct.ThrowIfCancellationRequested();
+        Validator.ValidateObject(query, new ValidationContext(query), validateAllProperties: true);
+        if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted
+            || actor.UserId != authenticatedSession.UserId || authenticatedSession.IsRestricted)
+            return new(RoomDirectoryStatus.SessionInvalid);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null
+            || db.ChangeTracker.Entries().Any())
+            throw new InvalidOperationException("Room directory requires a clean, dedicated SQL Server context.");
+
+        // The existing session service retains User before Session. Only then read grants
+        // and room/floor/type resources. No feature -> User inversion or SaveChanges here.
+        // SERIALIZABLE keeps count/page, joins and the SQL authority paths consistent;
+        // no database snapshot option/schema change is required.
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        try
+        {
+            if (!await HasSessionAsync(authenticatedSession, actor, ct))
+                return new(RoomDirectoryStatus.SessionInvalid);
+            var access = await permissions.EvaluateBranchAsync("ROOM_VIEW", query.BranchId, ct);
+            if (!access.IsGranted) return Denied(access);
+
+            // RoomType is global. Floor/Area names must never be projected from another
+            // branch even if legacy FK data is internally inconsistent. An area without
+            // a floor is legitimate. Parent inactivity does not hide historical rooms.
+            var rooms = db.Rooms.AsNoTracking().Where(r => r.BranchId == query.BranchId
+                && r.Floor.BranchId == r.BranchId
+                && (r.Area == null || r.Area.BranchId == r.BranchId
+                    && (r.Area.FloorId == null || r.Area.FloorId == r.FloorId)));
+            if (query.FloorId is { } floorId) rooms = rooms.Where(r => r.FloorId == floorId);
+            if (query.AreaId is { } areaId) rooms = rooms.Where(r => r.AreaId == areaId);
+            if (query.RoomTypeId is { } typeId) rooms = rooms.Where(r => r.RoomTypeId == typeId);
+            if (query.OperationalStatusCode is { } status) rooms = rooms.Where(r => r.OperationalStatus == status);
+            if (query.IsActive is { } active) rooms = rooms.Where(r => r.IsActive == active);
+            var search = query.Search?.Trim();
+            // Literal substring, not a LIKE pattern supplied by the caller.
+            if (!string.IsNullOrEmpty(search)) rooms = rooms.Where(r => r.RoomNumber.Contains(search));
+
+            var total = await rooms.TagWith("UC023:Count").LongCountAsync(ct);
+            var items = await rooms.OrderBy(r => r.Floor.FloorNumber == null ? 1 : 0)
+                .ThenBy(r => r.Floor.FloorNumber).ThenBy(r => r.Floor.FloorCode)
+                .ThenBy(r => r.FloorId).ThenBy(r => r.RoomNumber).ThenBy(r => r.RoomId)
+                .Skip(checked((query.Page - 1) * query.PageSize)).Take(query.PageSize)
+                .Select(r => new RoomDirectoryItemDto(r.RoomId, r.BranchId, r.RoomNumber,
+                    new RoomDirectoryFloorDto(r.FloorId, r.Floor.FloorCode, r.Floor.FloorName, r.Floor.FloorNumber),
+                    r.Area == null ? null : new RoomDirectoryAreaDto(r.Area.AreaId, r.Area.AreaCode, r.Area.AreaName),
+                    new RoomDirectoryTypeDto(r.RoomTypeId, r.RoomType.TypeCode, r.RoomType.TypeName),
+                    r.OperationalStatus, r.IsActive))
+                .TagWith("UC023:Page").ToListAsync(ct);
+
+            // Locks prevent SQL revocation races, but time can still expire while waiting.
+            // Recheck policy and time-dependent grants before publishing any data.
+            if (!await HasSessionAsync(authenticatedSession, actor, ct))
+                return new(RoomDirectoryStatus.SessionInvalid);
+            access = await permissions.EvaluateBranchAsync("ROOM_VIEW", query.BranchId, ct);
+            if (!access.IsGranted) return Denied(access);
+            await tx.CommitAsync(ct);
+            return new(RoomDirectoryStatus.Success, new(items, query.Page, query.PageSize, total));
+        }
+        catch (DbException error) when (ct.IsCancellationRequested)
+        {
+            // SqlClient may surface cancellation during a lock wait as a provider error.
+            throw new OperationCanceledException("Room directory read was cancelled.", error, ct);
+        }
+    }
+
+    private async Task<bool> HasSessionAsync(SessionReference ticket, CurrentUserInfo actor, CancellationToken ct)
+    {
+        var valid = await sessions.ValidateSessionAsync(ticket, ct);
+        return valid.IsValid && valid.Session is { IsRestricted: false } session
+            && session.SessionId == actor.SessionId && session.UserId == actor.UserId;
+    }
+
+    private static RoomDirectoryResult Denied(PermissionEvaluation access) => new(
+        access.Decision == PermissionDecision.Unavailable
+            ? RoomDirectoryStatus.AuthorizationUnavailable : RoomDirectoryStatus.Forbidden);
+}

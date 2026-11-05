@@ -1,0 +1,17 @@
+﻿{
+    "worktree":  "D:\\SEP490\\Projects\\HotelOps",
+    "branch":  "feature/BE1-database-integration",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "program":  {
+                    "path":  "src/HotelOps.Api/Program.cs",
+                    "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Program.cs",
+                    "sha256":  "586299FB650342F7389BAECD615DD29ACC94352857021FC4391554FF9372A505",
+                    "headBlob":  "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+                    "indexBlob":  "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+                    "workingTreeRawBlob":  "ece1f08d2a55624e76594e06c3157a30a3d904dd",
+                    "gitStatus":  " M",
+                    "lineCount":  112
+                },
+    "workingTreeFilteredBlob":  "b0dad3db4a086707a503a01564b0c975270d456c",
+    "computedWorkingTreeBlobsAreNotWrittenToGit":  true
+}

@@ -1,0 +1,29 @@
+7: 
+8: [ApiController]
+9: [Route("api/health")]
+10: public class HealthController : ControllerBase
+11: {
+12:     private readonly HotelOpsDbContext _dbContext;
+13: 
+14:     public HealthController(HotelOpsDbContext dbContext)
+15:     {
+16:         _dbContext = dbContext;
+17:     }
+18: 
+19:     [HttpGet("database")]
+20:     [AllowAnonymous] // Public readiness contract; response contains no infrastructure details.
+21:     public async Task<IActionResult> CheckDatabase(CancellationToken cancellationToken = default)
+22:     {
+23:         try
+24:         {
+25:             var canConnect = await _dbContext.Database.CanConnectAsync(cancellationToken);
+26:             return canConnect ? Ok(new { status = "ok" }) : StatusCode(503, new { status = "error" });
+27:         }
+28:         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { throw; }
+29:         catch (Exception)
+30:         {
+31:             // Public readiness response: never include provider/configuration details.
+32:             return StatusCode(503, new { status = "error" });
+33:         }
+34:     }
+35: }

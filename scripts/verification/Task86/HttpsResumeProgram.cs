@@ -1,0 +1,168 @@
+using System.Diagnostics;
+using System.Net;
+using System.Net.Http.Json;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+
+// Compile is safe. Execution requires separate approval for this exact fresh trial and fixtures.
+const string target="HotelOps_Canonical_20261104_223000_c01286a1_Fresh";
+const string instance=@"REDACTED_LOCAL_SQL_HOST\SQLEXPRESS";
+if(args.Length!=2 || args[0]!=target || File.Exists(args[1]))throw new ArgumentException("Exact Task86 trial and unused receipt required");
+var root=Directory.GetCurrentDirectory();
+var connection=new SqlConnectionStringBuilder{DataSource=instance,InitialCatalog=target,IntegratedSecurity=true,TrustServerCertificate=true,ConnectTimeout=10,ApplicationName="HotelOps Task86 HTTPS acceptance"}.ConnectionString;
+using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(10));var ct=budget.Token;
+HotelOpsDbContext Open()=>new(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection).Options);
+await using var db=Open();await db.Database.OpenConnectionAsync(ct);
+await using(var identity=db.Database.GetDbConnection().CreateCommand())
+{
+    identity.CommandText="SELECT CONVERT(nvarchar(128),@@SERVERNAME),DB_NAME(),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.UserDirectory.Trial')";
+    await using var reader=await identity.ExecuteReaderAsync(ct);
+    if(!await reader.ReadAsync(ct)||reader.GetString(0)!=instance||reader.GetString(1)!=target||reader.IsDBNull(2)||reader.GetString(2)!="Task17")throw new Exception("Wrong trial identity");
+}
+if(await db.Users.CountAsync(ct)!=9 || await db.Users.AnyAsync(x=>!x.Username.StartsWith("t86."),ct))throw new Exception("Exact existing Task86 fixture set required; no database reset");
+var cases=new List<string>();string? failure=null;Process? process=null;Task<string>? stdout=null,stderr=null;
+string? certFile=null;bool ownConstraint=false;
+void Check(bool ok,string label){if(!ok){failure=label;throw new Exception(label);}cases.Add(label);Console.WriteLine("PASS: "+label);}
+async Task<string> Fingerprint(params string[] tables)
+{
+    var result=new StringBuilder();
+    foreach(var table in tables)
+    {
+        await using var cmd=db.Database.GetDbConnection().CreateCommand();cmd.CommandText=$"SELECT * FROM dbo.[{table}] ORDER BY 1 FOR JSON PATH,INCLUDE_NULL_VALUES";
+        var text=new StringBuilder();await using var reader=await cmd.ExecuteReaderAsync(ct);while(await reader.ReadAsync(ct))text.Append(reader.GetString(0));
+        result.Append(Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(text.ToString()))));
+    }
+    return result.ToString();
+}
+try
+{
+    var catalog=await Fingerprint("roles","permissions","role_permissions","reference_values");
+    var a=await db.Branches.Where(x=>x.BranchCode=="BR001").Select(x=>x.BranchId).SingleAsync(ct);
+    var b=await db.Branches.Where(x=>x.BranchCode=="BR002").Select(x=>x.BranchId).SingleAsync(ct);
+    var now=DateTime.UtcNow;var password=Convert.ToBase64String(RandomNumberGenerator.GetBytes(24))+"Aa1-";
+    var hasher=new PasswordCredentialService(Options.Create(new PasswordHasherOptions{CompatibilityMode=PasswordHasherCompatibilityMode.IdentityV3,IterationCount=PasswordCredentialService.BaselineIterationCount}));
+    var users=(await db.Users.ToArrayAsync(ct)).ToDictionary(x=>x.Username[4..]);
+    foreach(var user in users.Values)user.PasswordHash=hasher.HashPassword(user,password);
+    var supervisor=new User{EmployeeCode="T86_supervisor",Username="t86.supervisor",Email="t86.supervisor@example.invalid",FullName="Task86 supervisor",PrimaryBranchId=a,DepartmentId=await db.Departments.Where(x=>x.BranchId==a&&x.DepartmentCode=="HK").Select(x=>x.DepartmentId).SingleAsync(ct),AccountStatus="ACTIVE",EmploymentStatus="ACTIVE",CreatedAt=now};
+    supervisor.PasswordHash=hasher.HashPassword(supervisor,password);db.Users.Add(supervisor);await db.SaveChangesAsync(ct);users["supervisor"]=supervisor;
+    db.UserRoles.Add(new UserRole{UserId=supervisor.UserId,RoleId=await db.Roles.Where(x=>x.RoleCode=="HK_SUPERVISOR").Select(x=>x.RoleId).SingleAsync(ct),BranchId=a,IsActive=true,AssignedAt=now.AddMinutes(-1)});
+    db.UserBranchAccesses.Add(new UserBranchAccess{UserId=supervisor.UserId,BranchId=a,AccessLevel="STANDARD",IsPrimary=true,GrantedAt=now.AddMinutes(-1)});
+    await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+    var room=await db.Rooms.Where(x=>x.RoomNumber=="T86_ROOM").Select(x=>x.RoomId).SingleAsync(ct);
+    var cycle=await db.CleaningTasks.SingleAsync(x=>x.TaskNo=="T86_CYCLE",ct);
+    using var rsa=RSA.Create(2048);var request=new CertificateRequest("CN=localhost",rsa,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);
+    var san=new SubjectAlternativeNameBuilder();san.AddIpAddress(IPAddress.Loopback);request.CertificateExtensions.Add(san.Build());
+    using var cert=request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1),DateTimeOffset.UtcNow.AddHours(1));
+    certFile=Path.Combine(Path.GetTempPath(),"HotelOps-Task86-"+Guid.NewGuid().ToString("N")+".pfx");var certPassword=Convert.ToBase64String(RandomNumberGenerator.GetBytes(24));
+    await File.WriteAllBytesAsync(certFile,cert.Export(X509ContentType.Pfx,certPassword),ct);
+    var listener=new TcpListener(IPAddress.Loopback,0);listener.Start();var port=((IPEndPoint)listener.LocalEndpoint).Port;listener.Stop();
+    var start=new ProcessStartInfo("dotnet"){WorkingDirectory=Path.Combine(root,"src/HotelOps.Api"),UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+    start.ArgumentList.Add(Path.Combine(root,"scripts/verification/Task86/artifacts/integrated/bin/HotelOps.Api/debug/HotelOps.Api.dll"));
+    start.Environment["ASPNETCORE_ENVIRONMENT"]="Development";start.Environment["DOTNET_ENVIRONMENT"]="Development";
+    start.Environment["ASPNETCORE_URLS"]="https://127.0.0.1:"+port;start.Environment["ConnectionStrings__HotelOpsDb"]=connection;
+    start.Environment["Kestrel__Certificates__Default__Path"]=certFile;start.Environment["Kestrel__Certificates__Default__Password"]=certPassword;
+    process=Process.Start(start)??throw new Exception("Startup failed");stdout=process.StandardOutput.ReadToEndAsync();stderr=process.StandardError.ReadToEndAsync();
+    using var handler=new HttpClientHandler{UseCookies=false,AllowAutoRedirect=false,ServerCertificateCustomValidationCallback=(_,peer,_,_)=>peer?.GetCertHashString()==cert.GetCertHashString()};
+    using var http=new HttpClient(handler){BaseAddress=new Uri("https://127.0.0.1:"+port),Timeout=TimeSpan.FromSeconds(25)};
+    var ready=false;for(var i=0;i<80&&!process.HasExited;i++){try{using var r=await http.GetAsync("/api/health/database",ct);if(r.IsSuccessStatusCode){ready=true;break;}}catch(HttpRequestException){}await Task.Delay(250,ct);}
+    Check(ready,"Actual Program startup/schema validator and pinned HTTPS listener");
+    async Task<HttpResponseMessage> Send(HttpMethod method,string path,Jar jar,object? body=null,string? tag=null,bool csrf=true)
+    {
+        using var message=new HttpRequestMessage(method,path);
+        if(jar.Cookies.Count>0)message.Headers.Add("Cookie",string.Join("; ",jar.Cookies.Select(x=>x.Key+"="+x.Value)));
+        if(csrf&&jar.Token!=null)message.Headers.Add(HotelOpsAntiforgery.HeaderName,jar.Token);
+        if(tag!=null)message.Headers.TryAddWithoutValidation("If-Match",tag);
+        if(body!=null)message.Content=JsonContent.Create(body);
+        var response=await http.SendAsync(message,ct);jar.Read(response);return response;
+    }
+    async Task<Jar> Login(string name)
+    {
+        var jar=new Jar();using(var r=await Send(HttpMethod.Get,"/api/auth/csrf",jar)){Check(r.IsSuccessStatusCode,"CSRF bootstrap "+name);using var j=JsonDocument.Parse(await r.Content.ReadAsStringAsync(ct));jar.Token=j.RootElement.GetProperty("csrfToken").GetString();}
+        using var response=await Send(HttpMethod.Post,"/api/auth/login",jar,new{Username=users[name].Username,Password=password});
+        Check(response.IsSuccessStatusCode,"Real credential login/SQL session "+name);using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));jar.Token=json.RootElement.GetProperty("csrfToken").GetString();return jar;
+    }
+    var jars=new Dictionary<string,Jar>();foreach(var name in users.Keys)jars[name]=await Login(name);
+    var admin=jars["admin"];var admin2=jars["admin2"];
+    async Task<(JsonElement? Body,string? Tag)> Expect(HttpMethod method,string path,Jar jar,object? body,int status,string label,string? tag=null,bool csrf=true)
+    {
+        using var r=await Send(method,path,jar,body,tag,csrf);Check((int)r.StatusCode==status,label+" status "+(int)r.StatusCode);
+        var text=await r.Content.ReadAsStringAsync(ct);Check(!text.Contains("SqlException")&&!text.Contains("passwordHash",StringComparison.OrdinalIgnoreCase),label+" no provider/credential disclosure");
+        JsonElement? value=null;if(r.IsSuccessStatusCode){using var j=JsonDocument.Parse(text);value=j.RootElement.Clone();}
+        return(value,r.Headers.ETag?.ToString());
+    }
+    object Update(string name)=>new{Name=name,Address="Updated address",Phone="123456",Email="updated@example.invalid",Reason="Task86 verified update"};
+    var id=await db.Branches.Where(x=>x.BranchCode=="T86_NEW").Select(x=>x.BranchId).SingleAsync(ct);
+    var current=await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",admin,null,200,"Existing branch read after first receipt");
+    var etag=current.Tag!;
+    await Expect(HttpMethod.Get,$"/api/branches/{long.MaxValue}/edit",admin,null,404,"Missing branch");
+    await Expect(HttpMethod.Get,$"/api/rooms/{room}/turnover-history?branchId={a}",admin,null,403,"UC038 SYS_ADMIN has no catalog permission");
+    await Expect(HttpMethod.Get,$"/api/rooms/{room}/turnover-history?branchId={a}",jars["supervisor"],null,200,"UC038 allowed HK_SUPERVISOR HTTPS regression");
+    await Expect(HttpMethod.Get,$"/api/rooms/{room}/turnover-history?branchId={b}",jars["supervisor"],null,403,"UC038 supervisor cross-branch denial");
+    await Expect(HttpMethod.Get,$"/api/branches/{a}/cleaning-monitor",jars["supervisor"],null,200,"UC037 allowed supervisor HTTPS list regression");
+    await Expect(HttpMethod.Get,$"/api/branches/{a}/cleaning-monitor/cleaning/{cycle.CleaningTaskId}",jars["supervisor"],null,200,"UC037 allowed supervisor HTTPS detail regression");
+    var beforeDenied=await Fingerprint("branches","audit_logs");
+    await db.UserRoles.Where(x=>x.UserId==users["revoke"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,false),ct);
+    await Expect(HttpMethod.Put,$"/api/branches/{id}",jars["revoke"],Update("Forbidden"),403,"Permission revocation before mutation",etag);
+    await db.UserRoles.Where(x=>x.UserId==users["revoke"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,true),ct);
+    async Task RevokeDuringWait(bool session)
+    {
+        await using var blocker=new SqlConnection(connection);await blocker.OpenAsync(ct);await using var tx=await blocker.BeginTransactionAsync(ct);
+        await using var lockCommand=blocker.CreateCommand();lockCommand.Transaction=(SqlTransaction)tx;
+        lockCommand.CommandText="SELECT user_id FROM dbo.users WITH(UPDLOCK,HOLDLOCK) WHERE user_id=@u; SELECT @@SPID;";
+        lockCommand.Parameters.Add(new SqlParameter("@u",users["revoke"].UserId));
+        int blockerId;await using(var reader=await lockCommand.ExecuteReaderAsync(ct)){await reader.ReadAsync(ct);await reader.NextResultAsync(ct);await reader.ReadAsync(ct);blockerId=reader.GetInt32(0);}
+        var pending=Send(HttpMethod.Put,$"/api/branches/{id}",jars["revoke"],Update("Forbidden after wait"),etag);
+        var observed=false;
+        for(var i=0;i<40;i++)
+        {
+            await using var observer=db.Database.GetDbConnection().CreateCommand();
+            observer.CommandText="SELECT COUNT(*) FROM sys.dm_exec_requests WHERE blocking_session_id=@blocker AND database_id=DB_ID() AND wait_type LIKE 'LCK[_]%'";
+            observer.Parameters.Add(new SqlParameter("@blocker",blockerId));
+            if(Convert.ToInt32(await observer.ExecuteScalarAsync(ct))>0){observed=true;break;}await Task.Delay(100,ct);
+        }
+        Check(observed,(session?"Session":"Permission")+" revocation request observed waiting on actual SQL actor lock");
+        lockCommand.CommandText=session?"UPDATE dbo.user_sessions SET revoked_at=SYSUTCDATETIME() WHERE user_id=@u":"UPDATE dbo.user_roles SET is_active=0 WHERE user_id=@u";
+        await lockCommand.ExecuteNonQueryAsync(ct);await tx.CommitAsync(ct);
+        using var response=await pending;Check((int)response.StatusCode==(session?401:403),(session?"Session":"Permission")+" revocation during actual lock wait fails closed");
+    }
+    await RevokeDuringWait(false);
+    await db.UserRoles.Where(x=>x.UserId==users["revoke"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,true),ct);
+    await RevokeDuringWait(true);
+    Check(beforeDenied==await Fingerprint("branches","audit_logs"),"Revocation/wait denials make no branch or audit mutation");
+    await db.UserSessions.Where(x=>x.UserId==users["expired"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(s=>s.ExpiresAt,s=>s.CreatedAt),ct);
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["expired"],null,401,"Expired SQL session denied");
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["revoke"],null,401,"Revoked SQL session denied");
+    await db.Users.Where(x=>x.UserId==users["account"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(u=>u.AccountStatus,"INACTIVE"),ct);
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["account"],null,401,"Inactive account denied");
+    await db.Users.Where(x=>x.UserId==users["employment"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(u=>u.EmploymentStatus,"INACTIVE"),ct);
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["employment"],null,401,"Inactive employment denied");
+    Check(catalog==await Fingerprint("roles","permissions","role_permissions","reference_values"),"Resume leaves RBAC catalog/grants unchanged");
+}
+catch(Exception e){failure??=e.GetType().Name;Environment.ExitCode=1;Console.WriteLine("FAIL: "+failure);}
+finally
+{
+    if(ownConstraint)await db.Database.ExecuteSqlRawAsync("IF DB_NAME()<>N'HotelOps_Canonical_20261104_223000_c01286a1_Fresh' THROW 51986,'Wrong target',1; ALTER TABLE dbo.audit_logs DROP CONSTRAINT CK_Task86_BranchAuditFailure",CancellationToken.None);
+    if(process!=null){if(!process.HasExited)process.Kill(entireProcessTree:true);await process.WaitForExitAsync();process.Dispose();}
+    if(certFile!=null)File.Delete(certFile); // Exact temporary certificate created by this invocation only.
+    // No raw server output, cookie, password, connection string or SQL session credential is serialized.
+    await File.WriteAllTextAsync(args[1],JsonSerializer.Serialize(new{success=failure==null,passed=cases.Count,failed=failure==null?0:1,failure,cases,database=target,instance,
+        notRun=new[]{"Successful deactivation","Deactivate/create race","DEV2 writer inactive-branch guards","Complete dependency scope/terminal-state review"},
+        uc012="PARTIAL",completeUCs=26,verifiedPoints=60},new JsonSerializerOptions{WriteIndented=true}));
+}
+
+sealed class Jar
+{
+    public Dictionary<string,string> Cookies{get;}=[];public string? Token{get;set;}
+    public void Read(HttpResponseMessage r){if(!r.Headers.TryGetValues("Set-Cookie",out var values))return;foreach(var value in values){var pair=value.Split(';')[0].Split('=',2);if(pair.Length==2)Cookies[pair[0]]=pair[1];}}
+}

@@ -1,0 +1,18 @@
+{
+  "trial": "HotelOps_Canonical_20261103_162910_76025447_Fresh",
+  "marker": "Task77-v1",
+  "checks": 8,
+  "cases": [
+    "Unauthenticated identity refused",
+    "Restricted identity refused",
+    "Invalid branch refused",
+    "Inaccessible branch refused",
+    "Unknown account refused",
+    "Own current result matches independent SQL query (including no Working day)",
+    "Read query tracks no entities",
+    "Workday contents unchanged by component checks"
+  ],
+  "scope": "READ_ONLY_SQL_COMPONENT_IDENTITY_DOUBLE_NOT_HTTPS_OR_PERMISSION_ACCEPTANCE",
+  "populatedWorkingDayCovered": false,
+  "finishedUtc": "2026-11-03T23:10:24.9764732+00:00"
+}

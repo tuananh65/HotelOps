@@ -1,0 +1,34 @@
+foreach (var pair in users)
+{
+    var branch = pair.Value.PrimaryBranchId!.Value;
+    var code = pair.Key is "own" or "denied" ? "HK_STAFF" : "SYS_ADMIN";
+    db.Add(new UserRole { UserId = pair.Value.UserId, RoleId = roles[code].RoleId,
+        BranchId = pair.Key == "admin" ? null : branch, IsActive = true, AssignedAt = now.AddMinutes(-1) });
+    if (pair.Key != "admin") db.Add(new UserBranchAccess { UserId = pair.Value.UserId, BranchId = branch,
+        AccessLevel = "STANDARD", IsPrimary = true, GrantedAt = now.AddMinutes(-1) });
+}
+var floorA = new Floor { BranchId = a, FloorCode = "RT84_A", FloorName = "RT84 A", IsActive = true };
+var floorB = new Floor { BranchId = b, FloorCode = "RT84_B", FloorName = "RT84 B", IsActive = true };
+var legacy = new RoomType { TypeCode = "RT84_LEGACY", TypeName = "Legacy type", IsActive = true, StandardCapacity = 2 };
+db.AddRange(floorA, floorB, legacy); await db.SaveChangesAsync(ct);
+var checklist = new InspectionChecklist { ChecklistCode = "RT84", ChecklistName = "Read fixture",
+    RoomTypeId = legacy.RoomTypeId, IsActive = true, CreatedBy = users["admin"].UserId, CreatedAt = now };
+db.Add(checklist); await db.SaveChangesAsync(ct);
+async Task<long> InsertType(long branch, string code, string name, bool active)
+{
+    await using var command = db.Database.GetDbConnection().CreateCommand();
+    command.CommandText = "INSERT dbo.room_types(branch_id,type_code,type_name,standard_cleaning_minutes,default_checklist_id,is_active) OUTPUT inserted.room_type_id VALUES(@branch,@code,@name,30,@checklist,@active)";
+    command.Parameters.Add(new SqlParameter("@branch",branch)); command.Parameters.Add(new SqlParameter("@code",code));
+    command.Parameters.Add(new SqlParameter("@name",name)); command.Parameters.Add(new SqlParameter("@checklist",checklist.ChecklistId));
+    command.Parameters.Add(new SqlParameter("@active",active));
+    return Convert.ToInt64(await command.ExecuteScalarAsync(ct));
+}
+var typeA = await InsertType(a,"RT84_DUP","Alpha type",true);
+var typeB = await InsertType(b,"RT84_DUP","Other branch type",true);
+var inactiveType = await InsertType(a,"RT84_Z","Inactive type",false);
+foreach (var room in new[] { (a,floorA.FloorId,typeA,true), (a,floorA.FloorId,typeA,true),
+    (a,floorA.FloorId,typeA,false), (b,floorB.FloorId,typeB,true),
+    (a,floorA.FloorId,legacy.RoomTypeId,true), (b,floorB.FloorId,legacy.RoomTypeId,true) }.Select((x,i)=>new Room {
+        BranchId=x.Item1,FloorId=x.Item2,RoomTypeId=x.Item3,IsActive=x.Item4,RoomNumber="RT84_"+i,
+        OperationalStatus="DIRTY",CreatedAt=now })) db.Add(room);
+await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();

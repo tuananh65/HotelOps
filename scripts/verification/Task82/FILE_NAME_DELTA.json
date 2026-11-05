@@ -1,0 +1,11 @@
+{
+    "before":  23708,
+    "after":  23708,
+    "missing":  [
+
+                ],
+    "added":  [
+
+              ],
+    "method":  "In-memory HashSet comparison; old inventory-fast DLL does not support names mode"
+}

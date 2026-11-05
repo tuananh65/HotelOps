@@ -1,0 +1,190 @@
+{
+  "phase": "after",
+  "checks": 21,
+  "timezoneModelCases": 20,
+  "observedCookieSkewCases": 0,
+  "liveOperatingSystemTimezone": "SE Asia Standard Time",
+  "utcOsEnvironmentExecuted": false,
+  "evidence": [
+    {
+      "minutes": 20,
+      "sqlKind": "Utc",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 20,
+      "sqlKind": "Utc",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 20,
+      "sqlKind": "Unspecified",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 20,
+      "sqlKind": "Unspecified",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 15,
+      "sqlKind": "Utc",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 15,
+      "sqlKind": "Utc",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 15,
+      "sqlKind": "Unspecified",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 15,
+      "sqlKind": "Unspecified",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 10,
+      "sqlKind": "Utc",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 10,
+      "sqlKind": "Utc",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 10,
+      "sqlKind": "Unspecified",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 10,
+      "sqlKind": "Unspecified",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 0.05,
+      "sqlKind": "Utc",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 0.05,
+      "sqlKind": "Utc",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 0.05,
+      "sqlKind": "Unspecified",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": 0.05,
+      "sqlKind": "Unspecified",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": false
+    },
+    {
+      "minutes": -1,
+      "sqlKind": "Utc",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": true
+    },
+    {
+      "minutes": -1,
+      "sqlKind": "Utc",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": true
+    },
+    {
+      "minutes": -1,
+      "sqlKind": "Unspecified",
+      "offsetHours": 0,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": true
+    },
+    {
+      "minutes": -1,
+      "sqlKind": "Unspecified",
+      "offsetHours": 7,
+      "absoluteKind": "Utc",
+      "ticksPreserved": true,
+      "cookieSkewSeconds": 0,
+      "expiredAtCreated": true
+    }
+  ]
+}

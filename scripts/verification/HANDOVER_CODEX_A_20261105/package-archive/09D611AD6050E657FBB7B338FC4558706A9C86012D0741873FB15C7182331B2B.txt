@@ -1,0 +1,56 @@
+﻿HISTORICAL ONLY: cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs
+Git blob: f2b771332a2cdb8942c809bfcd339c6d68df6550
+    1: using System.ComponentModel.DataAnnotations;
+    2: using HotelOps.Api.DTOs.Housekeeping;
+    3: using HotelOps.Api.Security;
+    4: using HotelOps.Api.Services.Authentication;
+    5: using HotelOps.Api.Services.HotelStructure;
+    6: using Microsoft.AspNetCore.Authorization;
+    7: using Microsoft.AspNetCore.Mvc;
+    8: 
+    9: namespace HotelOps.Api.Controllers;
+   10: 
+   11: [ApiController]
+   12: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+   13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+   14: [UserAccountActivationErrors]
+   15: [RequestSizeLimit(72 * 1024 * 1024)]
+   16: public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
+   17: {
+   18:     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+   19:     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/execution")]
+   20:     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct) => Inspect(branchId,id,"read",null,null,null,ct);
+   21:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/start")]
+   22:     public Task<IActionResult> Start(long branchId, long id, InspectionActionRequest input, CancellationToken ct) => Inspect(branchId,id,"start",null,null,input.Reason,ct);
+   23:     [HttpPut("api/branches/{branchId:long}/inspections/{id:long}/results")]
+   24:     public Task<IActionResult> Save(long branchId, long id, SaveInspectionRequest input, CancellationToken ct) => Inspect(branchId,id,"save",input,null,null,ct);
+   25:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/finish")]
+   26:     public Task<IActionResult> Finish(long branchId, long id, InspectionActionRequest input, CancellationToken ct) => Inspect(branchId,id,"finish",null,null,input.Reason,ct);
+   27:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/defects")]
+   28:     public Task<IActionResult> Defect(long branchId, long id, RecordInspectionDefectRequest input, CancellationToken ct) => Inspect(branchId,id,"defect",null,input,null,ct);
+   29:     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign")]
+   30:     public Task<IActionResult> AssignCleaning(long branchId, long id, AssignCleaningRequest input, CancellationToken ct)
+   31:         => Execute((ticket,sid) => service.AssignCleaningAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true);
+   32:     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections")]
+   33:     public Task<IActionResult> AssignInspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
+   34:         => Execute((ticket,sid) => service.AssignInspectionAsync(ticket,sid,branchId,id,input,ct),false,true);
+   35:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
+   36:     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
+   37:         => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true,true);
+   38:     private Task<IActionResult> Inspect(long branch,long id,string action,SaveInspectionRequest? save,RecordInspectionDefectRequest? defect,string? reason,CancellationToken ct)
+   39:         => Execute((ticket,sid) => service.ExecuteInspectionAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),action,save,defect,reason,Root,ct),action!="read");
+   40:     private async Task<IActionResult> Execute(Func<SessionReference,long,Task<RoomTypeBatchResult>> action,bool conditional,bool created=false)
+   41:     {
+   42:         if(!Request.IsHttps)return Problem(statusCode:400,title:"HTTPS_REQUIRED");
+   43:         if(!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid))return Problem(statusCode:401,title:"SESSION_INVALID");
+   44:         if(conditional&&!Request.Headers.ContainsKey("If-Match"))return Problem(statusCode:428,title:"IF_MATCH_REQUIRED");
+   45:         try
+   46:         {
+   47:             var result=await action(ticket!,sid);
+   48:             if(result.Status==RoomTypeBatchStatus.Success){if(result.ETag!=null)Response.Headers.ETag=result.ETag;return StatusCode(created?201:200,result.Value);}
+   49:             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
+   50:                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
+   51:         }
+   52:         catch(ValidationException error){return Problem(statusCode:400,title:"VALIDATION_FAILED",detail:error.Message);}
+   53:     }
+   54: }

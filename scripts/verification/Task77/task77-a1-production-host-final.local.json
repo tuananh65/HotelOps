@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "checks": 7,
+  "cases": [
+    "Actual production Program.cs starts against guarded A1 SQL and readiness returns200",
+    "Production Program CSRF route works",
+    "Production Program credential login and SQL-backed Cookie session work",
+    "Production Program validates issued SQL session",
+    "No unapproved Workday public route shipped",
+    "Verification driver is absent from production assembly/routes",
+    "Actual Development OpenAPI has no verification endpoint"
+  ],
+  "database": "HotelOps_Canonical_20261103_162910_76025447_Fresh",
+  "actualProductionProgram": true,
+  "publicWorkdayEndpoints": false
+}

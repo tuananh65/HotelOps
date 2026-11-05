@@ -1,0 +1,122 @@
+﻿{
+    "status":  "P0_EXPIRY_FIXED_REAL_REPRODUCTION_AND_REGRESSION_PASS_B12_CONTRACT_BLOCKED",
+    "startedUtc":  "2026-11-03T23:45:01.6986398+00:00",
+    "finishedUtc":  "2026-11-03T23:58:37.8396849+00:00",
+    "elapsedSeconds":  816.141,
+    "elapsedDisplay":  "00:13:36",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+    "protectedExistingPaths":  754,
+    "changedExistingPaths":  [
+                                 "src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs"
+                             ],
+    "unexpectedChanges":  [
+
+                          ],
+    "singleProductionPolicyFileOnly":  true,
+    "protectedCookieMiddlewareConfigChanges":  0,
+    "schemaRbacChanges":  0,
+    "dev2Changes":  0,
+    "deactivationChanges":  0,
+    "programChanged":  false,
+    "sourceOwnership":  "DEV1_FE01_SERVICE_POLICY_TASK79_AUTHORIZATION",
+    "preFixLiveReproductionChecks":  5,
+    "fixedLiveHttpsSqlChecks":  43,
+    "policyAssertions":  53,
+    "timezoneModelCases":  20,
+    "postFixCookieSkewCases":  0,
+    "actualOsTimezone":  "SE Asia Standard Time",
+    "utcOsAcceptance":  "NOT_RUN",
+    "userSqlRegressionChecks":  26,
+    "securityChecks":  199,
+    "securityBreakdown":  [
+                              93,
+                              43,
+                              14,
+                              49
+                          ],
+    "build":  "PASS_0_ERRORS_2_NU1900",
+    "harnessFinalBuild":  "PASS_0_ERRORS_2_NU1900",
+    "frameworkTests":  "NO_CASES_NOT_AVAILABLE_EXIT_0",
+    "diffCheck":  "PASS",
+    "trial":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+    "protectedDatabaseAccess":  false,
+    "newDatabasesCreated":  0,
+    "databasesDropped":  0,
+    "passwordFixtureScope":  "Unique Task79 prefixes only",
+    "knownFailedProbe":  "Post-fix boundary run copied stale DLL before API build finished; log retained; waited/rebuilt and final53 PASS",
+    "publisherArtifact":  "NOT_FOUND_IN_INSPECTED_WORKTREE_REFS_SNAPSHOT_WORKTREES_USER_QUESTION_PENDING",
+    "b12Runtime":  "NOT_IMPLEMENTED_UNSCHEDULED_PAUSE_ALL_REMAIN_FAIL_CLOSED",
+    "b12Approval":  "B12_APPROVAL_SCOPE.md_NOT_APPLIED",
+    "notificationAcceptance":  "NOT_RUN",
+    "pauseAllAcceptance":  "NOT_RUN",
+    "all75LedgerClassificationsWeightsPointsUnchanged":  true,
+    "classifications":  {
+                            "UC139":  "BLOCKED_EXTERNAL",
+                            "UC138":  "NOT_IMPLEMENTED",
+                            "UC111":  "BLOCKED_EXTERNAL"
+                        },
+    "completeUCs":  26,
+    "totalUCs":  75,
+    "points":  60,
+    "totalPoints":  256,
+    "weightedPercent":  23.4375,
+    "newCompleteUCs":  0,
+    "pointsGained":  0,
+    "fileHashes":  [
+                       {
+                           "path":  "src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs",
+                           "sha256":  "0DD66B9B6A9B5E19C2A930B184563BD68E06E838271583372A0EA6B33C023E31"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/auth-expiry-after.local.json",
+                           "sha256":  "BD4789D8B1012FCA31BA87908F5E3EB171E8CFDC8D856AC73704084DC5EF125E"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/auth-expiry-before.local.json",
+                           "sha256":  "C6146DC49B74706EC3DA26893FA63846BF80E1F8918EC74D88BD49F8F85A76A3"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/AuthExpiry.fix.patch",
+                           "sha256":  "49FCBC11FEDC72B9AFEF61BEC654997A307FDA6D938F7B1AE470317DC4F1B9E1"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/AuthExpiryBoundaries.cs",
+                           "sha256":  "96BB9D47E4EB2DE1214ADCDE087C3C854AA56C6E009A26F939C19188AFCEDF6C"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/AuthExpiryLive.cs",
+                           "sha256":  "CFA33920FCFFF0DEE275BF466B3A5E84A5B8429626FF8D06EA8B880EDD576C2A"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/B12_APPROVAL_SCOPE.md",
+                           "sha256":  "6203C5EB099AE521A475FF16530BD488A8C907A1F98C2DC4DF9B6D302BE1D83F"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/boundaries-after.local.json",
+                           "sha256":  "7F744B5E592DA4B7038E95E71187B5A4BFEEE7D056C3172523212B3C5EF0AED2"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/boundaries-before.local.json",
+                           "sha256":  "C09A9854DFBC95059A97B41B8FE3D0F86FEC69C053A69671E28F2FC8E253AB07"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/boundaries-final.local.json",
+                           "sha256":  "C93A0CB796D12565AF42F35487976D3CC0F82580C6236C86AA45B25AC2D3C475"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/TASK79_AUTH_EXPIRY_AND_UC139_B12.md",
+                           "sha256":  "3279C2F89D571C29F0AAB8D5AC635BA0E59FED41FFE244209A3EF1B130F39D73"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/UC_LEDGER_TASK79.json",
+                           "sha256":  "3EF60327A484C0D3A2BD4BAE15CB4DF9C5A5B3C1BC1317B3AEA731A6A38AB60D"
+                       },
+                       {
+                           "path":  "scripts/verification/Task79/user-sql-regression.local.json",
+                           "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15"
+                       }
+                   ]
+}

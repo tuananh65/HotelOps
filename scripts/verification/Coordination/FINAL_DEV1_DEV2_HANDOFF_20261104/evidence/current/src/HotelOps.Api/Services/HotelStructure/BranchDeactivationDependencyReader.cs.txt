@@ -1,0 +1,69 @@
+1: using System.Data;
+2: using HotelOps.Api.Data;
+3: using Microsoft.EntityFrameworkCore;
+4: using Microsoft.EntityFrameworkCore.Storage;
+5: 
+6: namespace HotelOps.Api.Services.HotelStructure;
+7: 
+8: public sealed record BranchDependencyState(string Kind,string? Status,long Count,string Classification);
+9: public sealed record BranchDependencySnapshot(long BranchId,long ActiveRooms,long WarehousesWithNonzeroStock,
+10:     IReadOnlyList<BranchDependencyState> States,bool HasConfirmedBlockers,bool HasUnresolvedStates,
+11:     bool CanDeactivate=false,string Coordination="DEACTIVATION_CONCURRENCY_BLOCKED",bool ScopeResolutionComplete=false);
+12: 
+13: /// <summary>Read facts only; an empty snapshot never authorizes a deactivation.</summary>
+14: public sealed class BranchDeactivationDependencyReader(HotelOpsDbContext db)
+15: {
+16:     public async Task<BranchDependencySnapshot> ReadAsync(long branch,CancellationToken ct)
+17:     {
+18:         if(branch<=0)throw new ArgumentOutOfRangeException(nameof(branch));
+19:         if(db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel!=IsolationLevel.Serializable)
+20:             throw new InvalidOperationException("Retained Serializable caller transaction required.");
+21:         var rooms=await db.Rooms.AsNoTracking().LongCountAsync(x=>x.BranchId==branch && x.IsActive,ct);
+22:         // Ledger net by warehouse AND item, matching InventoryService.Balance. Never net unlike items.
+23:         // Nonzero negative balances also fail closed; do not skip inactive warehouses holding stock.
+24:         var stocked=await db.StockMovements.AsNoTracking().Where(x=>x.Warehouse.BranchId==branch)
+25:             .GroupBy(x=>new{x.WarehouseId,x.ItemId}).Where(g=>g.Sum(x=>x.SignedBaseQty)!=0)
+26:             .Select(g=>g.Key.WarehouseId).Distinct().LongCountAsync(ct);
+27:         var facts=new List<BranchDependencyState>();
+28:         await Add("operational_tasks",db.OperationalTasks.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
+29:         await Add("cleaning_tasks",db.CleaningTasks.AsNoTracking().Where(x=>x.Room.BranchId==branch).Select(x=>x.Status));
+30:         await Add("cleaning_reworks",db.CleaningReworks.AsNoTracking().Where(x=>x.CleaningTask.Room.BranchId==branch).Select(x=>x.Status));
+31:         await Add("room_inspections",db.RoomInspections.AsNoTracking().Where(x=>x.Room.BranchId==branch
+32:             && (x.CleaningTask==null || x.CleaningTask.Room.BranchId==branch)).Select(x=>x.Status));
+33:         await Add("inspection_scope_mismatch",db.RoomInspections.AsNoTracking().Where(x=>x.CleaningTask!=null
+34:             && x.CleaningTask.Room.BranchId!=x.Room.BranchId
+35:             && (x.Room.BranchId==branch || x.CleaningTask.Room.BranchId==branch)).Select(x=>x.Status));
+36:         await Add("maintenance_works",db.MaintenanceWorks.AsNoTracking().Where(x=>
+37:             (x.Incident!=null && x.Incident.BranchId==branch || x.Department!=null && x.Department.BranchId==branch)
+38:             && (x.Incident==null || x.Department==null || x.Incident.BranchId==x.Department.BranchId)).Select(x=>x.Status));
+39:         await Add("maintenance_scope_mismatch",db.MaintenanceWorks.AsNoTracking().Where(x=>x.Incident!=null && x.Department!=null
+40:             && x.Incident.BranchId!=x.Department.BranchId && (x.Incident.BranchId==branch || x.Department.BranchId==branch)).Select(x=>x.Status));
+41:         await Add("incidents",db.Incidents.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
+42:         await Add("internal_requests",db.InternalRequests.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
+43:         await Add("material_requests",db.MaterialRequests.AsNoTracking().Where(x=>x.BranchId==branch).Select(x=>x.Status));
+44:         await Add("replenishments",db.MaterialReplenishments.AsNoTracking().Where(x=>x.Warehouse.BranchId==branch).Select(x=>x.Status));
+45:         // PM/orphan-work ownership and ambiguous terminal-state binding still need joint review.
+46:         // ScopeResolutionComplete/CanDeactivate remain false even when every observed count is zero.
+47:         return new(branch,rooms,stocked,facts,rooms>0||stocked>0||facts.Any(x=>x.Classification=="OPEN"),true);
+48: 
+49:         async Task Add(string kind,IQueryable<string> source)
+50:         {
+51:             var rows=await source.GroupBy(x=>x).Select(g=>new{Status=g.Key,Count=g.LongCount()}).ToArrayAsync(ct);
+52:             foreach(var row in rows)facts.Add(new(kind,row.Status,row.Count,Classify(kind,row.Status)));
+53:         }
+54:     }
+55: 
+56:     // Unknown/ambiguous states remain unresolved; never turn missing policy into zero blockers.
+57:     public static string Classify(string kind,string? status)=>kind switch
+58:     {
+59:         "operational_tasks"=>status switch{"COMPLETED" or "CANCELLED"=>"CLOSED","TODO" or "IN_PROGRESS" or "BLOCKED"=>"OPEN",_=>"UNRESOLVED"},
+60:         "cleaning_tasks" or "cleaning_reworks" or "room_inspections"=>status switch{"COMPLETED" or "CANCELLED"=>"CLOSED","PENDING" or "IN_PROGRESS"=>"OPEN",_=>"UNRESOLVED"},
+61:         "incidents"=>status switch{"CLOSED" or "CANCELLED"=>"CLOSED","OPEN" or "IN_PROGRESS"=>"OPEN",_=>"UNRESOLVED"},
+62:         "maintenance_works"=>status switch{"CLOSED" or "CANCELLED"=>"CLOSED","PENDING" or "IN_PROGRESS" or "ON_HOLD"=>"OPEN",_=>"UNRESOLVED"},
+63:         "internal_requests"=>status switch{"CLOSED" or "CANCELLED" or "REJECTED"=>"CLOSED","SUBMITTED" or "IN_PROGRESS"=>"OPEN",_=>"UNRESOLVED"},
+64:         "material_requests"=>status switch{"CANCELLED" or "REJECTED"=>"CLOSED","SUBMITTED" or "PENDING_APPROVAL" or "NEEDS_INFORMATION" or "APPROVED" or "PARTIALLY_ISSUED"=>"OPEN",_=>"UNRESOLVED"},
+65:         "replenishments"=>status switch{"CLOSED"=>"CLOSED","REQUESTED" or "PARTIALLY_RECEIVED"=>"OPEN",_=>"UNRESOLVED"},
+66:         _=>"UNRESOLVED"
+67:     };
+68: }
+69: 

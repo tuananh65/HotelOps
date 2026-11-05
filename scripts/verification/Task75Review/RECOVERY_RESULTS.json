@@ -1,0 +1,1365 @@
+﻿{
+    "status":  "SELECTIVE_MISSING_NON_SHARED_RECOVERY",
+    "sourceCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "restored":  [
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/Batch2Dtos.cs",
+                         "blob":  "8633f699453ded30854bc2fab38072bad5851410",
+                         "sha256":  "90E156A57DB9447CFEE4CB2D7DDD3EBFB4088D120D5B055AB309E918A570EC24",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchMaintenanceDtos.cs",
+                         "blob":  "095441814e0a03d51a736b4031d52598ec3a8bfd",
+                         "sha256":  "DF390CFCBC4AF57CFBC6558FBC94833E9522AAED58912D19328995888F759DBE",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs",
+                         "blob":  "5ffe8bcf632116541397ed1076e5097b629547ee",
+                         "sha256":  "781C5C8A2BB0BC7CA41D31CFD6608A475610DED7E8C2F2BE702167AADC56B5C5",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+                         "blob":  "b0e9c96e06c3b0d71acbc4ab62aa1481a0af5897",
+                         "sha256":  "D2299755F18923BF64BCF8D782C63DF37B71492D0443A250B49B712494F72B63",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs",
+                         "blob":  "6085f7d53e33e45f6f0b5c3f64df7605e309dba4",
+                         "sha256":  "9CF3E56DC8C7CF24F989437649F477E32CBB73DEEB996B039C6D9DADCDE6D3F2",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/CreateStructureDtos.cs",
+                         "blob":  "caa8a8d693d46cfd9438b66b07e7c042345a6f5a",
+                         "sha256":  "06109B9C88907F7223983BF73C88F30602D1101BB25C4C5B41E19BA9F2C14A81",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs",
+                         "blob":  "38cde9dbe0b8a068886926e3b94ed1b3a1b5651b",
+                         "sha256":  "F2FD75477A474C1ECCD4C66881AB95FCDBDBBDBB444532135E84D423EA1F3C71",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+                         "blob":  "c0648a68711ac57aa51a65c9ae62876817d13e4f",
+                         "sha256":  "8B7C43315D861B0F89A9701FBDE12ECFE8357BAF149550B1A7909B019BCC8F8B",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs",
+                         "blob":  "71b9ccacca446cceecd0b063d71f8f8dd3c2c6db",
+                         "sha256":  "B066D3E9994F9C7CFF210EF06B3A6C5BA140B9EA36525252500AA71343BAF345",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs",
+                         "blob":  "3ccae45c0b537291277b51041079c260f14d4b8b",
+                         "sha256":  "BBD85733B8958FA6778F8E6AE237074E78F3CB056A6974A0A8E7DCAC307F9D64",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs",
+                         "blob":  "b0bd6484baf901198931fd2bd81a4fce5d17469c",
+                         "sha256":  "1833A60EF2EF0806808F6C4483C47AA16F5BFD68680CFE542A232AF48E0850F0",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+                         "blob":  "acc03d1d7d1b6109af7d745e9f7717b9a7f49901",
+                         "sha256":  "F53FBCDE62E3934719E3A87B9D078681A2BB9D05F3981547C3682F57C68B1EC4",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/Housekeeping/ProgressDtos.cs",
+                         "blob":  "d01774e5ff17b220a11253ec1f471aee140d8046",
+                         "sha256":  "2BE2241E23BDC56B590E45D4D911717959B55F57BB42A7BF1B11B07940036BC8",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+                         "blob":  "1cfa93754076750b5d7d82a70e66218068669abe",
+                         "sha256":  "F24A577CEE3E5130C9417613263F5BF294ED4AC852D2FC0D329D9A50EDCC843B",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+                         "blob":  "70314996403a09b1cd4e9efac84dab7d570c7e15",
+                         "sha256":  "589351F318E03A575B1A7F763CDC4744DD76D1CD222D0D5988EC0203E4D69F75",
+                         "runtimeRegistered":  false
+                     },
+                     {
+                         "path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                         "blob":  "5b6f857aa3cc446b948b4f1176b81d9d5fb2b2e9",
+                         "sha256":  "1A414993CF7B9359A91B2280E651AB91FFA07ACF83EDB7DA8ACCD33CAEA23882",
+                         "runtimeRegistered":  false,
+                         "mode":  "RECOVERED_FROM_SNAPSHOT_THEN_UPDATED_TASK75_LEDGER"
+                     }
+                 ],
+    "deferred":  [
+                     {
+                         "path":  "docs/database/DATABASE_FIRST_REGENERATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/database/release/README.md",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "M",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/candidates/Task68_UC017.forward.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/candidates/Task68_UC017.rollback.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/canonical/Run-Canonical.ps1",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "M",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/checklists/01_Checklists.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/checklists/02_Verify.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/checklists/03_Rollback.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/checklists/README.md",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/checklists/Run-Checklists.ps1",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/housekeeping/01_Housekeeping.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/housekeeping/02_Verify.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/housekeeping/03_Rollback.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/housekeeping/README.md",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/housekeeping/Run-Housekeeping.ps1",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/progress/01_Progress.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/progress/02_Verify.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/progress/03_Rollback.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/progress/README.md",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/progress/Run-Progress.ps1",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/uc017/06_UC017_Verify.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/uc017/07_UC017_Rollback.sql",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/database/release/uc017/Run-Uc017.ps1",
+                         "category":  "existing_dev1_deployment_package_review_only",
+                         "gitChange":  "A",
+                         "reason":  "SCHEMA_DEPLOYMENT_NOT_APPROVED_NOT_EXECUTED"
+                     },
+                     {
+                         "path":  "scripts/verification/AccessReview/TASK62_UC011_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/AccessReview/Task62AcceptanceCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/Authorization/RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/DEV1_DEV2_WORKDAY_PM_CONTRACT_AUDIT.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/DataScope/RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Dev1Deactivation/CURRENT_RESPONSIBILITY_MATRIX.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Dev1Deactivation/LAST_ADMIN_REVIEW.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Dev1Deactivation/OPEN_BLOCKERS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Dev1Deactivation/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Dev1Deactivation/VERIFICATION_RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Dev1Deactivation/WRITER_AND_LOCK_AUDIT.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/HotelStructure.Verification.csproj",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/StructureSqlAcceptance.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK63_UC014_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK64_UC013_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK65_UC015_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK66_UC016_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK68_UC017_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK69_UC017_DEPLOYMENT_ACCEPTANCE.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK70_BATCH1_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK71_BATCH2_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK72_BATCH3_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/TASK72_CHECKLIST_CONTRACT_PROPOSAL.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task64StructureCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task64StructureConcurrency.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task65StructureCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task65StructureConcurrency.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task66StructureCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task67RoomCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task68RoomTypeCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task68RoomTypeFaults.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task69DeploymentCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task70BatchCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task70SqlCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task71BatchCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task71SqlCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task72ChecklistCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task72HistoryCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task73PlanningCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task73WorkflowCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task74BranchCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/HotelStructure/Task74ProgressCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/Housekeeping/TASK73_BATCH4_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Housekeeping/TASK73_CONTRACT_PROPOSAL.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Housekeeping/TASK73_DEV2_NOTIFICATION_HANDOFF.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Housekeeping/TASK74_BATCH5_IMPLEMENTATION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/Housekeeping/TASK74_CONTRACT_PROPOSAL.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HttpSqlIntegration/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/HttpSqlIntegration/RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/PermissionService/RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/BACKUP_RECOVERY_PLAN.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/DEPLOYMENT_READINESS_REPORT.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/PREFLIGHT_RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/Prepare-Task03A.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/VERIFICATION_PLAN.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/Verify-Rehearsal.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-commit.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-dry-run.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/postdeployment-readonly.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/preflight-readonly.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-commit.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-dry-run.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/DEPLOYMENT_EXECUTION_REPORT.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/Deploy-Task03B.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/Inspect-Task03B.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/RECOVERY_AND_INCIDENT_NOTES.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Run-DepartmentCleanup.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Run-Trial.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02B/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02B/department-cleanup.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02C/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02C/Run-Task02C.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02C/preflight.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02C/resolve-safe-dependencies.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02D/FINAL_RESOLUTION_PLAN.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02E/EXECUTION_PLAN.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02E/FIXTURE_RESET_MANIFEST.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Task02E/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/Verify-Trial.ps1",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/trial-dry-run.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RbacUpgradeTrial/trial-upgrade.sql",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/ResourceAuthorization/RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RoomDirectory/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RoomDirectory/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/RoomDirectory/RoomDirectory.Verification.csproj",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/RoomDirectory/TASK67_UC023_COMPLETION.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/StartupSchemaGate/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "M",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/StartupSchemaGate/StartupProbeProcess.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountCreation/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "M",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/BusinessContractSqlSuite.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/Dev1WriterSqlSuite.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/GATE_RESOLUTION_MATRIX.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/GateResolutionSqlSuite.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/INTEGRATION_DEPENDENCIES.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/LOCK_ORDER.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/OPEN_WORK_PREDICATES.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/REMAINING_BLOCKERS.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/ReadinessSqlSuite.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/ReturnWorkSqlSuite.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/ServiceSqlValidation.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/TASK58_DEV1_WRITER_ACCEPTANCE.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/TASK58_DEV2_HANDOFF.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/Task58WriterAcceptanceSqlSuite.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/UC006_DEFERRED_WORKFLOWS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/UC006_V1_CONTRACT_MATRIX.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/UC006_V1_DEPLOYMENT_SCOPE.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/UserAccountDeactivation.Verification.csproj",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserAccountDeactivation/VERIFICATION_RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserDirectory/API_CONTRACT.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md",
+                         "category":  "documentation",
+                         "gitChange":  "M",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserDirectory/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "M",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserDirectory/UserDirectory.Verification.csproj",
+                         "category":  "verification_harness",
+                         "gitChange":  "M",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserList/TASK61_UC141_ACCEPTANCE.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserList/Task61AcceptanceCases.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "A",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "scripts/verification/UserManagementCommit/COMMIT_MANIFEST.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserManagementCommit/README.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserManagementCommit/RELEASE_RESTRICTIONS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserManagementCommit/SECURITY_REVIEW.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserManagementCommit/VERIFICATION_RESULTS.md",
+                         "category":  "documentation",
+                         "gitChange":  "A",
+                         "reason":  "HISTORICAL_DOCUMENT_NOT_REQUIRED_FOR_CURRENT_SLICE"
+                     },
+                     {
+                         "path":  "scripts/verification/UserProfileUpdate/Program.cs",
+                         "category":  "verification_harness",
+                         "gitChange":  "M",
+                         "reason":  "EXISTING_HARNESS_OR_DEPENDENCY_CLOSURE_NOT_SELECTED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/BranchMaintenanceController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/BranchStructureController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/Filters/UserAccessReviewAttribute.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/HotelStructureCreationController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/RoomTypeBatchController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/RoomTypesController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/RoomsController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/UserAccessReviewController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/UsersController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Controllers/WorkProgressController.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/Users/UserAccessReviewDto.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/DTOs/Users/UserAccountDeactivationRequest.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Data/ChecklistSchema.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Data/HousekeepingSchema.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Data/ProgressSchema.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Data/RoomTypeSchema.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Entities/ChecklistV1.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Entities/RoomTypeBranchV1.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_MAPPING_MODEL_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Program.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "SNAPSHOT_DI_ADDITIONS_NOT_APPROVED_ONLY_MONITOR_DI_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Security/Authorization/PermissionGrantRules.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "SHARED_AUTHORIZATION_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "SHARED_AUTHORIZATION_REVIEW_REQUIRED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/BranchMaintenanceService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/DepartmentBatch2Service.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/RoomBatch2Service.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/RoomCreationService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/HotelStructure/StructureDeactivationDependencies.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Housekeeping/WorkProgressService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "RUNTIME_DEPENDENCY_DI_CLOSURE_NOT_APPROVED"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/AccountWriterSessionGate.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/DeactivationResponsibilityQueries.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/Dev2ResponsibilityStateQueries.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/IntegratedDeactivationResponsibilityQueries.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/UserAccessReviewService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/UserAccountDeactivationReleaseAcceptance.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/UserAccountDeactivationService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs",
+                         "category":  "production_source",
+                         "gitChange":  "A",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     },
+                     {
+                         "path":  "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+                         "category":  "production_source",
+                         "gitChange":  "M",
+                         "reason":  "ACCOUNT_SCOPE_OR_UC006_PREPARATION_NOT_PART_OF_READ_ONLY_SLICE"
+                     }
+                 ]
+}

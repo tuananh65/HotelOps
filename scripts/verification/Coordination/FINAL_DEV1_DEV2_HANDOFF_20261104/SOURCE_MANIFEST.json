@@ -1,0 +1,2546 @@
+[
+  {
+    "path": "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+    "sha256": "2e57d56d19c5d22d98ff1a6aea000c602d70969ac73f7cc67aa9e14494294bac",
+    "head_blob": "8ad5045a546332ee4a8a0ab01e93da1109536695",
+    "index": "100644 8ad5045a546332ee4a8a0ab01e93da1109536695 0\tsrc/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+    "working_blob": "8ad5045a546332ee4a8a0ab01e93da1109536695",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+    "sha256": "2751d2a6ac958bd143fc41cc2930eed3a7453a6b7af5eb4cc56b2e0571baeb3b",
+    "head_blob": "718f86a9e91ec80c95be90ebff678ae90795f858",
+    "index": "100644 718f86a9e91ec80c95be90ebff678ae90795f858 0\tsrc/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+    "working_blob": "718f86a9e91ec80c95be90ebff678ae90795f858",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "sha256": "a0aab5ed90461217b8949ac8d65cc5ddc335263cf7ee9b4030dd4f9b3c4424e9",
+    "head_blob": "20ce7dacb18a97ce5faadf8d94684bb09d5821e4",
+    "index": "100644 20ce7dacb18a97ce5faadf8d94684bb09d5821e4 0\tsrc/HotelOps.Api/Controllers/AssetsController.cs",
+    "working_blob": "20ce7dacb18a97ce5faadf8d94684bb09d5821e4",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "sha256": "a2f110f3eb581723a5bb635032f86c197a1bf13426f517dfdac8ac4856c568a6",
+    "head_blob": "dd29f77633d78aaee5e16af321c8d5264255f2a0",
+    "index": "100644 dd29f77633d78aaee5e16af321c8d5264255f2a0 0\tsrc/HotelOps.Api/Controllers/AuthController.cs",
+    "working_blob": "dd29f77633d78aaee5e16af321c8d5264255f2a0",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "sha256": "68b225c20c740b5cb26eb2764c594ffdb8c1c64db8c72b14fa29fc68db142586",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "59c921e3f0ad6dc8a8684333de59d3b1984f1a65",
+    "status": "?? src/HotelOps.Api/Controllers/BranchAdministrationController.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "sha256": "d4275c18f07fc242981d5aaed3890d723cf8b6e633e3bf2d21e84e445a05e382",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "ad4e384e70a7f00dfb940064c3691bd846f10535",
+    "status": "?? src/HotelOps.Api/Controllers/CleaningMonitorController.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/CsrfController.cs",
+    "sha256": "b04324eb3189eaca22b3499f47f5f4def3946956be74c6bc35d36f64d4e6fede",
+    "head_blob": "0630f09568260b9ba0cf027ce3cd694935b497e5",
+    "index": "100644 0630f09568260b9ba0cf027ce3cd694935b497e5 0\tsrc/HotelOps.Api/Controllers/CsrfController.cs",
+    "working_blob": "0630f09568260b9ba0cf027ce3cd694935b497e5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HealthController.cs",
+    "sha256": "ecf1f6827b1281eca08d6d6a0b8eb5e6012e855e2d1847284acf165d33ec03f9",
+    "head_blob": "19d7ed1edcb2fda33d16f2a290a28c72c82d25df",
+    "index": "100644 19d7ed1edcb2fda33d16f2a290a28c72c82d25df 0\tsrc/HotelOps.Api/Controllers/HealthController.cs",
+    "working_blob": "35e710a277b286fbd64b62accf8e1a30fed03036",
+    "status": "M src/HotelOps.Api/Controllers/HealthController.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "sha256": "cc59c101a762bfb516f1cc3cdd4cef2c5b8baa785ac03b2d260f24c5d8168a77",
+    "head_blob": "2395e401d86e3f59a59d7bce0400e9aa3c1f3560",
+    "index": "100644 2395e401d86e3f59a59d7bce0400e9aa3c1f3560 0\tsrc/HotelOps.Api/Controllers/IncidentsController.cs",
+    "working_blob": "2395e401d86e3f59a59d7bce0400e9aa3c1f3560",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "sha256": "8acf5ad9c2dec77edd0419f172bdb632e5d11d2c96168e281ffdffedb149a63a",
+    "head_blob": "272478491959b7b542f7ba97d4c46a4f99d9cd2b",
+    "index": "100644 272478491959b7b542f7ba97d4c46a4f99d9cd2b 0\tsrc/HotelOps.Api/Controllers/InventoryController.cs",
+    "working_blob": "272478491959b7b542f7ba97d4c46a4f99d9cd2b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "sha256": "f1392a994987b890129a6c97e2efd501c73f0dd85be65e8bd99261f252191d34",
+    "head_blob": "9b24521a2988587dc62c4cc697202814433665ac",
+    "index": "100644 9b24521a2988587dc62c4cc697202814433665ac 0\tsrc/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "working_blob": "9b24521a2988587dc62c4cc697202814433665ac",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "sha256": "0a6799daa9c3b84ac214a5eb16f35147fa32d3f8531c5172ffcd528f7872705d",
+    "head_blob": "e7fb475fa2c2c37593d33037d4adcd67f9d3d640",
+    "index": "100644 e7fb475fa2c2c37593d33037d4adcd67f9d3d640 0\tsrc/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "working_blob": "e7fb475fa2c2c37593d33037d4adcd67f9d3d640",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "sha256": "52162896162a9be3ef034e6a2662d617f1e404966abb6e0dc6a07c7ab3731416",
+    "head_blob": "2ffebb641abac478b6002bd83caf39f6ae6dd6c6",
+    "index": "100644 2ffebb641abac478b6002bd83caf39f6ae6dd6c6 0\tsrc/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "working_blob": "2ffebb641abac478b6002bd83caf39f6ae6dd6c6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "sha256": "0102e5f301a52dde085c9c8d3d645809bbddbcef4f115cbeb394f7df948ae746",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "8a3421d43993bad79cd296d9b95b92d87c089a5b",
+    "status": "?? src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "sha256": "4d340ac260e7195a6f2a4a9cd3974ff0df3f6d6ef67771da57f5c726df8ae6ac",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "240e6dfa35f3d6d3f037b8fdca6f5b6d1d187502",
+    "status": "?? src/HotelOps.Api/Controllers/TurnoverHistoryController.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+    "sha256": "8aeae6b1b15d3b18bd3d73246d5ea8b00b63b95693b97f0ece34a1dc499d1aa8",
+    "head_blob": "749593353e3830a43d7f7d088325b9c0f38b7fa6",
+    "index": "100644 749593353e3830a43d7f7d088325b9c0f38b7fa6 0\tsrc/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+    "working_blob": "749593353e3830a43d7f7d088325b9c0f38b7fa6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "sha256": "1fae978f596587efa8de99b9de916c3676958540c384e9dd658ed49466ce08a8",
+    "head_blob": "e1cf2c9316ed98964dd41a271383bc84177eb6b2",
+    "index": "100644 e1cf2c9316ed98964dd41a271383bc84177eb6b2 0\tsrc/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "working_blob": "e1cf2c9316ed98964dd41a271383bc84177eb6b2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+    "sha256": "8f216148e141aced82133efa0391ccd3d233f6d5066314810098ed44c0d57633",
+    "head_blob": "cf8c51421f8bb9f1e24d832ade5f43960ff6ece2",
+    "index": "100644 cf8c51421f8bb9f1e24d832ade5f43960ff6ece2 0\tsrc/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+    "working_blob": "cf8c51421f8bb9f1e24d832ade5f43960ff6ece2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserProfileController.cs",
+    "sha256": "95f8ad4f3c0891cc5be45c32baff931df2d13a7fe046ad7bed60eba22bfa6ac2",
+    "head_blob": "a6567caf5fa306d61f4a8b05448105f13e4b89f4",
+    "index": "100644 a6567caf5fa306d61f4a8b05448105f13e4b89f4 0\tsrc/HotelOps.Api/Controllers/UserProfileController.cs",
+    "working_blob": "a6567caf5fa306d61f4a8b05448105f13e4b89f4",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+    "sha256": "9d40bfecd8bdbecf49edf4860f654643b982dbc279ead996492455fb897709a7",
+    "head_blob": "c238a0b07d565cf5db424444212204a0420e402d",
+    "index": "100644 c238a0b07d565cf5db424444212204a0420e402d 0\tsrc/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+    "working_blob": "c238a0b07d565cf5db424444212204a0420e402d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "sha256": "560f72fe026cc488437530d2728a1f8cea4aef89f9683c23198a6812e19d90e1",
+    "head_blob": "1a9d19b3e9f50833cfefadcf0447794fd4e6c8d9",
+    "index": "100644 1a9d19b3e9f50833cfefadcf0447794fd4e6c8d9 0\tsrc/HotelOps.Api/Controllers/UsersController.cs",
+    "working_blob": "1a9d19b3e9f50833cfefadcf0447794fd4e6c8d9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "sha256": "f44f58524d65e6262a428d1f7b158c2b6d723aa3308123c0cb155624a1e29dd4",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "ce026e4dd434fd0838164d45e537d0824059995a",
+    "status": "?? src/HotelOps.Api/Controllers/WorkdaysController.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AcceptAssetHandoverRequest.cs",
+    "sha256": "272f545db58f99397b8c3caba6db76038dc0240b22f565012921ba99a92b7754",
+    "head_blob": "65627bbaf8021677019fec364071d35429b145a3",
+    "index": "100644 65627bbaf8021677019fec364071d35429b145a3 0\tsrc/HotelOps.Api/DTOs/Assets/AcceptAssetHandoverRequest.cs",
+    "working_blob": "65627bbaf8021677019fec364071d35429b145a3",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetActorRequest.cs",
+    "sha256": "0ad030af8c00cd4a5f770eea83267917372379312e8d3dad0b1588d0ca6aa7a2",
+    "head_blob": "bd06285d9d75a2b46081bb5cbdfc1562b2f33ac9",
+    "index": "100644 bd06285d9d75a2b46081bb5cbdfc1562b2f33ac9 0\tsrc/HotelOps.Api/DTOs/Assets/AssetActorRequest.cs",
+    "working_blob": "bd06285d9d75a2b46081bb5cbdfc1562b2f33ac9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetConditionHistoryDto.cs",
+    "sha256": "0392ffac8060ba07c895b5a062e1b6f05757e36449e46a4601d6fd0617d7a5a9",
+    "head_blob": "201ccfb10e4ff2a067287e612a2734006f7b4b24",
+    "index": "100644 201ccfb10e4ff2a067287e612a2734006f7b4b24 0\tsrc/HotelOps.Api/DTOs/Assets/AssetConditionHistoryDto.cs",
+    "working_blob": "201ccfb10e4ff2a067287e612a2734006f7b4b24",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetDetailDto.cs",
+    "sha256": "07ed70d9fa1315ef20e0284086842ddeec50f873b08d8d35519da92a1babd7a2",
+    "head_blob": "3a7d51bb2e89addcc343147ce4d5e3fd4ffecedf",
+    "index": "100644 3a7d51bb2e89addcc343147ce4d5e3fd4ffecedf 0\tsrc/HotelOps.Api/DTOs/Assets/AssetDetailDto.cs",
+    "working_blob": "3a7d51bb2e89addcc343147ce4d5e3fd4ffecedf",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetHandoverDto.cs",
+    "sha256": "6acff260bf07b14ab7df8f4b5c53eee3194d81b3951e11657869db1e4c385d99",
+    "head_blob": "49a94330a2967982bfc36b7e3e77442f0c9537f1",
+    "index": "100644 49a94330a2967982bfc36b7e3e77442f0c9537f1 0\tsrc/HotelOps.Api/DTOs/Assets/AssetHandoverDto.cs",
+    "working_blob": "49a94330a2967982bfc36b7e3e77442f0c9537f1",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetListDto.cs",
+    "sha256": "eb739b3d16b495947a05cb2adc520d34e94bfde073b2c3e4937895af71d8a10a",
+    "head_blob": "1cdad5c8cfaed0fcccea2d975f2c31ec2712a93c",
+    "index": "100644 1cdad5c8cfaed0fcccea2d975f2c31ec2712a93c 0\tsrc/HotelOps.Api/DTOs/Assets/AssetListDto.cs",
+    "working_blob": "1cdad5c8cfaed0fcccea2d975f2c31ec2712a93c",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetLocationHistoryDto.cs",
+    "sha256": "5c5d2b0213c562929b0e9e6b9427a503aac02ce0c2f1ad2673ef20e6f754d9bd",
+    "head_blob": "d48f02ee4cbf647472a41f925940a72f1a920810",
+    "index": "100644 d48f02ee4cbf647472a41f925940a72f1a920810 0\tsrc/HotelOps.Api/DTOs/Assets/AssetLocationHistoryDto.cs",
+    "working_blob": "d48f02ee4cbf647472a41f925940a72f1a920810",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetLocationStatisticsResponse.cs",
+    "sha256": "656f441c770f4065b13813929d397b67d05527fa8ead3fc1dcc499057c160a58",
+    "head_blob": "b5664803df2dea41a32e8a9a383502a49af33230",
+    "index": "100644 b5664803df2dea41a32e8a9a383502a49af33230 0\tsrc/HotelOps.Api/DTOs/Assets/AssetLocationStatisticsResponse.cs",
+    "working_blob": "b5664803df2dea41a32e8a9a383502a49af33230",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryDto.cs",
+    "sha256": "6161e94f1adb834ab9e0298999c3e57bae2ce489737ab32be703a831d3e4a325",
+    "head_blob": "9c4eb7f368bd4ee7599238aece34c44d8cc4c638",
+    "index": "100644 9c4eb7f368bd4ee7599238aece34c44d8cc4c638 0\tsrc/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryDto.cs",
+    "working_blob": "9c4eb7f368bd4ee7599238aece34c44d8cc4c638",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryRequest.cs",
+    "sha256": "14eb14e15c8f1d81af4e4e48a2963378e4eca6d4de177dbd1b018bcdfe5d0318",
+    "head_blob": "92058108d702b6388339a7d8146bf996fc1762cb",
+    "index": "100644 92058108d702b6388339a7d8146bf996fc1762cb 0\tsrc/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryRequest.cs",
+    "working_blob": "92058108d702b6388339a7d8146bf996fc1762cb",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetMasterRequest.cs",
+    "sha256": "6683c0d2f3856e7ab8d998336bd109251ee9f96d8a3a94547ebcccd14b4d640f",
+    "head_blob": "0fd32f8e53d5bc31c488ef23d628ba6c1d5315e1",
+    "index": "100644 0fd32f8e53d5bc31c488ef23d628ba6c1d5315e1 0\tsrc/HotelOps.Api/DTOs/Assets/AssetMasterRequest.cs",
+    "working_blob": "0fd32f8e53d5bc31c488ef23d628ba6c1d5315e1",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetPageRequest.cs",
+    "sha256": "d9129750953e5931d875a8080750aca1fc957cd5888322b14931ba006e343deb",
+    "head_blob": "ba048fa4817bde1cf007515961afee58ed995cdf",
+    "index": "100644 ba048fa4817bde1cf007515961afee58ed995cdf 0\tsrc/HotelOps.Api/DTOs/Assets/AssetPageRequest.cs",
+    "working_blob": "ba048fa4817bde1cf007515961afee58ed995cdf",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetPagedResponse.cs",
+    "sha256": "f85f80f5ca7f7fe115826147ad7212df175a72c71c359673fb011de789b57255",
+    "head_blob": "dc2025845295acdbdb9984ed0616f77b9a90902a",
+    "index": "100644 dc2025845295acdbdb9984ed0616f77b9a90902a 0\tsrc/HotelOps.Api/DTOs/Assets/AssetPagedResponse.cs",
+    "working_blob": "dc2025845295acdbdb9984ed0616f77b9a90902a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetQueryRequest.cs",
+    "sha256": "83348384d393dcdd3eaba57302fe08d1f4c058be3d7f12f31976f2a2afaa0d4b",
+    "head_blob": "e5ebb45809dc7825c73bd89d3792d3ea4e67d20b",
+    "index": "100644 e5ebb45809dc7825c73bd89d3792d3ea4e67d20b 0\tsrc/HotelOps.Api/DTOs/Assets/AssetQueryRequest.cs",
+    "working_blob": "e5ebb45809dc7825c73bd89d3792d3ea4e67d20b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetStatisticsRequest.cs",
+    "sha256": "fc7ca13e231575fb78df1dc8ce2e66179692d0eb7046734d8912c189ada1e64a",
+    "head_blob": "1ff1c64d3912d8db2d1be2cec53edbf1027c7066",
+    "index": "100644 1ff1c64d3912d8db2d1be2cec53edbf1027c7066 0\tsrc/HotelOps.Api/DTOs/Assets/AssetStatisticsRequest.cs",
+    "working_blob": "1ff1c64d3912d8db2d1be2cec53edbf1027c7066",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetTypeLookupDto.cs",
+    "sha256": "87d96d0be0b3442427520e973ff45198993c348a4ef373c1ba26d2c37ac88f29",
+    "head_blob": "cdb79860ab957a7c9aed0cbd3e60e7cebc0a7355",
+    "index": "100644 cdb79860ab957a7c9aed0cbd3e60e7cebc0a7355 0\tsrc/HotelOps.Api/DTOs/Assets/AssetTypeLookupDto.cs",
+    "working_blob": "cdb79860ab957a7c9aed0cbd3e60e7cebc0a7355",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssignAssetLocationRequest.cs",
+    "sha256": "c499c658090b8b7ce82b47ab822155b9dc9fe78c841e719aa7da851dd48e3914",
+    "head_blob": "3a8326b654c5360264c741de098635ed7c8c22f7",
+    "index": "100644 3a8326b654c5360264c741de098635ed7c8c22f7 0\tsrc/HotelOps.Api/DTOs/Assets/AssignAssetLocationRequest.cs",
+    "working_blob": "3a8326b654c5360264c741de098635ed7c8c22f7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/ChangeAssetConditionRequest.cs",
+    "sha256": "a05cc1a40bf3a203bdb124559a987ae8df230a6c8d62e781e7ad94d4dc3bf762",
+    "head_blob": "7e447f5ecb2e6383ef750e9b42f94dcc874afa2b",
+    "index": "100644 7e447f5ecb2e6383ef750e9b42f94dcc874afa2b 0\tsrc/HotelOps.Api/DTOs/Assets/ChangeAssetConditionRequest.cs",
+    "working_blob": "7e447f5ecb2e6383ef750e9b42f94dcc874afa2b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/CreateAssetHandoverRequest.cs",
+    "sha256": "9c4f7ff2e365f74c8d324c6cda107537a229b41695b4de353c6ae564fbb3cd20",
+    "head_blob": "dc1a925d1258f3b6514a23326cdf45edd1168739",
+    "index": "100644 dc1a925d1258f3b6514a23326cdf45edd1168739 0\tsrc/HotelOps.Api/DTOs/Assets/CreateAssetHandoverRequest.cs",
+    "working_blob": "dc1a925d1258f3b6514a23326cdf45edd1168739",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/CreateAssetRequest.cs",
+    "sha256": "5c02a22f5ae730b05916a8af1f554e1c3480497bde8b6aa52ab2332f9b37e422",
+    "head_blob": "6f76c0869357d93979a442b3b4a836bfdaf8c16c",
+    "index": "100644 6f76c0869357d93979a442b3b4a836bfdaf8c16c 0\tsrc/HotelOps.Api/DTOs/Assets/CreateAssetRequest.cs",
+    "working_blob": "6f76c0869357d93979a442b3b4a836bfdaf8c16c",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/RejectAssetHandoverRequest.cs",
+    "sha256": "765f8119dc14e0560ba9df9651ff899c569829bdcb23074f25bb2a16944a760f",
+    "head_blob": "6645ee58940eb49e53d8195f42d055d2735d40ab",
+    "index": "100644 6645ee58940eb49e53d8195f42d055d2735d40ab 0\tsrc/HotelOps.Api/DTOs/Assets/RejectAssetHandoverRequest.cs",
+    "working_blob": "6645ee58940eb49e53d8195f42d055d2735d40ab",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/RetireAssetRequest.cs",
+    "sha256": "59da79a416724893df559e82ba35a64269deaa7c0418c3d7c743650b0e57e550",
+    "head_blob": "c0d4ea469eb9c823e58b0731c138d2ca7fde771e",
+    "index": "100644 c0d4ea469eb9c823e58b0731c138d2ca7fde771e 0\tsrc/HotelOps.Api/DTOs/Assets/RetireAssetRequest.cs",
+    "working_blob": "c0d4ea469eb9c823e58b0731c138d2ca7fde771e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/TransferAssetLocationRequest.cs",
+    "sha256": "e765d93ccc9179b230caf071e3774deedf9b8d7ddcf41ef26d0f2cf590d8fed8",
+    "head_blob": "f748095f15490429d6ea6acf80d4ddcfb4234f59",
+    "index": "100644 f748095f15490429d6ea6acf80d4ddcfb4234f59 0\tsrc/HotelOps.Api/DTOs/Assets/TransferAssetLocationRequest.cs",
+    "working_blob": "f748095f15490429d6ea6acf80d4ddcfb4234f59",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/UpdateAssetRequest.cs",
+    "sha256": "dad12b2e39b9fc9fe229c8cdf813e7ae8af72080972bac1d95b4cc3d302323c5",
+    "head_blob": "8bb7019d596c2c0322611ae01d340095bc087a30",
+    "index": "100644 8bb7019d596c2c0322611ae01d340095bc087a30 0\tsrc/HotelOps.Api/DTOs/Assets/UpdateAssetRequest.cs",
+    "working_blob": "8bb7019d596c2c0322611ae01d340095bc087a30",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Authentication/AuthenticationDtos.cs",
+    "sha256": "af1e6ffa553c33f654cb7a3a9fd1999b2c91ecba89a8b8ff4cd1886ba4d07a10",
+    "head_blob": "b3dc7c4e41e3fc2439dda2243d36e77bd59ff3a2",
+    "index": "100644 b3dc7c4e41e3fc2439dda2243d36e77bd59ff3a2 0\tsrc/HotelOps.Api/DTOs/Authentication/AuthenticationDtos.cs",
+    "working_blob": "b3dc7c4e41e3fc2439dda2243d36e77bd59ff3a2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/Batch2Dtos.cs",
+    "sha256": "90e156a57db9447cfee4cb2d7ddd3ebfb4088d120d5b055ab309e918a570ec24",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "8633f699453ded30854bc2fab38072bad5851410",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/Batch2Dtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/BranchMaintenanceDtos.cs",
+    "sha256": "df390cfcbc4af57cfbc6558fbc94833e9522aaed58912d19328995888f759dbe",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "095441814e0a03d51a736b4031d52598ec3a8bfd",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/BranchMaintenanceDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs",
+    "sha256": "781c5c8a2bb0bc7ca41d31cfd6608a475610ded7e8c2f2be702167aadc56b5c5",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "5ffe8bcf632116541397ed1076e5097b629547ee",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+    "sha256": "d2299755f18923bf64bcf8d782c63df37b71492d0443a250b49b712494f72b63",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "b0e9c96e06c3b0d71acbc4ab62aa1481a0af5897",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs",
+    "sha256": "9cf3e56dc8c7cf24f989437649f477e32cbb73deeb996b039c6d9dadcde6d3f2",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "6085f7d53e33e45f6f0b5c3f64df7605e309dba4",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/CreateStructureDtos.cs",
+    "sha256": "06109b9c88907f7223983bf73c88f30602d1101bb25c4c5b41e19ba9f2c14a81",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "caa8a8d693d46cfd9438b66b07e7c042345a6f5a",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/CreateStructureDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs",
+    "sha256": "f2fd75477a474c1eccd4c66881ab95fcdbdbbdbb444532135e84d423ea1f3c71",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "38cde9dbe0b8a068886926e3b94ed1b3a1b5651b",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+    "sha256": "8b7c43315d861b0f89a9701fbde12ecfe8357baf149550b1a7909b019bcc8f8b",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "c0648a68711ac57aa51a65c9ae62876817d13e4f",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs",
+    "sha256": "b066d3e9994f9c7cff210ef06b3a6c5ba140b9ea36525252500aa71343baf345",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "71b9ccacca446cceecd0b063d71f8f8dd3c2c6db",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs",
+    "sha256": "bbd85733b8958fa6778f8e6ae237074e78f3cb056a6974a0a8e7dcac307f9d64",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "3ccae45c0b537291277b51041079c260f14d4b8b",
+    "status": "?? src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+    "sha256": "5db908a0986905cb9a44c2588fedba8978ea262b5913f214881b4905953fe89f",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "0c7786dd3adba799d771523c0d6cde4f97150a03",
+    "status": "?? src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs",
+    "sha256": "1833a60ef2ef0806808f6c4483c47aa16f5bfd68680cfe542a232af48e0850f0",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "b0bd6484baf901198931fd2bd81a4fce5d17469c",
+    "status": "?? src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+    "sha256": "f53fbcde62e3934719e3a87b9d078681a2bb9d05f3981547c3682f57c68b1ec4",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "acc03d1d7d1b6109af7d745e9f7717b9a7f49901",
+    "status": "?? src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/ProgressDtos.cs",
+    "sha256": "2be2241e23bdc56b590e45d4d911717959b55f57bb42a7bf1b11b07940036bc8",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "d01774e5ff17b220a11253ec1f471aee140d8046",
+    "status": "?? src/HotelOps.Api/DTOs/Housekeeping/ProgressDtos.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/ChangeIncidentStatusRequest.cs",
+    "sha256": "32fafdccf31d0e32d0858011eadf0506f72b3f4be61a4d9c709eeb3a3e7e76f2",
+    "head_blob": "057f7e3c265a2c488b449ac3f93b0a9922884eb1",
+    "index": "100644 057f7e3c265a2c488b449ac3f93b0a9922884eb1 0\tsrc/HotelOps.Api/DTOs/Incidents/ChangeIncidentStatusRequest.cs",
+    "working_blob": "057f7e3c265a2c488b449ac3f93b0a9922884eb1",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/CreateIncidentRequest.cs",
+    "sha256": "1501153628b09893e3606fece3cf9a3914c720f60ac85efe41f18cc82b2dea4e",
+    "head_blob": "05935bb6acc27822c2fa4691679b6d52a0d44717",
+    "index": "100644 05935bb6acc27822c2fa4691679b6d52a0d44717 0\tsrc/HotelOps.Api/DTOs/Incidents/CreateIncidentRequest.cs",
+    "working_blob": "05935bb6acc27822c2fa4691679b6d52a0d44717",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentDetailDto.cs",
+    "sha256": "08b8afe022c056ebc5e227b3952ef0ff432925e6c59555e8ce92b405b5817d19",
+    "head_blob": "94cce02de8abd2fe45f66412bf3abaf9df617cba",
+    "index": "100644 94cce02de8abd2fe45f66412bf3abaf9df617cba 0\tsrc/HotelOps.Api/DTOs/Incidents/IncidentDetailDto.cs",
+    "working_blob": "94cce02de8abd2fe45f66412bf3abaf9df617cba",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentEventDto.cs",
+    "sha256": "c7c9ea054ceaaca89066e9566869053dbba36021f41d2977a1256074c9b6207b",
+    "head_blob": "9ae58208ede1e3b9f08034c472ed2ab4c0f2c4a7",
+    "index": "100644 9ae58208ede1e3b9f08034c472ed2ab4c0f2c4a7 0\tsrc/HotelOps.Api/DTOs/Incidents/IncidentEventDto.cs",
+    "working_blob": "9ae58208ede1e3b9f08034c472ed2ab4c0f2c4a7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentListDto.cs",
+    "sha256": "77fcb6f4d4449e3c1226b6e93f24ff84af57b7b819a44b85362b512e0500d5ab",
+    "head_blob": "f9cb30e83ed87f56988591e2db07b16b7216b803",
+    "index": "100644 f9cb30e83ed87f56988591e2db07b16b7216b803 0\tsrc/HotelOps.Api/DTOs/Incidents/IncidentListDto.cs",
+    "working_blob": "f9cb30e83ed87f56988591e2db07b16b7216b803",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentPagedResponse.cs",
+    "sha256": "d1e4e8c61078927bdb3fc1595c50e65aaa09b07c2487e78dd033a40759c82e2c",
+    "head_blob": "a21c7dca15dde21a3305a62172c3eb9a28880ab9",
+    "index": "100644 a21c7dca15dde21a3305a62172c3eb9a28880ab9 0\tsrc/HotelOps.Api/DTOs/Incidents/IncidentPagedResponse.cs",
+    "working_blob": "a21c7dca15dde21a3305a62172c3eb9a28880ab9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentQueryRequest.cs",
+    "sha256": "772974491ed7fce6734ca69a4f9cd949d87ca031c3c714807160d3ca08b62fb6",
+    "head_blob": "1f0fd12f70019aaaecbf550f753c7589b108a081",
+    "index": "100644 1f0fd12f70019aaaecbf550f753c7589b108a081 0\tsrc/HotelOps.Api/DTOs/Incidents/IncidentQueryRequest.cs",
+    "working_blob": "1f0fd12f70019aaaecbf550f753c7589b108a081",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/TriageIncidentRequest.cs",
+    "sha256": "5b8fdf36ef489a4c9f31f94ed25a77769cc9ed4c4209fbceaf66334bb76ce275",
+    "head_blob": "3b48de27e8d288c9ade23ca7a1fcaf3d9e044a02",
+    "index": "100644 3b48de27e8d288c9ade23ca7a1fcaf3d9e044a02 0\tsrc/HotelOps.Api/DTOs/Incidents/TriageIncidentRequest.cs",
+    "working_blob": "3b48de27e8d288c9ade23ca7a1fcaf3d9e044a02",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Inventory/InventoryContracts.cs",
+    "sha256": "c90008a5b9dbd093abd86f007d25dede3949e9bdfc7b2f4c8e53ac643e11ee43",
+    "head_blob": "88c5386abb0b25cb36a54ec7b9d37e651ec2ae83",
+    "index": "100644 88c5386abb0b25cb36a54ec7b9d37e651ec2ae83 0\tsrc/HotelOps.Api/DTOs/Inventory/InventoryContracts.cs",
+    "working_blob": "88c5386abb0b25cb36a54ec7b9d37e651ec2ae83",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/AssignMaintenanceWorkRequest.cs",
+    "sha256": "8ed201b5a71d1a754203d8f4b8fd865b42b699f741ff3242471a4f28dfd56c76",
+    "head_blob": "c5636ea81cceee7e1fa19e83cd630255398bb276",
+    "index": "100644 c5636ea81cceee7e1fa19e83cd630255398bb276 0\tsrc/HotelOps.Api/DTOs/Maintenance/AssignMaintenanceWorkRequest.cs",
+    "working_blob": "c5636ea81cceee7e1fa19e83cd630255398bb276",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/CancelMaintenanceWorkRequest.cs",
+    "sha256": "78e511d1c2b7d813861f0617f5abc08466820737d9d37cd5185e4abaa489760c",
+    "head_blob": "2de1be536916b0db44f202d9eef0da3ac9e34ca3",
+    "index": "100644 2de1be536916b0db44f202d9eef0da3ac9e34ca3 0\tsrc/HotelOps.Api/DTOs/Maintenance/CancelMaintenanceWorkRequest.cs",
+    "working_blob": "2de1be536916b0db44f202d9eef0da3ac9e34ca3",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkLogRequest.cs",
+    "sha256": "73a8a2920ef6493c86c78b73d3a58e76bb3bedc9e9da5d7a9290eb0602286137",
+    "head_blob": "97022047d5d857aae0823b5a4c6d0fc7af780b20",
+    "index": "100644 97022047d5d857aae0823b5a4c6d0fc7af780b20 0\tsrc/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkLogRequest.cs",
+    "working_blob": "97022047d5d857aae0823b5a4c6d0fc7af780b20",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkRequest.cs",
+    "sha256": "7165fc0400557ebd5d2d5719e0c892dac46323da96d7df06bd81805bbd98fb2f",
+    "head_blob": "ee13ef2bf15d55727f2a9f55108b0d6e083d065a",
+    "index": "100644 ee13ef2bf15d55727f2a9f55108b0d6e083d065a 0\tsrc/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkRequest.cs",
+    "working_blob": "ee13ef2bf15d55727f2a9f55108b0d6e083d065a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/HoldMaintenanceWorkRequest.cs",
+    "sha256": "d6a879410fc44650a3b85acf8c2e8d123e5aefd50652a519ff6e7f2ab9635b43",
+    "head_blob": "dcdfcc599623d8a6370bfd10c79175340a6bde92",
+    "index": "100644 dcdfcc599623d8a6370bfd10c79175340a6bde92 0\tsrc/HotelOps.Api/DTOs/Maintenance/HoldMaintenanceWorkRequest.cs",
+    "working_blob": "dcdfcc599623d8a6370bfd10c79175340a6bde92",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceActorRequest.cs",
+    "sha256": "e66cd0a6a59fcefd543566845cc2e104eacda81c2b0ea5c90f656cfcf1416f54",
+    "head_blob": "e97f70142b99755f27b05ebe434a977ff3c38d2b",
+    "index": "100644 e97f70142b99755f27b05ebe434a977ff3c38d2b 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenanceActorRequest.cs",
+    "working_blob": "e97f70142b99755f27b05ebe434a977ff3c38d2b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceMaterialUsageContracts.cs",
+    "sha256": "f98f6dcdfe2bdc206c6f05fffe97731c51272127ed8a939d666176fc75e4a548",
+    "head_blob": "e1f7192343bce50a37745c58cf6d548d36ecd59b",
+    "index": "100644 e1f7192343bce50a37745c58cf6d548d36ecd59b 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenanceMaterialUsageContracts.cs",
+    "working_blob": "e1f7192343bce50a37745c58cf6d548d36ecd59b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenancePagedResponse.cs",
+    "sha256": "e4c9e95ac0ebcd368d4ad6f854e60d2344505fc30b22f40b0ca7a148a84760a9",
+    "head_blob": "79f7b1cccfcdf72df65151c0fc2b9dc0002d2422",
+    "index": "100644 79f7b1cccfcdf72df65151c0fc2b9dc0002d2422 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenancePagedResponse.cs",
+    "working_blob": "79f7b1cccfcdf72df65151c0fc2b9dc0002d2422",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceQueryRequest.cs",
+    "sha256": "8fa14e5f4834c0b797397c67028194cbe710cb9d3815032ebf2dbd57e2df556d",
+    "head_blob": "7c1fb64eb9cd2562e400f753ea5c728bc181c2b5",
+    "index": "100644 7c1fb64eb9cd2562e400f753ea5c728bc181c2b5 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenanceQueryRequest.cs",
+    "working_blob": "7c1fb64eb9cd2562e400f753ea5c728bc181c2b5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkDetailDto.cs",
+    "sha256": "4c7eb8012a9344e3d91eeacd8e35678f72034fbd6f3b71b6d205b3a7f6ac7257",
+    "head_blob": "1411de739ffb597560179b61148c1337d95d0e5f",
+    "index": "100644 1411de739ffb597560179b61148c1337d95d0e5f 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkDetailDto.cs",
+    "working_blob": "1411de739ffb597560179b61148c1337d95d0e5f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkListDto.cs",
+    "sha256": "33b209c56b1cb97035a0b9031922522db5f20c3c8fc2616fb187af0d66e18e79",
+    "head_blob": "8d9d4ae43ed0f9bcca7cf7ad8312df3590634c13",
+    "index": "100644 8d9d4ae43ed0f9bcca7cf7ad8312df3590634c13 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkListDto.cs",
+    "working_blob": "8d9d4ae43ed0f9bcca7cf7ad8312df3590634c13",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkLogDto.cs",
+    "sha256": "02ddbf0204a190d744cf7e5ddb212d9a5f67b485d0cc086b909871f11b93b177",
+    "head_blob": "e6b2269bb55900ebb55c54941c8158e6db3a653d",
+    "index": "100644 e6b2269bb55900ebb55c54941c8158e6db3a653d 0\tsrc/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkLogDto.cs",
+    "working_blob": "e6b2269bb55900ebb55c54941c8158e6db3a653d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/ResumeMaintenanceWorkRequest.cs",
+    "sha256": "25dd351d97b4e483865ca6ec399dc721d4fbac2a34178d28fd86f26fb2b8fee0",
+    "head_blob": "af5457b39f4889310468e7568f573e73cc9eff76",
+    "index": "100644 af5457b39f4889310468e7568f573e73cc9eff76 0\tsrc/HotelOps.Api/DTOs/Maintenance/ResumeMaintenanceWorkRequest.cs",
+    "working_blob": "af5457b39f4889310468e7568f573e73cc9eff76",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/ReturnMaintenanceWorkRequest.cs",
+    "sha256": "0231adcc6573b26ac298e806ee0c64b00cf7e060c1babc852269ee0ace2622a0",
+    "head_blob": "030b419b4328be7c490a57e99ca172e70fb64c78",
+    "index": "100644 030b419b4328be7c490a57e99ca172e70fb64c78 0\tsrc/HotelOps.Api/DTOs/Maintenance/ReturnMaintenanceWorkRequest.cs",
+    "working_blob": "030b419b4328be7c490a57e99ca172e70fb64c78",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/StartMaintenanceWorkRequest.cs",
+    "sha256": "59c9ae3c52a403fcc7b2d1d013132a9777cbfd68debdeb4ab019ecaed77b4224",
+    "head_blob": "7b1637742e379ee4d098c89cd8a665cce00b989d",
+    "index": "100644 7b1637742e379ee4d098c89cd8a665cce00b989d 0\tsrc/HotelOps.Api/DTOs/Maintenance/StartMaintenanceWorkRequest.cs",
+    "working_blob": "7b1637742e379ee4d098c89cd8a665cce00b989d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/SubmitMaintenanceResultRequest.cs",
+    "sha256": "030c195e56c879789c72f34eb722fadd402d63c33aa8e9266a81a6d6b0bdf0c4",
+    "head_blob": "c1f83fd06de7783b4adb5dc2bb81bf2b5dc1de62",
+    "index": "100644 c1f83fd06de7783b4adb5dc2bb81bf2b5dc1de62 0\tsrc/HotelOps.Api/DTOs/Maintenance/SubmitMaintenanceResultRequest.cs",
+    "working_blob": "c1f83fd06de7783b4adb5dc2bb81bf2b5dc1de62",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/VerifyMaintenanceWorkRequest.cs",
+    "sha256": "22ffb9a71c4e9ef78f2aa20d00a7f87940f7a8fb4c7857b199e06f6cc9cf57a6",
+    "head_blob": "5b902ebf53c190da64129b10bf949e335ebab375",
+    "index": "100644 5b902ebf53c190da64129b10bf949e335ebab375 0\tsrc/HotelOps.Api/DTOs/Maintenance/VerifyMaintenanceWorkRequest.cs",
+    "working_blob": "5b902ebf53c190da64129b10bf949e335ebab375",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/MaterialRequests/MaterialRequestContracts.cs",
+    "sha256": "55eded9b96f0136a93d3065cd69a79c202b16c3fc95b1ddd5cdccaab00c987a3",
+    "head_blob": "0928bcde02e26d47f07eabd18ae5b65812f23d74",
+    "index": "100644 0928bcde02e26d47f07eabd18ae5b65812f23d74 0\tsrc/HotelOps.Api/DTOs/MaterialRequests/MaterialRequestContracts.cs",
+    "working_blob": "0928bcde02e26d47f07eabd18ae5b65812f23d74",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Replenishments/ReplenishmentContracts.cs",
+    "sha256": "9ef8bc66303567d1c20134ccadbb527635b31cb6661293df77545d9d6f991120",
+    "head_blob": "71dda1dde0586fd32f3ed005a12b4ff34068e07a",
+    "index": "100644 71dda1dde0586fd32f3ed005a12b4ff34068e07a 0\tsrc/HotelOps.Api/DTOs/Replenishments/ReplenishmentContracts.cs",
+    "working_blob": "71dda1dde0586fd32f3ed005a12b4ff34068e07a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+    "sha256": "f24a577cee3e5130c9417613263f5bf294ed4ac852d2fc0d329d9a50edcc843b",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "1cfa93754076750b5d7d82a70e66218068669abe",
+    "status": "?? src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/AddUserBranchRequest.cs",
+    "sha256": "d1e1b323df1a6f3c9e0c8f9f0ba1c9f305178aebf7deef0a1ab6795383077e5d",
+    "head_blob": "d301b0a3650cb53cd1f7b602a4e7da4f07f05d10",
+    "index": "100644 d301b0a3650cb53cd1f7b602a4e7da4f07f05d10 0\tsrc/HotelOps.Api/DTOs/Users/AddUserBranchRequest.cs",
+    "working_blob": "d301b0a3650cb53cd1f7b602a4e7da4f07f05d10",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/AssignUserRoleRequest.cs",
+    "sha256": "299312e9abc56e98adb9616db098b32591b1f16faa95a7ac00e02a5bd8d5a47b",
+    "head_blob": "b11a2e0735f08feb6d6ebc6d85e1663dad7d8a77",
+    "index": "100644 b11a2e0735f08feb6d6ebc6d85e1663dad7d8a77 0\tsrc/HotelOps.Api/DTOs/Users/AssignUserRoleRequest.cs",
+    "working_blob": "b11a2e0735f08feb6d6ebc6d85e1663dad7d8a77",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/CreateEmployeeAccountRequest.cs",
+    "sha256": "ed01151909f538242c14cae757a4ebe8c2b85b2a4b01206a810d0afd67e77148",
+    "head_blob": "6f51cc29848f0d91a7dcadce5d523cac421e7238",
+    "index": "100644 6f51cc29848f0d91a7dcadce5d523cac421e7238 0\tsrc/HotelOps.Api/DTOs/Users/CreateEmployeeAccountRequest.cs",
+    "working_blob": "6f51cc29848f0d91a7dcadce5d523cac421e7238",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountActivationRequest.cs",
+    "sha256": "25cbe8affec6f14744cb409a9dfe4c64f7fa97fafe15edbf406ba6e7fc1aaa2e",
+    "head_blob": "f2a9d6e0daa9c0314e82bc1fce9beb6446107e4e",
+    "index": "100644 f2a9d6e0daa9c0314e82bc1fce9beb6446107e4e 0\tsrc/HotelOps.Api/DTOs/Users/UserAccountActivationRequest.cs",
+    "working_blob": "f2a9d6e0daa9c0314e82bc1fce9beb6446107e4e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountDetailDto.cs",
+    "sha256": "ee8371f6a8f63c2f0970e146f92ffff2b9d12eb8df4ff5c35ac4291d5f870a48",
+    "head_blob": "56e441655b795a487d6a1615230d821c2f4e5622",
+    "index": "100644 56e441655b795a487d6a1615230d821c2f4e5622 0\tsrc/HotelOps.Api/DTOs/Users/UserAccountDetailDto.cs",
+    "working_blob": "56e441655b795a487d6a1615230d821c2f4e5622",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountStatusChange.cs",
+    "sha256": "10c98da2aa6a2e2bc3ea30b7b2c9959f582eb5922cfc9aa00ad07bec79e7ea68",
+    "head_blob": "7eaec5e9aac78f82552c501785cb47cfef468ab9",
+    "index": "100644 7eaec5e9aac78f82552c501785cb47cfef468ab9 0\tsrc/HotelOps.Api/DTOs/Users/UserAccountStatusChange.cs",
+    "working_blob": "7eaec5e9aac78f82552c501785cb47cfef468ab9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserDirectoryContracts.cs",
+    "sha256": "581f49b99db88e7ad80ec228c1cdf7ecf7da19dcb753e8ebf3456cb30d3b5ba6",
+    "head_blob": "7280b96923adb94339ad2ce0aa6c4b0c70cf57ce",
+    "index": "100644 7280b96923adb94339ad2ce0aa6c4b0c70cf57ce 0\tsrc/HotelOps.Api/DTOs/Users/UserDirectoryContracts.cs",
+    "working_blob": "7280b96923adb94339ad2ce0aa6c4b0c70cf57ce",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserProfileContracts.cs",
+    "sha256": "af55e0beba96b629afcdea2d7d99c9408ff501e110b301e870988a075ae37ea0",
+    "head_blob": "98a0d9cc71c30c37ed760f47e7bd1f1843515784",
+    "index": "100644 98a0d9cc71c30c37ed760f47e7bd1f1843515784 0\tsrc/HotelOps.Api/DTOs/Users/UserProfileContracts.cs",
+    "working_blob": "98a0d9cc71c30c37ed760f47e7bd1f1843515784",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/WorkTime/WorkdayRequests.cs",
+    "sha256": "2c92793379c314edec0013adf198ef2abf81ca9583180a17cbccea6233410534",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "3180a39d6ef5817c6cf57a96430eb899832cd2d0",
+    "status": "?? src/HotelOps.Api/DTOs/WorkTime/WorkdayRequests.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+    "sha256": "66c9c75fb3cf5cf1d53173e4725950bb127f5c119c8f952c81005ade171a22d9",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "85a191221ce6d7655a8066ae9d8c3b0683798bc2",
+    "status": "?? src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+    "sha256": "fba0fe330b5c32a7d66d6112c23a5e003fd9deb49097630a47d2c42373276bbd",
+    "head_blob": "c1fff62a1fbf44bab05c5bb0b1326347d2d82b88",
+    "index": "100644 c1fff62a1fbf44bab05c5bb0b1326347d2d82b88 0\tsrc/HotelOps.Api/Data/HotelOpsDbContext.cs",
+    "working_blob": "80143abc6704ba083790a980701c667a010120ea",
+    "status": "M src/HotelOps.Api/Data/HotelOpsDbContext.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/StartupSchemaValidator.cs",
+    "sha256": "004eec850c7a5312d425031d474e58ecbc4482c3e487c525fe4e7fdf2c50d9d7",
+    "head_blob": "833244f5c5f4e29fb82e9c202551a4c6d3e4acb8",
+    "index": "100644 833244f5c5f4e29fb82e9c202551a4c6d3e4acb8 0\tsrc/HotelOps.Api/Data/StartupSchemaValidator.cs",
+    "working_blob": "833244f5c5f4e29fb82e9c202551a4c6d3e4acb8",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Area.cs",
+    "sha256": "9245f211d25e6eb3867ff1bb6d58aca50f06eb7d5adca2af945d6e35b004e602",
+    "head_blob": "58d49d0ffd5f78bb199b9cb743214ac88ecdb0e2",
+    "index": "100644 58d49d0ffd5f78bb199b9cb743214ac88ecdb0e2 0\tsrc/HotelOps.Api/Entities/Area.cs",
+    "working_blob": "58d49d0ffd5f78bb199b9cb743214ac88ecdb0e2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Asset.cs",
+    "sha256": "e31ee14a6264e35064782c73f058cb4c043ba941b87ad55fd600c9c7fffb4247",
+    "head_blob": "d36d013131d5fb7387220a11207008b925c49592",
+    "index": "100644 d36d013131d5fb7387220a11207008b925c49592 0\tsrc/HotelOps.Api/Entities/Asset.cs",
+    "working_blob": "d36d013131d5fb7387220a11207008b925c49592",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetConditionHistory.cs",
+    "sha256": "1e008913f8e920b545c61f9e9d0ab1ca72e21f035eb9a7ca6233e27ee442e833",
+    "head_blob": "588f8a78a6e76d7bf7382a176b04d38a8f832475",
+    "index": "100644 588f8a78a6e76d7bf7382a176b04d38a8f832475 0\tsrc/HotelOps.Api/Entities/AssetConditionHistory.cs",
+    "working_blob": "588f8a78a6e76d7bf7382a176b04d38a8f832475",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetHandover.cs",
+    "sha256": "52cddc26e905b7e346e011d793b032a42f929e00d69036b788909fb786cddd89",
+    "head_blob": "eca56a651da2a73434b785d830bf59e985929311",
+    "index": "100644 eca56a651da2a73434b785d830bf59e985929311 0\tsrc/HotelOps.Api/Entities/AssetHandover.cs",
+    "working_blob": "eca56a651da2a73434b785d830bf59e985929311",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetLocationHistory.cs",
+    "sha256": "bfd571fd6972bcec5a2c5ecd2265151fce562544ded8bb92c53c27bc2df7706f",
+    "head_blob": "babab025cd3f9b8a376cf5a75f8ff9dd7524da81",
+    "index": "100644 babab025cd3f9b8a376cf5a75f8ff9dd7524da81 0\tsrc/HotelOps.Api/Entities/AssetLocationHistory.cs",
+    "working_blob": "babab025cd3f9b8a376cf5a75f8ff9dd7524da81",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetType.cs",
+    "sha256": "7e9080b670815bf88b4390a9238f5734ac36ab8d872ed3810ebbcee91cf8c7c9",
+    "head_blob": "481ebc7953196174447f128b9c1ef6da668578c1",
+    "index": "100644 481ebc7953196174447f128b9c1ef6da668578c1 0\tsrc/HotelOps.Api/Entities/AssetType.cs",
+    "working_blob": "481ebc7953196174447f128b9c1ef6da668578c1",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Attachment.cs",
+    "sha256": "281a9c0849125f86d5ba3122379d5627b0ed02c0ed81cd72872bf1d3fa44628b",
+    "head_blob": "c2720be9f223900664c8840f453200c5c28d600a",
+    "index": "100644 c2720be9f223900664c8840f453200c5c28d600a 0\tsrc/HotelOps.Api/Entities/Attachment.cs",
+    "working_blob": "c2720be9f223900664c8840f453200c5c28d600a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AuditLog.cs",
+    "sha256": "9cb4e239e19ccc0ca88707b8d3c59d6208082ed12c672a1e68fb2188613ce7a8",
+    "head_blob": "e6a2e227a7a1b8b8b633454d469776ecb5ba046a",
+    "index": "100644 e6a2e227a7a1b8b8b633454d469776ecb5ba046a 0\tsrc/HotelOps.Api/Entities/AuditLog.cs",
+    "working_blob": "e6a2e227a7a1b8b8b633454d469776ecb5ba046a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Branch.cs",
+    "sha256": "acf4962acdea8d59df8285617270663fc56b2c5d0e52ab58da81a826c132bad3",
+    "head_blob": "4df95b11ff661bc530cee019580620f8a1113638",
+    "index": "100644 4df95b11ff661bc530cee019580620f8a1113638 0\tsrc/HotelOps.Api/Entities/Branch.cs",
+    "working_blob": "4df95b11ff661bc530cee019580620f8a1113638",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningAssignment.cs",
+    "sha256": "38581c3e0ecbfe35297d74d7f6eb4a12319252d0c0d7e6246e2d9f3d75cbdc90",
+    "head_blob": "1d3c5788dfbfc21dca5714e0b968d735fafebb71",
+    "index": "100644 1d3c5788dfbfc21dca5714e0b968d735fafebb71 0\tsrc/HotelOps.Api/Entities/CleaningAssignment.cs",
+    "working_blob": "1d3c5788dfbfc21dca5714e0b968d735fafebb71",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningProgressLog.cs",
+    "sha256": "7189e7c99c985455c24c35303b655600650d51a8752c954656197db84652e8fd",
+    "head_blob": "9ce263e0d6027b4c5b4b6ccdc4cf41c594dfbdb9",
+    "index": "100644 9ce263e0d6027b4c5b4b6ccdc4cf41c594dfbdb9 0\tsrc/HotelOps.Api/Entities/CleaningProgressLog.cs",
+    "working_blob": "9ce263e0d6027b4c5b4b6ccdc4cf41c594dfbdb9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningRework.cs",
+    "sha256": "7ca65722909366305c4243edaf691595f36a303398722ae0b6688a5cccf9802e",
+    "head_blob": "b4647829067c0d99921de358faf3b2d8419a92d9",
+    "index": "100644 b4647829067c0d99921de358faf3b2d8419a92d9 0\tsrc/HotelOps.Api/Entities/CleaningRework.cs",
+    "working_blob": "b4647829067c0d99921de358faf3b2d8419a92d9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningTask.cs",
+    "sha256": "7d62d0e91f277b57cefef15b91e4f602f21ed3d16f4fd99480d4e171dfefdf94",
+    "head_blob": "94e959652af3e38d88f2a1d6678b42af1514afd3",
+    "index": "100644 94e959652af3e38d88f2a1d6678b42af1514afd3 0\tsrc/HotelOps.Api/Entities/CleaningTask.cs",
+    "working_blob": "94e959652af3e38d88f2a1d6678b42af1514afd3",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Department.cs",
+    "sha256": "b5824d9d7db9d5183a32eb2da292cc705b6c93c20d63f040416392efd2ae3a49",
+    "head_blob": "8c91b9ce834217193f46110f2ff11dfec73c8d86",
+    "index": "100644 8c91b9ce834217193f46110f2ff11dfec73c8d86 0\tsrc/HotelOps.Api/Entities/Department.cs",
+    "working_blob": "8c91b9ce834217193f46110f2ff11dfec73c8d86",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Floor.cs",
+    "sha256": "3286b41c3248c93d137f13204e3f56f405959b4c4ece18e44356e47d64c856a7",
+    "head_blob": "471dcda91a90423a030d228a70e0e88ebe4da1e7",
+    "index": "100644 471dcda91a90423a030d228a70e0e88ebe4da1e7 0\tsrc/HotelOps.Api/Entities/Floor.cs",
+    "working_blob": "471dcda91a90423a030d228a70e0e88ebe4da1e7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Incident.cs",
+    "sha256": "afd7f929d6370de684c726d360005ecc780b3ca77d3533e0395e78f4a5979cbc",
+    "head_blob": "0b2b58c6bd0f83928778a8679e437580fa3f6d1b",
+    "index": "100644 0b2b58c6bd0f83928778a8679e437580fa3f6d1b 0\tsrc/HotelOps.Api/Entities/Incident.cs",
+    "working_blob": "0b2b58c6bd0f83928778a8679e437580fa3f6d1b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/IncidentEvent.cs",
+    "sha256": "328450bc6a93571f754d877ca9dffbe8ab6a9fe28172b0d60e4d8ec277d6d90a",
+    "head_blob": "4237dfb59a5f144ebfbfda7cf661b55c99490c5d",
+    "index": "100644 4237dfb59a5f144ebfbfda7cf661b55c99490c5d 0\tsrc/HotelOps.Api/Entities/IncidentEvent.cs",
+    "working_blob": "4237dfb59a5f144ebfbfda7cf661b55c99490c5d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionChecklist.cs",
+    "sha256": "3e35a847f6bd95e81b3f82c74e9592e11179e5a678b9a925bfc6813ac02ec3b3",
+    "head_blob": "3caeed3d2a7a5d3eefb07f70d408e1e6d9e920b3",
+    "index": "100644 3caeed3d2a7a5d3eefb07f70d408e1e6d9e920b3 0\tsrc/HotelOps.Api/Entities/InspectionChecklist.cs",
+    "working_blob": "3caeed3d2a7a5d3eefb07f70d408e1e6d9e920b3",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionChecklistItem.cs",
+    "sha256": "1851d1fdbf27dfaaf59de844be78ef11e5f7a4ecd4217c2171b6a97fed943de5",
+    "head_blob": "4203d9337c5622627edba9febb0a0e17d752251f",
+    "index": "100644 4203d9337c5622627edba9febb0a0e17d752251f 0\tsrc/HotelOps.Api/Entities/InspectionChecklistItem.cs",
+    "working_blob": "4203d9337c5622627edba9febb0a0e17d752251f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionChecklistVersion.cs",
+    "sha256": "9b17653e5dc3241d505bcdeac4ded2d5d8abfb010cfdf788d28cfa11a2944ba0",
+    "head_blob": "5285b7c23fa295a5ecca29dd0f46c2d005b784d4",
+    "index": "100644 5285b7c23fa295a5ecca29dd0f46c2d005b784d4 0\tsrc/HotelOps.Api/Entities/InspectionChecklistVersion.cs",
+    "working_blob": "5285b7c23fa295a5ecca29dd0f46c2d005b784d4",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionDefect.cs",
+    "sha256": "84abc5a781dd4008ac1a0129fed0e6d4ed2e1fc3a3df2e1c444b1c74959e5297",
+    "head_blob": "3300eb0309a70d4c05851501e99c661c2cb2f58a",
+    "index": "100644 3300eb0309a70d4c05851501e99c661c2cb2f58a 0\tsrc/HotelOps.Api/Entities/InspectionDefect.cs",
+    "working_blob": "3300eb0309a70d4c05851501e99c661c2cb2f58a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionResult.cs",
+    "sha256": "e1c6b11c478fa2d229c5e83cbd2ea89bac13be86f95bd5b6312b52eaa5be8027",
+    "head_blob": "abf3b385989913026e13ee2f4230735e9136d205",
+    "index": "100644 abf3b385989913026e13ee2f4230735e9136d205 0\tsrc/HotelOps.Api/Entities/InspectionResult.cs",
+    "working_blob": "abf3b385989913026e13ee2f4230735e9136d205",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequest.cs",
+    "sha256": "b25ac2e5cb3f9c87e4ad091a5db58fa5d40011a587da0f2a81729359746e7c6a",
+    "head_blob": "df4c669a12eedcd4d5b79ff481ba8790852e23cf",
+    "index": "100644 df4c669a12eedcd4d5b79ff481ba8790852e23cf 0\tsrc/HotelOps.Api/Entities/InternalRequest.cs",
+    "working_blob": "df4c669a12eedcd4d5b79ff481ba8790852e23cf",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestAssignment.cs",
+    "sha256": "1edf1a01e8b8a0e2ef6acfd16f8ad4aed814b4b22af9c026e4cc4421a517b7b6",
+    "head_blob": "03a92ffc54a36d9ee7ec07d3acbe7726849c53d6",
+    "index": "100644 03a92ffc54a36d9ee7ec07d3acbe7726849c53d6 0\tsrc/HotelOps.Api/Entities/InternalRequestAssignment.cs",
+    "working_blob": "03a92ffc54a36d9ee7ec07d3acbe7726849c53d6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestEvent.cs",
+    "sha256": "40f10470076ab65c4256db05fea7d4243a8ca83f1e96a39dae5fe9ec24e135ae",
+    "head_blob": "2e9acba7f8d0fc844e31c8e24f76259239162f36",
+    "index": "100644 2e9acba7f8d0fc844e31c8e24f76259239162f36 0\tsrc/HotelOps.Api/Entities/InternalRequestEvent.cs",
+    "working_blob": "2e9acba7f8d0fc844e31c8e24f76259239162f36",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestFeedback.cs",
+    "sha256": "11789438ba8629c87ca0be1afba1be14e08d9a3eecc768f0c9859be25d910bba",
+    "head_blob": "b8e9483e8df87a9d045c24f9ded20a8c19bec3ff",
+    "index": "100644 b8e9483e8df87a9d045c24f9ded20a8c19bec3ff 0\tsrc/HotelOps.Api/Entities/InternalRequestFeedback.cs",
+    "working_blob": "b8e9483e8df87a9d045c24f9ded20a8c19bec3ff",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestType.cs",
+    "sha256": "4e32c84fadda236422b5251542c88f8522450136df4cb79939d17bebeea1d0f0",
+    "head_blob": "850471e04d9bfc940c8fc28049aac73a13d35ee0",
+    "index": "100644 850471e04d9bfc940c8fc28049aac73a13d35ee0 0\tsrc/HotelOps.Api/Entities/InternalRequestType.cs",
+    "working_blob": "850471e04d9bfc940c8fc28049aac73a13d35ee0",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InventoryItem.cs",
+    "sha256": "72467bc26a3b5cc5a25c449bb55bc0f0669902b15325ae15c1e961c77eed98ea",
+    "head_blob": "61278b37f738efecd4ff1ad77c81a01ff6d2c6bb",
+    "index": "100644 61278b37f738efecd4ff1ad77c81a01ff6d2c6bb 0\tsrc/HotelOps.Api/Entities/InventoryItem.cs",
+    "working_blob": "61278b37f738efecd4ff1ad77c81a01ff6d2c6bb",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ItemCategory.cs",
+    "sha256": "509ed136a1fc4dcfeedca35a205565aac8f8f46e4dae01eb1d8ee9800a09cd4d",
+    "head_blob": "5ac4d7d06049f51320b87e2ee9d89bfcd19f50c4",
+    "index": "100644 5ac4d7d06049f51320b87e2ee9d89bfcd19f50c4 0\tsrc/HotelOps.Api/Entities/ItemCategory.cs",
+    "working_blob": "5ac4d7d06049f51320b87e2ee9d89bfcd19f50c4",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaintenanceMaterialUsage.cs",
+    "sha256": "6dc4f5c93c12d145a16a3bd76f9858a90a1c515ef44276d145bdd1d395c6300a",
+    "head_blob": "05900accd5f706dfd3bcb9a047e47c38a5a711ce",
+    "index": "100644 05900accd5f706dfd3bcb9a047e47c38a5a711ce 0\tsrc/HotelOps.Api/Entities/MaintenanceMaterialUsage.cs",
+    "working_blob": "05900accd5f706dfd3bcb9a047e47c38a5a711ce",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaintenanceWork.cs",
+    "sha256": "88656f48168e7e7a9d8ebe5e9d2fd6b777786cdaf748319bf275524ca80e2828",
+    "head_blob": "8a5e0656036dba3446c515a94d0fccb2bcb964df",
+    "index": "100644 8a5e0656036dba3446c515a94d0fccb2bcb964df 0\tsrc/HotelOps.Api/Entities/MaintenanceWork.cs",
+    "working_blob": "8a5e0656036dba3446c515a94d0fccb2bcb964df",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaintenanceWorkLog.cs",
+    "sha256": "60f438170fab59781e52fba32511eb077c70876fb47093321af9207ae9d170e8",
+    "head_blob": "a62db7c3059b26cd6d0e4ea92fc544a8ca5b0c2f",
+    "index": "100644 a62db7c3059b26cd6d0e4ea92fc544a8ca5b0c2f 0\tsrc/HotelOps.Api/Entities/MaintenanceWorkLog.cs",
+    "working_blob": "a62db7c3059b26cd6d0e4ea92fc544a8ca5b0c2f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialFulfillment.cs",
+    "sha256": "40a573d6e437559a6fe7c2bfa6fe979403686cc312c65f8c1ed9e3e9af06f2b7",
+    "head_blob": "de4650033055cd2a9f1cb5414a897d452791e4ad",
+    "index": "100644 de4650033055cd2a9f1cb5414a897d452791e4ad 0\tsrc/HotelOps.Api/Entities/MaterialFulfillment.cs",
+    "working_blob": "de4650033055cd2a9f1cb5414a897d452791e4ad",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialFulfillmentLine.cs",
+    "sha256": "c77c7a35a671c42e75182dd8679c1ba4ae39efe7d8260ce369038b36b8a819b7",
+    "head_blob": "abc6d3856c68927f205e26ecce495c5d6c875b3a",
+    "index": "100644 abc6d3856c68927f205e26ecce495c5d6c875b3a 0\tsrc/HotelOps.Api/Entities/MaterialFulfillmentLine.cs",
+    "working_blob": "abc6d3856c68927f205e26ecce495c5d6c875b3a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialReplenishment.cs",
+    "sha256": "078a38549fa36f24ddc2b9b06bb1eeb0bb4a6b1a63124023177288c9ae3cbc4c",
+    "head_blob": "bdbc65620c6a113f9df7c6323ec76e87920eb287",
+    "index": "100644 bdbc65620c6a113f9df7c6323ec76e87920eb287 0\tsrc/HotelOps.Api/Entities/MaterialReplenishment.cs",
+    "working_blob": "bdbc65620c6a113f9df7c6323ec76e87920eb287",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialReplenishmentLine.cs",
+    "sha256": "6bb3d6c14e491f4a9040c5d56a99038c08c828c4f56a40cbdaf01d3be1319aac",
+    "head_blob": "6b15f699bc16b37a4c77f5f1948395e5e1917350",
+    "index": "100644 6b15f699bc16b37a4c77f5f1948395e5e1917350 0\tsrc/HotelOps.Api/Entities/MaterialReplenishmentLine.cs",
+    "working_blob": "6b15f699bc16b37a4c77f5f1948395e5e1917350",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialReplenishmentReceiptLine.cs",
+    "sha256": "5b092502b92dc4f47f77b6b762f5788fbe25b8e5a2bfa2811006f45f59be809e",
+    "head_blob": "0148274c353bfbd65eb3c012c92491205c566f35",
+    "index": "100644 0148274c353bfbd65eb3c012c92491205c566f35 0\tsrc/HotelOps.Api/Entities/MaterialReplenishmentReceiptLine.cs",
+    "working_blob": "0148274c353bfbd65eb3c012c92491205c566f35",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequest.cs",
+    "sha256": "3d64f4081ee7c05ca878c91f0fc1c30bc82f745a49ca1b1e65aa669f928c9141",
+    "head_blob": "fad6d91916971c2855cea40ec5a0a19d316ff11d",
+    "index": "100644 fad6d91916971c2855cea40ec5a0a19d316ff11d 0\tsrc/HotelOps.Api/Entities/MaterialRequest.cs",
+    "working_blob": "fad6d91916971c2855cea40ec5a0a19d316ff11d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestApproval.cs",
+    "sha256": "0d992eeadff59d45d19e062f3f5b44fb3340e0f77748cd372914715ea6b3186e",
+    "head_blob": "de967945e7ef09924105558f8d537b926f9f6a93",
+    "index": "100644 de967945e7ef09924105558f8d537b926f9f6a93 0\tsrc/HotelOps.Api/Entities/MaterialRequestApproval.cs",
+    "working_blob": "de967945e7ef09924105558f8d537b926f9f6a93",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestApprovalCycle.cs",
+    "sha256": "78eaa8eb4e51d81a1ea59873171a1329f29276546101283c853691f5d288ad65",
+    "head_blob": "2b7784d6467daaea5753d13da7e27c15153ca71d",
+    "index": "100644 2b7784d6467daaea5753d13da7e27c15153ca71d 0\tsrc/HotelOps.Api/Entities/MaterialRequestApprovalCycle.cs",
+    "working_blob": "2b7784d6467daaea5753d13da7e27c15153ca71d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestApprovalLineSnapshot.cs",
+    "sha256": "da007d3650f5567cd8727392bc532f1aae893974ea481c16f77ff6d6d3bd121a",
+    "head_blob": "01056cc4af693e28227b364bc65eb75fe555b955",
+    "index": "100644 01056cc4af693e28227b364bc65eb75fe555b955 0\tsrc/HotelOps.Api/Entities/MaterialRequestApprovalLineSnapshot.cs",
+    "working_blob": "01056cc4af693e28227b364bc65eb75fe555b955",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestLine.cs",
+    "sha256": "2dd00b1db8c87d666033f5f240af79b3a6a035e7671f588ddca97707c1117b92",
+    "head_blob": "5e4570ea3064e947e27a7e26e85390e77bcc3750",
+    "index": "100644 5e4570ea3064e947e27a7e26e85390e77bcc3750 0\tsrc/HotelOps.Api/Entities/MaterialRequestLine.cs",
+    "working_blob": "5e4570ea3064e947e27a7e26e85390e77bcc3750",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Notification.cs",
+    "sha256": "01271cc573ca39f65ea2b9a7620080df7eccd9c97f195f42e4f26d8d6a1a30fa",
+    "head_blob": "7fa1b475b9078b7776b9b2ca1083bc74bf6c386b",
+    "index": "100644 7fa1b475b9078b7776b9b2ca1083bc74bf6c386b 0\tsrc/HotelOps.Api/Entities/Notification.cs",
+    "working_blob": "7fa1b475b9078b7776b9b2ca1083bc74bf6c386b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/NotificationRecipient.cs",
+    "sha256": "ef26a77eda1225c019cbe8659663f555d9e7ef2e0c93b330f7dc1e352812b344",
+    "head_blob": "fdc7e5b10eafd53f34a20847bd8ba20a4e572fba",
+    "index": "100644 fdc7e5b10eafd53f34a20847bd8ba20a4e572fba 0\tsrc/HotelOps.Api/Entities/NotificationRecipient.cs",
+    "working_blob": "fdc7e5b10eafd53f34a20847bd8ba20a4e572fba",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTask.cs",
+    "sha256": "5305c402fe9f317b6b429d8b1231c20113860141a860677f47993f538e9c9f23",
+    "head_blob": "1057c89fe1c3365f529fb23bae075e270e8864c2",
+    "index": "100644 1057c89fe1c3365f529fb23bae075e270e8864c2 0\tsrc/HotelOps.Api/Entities/OperationalTask.cs",
+    "working_blob": "1057c89fe1c3365f529fb23bae075e270e8864c2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTaskAssignment.cs",
+    "sha256": "11a7e892301d9f75a8b8749b3ec088eeeff07986aa46ab0ad9fc4d6de1bf6abf",
+    "head_blob": "9635a087e341cc668f042746d32d5826399c4b05",
+    "index": "100644 9635a087e341cc668f042746d32d5826399c4b05 0\tsrc/HotelOps.Api/Entities/OperationalTaskAssignment.cs",
+    "working_blob": "9635a087e341cc668f042746d32d5826399c4b05",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTaskDependency.cs",
+    "sha256": "f6f35bfec469f69ab3fdd48e6597b3423fc410b17ee87a1b533f441f894a0e2c",
+    "head_blob": "9eaaac0454b3c69b191221c88e83a1178e0190cb",
+    "index": "100644 9eaaac0454b3c69b191221c88e83a1178e0190cb 0\tsrc/HotelOps.Api/Entities/OperationalTaskDependency.cs",
+    "working_blob": "9eaaac0454b3c69b191221c88e83a1178e0190cb",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTaskProgress.cs",
+    "sha256": "bf1fe5d4b430c990df9b33b2b1c2a5f02213bb0a35d94bd6d2a2645da97a9cda",
+    "head_blob": "92621bfdb3ae9a34db3830984e576674d6f61b16",
+    "index": "100644 92621bfdb3ae9a34db3830984e576674d6f61b16 0\tsrc/HotelOps.Api/Entities/OperationalTaskProgress.cs",
+    "working_blob": "92621bfdb3ae9a34db3830984e576674d6f61b16",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Permission.cs",
+    "sha256": "44c0917f354241482479abf65b0a4fa0154bb9c60485c2dc9c4e7aaa915290ba",
+    "head_blob": "d72a333e79021759d555292f30b3c23631abef73",
+    "index": "100644 d72a333e79021759d555292f30b3c23631abef73 0\tsrc/HotelOps.Api/Entities/Permission.cs",
+    "working_blob": "d72a333e79021759d555292f30b3c23631abef73",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/PreventiveMaintenanceRun.cs",
+    "sha256": "43f4d112eaac765775aa9ff49a513fc2e6a17895851de75563dcb87761f8360d",
+    "head_blob": "780da2970cb5843c40c1b74437173587455b04a2",
+    "index": "100644 780da2970cb5843c40c1b74437173587455b04a2 0\tsrc/HotelOps.Api/Entities/PreventiveMaintenanceRun.cs",
+    "working_blob": "780da2970cb5843c40c1b74437173587455b04a2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/PreventiveMaintenanceSchedule.cs",
+    "sha256": "41c30cd82d54a2e5ff14e62458b5753d76c50a38ee6fcbbfd4529896e0e602c0",
+    "head_blob": "5087011f4ba344dabf42312e4fedba96fe14efb8",
+    "index": "100644 5087011f4ba344dabf42312e4fedba96fe14efb8 0\tsrc/HotelOps.Api/Entities/PreventiveMaintenanceSchedule.cs",
+    "working_blob": "5087011f4ba344dabf42312e4fedba96fe14efb8",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ReferenceValue.cs",
+    "sha256": "130a34653744f8060abf4a76f41373c218eb7d07ff5a7890043e61e171751bf3",
+    "head_blob": "16ac34a1888bdb6b45ac5bcddfb96bca0a014582",
+    "index": "100644 16ac34a1888bdb6b45ac5bcddfb96bca0a014582 0\tsrc/HotelOps.Api/Entities/ReferenceValue.cs",
+    "working_blob": "16ac34a1888bdb6b45ac5bcddfb96bca0a014582",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Role.cs",
+    "sha256": "02bcf587dd619aa35c042c87f52b87c38d7e52ed9468750bd61691009b002d7a",
+    "head_blob": "ac12ddde93971ceb176c49c82691e49a2b936d87",
+    "index": "100644 ac12ddde93971ceb176c49c82691e49a2b936d87 0\tsrc/HotelOps.Api/Entities/Role.cs",
+    "working_blob": "ac12ddde93971ceb176c49c82691e49a2b936d87",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RolePermission.cs",
+    "sha256": "dba207b1c86c1b2da741d8d30c75f5469129a5d7fe0e75b80ccfd813a894811d",
+    "head_blob": "fc4b04d1e377b1f5b5b031ce5d6c1fe029c80e78",
+    "index": "100644 fc4b04d1e377b1f5b5b031ce5d6c1fe029c80e78 0\tsrc/HotelOps.Api/Entities/RolePermission.cs",
+    "working_blob": "fc4b04d1e377b1f5b5b031ce5d6c1fe029c80e78",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Room.cs",
+    "sha256": "3c4baf71f2070e837892c170fcc9953cb4febbb890e0cde746a3ac14ebcda5f0",
+    "head_blob": "feec9fa3ed1ed822eade951cd45db8d1acbfaee3",
+    "index": "100644 feec9fa3ed1ed822eade951cd45db8d1acbfaee3 0\tsrc/HotelOps.Api/Entities/Room.cs",
+    "working_blob": "feec9fa3ed1ed822eade951cd45db8d1acbfaee3",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomBlock.cs",
+    "sha256": "7a62f2dbf728e2db7d6962ee0346dd69075d318c18f822f2b22467e0b9c4e7c6",
+    "head_blob": "c60080ff9e88d690e3189a3f51fc6db04385db3c",
+    "index": "100644 c60080ff9e88d690e3189a3f51fc6db04385db3c 0\tsrc/HotelOps.Api/Entities/RoomBlock.cs",
+    "working_blob": "c60080ff9e88d690e3189a3f51fc6db04385db3c",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomInspection.cs",
+    "sha256": "5ae5c94ec3a544024d09831ad559e82de0e8a7e4807eec78a07d69c47d33b0d0",
+    "head_blob": "4448c24c1b1b2443f62f5f9b39aa311a59eee6b8",
+    "index": "100644 4448c24c1b1b2443f62f5f9b39aa311a59eee6b8 0\tsrc/HotelOps.Api/Entities/RoomInspection.cs",
+    "working_blob": "4448c24c1b1b2443f62f5f9b39aa311a59eee6b8",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomStatusHistory.cs",
+    "sha256": "7a82eb18cb2d0ce47d9075cc53661b4b8e8cece4e11639274fba586faada94a6",
+    "head_blob": "d1929eb7408bbecaedadae2806a3dae0388d9e81",
+    "index": "100644 d1929eb7408bbecaedadae2806a3dae0388d9e81 0\tsrc/HotelOps.Api/Entities/RoomStatusHistory.cs",
+    "working_blob": "d1929eb7408bbecaedadae2806a3dae0388d9e81",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomType.cs",
+    "sha256": "76f62fd391985f0291b7bab38f599bf23bbea2152c8d76b39edc231f329a7d70",
+    "head_blob": "b313668cfd5b733856b074605368ae0275eda979",
+    "index": "100644 b313668cfd5b733856b074605368ae0275eda979 0\tsrc/HotelOps.Api/Entities/RoomType.cs",
+    "working_blob": "b313668cfd5b733856b074605368ae0275eda979",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ShiftAssignment.cs",
+    "sha256": "efb664b2cdefcaad8298d1b67f2127b778c615ff02ffe2742e611e28911a9b58",
+    "head_blob": "d65e7d2ee4d46eb5bc509d261547148d77d8d468",
+    "index": "100644 d65e7d2ee4d46eb5bc509d261547148d77d8d468 0\tsrc/HotelOps.Api/Entities/ShiftAssignment.cs",
+    "working_blob": "d65e7d2ee4d46eb5bc509d261547148d77d8d468",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ShiftAttendance.cs",
+    "sha256": "277a19cf689720ff98f1b9e2d5ab12506189a59de047a3ecd4ee5bc216bc484c",
+    "head_blob": "711237de63312985a9b5d5fd317086df00998a19",
+    "index": "100644 711237de63312985a9b5d5fd317086df00998a19 0\tsrc/HotelOps.Api/Entities/ShiftAttendance.cs",
+    "working_blob": "711237de63312985a9b5d5fd317086df00998a19",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ShiftTemplate.cs",
+    "sha256": "4a1f1deb0eb616a2f66327cf09ef05430c0a5924596583c4a5323d7171e3b3bc",
+    "head_blob": "e15f40ea7f047a4624a57076b8dbd71ff4bde8f7",
+    "index": "100644 e15f40ea7f047a4624a57076b8dbd71ff4bde8f7 0\tsrc/HotelOps.Api/Entities/ShiftTemplate.cs",
+    "working_blob": "e15f40ea7f047a4624a57076b8dbd71ff4bde8f7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockDocument.cs",
+    "sha256": "2544239342ca591131dfb54ac4063e20eb2fca2c068ff71698a47bc3d47184c1",
+    "head_blob": "6c570f3393021695976e595f54db13a50dc409f2",
+    "index": "100644 6c570f3393021695976e595f54db13a50dc409f2 0\tsrc/HotelOps.Api/Entities/StockDocument.cs",
+    "working_blob": "6c570f3393021695976e595f54db13a50dc409f2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockDocumentLine.cs",
+    "sha256": "7096fb7b33248bafc13dbae531c6fe5439d32edb89f6a9d730c7c92e8ac20ad0",
+    "head_blob": "e3325e448d0a35a95f3e7f16d9b96c2b288a75fc",
+    "index": "100644 e3325e448d0a35a95f3e7f16d9b96c2b288a75fc 0\tsrc/HotelOps.Api/Entities/StockDocumentLine.cs",
+    "working_blob": "e3325e448d0a35a95f3e7f16d9b96c2b288a75fc",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockMovement.cs",
+    "sha256": "e12a3acb5b6ef3858cb6d7c534801ebbd06b399d0b15f00d6ccbf8bd9c3412fb",
+    "head_blob": "2bc3d69a14ceefe4e9bf2221eb649152acae0c94",
+    "index": "100644 2bc3d69a14ceefe4e9bf2221eb649152acae0c94 0\tsrc/HotelOps.Api/Entities/StockMovement.cs",
+    "working_blob": "2bc3d69a14ceefe4e9bf2221eb649152acae0c94",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockReceiptLineDetail.cs",
+    "sha256": "2041d817a4897a1868aa3a6ccbf57f12c395dbc18a85a85af427d3333f441015",
+    "head_blob": "0fa0febdec56d67d88b52359f714fda4ec7a9ca5",
+    "index": "100644 0fa0febdec56d67d88b52359f714fda4ec7a9ca5 0\tsrc/HotelOps.Api/Entities/StockReceiptLineDetail.cs",
+    "working_blob": "0fa0febdec56d67d88b52359f714fda4ec7a9ca5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockReturnLineDetail.cs",
+    "sha256": "5d315c0fade84370b612160fc9b4c13b143b697e72a3960d851dfd65e423e0c6",
+    "head_blob": "869989c12bc3fa4c6738eb6d933785b0a0065771",
+    "index": "100644 869989c12bc3fa4c6738eb6d933785b0a0065771 0\tsrc/HotelOps.Api/Entities/StockReturnLineDetail.cs",
+    "working_blob": "869989c12bc3fa4c6738eb6d933785b0a0065771",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockThreshold.cs",
+    "sha256": "93a1c71dea844a8a2921fe73a9d6d1bfbb4ae14f343f79bc38915541f9a3d64a",
+    "head_blob": "5ac696a9854c5827c6d62441fd0a4df9ce3446aa",
+    "index": "100644 5ac696a9854c5827c6d62441fd0a4df9ce3446aa 0\tsrc/HotelOps.Api/Entities/StockThreshold.cs",
+    "working_blob": "5ac696a9854c5827c6d62441fd0a4df9ce3446aa",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockTransferReceipt.cs",
+    "sha256": "fd3c28eb79fe5d945ffaf2f30e82b8843a59d51e39b27962cffcf714a0531f0e",
+    "head_blob": "a0b1ecaccee929d41d8de523b115bd61955ab4e5",
+    "index": "100644 a0b1ecaccee929d41d8de523b115bd61955ab4e5 0\tsrc/HotelOps.Api/Entities/StockTransferReceipt.cs",
+    "working_blob": "a0b1ecaccee929d41d8de523b115bd61955ab4e5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockTransferReceiptLine.cs",
+    "sha256": "14ff87be8d236deda1a50a55deb6abf6f3d2276a7f252e66b5b3f4c1344747ef",
+    "head_blob": "b2bc93a66667e0b2da569166033c25909b666c39",
+    "index": "100644 b2bc93a66667e0b2da569166033c25909b666c39 0\tsrc/HotelOps.Api/Entities/StockTransferReceiptLine.cs",
+    "working_blob": "b2bc93a66667e0b2da569166033c25909b666c39",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Stocktake.cs",
+    "sha256": "98a51dfd9cb16ef342e933a15ee78ca5c3ad65c192627ef606e9410902564d39",
+    "head_blob": "1e23d9f68fc8c8390f7789e5848fed52cb3d5b2f",
+    "index": "100644 1e23d9f68fc8c8390f7789e5848fed52cb3d5b2f 0\tsrc/HotelOps.Api/Entities/Stocktake.cs",
+    "working_blob": "1e23d9f68fc8c8390f7789e5848fed52cb3d5b2f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StocktakeLine.cs",
+    "sha256": "28dd4b0ed62418722ee735618079467f1a08c8da9fb93f0ae62fdb3cf846f35d",
+    "head_blob": "b61fba2b8681dcddf2c71b6f0d801888c0b37942",
+    "index": "100644 b61fba2b8681dcddf2c71b6f0d801888c0b37942 0\tsrc/HotelOps.Api/Entities/StocktakeLine.cs",
+    "working_blob": "b61fba2b8681dcddf2c71b6f0d801888c0b37942",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/SystemSetting.cs",
+    "sha256": "1711d80646813b53b77b90eb9b4535794883393c868b060057616cefbdd97ec7",
+    "head_blob": "44f289b7df737a89790e9166aef269e076868a08",
+    "index": "100644 44f289b7df737a89790e9166aef269e076868a08 0\tsrc/HotelOps.Api/Entities/SystemSetting.cs",
+    "working_blob": "44f289b7df737a89790e9166aef269e076868a08",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+    "sha256": "95a627d304b5d921997fd38f3adc0ee176db1ea29e3a4ab6719064b31ed3c6e3",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "376d57d461db96a8b52eed83819219b34e8f7e0c",
+    "status": "?? src/HotelOps.Api/Entities/TimeCorrectionRequest.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UnitsOfMeasure.cs",
+    "sha256": "abe955a82151dcf95f783e9828d6a62593e7cf8d4bd8af90bc1e7ff41525c797",
+    "head_blob": "6e42df55e1f2be0dfebc39373d7aa25aae440ef1",
+    "index": "100644 6e42df55e1f2be0dfebc39373d7aa25aae440ef1 0\tsrc/HotelOps.Api/Entities/UnitsOfMeasure.cs",
+    "working_blob": "6e42df55e1f2be0dfebc39373d7aa25aae440ef1",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UomConversion.cs",
+    "sha256": "06e0bb436448d2c53feaf102920410be10551a5a1e1da582542174b351fa69f9",
+    "head_blob": "59812c98b82cc43a3c9162b5d1de4a76b04d47f3",
+    "index": "100644 59812c98b82cc43a3c9162b5d1de4a76b04d47f3 0\tsrc/HotelOps.Api/Entities/UomConversion.cs",
+    "working_blob": "59812c98b82cc43a3c9162b5d1de4a76b04d47f3",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/User.ProfileConcurrency.cs",
+    "sha256": "9b8085809b5b999d79051235f0a455c659d51242148d65bfae1733cd54961411",
+    "head_blob": "5d3821b10862829dbcf99b2db21acc9c28fa1b87",
+    "index": "100644 5d3821b10862829dbcf99b2db21acc9c28fa1b87 0\tsrc/HotelOps.Api/Entities/User.ProfileConcurrency.cs",
+    "working_blob": "5d3821b10862829dbcf99b2db21acc9c28fa1b87",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/User.cs",
+    "sha256": "c7fbc76fcd23095d7267af249846b8e47da66c04628df530d5af45b34ad940e5",
+    "head_blob": "c370dccd7e55d85edc93d1cb5ba1105cb9b69cc6",
+    "index": "100644 c370dccd7e55d85edc93d1cb5ba1105cb9b69cc6 0\tsrc/HotelOps.Api/Entities/User.cs",
+    "working_blob": "c370dccd7e55d85edc93d1cb5ba1105cb9b69cc6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UserBranchAccess.cs",
+    "sha256": "4401eed69716ab0b134e4b9e2cd2abdec06d098b76ee51e7444de260e182810b",
+    "head_blob": "f61196674e2a54bfbf5c205abb84da07b8d419da",
+    "index": "100644 f61196674e2a54bfbf5c205abb84da07b8d419da 0\tsrc/HotelOps.Api/Entities/UserBranchAccess.cs",
+    "working_blob": "f61196674e2a54bfbf5c205abb84da07b8d419da",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UserRole.cs",
+    "sha256": "e704dd41f2df6c1ca8a355977fb637a5d2b727480e7d1dde5acd0c4c4cb227d5",
+    "head_blob": "67cf97c2d1241c36a4b34833b2ba1dcf80562e2b",
+    "index": "100644 67cf97c2d1241c36a4b34833b2ba1dcf80562e2b 0\tsrc/HotelOps.Api/Entities/UserRole.cs",
+    "working_blob": "67cf97c2d1241c36a4b34833b2ba1dcf80562e2b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UserSession.cs",
+    "sha256": "7036a7e1ea1040182404b46a8f54d779b1e9660a1e1e4422758cb9a97ba6933a",
+    "head_blob": "4ce8ee979e24e45e3868a5d6e8e7ce9408454b61",
+    "index": "100644 4ce8ee979e24e45e3868a5d6e8e7ce9408454b61 0\tsrc/HotelOps.Api/Entities/UserSession.cs",
+    "working_blob": "4ce8ee979e24e45e3868a5d6e8e7ce9408454b61",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Warehouse.cs",
+    "sha256": "b6ed2da300858bbd6b0c133ec38ad5af672679e2133d13e2238e2ab0259cec31",
+    "head_blob": "a3a232d4d28588d48a6ae4ed28a01a9d9798c833",
+    "index": "100644 a3a232d4d28588d48a6ae4ed28a01a9d9798c833 0\tsrc/HotelOps.Api/Entities/Warehouse.cs",
+    "working_blob": "a3a232d4d28588d48a6ae4ed28a01a9d9798c833",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/WorkCategory.cs",
+    "sha256": "ee2ef8b935a0419bd5266eeffbf723b8f20bea48b381b26a7664f3422371bb6a",
+    "head_blob": "7e014983ba59e4763fb397769161616e5a66f8c2",
+    "index": "100644 7e014983ba59e4763fb397769161616e5a66f8c2 0\tsrc/HotelOps.Api/Entities/WorkCategory.cs",
+    "working_blob": "7e014983ba59e4763fb397769161616e5a66f8c2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/WorkInterval.cs",
+    "sha256": "48f3cb02ded43df0b67404e04dd5bf3450325ac7de82da951e16400bee653573",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "3fc02a48552c1cd2f3e0232901b13655315a7d70",
+    "status": "?? src/HotelOps.Api/Entities/WorkInterval.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/WorkShift.cs",
+    "sha256": "48051783270de1fed36abcd2b8daaeeffbdf053ac7c7aa92a8256f26135bbf20",
+    "head_blob": "de01cf2706221e4242324842e469c31f999322a6",
+    "index": "100644 de01cf2706221e4242324842e469c31f999322a6 0\tsrc/HotelOps.Api/Entities/WorkShift.cs",
+    "working_blob": "de01cf2706221e4242324842e469c31f999322a6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Workday.cs",
+    "sha256": "e4bf214dcda01a5032d91ddf579c2635b1e01e5cc07d99c5261f649185284eef",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "9952630f8e977f6f66772c0c83d1bde95d233903",
+    "status": "?? src/HotelOps.Api/Entities/Workday.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/HotelOps.Api.csproj",
+    "sha256": "dbda3208ae12b4c9ed8bec102684afed1e0ec4fb792b0a38c3e0928012e828d4",
+    "head_blob": "9895c2d115c5a91a2435a3eaab16ba24ec34b741",
+    "index": "100644 9895c2d115c5a91a2435a3eaab16ba24ec34b741 0\tsrc/HotelOps.Api/HotelOps.Api.csproj",
+    "working_blob": "9895c2d115c5a91a2435a3eaab16ba24ec34b741",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/ApiCsrfMiddleware.cs",
+    "sha256": "406670dfb35aadf4263e7b6c54048b65203919b0110a4e498f229667ac465834",
+    "head_blob": "a291793f76356a80e253ef32b6156b698151df22",
+    "index": "100644 a291793f76356a80e253ef32b6156b698151df22 0\tsrc/HotelOps.Api/Middleware/ApiCsrfMiddleware.cs",
+    "working_blob": "a291793f76356a80e253ef32b6156b698151df22",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/AuthenticationExceptionMiddleware.cs",
+    "sha256": "6b3b26f09b9bfb2d12ea9d819518f00b0fed4b543f094a56a5b043fe8eb297f6",
+    "head_blob": "3834504abc995ee9c8ac5d45452ceee41d086786",
+    "index": "100644 3834504abc995ee9c8ac5d45452ceee41d086786 0\tsrc/HotelOps.Api/Middleware/AuthenticationExceptionMiddleware.cs",
+    "working_blob": "3834504abc995ee9c8ac5d45452ceee41d086786",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/InvalidCookieMiddleware.cs",
+    "sha256": "c497c24e8c0d3a9e456ce8fb0ef237af3fee25f6a5c7fbf9cc2e794b6aa60ab7",
+    "head_blob": "14a712def2a285972632ccdc33e0b287dc8bb245",
+    "index": "100644 14a712def2a285972632ccdc33e0b287dc8bb245 0\tsrc/HotelOps.Api/Middleware/InvalidCookieMiddleware.cs",
+    "working_blob": "14a712def2a285972632ccdc33e0b287dc8bb245",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/RestrictedSessionMiddleware.cs",
+    "sha256": "ae601abeb503e3dd9811ce494eb06149cdef36939104c1c25085c00feafa413c",
+    "head_blob": "ddde4011c4757de1553b5355860896803b5276d6",
+    "index": "100644 ddde4011c4757de1553b5355860896803b5276d6 0\tsrc/HotelOps.Api/Middleware/RestrictedSessionMiddleware.cs",
+    "working_blob": "ddde4011c4757de1553b5355860896803b5276d6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/SessionTouchMiddleware.cs",
+    "sha256": "7725377121f8fc4473dcf512da874f98309e1979cd03d323af1086fb2ee6a474",
+    "head_blob": "956c33f68f34e40e0ec5d311ee3b85806cdc0606",
+    "index": "100644 956c33f68f34e40e0ec5d311ee3b85806cdc0606 0\tsrc/HotelOps.Api/Middleware/SessionTouchMiddleware.cs",
+    "working_blob": "956c33f68f34e40e0ec5d311ee3b85806cdc0606",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Program.cs",
+    "sha256": "586299fb650342f7389baecd615dd29acc94352857021fc4391554ff9372a505",
+    "head_blob": "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+    "index": "100644 a67c1ba5df48e4114ae40794ed1c78a672bc8f54 0\tsrc/HotelOps.Api/Program.cs",
+    "working_blob": "b0dad3db4a086707a503a01564b0c975270d456c",
+    "status": "M src/HotelOps.Api/Program.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/AuthenticationApiBehavior.cs",
+    "sha256": "9355e7be71443d33d093b3276cb5a22a03b138011f3b04ab2bd230f28821cc09",
+    "head_blob": "b2de702a839260780a6753fab3cf713eb67d7c80",
+    "index": "100644 b2de702a839260780a6753fab3cf713eb67d7c80 0\tsrc/HotelOps.Api/Security/AuthenticationApiBehavior.cs",
+    "working_blob": "b2de702a839260780a6753fab3cf713eb67d7c80",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/AuthenticationProblem.cs",
+    "sha256": "da2bc3838b8f6a6fc45a1148f3cb09cb7107994f113ddac4014045f1e8a43007",
+    "head_blob": "e9c9f54832423ca7aacf410dc6e3fbab9621bf4c",
+    "index": "100644 e9c9f54832423ca7aacf410dc6e3fbab9621bf4c 0\tsrc/HotelOps.Api/Security/AuthenticationProblem.cs",
+    "working_blob": "e9c9f54832423ca7aacf410dc6e3fbab9621bf4c",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/CurrentUserAccessor.cs",
+    "sha256": "8c272556558a9aa55ffc682733242368afd5c261b55ec8b6d86a43d692649fa0",
+    "head_blob": "4fe09fd503b55378f456efe275bd995b940efaf5",
+    "index": "100644 4fe09fd503b55378f456efe275bd995b940efaf5 0\tsrc/HotelOps.Api/Security/Authorization/CurrentUserAccessor.cs",
+    "working_blob": "4fe09fd503b55378f456efe275bd995b940efaf5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/ICurrentUserAccessor.cs",
+    "sha256": "2f1eea71c338f5a9f982c445f4d23cf3f618ae80d25bc62158e9da4c412c9627",
+    "head_blob": "0223bebee6903206f54b9d92628da3990d61a220",
+    "index": "100644 0223bebee6903206f54b9d92628da3990d61a220 0\tsrc/HotelOps.Api/Security/Authorization/ICurrentUserAccessor.cs",
+    "working_blob": "0223bebee6903206f54b9d92628da3990d61a220",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/IPermissionService.cs",
+    "sha256": "5acee41f8ca7d4333543bd5629b35fcca3f5fbb6d1a7a994d6cb2050c4f970b5",
+    "head_blob": "faf5388b25710c3d1e1af2e2c6c966268b70a940",
+    "index": "100644 faf5388b25710c3d1e1af2e2c6c966268b70a940 0\tsrc/HotelOps.Api/Security/Authorization/IPermissionService.cs",
+    "working_blob": "faf5388b25710c3d1e1af2e2c6c966268b70a940",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationHandler.cs",
+    "sha256": "b5226c9a39995e6ca24cdee92011524796514340eff6d7540fa15d7c7d620377",
+    "head_blob": "48184f4a30bd74f1182aa50dc4369f09557280b8",
+    "index": "100644 48184f4a30bd74f1182aa50dc4369f09557280b8 0\tsrc/HotelOps.Api/Security/Authorization/PermissionAuthorizationHandler.cs",
+    "working_blob": "48184f4a30bd74f1182aa50dc4369f09557280b8",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs",
+    "sha256": "566d6b984ec2e12c7532c0dcca19338c9976cd697f3ab13b2b9532d2bed5e8b1",
+    "head_blob": "3649a9dfee741e4fe82c25434e712d1aab49cc2d",
+    "index": "100644 3649a9dfee741e4fe82c25434e712d1aab49cc2d 0\tsrc/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs",
+    "working_blob": "943d492829fdeac9607a2b9ff9a895668853f426",
+    "status": "M src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionDataSource.cs",
+    "sha256": "ea42f6c7f1f44453cb3316bd04cb8bf25d397cbdbddea5f83b1fdf69d89cd4f8",
+    "head_blob": "90ba74be3434b7009d3df92ed17c2316a77b9999",
+    "index": "100644 90ba74be3434b7009d3df92ed17c2316a77b9999 0\tsrc/HotelOps.Api/Security/Authorization/PermissionDataSource.cs",
+    "working_blob": "90ba74be3434b7009d3df92ed17c2316a77b9999",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionPolicyProvider.cs",
+    "sha256": "e43a6b9b45f704bf6522e8b64cef6688c4765f1b21c8920da2b7853e44e0ab8f",
+    "head_blob": "b4663dabfc19b10bc8bad1ecb8c9157b8769a0aa",
+    "index": "100644 b4663dabfc19b10bc8bad1ecb8c9157b8769a0aa 0\tsrc/HotelOps.Api/Security/Authorization/PermissionPolicyProvider.cs",
+    "working_blob": "b4663dabfc19b10bc8bad1ecb8c9157b8769a0aa",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionRequirement.cs",
+    "sha256": "dccf3b7aa63db0e605cf7b87a045f1ad7e1fd0b9adca2edc049bee5d2c3d89f7",
+    "head_blob": "e9c8a21e98913a304ba724f56309f4203b91d93b",
+    "index": "100644 e9c8a21e98913a304ba724f56309f4203b91d93b 0\tsrc/HotelOps.Api/Security/Authorization/PermissionRequirement.cs",
+    "working_blob": "e9c8a21e98913a304ba724f56309f4203b91d93b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+    "sha256": "dc5ae7d22c7e31d466bae4e78154a549d1cb64319e661926755c7508111e4796",
+    "head_blob": "7b3cb261f55203e6c1263d3857f7a69f1584d3f5",
+    "index": "100644 7b3cb261f55203e6c1263d3857f7a69f1584d3f5 0\tsrc/HotelOps.Api/Security/Authorization/PermissionService.cs",
+    "working_blob": "7b3cb261f55203e6c1263d3857f7a69f1584d3f5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/Resources/CleaningTaskAccessReader.cs",
+    "sha256": "abcf50a94257ee6c262d2e01725dda75d6055666545a1061543fd09269ed4ddf",
+    "head_blob": "c8f64b697fc9c98e71563425ad098165836542ef",
+    "index": "100644 c8f64b697fc9c98e71563425ad098165836542ef 0\tsrc/HotelOps.Api/Security/Authorization/Resources/CleaningTaskAccessReader.cs",
+    "working_blob": "c8f64b697fc9c98e71563425ad098165836542ef",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/Resources/CleaningTaskResourceResolver.cs",
+    "sha256": "d401bbdf7c0348be9af123df3e2ac53a24e045da9a2f85d4e93ee80141cee2b8",
+    "head_blob": "0ff880fe1a057b49a403a4fdedde3d21140c3b30",
+    "index": "100644 0ff880fe1a057b49a403a4fdedde3d21140c3b30 0\tsrc/HotelOps.Api/Security/Authorization/Resources/CleaningTaskResourceResolver.cs",
+    "working_blob": "0ff880fe1a057b49a403a4fdedde3d21140c3b30",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/CookieRequestRules.cs",
+    "sha256": "6a46e413b860a81f582d74705a0eddeabd1359e2d3d36f015647e4f238d15272",
+    "head_blob": "f5f0a2127e0cf872aeee9dd421158dd3a6c45152",
+    "index": "100644 f5f0a2127e0cf872aeee9dd421158dd3a6c45152 0\tsrc/HotelOps.Api/Security/CookieRequestRules.cs",
+    "working_blob": "f5f0a2127e0cf872aeee9dd421158dd3a6c45152",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "sha256": "aec5944219d4b0a3a867805833c2b974828c5f4c3dfd59ededc5e8e357ee1a19",
+    "head_blob": "98e2dfd28a065141ec4a6ddcd073bc27da3d924b",
+    "index": "100644 98e2dfd28a065141ec4a6ddcd073bc27da3d924b 0\tsrc/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "working_blob": "98e2dfd28a065141ec4a6ddcd073bc27da3d924b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsAntiforgery.cs",
+    "sha256": "2f98e415ef1804cdcdf9efa3e508449a29cc2056fa076d16028d96bb144ca337",
+    "head_blob": "a72743afd1defc28291b605df399cae4b08b0196",
+    "index": "100644 a72743afd1defc28291b605df399cae4b08b0196 0\tsrc/HotelOps.Api/Security/HotelOpsAntiforgery.cs",
+    "working_blob": "a72743afd1defc28291b605df399cae4b08b0196",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieEvents.cs",
+    "sha256": "a94c35ab8b80b267689ce863498beb9c3df5616c3239bf7be8a4306d0c26e5d3",
+    "head_blob": "74367fb5f134b69ae38a4741d557b3bc9aa989fd",
+    "index": "100644 74367fb5f134b69ae38a4741d557b3bc9aa989fd 0\tsrc/HotelOps.Api/Security/HotelOpsCookieEvents.cs",
+    "working_blob": "74367fb5f134b69ae38a4741d557b3bc9aa989fd",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs",
+    "sha256": "5d3cc0ef99442adfa2211a5311898f52e5610f1b01b2097f30f8b49ee3504e00",
+    "head_blob": "3d9545dc0c8c1bf02403ec4658755be53dcf457c",
+    "index": "100644 3d9545dc0c8c1bf02403ec4658755be53dcf457c 0\tsrc/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs",
+    "working_blob": "a82153016890c662ce54eda6b760fa301def7c39",
+    "status": "M src/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieTicket.cs",
+    "sha256": "9c6f7dcd0070b0724a5d85601cde4de2cf095c320bfcccfd55404aab57162865",
+    "head_blob": "77aa22ca35f5e0e65ce13656218661a0832f8e09",
+    "index": "100644 77aa22ca35f5e0e65ce13656218661a0832f8e09 0\tsrc/HotelOps.Api/Security/HotelOpsCookieTicket.cs",
+    "working_blob": "77aa22ca35f5e0e65ce13656218661a0832f8e09",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/SessionAntiforgeryAdditionalDataProvider.cs",
+    "sha256": "e6a12291dda66d77638c6a96fa843be9d741076a1b8f80b508686c2285609064",
+    "head_blob": "e8ad874bb6e20d1e23a4fcea507ebf8ba2939490",
+    "index": "100644 e8ad874bb6e20d1e23a4fcea507ebf8ba2939490 0\tsrc/HotelOps.Api/Security/SessionAntiforgeryAdditionalDataProvider.cs",
+    "working_blob": "e8ad874bb6e20d1e23a4fcea507ebf8ba2939490",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Auditing.cs",
+    "sha256": "c25918aedeaa5e2c1b0df62b5770f377df4d8cb15668ac267d02dce5d6bb38af",
+    "head_blob": "0e28ded65e1be694150d4490bfd4feeffb4bbe5d",
+    "index": "100644 0e28ded65e1be694150d4490bfd4feeffb4bbe5d 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Auditing.cs",
+    "working_blob": "0e28ded65e1be694150d4490bfd4feeffb4bbe5d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "sha256": "32e25e483f19ed08911e6c316746d2f06bda226f8a6dc97a4c26bd0382582b35",
+    "head_blob": "f42c899821b4efc5843b957cf96ff911f00871ed",
+    "index": "100644 f42c899821b4efc5843b957cf96ff911f00871ed 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "working_blob": "f42c899821b4efc5843b957cf96ff911f00871ed",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "sha256": "c2fa7b3970c0f3b6ce7cbd9b9f9452617444552a2683e58a01e1c9c4a6410e44",
+    "head_blob": "9c60e92fe30d299f7dc973b7920a53275e43ded9",
+    "index": "100644 9c60e92fe30d299f7dc973b7920a53275e43ded9 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "working_blob": "9c60e92fe30d299f7dc973b7920a53275e43ded9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "sha256": "a7fa20795775b9ccc98cfe9b3fdb9ceaea831248dca4ae826c0559ada2653cfc",
+    "head_blob": "58732761c03544b584a81624112ebb3985638391",
+    "index": "100644 58732761c03544b584a81624112ebb3985638391 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "working_blob": "58732761c03544b584a81624112ebb3985638391",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "sha256": "2f5ea0a4f8a812fecd5307f0f52cb783be5905f385221458bb015fe538a091cd",
+    "head_blob": "4097ec6129719f4e85969d4323fc37aeb285021a",
+    "index": "100644 4097ec6129719f4e85969d4323fc37aeb285021a 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "working_blob": "4097ec6129719f4e85969d4323fc37aeb285021a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.MaintenanceHistory.cs",
+    "sha256": "80c7fc996df23160890d205566320da3d44d437430fa83b8f9cc2c6f81adc951",
+    "head_blob": "2a4e0d1568eb8018350994ef6028e33d896893bf",
+    "index": "100644 2a4e0d1568eb8018350994ef6028e33d896893bf 0\tsrc/HotelOps.Api/Services/Assets/AssetService.MaintenanceHistory.cs",
+    "working_blob": "2a4e0d1568eb8018350994ef6028e33d896893bf",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "sha256": "e7eace46133036ea3bfd5db923262100368e646e7ce428c0e46edce6e095a4b1",
+    "head_blob": "cfdfc6c4dd048d5445e34e48705e88ad55635b6c",
+    "index": "100644 cfdfc6c4dd048d5445e34e48705e88ad55635b6c 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "working_blob": "cfdfc6c4dd048d5445e34e48705e88ad55635b6c",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "sha256": "b5009620193264f7ea3538a5fe9c6028f3a228433144e005e7065a4047a9438d",
+    "head_blob": "a78d1a3b217649027c342a8b26e937a99ce93813",
+    "index": "100644 a78d1a3b217649027c342a8b26e937a99ce93813 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "working_blob": "a78d1a3b217649027c342a8b26e937a99ce93813",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Statistics.cs",
+    "sha256": "7d9cafd29f24be27096643b1e5d0197a1df270b8064715292a2683866985e165",
+    "head_blob": "71555c27d0adf78eb84939c330d6cee34d776fd4",
+    "index": "100644 71555c27d0adf78eb84939c330d6cee34d776fd4 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Statistics.cs",
+    "working_blob": "71555c27d0adf78eb84939c330d6cee34d776fd4",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "sha256": "eb72e153c6a861e2f4fa33315e820a7aa29eccf8bbb115b7ff050bbdcea4b547",
+    "head_blob": "7f78fab4475646528a370d1bf118e2c532937ba9",
+    "index": "100644 7f78fab4475646528a370d1bf118e2c532937ba9 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "working_blob": "7f78fab4475646528a370d1bf118e2c532937ba9",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Validation.cs",
+    "sha256": "326c4aa1ac08a7cfb5107156381b38047d8de09594bfc120a1ee7c0a56db3826",
+    "head_blob": "42974d26ad2ba6365616395dfe525aea16d9894f",
+    "index": "100644 42974d26ad2ba6365616395dfe525aea16d9894f 0\tsrc/HotelOps.Api/Services/Assets/AssetService.Validation.cs",
+    "working_blob": "42974d26ad2ba6365616395dfe525aea16d9894f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.cs",
+    "sha256": "5374473a531f4ca220b94ba4f41eeca1b77cc716b4f40825c1dbde98ca07b0b7",
+    "head_blob": "fb22e2bdb1969470427761ea8525d99711ac0ced",
+    "index": "100644 fb22e2bdb1969470427761ea8525d99711ac0ced 0\tsrc/HotelOps.Api/Services/Assets/AssetService.cs",
+    "working_blob": "fb22e2bdb1969470427761ea8525d99711ac0ced",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/IAssetService.cs",
+    "sha256": "b6ceeddffc60313d4994cdc18e859095eaaca284c4ffda888527ecf6c522cf18",
+    "head_blob": "4a34f139429863a18df2628ccd8d96d204a7779f",
+    "index": "100644 4a34f139429863a18df2628ccd8d96d204a7779f 0\tsrc/HotelOps.Api/Services/Assets/IAssetService.cs",
+    "working_blob": "4a34f139429863a18df2628ccd8d96d204a7779f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "sha256": "1cf8d42471b402610f1c1bdd9057b5ce0b88af2d33e261c6a9205b9f3f29eaa2",
+    "head_blob": "4d78f35ddb32a943b33a79dedbe96acc3fa1110e",
+    "index": "100644 4d78f35ddb32a943b33a79dedbe96acc3fa1110e 0\tsrc/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "working_blob": "4d78f35ddb32a943b33a79dedbe96acc3fa1110e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AuthenticationAudit.cs",
+    "sha256": "9fcffdf69b2bf1096ba426728d6f7117eda25190df187e50eb108c08cc7d2c1e",
+    "head_blob": "2a0fea1f23e27bd14a8104e4e77777da94ddf6d7",
+    "index": "100644 2a0fea1f23e27bd14a8104e4e77777da94ddf6d7 0\tsrc/HotelOps.Api/Services/Authentication/AuthenticationAudit.cs",
+    "working_blob": "2a0fea1f23e27bd14a8104e4e77777da94ddf6d7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "sha256": "028a58068d1ca373a5890d09e7d37c28ea17453351f806db114a33689fdfcaf5",
+    "head_blob": "752bd4a35c6f310334780e982289a90ac766f3d1",
+    "index": "100644 752bd4a35c6f310334780e982289a90ac766f3d1 0\tsrc/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "working_blob": "752bd4a35c6f310334780e982289a90ac766f3d1",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "sha256": "bb5ae6606957b1af94006ea75f7ac50d46ac7d57c2b48756c139764b27ef87a9",
+    "head_blob": "cafb86d6afc525edbd1e5c73d91e2c56e924135d",
+    "index": "100644 cafb86d6afc525edbd1e5c73d91e2c56e924135d 0\tsrc/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "working_blob": "cafb86d6afc525edbd1e5c73d91e2c56e924135d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/CredentialLockoutPolicy.cs",
+    "sha256": "5df5d1a9211d0db9996c81df74b81d829824bd45ad641b1d5cf766025d5b5633",
+    "head_blob": "9ccfbbdd3a8739861fba419be7fe5a1093f3c696",
+    "index": "100644 9ccfbbdd3a8739861fba419be7fe5a1093f3c696 0\tsrc/HotelOps.Api/Services/Authentication/CredentialLockoutPolicy.cs",
+    "working_blob": "9ccfbbdd3a8739861fba419be7fe5a1093f3c696",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "sha256": "254ad1f0ab84ab692f03c980128668db3e54fe21c828215a1fc204d3e4f4dbef",
+    "head_blob": "ccb3861983198fb6cabb2b2439eb8d46a8e3adb2",
+    "index": "100644 ccb3861983198fb6cabb2b2439eb8d46a8e3adb2 0\tsrc/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "working_blob": "ccb3861983198fb6cabb2b2439eb8d46a8e3adb2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IAuthenticationCredentialWorkflow.cs",
+    "sha256": "259fae556d2b26a08ad18ed362528c7d0cf454a155fddd44a71b3ae71a000747",
+    "head_blob": "bfe49472b562d427eb52f61d49bb784e0fe6bd7f",
+    "index": "100644 bfe49472b562d427eb52f61d49bb784e0fe6bd7f 0\tsrc/HotelOps.Api/Services/Authentication/IAuthenticationCredentialWorkflow.cs",
+    "working_blob": "bfe49472b562d427eb52f61d49bb784e0fe6bd7f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IAuthenticationLoginService.cs",
+    "sha256": "28c16d7ed96dfe317e66bea7210c34982c92d80fe60f16cc3417fcccef300296",
+    "head_blob": "73b0743eca30f362244e1e78d739403da5acc901",
+    "index": "100644 73b0743eca30f362244e1e78d739403da5acc901 0\tsrc/HotelOps.Api/Services/Authentication/IAuthenticationLoginService.cs",
+    "working_blob": "73b0743eca30f362244e1e78d739403da5acc901",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IConditionalCredentialResetService.cs",
+    "sha256": "eeb3516a8d0a627339bc3c94638ff6235c61679faefe6aed213740bbf364b544",
+    "head_blob": "d2e898a0dcc6ae3e2988a3a86e1f07eb058cb372",
+    "index": "100644 d2e898a0dcc6ae3e2988a3a86e1f07eb058cb372 0\tsrc/HotelOps.Api/Services/Authentication/IConditionalCredentialResetService.cs",
+    "working_blob": "d2e898a0dcc6ae3e2988a3a86e1f07eb058cb372",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ICredentialLockoutService.cs",
+    "sha256": "bd936f15a91c22b7d228259879c4dc0b84daac6b00b2eaa9536c1d634acce3b9",
+    "head_blob": "5d4e6c34f3e4565f7cfeda8f0365cb9cb99d1444",
+    "index": "100644 5d4e6c34f3e4565f7cfeda8f0365cb9cb99d1444 0\tsrc/HotelOps.Api/Services/Authentication/ICredentialLockoutService.cs",
+    "working_blob": "5d4e6c34f3e4565f7cfeda8f0365cb9cb99d1444",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IInitialCredentialTransactionParticipant.cs",
+    "sha256": "364ad5bde5db751d70ddd6657cba042f0eebe00fb72f12a3f7f6196837b6d4dc",
+    "head_blob": "f6721d4582b545954f4a90e58b3eb2366edc7826",
+    "index": "100644 f6721d4582b545954f4a90e58b3eb2366edc7826 0\tsrc/HotelOps.Api/Services/Authentication/IInitialCredentialTransactionParticipant.cs",
+    "working_blob": "f6721d4582b545954f4a90e58b3eb2366edc7826",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IPasswordCredentialService.cs",
+    "sha256": "2392436b1f22d1169036638ee680cb0dabc70b92dba2113c860261f4434824b6",
+    "head_blob": "edc4744bbe7b253ca341b27090dec61af7d13671",
+    "index": "100644 edc4744bbe7b253ca341b27090dec61af7d13671 0\tsrc/HotelOps.Api/Services/Authentication/IPasswordCredentialService.cs",
+    "working_blob": "edc4744bbe7b253ca341b27090dec61af7d13671",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ISqlSessionService.cs",
+    "sha256": "26141aad4bd3a1060b799483ccf207ba53fd882f13e0656601a100ed65d88f96",
+    "head_blob": "b09c7e785fd621daa046c13befb1fbb79885ab04",
+    "index": "100644 b09c7e785fd621daa046c13befb1fbb79885ab04 0\tsrc/HotelOps.Api/Services/Authentication/ISqlSessionService.cs",
+    "working_blob": "b09c7e785fd621daa046c13befb1fbb79885ab04",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ITemporaryCredentialService.cs",
+    "sha256": "b8156d2020745f414c9a75f3704934d1949887194242fbf98f02f0129bdf9e7c",
+    "head_blob": "89af97f9a4564e3fa5bf16a6ed431216b0a2ed42",
+    "index": "100644 89af97f9a4564e3fa5bf16a6ed431216b0a2ed42 0\tsrc/HotelOps.Api/Services/Authentication/ITemporaryCredentialService.cs",
+    "working_blob": "89af97f9a4564e3fa5bf16a6ed431216b0a2ed42",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/PasswordChangePolicy.cs",
+    "sha256": "f279dc8129daf92dddd77717ba99e55e2c5c521e1192d58b2d246c51739ced32",
+    "head_blob": "6faaf4d193db2033b6e78ef446802037eff19d8b",
+    "index": "100644 6faaf4d193db2033b6e78ef446802037eff19d8b 0\tsrc/HotelOps.Api/Services/Authentication/PasswordChangePolicy.cs",
+    "working_blob": "6faaf4d193db2033b6e78ef446802037eff19d8b",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/PasswordCredentialService.cs",
+    "sha256": "50facbbfde270eb1d0479eb4e6447ef9db44446b6e465fa5f8225b841b608333",
+    "head_blob": "842883e6e232242c01fc7fabab98522f632bdb0e",
+    "index": "100644 842883e6e232242c01fc7fabab98522f632bdb0e 0\tsrc/HotelOps.Api/Services/Authentication/PasswordCredentialService.cs",
+    "working_blob": "842883e6e232242c01fc7fabab98522f632bdb0e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ReauthenticationProofStore.cs",
+    "sha256": "3037a28d7e87886540ea40e873062d6d82c1aa1fe621ccc3bd650a1c25f83acf",
+    "head_blob": "0f9b2bf6a87e0c30fad1653e478d84b51b87a927",
+    "index": "100644 0f9b2bf6a87e0c30fad1653e478d84b51b87a927 0\tsrc/HotelOps.Api/Services/Authentication/ReauthenticationProofStore.cs",
+    "working_blob": "0f9b2bf6a87e0c30fad1653e478d84b51b87a927",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SessionCredential.cs",
+    "sha256": "ee587fc2b470c7abd2269a5afc6b5b39022179b6ba1647fc303bdeee89b8c083",
+    "head_blob": "afc4cabcceee278ab723f00a47f11a2cfe4f0dde",
+    "index": "100644 afc4cabcceee278ab723f00a47f11a2cfe4f0dde 0\tsrc/HotelOps.Api/Services/Authentication/SessionCredential.cs",
+    "working_blob": "afc4cabcceee278ab723f00a47f11a2cfe4f0dde",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "sha256": "f528086f260ee2a77736eaa3d04f3a6038eef436c0bcf211be8bd415c4995d76",
+    "head_blob": "ea06b224a1439bd39e52ac41aa448eaeba3c7077",
+    "index": "100644 ea06b224a1439bd39e52ac41aa448eaeba3c7077 0\tsrc/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "working_blob": "ea06b224a1439bd39e52ac41aa448eaeba3c7077",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SessionStoreUnavailableException.cs",
+    "sha256": "a592ef384c8a17308e0fab641363992407de591e8fac828178c0ad814637c9f2",
+    "head_blob": "34d106432744eebfc1faff95138a5a23b38b77be",
+    "index": "100644 34d106432744eebfc1faff95138a5a23b38b77be 0\tsrc/HotelOps.Api/Services/Authentication/SessionStoreUnavailableException.cs",
+    "working_blob": "34d106432744eebfc1faff95138a5a23b38b77be",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs",
+    "sha256": "0dd66b9b6a9b5e19c2a930b184563bd68e06e838271583372a0ea6b33c023e31",
+    "head_blob": "bfe5abcb1f2b8724b86a05c90aa77f3e4c1b56c3",
+    "index": "100644 bfe5abcb1f2b8724b86a05c90aa77f3e4c1b56c3 0\tsrc/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs",
+    "working_blob": "b61cec208a83cbe2bb554a71decf08869f2b5fb4",
+    "status": "M src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "sha256": "7227f5d33cb9a1981f4a4708c1884e6daa1cd3966249931fcc5c9df69df49325",
+    "head_blob": "8c8d6e6ea03ca3a22212ed8015d0b0f127bf0997",
+    "index": "100644 8c8d6e6ea03ca3a22212ed8015d0b0f127bf0997 0\tsrc/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "working_blob": "8c8d6e6ea03ca3a22212ed8015d0b0f127bf0997",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "sha256": "f39ce310a4b91d2bae53597da90c8cdd44bdcea0e0379eec49d77e9893f76b2e",
+    "head_blob": "7f2db93caaac6a6bd5d14e0a4c88e94a03eecc3e",
+    "index": "100644 7f2db93caaac6a6bd5d14e0a4c88e94a03eecc3e 0\tsrc/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "working_blob": "7f2db93caaac6a6bd5d14e0a4c88e94a03eecc3e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationSchema.cs",
+    "sha256": "e429b893ada3ecd5a5b8efbc2d9a3de0fe3f18f4e7db3336b9767263cbacd8fe",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "5b8a50a1e93a683288e10cbc7598361831b8da61",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/BranchAdministrationSchema.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "sha256": "ba03b74eb8e1f317e07714c4c723cc2809eb394f39885da61cb8c42b18cbca86",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "38c014177b07e43d7e1b6da029601c727df1b829",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+    "sha256": "2bfa288a2b5157ca3c2abaacad62d341d7e88cbc50791e1c3b9a09627b9ef3c2",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "e6cdbe5d3274d0da59208f101f4aafa8f80f6236",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "sha256": "589351f318e03a575b1a7f763cdc4744dd76d1cd222d0d5988ec0203e4d69f75",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "70314996403a09b1cd4e9efac84dab7d570c7e15",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+    "sha256": "22675d6639366f703543bb921392b093720383adbaa8d64bef0edc12edff4a81",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "81b752083173913c2767d634459643a77cbc834b",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "sha256": "21649003343219a8bba9b333b79c7ae5151c51ad4f2cc74d08bdf18a9b027e19",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "77a0d70927f979cfab37985a5684d92f0b2f2054",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "sha256": "80d6b7a06562b46a4f06ac418ddb522f7d29aa51ab22a36197d66c793fb9ad37",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "f9b9eb61cd6ce8236332f38072d88581ec75bcf8",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs",
+    "sha256": "95b3eafc0d8add7dd9c29ebb2d6714ccaa670fb388d40093f548f2fff25dd4fd",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "82e65bd99a77ead8e6fe121c4d7f303a30888e2f",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs",
+    "sha256": "d8e1020bb210364e64041029c65076ba9ea6910a772356d2c7e27af38a518ee4",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "ebab78320763c88d088fd0fec79ad7719e570420",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "sha256": "8fbf5e3207fa549ea2f695eb0921da4f2853c45f5d9b7042034d1265b8914696",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "0467a64c936a8dad12de60cae8272d680e01bfb9",
+    "status": "?? src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "sha256": "de513dd058efd8e4c1401d6103175fa0d3f3c59b83888385fc26295a6f4c3b76",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "52598584307496ddc512cc0e148e8d85e6cbc998",
+    "status": "?? src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Incidents/IIncidentService.cs",
+    "sha256": "01df2c035df1ec0a89a6c1d08cbdb5c15cc1852fb323362ba6989b58ee7ffc0d",
+    "head_blob": "303be22a3f38666f1bc92de69265b3b460599c14",
+    "index": "100644 303be22a3f38666f1bc92de69265b3b460599c14 0\tsrc/HotelOps.Api/Services/Incidents/IIncidentService.cs",
+    "working_blob": "303be22a3f38666f1bc92de69265b3b460599c14",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "sha256": "0c253d51b644101b4d3e4df6dd0652ae91588efd3babfb5b230897cb5f6d056c",
+    "head_blob": "d493fbd10c9ad3ca893ba7957a880e0230de9ddd",
+    "index": "100644 d493fbd10c9ad3ca893ba7957a880e0230de9ddd 0\tsrc/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "working_blob": "d493fbd10c9ad3ca893ba7957a880e0230de9ddd",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/IInventoryIssueCapacity.cs",
+    "sha256": "2f744c3867888ec5f7af6c6b7abe4070fa2774b5ff597d04abc7e5abc87f20d6",
+    "head_blob": "b8e6a9ac18be2b819b31578358cee16b922e7c6c",
+    "index": "100644 b8e6a9ac18be2b819b31578358cee16b922e7c6c 0\tsrc/HotelOps.Api/Services/Inventory/IInventoryIssueCapacity.cs",
+    "working_blob": "b8e6a9ac18be2b819b31578358cee16b922e7c6c",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/IInventoryIssuePosting.cs",
+    "sha256": "40d69e1375e74bfe292c9fe2803a296cef03a5fab09a90762879c57b80da24ba",
+    "head_blob": "964095bf2013aa88c011563019fa9bd570a38ffd",
+    "index": "100644 964095bf2013aa88c011563019fa9bd570a38ffd 0\tsrc/HotelOps.Api/Services/Inventory/IInventoryIssuePosting.cs",
+    "working_blob": "964095bf2013aa88c011563019fa9bd570a38ffd",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/IInventoryReceiptPosting.cs",
+    "sha256": "b926a65fba85cc03dc01d1f9dc6e1d7c391668eda06ab3f0bf54b5fd15845516",
+    "head_blob": "7026f8bcb95cc5c624c3a5e0c314acf4b3e331d0",
+    "index": "100644 7026f8bcb95cc5c624c3a5e0c314acf4b3e331d0 0\tsrc/HotelOps.Api/Services/Inventory/IInventoryReceiptPosting.cs",
+    "working_blob": "7026f8bcb95cc5c624c3a5e0c314acf4b3e331d0",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryAccess.cs",
+    "sha256": "78e229141af16a1257bbc1035c4592464446a752a2a2b6838b609f3275e64ac3",
+    "head_blob": "2d428b2cdc7d6d9a90e3a0850bfb980c0a9c218a",
+    "index": "100644 2d428b2cdc7d6d9a90e3a0850bfb980c0a9c218a 0\tsrc/HotelOps.Api/Services/Inventory/InventoryAccess.cs",
+    "working_blob": "2d428b2cdc7d6d9a90e3a0850bfb980c0a9c218a",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "sha256": "816c029745501e5d395bcda1dc7fffa82034560fca1f94bc68ebb301a18b3b69",
+    "head_blob": "2c7a03131cfdf7196bb32380635ae3d5bb00ff90",
+    "index": "100644 2c7a03131cfdf7196bb32380635ae3d5bb00ff90 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "working_blob": "2c7a03131cfdf7196bb32380635ae3d5bb00ff90",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "sha256": "67a17d28da8cf33abe270eae43988269ecd9155b2a07fbf0d21a9c39a35119b2",
+    "head_blob": "835955afdd5d13b3c8c4fc6daddb4d0b7686aae0",
+    "index": "100644 835955afdd5d13b3c8c4fc6daddb4d0b7686aae0 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "working_blob": "835955afdd5d13b3c8c4fc6daddb4d0b7686aae0",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.IssueCapacity.cs",
+    "sha256": "60d3bf83dbc02b2f7df2e0ed9ecf378362291a551d87aded0e2cb69c2d99eccb",
+    "head_blob": "3fc48fdb18eee2554c56e9810b6b5e4ed4d4ceb4",
+    "index": "100644 3fc48fdb18eee2554c56e9810b6b5e4ed4d4ceb4 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.IssueCapacity.cs",
+    "working_blob": "3fc48fdb18eee2554c56e9810b6b5e4ed4d4ceb4",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Issues.cs",
+    "sha256": "3dcdf7960e38bd3e4aa1da598200650936e7e5ff952f204fbdebb3de23c194b2",
+    "head_blob": "8b589639f11480bbacdc54ebf807390bcf4c3d0f",
+    "index": "100644 8b589639f11480bbacdc54ebf807390bcf4c3d0f 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.Issues.cs",
+    "working_blob": "8b589639f11480bbacdc54ebf807390bcf4c3d0f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "sha256": "bbcec08905fe2b3b4745b835431c098d6f02284dd0a0e255c4218876205e95f7",
+    "head_blob": "ea54cf850a31ab8359763706c465489145eec254",
+    "index": "100644 ea54cf850a31ab8359763706c465489145eec254 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "working_blob": "ea54cf850a31ab8359763706c465489145eec254",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "sha256": "e4acdf87bb02f329fc06079be5e6fdd267949fca65c2b525ed7d2af85edb694b",
+    "head_blob": "1dc661b23ab26afeed51f95220d1df1f26d9005f",
+    "index": "100644 1dc661b23ab26afeed51f95220d1df1f26d9005f 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "working_blob": "1dc661b23ab26afeed51f95220d1df1f26d9005f",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.ReadScope.cs",
+    "sha256": "6033738681e001692571674fc2160bca31ae3a7b527f287fd802baf84cd10f6a",
+    "head_blob": "9dc9ccd2c3c2545c0e0c83d620c17a57f09fc538",
+    "index": "100644 9dc9ccd2c3c2545c0e0c83d620c17a57f09fc538 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.ReadScope.cs",
+    "working_blob": "9dc9ccd2c3c2545c0e0c83d620c17a57f09fc538",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.ReceiptIntegration.cs",
+    "sha256": "c0c11ec3cfe606350e6421345c8729cda8e004140208313ba8c6d0b919aa999f",
+    "head_blob": "65abe153fbe8f06a0adeb71887489727b4184301",
+    "index": "100644 65abe153fbe8f06a0adeb71887489727b4184301 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.ReceiptIntegration.cs",
+    "working_blob": "65abe153fbe8f06a0adeb71887489727b4184301",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "sha256": "b7b66255bef6c715f617039252530df5e7adb2a92a8e56a6af86a464d2ea21ff",
+    "head_blob": "b6aefbe3e0f86f21f3dbd3aa379de000c3e344a0",
+    "index": "100644 b6aefbe3e0f86f21f3dbd3aa379de000c3e344a0 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "working_blob": "b6aefbe3e0f86f21f3dbd3aa379de000c3e344a0",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "sha256": "8d74f714682ca980b93f5a1f48f3ab2be4b45d4ff83e47627e9e5da5bb61fea9",
+    "head_blob": "e98f16ec8f7297b47db68cc9a88617dc9fe8ba6e",
+    "index": "100644 e98f16ec8f7297b47db68cc9a88617dc9fe8ba6e 0\tsrc/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "working_blob": "e98f16ec8f7297b47db68cc9a88617dc9fe8ba6e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/IMaintenanceWorkService.cs",
+    "sha256": "adce72d9ce5d0c67280d7c65e1f305fb4de8cf390b434ae4cdf9433e3c2b7c6f",
+    "head_blob": "18f2ab971158cb150a16ff6ac5db67106441ed66",
+    "index": "100644 18f2ab971158cb150a16ff6ac5db67106441ed66 0\tsrc/HotelOps.Api/Services/Maintenance/IMaintenanceWorkService.cs",
+    "working_blob": "18f2ab971158cb150a16ff6ac5db67106441ed66",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Auditing.cs",
+    "sha256": "7555c8f7cb3dec35b3279f3bdc7e36347a4a0922cd4c17adc7f1b87ebcbcf31a",
+    "head_blob": "82cb8ac0a1030eef03fd54eb75323aa3084ef359",
+    "index": "100644 82cb8ac0a1030eef03fd54eb75323aa3084ef359 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Auditing.cs",
+    "working_blob": "82cb8ac0a1030eef03fd54eb75323aa3084ef359",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "sha256": "da33ae6257992473cc60b854b0025b0be22c92665c5848cbe8d0e686000b76d4",
+    "head_blob": "f9d886359aa002cd02d0c1abaf288545d678f13d",
+    "index": "100644 f9d886359aa002cd02d0c1abaf288545d678f13d 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "working_blob": "f9d886359aa002cd02d0c1abaf288545d678f13d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "sha256": "d39fc632b3dae39e0728d844584e5935ae76e7a574895dfe583825375288e66b",
+    "head_blob": "000e7de2995aedc68618855b98b52c544a8bd521",
+    "index": "100644 000e7de2995aedc68618855b98b52c544a8bd521 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "working_blob": "000e7de2995aedc68618855b98b52c544a8bd521",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Logs.cs",
+    "sha256": "776d2dfc4c6a5ea351628d73668f3f129e3b7ded3978df78d141041d9ff19a53",
+    "head_blob": "b65f810af28a45cff31f2c40ba8c99048b044bef",
+    "index": "100644 b65f810af28a45cff31f2c40ba8c99048b044bef 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Logs.cs",
+    "working_blob": "b65f810af28a45cff31f2c40ba8c99048b044bef",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "sha256": "8fb61a55f22dc9b03dc04af0cf615f84f044652d9f0df78ebbb5eae1ae9de520",
+    "head_blob": "c2361f7b025820973402f00df635ecc9408e00fa",
+    "index": "100644 c2361f7b025820973402f00df635ecc9408e00fa 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "working_blob": "c2361f7b025820973402f00df635ecc9408e00fa",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Queries.cs",
+    "sha256": "7ab112ffdb2a1667c68344c335d7f676cdb997ceafa78747b8b0c8806a379284",
+    "head_blob": "8ea12b23896e63e6931356c019bb2b7158e6a476",
+    "index": "100644 8ea12b23896e63e6931356c019bb2b7158e6a476 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Queries.cs",
+    "working_blob": "8ea12b23896e63e6931356c019bb2b7158e6a476",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Workflow.cs",
+    "sha256": "f8bd864228dbd907fd8d2ca46a33304e943ff95af783b94846617429a221e76c",
+    "head_blob": "781e463620fa58bc58001873a2e97395001b8ed5",
+    "index": "100644 781e463620fa58bc58001873a2e97395001b8ed5 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Workflow.cs",
+    "working_blob": "781e463620fa58bc58001873a2e97395001b8ed5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.cs",
+    "sha256": "e7f03dae8bdb2e9f7caa465fb713a14454e5262131158aaa4e193ae1d23f57f4",
+    "head_blob": "cafe70b1245e232b00a9e76b9c460648f55e40f5",
+    "index": "100644 cafe70b1245e232b00a9e76b9c460648f55e40f5 0\tsrc/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.cs",
+    "working_blob": "cafe70b1245e232b00a9e76b9c460648f55e40f5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "sha256": "c6c2ef26dbed92fab2343638164af2fea4c51d4808cf82c1e8e6e0e2449a3232",
+    "head_blob": "6cf44a5cbdfa4917761fcab6277505ecadf9faa5",
+    "index": "100644 6cf44a5cbdfa4917761fcab6277505ecadf9faa5 0\tsrc/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "working_blob": "6cf44a5cbdfa4917761fcab6277505ecadf9faa5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "sha256": "a01c86fd115003232fd3868fdf657231f455e7a470213d49422cbde434293b08",
+    "head_blob": "3377a4ed8bf44bfa3d8c2e5e130a7e01c0f69022",
+    "index": "100644 3377a4ed8bf44bfa3d8c2e5e130a7e01c0f69022 0\tsrc/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "working_blob": "3377a4ed8bf44bfa3d8c2e5e130a7e01c0f69022",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "sha256": "fcf92bde294a304c81efe914e29c98e814f1cb351ad67cdb0e913e5543a4ad80",
+    "head_blob": "cf3e8a7f0b174576003400c2848297eeec94cf58",
+    "index": "100644 cf3e8a7f0b174576003400c2848297eeec94cf58 0\tsrc/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "working_blob": "cf3e8a7f0b174576003400c2848297eeec94cf58",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "sha256": "96ed23a0a33ccedab4d845d09e8821207e5fd4f525ee3ba305ad05d363f1d4c6",
+    "head_blob": "6859bb6e57e64d4f4211f539bdae1f323e1cd255",
+    "index": "100644 6859bb6e57e64d4f4211f539bdae1f323e1cd255 0\tsrc/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "working_blob": "6859bb6e57e64d4f4211f539bdae1f323e1cd255",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "sha256": "bf27e5f1d7ef5838d93a0682b14c1431c0a4c42a34b4576e7d89f725039f6f9a",
+    "head_blob": "d123bbb28bb1782583b655ef9ef1661265c8d571",
+    "index": "100644 d123bbb28bb1782583b655ef9ef1661265c8d571 0\tsrc/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "working_blob": "d123bbb28bb1782583b655ef9ef1661265c8d571",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "sha256": "9f7505fbf8793809cb2a1828cf9aa1e565834c53bd15804790844fe500b21eca",
+    "head_blob": "b743fbde97568ccc6979925130bc5e5abcda3304",
+    "index": "100644 b743fbde97568ccc6979925130bc5e5abcda3304 0\tsrc/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "working_blob": "b743fbde97568ccc6979925130bc5e5abcda3304",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/AdminCredentialResetWorkflow.cs",
+    "sha256": "fe6fa0e22396cc8ff859bbe882d438b39fc402fe0fb5ffd259912d5208a513c1",
+    "head_blob": "08c09dc7a6217b09187f1a29fdf0aeaf4b76ecd7",
+    "index": "100644 08c09dc7a6217b09187f1a29fdf0aeaf4b76ecd7 0\tsrc/HotelOps.Api/Services/Users/AdminCredentialResetWorkflow.cs",
+    "working_blob": "08c09dc7a6217b09187f1a29fdf0aeaf4b76ecd7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+    "sha256": "407e07aa7d9379ae53f32b13c5af3f93b5cf0d49affc26ccbf46550cfe4e5927",
+    "head_blob": "84af91813f7a4e7fceb8760108d082e3a0f90eaa",
+    "index": "100644 84af91813f7a4e7fceb8760108d082e3a0f90eaa 0\tsrc/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+    "working_blob": "84af91813f7a4e7fceb8760108d082e3a0f90eaa",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/Dev1DeactivationPredicates.cs",
+    "sha256": "02ad51f6c1139b13441faaf4427a8d48bc289e3dd2da5ccf6bfa01733405dbf2",
+    "head_blob": "b6eb92a2156eb3cbd1377503bb7e081c758885b6",
+    "index": "100644 b6eb92a2156eb3cbd1377503bb7e081c758885b6 0\tsrc/HotelOps.Api/Services/Users/Dev1DeactivationPredicates.cs",
+    "working_blob": "b6eb92a2156eb3cbd1377503bb7e081c758885b6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "sha256": "1db3b70bad1bca14da3e1f5f5aee14a2b2e634c5b26b77bbb672f19c75a716ca",
+    "head_blob": "a74409e45d4e7fe8f62e93bad342726aac136ba6",
+    "index": "100644 a74409e45d4e7fe8f62e93bad342726aac136ba6 0\tsrc/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "working_blob": "a74409e45d4e7fe8f62e93bad342726aac136ba6",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/IUserDirectoryService.cs",
+    "sha256": "a41e1e47f0c5997c0b7f602d027aca499816897132accc197953fc8495f805f6",
+    "head_blob": "8a64f5ddcdeb523f97da430941c164db02cd6182",
+    "index": "100644 8a64f5ddcdeb523f97da430941c164db02cd6182 0\tsrc/HotelOps.Api/Services/Users/IUserDirectoryService.cs",
+    "working_blob": "8a64f5ddcdeb523f97da430941c164db02cd6182",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "sha256": "abf83fc95abfab3d1b1ca1f17141d03e77dd8f8bb22daea19704e9c90e6eaaa5",
+    "head_blob": "2e6e82f4727bd2f98bba0d3fa18ae37fcbc6efa2",
+    "index": "100644 2e6e82f4727bd2f98bba0d3fa18ae37fcbc6efa2 0\tsrc/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "working_blob": "2e6e82f4727bd2f98bba0d3fa18ae37fcbc6efa2",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "sha256": "18e0a812c7723f21ea85f1b9fb4d159d3a2dffbd7a1d5b891ff0d36282dc1894",
+    "head_blob": "206b80c12fea6c59c92736f442676561cf7fdd45",
+    "index": "100644 206b80c12fea6c59c92736f442676561cf7fdd45 0\tsrc/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "working_blob": "206b80c12fea6c59c92736f442676561cf7fdd45",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountStatusAccess.cs",
+    "sha256": "bfdce0fc75581a0302c3b18c8378d5a46981f1671228c69485b6f0e070d4e067",
+    "head_blob": "d7c251c8fb0fc0f226732904398aace0888c5c6e",
+    "index": "100644 d7c251c8fb0fc0f226732904398aace0888c5c6e 0\tsrc/HotelOps.Api/Services/Users/UserAccountStatusAccess.cs",
+    "working_blob": "d7c251c8fb0fc0f226732904398aace0888c5c6e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserBranchAssignmentAccess.cs",
+    "sha256": "f49bf56284ac1042e543eccafec0e2887231a244d5fffdbee35746e2452a618d",
+    "head_blob": "e5eab3e35453dfe0dd2c6856eec5b296c57a6f28",
+    "index": "100644 e5eab3e35453dfe0dd2c6856eec5b296c57a6f28 0\tsrc/HotelOps.Api/Services/Users/UserBranchAssignmentAccess.cs",
+    "working_blob": "e5eab3e35453dfe0dd2c6856eec5b296c57a6f28",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "sha256": "82b3e9d45b60b4e89f9983521395b80d502612908a58a97bd806c8383ab4db1a",
+    "head_blob": "e6dc5ad4bf9fbec5036a9f1e2fde915e3adcba35",
+    "index": "100644 e6dc5ad4bf9fbec5036a9f1e2fde915e3adcba35 0\tsrc/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "working_blob": "e6dc5ad4bf9fbec5036a9f1e2fde915e3adcba35",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "sha256": "eea7f632416b63b161f86af33546a68021ff6cd3ec01cc8538d75c1d533fe231",
+    "head_blob": "bf88dbcf7ad8376a19ecb779bf96000bccdb215e",
+    "index": "100644 bf88dbcf7ad8376a19ecb779bf96000bccdb215e 0\tsrc/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "working_blob": "bf88dbcf7ad8376a19ecb779bf96000bccdb215e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserDirectoryQueries.cs",
+    "sha256": "e50a8dfb11d916a989ee81981796db30fba6e66088808bec53d1cf9449a59845",
+    "head_blob": "5c859cc916f42ccc233968a59199f903d7a528a5",
+    "index": "100644 5c859cc916f42ccc233968a59199f903d7a528a5 0\tsrc/HotelOps.Api/Services/Users/UserDirectoryQueries.cs",
+    "working_blob": "5c859cc916f42ccc233968a59199f903d7a528a5",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserDirectoryService.cs",
+    "sha256": "07e321dae324629e7b95957330f3b42f33ffa544cb915e435d347765535c33a6",
+    "head_blob": "78a28766723b65484c5c81fc6fcdccb8320fe39d",
+    "index": "100644 78a28766723b65484c5c81fc6fcdccb8320fe39d 0\tsrc/HotelOps.Api/Services/Users/UserDirectoryService.cs",
+    "working_blob": "78a28766723b65484c5c81fc6fcdccb8320fe39d",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "sha256": "f1ee64f3b6713dc18568f4c095ad94000ccfa47f146982a609e20f75ea27a5a6",
+    "head_blob": "aef6738cf6e387738a0058fd3ff9ef88b39c9e1e",
+    "index": "100644 aef6738cf6e387738a0058fd3ff9ef88b39c9e1e 0\tsrc/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "working_blob": "aef6738cf6e387738a0058fd3ff9ef88b39c9e1e",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserProfileAccess.cs",
+    "sha256": "9fb2eb08088f7397f7faa920c854c4022592d5c8c3d7e2db62145d11b6f3e974",
+    "head_blob": "7a06aad07a1120978dd24971641308793a21aef7",
+    "index": "100644 7a06aad07a1120978dd24971641308793a21aef7 0\tsrc/HotelOps.Api/Services/Users/UserProfileAccess.cs",
+    "working_blob": "7a06aad07a1120978dd24971641308793a21aef7",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "sha256": "44bff2e854241990bd5ba83ec3cfe396e59cdae16f600ccf06924ba7c96ec41c",
+    "head_blob": "2dd66f754b0da693801591bc70692d20ce44f7af",
+    "index": "100644 2dd66f754b0da693801591bc70692d20ce44f7af 0\tsrc/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "working_blob": "2dd66f754b0da693801591bc70692d20ce44f7af",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "sha256": "a0d067d01386b7d5ae3a97ea9fc2b09eb24fe704af54bf830980fef3d46d44c2",
+    "head_blob": "a2fb39bde5ac23cfef888309b3ed3d934f5a7a55",
+    "index": "100644 a2fb39bde5ac23cfef888309b3ed3d934f5a7a55 0\tsrc/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "working_blob": "a2fb39bde5ac23cfef888309b3ed3d934f5a7a55",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserRoleDelegationPolicy.cs",
+    "sha256": "0a21a2f32f51e0d9cdbff13a445fceb0de515e069e550cd084627e5848d7736d",
+    "head_blob": "6bc9b1844bed66929392a07fb849ab310ac1af62",
+    "index": "100644 6bc9b1844bed66929392a07fb849ab310ac1af62 0\tsrc/HotelOps.Api/Services/Users/UserRoleDelegationPolicy.cs",
+    "working_blob": "6bc9b1844bed66929392a07fb849ab310ac1af62",
+    "status": "HEAD_INDEX_WORKTREE_IDENTICAL"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+    "sha256": "ff148586ae64fd9090b8e802d629435c1ead486908ffcbdd3dd7ba24a2b6c2fb",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "7f02696530fa587454f81dfaf3a4e4467a2bdf16",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs",
+    "sha256": "975eb7bb337bb2dd919412c79478ee54d9c7e9c2f3f181caf57c380d318a99d7",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "27e7ccf402f1db09beebcc57af711b582cb6455a",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs",
+    "sha256": "e681f6b007f0172a80eae517c30737f2b1030211f029b82554e4a19f3898caf5",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "9a24e32157dae73485141aed8056722045fc442f",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "sha256": "9341fa79ed19a327c792ad666490759a54fbe2f549a0bfb33b859808a93f75ad",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "00727a65ed2ef1fd7c5bd6b86fe7d1c5c10e7732",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs",
+    "sha256": "48eede10891487142c552b7764fc84bcf035f8d780ea28f95f127629a11ca839",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "e9402540f80073fd2d6ae5d5cebb299acfe576f3",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkdayPermissionResourceResolver.cs",
+    "sha256": "cf96c5a7d998dd66e41e8c6e5fbb83836974fdf63745059418052ab3a9c49da6",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "c672416829ccd208ab7eddecfdc1b53e87c1a5db",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/WorkdayPermissionResourceResolver.cs"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "sha256": "3ef0e458fce07660c5b07a330ca9fc9b59560b64824dd614fa201d4e4dd1a0f2",
+    "head_blob": null,
+    "index": "",
+    "working_blob": "0e8df24f9e1255bb6f4c761c8659100ec8e8f308",
+    "status": "?? src/HotelOps.Api/Services/WorkTime/WorkdayService.cs"
+  }
+]

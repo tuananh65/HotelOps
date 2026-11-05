@@ -1,0 +1,29 @@
+5: namespace HotelOps.Api.Services.Maintenance;
+6: 
+7: public sealed partial class MaintenanceWorkService
+8: {
+9:     private static Dictionary<string, object?> WorkSnapshot(MaintenanceWork work) => new()
+10:     {
+12:         ["work_no"] = work.WorkNo,
+13:         ["incident_id"] = work.IncidentId,
+14:         ["assignee_id"] = work.AssigneeId,
+15:         ["department_id"] = work.DepartmentId,
+16:         ["title"] = work.Title,
+17:         ["instruction"] = work.Instruction,
+18:         ["priority_id"] = work.PriorityId,
+19:         ["status"] = work.Status,
+20:         ["planned_start_at"] = work.PlannedStartAt,
+21:         ["planned_end_at"] = work.PlannedEndAt,
+22:         ["actual_start_at"] = work.ActualStartAt,
+31:     private static Dictionary<string, object?> IncidentSnapshot(Incident incident) => new()
+32:     {
+33:         ["status"] = incident.Status,
+34:         ["resolved_at"] = incident.ResolvedAt,
+35:         ["closed_at"] = incident.ClosedAt,
+36:         ["closure_note"] = incident.ClosureNote
+48:         {
+49:             BranchId = branchId,
+50:             ActorUserId = actorId,
+51:             EntityType = entityType,
+52:             EntityId = id.ToString(CultureInfo.InvariantCulture),
+53:             Action = before is null ? "CREATE" : "UPDATE",

@@ -1,0 +1,47 @@
+$ErrorActionPreference='Stop'
+$dir=(Get-Content obj/task60-preflight-path.local.txt).Trim()
+$before=Get-Content (Join-Path $dir 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$changed=@(foreach($f in $before.Files){if(-not(Test-Path -LiteralPath $f.Path) -or (Get-FileHash -LiteralPath $f.Path -Algorithm SHA256).Hash -ne $f.SHA256){$f.Path}})
+if($changed.Count){throw ('Preexisting content changed: '+($changed -join ', '))}
+if((git rev-parse HEAD)-ne$before.Head -or (git branch --show-current)-ne$before.Branch){throw 'HEAD/branch changed'}
+if(Compare-Object $before.IndexEntries @(git ls-files --stage)){throw 'Index changed'}
+if(Compare-Object $before.Worktrees @(git worktree list --porcelain)){throw 'Worktrees changed'}
+$new=@('src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs',
+    'src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs',
+    'scripts/verification/RoomDirectory/Program.cs',
+    'scripts/verification/RoomDirectory/RoomDirectory.Verification.csproj',
+    'scripts/verification/RoomDirectory/README.md',
+    'scripts/verification/RoomDirectory/task60-sql-accepted.local.json')
+$expected=@($before.Files.Path|ForEach-Object{$_.Replace('\','/')})+$new
+$actual=@(git status --porcelain=v1 --untracked-files=all|ForEach-Object{$_.Substring(3).Replace('\','/')})
+if(Compare-Object $expected $actual){throw 'Unexpected changed file set'}
+foreach($p in $new|Where-Object {$_-notlike'*.json'}){
+    $s=[IO.File]::ReadAllText((Join-Path (Get-Location) $p),[Text.Encoding]::UTF8)
+    if($s-match'(?m)[ \t]+$' -or -not$s.EndsWith("`n")){throw ('Whitespace issue: '+$p)}
+}
+$report='scripts/verification/RoomDirectory/README.md'
+$content=Get-Content $report -Raw -Encoding UTF8
+$links=@([regex]::Matches($content,'\[[^\]]+\]\(([^)]+)\)'))
+foreach($l in $links){if(-not(Test-Path -LiteralPath (Join-Path (Split-Path $report) $l.Groups[1].Value))){throw ('Missing local link '+$l.Groups[1].Value)}}
+$receipt=Get-Content scripts/verification/RoomDirectory/task60-sql-accepted.local.json -Raw -Encoding UTF8|ConvertFrom-Json
+if($receipt.result-ne'PASS' -or $receipt.checks.Count-ne117 -or $receipt.dmvConfirmedWaits.Count-ne11){throw 'SQL acceptance mismatch'}
+$suiteCounts=@{PermissionService=43;CurrentUserAccessor=14;Authorization=61;ResourceAuthorization=49}
+foreach($name in $suiteCounts.Keys){
+    $log=Get-Content ('obj/task60-'+$name+'-regression.log') -Raw -Encoding UTF8
+    if($log-match'FAIL:' -or $log-notmatch('PASS:.*'+$suiteCounts[$name]+'.*checks')){throw ('Regression mismatch '+$name)}
+}
+$errorPolicy=$ErrorActionPreference; $ErrorActionPreference='Continue'
+$diff=@(git diff --check 2>&1|ForEach-Object{"$_"}); $diffExit=$LASTEXITCODE
+$cached=@(git diff --cached --check 2>&1|ForEach-Object{"$_"}); $cachedExit=$LASTEXITCODE
+$ErrorActionPreference=$errorPolicy
+if($diffExit-ne0 -or $cachedExit-ne0){throw 'Diff check failed'}
+$hashes=@(foreach($p in $new){[ordered]@{Path=$p;SHA256=(Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash}})
+$result=[ordered]@{Result='PASS';ExistingFilesPreserved=$before.Files.Count;IndexUnchanged=$true;HeadUnchanged=$true;
+    WorktreesUnchanged=$true;AddedFiles=$new;SourceAndEvidenceHashes=$hashes;LinkedFiles=$links.Count;
+    SqlAssertions=$receipt.checks.Count;DmvConfirmedWaits=$receipt.dmvConfirmedWaits.Count;AuthorizationRegression=$suiteCounts;
+    DiffCheckExit=$diffExit;CachedDiffCheckExit=$cachedExit;DiffNotices=$diff;
+    Build='PASS: dotnet build HotelOps.slnx; NU1900 feed warnings; no C# errors/warnings';
+    DotnetTest='exit0, no discovered test projects; actual verification in SQL/authorization harnesses';
+    HttpUc023='NOT RUN; no endpoint/DI registered';ProductionDatabaseAccess='NONE';Uc023='PARTIAL'}
+$result|ConvertTo-Json -Depth 7|Set-Content obj/task60-validation.local.json -Encoding UTF8
+[pscustomobject]$result|Select-Object Result,ExistingFilesPreserved,LinkedFiles,SqlAssertions,DmvConfirmedWaits,DiffCheckExit,CachedDiffCheckExit,Uc023|ConvertTo-Json

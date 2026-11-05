@@ -1,0 +1,19 @@
+param([Parameter(Mandatory=$true)][string]$Role)
+$ErrorActionPreference='Stop'
+$path='obj/task64-trial-'+$Role+'.local.txt'
+if(Test-Path -LiteralPath $path){throw 'Trial receipt already exists; preserve and choose a new role/name explicitly'}
+$name='HotelOps_Canonical_'+[DateTime]::UtcNow.ToString('yyyyMMdd_HHmmss')+'_'+[guid]::NewGuid().ToString('N').Substring(0,8)+'_Fresh'
+$name|Set-Content $path
+& scripts/verification/UserDirectory/Prepare-Database.ps1 -Database $name
+$connection=New-Object System.Data.SqlClient.SqlConnection "Data Source=localhost\SQLEXPRESS;Initial Catalog=$name;Integrated Security=True;TrustServerCertificate=True;Connect Timeout=5"
+try{
+    $connection.OpenAsync().GetAwaiter().GetResult()
+    $command=$connection.CreateCommand(); $command.CommandTimeout=30
+    $command.CommandText='SELECT CONVERT(nvarchar(128),@@SERVERNAME)'
+    if($command.ExecuteScalarAsync().GetAwaiter().GetResult() -cne 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS'){throw 'Wrong SQL instance'}
+    $command.CommandText=[IO.File]::ReadAllText((Join-Path (Get-Location) 'scripts/verification/UserProfileUpdate/rowversion-forward.sql'))
+    [void]$command.ExecuteNonQueryAsync().GetAwaiter().GetResult()
+    'PASS: unchanged approved guarded rowversion prerequisite applied: '+$name
+}finally{$connection.Dispose()}
+
+

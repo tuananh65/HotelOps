@@ -1,0 +1,34 @@
+9: 
+10: [ApiController]
+11: [Route("api/users")]
+12: [Authorize]
+13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+14: public sealed class UserProfileController(UserProfileService profiles, UserProfileAccess access) : ControllerBase
+15: {
+16:     [HttpGet("{userId}/profile")]
+17:     public async Task<ActionResult<UserProfileDto>> Read([FromRoute, Range(1, long.MaxValue)] long userId, CancellationToken ct)
+18:         => Respond(await profiles.ReadAsync(userId, ct));
+19: 
+20:     [HttpPatch("{userId}")]
+21:     public async Task<ActionResult<UserProfileDto>> Patch([FromRoute, Range(1, long.MaxValue)] long userId,
+22:         [FromBody] JsonElement body, CancellationToken ct)
+23:     {
+24:         if (!await access.CanManageAsync(userId, ct)) return Forbid();
+35:     }
+36: 
+37:     private ActionResult<UserProfileDto> Respond(UserProfileResult result)
+38:     {
+39:         switch (result.Status)
+40:         {
+41:             case UserProfileStatus.Success:
+42:                 Response.Headers.ETag = "\"" + Convert.ToHexString(result.Version!) + "\"";
+43:                 return Ok(result.Profile);
+44:             case UserProfileStatus.Forbidden: return Forbid();
+45:             case UserProfileStatus.NotFound: return Problem(statusCode: 404, title: "User account not found");
+46:             case UserProfileStatus.Stale: return Problem(statusCode: 412, title: "Profile version changed; reload before updating");
+47:             case UserProfileStatus.EmailInUse: return Problem(statusCode: 409, title: "Email is already in use");
+48:             case UserProfileStatus.LastAdministrator: return Problem(statusCode: 409, title: "LAST_DURABLE_ADMIN");
+49:             case UserProfileStatus.SerializationUnavailable: return Problem(statusCode: 503, title: "GLOBAL_ADMIN_SERIALIZATION_UNAVAILABLE");
+50:             default: throw new InvalidOperationException("Unknown profile outcome.");
+51:         }
+52:     }

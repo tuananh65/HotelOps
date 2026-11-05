@@ -1,0 +1,45 @@
+1: namespace HotelOps.Api.Security.Authorization;
+2: 
+3: public enum PermissionDecision { Denied, Granted, Unauthenticated, Restricted, ResourceContextRequired, Unavailable, InvalidRequest }
+4: 
+5: /// <summary>A scope decision, not approval of workflow transitions or separation-of-duties rules.</summary>
+6: public readonly record struct PermissionEvaluation(PermissionDecision Decision)
+7: {
+8:     public bool IsGranted => Decision == PermissionDecision.Granted;
+9: }
+10: 
+11: public interface IPermissionService
+12: {
+13:     /// <summary>Only a global ALL grant can satisfy this check. Not resource authorization.</summary>
+14:     Task<PermissionEvaluation> EvaluateGlobalAsync(string permissionCode, CancellationToken cancellationToken);
+15:     /// <summary>Validates branch access in SQL. Does not establish a resource's branch or ownership.</summary>
+16:     Task<PermissionEvaluation> EvaluateBranchAsync(string permissionCode, long branchId, CancellationToken cancellationToken);
+17:     /// <summary>Requires a backend resolver for this permission/resource pair, including for ALL grants.</summary>
+18:     Task<PermissionEvaluation> EvaluateResourceAsync(string permissionCode, PermissionResource resource, CancellationToken cancellationToken);
+19: }
+20: 
+21: public sealed record PermissionResource(string ResourceType, long ResourceId);
+22: 
+23: /// <summary>Produced only by trusted backend adapters, never model-bound from request data.</summary>
+24: public sealed record VerifiedPermissionResource(long BranchId, bool HasOwnership);
+25: 
+26: public interface IPermissionResourceResolver
+27: {
+28:     /// <summary>
+29:     /// Load the resource from an authoritative store, verify the permission/resource-type binding,
+31:     /// Return null if the rule, resource or binding cannot be established. Never echo client ownership.
+32:     /// </summary>
+33:     Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode, PermissionResource resource,
+34:         long currentUserId, CancellationToken cancellationToken);
+35: }
+36: 
+37: public sealed class UnresolvedPermissionResourceResolver : IPermissionResourceResolver
+38: {
+39:     public Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode, PermissionResource resource,
+40:         long currentUserId, CancellationToken cancellationToken)
+41:     {
+42:         cancellationToken.ThrowIfCancellationRequested();
+43:         return Task.FromResult<VerifiedPermissionResource?>(null);
+44:     }
+45: }
+46: 

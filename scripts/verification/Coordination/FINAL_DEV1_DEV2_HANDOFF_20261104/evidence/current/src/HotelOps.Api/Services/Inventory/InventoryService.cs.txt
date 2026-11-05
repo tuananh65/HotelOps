@@ -1,0 +1,114 @@
+11: namespace HotelOps.Api.Services.Inventory;
+12: 
+13: public sealed partial class InventoryService(HotelOpsDbContext db)
+14: {
+15:     private const decimal QuantityMax = 999999999999999.999m;
+16:     private static readonly string[] TerminalDocuments = ["POSTED", "REVERSED", "CANCELLED", "RECEIVED"];
+19: 
+20:     private static ValidationException Invalid(string message) => new(message);
+21:     private async Task Save(CancellationToken ct)
+22:     {
+23:         try { await db.SaveChangesAsync(ct); }
+24:         catch (DbUpdateException exception) when (exception.InnerException is Microsoft.Data.SqlClient.SqlException sql &&
+25:             sql.Errors.Cast<Microsoft.Data.SqlClient.SqlError>().Any(error => error.Number is 2601 or 2627 &&
+26:                 new[] { ("inventory_items", "UQ__inventor__4A67201E"), ("units_of_measure", "UQ__units_of__31E2176B"),
+33:         }
+34:     }
+35:     private static string Required(string? text, string field, int max = int.MaxValue)
+36:     {
+37:         var value = text?.Trim();
+38:         if (string.IsNullOrEmpty(value) || value.Length > max)
+40:         return value;
+41:     }
+42:     private static string Reason(string? value) => Required(value, "Reason").Length >= 3
+43:         ? value!.Trim() : throw Invalid("A meaningful reason of at least 3 characters is required.");
+44:     private static decimal Qty(decimal value, bool signed = false)
+45:     {
+68:         return ((int)offset, page.PageSize);
+69:     }
+70:     private async Task Gate(string resource, CancellationToken ct)
+71:     {
+72:         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Inventory lock requires a transaction.");
+73:         using var command = db.Database.GetDbConnection().CreateCommand();
+74:         command.Transaction = db.Database.CurrentTransaction.GetDbTransaction();
+75:         command.CommandText = "DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;";
+76:         var parameter = command.CreateParameter(); parameter.ParameterName = "@resource"; parameter.Value = resource;
+77:         command.Parameters.Add(parameter);
+78:         object? scalar;
+88:     // All Inventory writers cooperate through the catalog gate, then owner,
+89:     // numeric warehouse, numeric stock-pair, and number-allocation gates.
+90:     private async Task<IDbContextTransaction> Begin(long actor, CancellationToken ct, Func<CancellationToken, Task>? prepareOwners = null)
+91:     {
+92:         var transaction = await db.Database.BeginTransactionAsync(ct);
+93:         try
+94:         {
+95:             if (prepareOwners is not null) await prepareOwners(ct);
+96:             await Gate("HotelOps:Inventory:Catalog", ct);
+97:             await Actor(actor, ct);
+98:             return transaction;
+99:         }
+100:         catch { await transaction.DisposeAsync(); throw; }
+101:     }
+102:     private async Task Actor(long id, CancellationToken ct)
+103:     {
+104:         // Temporary integration identity only; this does not authenticate a caller.
+105:         if (!await db.Users.AsNoTracking().AnyAsync(x => x.UserId == id, ct))
+106:             throw Invalid("ActorUserId does not exist.");
+107:     }
+108:     private async Task<List<Warehouse>> Warehouses(IEnumerable<long> ids, bool active, CancellationToken ct)
+109:     {
+110:         var result = new List<Warehouse>();
+111:         foreach (var id in ids.Distinct().Order())
+113:             await Gate($"HotelOps:Inventory:Warehouse:{id}", ct);
+114:             var warehouse = await db.Warehouses.FromSqlInterpolated(
+115:                 $"SELECT * FROM dbo.warehouses WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={id}")
+116:                 .SingleOrDefaultAsync(ct) ?? throw Invalid("Warehouse does not exist.");
+117:             if (active && !warehouse.IsActive) throw Invalid("Warehouse must be active.");
+118:             result.Add(warehouse);
+119:         }
+120:         return result;
+121:     }
+122:     private async Task StockGates(IEnumerable<(long Warehouse, long Item)> pairs, CancellationToken ct)
+123:     {
+124:         foreach (var pair in pairs.Distinct().OrderBy(x => x.Warehouse).ThenBy(x => x.Item))
+125:             await Gate($"HotelOps:Inventory:Stock:{pair.Warehouse}:{pair.Item}", ct);
+126:     }
+127:     private async Task<decimal> Balance(long warehouse, long item, CancellationToken ct) =>
+128:         await db.StockMovements.Where(x => x.WarehouseId == warehouse && x.ItemId == item)
+129:             .SumAsync(x => (decimal?)x.SignedBaseQty, ct) ?? 0;
+130: 
+131:     private async Task<InventoryItem> Item(long id, CancellationToken ct)
+132:     {
+133:         var item = await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(x => x.ItemId == id, ct);
+134:         if (item is null || !item.IsActive ||
+135:             !await db.ItemCategories.AnyAsync(x => x.ItemCategoryId == item.CategoryId && x.IsActive, ct) ||
+136:             !await db.UnitsOfMeasures.AnyAsync(x => x.UomId == item.BaseUomId && x.IsActive, ct))
+137:             throw Invalid("Item, category and base UOM must be active.");
+138:         return item;
+139:     }
+140:     private async Task<decimal> Factor(InventoryItem item, long uom, CancellationToken ct)
+141:     {
+142:         if (!await db.UnitsOfMeasures.AnyAsync(x => x.UomId == uom && x.IsActive, ct))
+143:             throw Invalid("Selected UOM must be active.");
+144:         if (uom == item.BaseUomId) return 1;
+145:         return await db.UomConversions.Where(x => x.ItemId == item.ItemId && x.FromUomId == uom &&
+146:             x.ToUomId == item.BaseUomId && x.IsActive).Select(x => (decimal?)x.ConversionFactor)
+147:             .SingleOrDefaultAsync(ct) is > 0m and var factor ? factor :
+148:             throw Invalid("An active item-specific direct conversion to base UOM is required.");
+149:     }
+150:     private async Task<string> Number(string prefix, DateTime now, bool stocktake, CancellationToken ct)
+151:     {
+152:         now = DateTime.UtcNow;
+153:         var date = now.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+171:     private Dictionary<string, object?> Scalars(object entity) => db.Entry(entity).Properties
+172:         .Where(x => x.Metadata.Name != "RowVersion").ToDictionary(x => x.Metadata.GetColumnName()!, x => x.CurrentValue);
+173:     private async Task Audit(object entity, string table, long id, long actor, string action, string businessEvent,
+174:         object? oldValues, IEnumerable<long?> branches, DateTime now, CancellationToken ct, string[]? extraFields = null)
+175:     {
+176:         db.ChangeTracker.DetectChanges();
+185:             db.AuditLogs.Add(new AuditLog
+186:             {
+187:                 ActorUserId = actor,
+188:                 BranchId = branch,
+189:                 EntityType = table,
+190:                 EntityId = id.ToString(CultureInfo.InvariantCulture),

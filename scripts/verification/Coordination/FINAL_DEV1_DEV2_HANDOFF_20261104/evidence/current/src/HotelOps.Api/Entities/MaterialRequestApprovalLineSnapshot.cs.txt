@@ -1,0 +1,34 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialRequestApprovalLineSnapshot
+7: {
+8:     public long SnapshotId { get; set; }
+9: 
+10:     public long ApprovalCycleId { get; set; }
+11: 
+12:     public long RequestLineId { get; set; }
+13: 
+14:     public int LineNo { get; set; }
+15: 
+16:     public long ItemId { get; set; }
+17: 
+18:     public long UomId { get; set; }
+19: 
+20:     public decimal RequestedQty { get; set; }
+21: 
+22:     public decimal? ApprovedQty { get; set; }
+23: 
+24:     public string? Note { get; set; }
+25: 
+26:     public virtual MaterialRequestApprovalCycle ApprovalCycle { get; set; } = null!;
+27: 
+28:     public virtual InventoryItem Item { get; set; } = null!;
+29: 
+30:     public virtual MaterialRequestLine RequestLine { get; set; } = null!;
+31: 
+32:     public virtual UnitsOfMeasure Uom { get; set; } = null!;
+33: }
+34: 

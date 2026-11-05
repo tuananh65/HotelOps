@@ -1,0 +1,176 @@
+﻿SOURCE: src/HotelOps.Api/Services/Incidents/IncidentService.cs
+SHA256: 0C253D51B644101B4D3E4DF6DD0652AE91588EFD3BABFB5B230897CB5F6D056C
+Ranges: 20-43,112-144,225-337 (original source line numbers)
+   20:     public async Task<IncidentDetailDto?> ChangeIncidentStatusAsync(long id, ChangeIncidentStatusRequest request, CancellationToken cancellationToken)
+   21:     {
+   22:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+   23:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+   24:         var incident = await _dbContext.Incidents
+   25:             .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
+   26:             .AsTracking()
+   27:             .SingleOrDefaultAsync(cancellationToken);
+   28:         if (incident is null)
+   29:         {
+   30:             return null;
+   31:         }
+   32: 
+   33:         if (!await _dbContext.Users.AsNoTracking()
+   34:             .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+   35:             throw new ValidationException("ActorUserId does not exist.");
+   36: 
+   37:         var status = request.Status.Trim().ToUpperInvariant();
+   38:         if (status is not ("OPEN" or "IN_PROGRESS" or "RESOLVED" or "CLOSED" or "CANCELLED"))
+   39:             throw new ValidationException("Status must be OPEN, IN_PROGRESS, RESOLVED, CLOSED, or CANCELLED.");
+   40: 
+   41:         if (incident.Status != status)
+   42:         {
+   43:             // The Incident row is already locked: corrective creation takes the same
+
+  112:                 Action = "UPDATE",
+  113:                 ActorUserId = request.ActorUserId,
+  114:                 BranchId = incident.BranchId,
+  115:                 OccurredAt = occurredAt,
+  116:                 OldValues = oldValues,
+  117:                 NewValues = JsonSerializer.Serialize(new
+  118:                 {
+  119:                     status = incident.Status,
+  120:                     resolved_at = incident.ResolvedAt,
+  121:                     closed_at = incident.ClosedAt,
+  122:                     closure_note = incident.ClosureNote
+  123:                 }),
+  124:                 ChangedFields = JsonSerializer.Serialize(changedFields)
+  125:             });
+  126:             await _dbContext.SaveChangesAsync(cancellationToken);
+  127:         }
+  128: 
+  129:         var result = await GetIncidentAsync(id, cancellationToken)
+  130:             ?? throw new InvalidOperationException("Incident could not be read after status operation.");
+  131:         await transaction.CommitAsync(cancellationToken);
+  132:         return result;
+  133:     }
+  134: 
+  135:     private async Task RequireGenericStatusOwnershipAsync(long incidentId, CancellationToken cancellationToken)
+  136:     {
+  137:         if (await _dbContext.MaintenanceWorks.AsNoTracking()
+  138:             .AnyAsync(work => work.IncidentId == incidentId, cancellationToken))
+  139:             throw new ValidationException("An incident with linked maintenance work must change status through the corrective Maintenance workflow.");
+  140:     }
+  141: 
+  142:     public async Task<IncidentDetailDto?> TriageIncidentAsync(long id, TriageIncidentRequest request, CancellationToken cancellationToken)
+  143:     {
+  144:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+
+  225:     public async Task<IncidentDetailDto> CreateIncidentAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
+  226:     {
+  227:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+  228:         await ValidateCreateAsync(request, cancellationToken);
+  229: 
+  230:         var reportedAt = DateTime.UtcNow;
+  231:         var prefix = "INC-" + reportedAt.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
+  232:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+  233: 
+  234:         // Serialize allocation across application instances until this transaction ends.
+  235:         // Asset -> Incident number allocation. Retirement and handover writers also
+  236:         // lock Asset first; never allocate an Incident number while waiting for Asset.
+  237:         if (request.AssetId is long assetId)
+  238:         {
+  239:             var asset = await _dbContext.Assets
+  240:                 .FromSqlInterpolated($"SELECT * FROM assets WITH (UPDLOCK, HOLDLOCK) WHERE asset_id = {assetId}")
+  241:                 .AsTracking().SingleOrDefaultAsync(cancellationToken);
+  242:             if (asset is null || asset.BranchId != request.BranchId)
+  243:                 throw new ValidationException("AssetId must identify an asset in the specified branch.");
+  244:             if (asset.LifecycleStatus == "RETIRED")
+  245:                 throw new ValidationException("A retired Asset cannot receive a new Incident.");
+  246:         }
+  247: 
+  248:         // Range locks also protect allocation against writers that do not take the application lock.
+  249:         var resource = "HotelOps:IncidentNo:" + prefix;
+  250:         await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+  251:             DECLARE @result int;
+  252:             EXEC @result = sys.sp_getapplock @Resource = {resource},
+  253:                 @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000;
+  254:             IF @result < 0 THROW 50001, 'Could not acquire incident number allocation lock.', 1;",
+  255:             cancellationToken);
+  256: 
+  257:         var maximum = await _dbContext.Database.SqlQuery<long>($@"
+  258:             SELECT COALESCE(MAX(TRY_CONVERT(bigint, SUBSTRING(incident_no, 14, 40))), CAST(0 AS bigint)) AS [Value]
+  259:             FROM incidents WITH (UPDLOCK, HOLDLOCK)
+  260:             WHERE incident_no LIKE {prefix + "%"}")
+  261:             .SingleAsync(cancellationToken);
+  262:         var number = prefix + checked(maximum + 1).ToString("D3", CultureInfo.InvariantCulture);
+  263: 
+  264:         var incident = new Incident
+  265:         {
+  266:             IncidentNo = number,
+  267:             BranchId = request.BranchId,
+  268:             ReportedBy = request.ReportedBy,
+  269:             IncidentTitle = request.IncidentTitle,
+  270:             Description = request.Description,
+  271:             DiscoveredAt = request.DiscoveredAt!.Value,
+  272:             RoomId = request.RoomId,
+  273:             AreaId = request.AreaId,
+  274:             AssetId = request.AssetId,
+  275:             SeverityId = request.SeverityId,
+  276:             PriorityId = request.PriorityId,
+  277:             Status = "OPEN",
+  278:             ReportedAt = reportedAt,
+  279:             ResolvedAt = null,
+  280:             ClosedAt = null,
+  281:             ClosureNote = null
+  282:         };
+  283:         incident.IncidentEvents.Add(new IncidentEvent
+  284:         {
+  285:             EventType = "CREATED",
+  286:             FromStatus = null,
+  287:             ToStatus = "OPEN",
+  288:             ActorId = request.ReportedBy,
+  289:             OccurredAt = reportedAt,
+  290:             Note = null
+  291:         });
+  292:         _dbContext.Incidents.Add(incident);
+  293:         await _dbContext.SaveChangesAsync(cancellationToken);
+  294: 
+  295:         _dbContext.AuditLogs.Add(new AuditLog
+  296:         {
+  297:             BranchId = incident.BranchId,
+  298:             ActorUserId = request.ReportedBy,
+  299:             EntityType = "incidents",
+  300:             EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
+  301:             Action = "CREATE",
+  302:             OldValues = null,
+  303:             ChangedFields = null,
+  304:             OccurredAt = reportedAt,
+  305:             NewValues = JsonSerializer.Serialize(new
+  306:             {
+  307:                 incident_no = incident.IncidentNo,
+  308:                 status = incident.Status,
+  309:                 room_id = incident.RoomId
+  310:             })
+  311:         });
+  312:         await _dbContext.SaveChangesAsync(cancellationToken);
+  313:         var result = await GetIncidentAsync(incident.IncidentId, cancellationToken)
+  314:             ?? throw new InvalidOperationException("Created incident could not be read.");
+  315:         await transaction.CommitAsync(cancellationToken);
+  316:         return result;
+  317:     }
+  318: 
+  319:     private async Task ValidateCreateAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
+  320:     {
+  321:         if (!await _dbContext.Branches.AsNoTracking().AnyAsync(x => x.BranchId == request.BranchId, cancellationToken))
+  322:             throw new ValidationException("BranchId does not exist.");
+  323:         if (!await _dbContext.Users.AsNoTracking().AnyAsync(x => x.UserId == request.ReportedBy, cancellationToken))
+  324:             throw new ValidationException("ReportedBy does not exist.");
+  325:         if (request.RoomId is long roomId && !await _dbContext.Rooms.AsNoTracking()
+  326:             .AnyAsync(x => x.RoomId == roomId && x.BranchId == request.BranchId, cancellationToken))
+  327:             throw new ValidationException("RoomId must identify a room in the specified branch.");
+  328:         if (request.AreaId is long areaId && !await _dbContext.Areas.AsNoTracking()
+  329:             .AnyAsync(x => x.AreaId == areaId && x.BranchId == request.BranchId, cancellationToken))
+  330:             throw new ValidationException("AreaId must identify an area in the specified branch.");
+  331:         if (request.AssetId is long assetId && !await _dbContext.Assets.AsNoTracking()
+  332:             .AnyAsync(x => x.AssetId == assetId && x.BranchId == request.BranchId, cancellationToken))
+  333:             throw new ValidationException("AssetId must identify an asset in the specified branch.");
+  334:         if (request.SeverityId is long severityId && !await _dbContext.ReferenceValues.AsNoTracking()
+  335:             .AnyAsync(x => x.ReferenceId == severityId && x.GroupCode == "SEVERITY" && x.IsActive, cancellationToken))
+  336:             throw new ValidationException("SeverityId must identify an active SEVERITY reference value.");
+  337:         if (request.PriorityId is long priorityId && !await _dbContext.ReferenceValues.AsNoTracking()
+

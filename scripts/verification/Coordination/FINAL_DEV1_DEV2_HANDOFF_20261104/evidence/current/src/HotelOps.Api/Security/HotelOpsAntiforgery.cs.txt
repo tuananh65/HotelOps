@@ -1,0 +1,36 @@
+3: namespace HotelOps.Api.Security;
+4: 
+5: public static class HotelOpsAntiforgery
+6: {
+7:     public const string HeaderName = "X-CSRF-TOKEN";
+8:     public const string CookieName = "__Host-HotelOps.Antiforgery";
+9: 
+10:     public static IServiceCollection AddHotelOpsAntiforgery(this IServiceCollection services)
+11:     {
+12:         services.AddSingleton<IAntiforgeryAdditionalDataProvider, SessionAntiforgeryAdditionalDataProvider>();
+13:         services.AddAntiforgery(options =>
+16:             options.Cookie.Name = CookieName;
+17:             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+18:             options.Cookie.HttpOnly = true;
+19:             options.Cookie.SameSite = SameSiteMode.Lax;
+20:             options.Cookie.Path = "/";
+21:             options.Cookie.Domain = null;
+25: 
+26:     /// <summary>
+27:     /// After Login/ChangePassword the caller MUST replace HttpContext.User with
+28:     /// the new principal before issuing tokens. SignInAsync alone does not do so.
+29:     /// Do not reuse tokens belonging to the previous/anonymous identity.
+30:     /// </summary>
+31:     public static CsrfBootstrapResponse Issue(HttpContext context, IAntiforgery antiforgery)
+32:     {
+33:         var tokens = antiforgery.GetAndStoreTokens(context);
+34:         context.Response.Headers.CacheControl = "no-store";
+37: }
+38: 
+39: public sealed class CsrfBootstrapResponse(string csrfToken, string headerName)
+40: {
+41:     public string CsrfToken { get; } = csrfToken;
+42:     public string HeaderName { get; } = headerName;
+43:     public override string ToString() => "[CSRF bootstrap response: token redacted]";
+44: }
+45: 

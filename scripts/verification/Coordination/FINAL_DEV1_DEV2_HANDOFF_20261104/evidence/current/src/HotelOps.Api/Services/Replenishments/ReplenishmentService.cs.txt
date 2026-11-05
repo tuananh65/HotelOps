@@ -1,0 +1,108 @@
+11: namespace HotelOps.Api.Services.Replenishments;
+12: 
+13: public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventoryReceiptPosting posting, IInventoryQuantityContext quantities)
+14: {
+15:     private async Task Catalog(CancellationToken ct) => await Gate(db, "HotelOps:Inventory:Catalog", ct);
+16:     private async Task<Warehouse> Warehouse(long id, bool locking, CancellationToken ct)
+17:     {
+18:         if (locking) await Gate(db, $"HotelOps:Inventory:Warehouse:{id}", ct);
+19:         var query = locking ? db.Warehouses.FromSqlInterpolated($"SELECT * FROM dbo.warehouses WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={id}") : db.Warehouses.AsNoTracking().Where(x => x.WarehouseId == id);
+20:         var w = await query.SingleOrDefaultAsync(ct);
+21:         if (w is null || !w.IsActive || !await db.Branches.AnyAsync(x => x.BranchId == w.BranchId && x.IsActive, ct)) throw Invalid("Warehouse/branch must exist and be active.");
+22:         return w;
+23:     }
+24:     private async Task<long> BaseUom(long item, CancellationToken ct)
+25:     {
+26:         var i = await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(x => x.ItemId == item, ct) ?? throw Invalid("Item is missing.");
+27:         return (await quantities.ConvertToBase(item, i.BaseUomId, 1, ct)).BaseUomId;
+29:     private static void Open(MaterialReplenishment r)
+30:     {
+31:         if (r.Status is not ("REQUESTED" or "PARTIALLY_RECEIVED")) throw Invalid("Replenishment is terminal for user commands.");
+32:     }
+33:     private async Task<string> Number(CancellationToken ct)
+34:     {
+35:         while (true)
+36:         {
+44:         }
+45:     }
+46:     public async Task<ReplenishmentDto> Create(ReplenishmentCreate input, CancellationToken ct)
+47:     {
+48:         await using var tx = await db.Database.BeginTransactionAsync(ct);
+49:         try
+50:         {
+51:             await Catalog(ct); var warehouse = await Warehouse(input.WarehouseId, false, ct);
+52:             await Actor(db, input.ActorUserId, warehouse.BranchId, ct);
+53:             var supplier = input.SupplierName?.Trim(); if (supplier?.Length > 200) throw Invalid("SupplierName exceeds 200 characters.");
+54:             if (input.Lines is null || input.Lines.Count == 0 || input.Lines.Any(x => x is null) || input.Lines.Any(x => x.LineNo <= 0) || input.Lines.Select(x => x.LineNo).Distinct().Count() != input.Lines.Count || input.Lines.Select(x => x.ItemId).Distinct().Count() != input.Lines.Count) throw Invalid("Nonempty lines with unique positive LineNo and unique ItemId per warehouse are required.");
+55:             var sources = input.Lines.Where(x => x.SourceMaterialRequestLineId != null).Select(x => x.SourceMaterialRequestLineId!.Value).ToArray();
+58:             {
+59:                 await Gate(db, $"HotelOps:MaterialRequest:Request:{id}", ct);
+60:                 await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}").SingleAsync(ct);
+61:             }
+62:             var root = new MaterialReplenishment { WarehouseId = warehouse.WarehouseId, Warehouse = warehouse, RequestedBy = input.ActorUserId, SupplierName = string.IsNullOrEmpty(supplier) ? null : supplier, ExpectedOn = input.ExpectedOn, Status = "REQUESTED", CreatedAt = DateTime.UtcNow };
+63:             foreach (var l in input.Lines) root.MaterialReplenishmentLines.Add(new() { LineNo = l.LineNo, WarehouseId = warehouse.WarehouseId, ItemId = l.ItemId, BaseUomId = await BaseUom(l.ItemId, ct), SourceType = l.SourceType, SourceThresholdId = l.SourceThresholdId, SourceMaterialRequestLineId = l.SourceMaterialRequestLineId, RequestedBaseQty = Quantity(l.RequestedBaseQty), IsOpenCoverage = true, Note = l.Note?.Trim() });
+64:             await Claims(db, root.MaterialReplenishmentLines, ct);
+65:             root.Warehouse = await Warehouse(warehouse.WarehouseId, true, ct);
+83:             root.ReplenishmentNo = await Number(ct);
+84:             // Keep header/line Save boundaries observable by SQL fault-injection tests.
+85:             var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await db.SaveChangesAsync(ct);
+86:             foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await db.SaveChangesAsync(ct);
+87:             Audit(db, root, input.ActorUserId, "REPLENISHMENT_CREATED", null);
+88:             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return (await Get(root.ReplenishmentId, ct))!;
+89:         }
+90:         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+91:     }
+92:     public async Task<ReplenishmentDto?> Close(long id, ReplenishmentClose input, CancellationToken ct)
+93:     {
+94:         await using var tx = await db.Database.BeginTransactionAsync(ct);
+95:         try
+96:         {
+97:             await Catalog(ct); var r = await Owner(db, id, ct); if (r is null) return null;
+98:             Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, input.ActorUserId, r.Warehouse.BranchId, ct); await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
+99:             if (!r.MaterialReplenishmentLines.Any(x => x.RequestedBaseQty > x.ReceivedBaseQty)) throw Invalid("Positive remaining is required.");
+100:             var reason = input.Reason?.Trim(); if (reason is not { Length: >= 10 }) throw Invalid("Close reason must contain at least 10 characters.");
+101:             var before = Snapshot(r); r.Status = "CLOSED"; r.CloseReason = reason; r.ClosedBy = input.ActorUserId; r.ClosedAt = r.UpdatedAt = DateTime.UtcNow;
+102:             foreach (var l in r.MaterialReplenishmentLines) l.IsOpenCoverage = false;
+103:             Audit(db, r, input.ActorUserId, "REMAINDER_CLOSED", before); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+104:         }
+105:         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+106:     }
+107:     public async Task<ReplenishmentDto?> Receive(long id, ReplenishmentLink input, CancellationToken ct, ReplenishmentPost? post = null)
+108:     {
+109:         await using var tx = await db.Database.BeginTransactionAsync(ct);
+110:         try
+111:         {
+112:             await Catalog(ct);
+120:             {
+121:                 await Gate(db, $"HotelOps:Inventory:Document:{doc}", ct);
+122:                 await db.StockDocuments.FromSqlInterpolated($"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={doc}").SingleAsync(ct);
+123:             }
+124:             var r = (await Owner(db, id, ct))!; Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, input.ActorUserId, r.Warehouse.BranchId, ct);
+125:             await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
+126:             var before = Snapshot(r);
+127:             if (post != null)
+128:             {
+129:                 if (documents.Any(x => x != post.ReceiptDocumentId)) throw Invalid("Coordinated mappings must belong to ReceiptDocumentId.");
+130:                 await posting.PostReceipt(post.ReceiptDocumentId, new(input.ActorUserId, post.ReceiptExpectedRowVersion, post.ReceiptLines), ct);
+131:             }
+132:             await Warehouse(r.WarehouseId, true, ct);
+133:             var linked = new List<object>();
+136:                 var l = r.MaterialReplenishmentLines.SingleOrDefault(x => x.ReplenishmentLineId == mapping.ReplenishmentLineId) ?? throw Invalid("Mapping does not belong to replenishment.");
+137:                 var line = await db.StockDocumentLines.Include(x => x.Document).SingleAsync(x => x.LineId == mapping.StockDocumentLineId, ct);
+138:                 if (line.Document.DocumentType != "RECEIPT" || line.Document.Status != "POSTED" || line.Document.DestinationWarehouseId != r.WarehouseId || line.ItemId != l.ItemId) throw Invalid("Only matching POSTED receipt lines may be credited.");
+139:                 if (post != null && line.BaseQty == 0) continue; // rejected-only delivery persists in Inventory but gives no positive credit.
+140:                 await ProveReceipt(db, line, r.WarehouseId, l.ItemId, l.BaseUomId, ct);
+141:                 if (await db.MaterialReplenishmentReceiptLines.AnyAsync(x => x.StockDocumentLineId == line.LineId, ct)) throw Invalid("Receipt line already credited globally.");
+142:                 db.MaterialReplenishmentReceiptLines.Add(new() { ReplenishmentLineId = l.ReplenishmentLineId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty, LinkedAt = DateTime.UtcNow, LinkedBy = input.ActorUserId });
+143:                 linked.Add(new { l.ReplenishmentLineId, StockDocumentId = line.DocumentId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty });
+144:             }
+145:             await db.SaveChangesAsync(ct);
+146:             await Refresh(db, r, null, ct); await NoConflictingClaims(db, [r], ct);
+147:             Audit(db, r, input.ActorUserId, "RECEIPT_LINKED", before, new { Links = linked });
+148:             if (r.Status == "FULLY_RECEIVED" || r.Status == "PARTIALLY_RECEIVED") Audit(db, r, input.ActorUserId, r.Status == "FULLY_RECEIVED" ? "REPLENISHMENT_FULLY_RECEIVED" : "REPLENISHMENT_PARTIALLY_RECEIVED", before, new { Links = linked });
+149:             await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+150:         }
+151:         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+152:     }
+153: }
+154: 

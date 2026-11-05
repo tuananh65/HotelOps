@@ -1,0 +1,46 @@
+6: namespace HotelOps.Api.Security.Authorization;
+7: 
+8: public interface IPermissionPolicyCatalog
+9: {
+10:     Task<bool> ContainsAsync(string permissionCode, CancellationToken cancellationToken);
+11: }
+12: 
+13: public sealed class EfPermissionPolicyCatalog(HotelOpsDbContext db) : IPermissionPolicyCatalog
+14: {
+15:     public async Task<bool> ContainsAsync(string permissionCode, CancellationToken cancellationToken)
+16:     {
+17:         // Ordinal comparison also rejects differently cased codes under a case-insensitive SQL collation.
+18:         var codes = await db.Permissions.AsNoTracking().Where(p => p.PermissionCode == permissionCode)
+19:             .Select(p => p.PermissionCode).ToListAsync(cancellationToken);
+20:         return codes.Contains(permissionCode, StringComparer.Ordinal);
+21:     }
+22: }
+23: 
+24: public sealed class PermissionPolicyProvider(IOptions<AuthorizationOptions> options, IServiceScopeFactory scopes,
+25:     IHttpContextAccessor? httpAccessor = null)
+26:     : DefaultAuthorizationPolicyProvider(options)
+27: {
+28:     public override bool AllowsCachingPolicies => false;
+29: 
+30:     public override async Task<AuthorizationPolicy?> GetPolicyAsync(string policyName)
+31:     {
+32:         if (!policyName.StartsWith(PermissionPolicy.Prefix, StringComparison.Ordinal))
+33:             return await base.GetPolicyAsync(policyName);
+34: 
+35:         var parts = policyName[PermissionPolicy.Prefix.Length..].Split(':');
+36:         if (parts.Length != 2 || !Enum.TryParse<PermissionCheck>(parts[0], out var check)
+37:             || !Enum.IsDefined(check) || parts[0] != check.ToString()
+38:             || !PermissionPolicy.IsValidCode(parts[1])) return null;
+39: 
+40:         await using var scope = scopes.CreateAsyncScope();
+41:         using var budget = CancellationTokenSource.CreateLinkedTokenSource(
+42:             httpAccessor?.HttpContext?.RequestAborted ?? CancellationToken.None);
+43:         budget.CancelAfter(TimeSpan.FromSeconds(5));
+44:         if (!await scope.ServiceProvider.GetRequiredService<IPermissionPolicyCatalog>()
+45:             .ContainsAsync(parts[1], budget.Token)) return null;
+46: 
+47:         return new AuthorizationPolicyBuilder(HotelOpsCookieTicket.Scheme)
+48:             .RequireAuthenticatedUser().AddRequirements(new PermissionRequirement(parts[1], check)).Build();
+49:     }
+50: }
+51: 

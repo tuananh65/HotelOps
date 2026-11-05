@@ -1,0 +1,105 @@
+$ErrorActionPreference='Stop'
+$pre=Get-Content obj/task77-a1-preflight.local.json -Raw|ConvertFrom-Json
+$allowed=@(
+ 'src/HotelOps.Api/Data/HotelOpsDbContext.cs','src/HotelOps.Api/Program.cs',
+ 'scripts/verification/Task77/Program.cs','scripts/verification/Task77/WorkTime.Verification.csproj',
+ 'scripts/verification/Task77/TASK77_WORKDAY_FOUNDATION.md','scripts/verification/Task77/APPROVAL_SCOPE.md',
+ 'scripts/verification/Task77/DEV2_WORKTIME_CONTRACT.md','scripts/verification/Task77/UC_LEDGER_TASK77.json',
+ 'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md','scripts/verification/UserAccountCreation/Program.cs'
+)
+$changed=@(); $unexpected=@()
+foreach($entry in $pre.paths){
+ $hash=if(Test-Path -LiteralPath $entry.path -PathType Leaf){(Get-FileHash -LiteralPath $entry.path).Hash}else{$null}
+ if($hash -ne $entry.sha256){$changed+=$entry.path;if($entry.path -notin $allowed){$unexpected+=$entry.path}}
+}
+if($unexpected.Count){throw ('Unexpected existing changes: '+($unexpected -join ','))}
+if((git rev-parse HEAD) -ne $pre.head -or (Get-FileHash .git/index).Hash -ne $pre.indexHash){throw 'HEAD/index changed'}
+if(Compare-Object @(git worktree list --porcelain) $pre.worktrees){throw 'Worktree registration/head changed'}
+function ReadBytesText([string]$path){return [Text.Encoding]::UTF8.GetString([IO.File]::ReadAllBytes((Join-Path (Get-Location) $path)))}
+$map=ReadBytesText 'src/HotelOps.Api/Data/HotelOpsDbContext.cs'
+$program=ReadBytesText 'src/HotelOps.Api/Program.cs'
+$mapNl=if($map.Contains("`r`n")){"`r`n"}else{"`n"}
+$programNl=if($program.Contains("`r`n")){"`r`n"}else{"`n"}
+$mappingLine='        ConfigureWorkTime(modelBuilder);'
+$diLine='builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();'
+if(([regex]::Matches($map,[regex]::Escape($mappingLine))).Count -ne 1 -or $map.Replace($mappingLine+$mapNl,'') -cne (ReadBytesText 'obj/task77-a1-dbcontext-before.local.txt')){throw 'DbContext is not exact one-line insertion'}
+if(([regex]::Matches($program,[regex]::Escape($diLine))).Count -ne 1 -or $program.Replace($diLine+$programNl,'') -cne (ReadBytesText 'obj/task77-a1-program-before.local.txt')){throw 'Program is not exact one-line insertion'}
+$user=ReadBytesText 'scripts/verification/UserAccountCreation/Program.cs'
+if($user.Replace('Where(a => a.EntityType == "users" && a.EntityId == committed.ToString())','Where(a => a.EntityId == committed.ToString())') -cne (ReadBytesText 'obj/task77-a1-user-harness-before.local.txt')){throw 'User harness has more than one predicate change'}
+$copies=[ordered]@{
+ 'Workday.cs.proposed'='src/HotelOps.Api/Entities/Workday.cs';'WorkInterval.cs.proposed'='src/HotelOps.Api/Entities/WorkInterval.cs'
+ 'TimeCorrectionRequest.cs.proposed'='src/HotelOps.Api/Entities/TimeCorrectionRequest.cs'
+ 'HotelOpsDbContext.WorkTime.cs.proposed'='src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs'
+ 'IWorkTimeTransactionParticipant.cs.proposed'='src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs'
+}
+foreach($item in $copies.GetEnumerator()){
+ if((Get-FileHash -LiteralPath $item.Value).Hash -ne (Get-FileHash -LiteralPath ('scripts/verification/Task77/proposal/'+$item.Key)).Hash){throw ('Approved copy drift '+$item.Value)}
+}
+$manifest=Get-Content scripts/verification/Task77/PROPOSAL_MANIFEST.json -Raw|ConvertFrom-Json
+foreach($item in $manifest.proposalArtifacts){if((Get-FileHash -LiteralPath $item.path).Hash -ne $item.sha256){throw ('Approved artifact drift '+$item.path)}}
+$baseline=Get-Content scripts/verification/Task76/UC_LEDGER_TASK76.json -Raw -Encoding utf8|ConvertFrom-Json
+$ledger=Get-Content scripts/verification/Task77/UC_LEDGER_TASK77.json -Raw -Encoding utf8|ConvertFrom-Json
+$evidenceUpdates=@()
+foreach($row in $ledger.rows){
+ $old=$baseline.rows|Where-Object {$_.uc -eq $row.uc}
+ foreach($field in @('uc','title','classification','weight','verifiedPoints')){if($old.$field -cne $row.$field){throw ('Ledger changed '+$row.uc+':'+$field)}}
+ if($old.evidenceSummary -cne $row.evidenceSummary){if($row.uc -notin @('UC-111','UC-138','UC-139')){throw 'Unrelated ledger evidence update'};$evidenceUpdates+=$row.uc}
+}
+if($ledger.rows.Count -ne 75 -or ($ledger.rows|Measure-Object verifiedPoints -Sum).Sum -ne 60 -or ($ledger.rows|Measure-Object weight -Sum).Sum -ne 256){throw 'Ledger sums failed'}
+$receipts=[ordered]@{
+ component='scripts/verification/Task77/task77-a1-complete-accepted.local.json'
+ productionHost='scripts/verification/Task77/task77-a1-production-host-final.local.json'
+ userRegression='scripts/verification/Task77/task77-a1-user-regression-scoped.local.json'
+}
+$expectedCounts=@{component=96;productionHost=7;userRegression=26}
+foreach($key in $receipts.Keys){$r=Get-Content $receipts[$key] -Raw|ConvertFrom-Json;if(!$r.success -or $r.checks -ne $expectedCounts[$key]){throw ('Receipt failure '+$key)}}
+$logs=@(
+ @('obj/task77-a1-completion-build.local.log','Build succeeded.'),@('obj/task77-a1-math-regression.local.log','PASS: 422 WorkIntervalMath checks'),
+ @('obj/task77-a1-authorization-regression.local.log','PASS: 93 authorization checks'),@('obj/task77-a1-permission-regression.local.log','PASS: 43 checks.'),
+ @('obj/task77-a1-current-user-regression.local.log','14 checks passed.'),@('obj/task77-a1-resource-regression.local.log','PASS: 49 resource authorization checks'),
+ @('obj/task77-a1-di2.local.log','actual scoped SQL participant graph resolves')
+)
+foreach($log in $logs){if(!(Select-String -LiteralPath $log[0] -Pattern $log[1] -SimpleMatch -Quiet)){throw ('Missing executed evidence '+$log[0])}}
+$known=@{};foreach($entry in $pre.paths){$known[$entry.path]=$true}
+$new=@(git ls-files --cached --others --exclude-standard|Sort-Object -Unique|Where-Object {!$known.ContainsKey($_)})
+$approvedNew=@($copies.Values)+@('src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs')
+foreach($file in $new){if(!$file.StartsWith('scripts/verification/Task77/') -and $file -notin $approvedNew){throw ('Unexpected new file '+$file)}}
+$trailing=@()
+foreach($file in @($new)+@($changed)){
+ $number=0;foreach($line in Get-Content -LiteralPath $file -Encoding utf8){$number++;if($line -match '[\t ]+$'){$trailing+=($file+':'+$number)}}
+}
+if($trailing.Count){throw ('Trailing whitespace '+($trailing -join ','))}
+git diff --check;if($LASTEXITCODE -ne 0){throw 'git diff --check failed'}
+$runtimeHash=(Get-FileHash src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll).Hash
+if($runtimeHash -ne (Get-FileHash scripts/verification/Task77/bin/Debug/net10.0/HotelOps.Api.dll).Hash){throw 'API assembly differs between runtime and acceptance harness'}
+$now=[DateTimeOffset]::Now.ToUniversalTime();$elapsed=$now-[DateTimeOffset]::Parse($pre.startedUtc)
+$trialNames=@(1..7|ForEach-Object {$suffix=if($_ -eq 1){''}else{[string]$_};(Get-Content ('obj/task77-a1-runid'+$suffix+'.local.txt') -Raw).Trim()})
+# First run ID predates the numeric naming convention.
+$receipt=[ordered]@{
+ status='A1_IMPLEMENTED_COMPONENT_ACCEPTANCE_PASS_FULL_UCS_INCOMPLETE';approval='USER_APPROVED_STRICT_A1';validationPassed=$true
+ startedUtc=$pre.startedUtc;finishedUtc=$now.ToString('o');elapsedSeconds=[math]::Round($elapsed.TotalSeconds,3);elapsedDisplay=$elapsed.ToString('hh\:mm\:ss')
+ protectedExistingPaths=$pre.paths.Count;preservedExistingPaths=$pre.paths.Count-$changed.Count;changedExistingPaths=$changed;unexpectedExistingChanges=$unexpected
+ headUnchanged=$true;indexUnchanged=$true;fourWorktreeRegistrationsAndHeadsUnchanged=$true
+ otherWorktrees='Read-only status unchanged: rehearsal103 pre-existing staged entries, resolution clean, AI-Loop clean; no writes targeted them.'
+ dbContextExactlyApprovedInsertion=$true;programExactlyApprovedDiInsertion=$true;fiveModelInterfaceFilesByteExact=$true;allApprovedProposalHashesUnchanged=$true
+ userHarnessExactlyOneEntityTypePredicate=$true;userProductionOrUc006FilesChanged=@();dev2FilesChanged=@();authorizationFoundationChanged=$false
+ sharedChanges=@('Data/HotelOpsDbContext.cs one ConfigureWorkTime call','Program.cs one scoped registration','five exact approved Entity/partial mapping/interface additions')
+ componentChecks=96;componentScope='Real SQL and HTTPS verification caller host; not public Workday UC endpoints'
+ productionProgramChecks=7;userSqlRegressionChecks=26;securityChecks=199;timeMathChecks=422
+ build=[ordered]@{result='PASS';errors=0;warnings=2;warningCode='NU1900';log='obj/task77-a1-completion-build.local.log'}
+ harnessBuild=[ordered]@{result='PASS';errors=0;warnings=4;warningCode='NU1900'}
+ frameworkTests='dotnet test HotelOps.slnx exit0; no framework cases; NOT_AVAILABLE, not PASS'
+ efEntityCount=85;newTimeTables=3;trials=$trialNames;trialsDropped=0;hotelOpsDbAccessed=$false;sharedOrProductionDbAccessed=$false
+ migrationReplay='Guarded refusal51773, state unchanged; successful no-op replay NOT_SUPPORTED by approved A1'
+ rollbackRecovery='PASS empty-owned rollback/reapply; nonempty rollback refused51775'
+ pmAdapter='NOT_READY: INCIDENT/MAINTENANCE_OCCURRENCE fail closed until source identity/ownership contract approved'
+ publicWorkdayEndpoints='NOT_IMPLEMENTED: permission binding/unscheduled notification/Pause All outside A1'
+ fullUcAcceptance=$false;classifications=[ordered]@{UC111='BLOCKED_EXTERNAL';UC138='NOT_IMPLEMENTED';UC139='BLOCKED_EXTERNAL'}
+ completedUCs=26;points=60;totalPoints=256;weightedPercent=23.4375;newlyCompletedUCs=0;pointsGained=0;remainingUCs=49;remainingPoints=196
+ allLedgerClassificationsWeightsPointsUnchanged=$true;evidenceUpdates=$evidenceUpdates
+ diffCheck='PASS';newAndChangedFileWhitespace='PASS';apiAssemblySha256=$runtimeHash;createdGitVisiblePaths=$new
+ receipts=@($receipts.GetEnumerator()|ForEach-Object {[ordered]@{name=$_.Key;path=$_.Value;sha256=(Get-FileHash -LiteralPath $_.Value).Hash}})
+ fileHashes=@(@($new)+@($changed)|Sort-Object -Unique|ForEach-Object {[ordered]@{path=$_;sha256=(Get-FileHash -LiteralPath $_).Hash}})
+}
+$receipt|ConvertTo-Json -Depth 9|Set-Content scripts/verification/Task77/TASK77_A1_VALIDATION.json -Encoding utf8
+[pscustomobject]@{status=$receipt.status;elapsed=$receipt.elapsedDisplay;preserved=$receipt.preservedExistingPaths;changedExisting=$changed.Count;newFiles=$new.Count;SQLHttpsChecks=96;productionHost=7;userRegression=26;progress='26/75;60/256;23.4375%'}|ConvertTo-Json

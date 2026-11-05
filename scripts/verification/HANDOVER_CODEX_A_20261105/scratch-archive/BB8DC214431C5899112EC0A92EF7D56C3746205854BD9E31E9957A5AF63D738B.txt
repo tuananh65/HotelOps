@@ -1,0 +1,22 @@
+﻿{
+    "Success":  true,
+    "ProtectedFiles":  419,
+    "Unchanged":  417,
+    "IntendedEdits":  [
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "src/HotelOps.Api/Program.cs"
+                      ],
+    "UnexpectedChanges":  [
+
+                          ],
+    "Missing":  [
+
+                ],
+    "BackupHashesVerified":  419,
+    "IndexUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "HeadUnchanged":  true,
+    "BranchUnchanged":  true,
+    "UpstreamUnchanged":  true,
+    "MeasuredElapsedMinutes":  26.4
+}

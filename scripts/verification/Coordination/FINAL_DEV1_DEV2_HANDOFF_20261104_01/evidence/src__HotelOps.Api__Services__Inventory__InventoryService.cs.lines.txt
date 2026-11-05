@@ -1,0 +1,82 @@
+﻿SOURCE: src/HotelOps.Api/Services/Inventory/InventoryService.cs
+SHA256: 8D74F714682CA980B93F5A1F48F3AB2BE4B45D4FF83E47627E9E5DA5BB61FEA9
+Ranges: 58-135 (original source line numbers)
+   58:         try { bytes = Convert.FromBase64String(expected ?? ""); }
+   59:         catch (FormatException) { throw Invalid("ExpectedRowVersion must be a Base64 rowversion."); }
+   60:         if (bytes.Length != 8 || !actual.SequenceEqual(bytes))
+   61:             throw Invalid("ExpectedRowVersion is invalid or stale. Reload the resource.");
+   62:     }
+   63:     private static (int Offset, int Size) Paging(InventoryPage page)
+   64:     {
+   65:         var offset = ((long)page.Page - 1) * page.PageSize;
+   66:         if (page.Page < 1 || page.PageSize is < 1 or > 100 || offset > int.MaxValue)
+   67:             throw Invalid("Page must be positive and PageSize must be between 1 and 100.");
+   68:         return ((int)offset, page.PageSize);
+   69:     }
+   70:     private async Task Gate(string resource, CancellationToken ct)
+   71:     {
+   72:         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Inventory lock requires a transaction.");
+   73:         using var command = db.Database.GetDbConnection().CreateCommand();
+   74:         command.Transaction = db.Database.CurrentTransaction.GetDbTransaction();
+   75:         command.CommandText = "DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;";
+   76:         var parameter = command.CreateParameter(); parameter.ParameterName = "@resource"; parameter.Value = resource;
+   77:         command.Parameters.Add(parameter);
+   78:         object? scalar;
+   79:         try { scalar = await command.ExecuteScalarAsync(ct); }
+   80:         catch (Microsoft.Data.SqlClient.SqlException) when (ct.IsCancellationRequested)
+   81:         {
+   82:             ct.ThrowIfCancellationRequested();
+   83:             throw;
+   84:         }
+   85:         var result = Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
+   86:         if (result < 0) throw new InvalidOperationException($"Inventory lock failed ({result}).");
+   87:     }
+   88:     // All Inventory writers cooperate through the catalog gate, then owner,
+   89:     // numeric warehouse, numeric stock-pair, and number-allocation gates.
+   90:     private async Task<IDbContextTransaction> Begin(long actor, CancellationToken ct, Func<CancellationToken, Task>? prepareOwners = null)
+   91:     {
+   92:         var transaction = await db.Database.BeginTransactionAsync(ct);
+   93:         try
+   94:         {
+   95:             if (prepareOwners is not null) await prepareOwners(ct);
+   96:             await Gate("HotelOps:Inventory:Catalog", ct);
+   97:             await Actor(actor, ct);
+   98:             return transaction;
+   99:         }
+  100:         catch { await transaction.DisposeAsync(); throw; }
+  101:     }
+  102:     private async Task Actor(long id, CancellationToken ct)
+  103:     {
+  104:         // Temporary integration identity only; this does not authenticate a caller.
+  105:         if (!await db.Users.AsNoTracking().AnyAsync(x => x.UserId == id, ct))
+  106:             throw Invalid("ActorUserId does not exist.");
+  107:     }
+  108:     private async Task<List<Warehouse>> Warehouses(IEnumerable<long> ids, bool active, CancellationToken ct)
+  109:     {
+  110:         var result = new List<Warehouse>();
+  111:         foreach (var id in ids.Distinct().Order())
+  112:         {
+  113:             await Gate($"HotelOps:Inventory:Warehouse:{id}", ct);
+  114:             var warehouse = await db.Warehouses.FromSqlInterpolated(
+  115:                 $"SELECT * FROM dbo.warehouses WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={id}")
+  116:                 .SingleOrDefaultAsync(ct) ?? throw Invalid("Warehouse does not exist.");
+  117:             if (active && !warehouse.IsActive) throw Invalid("Warehouse must be active.");
+  118:             result.Add(warehouse);
+  119:         }
+  120:         return result;
+  121:     }
+  122:     private async Task StockGates(IEnumerable<(long Warehouse, long Item)> pairs, CancellationToken ct)
+  123:     {
+  124:         foreach (var pair in pairs.Distinct().OrderBy(x => x.Warehouse).ThenBy(x => x.Item))
+  125:             await Gate($"HotelOps:Inventory:Stock:{pair.Warehouse}:{pair.Item}", ct);
+  126:     }
+  127:     private async Task<decimal> Balance(long warehouse, long item, CancellationToken ct) =>
+  128:         await db.StockMovements.Where(x => x.WarehouseId == warehouse && x.ItemId == item)
+  129:             .SumAsync(x => (decimal?)x.SignedBaseQty, ct) ?? 0;
+  130: 
+  131:     private async Task<InventoryItem> Item(long id, CancellationToken ct)
+  132:     {
+  133:         var item = await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(x => x.ItemId == id, ct);
+  134:         if (item is null || !item.IsActive ||
+  135:             !await db.ItemCategories.AnyAsync(x => x.ItemCategoryId == item.CategoryId && x.IsActive, ct) ||
+

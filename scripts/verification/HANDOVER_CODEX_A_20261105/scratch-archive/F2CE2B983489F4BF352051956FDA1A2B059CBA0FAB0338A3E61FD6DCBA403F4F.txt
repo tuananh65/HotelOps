@@ -1,0 +1,200 @@
+using System.Data.Common;
+using System.Net;
+using System.Net.Http.Json;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+
+internal static class Task68RoomTypeCases
+{
+    internal static async Task RunAsync(HotelOpsDbContext db,Func<DbCommandInterceptor?,HotelOpsDbContext> open,HttpClient http,
+        Func<string,Task<CookieJar>> login,IReadOnlyDictionary<string,User> users,long branch,long otherBranch,Action<bool,string> check,CancellationToken ct)
+    {
+        var root=Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../../../../"));
+        var forward=await File.ReadAllTextAsync(Path.Combine(root,"scripts/database/release/candidates/Task68_UC017.forward.sql"),ct);
+        var rollback=await File.ReadAllTextAsync(Path.Combine(root,"scripts/database/release/candidates/Task68_UC017.rollback.sql"),ct);
+        var legacy=new RoomType{TypeCode="T68_LEGACY",TypeName="Legacy shared type",StandardCapacity=2,IsActive=true};
+        var floor=new Floor{BranchId=branch,FloorCode="T68_F",FloorName="Trial floor",IsActive=true};db.AddRange(legacy,floor);await db.SaveChangesAsync(ct);
+        var room=new Room{BranchId=branch,FloorId=floor.FloorId,RoomTypeId=legacy.RoomTypeId,RoomNumber="T68_OLD",OperationalStatus="AVAILABLE",IsActive=true};
+        db.Add(room);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        Task<string> Snapshot()=>db.Database.SqlQueryRaw<string>("SELECT (SELECT room_type_id,type_code,type_name,description,standard_capacity,is_active FROM dbo.room_types WHERE type_code='T68_LEGACY' FOR JSON PATH,INCLUDE_NULL_VALUES) + (SELECT * FROM dbo.rooms ORDER BY room_id FOR JSON PATH,INCLUDE_NULL_VALUES) AS [Value]").SingleAsync(ct);
+        var before=await Snapshot();var admin=await login("admin");var other=await login("other");var scoped=await login("branch");var viewer=await login("viewer");
+        var adminHttpSession=await db.UserSessions.Where(x=>x.UserId==users["admin"].UserId).MaxAsync(x=>x.SessionId,ct);
+        async Task<HttpResponseMessage> Send(HttpMethod method,string path,CookieJar jar,object? body=null,CancellationToken? token=null,bool csrf=true)
+        {
+            using var request=new HttpRequestMessage(method,path);
+            if(jar.Cookies.Count>0)request.Headers.Add("Cookie",string.Join("; ",jar.Cookies.Select(x=>x.Key+"="+x.Value)));
+            if(csrf&&jar.Token!=null)request.Headers.Add(HotelOps.Api.Security.HotelOpsAntiforgery.HeaderName,jar.Token);
+            if(body!=null)request.Content=JsonContent.Create(body);
+            return await http.SendAsync(request,token??ct);
+        }
+        object Body(string code,long? b=null,long checklist=1,string name="Trial type")=>new{branchId=b??branch,code,name,standardCleaningMinutes=35,defaultChecklistId=checklist,description=" Trial description ",standardCapacity=3};
+        async Task<JsonElement> Post(object body,CookieJar who,int status)
+        {
+            using var response=await Send(HttpMethod.Post,"/api/room-types",who,body);var text=await response.Content.ReadAsStringAsync(ct);
+            check((int)response.StatusCode==status,"UC017 HTTPS expected "+status+", actual "+(int)response.StatusCode);
+            check(!text.Contains("SqlException")&&!text.Contains("passwordHash")&&!text.Contains("sessionKey")&&!text.Contains("stackTrace"),"UC017 no credential/provider disclosure");
+            if(status==201)check(response.Headers.CacheControl?.NoStore==true&&response.Headers.Location==null,"UC017201 no-store and no fabricated GET Location");
+            using var json=JsonDocument.Parse(text);return json.RootElement.Clone();
+        }
+        async Task Directory(int expected)
+        {
+            using var response=await Send(HttpMethod.Get,$"/api/rooms?branchId={branch}",viewer);
+            check((int)response.StatusCode==expected,"UC017 legacy Room Directory compatibility HTTP "+expected);
+            if(expected==200){using var value=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));check(value.RootElement.GetProperty("items").EnumerateArray().Any(x=>x.GetProperty("id").GetInt64()==room.RoomId),"UC017 preserves existing Room and global type visibility");}
+        }
+        check(await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.Legacy,"UC017 detects unpatched schema without failing legacy reads");
+        await Directory(200);await Post(Body("T68_NO_PATCH"),admin,503);
+        await db.Database.ExecuteSqlRawAsync("EXEC sys.sp_addextendedproperty @name=N'HotelOps.UC017.Contract',@value=N'unknown',@level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'TABLE',@level1name=N'room_types';",ct);
+        try
+        {
+            check(await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.Incompatible,"UC017 unknown contract fails closed");await Directory(503);
+            var rejected=false;try{await db.Database.ExecuteSqlRawAsync(forward,ct);}catch(SqlException e)when(e.Number==51068){rejected=true;}
+            check(rejected,"UC017 forward rejects unknown/partial contract without overwrite");
+        }
+        finally{await db.Database.ExecuteSqlRawAsync("EXEC sys.sp_dropextendedproperty @name=N'HotelOps.UC017.Contract',@level0type=N'SCHEMA',@level0name=N'dbo',@level1type=N'TABLE',@level1name=N'room_types';",ct);}
+        await db.Database.ExecuteSqlRawAsync(forward,ct);await db.Database.ExecuteSqlRawAsync(forward,ct);
+        check(await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.BranchV1&&await Snapshot()==before,"UC017 forward/idempotency retains all legacy scalar data and Room FKs");
+        await Directory(200);await db.Database.ExecuteSqlRawAsync(rollback,ct);
+        check(await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.Legacy&&await Snapshot()==before,"UC017 empty-candidate rollback restores old schema/data/unique constraint");
+        await Directory(200);await db.Database.ExecuteSqlRawAsync(forward,ct);
+        var checklist=new InspectionChecklist{ChecklistCode="T68_TEMPLATE",ChecklistName="Existing generic inspection template",IsActive=true};
+        var inactive=new InspectionChecklist{ChecklistCode="T68_INACTIVE",ChecklistName="Inactive template",IsActive=false};
+        var bound=new InspectionChecklist{ChecklistCode="T68_BOUND",ChecklistName="Legacy type-bound checklist",RoomTypeId=legacy.RoomTypeId,IsActive=true};
+        db.AddRange(checklist,inactive,bound);await db.SaveChangesAsync(ct);
+        var version=new InspectionChecklistVersion{ChecklistId=checklist.ChecklistId,VersionNo=1,Status="PUBLISHED",EffectiveAt=DateTime.UtcNow.AddDays(-1)};
+        db.Add(version);await db.SaveChangesAsync(ct);
+        db.Add(new InspectionChecklistItem{VersionId=version.VersionId,Criterion="Floor is clean",PassCondition="No visible dirt",IsRequired=true,IsActive=true,SortOrder=1});
+        await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        var auditCount=await db.AuditLogs.CountAsync(x=>x.EntityType=="room_types",ct);
+        var created=await Post(Body(" t68_new ",checklist:checklist.ChecklistId),admin,201);
+        var id=created.GetProperty("id").GetInt64();
+        check(created.GetProperty("branchId").GetInt64()==branch&&created.GetProperty("code").GetString()=="T68_NEW"
+            &&created.GetProperty("standardCleaningMinutes").GetInt32()==35&&created.GetProperty("defaultChecklistId").GetInt64()==checklist.ChecklistId
+            &&created.GetProperty("description").GetString()=="Trial description"&&created.GetProperty("isActive").GetBoolean(),"UC017 persists full SRS branch/cleaning/checklist contract, normalized code/description");
+        check(created.EnumerateObject().All(x=>new[]{"id","branchId","code","name","description","standardCapacity","standardCleaningMinutes","defaultChecklistId","isActive"}.Contains(x.Name)),"UC017 dedicated DTO allowlist");
+        var persisted=await db.Database.SqlQuery<int>($"SELECT CONVERT(int,COUNT(*)) AS [Value] FROM dbo.room_types WHERE room_type_id={id} AND branch_id={branch} AND standard_cleaning_minutes=35 AND default_checklist_id={checklist.ChecklistId}").SingleAsync(ct);
+        check(persisted==1,"UC017 new columns verified from actual SQL row");
+        var audit=await db.AuditLogs.AsNoTracking().SingleAsync(x=>x.EntityType=="room_types"&&x.EntityId==id.ToString(),ct);
+        using(var beforeAudit=JsonDocument.Parse(audit.OldValues!))using(var after=JsonDocument.Parse(audit.NewValues!))
+            check(audit.BranchId==branch&&audit.ActorUserId==users["admin"].UserId&&audit.Action=="CREATE"&&beforeAudit.RootElement.GetProperty("entity").ValueKind==JsonValueKind.Null
+                &&after.RootElement.GetProperty("defaultChecklistId").GetInt64()==checklist.ChecklistId,"UC017 atomic audit uses SQL actor, actual branch and full after-state");
+        await Post(Body("T68_NEW",checklist:checklist.ChecklistId),other,409);
+        await Post(Body("T68_LEGACY",checklist:checklist.ChecklistId),admin,409);
+        await Post(Body("T68_NEW",otherBranch,checklist.ChecklistId),other,201);
+        await Post(Body("T68_SAME_NAME",checklist:checklist.ChecklistId),admin,201);
+        await Post(Body("T68_BRANCH",checklist:checklist.ChecklistId),scoped,201);
+        await Post(Body("T68_DENY",otherBranch,checklist.ChecklistId),scoped,403);
+        await Post(Body("T68_DENY",checklist:checklist.ChecklistId),viewer,403);
+        var anonymous=new CookieJar();using(var csrf=await Send(HttpMethod.Get,"/api/auth/csrf",anonymous)){anonymous.Read(csrf);using var json=JsonDocument.Parse(await csrf.Content.ReadAsStringAsync(ct));anonymous.Token=json.RootElement.GetProperty("csrfToken").GetString();}
+        await Post(Body("T68_ANON",checklist:checklist.ChecklistId),anonymous,401);
+        using(var csrf=await Send(HttpMethod.Post,"/api/room-types",admin,Body("T68_CSRF",checklist:checklist.ChecklistId),csrf:false))check((int)csrf.StatusCode==400,"UC017 normal CSRF protection");
+        foreach(var bad in new object[]{new{branchId=branch,code="_BAD",name="Invalid",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId},
+            new{branchId=branch,code="T68_BAD",name="  ",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId},
+            new{branchId=0,code="T68_BAD",name="Invalid",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId},
+            new{branchId=branch,code="T68_BAD",name="Invalid",standardCleaningMinutes=0,defaultChecklistId=checklist.ChecklistId},
+            new{branchId=branch,code="T68_BAD",name="Invalid",standardCleaningMinutes=35,defaultChecklistId=0},
+            new{branchId=branch,code="T68_BAD",name="Invalid",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId,isActive=false},
+            new{branchId=branch,code="T68_BAD",name="Invalid",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId,actorUserId=users["other"].UserId},
+            new{branchId=branch,code=new string('X',31),name="Invalid",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId},
+            new{branchId=branch,code="T68_BAD",name=new string('X',151),standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId},
+            new{branchId=branch,code="T68_BAD",name="Invalid",standardCleaningMinutes=35,defaultChecklistId=checklist.ChecklistId,standardCapacity=0}})
+            await Post(bad,admin,400);
+        await Post(Body("T68_BAD_CHECK",checklist:long.MaxValue),admin,400);
+        await Post(Body("T68_BAD_CHECK",checklist:inactive.ChecklistId),admin,400);
+        await Post(Body("T68_BAD_CHECK",checklist:bound.ChecklistId),admin,400);
+        await db.InspectionChecklistVersions.Where(x=>x.VersionId==version.VersionId).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"DRAFT"),ct);
+        await Post(Body("T68_DRAFT",checklist:checklist.ChecklistId),admin,400);
+        await db.InspectionChecklistVersions.Where(x=>x.VersionId==version.VersionId).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.Status,"PUBLISHED"),ct);
+        var race=await Task.WhenAll(Send(HttpMethod.Post,"/api/room-types",admin,Body("T68_RACE",checklist:checklist.ChecklistId)),Send(HttpMethod.Post,"/api/room-types",other,Body(" t68_race ",checklist:checklist.ChecklistId)));
+        check(race.Select(x=>(int)x.StatusCode).Order().SequenceEqual(new[]{201,409}),"UC017 concurrent same-branch normalized code: one201/one409");foreach(var r in race)r.Dispose();
+        check(await db.RoomTypes.CountAsync(x=>x.TypeCode=="T68_RACE",ct)==1,"UC017 race persists exactly one row");
+        var cross=await Task.WhenAll(Send(HttpMethod.Post,"/api/room-types",admin,Body("T68_CROSS",checklist:checklist.ChecklistId)),Send(HttpMethod.Post,"/api/room-types",other,Body("T68_CROSS",otherBranch,checklist.ChecklistId)));
+        check(cross.All(x=>(int)x.StatusCode==201),"UC017 same code in two branches allowed by actual filtered unique index");foreach(var r in cross)r.Dispose();
+        var unique=false;
+        try{await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_types(branch_id,type_code,type_name,is_active,standard_cleaning_minutes,default_checklist_id) VALUES({branch},{"T68_NEW"},{"Raw duplicate fixture"},1,35,{checklist.ChecklistId})",ct);}
+        catch(SqlException e)when(e.Number is 2601 or 2627){unique=true;}
+        check(unique,"UC017 physical branch-code unique index rejects non-service duplicate SQL");
+        check(await Snapshot()==before,"UC017 creates do not mutate legacy RoomType or any existing Room");
+        await using(var holder=open(null))
+        {
+            await holder.Database.OpenConnectionAsync(ct);var owner=await holder.Database.SqlQueryRaw<int>("SELECT CONVERT(int,@@SPID) AS [Value]").SingleAsync(ct);
+            await using var tx=await holder.Database.BeginTransactionAsync(ct);
+            await holder.Database.SqlQuery<long>($"SELECT checklist_id AS [Value] FROM dbo.inspection_checklists WITH(XLOCK,HOLDLOCK) WHERE checklist_id={checklist.ChecklistId}").ToArrayAsync(ct);
+            using var stop=CancellationTokenSource.CreateLinkedTokenSource(ct);
+            var pending=Send(HttpMethod.Post,"/api/room-types",admin,Body("T68_HTTP_CANCEL",checklist:checklist.ChecklistId),stop.Token);
+            try
+            {
+                var observed=false;for(var i=0;i<180&&!pending.IsCompleted;i++)
+                {
+                    observed=await db.Database.SqlQuery<int>($"SELECT CONVERT(int,COUNT(*)) AS [Value] FROM sys.dm_exec_requests WHERE blocking_session_id={owner} AND wait_type LIKE 'LCK_M_%'").SingleAsync(ct)>0;
+                    if(observed)break;await Task.Delay(35,ct);
+                }
+                check(observed,"UC017 real HTTPS cancellation reaches retained checklist SQL lock wait");
+                Task68RoomTypeFaults.Waits.Add(new{scenario="https-cancel-checklist",owner,observed});
+                stop.Cancel();var cancelled=false;try{using var response=await pending;}catch(OperationCanceledException){cancelled=true;}
+                check(cancelled,"UC017 real HTTPS request cancellation propagates");
+                await using var probe=open(null);probe.Database.SetCommandTimeout(5);await using var ptx=await probe.Database.BeginTransactionAsync(ct);
+                await new HotelOps.Api.Services.Users.UserEligibilityLock(probe).LockAsync([users["admin"].UserId],ct);
+                check(holder.Database.CurrentTransaction!=null&&!await db.RoomTypes.AnyAsync(x=>x.TypeCode=="T68_HTTP_CANCEL",ct),"UC017 canceled HTTP rolls back and releases User before feature blocker release");
+            }
+            finally{stop.Cancel();if(holder.Database.CurrentTransaction!=null)await tx.RollbackAsync(CancellationToken.None);try{using var response=await pending;}catch(OperationCanceledException){}}
+        }
+        await using(var holder=open(null))
+        {
+            await holder.Database.OpenConnectionAsync(ct);var owner=await holder.Database.SqlQueryRaw<int>("SELECT CONVERT(int,@@SPID) AS [Value]").SingleAsync(ct);
+            await using var tx=await holder.Database.BeginTransactionAsync(ct);
+            await holder.InspectionChecklists.Where(x=>x.ChecklistId==checklist.ChecklistId).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.IsActive,false),ct);
+            var pending=Send(HttpMethod.Post,"/api/room-types",admin,Body("T68_STALE_CHECKLIST",checklist:checklist.ChecklistId));
+            try
+            {
+                var observed=false;for(var i=0;i<180&&!pending.IsCompleted;i++)
+                {
+                    observed=await db.Database.SqlQuery<int>($"SELECT CONVERT(int,COUNT(*)) AS [Value] FROM sys.dm_exec_requests WHERE blocking_session_id={owner} AND wait_type LIKE 'LCK_M_%'").SingleAsync(ct)>0;
+                    if(observed)break;await Task.Delay(35,ct);
+                }
+                check(observed,"UC017 actual HTTPS waits uncommitted checklist deactivation");Task68RoomTypeFaults.Waits.Add(new{scenario="https-stale-checklist",owner,observed});
+                await tx.CommitAsync(ct);using var response=await pending;
+                check((int)response.StatusCode==400&&!await db.RoomTypes.AnyAsync(x=>x.TypeCode=="T68_STALE_CHECKLIST",ct),"UC017 rereads inactive checklist after wait, no stale reference insert");
+            }
+            finally{if(holder.Database.CurrentTransaction!=null)await tx.RollbackAsync(CancellationToken.None);try{using var response=await pending;}catch{}await db.InspectionChecklists.Where(x=>x.ChecklistId==checklist.ChecklistId).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.IsActive,true),ct);}
+        }
+        var foreignType=await db.Database.SqlQuery<long>($"SELECT room_type_id AS [Value] FROM dbo.room_types WHERE branch_id={otherBranch} AND type_code={"T68_NEW"}").SingleAsync(ct);
+        var validRoom=new Room{BranchId=branch,FloorId=floor.FloorId,RoomTypeId=id,RoomNumber="T68_SCOPED",OperationalStatus="AVAILABLE",IsActive=true};
+        var corruptRoom=new Room{BranchId=branch,FloorId=floor.FloorId,RoomTypeId=foreignType,RoomNumber="T68_BAD_TYPE",OperationalStatus="AVAILABLE",IsActive=true};
+        db.AddRange(validRoom,corruptRoom);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        using(var response=await Send(HttpMethod.Get,$"/api/rooms?branchId={branch}",viewer))
+        {
+            response.EnsureSuccessStatusCode();using var value=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+            check(value.RootElement.GetProperty("totalCount").GetInt64()==2,"UC017 Room Directory keeps legacy/new same-branch rooms, excludes foreign type binding");
+        }
+        using(var response=await Send(HttpMethod.Get,$"/api/rooms/{corruptRoom.RoomId}?branchId={branch}",viewer))check((int)response.StatusCode==404,"UC017 foreign type metadata not disclosed by Room detail");
+        using(var response=await Send(HttpMethod.Get,$"/api/branches/{branch}/structure?nodeType=floor&nodeId={floor.FloorId}&collection=rooms",viewer))
+        {
+            response.EnsureSuccessStatusCode();using var value=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+            check(value.RootElement.GetProperty("rooms").GetProperty("totalCount").GetInt64()==2,"UC017 structure read also excludes mismatched scoped type");
+        }
+        var blocked=false;try{await db.Database.ExecuteSqlRawAsync(rollback,ct);}catch(SqlException e)when(e.Number==51068){blocked=true;}
+        check(blocked&&await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.BranchV1,"UC017 rollback refuses scoped data; schema and records retained");
+        var beforeInvalid=await db.RoomTypes.CountAsync(ct);
+        await db.Database.ExecuteSqlRawAsync("ALTER INDEX UX_room_types_branch_code ON dbo.room_types DISABLE;",ct);
+        try
+        {
+            check(await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.Incompatible,"UC017 disabled uniqueness protection is incompatible");
+            await Post(Body("T68_UNSAFE_SCHEMA",checklist:checklist.ChecklistId),admin,503);
+            var refused=false;try{await db.Database.ExecuteSqlRawAsync(forward,ct);}catch(SqlException e)when(e.Number==51068){refused=true;}
+            check(refused,"UC017 forward refuses damaged idempotent state, no silent repair");
+        }
+        finally{await db.Database.ExecuteSqlRawAsync("ALTER INDEX UX_room_types_branch_code ON dbo.room_types REBUILD;",ct);}
+        check(await db.RoomTypes.CountAsync(ct)==beforeInvalid&&await RoomTypeSchema.ReadAsync(db,ct)==RoomTypeContract.BranchV1,"UC017 incompatible schema probes preserve all room-type data");
+        await Task68RoomTypeFaults.RunAsync(db,open,users,branch,checklist.ChecklistId,floor.FloorId,check,ct);
+        await db.UserSessions.Where(x=>x.SessionId==adminHttpSession).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.ExpiresAt,DateTime.UtcNow.AddSeconds(-1)),ct);
+        await Post(Body("T68_EXPIRED",checklist:checklist.ChecklistId),admin,401);
+        await db.UserRoles.Where(x=>x.UserId==users["other"].UserId).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.IsActive,false),ct);
+        try{await Post(Body("T68_REVOKED",checklist:checklist.ChecklistId),other,403);}finally{await db.UserRoles.Where(x=>x.UserId==users["other"].UserId).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.IsActive,true),ct);}
+        check(await db.AuditLogs.CountAsync(x=>x.EntityType=="room_types",ct)>auditCount,"UC017 actual successful creation audit evidence retained");
+    }
+}

@@ -1,0 +1,646 @@
+﻿# SRS historical draft excerpts; explicit approved changes take priority
+
+## docs/requirements/srs_sections/02_use_case_specifications.md
+2536: ### 4.2 UC-029 Assign Cleaning Task
+2537: 
+2538: <table>
+2539: <colgroup>
+2540: <col style="width: 19%" />
+2541: <col style="width: 28%" />
+2542: <col style="width: 20%" />
+2543: <col style="width: 31%" />
+2544: </colgroup>
+2545: <thead>
+2546: <tr class="header">
+2547: <th>UC ID and Name</th>
+2548: <th colspan="3">UC-029 Assign Cleaning Task</th>
+2549: </tr>
+2550: <tr class="odd">
+2551: <th>Primary Actors</th>
+2552: <th>Housekeeping Supervisor</th>
+2553: <th>Secondary Actors</th>
+2554: <th>N/A</th>
+2555: </tr>
+2556: <tr class="header">
+2557: <th>Trigger</th>
+2558: <th colspan="3">A cleaning task is waiting for assignment.</th>
+2559: </tr>
+2560: <tr class="odd">
+2561: <th>Description</th>
+2562: <th colspan="3">Allows the Housekeeping Supervisor to assign a cleaning task to a housekeeper, taking the current workload into account.</th>
+2563: </tr>
+2564: <tr class="header">
+2565: <th>Preconditions</th>
+2566: <th colspan="3"><p><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</p>
+2567: <p><strong>PRE-02:</strong> The cleaning task is Pending Assignment.</p></th>
+2568: </tr>
+2569: <tr class="odd">
+2570: <th>Postconditions</th>
+2571: <th colspan="3"><strong>POST-01:</strong> The task is Assigned and visible in the housekeeper's work list.</th>
+2572: </tr>
+2573: <tr class="header">
+2574: <th>Normal Flow</th>
+2575: <th colspan="3"><p><em><strong>Assign Cleaning Task</strong></em></p>
+2576: <blockquote>
+2577: <p>1. Housekeeping Supervisor opens the cleaning task and selects Assign.</p>
+2578: <p>2. System lists eligible housekeepers on shift in the branch with their number of open cleaning tasks today (GBR-046).</p>
+2579: <p>3. Housekeeping Supervisor selects a housekeeper (and may adjust the due time) and selects Assign.</p>
+2580: <p>4. System validates the input and business conditions (GBR-046, GBR-014, GBR-005).</p>
+2581: <p>5. System sets the assignee and changes the task from Pending Assignment to Assigned.</p>
+2582: <p>6. System saves the assignment and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+2583: <p>7. System sends an in-app notification to the assigned housekeeper (UC-124) (GBR-010).</p>
+2584: <p>8. System displays a success message (MSG08).</p>
+2585: </blockquote></th>
+2586: </tr>
+2587: <tr class="odd">
+2588: <th>Alternative Flows</th>
+2589: <th colspan="3">N/A</th>
+2590: </tr>
+2591: <tr class="header">
+2592: <th>Exceptions</th>
+2593: <th colspan="3"><p><em><strong>Step 4.1_Invalid Data</strong></em></p>
+2594: <p>The selected user is inactive, lacks the Housekeeping Staff role or is outside the branch/department.</p>
+2595: <ol type="1">
+2596: <li><p>System highlights the invalid fields and shows the reason (MSG03).</p></li>
+2597: <li><p>Return to step 3 of the normal flow.</p></li>
+2598: </ol>
+2599: <p><em><strong>Step 7.1_Notification Not Sent</strong></em></p>
+2600: <p>The notification cannot be created.</p>
+2601: <ol type="1">
+2602: <li><p>System keeps the assignment, queues the notification for retry and displays MSG21 (GBR-010).</p></li>
+2603: <li><p>The flow ends.</p></li>
+2604: </ol></th>
+2605: </tr>
+2606: <tr class="odd">
+2607: <th>Priority</th>
+2608: <th colspan="3">High</th>
+2609: </tr>
+2610: <tr class="header">
+2611: <th>Frequency of Use</th>
+2612: <th colspan="3">Many times per day (about once per room that needs cleaning or inspection).</th>
+2613: </tr>
+2614: <tr class="odd">
+2615: <th>Business Rules</th>
+2616: <th colspan="3">GBR-001, GBR-002, GBR-005, GBR-007, GBR-008, GBR-010, GBR-014, GBR-046</th>
+2617: </tr>
+2618: </thead>
+2619: <tbody>
+2620: </tbody>
+2621: </table>
+
+## docs/requirements/srs_sections/02_use_case_specifications.md
+3229: ### 4.10 UC-037 Monitor Cleaning Tasks
+3230: 
+3231: <table>
+3232: <colgroup>
+3233: <col style="width: 19%" />
+3234: <col style="width: 28%" />
+3235: <col style="width: 20%" />
+3236: <col style="width: 31%" />
+3237: </colgroup>
+3238: <thead>
+3239: <tr class="header">
+3240: <th>UC ID and Name</th>
+3241: <th colspan="3">UC-037 Monitor Cleaning Tasks</th>
+3242: </tr>
+3243: <tr class="odd">
+3244: <th>Primary Actors</th>
+3245: <th>Housekeeping Supervisor</th>
+3246: <th>Secondary Actors</th>
+3247: <th>N/A</th>
+3248: </tr>
+3249: <tr class="header">
+3250: <th>Trigger</th>
+3251: <th colspan="3">Housekeeping Supervisor needs to follow the progress of cleaning work.</th>
+3252: </tr>
+3253: <tr class="odd">
+3254: <th>Description</th>
+3255: <th colspan="3">Allows the Housekeeping Supervisor to monitor cleaning and rework tasks (unassigned, in progress, on hold, waiting inspection, rework, overdue) and cancel tasks that are no longer needed.</th>
+3256: </tr>
+3257: <tr class="header">
+3258: <th>Preconditions</th>
+3259: <th colspan="3"><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</th>
+3260: </tr>
+3261: <tr class="odd">
+3262: <th>Postconditions</th>
+3263: <th colspan="3"><strong>POST-01:</strong> The supervisor sees the current workload; cancelled tasks remain in history.</th>
+3264: </tr>
+3265: <tr class="header">
+3266: <th>Normal Flow</th>
+3267: <th colspan="3"><p><em><strong>Monitor Cleaning Tasks</strong></em></p>
+3268: <blockquote>
+3269: <p>1. User opens the Cleaning Monitor screen.</p>
+3270: <p>2. System displays today's cleaning and rework tasks with room, status, assignee, due time and overdue flag (GBR-055), sorted by due time (GBR-015).</p>
+3271: <p>3. User filters by date, floor, status, assignee, priority and overdue flag or searches by keyword.</p>
+3272: <p>4. System refreshes the list with matching records in the user's scope (GBR-015).</p>
+3273: <p>5. User selects a task to view its details, blocker, timeline and links to assign (UC-029) or reassign (UC-030).</p>
+3274: </blockquote></th>
+3275: </tr>
+3276: <tr class="odd">
+3277: <th>Alternative Flows</th>
+3278: <th colspan="3"><p><em><strong>Step 5.1_Cancel Cleaning Task</strong></em></p>
+3279: <p>The task is no longer needed (e.g. the room is not checked out) and Housekeeping Supervisor selects Cancel.</p>
+3280: <ol type="1">
+3281: <li><p>System checks that the task is Pending Assignment or Assigned (GBR-048).</p></li>
+3282: <li><p>System asks User to confirm the cancellation of the cleaning task (MSG33).</p></li>
+3283: <li><p>Housekeeping Supervisor enters the reason and confirms (GBR-012).</p></li>
+3284: <li><p>System changes the task to Cancelled and recalculates the room status from the latest non-cancelled cycle (GBR-044).</p></li>
+3285: <li><p>System saves the cancellation and records the audit log in the same transaction (GBR-007, GBR-008).</p></li>
+3286: <li><p>System sends an in-app notification to the assignee, if any (GBR-010).</p></li>
+3287: <li><p>System displays a success message (MSG08).</p></li>
+3288: </ol></th>
+3289: </tr>
+3290: <tr class="header">
+3291: <th>Exceptions</th>
+3292: <th colspan="3"><p><em><strong>Step 4.1_No Matching Records</strong></em></p>
+3293: <p>No record matches the filters.</p>
+3294: <ol type="1">
+3295: <li><p>System displays an empty list with the applied filters (MSG10).</p></li>
+3296: <li><p>User changes the filters or the flow ends.</p></li>
+3297: </ol>
+3298: <p><em><strong>Step 5.2_Cancellation Not Allowed</strong></em></p>
+3299: <p>The task has already started.</p>
+3300: <ol type="1">
+3301: <li><p>System displays MSG24; Housekeeping Supervisor may reassign it instead (UC-030).</p></li>
+3302: <li><p>The flow ends.</p></li>
+3303: </ol></th>
+3304: </tr>
+3305: <tr class="odd">
+3306: <th>Priority</th>
+3307: <th colspan="3">Medium</th>
+3308: </tr>
+3309: <tr class="header">
+3310: <th>Frequency of Use</th>
+3311: <th colspan="3">Continuously during each shift (many times per day).</th>
+3312: </tr>
+3313: <tr class="odd">
+3314: <th>Business Rules</th>
+3315: <th colspan="3">GBR-001, GBR-002, GBR-007, GBR-008, GBR-010, GBR-012, GBR-015, GBR-044, GBR-048, GBR-055</th>
+3316: </tr>
+3317: </thead>
+3318: <tbody>
+3319: </tbody>
+
+## docs/requirements/srs_sections/02_use_case_specifications.md
+3564: ### 5.3 UC-041 Assign Room Inspection
+3565: 
+3566: <table>
+3567: <colgroup>
+3568: <col style="width: 19%" />
+3569: <col style="width: 28%" />
+3570: <col style="width: 20%" />
+3571: <col style="width: 31%" />
+3572: </colgroup>
+3573: <thead>
+3574: <tr class="header">
+3575: <th>UC ID and Name</th>
+3576: <th colspan="3">UC-041 Assign Room Inspection</th>
+3577: </tr>
+3578: <tr class="odd">
+3579: <th>Primary Actors</th>
+3580: <th>Housekeeping Supervisor</th>
+3581: <th>Secondary Actors</th>
+3582: <th>N/A</th>
+3583: </tr>
+3584: <tr class="header">
+3585: <th>Trigger</th>
+3586: <th colspan="3">A cleaned room or a submitted rework is waiting for inspection.</th>
+3587: </tr>
+3588: <tr class="odd">
+3589: <th>Description</th>
+3590: <th colspan="3">Allows the Housekeeping Supervisor to assign an inspector to a room whose cleaning or rework has been submitted.</th>
+3591: </tr>
+3592: <tr class="header">
+3593: <th>Preconditions</th>
+3594: <th colspan="3"><p><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</p>
+3595: <p><strong>PRE-02:</strong> The room's cleaning task is Pending Inspection (or its rework task is Pending Reinspection for UC-047).</p></th>
+3596: </tr>
+3597: <tr class="odd">
+3598: <th>Postconditions</th>
+3599: <th colspan="3"><strong>POST-01:</strong> One inspection is assigned for the cleaning cycle.</th>
+3600: </tr>
+3601: <tr class="header">
+3602: <th>Normal Flow</th>
+3603: <th colspan="3"><p><em><strong>Assign Room Inspection</strong></em></p>
+3604: <blockquote>
+3605: <p>1. Housekeeping Supervisor opens Pending Inspections (or selects the room on the board) and selects Assign Inspection.</p>
+3606: <p>2. System displays the room, the cleaning cycle, the published checklist of the room type and eligible inspectors (GBR-058).</p>
+3607: <p>3. Housekeeping Supervisor selects the inspector (can be themself) and the due time, and selects Assign.</p>
+3608: <p>4. System validates the input and business conditions (GBR-058, GBR-059, GBR-056, GBR-014).</p>
+3609: <p>5. System creates the inspection with status Assigned, linked to the cleaning cycle and the checklist version.</p>
+3610: <p>6. System saves the inspection and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+3611: <p>7. System sends an in-app notification to the inspector (UC-124) (GBR-010).</p>
+3612: <p>8. System displays a success message (MSG08).</p>
+3613: </blockquote></th>
+3614: </tr>
+3615: <tr class="odd">
+3616: <th>Alternative Flows</th>
+3617: <th colspan="3">N/A</th>
+3618: </tr>
+3619: <tr class="header">
+3620: <th>Exceptions</th>
+3621: <th colspan="3"><p><em><strong>Step 4.1_Inspector Performed the Cleaning</strong></em></p>
+3622: <p>The selected inspector cleaned the room in this cycle.</p>
+3623: <ol type="1">
+3624: <li><p>System rejects the selection (MSG22, GBR-059).</p></li>
+3625: <li><p>Return to step 3 of the normal flow.</p></li>
+3626: </ol>
+3627: <p><em><strong>Step 4.2_Open Inspection Exists</strong></em></p>
+3628: <p>The cycle already has an open inspection.</p>
+3629: <ol type="1">
+3630: <li><p>System shows it (MSG03); Housekeeping Supervisor may change its inspector instead.</p></li>
+3631: <li><p>The flow ends.</p></li>
+3632: </ol>
+3633: <p><em><strong>Step 4.3_No Published Checklist</strong></em></p>
+3634: <p>The room type has no published checklist.</p>
+3635: <ol type="1">
+3636: <li><p>System displays MSG03 and asks to publish a checklist (UC-039).</p></li>
+3637: <li><p>The flow ends.</p></li>
+3638: </ol></th>
+3639: </tr>
+3640: <tr class="odd">
+3641: <th>Priority</th>
+3642: <th colspan="3">High</th>
+3643: </tr>
+3644: <tr class="header">
+3645: <th>Frequency of Use</th>
+3646: <th colspan="3">Many times per day (about once per room that needs cleaning or inspection).</th>
+3647: </tr>
+3648: <tr class="odd">
+3649: <th>Business Rules</th>
+3650: <th colspan="3">GBR-001, GBR-002, GBR-007, GBR-008, GBR-010, GBR-014, GBR-056, GBR-058, GBR-059</th>
+3651: </tr>
+
+## docs/requirements/srs_sections/02_use_case_specifications.md
+3829: ### 5.6 UC-044 Approve Room Inspection
+3830: 
+3831: <table>
+3832: <colgroup>
+3833: <col style="width: 19%" />
+3834: <col style="width: 28%" />
+3835: <col style="width: 20%" />
+3836: <col style="width: 31%" />
+3837: </colgroup>
+3838: <thead>
+3839: <tr class="header">
+3840: <th>UC ID and Name</th>
+3841: <th colspan="3">UC-044 Approve Room Inspection</th>
+3842: </tr>
+3843: <tr class="odd">
+3844: <th>Primary Actors</th>
+3845: <th>Housekeeping Supervisor</th>
+3846: <th>Secondary Actors</th>
+3847: <th>N/A</th>
+3848: </tr>
+3849: <tr class="header">
+3850: <th>Trigger</th>
+3851: <th colspan="3">All mandatory criteria of an inspection are Pass.</th>
+3852: </tr>
+3853: <tr class="odd">
+3854: <th>Description</th>
+3855: <th colspan="3">Allows the inspector to approve a room that meets all mandatory criteria, completing the cleaning cycle and making the room Ready if it is not blocked.</th>
+3856: </tr>
+3857: <tr class="header">
+3858: <th>Preconditions</th>
+3859: <th colspan="3"><p><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</p>
+3860: <p><strong>PRE-02:</strong> The inspection is Pending Conclusion and assigned to User.</p></th>
+3861: </tr>
+3862: <tr class="odd">
+3863: <th>Postconditions</th>
+3864: <th colspan="3"><strong>POST-01:</strong> The cleaning cycle is Completed; the room is Ready unless blocked.</th>
+3865: </tr>
+3866: <tr class="header">
+3867: <th>Normal Flow</th>
+3868: <th colspan="3"><p><em><strong>Approve Room Inspection</strong></em></p>
+3869: <blockquote>
+3870: <p>1. Inspector reviews the summary and selects Approve.</p>
+3871: <p>2. System validates the input and business conditions (GBR-062, GBR-059, GBR-005).</p>
+3872: <p>3. System changes the inspection from Pending Conclusion to Passed.</p>
+3873: <p>4. System changes the cleaning task from Pending Inspection to Completed (GBR-062).</p>
+3874: <p>5. System recalculates the room status: Ready if no effective block exists (GBR-043, GBR-044).</p>
+3875: <p>6. System saves the inspection, cleaning task and room status and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+3876: <p>7. System sends an in-app notification to the housekeeper who cleaned the room (GBR-010).</p>
+3877: <p>8. System displays a success message (MSG08).</p>
+3878: </blockquote></th>
+3879: </tr>
+3880: <tr class="odd">
+3881: <th>Alternative Flows</th>
+3882: <th colspan="3"><p><em><strong>Step 5.1_Room Still Blocked</strong></em></p>
+3883: <p>The room has an effective block.</p>
+3884: <ol type="1">
+3885: <li><p>System keeps the room Blocked and displays MSG17.</p></li>
+3886: <li><p>Return to step 6 of the normal flow.</p></li>
+3887: </ol></th>
+3888: </tr>
+3889: <tr class="header">
+3890: <th>Exceptions</th>
+3891: <th colspan="3"><p><em><strong>Step 2.1_Mandatory Criterion Failed</strong></em></p>
+3892: <p>At least one mandatory criterion is Fail.</p>
+3893: <ol type="1">
+3894: <li><p>System rejects approval (MSG03, GBR-062) and offers Reject (UC-045).</p></li>
+3895: <li><p>The flow ends.</p></li>
+3896: </ol></th>
+3897: </tr>
+3898: <tr class="odd">
+3899: <th>Priority</th>
+3900: <th colspan="3">High</th>
+3901: </tr>
+3902: <tr class="header">
+3903: <th>Frequency of Use</th>
+3904: <th colspan="3">Many times per day (about once per room that needs cleaning or inspection).</th>
+3905: </tr>
+3906: <tr class="odd">
+3907: <th>Business Rules</th>
+3908: <th colspan="3">GBR-001, GBR-002, GBR-005, GBR-007, GBR-008, GBR-010, GBR-043, GBR-044, GBR-059, GBR-062</th>
+3909: </tr>
+3910: </thead>
+3911: <tbody>
+3912: </tbody>
+3913: </table>
+3914: 
+3915: ### 5.7 UC-045 Reject Room Inspection
+3916: 
+3917: <table>
+3918: <colgroup>
+3919: <col style="width: 19%" />
+3920: <col style="width: 28%" />
+3921: <col style="width: 20%" />
+3922: <col style="width: 31%" />
+3923: </colgroup>
+3924: <thead>
+3925: <tr class="header">
+3926: <th>UC ID and Name</th>
+3927: <th colspan="3">UC-045 Reject Room Inspection</th>
+3928: </tr>
+3929: <tr class="odd">
+3930: <th>Primary Actors</th>
+3931: <th>Housekeeping Supervisor</th>
+3932: <th>Secondary Actors</th>
+3933: <th>N/A</th>
+3934: </tr>
+3935: <tr class="header">
+3936: <th>Trigger</th>
+3937: <th colspan="3">An inspection has at least one failed criterion.</th>
+3938: </tr>
+3939: <tr class="odd">
+3940: <th>Description</th>
+3941: <th colspan="3">Allows the inspector to reject a room that does not meet the checklist, so rework is required.</th>
+3942: </tr>
+3943: <tr class="header">
+3944: <th>Preconditions</th>
+3945: <th colspan="3"><p><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</p>
+3946: <p><strong>PRE-02:</strong> The inspection is Pending Conclusion and assigned to User.</p></th>
+3947: </tr>
+3948: <tr class="odd">
+3949: <th>Postconditions</th>
+3950: <th colspan="3"><strong>POST-01:</strong> The room is Rework Required; a rework task must be created.</th>
+3951: </tr>
+3952: <tr class="header">
+3953: <th>Normal Flow</th>
+3954: <th colspan="3"><p><em><strong>Reject Room Inspection</strong></em></p>
+3955: <blockquote>
+3956: <p>1. Inspector reviews the summary and selects Reject.</p>
+3957: <p>2. System displays the failed criteria and defects and a field for the overall reason.</p>
+3958: <p>3. Inspector enters the reason and confirms.</p>
+3959: <p>4. System validates the input and business conditions (GBR-063, GBR-060, GBR-012, GBR-005).</p>
+3960: <p>5. System changes the inspection from Pending Conclusion to Failed.</p>
+3961: <p>6. System changes the cleaning task from Pending Inspection to Rework Required (GBR-063).</p>
+3962: <p>7. System recalculates the room status to Rework Required unless Blocked (GBR-044).</p>
+3963: <p>8. System saves the inspection, cleaning task and room status and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+3964: <p>9. System sends an in-app notification to the Housekeeping Supervisor and the housekeeper who cleaned the room (UC-126) (GBR-010).</p>
+3965: <p>10. System opens Request Cleaning Rework (UC-046) with the defects preselected.</p>
+3966: </blockquote></th>
+3967: </tr>
+3968: <tr class="odd">
+3969: <th>Alternative Flows</th>
+3970: <th colspan="3">N/A</th>
+3971: </tr>
+3972: <tr class="header">
+3973: <th>Exceptions</th>
+3974: <th colspan="3"><p><em><strong>Step 4.1_No Defect Recorded</strong></em></p>
+3975: <p>The failed inspection has no defect.</p>
+3976: <ol type="1">
+3977: <li><p>System displays MSG03 (GBR-060).</p></li>
+3978: <li><p>Return to step 2 of the normal flow.</p></li>
+3979: </ol></th>
+3980: </tr>
+3981: <tr class="odd">
+3982: <th>Priority</th>
+3983: <th colspan="3">High</th>
+3984: </tr>
+3985: <tr class="header">
+3986: <th>Frequency of Use</th>
+3987: <th colspan="3">Many times per day (about once per room that needs cleaning or inspection).</th>
+3988: </tr>
+3989: <tr class="odd">
+3990: <th>Business Rules</th>
+3991: <th colspan="3">GBR-001, GBR-002, GBR-005, GBR-007, GBR-008, GBR-010, GBR-012, GBR-044, GBR-060, GBR-063</th>
+3992: </tr>
+3993: </thead>
+3994: <tbody>
+3995: </tbody>
+3996: </table>
+3997: 
+
+## docs/requirements/srs_sections/02_use_case_specifications.md
+3998: ### 5.8 UC-046 Request Cleaning Rework
+3999: 
+4000: <table>
+4001: <colgroup>
+4002: <col style="width: 19%" />
+4003: <col style="width: 28%" />
+4004: <col style="width: 20%" />
+4005: <col style="width: 31%" />
+4006: </colgroup>
+4007: <thead>
+4008: <tr class="header">
+4009: <th>UC ID and Name</th>
+4010: <th colspan="3">UC-046 Request Cleaning Rework</th>
+4011: </tr>
+4012: <tr class="odd">
+4013: <th>Primary Actors</th>
+4014: <th>Housekeeping Supervisor</th>
+4015: <th>Secondary Actors</th>
+4016: <th>N/A</th>
+4017: </tr>
+4018: <tr class="header">
+4019: <th>Trigger</th>
+4020: <th colspan="3">An inspection has been concluded as Failed.</th>
+4021: </tr>
+4022: <tr class="odd">
+4023: <th>Description</th>
+4024: <th colspan="3">Allows the Housekeeping Supervisor to send the defects of a failed inspection back as a rework task to a housekeeper.</th>
+4025: </tr>
+4026: <tr class="header">
+4027: <th>Preconditions</th>
+4028: <th colspan="3"><p><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</p>
+4029: <p><strong>PRE-02:</strong> The inspection is Failed and has no open rework task.</p></th>
+4030: </tr>
+4031: <tr class="odd">
+4032: <th>Postconditions</th>
+4033: <th colspan="3"><strong>POST-01:</strong> The rework task waits for the housekeeper's acceptance (UC-035).</th>
+4034: </tr>
+4035: <tr class="header">
+4036: <th>Normal Flow</th>
+4037: <th colspan="3"><p><em><strong>Request Cleaning Rework</strong></em></p>
+4038: <blockquote>
+4039: <p>1. Housekeeping Supervisor opens the failed inspection and selects Request Rework.</p>
+4040: <p>2. System displays the defects (all preselected), eligible housekeepers (the original cleaner first) and a due time field.</p>
+4041: <p>3. Housekeeping Supervisor selects the defects, assignee and due time and selects Save.</p>
+4042: <p>4. System validates the input and business conditions (GBR-064, GBR-046, GBR-014).</p>
+4043: <p>5. System creates the rework task with status Pending Acceptance, linked to the inspection and the selected defects.</p>
+4044: <p>6. System saves the rework task and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+4045: <p>7. System sends an in-app notification to the assignee (UC-124) (GBR-010).</p>
+4046: <p>8. System displays a success message (MSG09).</p>
+4047: </blockquote></th>
+4048: </tr>
+4049: <tr class="odd">
+4050: <th>Alternative Flows</th>
+4051: <th colspan="3">N/A</th>
+4052: </tr>
+4053: <tr class="header">
+4054: <th>Exceptions</th>
+4055: <th colspan="3"><p><em><strong>Step 4.1_Open Rework Exists</strong></em></p>
+4056: <p>The inspection already has an open rework task.</p>
+4057: <ol type="1">
+4058: <li><p>System shows it (MSG03, GBR-064).</p></li>
+4059: <li><p>The flow ends.</p></li>
+4060: </ol></th>
+4061: </tr>
+4062: <tr class="odd">
+4063: <th>Priority</th>
+4064: <th colspan="3">High</th>
+4065: </tr>
+4066: <tr class="header">
+4067: <th>Frequency of Use</th>
+4068: <th colspan="3">A few times per day.</th>
+4069: </tr>
+4070: <tr class="odd">
+4071: <th>Business Rules</th>
+4072: <th colspan="3">GBR-001, GBR-002, GBR-007, GBR-008, GBR-010, GBR-014, GBR-046, GBR-064</th>
+4073: </tr>
+4074: </thead>
+4075: <tbody>
+4076: </tbody>
+4077: </table>
+4078: 
+4079: ### 5.9 UC-047 Reinspect Room
+4080: 
+4081: <table>
+
+## docs/requirements/srs_sections/02_use_case_specifications.md
+10012: ### 12.3 UC-139 Record Workday Start and End
+10013: 
+10014: <table>
+10015: <colgroup>
+10016: <col style="width: 19%" />
+10017: <col style="width: 28%" />
+10018: <col style="width: 20%" />
+10019: <col style="width: 31%" />
+10020: </colgroup>
+10021: <thead>
+10022: <tr class="header">
+10023: <th>UC ID and Name</th>
+10024: <th colspan="3">UC-139 Record Workday Start and End</th>
+10025: </tr>
+10026: <tr class="odd">
+10027: <th>Primary Actors</th>
+10028: <th>Housekeeping Staff, Maintenance Staff, Storekeeper, Housekeeping Supervisor, Maintenance Lead</th>
+10029: <th>Secondary Actors</th>
+10030: <th>N/A</th>
+10031: </tr>
+10032: <tr class="header">
+10033: <th>Trigger</th>
+10034: <th colspan="3">An employee starts or ends the workday.</th>
+10035: </tr>
+10036: <tr class="odd">
+10037: <th>Description</th>
+10038: <th colspan="3">Allows an employee to record the start and end of the workday/shift; workday time is kept separate from task time recorded in UC-111.</th>
+10039: </tr>
+10040: <tr class="header">
+10041: <th>Preconditions</th>
+10042: <th colspan="3"><strong>PRE-01:</strong> User has logged in and has permission for this function (GBR-001, GBR-002).</th>
+10043: </tr>
+10044: <tr class="odd">
+10045: <th>Postconditions</th>
+10046: <th colspan="3"><strong>POST-01:</strong> Workday start/end are recorded; task time remains separate (GBR-140).</th>
+10047: </tr>
+10048: <tr class="header">
+10049: <th>Normal Flow</th>
+10050: <th colspan="3"><p><em><strong>Record Workday Start and End</strong></em></p>
+10051: <blockquote>
+10052: <p>1. User selects Start Workday on the home page.</p>
+10053: <p>2. System shows today's shift assignment, if any.</p>
+10054: <p>3. User confirms.</p>
+10055: <p>4. System validates the input and business conditions (GBR-142).</p>
+10056: <p>5. System creates the workday with status Working and start time = server time (GBR-014).</p>
+10057: <p>6. System saves the workday and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+10058: <p>7. System displays a success message (MSG08).</p>
+10059: <p>8. At the end of the shift User selects End Workday.</p>
+10060: <p>9. System validates the input and business conditions (GBR-143).</p>
+10061: <p>10. System sets the end time and changes the workday to Ended.</p>
+10062: <p>11. System saves the workday end and records the audit log in the same transaction (GBR-007, GBR-008).</p>
+10063: <p>12. System displays a success message (MSG08).</p>
+10064: </blockquote></th>
+10065: </tr>
+10066: <tr class="odd">
+10067: <th>Alternative Flows</th>
+10068: <th colspan="3"><p><em><strong>Step 4.1_No Shift Assignment</strong></em></p>
+10069: <p>User has no shift assignment today.</p>
+10070: <ul>
+10071: <li><p>System asks for a reason; the workday is flagged Unscheduled and the Department Head is notified (GBR-142).</p></li>
+10072: <li><p>Return to step 5 of the normal flow.</p></li>
+10073: </ul>
+10074: <p><em><strong>Step 8.1_Hand Over Shift</strong></em></p>
+10075: <p>User has open items to pass on.</p>
+10076: <ol type="1">
+10077: <li><p>System suggests UC-140 before ending the workday.</p></li>
+10078: <li><p>Return to step 8 of the normal flow.</p></li>
+10079: </ol></th>
+10080: </tr>
+10081: <tr class="header">
+10082: <th>Exceptions</th>
+10083: <th colspan="3"><p><em><strong>Step 4.2_Already Working</strong></em></p>
+10084: <p>User already has a Working workday.</p>
+10085: <ol type="1">
+10086: <li><p>System displays MSG03.</p></li>
+10087: <li><p>The flow ends.</p></li>
+10088: </ol>
+10089: <p><em><strong>Step 9.1_Open Work Item</strong></em></p>
+10090: <p>User still has an open work interval.</p>
+10091: <ol type="1">
+10092: <li><p>System displays MSG31 and offers Pause All.</p></li>
+10093: <li><p>If User selects Pause All, System pauses/holds every open item with reason 'end of shift' and closes the intervals (GBR-138).</p></li>
+10094: <li><p>Return to step 10 of the normal flow.</p></li>
+10095: </ol></th>
+10096: </tr>
+10097: <tr class="odd">
+10098: <th>Priority</th>
+10099: <th colspan="3">High</th>
+10100: </tr>
+10101: <tr class="header">
+10102: <th>Frequency of Use</th>
+10103: <th colspan="3">Twice per employee per workday (start and end).</th>
+10104: </tr>
+10105: <tr class="odd">
+10106: <th>Business Rules</th>
+10107: <th colspan="3">GBR-001, GBR-002, GBR-007, GBR-008, GBR-014, GBR-138, GBR-140, GBR-142, GBR-143</th>
+10108: </tr>
+10109: </thead>
+10110: <tbody>
+10111: </tbody>
+10112: </table>
+10113: 
+10114: ### 12.4 UC-140 Manage Operational Shift Handover
+10115: 
+10116: <table>
+10117: <colgroup>
+10118: <col style="width: 19%" />
+10119: <col style="width: 28%" />
+10120: <col style="width: 20%" />
+10121: <col style="width: 31%" />
+10122: </colgroup>
+10123: <thead>
+10124: <tr class="header">
+10125: <th>UC ID and Name</th>
+10126: <th colspan="3">UC-140 Manage Operational Shift Handover</th>

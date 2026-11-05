@@ -1,0 +1,53 @@
+4: namespace HotelOps.Api.Services.Assets;
+5: 
+6: public sealed partial class AssetService
+7: {
+8:     public async Task<AssetPagedResponse<AssetListDto>> GetAssetsAsync(AssetQueryRequest request, CancellationToken cancellationToken)
+9:     {
+10:         var offset = Offset(request);
+11:         var query = _dbContext.Assets.AsNoTracking();
+15:         if (request.AreaId is long area) query = query.Where(a => a.CurrentAreaId == area);
+16:         if (request.DepartmentId is long department) query = query.Where(a => a.CurrentDepartmentId == department);
+17:         var condition = OptionalNote(request.ConditionStatus)?.ToUpperInvariant();
+18:         var lifecycle = OptionalNote(request.LifecycleStatus)?.ToUpperInvariant();
+19:         if (condition is not null) query = query.Where(a => a.ConditionStatus == condition);
+20:         if (lifecycle is not null) query = query.Where(a => a.LifecycleStatus == lifecycle);
+21:         var search = OptionalNote(request.Search);
+22:         if (search is not null)
+23:         {
+37:                 CurrentDepartmentId = a.CurrentDepartmentId, DepartmentName = a.CurrentDepartment == null ? null : a.CurrentDepartment.DepartmentName,
+38:                 CustodianUserId = a.CustodianUserId, CustodianName = a.CustodianUser == null ? null : a.CustodianUser.FullName,
+39:                 ConditionStatus = a.ConditionStatus, LifecycleStatus = a.LifecycleStatus
+40:             }).ToListAsync(cancellationToken);
+41:         return Page(items, count, request);
+42:     }
+43: 
+44:     public Task<AssetDetailDto?> GetAssetAsync(long id, CancellationToken cancellationToken) =>
+45:         _dbContext.Assets.AsNoTracking().Where(a => a.AssetId == id).Select(a => new AssetDetailDto
+46:         {
+47:                 AssetId = a.AssetId, AssetCode = a.AssetCode, AssetName = a.AssetName,
+52:                 CurrentDepartmentId = a.CurrentDepartmentId, DepartmentName = a.CurrentDepartment == null ? null : a.CurrentDepartment.DepartmentName,
+53:                 CustodianUserId = a.CustodianUserId, CustodianName = a.CustodianUser == null ? null : a.CustodianUser.FullName,
+54:                 ConditionStatus = a.ConditionStatus, LifecycleStatus = a.LifecycleStatus,
+55:                 SerialNumber = a.SerialNumber, Brand = a.Brand, Model = a.Model,
+56:                 PurchaseDate = a.PurchaseDate, WarrantyExpiryDate = a.WarrantyExpiryDate,
+57:                 AcquisitionCost = a.AcquisitionCost, Description = a.Description,
+59:         }).SingleOrDefaultAsync(cancellationToken);
+60: 
+61:     public async Task<IReadOnlyList<AssetTypeLookupDto>> GetAssetTypesAsync(CancellationToken cancellationToken) =>
+62:         await _dbContext.AssetTypes.AsNoTracking().Where(t => t.IsActive)
+63:             .OrderBy(t => t.TypeCode).ThenBy(t => t.AssetTypeId)
+64:             .Select(t => new AssetTypeLookupDto
+65:             {
+68:             }).ToListAsync(cancellationToken);
+69: 
+70:     public async Task<AssetPagedResponse<AssetConditionHistoryDto>?> GetConditionHistoryAsync(
+71:         long id, AssetPageRequest request, CancellationToken cancellationToken)
+72:     {
+73:         var offset = Offset(request);
+86:     }
+87: 
+88:     public async Task<AssetPagedResponse<AssetLocationHistoryDto>?> GetLocationHistoryAsync(
+89:         long id, AssetPageRequest request, CancellationToken cancellationToken)
+90:     {
+91:         var offset = Offset(request);

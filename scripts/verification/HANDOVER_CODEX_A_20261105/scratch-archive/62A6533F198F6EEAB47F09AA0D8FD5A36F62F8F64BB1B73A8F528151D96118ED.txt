@@ -1,0 +1,187 @@
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Data.Common;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Rooms;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.Rooms;
+
+public enum RoomDirectoryStatus { Success, SessionInvalid, Forbidden, AuthorizationUnavailable, NotFound }
+public sealed record RoomDirectoryResult(RoomDirectoryStatus Status, RoomDirectoryResponse? Directory = null,
+    RoomDirectoryDetailDto? Detail = null, RoomDirectoryHistoryDto? History = null);
+
+/// <summary>
+/// SQL-authorized room list, detail and recorded status history. Does not derive lifecycle state.
+/// </summary>
+public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
+    ISqlSessionService sessions, IPermissionService permissions)
+{
+    /// <param name="authenticatedSession">From a server-authenticated protected ticket, never a request DTO.</param>
+    public Task<RoomDirectoryResult> ListAsync(SessionReference authenticatedSession,
+        RoomDirectoryQuery query, CancellationToken ct) => ReadAsync(authenticatedSession, query, null, false, ct);
+
+    public Task<RoomDirectoryResult> DetailAsync(SessionReference ticket, long branchId, long roomId, CancellationToken ct)
+        => ReadAsync(ticket, new RoomDirectoryQuery { BranchId = branchId }, roomId, false, ct);
+
+    public Task<RoomDirectoryResult> HistoryAsync(SessionReference ticket, long branchId, long roomId, int page, int pageSize, CancellationToken ct)
+        => ReadAsync(ticket, new RoomDirectoryQuery { BranchId = branchId, Page = page, PageSize = pageSize }, roomId, true, ct);
+
+    private async Task<RoomDirectoryResult> ReadAsync(SessionReference authenticatedSession,
+        RoomDirectoryQuery query, long? roomId, bool history, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(authenticatedSession);
+        ArgumentNullException.ThrowIfNull(query);
+        ct.ThrowIfCancellationRequested();
+        Validator.ValidateObject(query, new ValidationContext(query), validateAllProperties: true);
+        if (roomId <= 0) throw new ValidationException("RoomId must be positive.");
+        if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted
+            || actor.UserId != authenticatedSession.UserId || authenticatedSession.IsRestricted)
+            return new(RoomDirectoryStatus.SessionInvalid);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null
+            || db.ChangeTracker.Entries().Any() || System.Transactions.Transaction.Current != null)
+            throw new InvalidOperationException("Room directory requires a clean, dedicated SQL Server context.");
+
+        // The existing session service retains User before Session. Only then read grants
+        // and room/floor/type resources. No feature -> User inversion or SaveChanges here.
+        // SERIALIZABLE keeps count/page, joins and the SQL authority paths consistent;
+        // no database snapshot option/schema change is required.
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        try
+        {
+            if (!await HasSessionAsync(authenticatedSession, actor, ct))
+                return new(RoomDirectoryStatus.SessionInvalid);
+            var access = await Access();
+            if (!access.IsGranted) return Denied(access);
+
+            // RoomType is global. Floor/Area names must never be projected from another
+            // branch even if legacy FK data is internally inconsistent. An area without
+            // a floor is legitimate. Parent inactivity does not hide historical rooms.
+            var rooms = db.Rooms.AsNoTracking().Where(r => (query.AllBranches ? r.Branch.IsActive : r.BranchId == query.BranchId)
+                && r.Floor.BranchId == r.BranchId
+                && (r.Area == null || r.Area.BranchId == r.BranchId
+                    && (r.Area.FloorId == null || r.Area.FloorId == r.FloorId)));
+            if (roomId is { } requestedRoom)
+            {
+                var selected = await rooms.Where(r => r.RoomId == requestedRoom)
+                    .Select(r => new { Value = new RoomDirectoryItemDto(r.RoomId,r.BranchId,r.RoomNumber,
+                        new RoomDirectoryFloorDto(r.FloorId,r.Floor.FloorCode,r.Floor.FloorName,r.Floor.FloorNumber),
+                        r.Area == null ? null : new RoomDirectoryAreaDto(r.AreaId!.Value,r.Area.AreaCode,r.Area.AreaName),
+                        new RoomDirectoryTypeDto(r.RoomTypeId,r.RoomType.TypeCode,r.RoomType.TypeName),r.OperationalStatus,r.IsActive),r.Description })
+                    .TagWith("UC023:Detail").SingleOrDefaultAsync(ct);
+                if (selected == null) return new(RoomDirectoryStatus.NotFound);
+                var events = db.RoomStatusHistories.AsNoTracking().Where(x => x.RoomId == requestedRoom);
+                var orderedEvents = events.OrderByDescending(x => x.ChangedAt).ThenByDescending(x => x.HistoryId);
+                RoomDirectoryDetailDto? detail = null; RoomDirectoryHistoryDto? timeline = null;
+                if (history)
+                {
+                    var count = await events.TagWith("UC023:HistoryCount").LongCountAsync(ct);
+                    var page = await orderedEvents.Skip(checked((query.Page-1)*query.PageSize)).Take(query.PageSize)
+                        .Select(x => new EventRow(x.HistoryId,x.FromStatus,x.ToStatus,x.ChangedAt,x.Reason,x.TriggerType,x.TriggerId))
+                        .TagWith("UC023:HistoryPage").ToArrayAsync(ct);
+                    var sources = await Sources(page, requestedRoom, ct);
+                    timeline = new(page.Select(x => new RoomStatusEventDto(x.Id,x.From,x.To,
+                        DateTime.SpecifyKind(x.At,DateTimeKind.Utc),x.Reason,sources[x.Id])).ToArray(),query.Page,query.PageSize,count);
+                }
+                else
+                {
+                    var last = await orderedEvents.Select(x => new EventRow(x.HistoryId,x.FromStatus,x.ToStatus,x.ChangedAt,x.Reason,x.TriggerType,x.TriggerId))
+                        .TagWith("UC023:CurrentEvidence").FirstOrDefaultAsync(ct);
+                    var evidence = new RoomCurrentStatusEvidenceDto(last == null ? "NOT_RECORDED" : "OUT_OF_SYNC",null,null,null);
+                    if (last != null && last.To == selected.Value.OperationalStatusCode)
+                    {
+                        var sources = await Sources([last], requestedRoom, ct);
+                        evidence = new("RECORDED",last.Reason,DateTime.SpecifyKind(last.At,DateTimeKind.Utc),sources[last.Id]);
+                    }
+                    detail = new(selected.Value,selected.Description,evidence);
+                }
+                if (!await HasSessionAsync(authenticatedSession, actor, ct)) return new(RoomDirectoryStatus.SessionInvalid);
+                access = await Access(); if (!access.IsGranted) return Denied(access);
+                await tx.CommitAsync(ct); return new(RoomDirectoryStatus.Success,Detail:detail,History:timeline);
+            }
+            if (query.FloorId is { } floorId) rooms = rooms.Where(r => r.FloorId == floorId);
+            if (query.AreaId is { } areaId) rooms = rooms.Where(r => r.AreaId == areaId);
+            if (query.RoomTypeId is { } typeId) rooms = rooms.Where(r => r.RoomTypeId == typeId);
+            if (query.OperationalStatusCode is { } status) rooms = rooms.Where(r => r.OperationalStatus == status);
+            if (query.IsActive is { } active) rooms = rooms.Where(r => r.IsActive == active);
+            var search = query.Search?.Trim();
+            // Literal substring, not a LIKE pattern supplied by the caller.
+            if (!string.IsNullOrEmpty(search)) rooms = rooms.Where(r => r.RoomNumber.Contains(search));
+
+            var total = await rooms.TagWith("UC023:Count").LongCountAsync(ct);
+            var sorted = Sort(rooms,query);
+            var items = await sorted
+                .Skip(checked((query.Page - 1) * query.PageSize)).Take(query.PageSize)
+                .Select(r => new RoomDirectoryItemDto(r.RoomId, r.BranchId, r.RoomNumber,
+                    new RoomDirectoryFloorDto(r.FloorId, r.Floor.FloorCode, r.Floor.FloorName, r.Floor.FloorNumber),
+                    r.Area == null ? null : new RoomDirectoryAreaDto(r.Area.AreaId, r.Area.AreaCode, r.Area.AreaName),
+                    new RoomDirectoryTypeDto(r.RoomTypeId, r.RoomType.TypeCode, r.RoomType.TypeName),
+                    r.OperationalStatus, r.IsActive))
+                .TagWith("UC023:Page").ToListAsync(ct);
+
+            // Locks prevent SQL revocation races, but time can still expire while waiting.
+            // Recheck policy and time-dependent grants before publishing any data.
+            if (!await HasSessionAsync(authenticatedSession, actor, ct))
+                return new(RoomDirectoryStatus.SessionInvalid);
+            access = await Access();
+            if (!access.IsGranted) return Denied(access);
+            await tx.CommitAsync(ct);
+            return new(RoomDirectoryStatus.Success, new(items, query.Page, query.PageSize, total));
+        }
+        catch (DbException error) when (ct.IsCancellationRequested)
+        {
+            // SqlClient may surface cancellation during a lock wait as a provider error.
+            throw new OperationCanceledException("Room directory read was cancelled.", error, ct);
+        }
+
+        Task<PermissionEvaluation> Access() => query.AllBranches
+            ? permissions.EvaluateGlobalAsync("ROOM_VIEW",ct)
+            : permissions.EvaluateBranchAsync("ROOM_VIEW",query.BranchId,ct);
+    }
+
+    private static IOrderedQueryable<HotelOps.Api.Entities.Room> Sort(IQueryable<HotelOps.Api.Entities.Room> rooms,RoomDirectoryQuery query)
+    {
+        var desc=query.Descending;
+        return query.Sort switch
+        {
+            "roomNumber" => (desc?rooms.OrderByDescending(r=>r.RoomNumber):rooms.OrderBy(r=>r.RoomNumber)).ThenBy(r=>r.RoomId),
+            "roomType" => (desc?rooms.OrderByDescending(r=>r.RoomType.TypeCode):rooms.OrderBy(r=>r.RoomType.TypeCode)).ThenBy(r=>r.RoomNumber).ThenBy(r=>r.RoomId),
+            "status" => (desc?rooms.OrderByDescending(r=>r.OperationalStatus):rooms.OrderBy(r=>r.OperationalStatus)).ThenBy(r=>r.RoomNumber).ThenBy(r=>r.RoomId),
+            _ when desc => rooms.OrderBy(r=>r.Floor.FloorNumber==null?1:0).ThenByDescending(r=>r.Floor.FloorNumber)
+                .ThenByDescending(r=>r.Floor.FloorCode).ThenBy(r=>r.FloorId).ThenBy(r=>r.RoomNumber).ThenBy(r=>r.RoomId),
+            _ => rooms.OrderBy(r=>r.Floor.FloorNumber==null?1:0).ThenBy(r=>r.Floor.FloorNumber)
+                .ThenBy(r=>r.Floor.FloorCode).ThenBy(r=>r.FloorId).ThenBy(r=>r.RoomNumber).ThenBy(r=>r.RoomId)
+        };
+    }
+
+    private sealed record EventRow(long Id,string? From,string To,DateTime At,string? Reason,string? Type,long? SourceId);
+    private async Task<Dictionary<long,RoomStatusSourceDto>> Sources(EventRow[] events,long roomId,CancellationToken ct)
+    {
+        var tasks=events.Where(x=>x.Type=="CLEANING_TASK"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
+        var inspections=events.Where(x=>x.Type=="INSPECTION"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
+        var blocks=events.Where(x=>x.Type=="ROOM_BLOCK"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();
+        // Bound batches, never one source query per history event. Only verified same-room IDs escape.
+        var validTasks=tasks.Length==0?[]:await db.CleaningTasks.AsNoTracking().Where(x=>x.RoomId==roomId&&tasks.Contains(x.CleaningTaskId)).Select(x=>x.CleaningTaskId).ToArrayAsync(ct);
+        var validInspections=inspections.Length==0?[]:await db.RoomInspections.AsNoTracking().Where(x=>x.RoomId==roomId&&inspections.Contains(x.InspectionId)).Select(x=>x.InspectionId).ToArrayAsync(ct);
+        var validBlocks=blocks.Length==0?[]:await db.RoomBlocks.AsNoTracking().Where(x=>x.RoomId==roomId&&blocks.Contains(x.BlockId)).Select(x=>x.BlockId).ToArrayAsync(ct);
+        return events.ToDictionary(x=>x.Id,x=>
+        {
+            var verified=x.SourceId is {} id && (x.Type=="CLEANING_TASK"&&validTasks.Contains(id)
+                ||x.Type=="INSPECTION"&&validInspections.Contains(id)||x.Type=="ROOM_BLOCK"&&validBlocks.Contains(id));
+            return new RoomStatusSourceDto(x.Type,verified?x.SourceId:null,verified?"VERIFIED_SAME_ROOM":x.SourceId==null?"NOT_RECORDED":"UNRESOLVED");
+        });
+    }
+
+    private async Task<bool> HasSessionAsync(SessionReference ticket, CurrentUserInfo actor, CancellationToken ct)
+    {
+        var valid = await sessions.ValidateSessionAsync(ticket, ct);
+        return valid.IsValid && valid.Session is { IsRestricted: false } session
+            && session.SessionId == actor.SessionId && session.UserId == actor.UserId;
+    }
+
+    private static RoomDirectoryResult Denied(PermissionEvaluation access) => new(
+        access.Decision == PermissionDecision.Unavailable
+            ? RoomDirectoryStatus.AuthorizationUnavailable : RoomDirectoryStatus.Forbidden);
+}

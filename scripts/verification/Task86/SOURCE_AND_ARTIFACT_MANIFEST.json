@@ -1,0 +1,362 @@
+﻿{
+    "recordedUtc":  "2026-11-04T16:13:30.7817759Z",
+    "generatedBuildOutputsExcluded":  true,
+    "files":  [
+                  {
+                      "path":  "scripts/verification/Task86\\A_APPROVAL_APPLIED.json",
+                      "sha256":  "836F347F8720024DD6DC4E56117ABACDDA50D85EDD77F2DCA15DB77338D79312"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\AuditFailureConstraint.sql.proposal",
+                      "sha256":  "4F2B5067FC779EE1FE672270597582B0E4F9D385F52629CCF5C5B1C8CCC59011"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\BranchAdministrationController.cs.proposal",
+                      "sha256":  "68B225C20C740B5CB26EB2764C594FFDB8C1C64DB8C72B14FA29FC68DB142586"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\branch-rowversion-forward.sql.proposal",
+                      "sha256":  "A5A9CB55317222CE5B368754407F7F3386C052DA3DA710F4F752F4BDB39CC455"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\build.log",
+                      "sha256":  "CE2C0488AE558690CED0135E06A61034347765F4B19AF2AAE8BA74084A994231"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\build-final.log",
+                      "sha256":  "14F47281FE1916633B99B7042756A134DDCEDA086C9374B2C85D4A6D38CC55A4"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\build-integrated.log",
+                      "sha256":  "04E2D060BDEBDB58F4607523C50CA8513A43B3ACE92A3F986616E0A14F915BBA"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\build-sql-ready.log",
+                      "sha256":  "015CBEFD585309A73CC3636709D96364E65246A7E66F757EE6B9C0BA0D2C3CED"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ControllerCompile.targets",
+                      "sha256":  "1232D25F56CFF9D3B0F72BEAE991EB58D90F6654A9E052FBC4045D8AB185F7EC"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\CurrentUserAccessor.log",
+                      "sha256":  "9B9885E8AC334BA2442A568AD7C27112BE6B859E93012D2221C4F89E0DEC59D5"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\DI_BOUNDARY_RECEIPT.json",
+                      "sha256":  "237CC385B9CEC537C138D1DA63D604A02624DD336F68DD2F108EEA56FF7FBA60"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\DI_INTEGRATED_RECEIPT.json",
+                      "sha256":  "237CC385B9CEC537C138D1DA63D604A02624DD336F68DD2F108EEA56FF7FBA60"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\DiAndBoundaryVerification.cs",
+                      "sha256":  "C2A669CB360C7E57DE74CC8F42B238506894B7512A3C80C644D7427543937B18"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\di-boundary.log",
+                      "sha256":  "ED920E27C7F6DD54D6AFE3C97FC309CA87E3A70133C50499BDFECC9CB6310870"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\DIFF_CHECK.json",
+                      "sha256":  "6ACBC6C70B0F9BF1240DD0A7DF3CC948DC18F8AD141D4B7A904F3D949D672B52"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\di-integrated.log",
+                      "sha256":  "ED920E27C7F6DD54D6AFE3C97FC309CA87E3A70133C50499BDFECC9CB6310870"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\framework.log",
+                      "sha256":  "BFF8A554A4DACCB0ED2DA56D2A33E58D4FD9D0AC297FDC4E447CF03C9653C759"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\HTTPS_RESUME_RECEIPT.json",
+                      "sha256":  "DC949D10846F2922B8A600A90CE2320CECCE43C1C03F1198D47A3A24C90AB782"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\HTTPS_RESUME2_RECEIPT.json",
+                      "sha256":  "5359324B018D12EFE8C139F83E78BD9189ACBCC3BB4379CB4076FB47E761FC25"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\HTTPS_SQL_RECEIPT.json",
+                      "sha256":  "6142EC75EC2382CF73A0344FA07BB697FF424F64D597267152A9647727D27A16"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\https-build.log",
+                      "sha256":  "B3E190949CA6269AF087911FFF4D3BE900DF131E0CD729384EDCD6C736E129D8"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\https-build-final.log",
+                      "sha256":  "739A0026B3E2726663A0267706BDC6509AC46174F4C7F4C0D4F716C65A966230"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\HttpsProgram.cs",
+                      "sha256":  "AF006B5109B051222E70B065D407B3C234842CBCBEC14F0BC234913F3CB4DBA7"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\https-resume.log",
+                      "sha256":  "CF4BC085DD43784481084D6CBA3E464FD89E3B16A8B1106491D2C48A41A9C163"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\https-resume2.log",
+                      "sha256":  "1B8106A90877AF4C231545A21744839C665EE7CDAAC05E9210BB0B4E44387A43"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\HttpsResume2Program.cs",
+                      "sha256":  "206A245669393F08DE2D04040125E7F49865D58231ECE085C18F4C8B616D8C60"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\HttpsResumeProgram.cs",
+                      "sha256":  "48A410C6D13F63C64C4806406650AA18FB33E2395EFB62E80ECC702BAB41F526"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\https-sql.log",
+                      "sha256":  "2CD4B837366FF281E7BD48E1EAA0C17F27F25899CD1E4BB5AA00F1EB457CA266"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\PermissionService.log",
+                      "sha256":  "33E0316E914238FA130EC4C2B68CDEFB650B48D02CA8DF4E6675C035B3AD167A"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\postdi-Authorization.log",
+                      "sha256":  "C7DFFBDBF74967B112297F682A27285318ABD246C93173A24DDC86386A8A0820"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\postdi-CurrentUserAccessor.log",
+                      "sha256":  "9B9885E8AC334BA2442A568AD7C27112BE6B859E93012D2221C4F89E0DEC59D5"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\postdi-PermissionService.log",
+                      "sha256":  "7D2F35452A28EA4912D8F6E3B076EB2D3F078AF5B20EB6AD8FDAF362ADFAC511"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\postdi-ResourceAuthorization.log",
+                      "sha256":  "75C5036FB7A3EFC5CCA376225478EEC22078402E078738F6F3D4D91469597E47"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\POSTFLIGHT.json",
+                      "sha256":  "E761D637935D0E9B963091355173F68CAAE0B3CE44B85ADF7E3834280861ED2A"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Postflight.ps1",
+                      "sha256":  "131C2BF91B471272C0CC282E1B9336A4384CA494380642D694BB19B77241C75E"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\POSTFLIGHT_FINAL.json",
+                      "sha256":  "76FB4F4C0260D2BDCB50B84F3EB498BC558C47E74C023057B8A34287BCCA9C2B"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\POSTFLIGHT_VERIFIED.json",
+                      "sha256":  "723727177BE799B1DF8AF9FB9C785111E98A236641C457033A68239704AFD9AA"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\postflight-final.log",
+                      "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\postflight-verified.log",
+                      "sha256":  "3F878E71EB767889D5EF9D1EAB8A2F02994AA479E18F1279B8CDA21C93D84372"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\PREFLIGHT.json",
+                      "sha256":  "5B22661B2C5DBBC75CA59653A90D64CF9DCD87EFB3648A8B32FB6D36BB53E6C3"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Prepare-Task86Trial.ps1",
+                      "sha256":  "8A7A490AA12A841D549F4B3ACE0E5167E2D1D64F45D1DD4DFE4F44AF38E9F13B"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Prepare-Task86Trial.ps1.proposal",
+                      "sha256":  "8A7A490AA12A841D549F4B3ACE0E5167E2D1D64F45D1DD4DFE4F44AF38E9F13B"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Program.di.patch",
+                      "sha256":  "F4BF582C303ADF26D4A721961C7955B367F56F30A595D2CB720217AD170A659A"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ResourceAuthorization.log",
+                      "sha256":  "75C5036FB7A3EFC5CCA376225478EEC22078402E078738F6F3D4D91469597E47"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\RESUME2_SCOPE.json",
+                      "sha256":  "3B0487C0B8799E07021B660DFE9B988AF39BCE56981263472AF8CDD046A559A8"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\resume2-build.log",
+                      "sha256":  "5C28596C3745C8511C0451D5F302A7A9ECB53542582F048E042F6E0B678F3E2C"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ResumeAcceptance.fragment",
+                      "sha256":  "70CA2B13332138A068711453D28048CA8EAD848E9D5E1B3C0AFBD49D6BF2B546"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\resume-build.log",
+                      "sha256":  "AEC0AB97923ED51E570E7E8276C98B41960918CCCC8FA0293ED3DF6FA867B7D8"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ResumeFixtures.fragment",
+                      "sha256":  "F2591FB21501D4BE5F078D91C13F6C18C7510B18B4C1938BB5F061ADBF615B84"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ResumePrefix.tmp",
+                      "sha256":  "89FE77D5049B0BE370062216AE89214C32CF41A14EFFC89CD37D032AC65C4225"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ResumeRuntime.tmp",
+                      "sha256":  "1F21B205327183C5BFCC46D7DA97E9BE55B60198A2FCD6B620A0208C018182DD"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\ResumeSuffix.tmp",
+                      "sha256":  "9CF1379BF9F259FF63917CBD5117D48FC50C4D7AB9D84061407C79544CB3A5B9"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\security.log",
+                      "sha256":  "C7DFFBDBF74967B112297F682A27285318ABD246C93173A24DDC86386A8A0820"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_APPROVAL.json",
+                      "sha256":  "D4E70AA1296D28667B88D59198EB0DB7B60F78075F55D838FF758FBCDE1B7739"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_APPROVAL_REQUEST.md",
+                      "sha256":  "DAAA80857A6DB6FCA2580C41A959CCBA174230E0704C004D48225CDEF4D14E84"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_ORACLE_FINAL_RECEIPT.json",
+                      "sha256":  "33E78FCA53FFA415877196A4587ECB3A1E02EC301B962A1C145ADB93230139EC"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_ORACLE_RECEIPT.json",
+                      "sha256":  "440CB9E9E77CE060AC3753CCF89D63D63A0443D9BBB4F4465389C32D8698F544"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_RESUME_APPROVAL.json",
+                      "sha256":  "233A90303FD373546E94E9E90712570482EC7FED7031995A9D17D6E47274A1B2"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_RESUME_APPROVAL_REQUEST.md",
+                      "sha256":  "2915D8E39B99EB45B4EF6CAABDB1D52C9A6E44351130186B897462AEB532D150"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\SQL_SCOPE_REVIEW.proposal.json",
+                      "sha256":  "83CF45194B5765135495245B19673A3584E7C5EDFDEF63F3F15185D077E1B4B8"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\sql-oracle.log",
+                      "sha256":  "634651F1D9C87FD2B006B218CD92F710A860DB7402DC9C9F94D174600CE3F3E1"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\sql-oracle-final.log",
+                      "sha256":  "634651F1D9C87FD2B006B218CD92F710A860DB7402DC9C9F94D174600CE3F3E1"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\sql-prepare.log",
+                      "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\sql-prepare-approved.log",
+                      "sha256":  "58797661EF7E8B1867E2F68CA49E91B485398005C4AB3217290775B5B32DCEFF"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\sql-prepare-attempt2.log",
+                      "sha256":  "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Task86.HttpsResume2Verification.csproj",
+                      "sha256":  "1B496656BE1353EBE0D3E3AA2E12077393E5A2ED5BF96C45F6FAC4EBA3E65598"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Task86.HttpsResumeVerification.csproj",
+                      "sha256":  "ADDB6CC00DDEF894435ABC9F0279D2EB7929B64506F6C5AB0A1746D11E4EEF01"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Task86.HttpsVerification.csproj",
+                      "sha256":  "1751F681E3CB438C90434428AE257374AC7CD2663AE0E16155F050FF66B9D7B8"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Task86.Verification.csproj",
+                      "sha256":  "9BD039979DE4B18B1010F3AA35395C6745ED873D93D23955EC9A89FF4DDDBBE7"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_BRANCH_DEACTIVATION_MATRIX.md",
+                      "sha256":  "0759E1ADB3FC5AEC7A3309FDD79855CB37A935E89FDC1671CA2C3208FDA4A911"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_CHANGELOG.md",
+                      "sha256":  "5E6B0C4B270F7F6A49656F055292C2D4EFD116C6A0105CF962CA48FBDB5C6CE1"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_DEV1_PROGRESS.md",
+                      "sha256":  "E97D670EFDF2B087610F0DF4226BD43A3B38EE310F3A83DA3C558CEEE338E3C3"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_SHARED_APPROVAL_REQUEST.md",
+                      "sha256":  "767FF230931FEE5BEC1855403B97E01696636FEFB906839902CBF3C5A60B1CD7"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_UC012_ACCEPTANCE_MATRIX.md",
+                      "sha256":  "15CD84B387E29CDCE6BCD7A322F6636268DED5CB572DDDE440C96EEDE3D3D235"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_UC012_IMPLEMENTATION_REPORT.md",
+                      "sha256":  "5828EDDC80875A53CD5CD25253230D68D7BB56E99F41D356A86E611FE0D9EFCC"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_UC012_SCOPE_AND_DEPENDENCIES.md",
+                      "sha256":  "0BE67861992B1E1F8050B1094A5D2F428A468F7E5C04D3482B739A975213D19E"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\TASK86_VALIDATION.json",
+                      "sha256":  "762B2138D25673FF7A7FBCC181732B5F2DEE5CD696C0E6F9615BD94BF53E72BB"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\uc037.log",
+                      "sha256":  "BE68EEC59928DE6B1E16E610E0E8449BD070E67DA51AD2251F26AECA48A6097B"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\UC037_RECEIPT.json",
+                      "sha256":  "82040DD55347307835E5C31BB5F405A68EEB384844D4ADD5D4742B36D9AC3B46"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\uc038.log",
+                      "sha256":  "E456FB06061D1D101940AD7827CC5F64E5113EC5213041BA44642BA45D9FC40B"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\UC038_RECEIPT.json",
+                      "sha256":  "9F406B7A8C7643CD241E5215D080F6A4B87DB8C5872DD71AAB97F045162AC249"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\uc142.log",
+                      "sha256":  "85E701AB860054EB976D923339704827D12C3EF79DEF83887899CF3F83DA5A62"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\UC142_RECEIPT.json",
+                      "sha256":  "EE7357328B2227DED3F9DE16340A6BC5D64F52DE8FA1EF88D2BA6DD8FAE69D22"
+                  },
+                  {
+                      "path":  "scripts/verification/Task86\\Verify-Task86ReadOnly.ps1",
+                      "sha256":  "7C9962126C145F7986197E2AF558060806FAA757ABFB6A59CF3AF2DDE22D8827"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+                      "sha256":  "68B225C20C740B5CB26EB2764C594FFDB8C1C64DB8C72B14FA29FC68DB142586"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Program.cs",
+                      "sha256":  "586299FB650342F7389BAECD615DD29ACC94352857021FC4391554FF9372A505"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationSchema.cs",
+                      "sha256":  "E429B893ADA3ECD5A5B8EFBC2D9A3DE0FE3F18F4E7DB3336B9767263CBACD8FE"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+                      "sha256":  "BA03B74EB8E1F317E07714C4C723CC2809EB394F39885DA61CB8C42B18CBCA86"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+                      "sha256":  "2BFA288A2B5157CA3C2ABAACAD62D341D7E88CBC50791E1C3B9A09627B9EF3C2"
+                  }
+              ]
+}

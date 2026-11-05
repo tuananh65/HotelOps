@@ -1,0 +1,8 @@
+6: /// Does not establish last-admin or open-work safety.
+7: /// </summary>
+8: public sealed class UserAccountStatusAccess(UserCredentialResetAccess approvedScope)
+9: {
+10:     public Task<bool> CanManageAsync(long targetId, CancellationToken ct)
+11:         => approvedScope.CanResetAsync(targetId, ct);
+12: 
+13:     internal Task LockAuthorityAsync(long actorId, long targetId, CancellationToken ct)

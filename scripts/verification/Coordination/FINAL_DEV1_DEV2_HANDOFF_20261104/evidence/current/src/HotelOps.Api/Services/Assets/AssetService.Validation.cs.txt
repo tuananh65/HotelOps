@@ -1,0 +1,41 @@
+7: namespace HotelOps.Api.Services.Assets;
+8: 
+9: public sealed partial class AssetService
+10: {
+11:     private static string Required(string? value, string field, int? maximum = null, int minimum = 1)
+12:     {
+13:         var normalized = value?.Trim();
+14:         if (string.IsNullOrEmpty(normalized) || normalized.Length < minimum)
+27:         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+28: 
+29:     private async Task RequireActorAsync(long actor, CancellationToken cancellationToken)
+30:     {
+31:         if (!await _dbContext.Users.AsNoTracking().AnyAsync(u => u.UserId == actor, cancellationToken))
+32:             throw new ValidationException("ActorUserId does not exist.");
+33:     }
+34: 
+35:     private async Task ValidateMasterAsync(AssetMasterRequest request, CancellationToken cancellationToken)
+36:     {
+37:         Required(request.AssetCode, "AssetCode", 50);
+38:         Required(request.AssetName, "AssetName", 200);
+39:         CheckLength(request.SerialNumber, "SerialNumber", 100);
+40:         CheckLength(request.Brand, "Brand", 100);
+41:         CheckLength(request.Model, "Model", 100);
+42:         await RequireActorAsync(request.ActorUserId, cancellationToken);
+43:         if (!await _dbContext.AssetTypes.AsNoTracking()
+44:             .AnyAsync(t => t.AssetTypeId == request.AssetTypeId && t.IsActive, cancellationToken))
+45:             throw new ValidationException("AssetTypeId must identify an active AssetType.");
+46:     }
+47: 
+48:     private static void RequireOperational(Asset asset)
+49:     {
+50:         if (asset.LifecycleStatus is not ("IN_USE" or "UNDER_REPAIR"))
+51:             throw new ValidationException("This lifecycle does not allow Phase 1 mutations.");
+52:     }
+53: 
+54:     private static string Condition(string? value, string field)
+55:     {
+56:         var status = Required(value, field, 40).ToUpperInvariant();
+57:         if (status is not ("GOOD" or "FAIR" or "POOR" or "FAULTY"))
+58:             throw new ValidationException($"{field} must be GOOD, FAIR, POOR or FAULTY.");
+59:         return status;

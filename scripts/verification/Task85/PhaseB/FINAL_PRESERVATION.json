@@ -1,0 +1,20 @@
+﻿{
+    "finishedUtc":  "2026-11-04T07:20:10.4586471Z",
+    "headUnchanged":  true,
+    "branchUnchanged":  true,
+    "indexUnchanged":  true,
+    "worktreesUnchanged":  true,
+    "existingGitStatusUnchanged":  true,
+    "fullFileScan":  "FINAL_POSTFLIGHT_FILES.json:29420 files/0 changes/0 errors, expected approved Program only",
+    "finalFocusedFiles":  453,
+    "finalFocusedDifferences":  [
+
+                                ],
+    "productionSourceMatchesBuiltSource":  true,
+    "sourceDifferences":  [
+
+                          ],
+    "diffCheckExit":  0,
+    "apiAssembly":  "scripts/verification/Task85/PhaseB/artifacts/integrated/bin/HotelOps.Api/debug/HotelOps.Api.dll",
+    "apiAssemblySha256":  "739AD6F501471C1117807CFD04F0623A28F5ED6B13C1D79322C39364E1F5925D"
+}

@@ -1,0 +1,61 @@
+﻿{
+    "UC023Checks":  227,
+    "Branch":  "feature/BE1-database-integration",
+    "AuthChecks":  174,
+    "DotnetTestExit":  "0",
+    "ValidBackups":  453,
+    "UC023HttpWaits":  4,
+    "VerifiedUCs":  10,
+    "UC023TotalHttpChecks":  229,
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "ProtectedFiles":  453,
+    "StructureChecks":  590,
+    "ValidatedUtc":  "2026-10-30T16:38:48.5125782+00:00",
+    "Unchanged":  447,
+    "VerifiedPercentage":  9.77,
+    "IntendedEdits":  [
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "scripts/verification/HotelStructure/Program.cs",
+                          "scripts/verification/RoomDirectory/Program.cs",
+                          "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+                          "src/HotelOps.Api/Program.cs",
+                          "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs"
+                      ],
+    "UC023LegacyWaits":  11,
+    "DotnetTestCoverage":  "No test project; explicit console suites executed",
+    "Build":  "PASS; NU1900 remains",
+    "UCCategories":  [
+                         {
+                             "Count":  7,
+                             "Status":  "COMPLETE_VERIFIED"
+                         },
+                         {
+                             "Count":  5,
+                             "Status":  "PARTIAL"
+                         },
+                         {
+                             "Count":  20,
+                             "Status":  "BLOCKED_EXTERNAL"
+                         },
+                         {
+                             "Count":  40,
+                             "Status":  "NOT_IMPLEMENTED"
+                         },
+                         {
+                             "Count":  3,
+                             "Status":  "COMPLETE_VERIFIED_V1"
+                         }
+                     ],
+    "DiffCheck":  "PASS",
+    "UC006AndUC016RowsUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "UC023LegacyChecks":  117,
+    "Result":  "PASS",
+    "VerifiedPoints":  25,
+    "IndexUnchanged":  true,
+    "NewFiles":  [
+                     "src/HotelOps.Api/Controllers/RoomsController.cs",
+                     "scripts/verification/HotelStructure/Task67RoomCases.cs",
+                     "scripts/verification/RoomDirectory/TASK67_UC023_COMPLETION.md"
+                 ]
+}

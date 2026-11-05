@@ -1,0 +1,27 @@
+$ErrorActionPreference='Stop'
+function Prepare([string]$role,[bool]$scoped){
+ & obj/task65-prepare-trial.ps1 -Role $role
+ $trial=(Get-Content ('obj/task65-trial-'+$role+'.local.txt') -Raw).Trim()
+ if($scoped){
+  & scripts/database/release/uc017/Run-Uc017.ps1 -Stage Apply -Server 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS' -Database $trial -Receipt ('obj/'+$role+'-deployment.local.json')
+ }
+ return $trial
+}
+# Setup progress is routed to the local log rather than becoming the return value.
+& obj/task65-prepare-trial.ps1 -Role task69-legacy-read > obj/task69-legacy-read-prepare.local.log
+$legacy=(Get-Content obj/task65-trial-task69-legacy-read.local.txt -Raw).Trim()
+dotnet scripts/verification/RoomDirectory/bin/Debug/net10.0/RoomDirectory.Verification.dll $legacy scripts/verification/HotelStructure/task69-legacy-read.local.json > obj/task69-legacy-read.local.log 2>&1
+if($LASTEXITCODE -ne 0){throw 'Legacy Room Directory regression failed'}
+Write-Output 'PASS: legacy Room Directory'
+& obj/task65-prepare-trial.ps1 -Role task69-scoped-rooms > obj/task69-scoped-rooms-prepare.local.log
+$rooms=(Get-Content obj/task65-trial-task69-scoped-rooms.local.txt -Raw).Trim()
+& scripts/database/release/uc017/Run-Uc017.ps1 -Stage Apply -Server 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS' -Database $rooms -Receipt obj/task69-scoped-rooms-deployment.local.json
+dotnet scripts/verification/HotelStructure/bin/Debug/net10.0/HotelStructure.Verification.dll $rooms scripts/verification/HotelStructure/task69-scoped-rooms.local.json --task67 > obj/task69-scoped-rooms.local.log 2>&1
+if($LASTEXITCODE -ne 0){throw 'Migrated UC023 regression failed'}
+Write-Output 'PASS: migrated UC023'
+& obj/task65-prepare-trial.ps1 -Role task69-scoped-structure > obj/task69-scoped-structure-prepare.local.log
+$structure=(Get-Content obj/task65-trial-task69-scoped-structure.local.txt -Raw).Trim()
+& scripts/database/release/uc017/Run-Uc017.ps1 -Stage Apply -Server 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS' -Database $structure -Receipt obj/task69-scoped-structure-deployment.local.json
+dotnet scripts/verification/HotelStructure/bin/Debug/net10.0/HotelStructure.Verification.dll $structure scripts/verification/HotelStructure/task69-scoped-structure.local.json --task65 > obj/task69-scoped-structure.local.log 2>&1
+if($LASTEXITCODE -ne 0){throw 'Migrated UC013/014/015 regression failed'}
+Write-Output 'PASS: migrated UC013/014/015'

@@ -1,0 +1,91 @@
+5: namespace HotelOps.Api.Services.Inventory;
+6: 
+7: public sealed partial class InventoryService
+8: {
+9:     // Only the stocktake caller may request immediate posting, after its existing
+10:     // counter/approver guard. Direct HTTP adjustment creation always stays DRAFT.
+11:     private async Task<StockDocument> Adjustment(long actorUserId, InventoryAdjustment r, List<Warehouse> warehouses,
+12:         DateTime now, bool postApprovedStocktake, CancellationToken ct)
+13:     {
+14:         if (r.DocumentDate == default) throw Invalid("DocumentDate is required.");
+17:         var d = new StockDocument
+18:         {
+19:             DocumentType = "ADJUSTMENT", Status = postApprovedStocktake ? "POSTED" : "DRAFT",
+20:             DestinationWarehouseId = r.WarehouseId, CreatedBy = actorUserId, CreatedAt = now,
+21:             PostedBy = postApprovedStocktake ? actorUserId : null, PostedAt = postApprovedStocktake ? now : null,
+22:             DocumentDate = r.DocumentDate, Reason = r.Reason.Trim()
+41:         return d;
+42:     }
+43:     public async Task<InventoryDocumentDto> CreateAdjustment(long actorUserId, InventoryAdjustment r, CancellationToken ct)
+44:     {
+45:         await using var tx = await Begin(actorUserId, ct);
+46:         var warehouses = await Warehouses([r.WarehouseId], true, ct);
+47:         var d = await Adjustment(actorUserId, r, warehouses, DateTime.UtcNow, postApprovedStocktake: false, ct);
+48:         await tx.CommitAsync(ct);
+49:         return (await GetDocument(d.DocumentId, ct))!;
+50:     }
+51:     private async Task AdjustmentMovements(StockDocument d, long actor, DateTime now, CancellationToken ct)
+52:     {
+53:         if (d.SourceWarehouseId != null || d.DestinationWarehouseId is not long warehouse || d.StockDocumentLines.Count == 0)
+54:             throw Invalid("Adjustment requires its authoritative destination warehouse and proposal lines.");
+73:             });
+74:     }
+75:     public async Task<InventoryDocumentDto?> PostAdjustment(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
+76:     {
+77:         await using var tx = await Begin(actorUserId, ct);
+78:         var d = await Document(id, ct);
+79:         if (d is null) return null;
+80:         Version(d.RowVersion, r.ExpectedRowVersion);
+81:         if (d.DocumentType != "ADJUSTMENT" || d.Status != "DRAFT" || d.PostedBy != null || d.PostedAt != null)
+82:             throw Invalid("Only an unposted ADJUSTMENT DRAFT may be posted.");
+83:         if (d.CreatedBy == actorUserId) throw Invalid("Adjustment poster must differ from its proposer.");
+84:         if (await db.StockMovements.AnyAsync(x => x.DocumentLine.DocumentId == id, ct))
+87:         var before = Scalars(d); var now = DateTime.UtcNow;
+88:         await AdjustmentMovements(d, actorUserId, now, ct);
+89:         d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now;
+90:         await DocumentAudit(d, actorUserId, "UPDATE", "ADJUSTMENT_POSTED", before, warehouses, now, ct);
+91:         await tx.CommitAsync(ct);
+92:         return await GetDocument(id, ct);
+93:     }
+94:     private async Task<List<StockMovement>> ReversalSource(StockDocument original, long? proposal, CancellationToken ct)
+95:     {
+96:         if (original.Status != "POSTED" || original.DocumentType is not ("RECEIPT" or "RETURN" or "ADJUSTMENT")
+97:             || original.ReversalOfDocumentId != null
+98:             || await db.StockDocuments.AnyAsync(x => x.ReversalOfDocumentId == original.DocumentId && (proposal == null || x.DocumentId != proposal.Value), ct))
+99:             throw Invalid("Document is not eligible for reversal, or another proposal already exists.");
+104:         return movements;
+105:     }
+106:     public async Task<InventoryDocumentDto?> Reverse(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
+107:     {
+108:         var reason = Reason(r.Reason);
+109:         await using var tx = await Begin(actorUserId, ct);
+116:         var d = new StockDocument
+117:         {
+118:             DocumentNo = await Number("REV", now, false, ct), DocumentType = "REVERSAL", Status = "DRAFT",
+119:             ReversalOfDocumentId = id, SourceWarehouseId = original.SourceWarehouseId,
+120:             DestinationWarehouseId = original.DestinationWarehouseId, CreatedBy = actorUserId, CreatedAt = now,
+121:             DocumentDate = DateOnly.FromDateTime(now), Reason = reason
+135:         db.StockDocuments.Add(d);
+136:         await DocumentAudit(d, actorUserId, "CREATE", "REVERSAL_DRAFT_CREATED", null, warehouses, now, ct);
+137:         await tx.CommitAsync(ct);
+138:         return (await GetDocument(d.DocumentId, ct))!;
+139:     }
+140:     public async Task<InventoryDocumentDto?> PostReversal(long id, long actorUserId, InventoryCommand r, CancellationToken ct)
+141:     {
+142:         // Discovery chooses owner locks only; authoritative state is read below.
+143:         var sourceId = await db.StockDocuments.AsNoTracking().Where(x => x.DocumentId == id)
+152:         if (!owners.TryGetValue(id, out var d)) return null;
+153:         Version(d.RowVersion, r.ExpectedRowVersion);
+154:         if (d.DocumentType != "REVERSAL" || d.Status != "DRAFT" || d.PostedBy != null || d.PostedAt != null
+155:             || sourceId is not long originalId || d.ReversalOfDocumentId != originalId
+156:             || !owners.TryGetValue(originalId, out var original))
+157:             throw Invalid("Only a current REVERSAL DRAFT with its original may be posted. Reload changed context.");
+191:             });
+192:         }
+193:         d.Status = "POSTED"; d.PostedBy = actorUserId; d.PostedAt = now; original.Status = "REVERSED";
+194:         await DocumentAudit(original, actorUserId, "UPDATE", "REVERSED", originalBefore, warehouses, now, ct);
+195:         await DocumentAudit(d, actorUserId, "UPDATE", "REVERSAL_POSTED", before, warehouses, now, ct);
+196:         await tx.CommitAsync(ct);
+197:         return await GetDocument(id, ct);
+198:     }
+199: }

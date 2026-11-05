@@ -1,0 +1,36 @@
+5: 
+6: // Read model keeps every grant attached to its own assignment. No role-name bypasses.
+7: public sealed record PermissionGrantPath(string PermissionCode, string DataScope, long? BranchId,
+8:     bool AssignmentActive, bool RoleActive, DateTime AssignedAt, DateTime? ExpiresAt,
+9:     bool BranchActive, bool BranchAccessActive);
+10: 
+11: public interface IPermissionDataSource
+12: {
+13:     Task<bool> IsActiveUserAsync(long userId, CancellationToken cancellationToken);
+14:     Task<IReadOnlyList<PermissionGrantPath>> ReadPathsAsync(long userId, string permissionCode,
+15:         DateTime utcNow, CancellationToken cancellationToken);
+16:     Task<bool> IsActiveBranchAsync(long branchId, CancellationToken cancellationToken);
+17: }
+18: 
+19: public sealed class EfPermissionDataSource(HotelOpsDbContext db) : IPermissionDataSource
+20: {
+21:     public Task<bool> IsActiveUserAsync(long userId, CancellationToken cancellationToken) =>
+22:         db.Users.AsNoTracking().AnyAsync(u => u.UserId == userId && u.AccountStatus == "ACTIVE"
+23:             && u.DeletedAt == null, cancellationToken);
+24: 
+25:     public Task<bool> IsActiveBranchAsync(long branchId, CancellationToken cancellationToken) =>
+26:         db.Branches.AsNoTracking().AnyAsync(b => b.BranchId == branchId && b.IsActive, cancellationToken);
+27: 
+28:     public async Task<IReadOnlyList<PermissionGrantPath>> ReadPathsAsync(long userId, string permissionCode,
+29:         DateTime utcNow, CancellationToken cancellationToken) =>
+30:         await (from assignment in db.UserRoles.AsNoTracking()
+31:                join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
+32:                where assignment.UserId == userId && grant.Permission.PermissionCode == permissionCode
+33:                    && assignment.User.AccountStatus == "ACTIVE" && assignment.User.DeletedAt == null
+34:                select new PermissionGrantPath(grant.Permission.PermissionCode, grant.DataScope,
+35:                    assignment.BranchId, assignment.IsActive, assignment.Role.IsActive,
+36:                    assignment.AssignedAt, assignment.ExpiresAt,
+37:                    assignment.Branch != null && assignment.Branch.IsActive,
+38:                    db.UserBranchAccesses.Any(a => a.UserId == userId && a.BranchId == assignment.BranchId
+39:                        && a.RevokedAt == null && a.GrantedAt <= utcNow)))
+40:             .ToListAsync(cancellationToken);

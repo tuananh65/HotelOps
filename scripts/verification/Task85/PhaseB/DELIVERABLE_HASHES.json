@@ -1,0 +1,22 @@
+﻿[
+    {
+        "path":  "scripts/verification/Task85/PhaseB/TASK85B_UC038_INTEGRATION_REPORT.md",
+        "sha256":  "02854C844D0C94E65571FF10A1EA00C0DBA99B742DAB893D5978686FE3F05BDF"
+    },
+    {
+        "path":  "scripts/verification/Task85/PhaseB/TASK85B_UC038_ACCEPTANCE_MATRIX.md",
+        "sha256":  "2E1D47459B7933B213C92132043AEA3E730AD85E441A523F1F2945F843B258E4"
+    },
+    {
+        "path":  "scripts/verification/Task85/PhaseB/TASK85B_VALIDATION.json",
+        "sha256":  "E80F5AD15F0403DEBB484DA7CA283E9849C6EB7C8A5809B0D4348F22A0CA97B4"
+    },
+    {
+        "path":  "scripts/verification/Task85/PhaseB/TASK85B_CHANGELOG.md",
+        "sha256":  "0BDB4BB8927C462A141B513C18385BED8721B273D93131619E80F3851F8A5664"
+    },
+    {
+        "path":  "scripts/verification/Task85/PhaseB/TASK85B_RUNTIME_PROGRESS.md",
+        "sha256":  "25AF745FB4927B99F60A1C6F1CE228C2CAD1D3A0648A52F6504066CF8ACEAFB8"
+    }
+]

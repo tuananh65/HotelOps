@@ -1,0 +1,6 @@
+3: namespace HotelOps.Api.Services.Users;
+4: 
+5: public interface IUserDirectoryService
+6: {
+7:     Task<UserDirectoryResponse> ListAsync(UserDirectoryQuery query, CancellationToken cancellationToken);
+8:     Task<UserAccountDetailDto?> GetAsync(long userId, CancellationToken cancellationToken);

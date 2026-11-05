@@ -1,0 +1,48 @@
+6: namespace HotelOps.Api.Services.Assets;
+7: 
+8: public sealed partial class AssetService
+9: {
+10:     public async Task<AssetDetailDto?> ChangeConditionAsync(long id, ChangeAssetConditionRequest request, CancellationToken cancellationToken)
+11:     {
+12:         var expected = Condition(request.ExpectedCondition, "ExpectedCondition");
+13:         var target = Condition(request.NewCondition, "NewCondition");
+14:         var note = Required(request.Note, "Note");
+15:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+16:         var asset = await LockAssetAsync(id, cancellationToken);
+17:         if (asset is null) return null;
+18:         RequireOperational(asset);
+19:         await RequireActorAsync(request.ActorUserId, cancellationToken);
+20:         if (asset.ConditionStatus != expected)
+21:             throw new ValidationException("ExpectedCondition does not match the current Asset condition.");
+22:         if (request.RelatedIncidentId is long incidentId && !await _dbContext.Incidents.AsNoTracking()
+23:             .AnyAsync(i => i.IncidentId == incidentId && i.AssetId == id, cancellationToken))
+25:         if (expected == target)
+26:         {
+27:             var unchanged = await RequireDetailAsync(id, cancellationToken);
+28:             await transaction.CommitAsync(cancellationToken);
+29:             return unchanged;
+30:         }
+31:         var before = Snapshot(asset);
+32:         var now = DateTime.UtcNow;
+33:         asset.ConditionStatus = target;
+34:         asset.UpdatedAt = now;
+35:         var history = new AssetConditionHistory
+36:         {
+37:             AssetId = id, OldCondition = expected, NewCondition = target, Note = note,
+38:             RelatedIncidentId = request.RelatedIncidentId, ChangedBy = request.ActorUserId, ChangedAt = now
+39:         };
+40:         _dbContext.AssetConditionHistories.Add(history);
+41:         await _dbContext.SaveChangesAsync(cancellationToken);
+42:         Audit("assets", id, asset, request.ActorUserId, now, before, Snapshot(asset));
+43:         Audit("asset_condition_history", history.ConditionHistoryId, asset, request.ActorUserId, now, null, new()
+44:         {
+45:             ["asset_id"] = id, ["old_condition"] = expected, ["new_condition"] = target,
+46:             ["note"] = note, ["related_incident_id"] = request.RelatedIncidentId,
+47:             ["changed_by"] = request.ActorUserId, ["changed_at"] = now
+48:         });
+49:         await _dbContext.SaveChangesAsync(cancellationToken);
+50:         var result = await RequireDetailAsync(id, cancellationToken);
+51:         await transaction.CommitAsync(cancellationToken);
+52:         return result;
+53:     }
+54: }

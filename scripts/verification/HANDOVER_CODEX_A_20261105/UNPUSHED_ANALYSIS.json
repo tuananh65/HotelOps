@@ -1,0 +1,15 @@
+﻿{
+    "baseHead":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "remoteRefsContainingBase":  [
+                                     "  origin/FE+BE/integration/dev1-fe-handoff",
+                                     "  origin/develop",
+                                     "  origin/feature/FE+BE/develop2",
+                                     "  origin/handoff/codex-b-20261105",
+                                     "  origin/integration/dev1-fe-handoff"
+                                 ],
+    "aheadOfConfiguredUpstream":  6,
+    "baseCommitsNotReachableFromAnyCachedRemote":  [
+
+                                                   ],
+    "note":  "Six ahead of configured feature upstream does not mean six unpublished commits: baseline is already reachable from other published remote refs. New Codex A working-tree source is the preservation commit."
+}

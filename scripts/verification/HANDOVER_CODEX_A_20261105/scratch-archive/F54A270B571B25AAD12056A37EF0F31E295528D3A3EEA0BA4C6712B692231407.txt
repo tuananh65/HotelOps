@@ -1,0 +1,29 @@
+namespace HotelOps.Api.DTOs.HotelStructure;
+
+public sealed record OperationalHistoryQuery(long? BranchId = null, long? RoomId = null, DateTime? From = null,
+    DateTime? To = null, string? Result = null, long? InspectorId = null, long? HousekeeperId = null,
+    string? Search = null, int Page = 1, int PageSize = 20);
+public sealed record OperationalHistoryPage<T>(IReadOnlyList<T> Items, int Total, OperationalHistoryQuery Filters);
+public sealed record HistoryAssignmentDto(long Id, long UserId, string Name, string Status, DateTime AssignedAt, DateTime? EndedAt, string? Reason);
+public sealed record HistoryProgressDto(long Id, int Percent, string? Status, long? BlockerTypeId, string? Note, long ActorId, DateTime At);
+public sealed record HistoryInspectionDto(long Id, string Number, long RoomId, string RoomNumber, long BranchId, long? CleaningTaskId,
+    long VersionId, int VersionNumber, long InspectorId, string InspectorName, string Status, string? Result,
+    DateTime At, string? Summary, int ReworkCount);
+public sealed record HistoryCriterionDto(long? Id, long ItemId, string Criterion, string? Description, bool Mandatory, string? PassCondition,
+    string? Outcome, string? Note, DateTime? At, string? Group = null);
+public sealed record HistoryDefectDto(long Id, long? ItemId, string Description, string Status, long? SeverityId,
+    string? CorrectiveAction, DateTime? ResolvedAt, string? ResolutionNote);
+public sealed record HistoryReworkDto(long Id, long CleaningTaskId, long InspectionId, long? AssigneeId, string Reason,
+    string Status, DateTime RequestedAt, DateTime? CompletedAt, string? Note);
+public sealed record HistoryEvidenceDto(long Id, string EntityType, long EntityId, string Name, string? MimeType, long? Bytes, DateTime UploadedAt, string DownloadPath);
+public sealed record HistoryInspectionDetailDto(HistoryInspectionDto Inspection, IReadOnlyList<HistoryAssignmentDto> Housekeepers,
+    IReadOnlyList<HistoryCriterionDto> Criteria, IReadOnlyList<HistoryDefectDto> Defects,
+    IReadOnlyList<HistoryReworkDto> Reworks, IReadOnlyList<HistoryInspectionDto> CycleInspections,
+    IReadOnlyList<HistoryEvidenceDto> Evidence);
+public sealed record HistoryCycleDto(long Id, string Number, long RoomId, string RoomNumber, long BranchId, string CleaningType,
+    string Status, DateTime At, DateTime? Start, DateTime? End, string? Result, int ReworkCount, string? CancellationReason,
+    IReadOnlyList<HistoryAssignmentDto> Assignees);
+public sealed record HistoryCycleDetailDto(HistoryCycleDto Cycle, IReadOnlyList<HistoryProgressDto> Progress,
+    IReadOnlyList<HistoryInspectionDetailDto> Inspections, IReadOnlyList<HistoryReworkDto> Reworks,
+    IReadOnlyList<HistoryEvidenceDto> Evidence);
+public sealed record PrivateHistoryFileDto(byte[] Content, string ContentType, string Name);

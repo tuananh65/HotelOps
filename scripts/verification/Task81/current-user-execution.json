@@ -1,0 +1,4 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/CurrentUserAccessor/CurrentUserAccessor.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/current-user -p:RestoreIgnoreFailedSources=true ",
+    "exitCode":  0
+}

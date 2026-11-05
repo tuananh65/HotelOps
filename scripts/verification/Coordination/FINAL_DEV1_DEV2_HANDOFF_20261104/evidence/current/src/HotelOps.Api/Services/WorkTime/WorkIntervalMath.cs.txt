@@ -1,0 +1,40 @@
+2: 
+3: /// <summary>UTC time values only; this value object neither persists nor authorizes work.</summary>
+4: public readonly record struct RecordedWorkRange(DateTimeOffset StartUtc, DateTimeOffset? EndUtc);
+5: 
+6: /// <summary>GBR-140: closed effort and provisional open time remain separate.</summary>
+7: public readonly record struct WorkEffort(TimeSpan Closed, TimeSpan ProvisionalOpen);
+8: 
+9: /// <summary>
+10: /// Time arithmetic for GBR-014/137/139/140. Callers must supply authoritative SQL records.
+11: /// These checks do not replace database uniqueness, transaction locks or source authorization.
+12: /// </summary>
+13: public static class WorkIntervalMath
+14: {
+15:     public static void Validate(RecordedWorkRange range)
+16:     {
+17:         RequireUtc(range.StartUtc);
+18:         if (range.EndUtc is not { } end) return;
+19:         RequireUtc(end);
+20:         if (end < range.StartUtc) throw new ArgumentException("An interval cannot end before it starts.", nameof(range));
+21:     }
+22: 
+23:     public static bool Overlaps(RecordedWorkRange left, RecordedWorkRange right)
+24:     {
+25:         Validate(left);
+26:         Validate(right);
+31:     }
+32: 
+33:     public static WorkEffort Summarize(IEnumerable<RecordedWorkRange> source, DateTimeOffset asOfUtc)
+34:     {
+35:         ArgumentNullException.ThrowIfNull(source);
+36:         RequireUtc(asOfUtc);
+37:         var ranges = source.ToArray();
+38:         foreach (var range in ranges) Validate(range);
+39:         if (ranges.Count(range => range.EndUtc is null) > 1)
+62:     }
+63: 
+64:     private static void RequireUtc(DateTimeOffset value)
+65:     {
+66:         if (value.Offset != TimeSpan.Zero) throw new ArgumentException("An explicit UTC value is required.", nameof(value));
+67:     }

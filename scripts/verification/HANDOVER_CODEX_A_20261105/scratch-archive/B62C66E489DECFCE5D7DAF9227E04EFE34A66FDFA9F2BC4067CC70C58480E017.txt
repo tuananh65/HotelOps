@@ -1,0 +1,273 @@
+﻿$ErrorActionPreference = 'Stop'
+$spec = Get-Content docs/requirements/srs_sections/02_use_case_specifications.md -Raw -Encoding UTF8
+$names = @{}
+foreach ($m in [regex]::Matches($spec, '(?m)^### [^\r\n]*?UC-(\d{3}) ([^\r\n]+)')) { $names[[int]$m.Groups[1].Value] = $m.Groups[2].Value.Trim() }
+# id, weight, remaining engineering hours, profile, concrete residual/dependency
+$data = @'
+1,3,0,A,Login/session/lockout và temporary credential có service + SQL evidence
+2,1,0,A,Logout idempotent và audit/revoke transaction đã kiểm thử
+3,3,0,A,Đổi mật khẩu + revoke/replace sessions + atomic audit đã kiểm thử
+4,5,8,B,Chỉ single-role allowlist V1; chưa full selected role(s)/scope của draft
+5,5,0,C,Profile allowlist + ETag; reset có reauth/identity confirmation/one-time handoff
+6,5,24,D,Activate có API; Deactivate internal còn blocked và không đăng ký
+7,5,20,E,Add membership có; thiếu transfer department/primary branch/revoke + open-work guards
+8,3,12,F,Dynamic role CRUD xung đột fixed canonical catalog; cần quyết định editable surface
+9,5,16,F,Thiếu grant editor; cần approved permission/scope anti-escalation contract
+10,5,14,G,Assign allowlist có; thiếu revoke/full role lifecycle/expiry và responsibility integration
+11,3,10,F,Task23 permission/report visibility approval chưa có; caller evaluator không phải target reviewer
+141,2,6,H,List/minimal detail có; thiếu role/effective-access drilldown UC011
+12,2,6,S,Branch update; uniqueness/audit/concurrency decision trước write
+13,2,6,S,Branch list/detail + floor/area/department tree; không tính list đơn là full UC
+14,2,6,S,Create Floor/Area + branch/uniqueness/audit; Area.FloorId nullable
+15,2,6,S,Update Floor/Area + branch consistency/stale guard/audit
+16,3,8,S,Deactivate Floor/Area + rooms/references guard; concurrency approval
+17,2,6,S,RoomType create global; không tự thêm BranchId
+18,2,6,S,RoomType update + immutable historical references
+19,3,8,S,RoomType deactivate + existing rooms/history guard
+20,2,6,R,Room create + consistent branch/floor/area/type validation
+21,2,6,R,Room update + reference checks; concurrency model chưa duyệt
+22,5,12,R,Room deactivate cần open cleaning/inspection/incident/block/reference checks với DEV2
+23,2,6,R,Task20A D3/D5/D7 chưa duyệt; list + detail/current reason/history còn thiếu
+24,2,6,S,Department create + branch uniqueness; DH không department-only
+25,2,6,S,Department update + active assignments/manager references
+26,5,12,S,Department deactivate cần account/task/DEV2 reference guard dưới retained locks
+142,1,4,S,RoomType branch-owned SRS khác global SQL; cần quyết định usage projection/count
+27,5,20,R,Reception occupancy/release contract và model chưa chốt; DEV2 Incident/RoomBlock precedence
+28,3,10,K,CleaningTask create; source transition/time/room side effects phải đối chiếu SRS
+29,3,8,K,Assign cleaning + eligible assignee/branch/current workload/audit
+30,5,12,K,Assign/reassign + retained Users + close interval + actor eligibility
+31,3,8,K,Start requires workday/interval and room state; resolver không phải workflow
+32,2,6,K,Progress/evidence update + scope/assignee + audit
+33,3,10,K,Report blocker + hold/resume + work interval và room status
+34,5,12,K,Complete + interval close + inspection/room state/audit atomic
+35,3,8,K,Start rework + original defect/assignee/time checks
+36,5,16,K,Complete rework + verification/defect/room state coordination
+37,2,6,K,Assignment/progress history query + any draft alternative write flows
+38,2,6,K,Room turnover cleaning/inspection/rework history read + scoped linked records
+39,2,8,I,Checklist CRUD/version entities có; cần published/version rules + audit
+40,3,8,I,Checklist version lifecycle; don't edit historical published versions
+41,3,8,I,Inspection scheduling/assignment + inspector eligibility
+42,3,10,I,Inspection execution/results + checklist version snapshot/SoD
+43,3,10,I,Inspection result/defect workflow + strict validation/audit
+44,5,14,I,Inspection/rework integration + current assignee/verification cycle
+45,3,10,I,Reject inspection + defects/room state/audit; không thay defect resolution
+46,5,16,I,Request cleaning rework + defects/current responsible actor/atomic audit
+47,5,16,I,Exception/reinspection path + current-cycle evidence/SoD
+48,2,6,I,Inspection work/history directory + scope/paging
+102,5,20,T,Recurring series/JOB05/completion criteria model missing; ad-hoc alone partial
+103,2,8,T,Priority/deadline/cancel includes recurrence stop; source planning fields only
+104,5,16,T,Reassign closes work interval; interval model/contract required
+105,5,14,T,Pending Verification/Closed/Return semantics differ SQL status support; decision required
+106,5,14,T,Reopen verification cycle/status + last eligible assignee needs approved mapping
+107,2,6,T,Accept/decline + assigned actor + status/concurrency/audit
+108,3,12,T,Start requires Working workday + one open interval; models missing
+109,2,6,T,Progress/evidence + assignee authority + audit
+110,5,14,T,Pause/resume opens/closes intervals; no interval model
+111,5,24,W,WorkInterval/TimeCorrectionRequest + permission mapping not implemented; DEV2 time integration
+112,5,14,T,Complete -> Pending Verification + close interval + criteria/evidence missing mapping
+113,2,12,W,Effort from intervals not ShiftAttendance duration; model missing
+138,3,12,W,ShiftTemplate/WorkShift/Assignment exist; service/conflict rules/authorization absent
+139,5,20,W,Workday including Unscheduled and Pause All; dedicated model absent
+140,5,24,W,Snapshot + receiver ack/reject model missing; cross-module open work
+114,3,10,Q,Create request + receiving branch department + notifications/audit
+115,5,14,Q,Route/assign + authoritative handler reread + Users lock + notification
+116,3,8,Q,Accept/reject + scoped DH policy + atomic decision/audit
+117,2,8,Q,Progress/deadline change + reason/notification/audit
+118,5,20,Q,Generic mandatory linked work contract/storage absent; DEV2 Incident/MR adapters
+119,5,16,Q,Acknowledged handover must retain sender until receiver accepts; model absent
+120,5,16,Q,Close requires mandatory linked work closed/no pending handover; model/contract required
+121,5,12,Q,Reopen window/cycle + last handler eligible; approved policy needed
+122,3,12,Q,Escalation alert requires acknowledgment; DEV2 notification contract/storage dependency
+123,2,10,Q,History includes withdraw write and authorized linked work; not read-only list alone
+'@
+$blocked = @(8,9,11,23,142,27,102,104,105,106,108,110,111,112,113,139,140,118,119,120,121,122)
+$complete = @(1,2,3,5)
+$partial = @(4,6,7,10,141)
+$fractions = @{4=0.8;6=0.5;7=0.35;10=0.5;141=0.75}
+$rows = @($data -split '\r?\n' | Where-Object { $_ } | ForEach-Object {
+    $v = $_ -split ',',5; $id=[int]$v[0]
+    $status = if($id -in $complete){'COMPLETE_VERIFIED'}elseif($id -in $partial){'PARTIAL'}elseif($id -in $blocked){'BLOCKED_EXTERNAL'}else{'NOT_IMPLEMENTED'}
+    [pscustomobject]@{Id=$id;Name=$names[$id];Weight=[int]$v[1];Hours=[int]$v[2];Profile=$v[3];Status=$status;Note=$v[4]}
+})
+if($rows.Count -ne 75 -or @($rows | Where-Object { -not $_.Name }).Count) {throw 'Invalid UC inventory'}
+$total=($rows | Measure-Object Weight -Sum).Sum
+$verified=($rows | Where-Object Status -eq COMPLETE_VERIFIED | Measure-Object Weight -Sum).Sum
+$hours=($rows | Measure-Object Hours -Sum).Sum
+$estimated=[double]$verified
+foreach($r in $rows | Where-Object Status -eq PARTIAL){$estimated += $r.Weight*$fractions[$r.Id]}
+$metrics=[ordered]@{UCs=$rows.Count;Points=$total;Verified=$verified;EstimatedImplemented=$estimated;RemainingUcHours=$hours;Counts=@($rows|Group-Object Status|Select-Object Name,Count)}
+$metrics|ConvertTo-Json -Depth 6|Set-Content obj/task59-metrics.local.json -Encoding UTF8
+$rows|ConvertTo-Json -Depth 5|Set-Content obj/task59-uc-inventory.local.json -Encoding UTF8
+$header = @'
+# DEV1 — Full scope audit & 21-day delivery plan (Task59)
+
+Ngày audit: **30/10/2026**. Đơn vị đo: full backend UC trong SRS đang lưu, không phải số endpoint, bảng hay SQL assertions. **80–85% toàn DEV1 trong 126 giờ không khả thi theo baseline này.** Kế hoạch thay thế: hoàn tất tối đa 14 UC account/cơ cấu trong 108 giờ dự kiến + 18 giờ dự phòng, có điều kiện duyệt contract; không giảm mẫu số hay kích hoạt scope SA57 để đạt tỷ lệ.
+
+## 1. Baseline, nguồn và giới hạn
+
+- Branch `feature/BE1-database-integration`; HEAD `4a187320643d0c82f232c6b9dd5a667b8401c280`; upstream `origin/feature/BE1-database-integration`. Index không có staged changes. Preflight ghi 384 modified/untracked files riêng lẻ vào SHA-256 manifest `obj/task59-preflight-20261030-015036/manifest.json`.
+- Bốn worktrees hiện hữu: root; `obj/task11-dev2-rehearsal` (3688ba9); `obj/task12-pr7-resolution` (d6ef057); `D:/SEP490/Projects/HotelOps-AI-Loop` (8e0b673). Không tạo/switch/xóa worktree, không fetch/merge/commit/push/reset/clean/rebase. Không truy cập SQL/HotelOpsDB.
+- Ownership từ [AGENTS](../../AGENTS.md): FE-01/02/03/04/05/11/12/13 thuộc DEV1. [Danh mục UC](../../docs/requirements/srs_sections/01_overall_requirements.md) và [đặc tả từng UC](../../docs/requirements/srs_sections/02_use_case_specifications.md) có 144 UC: **75 DEV1 độc quyền + 2 shared UC-063/064 + 67 DEV2**. UC-111 chỉ tính một lần dù liên quan FE-11/12.
+- [SRS README](../../docs/requirements/SRS_README.md), [Change Notes](../../docs/requirements/SRS_CHANGE_NOTES.md), [functional/screens/jobs](../../docs/requirements/srs_sections/03_functional_requirements.md), [business rules](../../docs/requirements/srs_sections/05_requirement_appendix.md) đã đối chiếu. SRS/Permission Matrix trong repository là **historical draft**, không tìm thấy bản final ký duyệt sau revision Reception/DH, full approved matrix V4 hay bảng giao việc DEV1 đã ký độc lập. Không suy ra SRS không có yêu cầu. Assignment authority hiện có là AGENTS; [Task16 inventory](Dev1BackendScope/USE_CASE_COVERAGE_MATRIX.md) hỗ trợ trace UC/model, **trạng thái Task16 đã cũ** và được kiểm tra lại bằng source.
+- Database evidence: [DbContext](../../src/HotelOps.Api/Data/HotelOpsDbContext.cs), [entities](../../src/HotelOps.Api/Entities), [schema description](../../docs/database/DATABASE_SCHEMA.md), [DB rules](../../docs/database/DATABASE_RULES.md), [catalog seed](../database/release/03_HotelOps_RBAC_Catalog_Seed.sql). Đây là source/schema design evidence, không khẳng định database production hiện tương thích. [DEV2 coordination](../../docs/coordination/HotelOps_Dev2_Backend_Sync_RBAC_2026-10-20.md) có Reception occupancy và DH branch-wide; không phê duyệt mọi transition/grant.
+- Audit chỉ thêm tài liệu này; không sửa runtime, schema, generated entity, DI, DEV2 hoặc catalog; không đăng ký Deactivate/activate SA57/clear gates. Kết quả runtime dưới đây là evidence đã chạy trước Task59, không phải test mới.
+
+## 2. Kiểm kê source theo UC
+
+Source hiện có 18 controllers, trong đó sáu controller nghiệp vụ DEV2; DEV1 business API tập trung account/auth. [Program](../../src/HotelOps.Api/Program.cs) không đăng ký workflow Hotel Structure, Room, Cleaning, Inspection, Operational Task, Shift/Workday hay Internal Request. Cleaning resource resolver chỉ là authorization adapter; responsibility predicates không phải workflow implementation.
+
+Các profile dưới đây là cột ghép cho chín mặt kiểm tra của **từng UC** trong bảng: controller/endpoint; service; DTO/validation; entities/query; authorization; transaction/concurrency; audit; tests; DEV2 dependency. `Absent` nghĩa là không tìm thấy UC controller/service/DTO/query nghiệp vụ tương ứng trong source hiện tại; entity không được tính là implementation. Weight/hours riêng từng UC ở bảng sau.
+
+| Profile | Controller/service/DTO + SQL data | Authorization / transaction / audit / verification / dependency |
+|---|---|---|
+| A | [AuthController](../../src/HotelOps.Api/Controllers/AuthController.cs); AuthenticationLoginService/AuthenticationCredentialWorkflow; DTOs/Authentication; User/UserSession/AuditLog | SQL session, credential/lockout; User → Session, atomic mutations/audit. Task58 actual login/logout/change-password faults; auth/reauth regression. Không cần DEV2 writer |
+| B | [Create controller](../../src/HotelOps.Api/Controllers/UserAccountCreationController.cs); UserAccountCreationService; DTOs/Users; User/UserRole/UserBranchAccess/credential | USER_MANAGE + validated server-side actor; GlobalAdmin → Users + conditional final guards; atomic credential/audit. Task58 Create + creation regression; full multi-role draft chưa được release. Không sửa DEV2 |
+| C | [Profile controller](../../src/HotelOps.Api/Controllers/UserProfileController.cs), [Reset controller](../../src/HotelOps.Api/Controllers/AdminCredentialResetController.cs); UserProfileService/AdminCredentialResetWorkflow; DTOs/Users | USER_MANAGE + SQL session/scope + reset reauth; strict ETag/profile allowlist; LastAdmin + revoke sessions + atomic audit. Profile 329 / reauth 165 assertions và Task58. Không phụ thuộc DEV2 mutation |
+| D | [Activate controller](../../src/HotelOps.Api/Controllers/UserAccountActivationController.cs); UserAccountActivationService + internal UserAccountDeactivationService; status/reason/ETag contracts | USER_MANAGE; retained Users/LastAdmin/sessions/audit guards; Activation SQL verified, Deactivate success/release chưa PASS. DEV2 writer integration là dependency; không mở endpoint |
+| E/G | [Branch controller](../../src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs) / [Role controller](../../src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs); corresponding assignment services/DTOs | Existing permission/scope and strong ETag; retained Users/GlobalAdmin as applicable; atomic version/access/audit. Task58 Add/Assign verified; transfer/revoke absent, dependent current responsibility DEV1/DEV2 |
+| F | UC008/009/011 endpoints/services/DTOs absent. User/Role/Permission/RolePermission/UserRole/UserBranchAccess mapped; PermissionService only evaluates caller | UC008/009 conflict canonical fixed-role/grant policy. UC011 [Task23 authorization decision](EffectiveAccessReview/AUTHORIZATION_DECISION.md) still unresolved; no target-review tx/query/tests. Existing evaluator tests are foundations, not these UCs |
+| H | [UsersController](../../src/HotelOps.Api/Controllers/UsersController.cs); UserDirectoryService; UserAccountDetailDto/list query | Global USER_VIEW; AsNoTracking paged reads; no write/audit needed. Existing list/detail SQL/HTTP receipts; detail DTO lacks roles/effective permissions normal-flow drilldown, depends UC011 |
+| S | Absent. Branch/Department/Floor/Area/RoomType mapped; no UC-specific query/DTO | MASTER_DATA_MANAGE/ROOM_VIEW exist but not blanket read grant. Missing endpoint auth/validation, writes tx/concurrency/audit, SQL/HTTP tests. RoomType has no BranchId; no fabricated ownership. DEV2 needs selectors/reference contracts, owns consumers |
+| R | Absent. Room/RoomStatusHistory/RoomBlock plus Floor/Area/RoomType mapped | ROOM_VIEW BRANCH exists; no admin/Owner bypass. [Task20A decisions](HotelStructureRead/IMPLEMENTATION_PLAN.md) D3/D5/D7 unresolved. No status orchestration or write tx/audit/tests. UC027/022 involve DEV2 Incident/RoomBlock; Reception occupancy model unresolved |
+| K | Absent. CleaningTask/Assignment/Progress/Rework + Room mapped; CleaningTaskResourceResolver is not service | CLEANING_* catalog/foundation exists, workflow checks absent. Required User-first eligibility/time/SoD/room tx/audit/tests absent. GBR138 references intervals for UC030/031/033–036: current entities do not prove full time flow. DEV2 maintenance/room-block/material/notification interfaces only through agreed contracts |
+| I | Absent. InspectionChecklist/Version/Items + RoomInspection/Result/Defect mapped | INSPECTION_*/CHECKLIST_MANAGE candidates, exact revised actors/SoD required. Version model **exists**; inspection flow/DTO/tx/audit/tests absent. Room release/rework connects DEV1 Cleaning and DEV2 incidents/blocks |
+| T | Absent. OperationalTask/Assignment/Progress/Dependency mapped | TASK_* catalog exists but draft execute matrix conflicts actors. No task writer, tx/audit/concurrency/test suite. SQL fields do not model recurrence/JOB05 or full verification/time cycle. Actor roles using task do not change DEV1 ownership; notifications/time/DEV2 consumers need contracts |
+| W | Absent. ShiftTemplate/WorkShift/ShiftAssignment/ShiftAttendance exist; dedicated Workday/WorkInterval/Correction/Handover acknowledgment absent | SHIFT_MANAGE/ATTENDANCE_RECORD foundations not a work_interval.correct implementation. No DTO/auth/tx/audit/tests for these UCs. Requires approved models/permission mapping and DEV2 time-event integration; no payroll module invented |
+| Q | Absent. InternalRequest/Assignment/Event/Feedback mapped | IR_* catalog exists; no production request service/DTO/auth/tx/audit/tests. Events text not proof of acknowledged transfer/mandatory links. DEV2 Incident/MR/notification adapter contract needed for corresponding UCs; request history UC123 includes withdrawal, not list-only |
+
+Classification: COMPLETE_VERIFIED = full described backend flow with relevant executable evidence; PARTIAL = actual production subset; IMPLEMENTED_UNVERIFIED = full service/API exists without sufficient tests; NOT_IMPLEMENTED = missing implementation; BLOCKED_EXTERNAL = missing implementation **and** identified external approval/model/interface prevents full delivery. Blocked is included in missing, not an extra UC. Foundations are not fractional verified points.
+
+| UC | Tên trong SRS | Profile | Status | Điểm | Giờ còn lại | Residual / dependency cụ thể |
+|---|---|---|---|---:|---:|---|
+'@
+$table = foreach($r in $rows){ '| UC-{0:000} | {1} | {2} | {3} | {4} | {5} | {6} |' -f $r.Id,$r.Name,$r.Profile,$r.Status,$r.Weight,$r.Hours,$r.Note }
+$footer = @'
+
+Shared, không tự nhận toàn bộ công DEV1: **UC-063 Manage Work Categories (2 điểm/6h)** và **UC-064 Manage Operational Reference Data (2 điểm/6h)**: NOT_IMPLEMENTED; WorkCategory/ReferenceValue exist, no CRUD controller/service/DTO/auth/tx/audit/tests. DEV1+DEV2 phải chỉ định owner/catalog mutability/consumers; GLOBAL Users→feature protocol khi quản lý references. Hai UC này nằm ngoài mẫu số DEV1 độc quyền; sensitivity có tính cả hai ở dưới.
+
+Một số rules làm tăng effort dù table tồn tại: GBR005 concurrency; GBR007 atomic side effects/audit; GBR013 SoD; GBR124 recurring JOB05; GBR138–140 intervals/corrections/effort; GBR142 unscheduled day; GBR144 shift snapshot/ack; GBR150–153 linked work/ack transfer/closure/reopen. Không dùng ShiftAttendance thay Workday/interval hoặc JSON/text events làm model mặc định. JOB05 nằm trong UC102, không cộng UC mới; JOB01/notification delivery phối hợp FE14 DEV2, không tự giao notification/reporting/inventory cho DEV1.
+
+## 3. Tiến độ và độ bất định
+
+| Thước đo | DEV1 độc quyền | Nếu DEV1 nhận cả hai shared UC |
+|---|---:|---:|
+| Tổng UC / weighted scope | 75 / **256** | 77 / **260** |
+| COMPLETE_VERIFIED | **4 UC / 12 điểm** | 4 / 12 |
+| PARTIAL | **5 UC / 22 điểm full-UC chưa earned** | 5 / 22 |
+| IMPLEMENTED_UNVERIFIED | **0 / 0 điểm** | 0 / 0 |
+| NOT_IMPLEMENTED / BLOCKED_EXTERNAL | **44 / 22 UC** | 46 / 22 UC |
+| Còn lại tới full verified | **244 điểm** | 248 điểm |
+| Verified completion | **12/256 = 4.69%** | 12/260 = 4.62% |
+| Estimated implemented equivalent (không phải verified) | **24.25/256 = 9.47%** | 24.25/260 = 9.33% |
+| Mốc 80% / điểm mới phải earned | ceil(204.8)=**205 / +193** | ceil(208)=208 / +196 |
+| Mốc 85% / điểm mới phải earned | ceil(217.6)=**218 / +206** | ceil(221)=221 / +209 |
+
+Weight: simple CRUD/read=1; moderate=2; stateful=3; cross-module/concurrency-critical=5. Rule-driven complexity chứ không lấy số method. Partial implementation estimate: UC004 80%×5=4; UC006 50%×5=2.5; UC007 35%×5=1.75; UC010 50%×5=2.5; UC141 75%×2=1.5; cộng 12 verified =24.25. Đây là engineering judgment khoảng **8–12%**, không “12.25 implemented-unverified full UC points”. Verify toàn UC mới earned full weight; không giảm mẫu số vì blocked/deferred.
+
+Theo bảng: **790 giờ** còn lại cho UC độc quyền (bao gồm implementation, focused SQL/HTTP tests, local integration từng UC; các model mới chỉ sau approval). Cộng **24 giờ** cross-module end-to-end/release integration không trùng UC tests = **814 giờ trung tâm**, sensitivity **611–1,221 giờ** (−25%/+50%). Nếu nhận cả shared: **826 giờ** trung tâm. Chưa bao gồm thời gian chờ product/schema/DEV2, frontend, hosting, data migration thực tế. 126h chỉ bằng 15.5% phần effort trung tâm; AI parallelism không nhân budget nhân lực 126h. Không suy tuyến tính points/hour để hứa 80–85%.
+
+## 4. Backlog 21 ngày — mỗi session tối đa 6 giờ
+
+Effort trong tasks dưới đây đã bao gồm focused tests; cột session chia nhỏ review, không tạo project Application/Domain/Infrastructure. `Gain` chỉ ghi khi **toàn bộ UC** đạt DoD; lắp DTO/query slice nhận 0 điểm. Không cộng lại points của task tích hợp. Tất cả SQL chỉ trên disposable canonical trial có startup schema guard, không HotelOpsDB; approval production schema là task riêng.
+
+| ID / ưu tiên | Module / UC | Session / giờ | Dependency | Acceptance cụ thể + SQL cần có | Gain mới |
+|---|---|---:|---|---|---:|
+| P01 | Room UC023 | Query+SQL 3; endpoint/full read flow 3 = **6** | Room model có; Task20A D3/D5/D7 và shared DI approval trước exposure | List search/filter/sort/paging + detail source reason/history; không đoán missing reason. SQL hai branches, nullable Area, inactive references, status history, branch denial/count leak, no tracking/no writes; HTTP session/grant/invalid filters | **2**, chỉ full flow |
+| P02 | Access UC011 | 4+6 = **10** | Người duyệt chốt existing permission/scope/self/inactive-target/field whitelist của Task23; shared evaluator review nếu cần | Read target grant paths without spoofed principal; source grants/branches/departments/conditional permissions, feature filters. SQL expired/revoked/multiple paths, no branch-role stitching, denied report/no count leak | **3** |
+| P03 | Accounts UC141 | 2+4 = **6** | P02; UC005 link đã có | Full detail roles/access drilldown; preserve list contract and Global USER_VIEW grant. SQL/HTTPS detail/list/read-scope regression, secrets absent | **2** |
+| P04 | Structure UC014 | 3+3 = **6** | P05 + approve Floor/Area create contract | Create both Floor/Area paths; SQL branch mismatch, nullable FloorId, duplicate race, permission denial/audit rollback | **2** |
+| P05 | Shared design/enabler, 0 new UC | 4+4 = **8** | Explicit AGENTS approval; choose GBR005 strategy/schema rollout separately | Only approved reusable structure concurrency/validation/audit primitives; no invented rowversion. SQL stale-write/rollback proof, catalog preserved. If schema cannot be approved, stop writes; do read fallback | **0** |
+| P06 | Structure UC012 | **6** | P05 + MASTER_DATA_MANAGE existing contract + branch code uniqueness rules | Update branch DTO validation + stale/uniqueness/atomic audit; SQL simultaneous update, actor revoked, audit failure rollback, immutable catalog | **2** |
+| P07 | Structure UC013 | **6** | P04 + approved read mapping/tree shape | Full branch/floor/area/department structure and filters, historical/inactive policy; SQL scope/tree integrity, paging, no N+1 or branch leak | **2** |
+| P08 | Structure UC015 | **6** | P04/P05 + branch existence/scope | Floor/Area update strict branch consistency/duplicate guard; SQL stale/races/audit rollback and permission revocation | **2** |
+| P09 | Structure UC016 | 4+4 = **8** | P08 + approved deactivation refs/concurrency | Deactivate Floor/Area safely; SQL stale version, room references deny, audit failure rollback; no rooms moved silently | **3** |
+| P10 | Structure UC017 | **6** | Global RoomType semantics confirmed for create; P05 | Create global type no invented BranchId, uniqueness/capacity; SQL duplicate race + audit rollback + scoped denial | **2** |
+| P11 | Structure UC019 | 4+4 = **8** | P10 + existing rooms/history deactivation policy | Deactivate without historical corruption; SQL references/stale/audit rollback and concurrent room create guard | **3** |
+| P12 | Structure UC024 | **6** | P05 + branch/department policy, DH branch-wide unchanged | Create department + code uniqueness/scope/audit; SQL duplicate/cross-branch/revoked actor/rollback | **2** |
+| P13 | Structure UC025 | **6** | P12 + manager reference policy | Update department no implicit reassignment; SQL stale/manager inactive/crossbranch/audit rollback, existing auth tests preserved | **2** |
+| P14 | Structure UC020 | **6** | P04/P05/P10; no lifecycle transition invented | Create room only with validated compatible branch/floor/area/type; SQL composite consistency/duplicate room number/race/audit rollback | **2** |
+| P15 | Structure UC021 | **6** | P14 + approved editable fields/reference guards | Room update no arbitrary occupancy/state change; SQL stale/invalid linked IDs/audit rollback and reference preservation | **2** |
+| P16 | Decision review + final integration | **4+4=8** | Decisions early; final after P01–15 | First4h close exact contracts below; final4h targeted end-to-end/authorization/rollback/build review. No feature point twice; no deferred acceptance claimed | **0** |
+
+P01–P04, P06–P15 = **92h**; P05=8h; P16=8h; **108h planned +18h defect buffer=126h**. Maximum new earned points =31; baseline12→**43/256 =16.80%**; completed4→**18/75 UC**. Đây là conditional stretch về số UC cho cơ cấu, không phải cam kết trước approval. Không đưa UC142 vào plan vì branch/global model còn chưa quyết định; không tính cleanup/test harness là UC.
+
+Sau 21 ngày, ưu tiên tiếp: UC004 residual8h; UC010 residual14h (role/revoke surface approval); UC007 residual20h (transfer/current work); Cleaning/Inspection reads UC037/038/048 mỗi6h; checklist UC039/040 mỗi8h; rồi một housekeeping vertical slice UC028/030/031/034 gắn approved workday/time contract, không chỉ tạo các endpoint rời rạc. UC006 chỉ quay lại khi business/release dependencies thật sự đóng. Không đầu tư thêm audit lặp lại trong 126h.
+
+### Quyết định gói gọn cần review đầu kỳ, không mở thêm safety gates
+
+1. **UC011:** đề xuất Global-only existing USER_VIEW với unbound ALL, same reviewer permission khi self, target inactive được xem cấu hình nhưng đánh dấu effective/eligibility riêng, field whitelist không credential/session. Đây là đề xuất để người duyệt chọn, **chưa áp dụng**; Task23 nói rõ không tự chọn USER_VIEW thay ROLE_MANAGE. Nếu không chấp thuận, P02/P03 giữ blocked.
+2. **UC023:** đề xuất current catalog ROOM_VIEW/Branch, không SYS_ADMIN/Owner bypass; union authorized active branches nếu UI All Branches được duyệt; trả stored status code và source/history có bằng chứng, không invent lifecycle label/reason; paging/sort/error contract theo Task20A. D3/D5/D7 phải quyết định trước route/DI. List-only không tính full UC023.
+3. **Structure:** chốt MASTER_DATA_MANAGE cho admin mutations và read/tree mapping D1/D4/D7; chọn GBR005 concurrency design cho non-rowversion roots. Không tự thêm token/cột/permission; schema approval nếu cần là change-control riêng và có thể đẩy writes khỏi kỳ này.
+4. **RoomType:** xác nhận catalog global + per-branch usage view hay branch-owned business model; UC142 chưa được code khi thiếu quyết định. UC017/019 chỉ làm khi global CRUD semantics được xác nhận; UC018 update nằm ngoài kỳ này.
+
+Nếu hết D2 chưa có approvals, không ngồi chờ 21 ngày hoặc tự mở API: chuyển buffer lên trước; làm P01 internal read query/SQL technical proof, approved existing account regression automation và prepare focused fixtures; **0 new full-UC points cho các technical slices**. Trình owner chọn scope/tasks đã được duyệt hoặc điều chỉnh thời gian/nguồn lực. Không hứa một điểm số fallback giả khi mọi planned read mapping còn pending.
+
+## 5. Lịch 21 ngày, 6 giờ/ngày
+
+Giả định bắt đầu 31/10/2026, kết thúc 20/11/2026, calendar days bao gồm cuối tuần; đổi ngày bắt đầu chỉ dịch lịch. I=implementation, T=focused testing, G=contract/integration/review, B=defect buffer. Giờ task ở backlog là tổng I+T+G, không cộng test thêm lần nữa. Các writes từ D8 phụ thuộc P05/approval; tuyệt đối không migration tự động.
+
+| Ngày / ngày lịch | Target (giờ task) | I | T | G | B | Mốc earned khi đạt đủ DoD |
+|---|---|---:|---:|---:|---:|---|
+| D01 / 31-10 | P01 Room023 (6), query3 trước; endpoint3 chỉ sau approval | 4 | 2 | 0 | 0 | +2 nếu full UC023 |
+| D02 / 01-11 | P02 access (6); quyết định chưa có thì không expose | 4 | 1 | 1 | 0 | Chưa earned UC011 |
+| D03 / 02-11 | P02 (4) + P03 (2) | 4 | 2 | 0 | 0 | +3 UC011 |
+| D04 / 03-11 | P03 (4) + P16 decisions (2) | 4 | 1 | 1 | 0 | +2 UC141 |
+| D05 / 04-11 | P05 approved enabler (6) | 2 | 2 | 2 | 0 | 0 |
+| D06 / 05-11 | P05 (2) + P16 decisions (2) + P04 Floor/Area create (2) | 4 | 1 | 1 | 0 | 0 |
+| D07 / 06-11 | P04 (4) + buffer (2) | 2 | 0 | 2 | 2 | +2 UC014; **21/256=8.20%; 8 completed UCs** |
+| D08 / 07-11 | P06 branch update (6) | 4 | 1 | 1 | 0 | +2 UC012 |
+| D09 / 08-11 | P07 branch structure (6) | 4 | 1 | 1 | 0 | +2 UC013 |
+| D10 / 09-11 | P08 Floor/Area update (6) | 4 | 1 | 1 | 0 | +2 UC015 |
+| D11 / 10-11 | P09 Floor/Area deactivate (6) | 4 | 2 | 0 | 0 | Chưa earned UC016 |
+| D12 / 11-11 | P09 (2) + P10 RoomType create (4) | 4 | 2 | 0 | 0 | +3 UC016 |
+| D13 / 12-11 | P10 (2) + P11 type deactivate (4) | 4 | 1 | 1 | 0 | +2 UC017 |
+| D14 / 13-11 | P11 (4) + buffer (2) | 2 | 2 | 0 | 2 | +3 UC019; **35/256=13.67%; 14 completed UCs** |
+| D15 / 14-11 | P12 department create (6) | 5 | 1 | 0 | 0 | +2 UC024 |
+| D16 / 15-11 | P13 department update (6) | 5 | 1 | 0 | 0 | +2 UC025 |
+| D17 / 16-11 | P14 room create (6) | 5 | 1 | 0 | 0 | +2 UC020 |
+| D18 / 17-11 | P15 room update (6) | 5 | 0 | 1 | 0 | +2 UC021 subject final SQL below |
+| D19 / 18-11 | P16 final SQL/integration (4) + defects (2) | 0 | 2 | 2 | 2 | Review all receipts; no failed test carried as complete |
+| D20 / 19-11 | Defect buffer / rework / blocked-task replacement | 0 | 0 | 0 | 6 | Không cam kết gain buffer |
+| D21 / 20-11 | Defect buffer / final delivery review | 0 | 0 | 0 | 6 | **43/256=16.80%; tối đa 18 completed UCs** |
+| **Tổng** | **108 planned +18 buffer** | **70** | **24** | **14** | **18** | **126 giờ** |
+
+Critical path: approved read/security contracts → P01/P02 → P03; structure/concurrency approval → P05 → floor/type foundations → reference-safe CRUD → final SQL review. Department chain P12→P13 and room chain P08+P10→P14→P15 có thể tách thực hiện nhưng integration tuần tự. D7 go/no-go writes: không có approved concurrency thì chuyển sang reads/evidence, không clear gates bằng build.
+
+Fallback: (a) chỉ ba read/account UCs UC023/011/141 được duyệt và hoàn tất: +7 points, **19/256=7.42%**; (b) chỉ UC023 full được duyệt: **14/256=5.47%**; (c) không duyệt external contracts: giữ baseline **12/256=4.69%**, báo technical slices separately. Nếu mục tiêu bắt buộc80–85%, cần thay đổi thời hạn/nguồn lực hoặc **phê duyệt một scope khác với mẫu số công khai**, không gọi scope subset là toàn DEV1. Mốc 814h là estimate full scope, không là cam kết approved final SRS.
+
+## 6. Phân việc cho Codex trong task triển khai sau
+
+Không tạo agent/worktree trong Task59. Parallelization chỉ sau explicit approval checkout và file ownership; tổng 126h vẫn là tổng effort người review/implementation, không 126h cho mỗi agent.
+
+| Lane đề xuất | Ownership file riêng | Dependency / integration |
+|---|---|---|
+| A: P01 rooms read | Controllers/RoomsController.cs; Services/Rooms/RoomDirectory*; DTOs/Rooms/Directory*; verification/RoomDirectory | Disposable DB riêng; không sửa Inventory/Maintenance/RoomBlock writers. Merge/review tuần tự sau contract approval |
+| B: P02/P03 access account | Services/Users/UserAccessReview*; DTOs/Users/Access*; riêng lần tích hợp UsersController/DetailDto | Không chạy cùng agent sửa account files; shared evaluator/API visibility review riêng; không fake CurrentUser |
+| C: P04/P06–P09/P12–P13 structure | Services/HotelStructure/; DTOs/HotelStructure/; StructureControllers; verification/HotelStructure* | Giao cụ thể floor/branch/dept files, không hai agent cùng sửa common service. P05 owner duy nhất |
+| D: P10/P11/P14/P15 | RoomTypesController/Services/RoomTypes/DTOs; room mutation files khác lane A | Chờ type/floor/model approval; RoomsController chung lane A phải tích hợp tuần tự, không edit chồng |
+| Integration owner | Program.cs, shared security, DbContext/schema nếu được duyệt riêng | Không lane nào tự sửa; tổng hợp diff/approval → build → targeted tests → receipts → review một thay đổi mỗi lần |
+
+Mỗi agent ở isolated checkout được duyệt, artifact prefix và trial database khác nhau, canonical startup gate; không dùng existing rehearsal worktrees làm scratch, không xóa artifacts. DEV2 interface chỉ read/review/handoff, sửa module DEV2 do DEV2 thực hiện. Không chứng minh global race/deactivation acceptance bằng standalone User-lock probe.
+
+## 7. Task code đầu tiên — có thể bắt đầu phần độc lập ngay
+
+**P01a / UC023: internal Room Directory read query + real SQL query proof, 3h, không HTTP/DI.** Đây là phần đầu của P01 (6h), không một UC mới và **gain=0** tới khi P01b đạt full approved flow. Chọn trước UC011 vì model Room.branchId đã có và query không cần chọn permission reviewer đang unresolved. Task59 chưa thực hiện P01a.
+
+- Read existing [Room](../../src/HotelOps.Api/Entities/Room.cs), [RoomStatusHistory](../../src/HotelOps.Api/Entities/RoomStatusHistory.cs), [RoomBlock](../../src/HotelOps.Api/Entities/RoomBlock.cs), Branch/Floor/Area/RoomType và DbContext. Không truy vấn production; không suy diễn status lifecycle/release hay assignee từ historical refs.
+- Proposed **new** files: `src/HotelOps.Api/Services/Rooms/RoomDirectoryQuery.cs`, `src/HotelOps.Api/DTOs/Rooms/RoomDirectoryProjection.cs`, `scripts/verification/RoomDirectory/` focused query SQL harness. Internal projection/query input, chưa phải approved public API DTO. Không sửa generated mappings, Program, resolver hay DEV2; controller mới chỉ ở P01b sau approval.
+- Scope ngay: async AsNoTracking projection theo explicit branch selector, deterministic floor/room order, nullable joins, count/page; raw stored status + source/history references đã lưu, không tự tính occupancy hoặc reason thiếu. Query là internal primitive, không tự authorize và không được gọi bởi HTTP tới khi P01b có verified permission boundary.
+- DoD P01a: canonical disposable trial + startup Compatible; two-branch/duplicate room-number/sort-tie/null-Area/inactive-reference fixtures, scoped SQL filtering/count, correct history/reference projection, cancellation, no persistent mutation. Không coi branch parameter là authority. Build solution sau C# edits; test solution nếu có relevant discovered tests; thực thi harness riêng và ghi receipts, git diff --check. Chưa được gọi UC023 PASS.
+- Dependency P01b 3h: approve Task20A D3/D5/D7 + full detail/history contract và shared DI impact; new `Controllers/RoomsController.cs`, final response/query DTOs và authorized service registration. Use existing Branch:ROOM_VIEW handler với server-side permission decision trước count/query, no admin/Owner fallback, no current-user spoofing. SQL+HTTPS revoked/expired/restricted/session/grant scope/filter injection/count-leak tests; no-store và correct status codes. Nếu 3h estimate không đủ cho full reason/history/auth, dùng buffer hoặc dời earned UC; không rút DoD thành list-only.
+
+## 8. Validation và release limits
+
+- Task58 historical source evidence: [writer acceptance](UserAccountDeactivation/TASK58_DEV1_WRITER_ACCEPTANCE.md), [accepted receipt](UserAccountDeactivation/task58-writers-accepted.local.json): 112 SQL PASS, 83 observed waits, 12 operations. Profile329/reauth165/other suites trong report là scoped regression. Build Task58 PASS, 1 NU1900 vulnerability-feed warning; không che warning. `dotnet test` Task58 exit0 không có discovered test project trong solution, không gọi là unit tests PASS.
+- Task59 **build/test/API/SQL: NOT RUN** vì read-only audit/docs, không thay C#. Không khẳng định COMPLETE_VERIFIED đồng nghĩa rerun mọi alternative/production deployment hôm nay; đây là mức credit từ production implementation + relevant existing executable evidence, có regression risk khi code đổi.
+- Validation Task59: machine-check UC set/count/weights/hours, daily126h, linked local paths, preservation checksums/index/worktrees và diff whitespace. Kết quả chi tiết trong ignored `obj/task59-validation.local.json`; không sửa Task51–58 artifacts để thêm verdict.
+- UC006 vẫn PARTIAL: runtime contracts/release acceptance giữ nguyên; không endpoint/SA57/gate bypass. DEV2 full integrated/global lock-order acceptance không được suy từ Task58 standalone/fault suites. Future account-revoke/structure/room mutations phải bổ sung actual producer races trước release khi applicable.
+
+**Delivery verdict: kế hoạch tăng tốc có thể thực thi theo từng approval; mục tiêu80–85% toàn DEV1 trong126h không được workload hỗ trợ.** Ưu tiên kế tiếp: P01 Room023; P02/P03 Access011+User141; P04 floor/area create; P05/P06–P15 approved structure CRUD; sau đó hoàn thiện account004/010 và housekeeping vertical slice thay vì tiếp tục UC006 audit.
+'@
+$body = $header.TrimEnd()+"`n"+($table -join "`n")+"`n"+$footer.Trim()+"`n"
+[IO.File]::WriteAllText((Join-Path (Get-Location) 'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md'),$body,[Text.UTF8Encoding]::new($false))
+$metrics | ConvertTo-Json -Depth 6

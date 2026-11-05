@@ -1,0 +1,6 @@
+{
+    "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task83/artifacts/build --no-restore",
+    "exitCode":  0,
+    "discoveredCases":  0,
+    "result":  "NOT_AVAILABLE_NO_FRAMEWORK_CASES"
+}

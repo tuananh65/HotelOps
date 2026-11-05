@@ -1,0 +1,449 @@
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Data.Common;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Rooms;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Rooms;
+using HotelOps.Api.Services.Users;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
+
+if (args.Length != 2 || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$")
+    || File.Exists(args[1])) throw new ArgumentException("Disposable canonical trial and NEW receipt required.");
+using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+var ct = budget.Token;
+var connection = new SqlConnectionStringBuilder { DataSource = @"localhost\SQLEXPRESS", InitialCatalog = args[0],
+    IntegratedSecurity = true, TrustServerCertificate = true, ConnectTimeout = 5, ApplicationName = "HotelOps Task60 UC023" };
+HotelOpsDbContext Open(IInterceptor? hook = null)
+{
+    var options = new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection.ConnectionString,
+        sql => sql.CommandTimeout(20));
+    if (hook != null) options.AddInterceptors(hook);
+    return new(options.Options);
+}
+var checks = new List<string>();
+var waits = new List<object>();
+void Check(bool condition, string label)
+{
+    if (!condition) throw new InvalidOperationException("FAIL: " + label);
+    checks.Add(label); Console.WriteLine("PASS: " + label);
+}
+await using var setup = Open();
+await setup.Database.OpenConnectionAsync(ct);
+await using (var command = setup.Database.GetDbConnection().CreateCommand())
+{
+    command.CommandText = "SELECT DB_NAME(),CONVERT(nvarchar(128),@@SERVERNAME),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.UserDirectory.Trial')";
+    await using var reader = await command.ExecuteReaderAsync(ct);
+    if (!await reader.ReadAsync(ct) || reader.GetString(0) != args[0]
+        || reader.GetString(1) != @"REDACTED_LOCAL_SQL_HOST\SQLEXPRESS" || reader.IsDBNull(2) || reader.GetString(2) != "Task17")
+        throw new InvalidOperationException("Trial database/instance/marker guard rejected.");
+}
+Check(await new StartupSchemaValidator(setup).ValidateAsync(ct) == SchemaCompatibility.Compatible,
+    "trial startup schema prerequisite compatible before fixtures/query");
+async Task<string> Snapshot()
+{
+    // Compare all mapped rows only in memory. No credentials/personal snapshots in receipts/logs.
+    await using var db = Open(); await db.Database.OpenConnectionAsync(ct);
+    static string Q(string name) => "[" + name.Replace("]", "]]") + "]";
+    var rows = new List<string>();
+    foreach (var entity in db.Model.GetEntityTypes().Where(e => e.GetTableName() != null).OrderBy(e => e.GetTableName()))
+    {
+        var table = entity.GetTableName()!; var store = StoreObjectIdentifier.Table(table, entity.GetSchema());
+        var keys = entity.FindPrimaryKey()!.Properties.Select(p => Q(p.GetColumnName(store)!));
+        await using var cmd = db.Database.GetDbConnection().CreateCommand(); cmd.CommandTimeout = 20;
+        cmd.CommandText = "SELECT COALESCE((SELECT * FROM " + Q(entity.GetSchema() ?? "dbo") + "." + Q(table)
+            + " ORDER BY " + string.Join(",", keys) + " FOR JSON PATH,INCLUDE_NULL_VALUES),N'[]')";
+        rows.Add(table + ":" + (string)(await cmd.ExecuteScalarAsync(ct))!);
+    }
+    return JsonSerializer.Serialize(rows);
+}
+async Task<int> Spid(HotelOpsDbContext db)
+{
+    await db.Database.OpenConnectionAsync(ct);
+    return await db.Database.SqlQueryRaw<int>("SELECT CONVERT(int,@@SPID) AS [Value]").SingleAsync(ct);
+}
+async Task Observe(string scenario, int waiter, int owner, Task pending)
+{
+    for (var i = 0; i < 150 && !pending.IsCompleted; i++)
+    {
+        var kind = await setup.Database.SqlQuery<string>($"SELECT wait_type AS [Value] FROM sys.dm_exec_requests WHERE session_id={waiter} AND blocking_session_id={owner} AND wait_type LIKE 'LCK_M_%'").SingleOrDefaultAsync(ct);
+        if (kind != null) { waits.Add(new { scenario, waiter, owner, kind }); return; }
+        await Task.Delay(40, ct);
+    }
+    if (pending.IsFaulted) await pending;
+    throw new InvalidOperationException("Missing DMV SQL wait: " + scenario);
+}
+async Task Drain(Task task) { try { await task.WaitAsync(TimeSpan.FromSeconds(10)); } catch { /* preserve primary failure */ } }
+static bool HasTimeout(Exception error)
+{
+    // EF's SQL execution strategy can wrap a TimeoutException in InvalidOperationException.
+    // Accept the injected provider fault only; unrelated programming errors must still fail.
+    for (Exception? inner = error; inner != null; inner = inner.InnerException)
+        if (inner is TimeoutException { Message: "Task60 deliberate query-command fault" }) return true;
+    return false;
+}
+var prefix = "T60_" + Guid.NewGuid().ToString("N")[..8];
+var clock = new Clock(DateTime.UtcNow);
+var originalNow = clock.Now;
+var databaseBefore = await Snapshot();
+var branches = Enumerable.Range(0, 4).Select(i => new Branch
+{ BranchCode = prefix + i, BranchName = "Task60 branch " + i, IsActive = i != 3 }).ToArray();
+var types = new[] { new RoomType { TypeCode = prefix + "T1", TypeName = "Task60 active type", IsActive = true },
+    new RoomType { TypeCode = prefix + "T2", TypeName = "Task60 historical type", IsActive = false } };
+var users = Enumerable.Range(0, 4).Select(i => new User { EmployeeCode = prefix + i, Username = prefix + i,
+    Email = prefix + i + "@invalid.test", FullName = "Task60 fixture " + i, PasswordHash = "not-a-login-credential",
+    AccountStatus = "ACTIVE", EmploymentStatus = "ACTIVE", CreatedAt = originalNow.AddDays(-1) }).ToArray();
+Floor[] floors = []; Area[] areas = []; Room[] rooms = []; UserRole[] assignments = []; UserBranchAccess[] memberships = [];
+var credentials = new List<CreatedSqlSession>();
+RoomDirectoryService Service(HotelOpsDbContext db, int user = 0, HttpContext? context = null)
+{
+    var identity = new CurrentUserAccessor(new HttpContextAccessor { HttpContext = context ?? Context(user) });
+    var permissions = new PermissionService(identity, new EfPermissionDataSource(db), new UnresolvedPermissionResourceResolver(), clock);
+    return new(db, identity, new SqlSessionService(db, new SessionRevocationService(db), clock), permissions);
+}
+HttpContext Context(int index)
+{
+    var created = credentials[index];
+    var context = new DefaultHttpContext { User = HotelOpsCookieTicket.Create(created, new Clock(originalNow)).Principal };
+    context.Items[typeof(SessionSnapshot)] = created.Session;
+    return context;
+}
+RoomDirectoryQuery Query(long? branch = null, int page = 1, int size = 20) =>
+    new() { BranchId = branch ?? branches[0].BranchId, Page = page, PageSize = size };
+async Task<RoomDirectoryResult> Read(RoomDirectoryQuery? query = null, int user = 0, Probe? probe = null,
+    SessionReference? ticket = null, HttpContext? context = null)
+{
+    await using var db = Open(probe);
+    var result = await Service(db, user, context).ListAsync(ticket ?? credentials[user].Ticket, query ?? Query(), ct);
+    Check(!db.ChangeTracker.Entries().Any() && db.Database.CurrentTransaction == null,
+        "read leaves clean context and no transaction: " + result.Status);
+    return result;
+}
+try
+{
+    setup.Branches.AddRange(branches); setup.RoomTypes.AddRange(types); setup.Users.AddRange(users);
+    await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+    floors = [new() { BranchId = branches[0].BranchId, FloorCode = "F01", FloorName = "First", FloorNumber = 1, IsActive = true },
+        new() { BranchId = branches[0].BranchId, FloorCode = "F02", FloorName = "Second", FloorNumber = 2, IsActive = true },
+        new() { BranchId = branches[0].BranchId, FloorCode = "FXX", FloorName = "Historical", FloorNumber = null, IsActive = false },
+        new() { BranchId = branches[1].BranchId, FloorCode = "F01", FloorName = "Other branch", FloorNumber = 1, IsActive = true },
+        new() { BranchId = branches[0].BranchId, FloorCode = "F01B", FloorName = "Same floor number", FloorNumber = 1, IsActive = true }];
+    setup.Floors.AddRange(floors); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+    areas = [new() { BranchId = branches[0].BranchId, FloorId = floors[0].FloorId, AreaCode = "A1", AreaName = "Floor area", IsActive = true },
+        new() { BranchId = branches[0].BranchId, FloorId = null, AreaCode = "AB", AreaName = "Branch area", IsActive = false },
+        new() { BranchId = branches[1].BranchId, FloorId = floors[3].FloorId, AreaCode = "B1", AreaName = "Other area", IsActive = true },
+        new() { BranchId = branches[0].BranchId, FloorId = floors[1].FloorId, AreaCode = "A2", AreaName = "Other floor", IsActive = true }];
+    setup.Areas.AddRange(areas); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+    Room Room(string number, int floor = 0, int? area = null, int type = 0, string status = "DIRTY", bool active = true) => new()
+    { BranchId = branches[0].BranchId, FloorId = floors[floor].FloorId, AreaId = area.HasValue ? areas[area.Value].AreaId : null,
+        RoomTypeId = types[type].RoomTypeId, RoomNumber = number, OperationalStatus = status, IsActive = active,
+        Description = "INTERNAL_DESCRIPTION_MUST_NOT_BE_EXPOSED" };
+    var codes = new[] { "AVAILABLE", "OCCUPIED", "DIRTY", "CLEANING", "INSPECTION", "READY", "OUT_OF_SERVICE" };
+    rooms = Enumerable.Range(1, 25).Select(i => Room("R" + i.ToString("00"), area: i % 2 == 0 ? 0 : null,
+        status: codes[(i - 1) % codes.Length], active: i % 5 != 0)).Concat([
+        Room("201", floor: 1), Room("901", floor: 2, area: 1, type: 1),
+        Room("10%_[]"), Room("101", floor: 4),
+        Room("BAD-FLOOR", floor: 3), Room("BAD-AREA", area: 2), Room("BAD-HIERARCHY", area: 3),
+        new Room { BranchId = branches[1].BranchId, FloorId = floors[3].FloorId, RoomTypeId = types[0].RoomTypeId,
+            RoomNumber = "R01", OperationalStatus = "READY", IsActive = true }]).ToArray();
+    setup.Rooms.AddRange(rooms); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+    var hk = await setup.Roles.AsNoTracking().Where(r => r.RoleCode == "HK_STAFF" && r.IsActive).SingleAsync(ct);
+    var dh = await setup.Roles.AsNoTracking().Where(r => r.RoleCode == "DEPT_MANAGER" && r.IsActive).SingleAsync(ct);
+    var admin = await setup.Roles.AsNoTracking().Where(r => r.RoleCode == "SYS_ADMIN" && r.IsActive).SingleAsync(ct);
+    var warehouse = await setup.Roles.AsNoTracking().Where(r => r.RoleCode == "STOREKEEPER" && r.IsActive).SingleAsync(ct);
+    assignments = [new() { UserId = users[0].UserId, RoleId = hk.RoleId, BranchId = branches[0].BranchId, IsActive = true, AssignedAt = originalNow.AddDays(-1) },
+        new() { UserId = users[0].UserId, RoleId = warehouse.RoleId, BranchId = branches[1].BranchId, IsActive = true, AssignedAt = originalNow.AddDays(-1) },
+        new() { UserId = users[1].UserId, RoleId = admin.RoleId, IsActive = true, AssignedAt = originalNow.AddDays(-1) },
+        new() { UserId = users[2].UserId, RoleId = dh.RoleId, BranchId = branches[0].BranchId, IsActive = true, AssignedAt = originalNow.AddDays(-1) }];
+    memberships = [new() { UserId = users[0].UserId, BranchId = branches[0].BranchId, AccessLevel = "FULL", GrantedAt = originalNow.AddDays(-1) },
+        new() { UserId = users[0].UserId, BranchId = branches[1].BranchId, AccessLevel = "FULL", GrantedAt = originalNow.AddDays(-1) },
+        new() { UserId = users[2].UserId, BranchId = branches[0].BranchId, AccessLevel = "FULL", GrantedAt = originalNow.AddDays(-1) }];
+    setup.UserRoles.AddRange(assignments); setup.UserBranchAccesses.AddRange(memberships);
+    foreach (var user in users)
+    {
+        var raw = SessionCredential.Generate();
+        var session = new UserSession { UserId = user.UserId, SessionKeyHash = SessionCredential.Hash(raw),
+            CreatedAt = originalNow, ExpiresAt = originalNow.AddMinutes(30), LastUsedAt = originalNow };
+        setup.UserSessions.Add(session); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+        credentials.Add(new(SessionReference.FromProtectedTicket(user.UserId, raw, false, originalNow),
+            new(session.SessionId, user.UserId, originalNow, session.ExpiresAt, originalNow.AddHours(12), false)));
+    }
+    var fixtureSnapshot = await Snapshot();
+    var trace = new Probe(); var first = await Read(probe: trace);
+    Check(first.Status == RoomDirectoryStatus.Success && first.Directory is { TotalCount: 29, Items.Count: 20, Page: 1, PageSize: 20 },
+        "authorized actual service default20 count includes 29 valid branch rooms");
+    Check(trace.CountQueries == 1 && trace.PageQueries == 1, "exactly one joined count and one joined page query, no N+1");
+    var all = (await Read(Query(size: 100))).Directory!;
+    Check(all.Items.Count == 29 && all.Items.All(x => x.BranchId == branches[0].BranchId), "branch isolation and no internally cross-branch floor/area metadata");
+    Check(all.Items[0].RoomNumber == "10%_[]" && all.Items[^1].Floor.Number == null
+        && all.Items[^2].RoomNumber == "201", "deterministic numeric floor/null-last, floor-code and lexical room ordering");
+    Check(all.Items.Single(x => x.RoomNumber == "901") is { Area: not null, RoomType.Code: var type } && type == types[1].TypeCode,
+        "historical inactive floor/area/type preserved and branch-level area nullable floor supported");
+    Check(all.Items.Any(x => x.Area == null), "optional area projects null without dropping room");
+    var payload = JsonSerializer.Serialize(all);
+    Check(!payload.Contains("INTERNAL_DESCRIPTION") && !payload.Contains("Password") && !payload.Contains("Session")
+        && !payload.Contains("UserId") && !payload.Contains("DeviceInfo"), "explicit DTO excludes credentials/personnel/internal description");
+    var second = (await Read(Query(page: 2))).Directory!;
+    Check(first.Directory!.Items.Select(x => x.Id).Concat(second.Items.Select(x => x.Id)).SequenceEqual(all.Items.Select(x => x.Id)),
+        "multiple pages stable complete ordered set without repeats");
+    Check((await Read(Query(page: 3))).Directory is { Items.Count: 0, TotalCount: 29 }, "page beyond last returns empty with filtered count");
+    Check((await Read(Query(size: 1))).Directory!.Items.Count == 1, "minimum page size1");
+    Check((await Read(Query(page: int.MaxValue, size: 1))).Directory is { Items.Count: 0 }, "max supported Int32 offset boundary");
+    foreach (var status in codes)
+    {
+        var result = (await Read(new() { BranchId = branches[0].BranchId, OperationalStatusCode = status, PageSize = 100 })).Directory!;
+        Check(result.Items.Count > 0 && result.Items.All(x => x.OperationalStatusCode == status), "raw SQL status filter " + status);
+    }
+    Check((await Read(new() { BranchId = branches[0].BranchId, IsActive = false })).Directory!.Items.All(x => !x.IsActive)
+        && (await Read(new() { BranchId = branches[0].BranchId, IsActive = false })).Directory!.TotalCount == 5, "inactive-only filter independent of parents");
+    Check((await Read(new() { BranchId = branches[0].BranchId, IsActive = true, FloorId = floors[1].FloorId })).Directory is { TotalCount: 1 }, "combined active/floor filters");
+    Check((await Read(new() { BranchId = branches[0].BranchId, AreaId = areas[0].AreaId })).Directory is { TotalCount: 12 }, "area filter");
+    Check((await Read(new() { BranchId = branches[0].BranchId, RoomTypeId = types[1].RoomTypeId })).Directory is { TotalCount: 1 }, "global room type filter within authorized branch");
+    Check((await Read(new() { BranchId = branches[0].BranchId, FloorId = floors[3].FloorId })).Directory is { TotalCount: 0, Items.Count: 0 }, "foreign floor filter never returns other branch");
+    Check((await Read(new() { BranchId = branches[0].BranchId, FloorId = floors[1].FloorId, AreaId = areas[0].AreaId })).Directory is { TotalCount: 0 }, "incompatible filters yield no rows, no hierarchy lookup disclosure");
+    foreach (var text in new[] { " 10%_[] ", "%", "_", "[" })
+        Check((await Read(new() { BranchId = branches[0].BranchId, Search = text })).Directory is { TotalCount: 1 }, "literal room-number substring including SQL wildcard characters: " + text);
+    Check((await Read(new() { BranchId = branches[0].BranchId, Search = "   " })).Directory!.TotalCount == 29, "blank search ignored");
+    Check((await Read(new() { BranchId = branches[0].BranchId, Search = "NOT PRESENT" })).Directory is { TotalCount: 0, Items.Count: 0 }, "no matching records empty");
+    foreach (var branch in new[] { branches[1].BranchId, branches[2].BranchId, branches[3].BranchId, long.MaxValue })
+    {
+        var probe = new Probe(); var result = await Read(Query(branch), probe: probe);
+        Check(result is { Status: RoomDirectoryStatus.Forbidden, Directory: null } && probe.RoomQueries == 0,
+            "unauthorized/empty/inactive/missing branch denies before count/page: " + branch);
+    }
+    Check((await Read(user: 1)).Status == RoomDirectoryStatus.Forbidden, "SYS_ADMIN name/master-data grant does not bypass ROOM_VIEW");
+    Check((await Read(user: 2)).Status == RoomDirectoryStatus.Success, "DH branch scope not incorrectly limited to single department");
+    Check((await Read(user: 3)).Status == RoomDirectoryStatus.Forbidden, "valid session without assignment denied");
+    Check((await Read(context: new DefaultHttpContext())).Status == RoomDirectoryStatus.SessionInvalid, "anonymous server context denied");
+    Check((await Read(ticket: credentials[2].Ticket)).Status == RoomDirectoryStatus.SessionInvalid, "ticket cannot be substituted across authenticated actors");
+    var wrongHash = SessionReference.FromProtectedTicket(users[0].UserId, SessionCredential.Generate(), false, originalNow);
+    Check((await Read(ticket: wrongHash)).Status == RoomDirectoryStatus.SessionInvalid, "matching identity/session ids do not bypass SQL credential hash binding");
+    foreach (var invalid in new RoomDirectoryQuery[] { new(), new() { BranchId = -1 }, new() { BranchId = branches[0].BranchId, FloorId = 0 },
+        new() { BranchId = branches[0].BranchId, AreaId = -1 }, new() { BranchId = branches[0].BranchId, RoomTypeId = 0 },
+        new() { BranchId = branches[0].BranchId, Page = 0 }, new() { BranchId = branches[0].BranchId, PageSize = 0 },
+        new() { BranchId = branches[0].BranchId, PageSize = 101 }, new() { BranchId = branches[0].BranchId, Page = int.MaxValue, PageSize = 100 },
+        new() { BranchId = branches[0].BranchId, Search = new string('x', 201) },
+        new() { BranchId = branches[0].BranchId, OperationalStatusCode = "COMPLETED" } })
+    {
+        var probe = new Probe(); await using var db = Open(probe); var rejected = false;
+        try { await Service(db).ListAsync(credentials[0].Ticket, invalid, ct); } catch (ValidationException) { rejected = true; }
+        Check(rejected && probe.Commands == 0, "invalid query rejected before SQL " + checks.Count);
+    }
+    await using (var db = Open())
+    {
+        using var cancelled = new CancellationTokenSource(); cancelled.Cancel(); var rejected = false;
+        try { await Service(db).ListAsync(credentials[0].Ticket, Query(), cancelled.Token); } catch (OperationCanceledException) { rejected = true; }
+        Check(rejected && db.Database.CurrentTransaction == null, "already-cancelled token propagates without transaction");
+    }
+    Check(await Snapshot() == fixtureSnapshot, "all mapped data unchanged by production reads/denials/validation (including sessions/audits/catalog)");
+
+    // Grant to an empty branch using real existing catalog role, not a fabricated evaluator.
+    var emptyGrant = new UserRole { UserId = users[0].UserId, RoleId = hk.RoleId, BranchId = branches[2].BranchId,
+        IsActive = true, AssignedAt = originalNow.AddDays(-1) };
+    var emptyAccess = new UserBranchAccess { UserId = users[0].UserId, BranchId = branches[2].BranchId,
+        AccessLevel = "FULL", GrantedAt = originalNow.AddDays(-1) };
+    setup.UserRoles.Add(emptyGrant); setup.UserBranchAccesses.Add(emptyAccess); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+    Check((await Read(Query(branches[2].BranchId))).Directory is { TotalCount: 0, Items.Count: 0 }, "authorized physically empty branch returns empty");
+
+    // Every concurrency schedule uses independent SQL connections and DMV-confirmed waits.
+    foreach (var scenario in new[] { "account-inactive", "session-revoked", "assignment-revoked", "membership-revoked", "cancel-user-wait", "timeout1222" })
+    {
+        await using var holder = Open(); var probe = new Probe(); await using var reader = Open(probe);
+        var owner = await Spid(holder); var waiter = await Spid(reader);
+        if (scenario == "timeout1222") await reader.Database.ExecuteSqlRawAsync("SET LOCK_TIMEOUT 600", ct);
+        await using var tx = await holder.Database.BeginTransactionAsync(ct);
+        await new UserEligibilityLock(holder).LockAsync([users[0].UserId], ct);
+        if (scenario == "account-inactive") await holder.Users.Where(x => x.UserId == users[0].UserId).ExecuteUpdateAsync(s => s.SetProperty(x => x.AccountStatus, "INACTIVE"), ct);
+        if (scenario == "session-revoked") await holder.UserSessions.Where(x => x.SessionId == credentials[0].Session.SessionId).ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAt, originalNow), ct);
+        if (scenario == "assignment-revoked") await holder.UserRoles.Where(x => x.UserRoleId == assignments[0].UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, false), ct);
+        if (scenario == "membership-revoked") await holder.UserBranchAccesses.Where(x => x.AccessId == memberships[0].AccessId).ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAt, originalNow), ct);
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var work = Service(reader).ListAsync(credentials[0].Ticket, Query(), stop.Token);
+        try
+        {
+            await Observe(scenario, waiter, owner, work);
+            if (scenario is "cancel-user-wait" or "timeout1222")
+            {
+                if (scenario == "cancel-user-wait") stop.Cancel();
+                var rejected = false;
+                try { await work; }
+                catch (OperationCanceledException) when (scenario == "cancel-user-wait") { rejected = true; }
+                catch (SqlException e) when (scenario == "timeout1222" && e.Number == 1222) { rejected = true; }
+                Check(rejected && reader.Database.CurrentTransaction == null && probe.RoomQueries == 0, scenario + " propagates, rolls back and never queries rooms");
+                await tx.RollbackAsync(ct);
+            }
+            else
+            {
+                await tx.CommitAsync(ct); var result = await work;
+                var expected = scenario is "account-inactive" or "session-revoked" ? RoomDirectoryStatus.SessionInvalid : RoomDirectoryStatus.Forbidden;
+                Check(result.Status == expected && result.Directory == null && probe.RoomQueries == 0, scenario + " authoritative SQL reread after waiting rejects stale actor authority");
+            }
+        }
+        finally { stop.Cancel(); await Drain(work); }
+        await setup.Users.Where(x => x.UserId == users[0].UserId).ExecuteUpdateAsync(s => s.SetProperty(x => x.AccountStatus, "ACTIVE"), ct);
+        await setup.UserSessions.Where(x => x.SessionId == credentials[0].Session.SessionId).ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAt, (DateTime?)null), ct);
+        await setup.UserRoles.Where(x => x.UserRoleId == assignments[0].UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, true), ct);
+        await setup.UserBranchAccesses.Where(x => x.AccessId == memberships[0].AccessId).ExecuteUpdateAsync(s => s.SetProperty(x => x.RevokedAt, (DateTime?)null), ct);
+    }
+    foreach (var scenario in new[] { "read-first-status", "read-first-insert", "read-first-revoke", "final-session-expiry", "final-grant-expiry" })
+    {
+        if (scenario == "final-grant-expiry") await setup.UserRoles.Where(x => x.UserRoleId == assignments[0].UserRoleId)
+            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ExpiresAt, originalNow.AddMinutes(1)), ct);
+        var probe = new Probe { PausePage = true }; await using var reader = Open(probe); await using var writer = Open();
+        var owner = await Spid(reader); var waiter = await Spid(writer);
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var work = Service(reader).ListAsync(credentials[0].Ticket, Query(size: 100), stop.Token);
+        Task? competing = null; long inserted = 0;
+        try
+        {
+            await probe.Entered.Task.WaitAsync(TimeSpan.FromSeconds(15), ct);
+            if (scenario == "read-first-status") competing = writer.Rooms.Where(x => x.RoomId == rooms[0].RoomId)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.OperationalStatus, "READY"), ct);
+            if (scenario == "read-first-insert")
+            {
+                var row = Room("R99"); writer.Rooms.Add(row);
+                competing = writer.SaveChangesAsync(ct);
+                // Capture identity from the tracked fixture after the blocked write completes.
+            }
+            if (scenario == "read-first-revoke") competing = Revoke();
+            async Task Revoke()
+            {
+                await using var tx = await writer.Database.BeginTransactionAsync(ct);
+                await new UserEligibilityLock(writer).LockAsync([users[0].UserId], ct);
+                await writer.UserRoles.Where(x => x.UserRoleId == assignments[0].UserRoleId).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, false), ct);
+                await tx.CommitAsync(ct);
+            }
+            if (competing != null) await Observe(scenario, waiter, owner, competing);
+            if (scenario == "final-session-expiry") clock.Now = originalNow.AddHours(1);
+            if (scenario == "final-grant-expiry") clock.Now = originalNow.AddMinutes(2);
+            probe.Release.TrySetResult(); var result = await work;
+            if (competing != null) await competing;
+            if (scenario.StartsWith("read-first")) Check(result.Directory is { TotalCount: 29, Items.Count: 29 }
+                && result.Directory.Items.Single(x => x.Id == rooms[0].RoomId).OperationalStatusCode == "AVAILABLE",
+                scenario + " count/page/authority remain one consistent read before concurrent commit");
+            else Check(result.Directory == null && result.Status == (scenario == "final-session-expiry" ? RoomDirectoryStatus.SessionInvalid : RoomDirectoryStatus.Forbidden),
+                scenario + " time-based recheck withholds fully materialized data");
+            if (scenario == "read-first-revoke") Check((await Read()).Status == RoomDirectoryStatus.Forbidden, "next read observes committed permission revocation");
+            if (scenario == "read-first-status") Check((await Read(Query(size: 100))).Directory!.Items.Single(x => x.Id == rooms[0].RoomId).OperationalStatusCode == "READY", "next read observes status commit");
+            if (scenario == "read-first-insert") Check((await Read(Query(size: 100))).Directory!.TotalCount == 30, "next read observes committed phantom insert");
+        }
+        finally
+        {
+            probe.Release.TrySetResult(); stop.Cancel(); await Drain(work); if (competing != null) await Drain(competing);
+            clock.Now = originalNow;
+            if (scenario == "read-first-insert")
+            {
+                inserted = writer.ChangeTracker.Entries<Room>().Select(x => x.Entity.RoomId).FirstOrDefault();
+                if (inserted > 0) await setup.Rooms.Where(x => x.RoomId == inserted).ExecuteDeleteAsync(ct);
+            }
+            await setup.Rooms.Where(x => x.RoomId == rooms[0].RoomId).ExecuteUpdateAsync(s => s.SetProperty(x => x.OperationalStatus, "AVAILABLE"), ct);
+            await setup.UserRoles.Where(x => x.UserRoleId == assignments[0].UserRoleId)
+                .ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, true).SetProperty(x => x.ExpiresAt, (DateTime?)null), ct);
+        }
+    }
+    // Room writer-first and cancellation while waiting for feature data, not just User.
+    foreach (var cancel in new[] { false, true })
+    {
+        await using var holder = Open(); await using var reader = Open();
+        var owner = await Spid(holder); var waiter = await Spid(reader);
+        await using var tx = await holder.Database.BeginTransactionAsync(ct);
+        await holder.Rooms.Where(x => x.RoomId == rooms[0].RoomId).ExecuteUpdateAsync(s => s.SetProperty(x => x.OperationalStatus, "READY"), ct);
+        using var stop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var work = Service(reader).ListAsync(credentials[0].Ticket, Query(size: 100), stop.Token);
+        try
+        {
+            await Observe(cancel ? "cancel-room-wait" : "room-writer-first", waiter, owner, work);
+            if (cancel)
+            {
+                stop.Cancel(); var rejected = false;
+                try { await work; } catch (OperationCanceledException) { rejected = true; }
+                Check(rejected && reader.Database.CurrentTransaction == null, "cancellation during real room lock wait releases whole read transaction");
+                await tx.RollbackAsync(ct);
+            }
+            else
+            {
+                await tx.CommitAsync(ct); var result = await work;
+                Check(result.Directory!.Items.Single(x => x.Id == rooms[0].RoomId).OperationalStatusCode == "READY", "room writer-first read uses committed authoritative state");
+            }
+        }
+        finally { stop.Cancel(); await Drain(work); }
+        await setup.Rooms.Where(x => x.RoomId == rooms[0].RoomId).ExecuteUpdateAsync(s => s.SetProperty(x => x.OperationalStatus, "AVAILABLE"), ct);
+    }
+    foreach (var failure in new[] { "authority", "page" })
+    {
+        var probe = new Probe { Failure = failure }; await using var db = Open(probe); var rejected = false;
+        try
+        {
+            var result = await Service(db).ListAsync(credentials[0].Ticket, Query(), ct);
+            rejected = failure == "authority" && result is { Status: RoomDirectoryStatus.AuthorizationUnavailable, Directory: null } && probe.RoomQueries == 0;
+        }
+        catch (Exception error) when (failure == "page" && HasTimeout(error)) { rejected = true; }
+        Check(rejected && db.Database.CurrentTransaction == null, failure + " SQL-command fault fails closed without partial response/retained transaction");
+    }
+    Check((await Read()).Status == RoomDirectoryStatus.Success, "normal read recovers after cancellation/timeout/fault schedules without retry side effects");
+}
+finally
+{
+    // Only this harness's fixture rows, in FK order. Keep the trial DB and artifacts.
+    clock.Now = originalNow; setup.ChangeTracker.Clear();
+    var branchIds = branches.Where(x => x.BranchId > 0).Select(x => x.BranchId).ToArray();
+    var userIds = users.Where(x => x.UserId > 0).Select(x => x.UserId).ToArray();
+    await setup.Rooms.Where(x => branchIds.Contains(x.BranchId)).ExecuteDeleteAsync(ct);
+    await setup.Areas.Where(x => branchIds.Contains(x.BranchId)).ExecuteDeleteAsync(ct);
+    await setup.Floors.Where(x => branchIds.Contains(x.BranchId)).ExecuteDeleteAsync(ct);
+    await setup.RoomTypes.Where(x => x.TypeCode.StartsWith(prefix)).ExecuteDeleteAsync(ct);
+    await setup.UserSessions.Where(x => userIds.Contains(x.UserId)).ExecuteDeleteAsync(ct);
+    await setup.UserRoles.Where(x => userIds.Contains(x.UserId)).ExecuteDeleteAsync(ct);
+    await setup.UserBranchAccesses.Where(x => userIds.Contains(x.UserId)).ExecuteDeleteAsync(ct);
+    await setup.Users.Where(x => userIds.Contains(x.UserId)).ExecuteDeleteAsync(ct);
+    await setup.Branches.Where(x => branchIds.Contains(x.BranchId)).ExecuteDeleteAsync(ct);
+}
+Check(await Snapshot() == databaseBefore, "all mapped table rows restored; canonical RBAC/credentials/sessions/audits/business assignments preserved");
+Check(typeof(RoomDirectoryService).Assembly.GetTypes().Any(t => t.Name == "RoomsController"
+    && t.GetCustomAttributes(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute),true).Length != 0),
+    "Task67 Room Directory controller has explicit authentication boundary");
+await File.WriteAllTextAsync(args[1], JsonSerializer.Serialize(new { database = args[0], result = "PASS", checks,
+    dmvConfirmedWaits = waits, http = "NOT RUN in this suite; Task67 HTTPS acceptance is separate", uc023 = "Internal list regression only; does not certify full UC023" },
+    new JsonSerializerOptions { WriteIndented = true }), ct);
+Console.WriteLine($"PASS: {checks.Count} checks, {waits.Count} DMV waits; internal list regression only; full UC023 acceptance is evaluated separately.");
+
+sealed class Clock(DateTime now) : TimeProvider
+{
+    public DateTime Now { get; set; } = now;
+    public override DateTimeOffset GetUtcNow() => new(Now, TimeSpan.Zero);
+}
+sealed class Probe : DbCommandInterceptor
+{
+    public int Commands { get; private set; }
+    public int CountQueries { get; private set; }
+    public int PageQueries { get; private set; }
+    public int RoomQueries => CountQueries + PageQueries;
+    public bool PausePage { get; init; }
+    public string? Failure { get; init; }
+    public TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+        CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+    {
+        Commands++;
+        if (command.CommandText.Contains("UC023:Count")) CountQueries++;
+        if (command.CommandText.Contains("UC023:Page"))
+        {
+            PageQueries++;
+            if (Failure == "page") throw new TimeoutException("Task60 deliberate query-command fault");
+            if (PausePage) { Entered.TrySetResult(); await Release.Task.WaitAsync(cancellationToken); }
+        }
+        if (Failure == "authority" && command.CommandText.Contains("[role_permissions]"))
+            throw new TimeoutException("Task60 deliberate authority-command fault");
+        return result;
+    }
+}

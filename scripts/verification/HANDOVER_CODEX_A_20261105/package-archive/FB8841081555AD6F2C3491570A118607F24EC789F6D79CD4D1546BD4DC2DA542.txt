@@ -1,0 +1,29 @@
+﻿SOURCE src/HotelOps.Api/Controllers/ReplenishmentsController.cs
+SHA256 52162896162A9BE3EF034E6A2662D617F1E404966ABB6E0DC6A07C7AB3731416
+    1: using System.ComponentModel.DataAnnotations;
+    2: using HotelOps.Api.DTOs.Replenishments;
+    3: using HotelOps.Api.Services.Replenishments;
+    4: using Microsoft.AspNetCore.Mvc;
+    5: 
+    6: namespace HotelOps.Api.Controllers;
+    7: 
+    8: [ApiController]
+    9: [Route("api/replenishments")]
+   10: public sealed class ReplenishmentsController(ReplenishmentService service) : ControllerBase
+   11: {
+   12:     private async Task<IActionResult> Execute<T>(Func<Task<T>> action, Func<T, string>? location = null)
+   13:     {
+   14:         try { var result = await action(); return result is null ? NotFound() : location is null ? Ok(result) : Created(location(result), result); }
+   15:         catch (ValidationException e) { return Problem(statusCode: 400, title: "Replenishment validation failed", detail: e.Message); }
+   16:     }
+   17:     [HttpGet] public Task<IActionResult> List([FromQuery] ReplenishmentPage page, CancellationToken ct) => Execute(() => service.List(page, ct));
+   18:     [HttpGet("{id:long}")] public Task<IActionResult> Get(long id, CancellationToken ct) => Execute(() => service.Get(id, ct));
+   19:     [HttpGet("{id:long}/history")] public Task<IActionResult> History(long id, CancellationToken ct) => Execute(() => service.History(id, ct));
+   20:     [HttpGet("{id:long}/receipts")] public Task<IActionResult> Receipts(long id, CancellationToken ct) => Execute(() => service.Receipts(id, ct));
+   21:     [HttpPost] public Task<IActionResult> Create(ReplenishmentCreate input, CancellationToken ct) => Execute(() => service.Create(input, ct), x => $"/api/replenishments/{x.ReplenishmentId}");
+   22:     [HttpPost("{id:long}/close")] public Task<IActionResult> Close(long id, ReplenishmentClose input, CancellationToken ct) => Execute(() => service.Close(id, input, ct));
+   23:     [HttpPost("{id:long}/receipts/link")] public Task<IActionResult> Link(long id, ReplenishmentLink input, CancellationToken ct) => Execute(() => service.Receive(id, input, ct));
+   24:     [HttpPost("{id:long}/receipts/post")] public Task<IActionResult> Post(long id, ReplenishmentPost input, CancellationToken ct) => Execute(() => service.Receive(id, new(input.ActorUserId, input.ExpectedRowVersion, input.Lines), ct, input));
+   25:     [HttpGet("/api/replenishment-shortages/low-stock")] public Task<IActionResult> Low([FromQuery] ReplenishmentPage page, CancellationToken ct) => Execute(() => service.LowStock(page, ct));
+   26:     [HttpGet("/api/replenishment-shortages/material-requests")] public Task<IActionResult> Material([FromQuery] ReplenishmentPage page, CancellationToken ct) => Execute(() => service.MaterialShortages(page, ct));
+   27: }

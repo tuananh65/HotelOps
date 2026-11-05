@@ -1,0 +1,28 @@
+1: namespace HotelOps.Api.Security;
+2: 
+3: public static class CookieRequestRules
+4: {
+5:     public static bool IsApi(HttpRequest request) => request.Path.StartsWithSegments("/api");
+6: 
+7:     public static bool IsCsrfBootstrap(HttpRequest request)
+8:         => HttpMethods.IsGet(request.Method) && IsPath(request, "/api/auth/csrf");
+9: 
+10:     public static bool IsLogin(HttpRequest request)
+11:         => HttpMethods.IsPost(request.Method) && IsPath(request, "/api/auth/login");
+12: 
+13:     public static bool IsLogout(HttpRequest request)
+14:         => HttpMethods.IsPost(request.Method) && IsPath(request, "/api/auth/logout");
+15: 
+16:     public static bool IsSafeMethod(HttpRequest request)
+17:         => HttpMethods.IsGet(request.Method) || HttpMethods.IsHead(request.Method) || HttpMethods.IsOptions(request.Method);
+18: 
+19:     public static bool IsRestrictedAllowed(HttpRequest request)
+20:         => (HttpMethods.IsGet(request.Method)
+21:                 && (IsPath(request, "/api/auth/session") || IsPath(request, "/api/auth/csrf")))
+22:             || (HttpMethods.IsPost(request.Method)
+23:                 && (IsPath(request, "/api/auth/change-password") || IsPath(request, "/api/auth/logout")));
+24: 
+25:     private static bool IsPath(HttpRequest request, string path)
+26:         => string.Equals(request.Path.Value?.TrimEnd('/'), path, StringComparison.OrdinalIgnoreCase);
+27: }
+28: 

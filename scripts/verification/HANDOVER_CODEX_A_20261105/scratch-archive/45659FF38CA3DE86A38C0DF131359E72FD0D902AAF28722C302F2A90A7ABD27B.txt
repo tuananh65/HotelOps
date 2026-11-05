@@ -1,0 +1,92 @@
+using System.ComponentModel.DataAnnotations;
+using System.Data;
+using System.Data.Common;
+using System.Globalization;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.HotelStructure;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Users;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.HotelStructure;
+
+public enum RoomTypeCreationStatus { Success, SessionInvalid, Forbidden, DuplicateCode, Unavailable }
+public sealed record RoomTypeCreationResult(RoomTypeCreationStatus Status, CreatedRoomTypeDto? Value = null);
+
+public sealed class RoomTypeCreationService(HotelOpsDbContext db, ICurrentUserAccessor current,
+    IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
+{
+    public const string CatalogLock = "HotelOps:RoomTypes:v1";
+
+    public async Task<RoomTypeCreationResult> CreateAsync(SessionReference ticket, long sessionId,
+        CreateRoomTypeRequest request, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(ticket); ArgumentNullException.ThrowIfNull(request);
+        ct.ThrowIfCancellationRequested();
+        var code=request.Code?.Trim().ToUpperInvariant(); var name=request.Name?.Trim(); var description=request.Description?.Trim();
+        if(string.IsNullOrEmpty(code)||code.Length>30||!char.IsAsciiLetterOrDigit(code[0])
+            ||code.Any(c=>!char.IsAsciiLetterOrDigit(c)&&c is not '_' and not '-'))
+            throw new ValidationException("Code must be 1-30 ASCII letters/digits/_/-, starting with a letter or digit.");
+        if(string.IsNullOrEmpty(name)||name.Length>150||name.Any(char.IsControl))
+            throw new ValidationException("Name is required, maximum 150 characters, without control characters.");
+        if(description?.Length>4000||description?.Any(c=>char.IsControl(c)&&c is not '\r' and not '\n' and not '\t')==true)
+            throw new ValidationException("Description must be at most 4000 characters without other control characters.");
+        if(request.StandardCapacity<=0)throw new ValidationException("StandardCapacity must be positive or null.");
+        if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sessionId
+            ||actor.IsRestricted||ticket.IsRestricted)return new(RoomTypeCreationStatus.SessionInvalid);
+        if(!db.Database.IsSqlServer()||db.Database.CurrentTransaction!=null||db.ChangeTracker.Entries().Any()
+            ||System.Transactions.Transaction.Current!=null)
+            throw new InvalidOperationException("Room type creation requires its own clean SQL context/transaction.");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        try
+        {
+            await new UserEligibilityLock(db).LockAsync([actor.UserId],ct);
+            if(await Gate() is {} initial)return new(initial);
+            // Global namespace, not a branch or GlobalAdmin eligibility resource. All catalog
+            // writers must use this order: actor User -> session/grants -> namespace -> rows.
+            var acquired=await db.Database.SqlQuery<int>($"DECLARE @result int; EXEC @result=sys.sp_getapplock @Resource={CatalogLock},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @result AS [Value];")
+                .ToArrayAsync(ct);
+            if(acquired.Length!=1||acquired[0]<0)return new(RoomTypeCreationStatus.Unavailable);
+            if(await db.RoomTypes.AsNoTracking().TagWith("UC017:Duplicate")
+                .AnyAsync(x=>x.TypeCode.Trim().ToUpper()==code,ct))return new(RoomTypeCreationStatus.DuplicateCode);
+            var row=new RoomType{TypeCode=code,TypeName=name,Description=string.IsNullOrEmpty(description)?null:description,
+                StandardCapacity=request.StandardCapacity,IsActive=true};
+            db.Add(row);
+            try{await db.SaveChangesAsync(ct);}
+            catch(DbUpdateException error) when(IsDuplicateCode(error)){return new(RoomTypeCreationStatus.DuplicateCode);}
+            finally{db.Entry(row).State=EntityState.Detached;}
+            var value=new CreatedRoomTypeDto(row.RoomTypeId,row.TypeCode,row.TypeName,row.Description,row.StandardCapacity,true);
+            var audit=new AuditLog{ActorUserId=actor.UserId,BranchId=null,EntityType="room_types",
+                EntityId=row.RoomTypeId.ToString(CultureInfo.InvariantCulture),Action="CREATE",OccurredAt=clock.GetUtcNow().UtcDateTime,
+                OldValues=JsonSerializer.Serialize(new{entity=(object?)null},Json),NewValues=JsonSerializer.Serialize(value,Json),
+                ChangedFields=JsonSerializer.Serialize(new[]{"code","name","description","standardCapacity","isActive"},Json)};
+            db.Add(audit);try{await db.SaveChangesAsync(ct);}finally{db.Entry(audit).State=EntityState.Detached;}
+            if(await Gate() is {} final)return new(final);
+            await tx.CommitAsync(ct);return new(RoomTypeCreationStatus.Success,value);
+        }
+        catch(Exception error) when(ct.IsCancellationRequested&&error is DbException or DbUpdateException or SessionStoreUnavailableException)
+        {throw new OperationCanceledException("Room type creation cancelled.",error,ct);}
+        catch(Exception error) when(!ct.IsCancellationRequested&&SqlNumber(error) is 1205 or 1222 or -2)
+        {return new(RoomTypeCreationStatus.Unavailable);}
+
+        async Task<RoomTypeCreationStatus?> Gate()
+        {
+            var valid=await sessions.ValidateSessionAsync(ticket,ct);ct.ThrowIfCancellationRequested();
+            if(!valid.IsValid||valid.Session?.SessionId!=sessionId||valid.Session.IsRestricted)return RoomTypeCreationStatus.SessionInvalid;
+            // Deliberately no branch fallback: this entity has no branch owner.
+            var access=await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct);ct.ThrowIfCancellationRequested();
+            return access.IsGranted?null:access.Decision==PermissionDecision.Unavailable
+                ?RoomTypeCreationStatus.Unavailable:RoomTypeCreationStatus.Forbidden;
+        }
+    }
+    private static readonly JsonSerializerOptions Json=new(JsonSerializerDefaults.Web);
+    private static bool IsDuplicateCode(DbUpdateException error)=>SqlNumber(error) is 2601 or 2627
+        &&error.InnerException is SqlException sql&&sql.Message.Contains("'dbo.room_types'",StringComparison.Ordinal)
+        &&sql.Message.Contains("UQ__room_typ__",StringComparison.Ordinal);
+    private static int? SqlNumber(Exception error)
+    {for(Exception? currentError=error;currentError!=null;currentError=currentError.InnerException)if(currentError is SqlException sql)return sql.Number;return null;}
+}

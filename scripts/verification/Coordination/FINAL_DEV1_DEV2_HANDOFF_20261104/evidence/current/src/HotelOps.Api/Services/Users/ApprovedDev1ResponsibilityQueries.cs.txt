@@ -1,0 +1,72 @@
+26:         // Materialize only lifecycle scalars; classify exact stored vocabulary ordinally.
+27:         var assignments = await (from assignment in db.CleaningAssignments.AsNoTracking()
+28:             where assignment.AssigneeUserId == targetId
+29:             join parent in db.CleaningTasks.AsNoTracking() on assignment.CleaningTaskId equals parent.CleaningTaskId into parents
+30:             from parent in parents.DefaultIfEmpty()
+31:             select new { assignment.AssignmentStatus, assignment.AssignedAt, assignment.EndedAt,
+32:                 Parent = parent == null ? null : parent.Status }).ToArrayAsync(ct);
+33:         foreach (var row in assignments)
+34:         {
+35:             if (row.EndedAt < row.AssignedAt || row.AssignmentStatus == "ACTIVE" && row.EndedAt != null
+36:                 || row.AssignmentStatus != "ACTIVE" && row.EndedAt == null)
+37:             { unresolved.Add("CLEANING_DATA_INCONSISTENCY"); continue; }
+38:             if (row.AssignmentStatus is not ("ACTIVE" or "COMPLETED" or "REASSIGNED" or "CANCELLED")
+39:                 || row.Parent is not ("PENDING" or "IN_PROGRESS" or "COMPLETED" or "CANCELLED"))
+40:             { unresolved.Add("CLEANING_UNRESOLVED"); continue; }
+41:             if (row.AssignmentStatus != "ACTIVE") continue;
+42:             if (row.Parent is "PENDING" or "IN_PROGRESS") blockers.Add("CLEANING_ASSIGNMENT");
+43:             else if (row.Parent == "CANCELLED") unresolved.Add("CLEANING_DATA_INCONSISTENCY");
+44:             // SQL COMPLETED cannot prove SRS final completion vs Pending Inspection.
+45:             else unresolved.Add("CLEANING_TERMINAL_MAPPING");
+46:         }
+47:         var reworks = await db.CleaningReworks.AsNoTracking().Where(x => x.AssigneeUserId == targetId)
+48:             .Select(x => new { x.Status, x.CompletedAt, x.RequestedAt }).ToArrayAsync(ct);
+49:         foreach (var row in reworks)
+50:         {
+51:             if (row.Status is "PENDING" or "IN_PROGRESS")
+52:             {
+53:                 if (row.CompletedAt != null) unresolved.Add("REWORK_DATA_INCONSISTENCY");
+54:                 else blockers.Add("CLEANING_REWORK");
+55:             }
+56:             else if (row.Status == "COMPLETED")
+57:             {
+58:                 if (row.CompletedAt == null || row.CompletedAt < row.RequestedAt) unresolved.Add("REWORK_DATA_INCONSISTENCY");
+59:             }
+60:             else if (row.Status != "CANCELLED") unresolved.Add("REWORK_UNRESOLVED");
+61:         }
+62:         var inspections = await db.RoomInspections.AsNoTracking().Where(x => x.InspectorUserId == targetId)
+63:             .Select(x => new { x.Status, x.Result }).ToArrayAsync(ct);
+64:         foreach (var row in inspections)
+65:         {
+66:             if (row.Status is "PENDING" or "IN_PROGRESS")
+67:             {
+68:                 if (row.Result != null) unresolved.Add("INSPECTION_DATA_INCONSISTENCY");
+69:                 else blockers.Add("INSPECTION_ASSIGNEE");
+70:             }
+71:             else if (row.Status == "COMPLETED")
+72:             {
+73:                 if (row.Result is not ("PASS" or "FAIL" or "CONDITIONAL")) unresolved.Add("INSPECTION_DATA_INCONSISTENCY");
+74:             }
+75:             else if (row.Status != "CANCELLED") unresolved.Add("INSPECTION_UNRESOLVED");
+76:         }
+77:         // Only assigned_to designates defect responsibility; never infer it from inspector,
+78:         // checklist author, parent creator, or other historical FK attribution.
+79:         var defects = await db.InspectionDefects.AsNoTracking().Where(x => x.AssignedTo == targetId)
+80:             .Select(x => new { x.Status, x.ResolvedAt }).ToArrayAsync(ct);
+81:         foreach (var row in defects)
+82:         {
+83:             if (row.Status is "OPEN" or "IN_PROGRESS")
+84:             {
+85:                 if (row.ResolvedAt != null) unresolved.Add("DEFECT_DATA_INCONSISTENCY");
+86:                 else blockers.Add("INSPECTION_DEFECT_ASSIGNEE");
+87:             }
+88:             else if (row.Status == "RESOLVED")
+89:             {
+90:                 if (row.ResolvedAt == null) unresolved.Add("DEFECT_DATA_INCONSISTENCY");
+91:             }
+92:             else if (row.Status != "CANCELLED") unresolved.Add("DEFECT_UNRESOLVED");
+93:         }
+94:         if (await db.Departments.AsNoTracking().AnyAsync(x => x.ManagerUserId == targetId && x.IsActive, ct))
+95:             blockers.Add("DEPARTMENT_MANAGER");
+96:         return new(blockers.Order(StringComparer.Ordinal).ToArray(), unresolved.Order(StringComparer.Ordinal).ToArray());
+97:     }

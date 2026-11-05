@@ -17,7 +17,7 @@ using Microsoft.Extensions.Options;
 if (args.Length != 2 || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$"))
     throw new ArgumentException("Verified trial and new local evidence path required");
 if (File.Exists(args[1])) throw new InvalidOperationException("Do not overwrite evidence");
-var connection = new SqlConnectionStringBuilder { DataSource = @"DESKTOP-JI8U50T\SQLEXPRESS",
+var connection = new SqlConnectionStringBuilder { DataSource = @"REDACTED_LOCAL_SQL_HOST\SQLEXPRESS",
     InitialCatalog = args[0], IntegratedSecurity = true, TrustServerCertificate = true, ConnectTimeout = 10 };
 using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 var ct = budget.Token;
@@ -92,7 +92,7 @@ using (var issued = Release(pendingSuccess))
     Check(saved.TemporaryPasswordExpiresAt > DateTime.UtcNow.AddHours(23.9) && saved.TemporaryPasswordExpiresAt <= DateTime.UtcNow.AddHours(24.01), "temporary policy remains 24 hours");
     var once = false; try { issued.TakePasswordOnce(); } catch (InvalidOperationException) { once = true; }
     Check(once, "committed handoff can be taken only once");
-    var audit = await db.AuditLogs.AsNoTracking().Where(a => a.EntityId == committed.ToString()).Select(a => a.NewValues).ToArrayAsync(ct);
+    var audit = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "users" && a.EntityId == committed.ToString()).Select(a => a.NewValues).ToArrayAsync(ct);
     Check(audit.All(a => a == null || (!a.Contains(plaintext) && !a.Contains(saved.PasswordHash!))), "audits contain neither plaintext nor hash values");
     Check(audit.Length == 2, "account CREATE and credential UPDATE audits both persist");
 }

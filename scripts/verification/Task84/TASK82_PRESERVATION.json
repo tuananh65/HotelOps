@@ -1,0 +1,17 @@
+[
+    {
+        "path":  "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+        "sha256":  "D4275C18F07FC242981D5AAED3890D723CF8B6E633E3BF2D21E84E445A05E382",
+        "unchanged":  true
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+        "sha256":  "DE513DD058EFD8E4C1401D6103175FA0D3F3C59B83888385FC26295A6F4C3B76",
+        "unchanged":  true
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+        "sha256":  "5DB908A0986905CB9A44C2588FEDBA8978EA262B5913F214881B4905953FE89F",
+        "unchanged":  true
+    }
+]

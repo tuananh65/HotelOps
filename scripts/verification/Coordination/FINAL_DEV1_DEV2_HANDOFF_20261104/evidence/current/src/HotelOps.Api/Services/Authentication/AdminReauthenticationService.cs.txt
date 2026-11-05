@@ -1,0 +1,60 @@
+5: namespace HotelOps.Api.Services.Authentication;
+6: 
+7: public enum ReauthenticationStatus { Succeeded, SessionInvalid, Restricted, InvalidCredential, Locked, ProofRequired }
+8: public sealed record ReauthenticationResult(ReauthenticationStatus Status, DateTime? ExpiresAtUtc = null);
+9: 
+10: public sealed class AdminReauthenticationService(HotelOpsDbContext db, ISqlSessionService sessions,
+11:     ICredentialLockoutService lockout, ReauthenticationProofStore proofs, TimeProvider clock)
+12: {
+13:     public async Task<ReauthenticationResult> ReauthenticateAsync(SessionReference reference, long sessionId,
+14:         string currentPassword, CancellationToken ct)
+15:     {
+16:         if (string.IsNullOrWhiteSpace(currentPassword) || currentPassword.Length > 256)
+17:             throw new ArgumentException("Invalid current password input.", nameof(currentPassword));
+18:         if (db.Database.CurrentTransaction != null || System.Transactions.Transaction.Current != null
+19:             || db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Reauthentication requires its own clean transaction.");
+20:         proofs.Forget(reference, sessionId);
+21:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+22:         var validation = await sessions.ValidateSessionAsync(reference, ct);
+23:         if (!validation.IsValid || validation.Session is not { } session || session.SessionId != sessionId)
+24:             return new(ReauthenticationStatus.SessionInvalid);
+25:         if (session.IsRestricted) return new(ReauthenticationStatus.Restricted);
+26:         var verified = await lockout.VerifyAsync(reference.UserId, currentPassword,
+27:             (user, _) => Task.FromResult(SqlSessionPolicy.IsUserActive(user) && user.TemporaryPasswordExpiresAt == null), ct);
+28:         if (verified.Status != CredentialLockoutStatus.Verified)
+29:         {
+30:             await tx.CommitAsync(ct); // Persist existing brute-force counters/lockout, never revoke/replace session.
+31:             return new(verified.Status == CredentialLockoutStatus.Locked ? ReauthenticationStatus.Locked : ReauthenticationStatus.InvalidCredential);
+32:         }
+33:         // Session may cross an expiry while hashing. User-first locks prevent rotation/revoke overtaking verification.
+34:         validation = await sessions.ValidateSessionAsync(reference, ct);
+35:         if (!validation.IsValid || validation.Session is not { } latest || latest.SessionId != sessionId)
+36:             return new(ReauthenticationStatus.SessionInvalid);
+37:         var now = clock.GetUtcNow().UtcDateTime;
+38:         var expiry = new[] { now.Add(ReauthenticationProofStore.MaximumAge), latest.ExpiresAtUtc, latest.AbsoluteExpiresAtUtc }.Min();
+39:         var version = await db.Users.AsNoTracking().Where(u => u.UserId == reference.UserId).Select(u => u.RowVersion).SingleAsync(ct);
+40:         var audit = AuthenticationAudit.ForUser(reference.UserId, "UPDATE", now,
+41:             new { authenticationEvent = "REAUTHENTICATED", session_id = sessionId, expires_at_utc = expiry });
+42:         audit.ActorUserId = reference.UserId;
+43:         db.AuditLogs.Add(audit);
+44:         try { await db.SaveChangesAsync(ct); }
+45:         finally { db.Entry(audit).State = EntityState.Detached; }
+46:         await tx.CommitAsync(ct);
+47:         proofs.Publish(reference, sessionId, version, now, expiry);
+48:         return new(ReauthenticationStatus.Succeeded, expiry);
+49:     }
+50: 
+51:     /// <summary>Must run inside the sensitive operation's user-first SQL transaction, never a preflight-only check.</summary>
+52:     public async Task<ReauthenticationStatus> ValidateProofAsync(SessionReference reference, long sessionId, CancellationToken ct)
+53:     {
+54:         var valid = await sessions.ValidateSessionAsync(reference, ct);
+55:         if (!valid.IsValid || valid.Session is not { } session || session.SessionId != sessionId)
+56:         {
+57:             proofs.Forget(reference, sessionId); return ReauthenticationStatus.SessionInvalid;
+58:         }
+59:         if (session.IsRestricted) { proofs.Forget(reference, sessionId); return ReauthenticationStatus.Restricted; }
+60:         var version = await db.Users.AsNoTracking().Where(u => u.UserId == reference.UserId).Select(u => u.RowVersion).SingleAsync(ct);
+61:         return proofs.Matches(reference, sessionId, version) ? ReauthenticationStatus.Succeeded : ReauthenticationStatus.ProofRequired;
+62:     }
+63: }
+64: 

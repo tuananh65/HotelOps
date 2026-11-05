@@ -1,0 +1,8 @@
+2: 
+3: /// <summary>Process-local, fail-closed server state. Never a client token or a session activity timestamp.</summary>
+4: public sealed class ReauthenticationProofStore(TimeProvider clock)
+5: {
+6:     public static readonly TimeSpan MaximumAge = TimeSpan.FromMinutes(5);
+7:     private const int Capacity = 10_000;
+8:     private readonly object _sync = new();
+9:     private readonly Dictionary<Key, Proof> _proofs = new();

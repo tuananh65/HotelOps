@@ -1,0 +1,66 @@
+$ErrorActionPreference='Stop'
+$root=(Get-Location).Path
+$pre=(Get-Content obj/task61-preflight-path.local.txt).Trim()
+$before=Get-Content (Join-Path $pre 'manifest.json') -Raw -Encoding UTF8|ConvertFrom-Json
+$authorizedProtected=@('scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$changed=@(foreach($f in $before.Files){if(-not(Test-Path -LiteralPath $f.Path)){throw ('Missing protected file '+$f.Path)};if((Get-FileHash -LiteralPath $f.Path -Algorithm SHA256).Hash-ne$f.SHA256){$f.Path.Replace('\','/')}})
+if(Compare-Object $changed $authorizedProtected){throw ('Unexpected protected changes '+($changed-join', '))}
+$modified=@('src/HotelOps.Api/Controllers/UsersController.cs',
+'scripts/verification/UserDirectory/Program.cs','scripts/verification/UserDirectory/UserDirectory.Verification.csproj',
+'scripts/verification/UserDirectory/API_CONTRACT.md','scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md',
+'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$added=@('src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs',
+'src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs',
+'scripts/verification/UserList/Task61AcceptanceCases.cs','scripts/verification/UserList/TASK61_UC141_ACCEPTANCE.md',
+'scripts/verification/UserList/task61-accepted.local.json','scripts/verification/UserList/task61-detail.local.json',
+'scripts/verification/UserList/task61-profile.local.json','scripts/verification/UserList/task61-accepted-final.local.json',
+'scripts/verification/UserList/task61-detail-final.local.json','scripts/verification/UserList/task61-profile-final.local.json')
+$expected=@(@($before.Files.Path|ForEach-Object{$_.Replace('\','/')})+$modified+$added|Sort-Object -Unique)
+$actual=@(git status --porcelain=v1 --untracked-files=all|ForEach-Object{$_.Substring(3).Replace('\','/')}|Sort-Object -Unique)
+if(Compare-Object $expected $actual){throw 'Unexpected changed file set'}
+if((git rev-parse HEAD)-ne$before.Head -or (git branch --show-current)-ne$before.Branch){throw 'HEAD/branch changed'}
+if(Compare-Object $before.IndexEntries @(git ls-files --stage)){throw 'Index changed'}
+if(Compare-Object $before.Worktrees @(git worktree list --porcelain)){throw 'Worktrees changed'}
+$all=@($modified+$added|Sort-Object -Unique)
+foreach($path in $all|Where-Object{$_-notlike'*.json'}){
+ $s=[IO.File]::ReadAllText((Join-Path $root $path),[Text.Encoding]::UTF8)
+ if($s-match'(?m)[ \t]+$' -or -not$s.EndsWith("`n")){throw ('Whitespace issue '+$path)}
+}
+$linkCount=0
+foreach($md in @('scripts/verification/UserList/TASK61_UC141_ACCEPTANCE.md','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md','scripts/verification/UserDirectory/API_CONTRACT.md')){
+ $content=Get-Content $md -Raw -Encoding UTF8
+ foreach($link in [regex]::Matches($content,'\[[^\]]+\]\(([^)]+)\)')){
+  $target=$link.Groups[1].Value
+  if($target-notmatch'^(https?:|#)' -and -not(Test-Path -LiteralPath (Join-Path (Split-Path $md) $target))){throw ('Missing link '+$target)}
+  $linkCount++
+ }
+}
+$receipts=@{}
+foreach($entry in @(@('accepted-final',184),@('detail-final',234),@('profile-final',329))){
+ $receipt=Get-Content ('scripts/verification/UserList/task61-'+$entry[0]+'.local.json') -Raw -Encoding UTF8|ConvertFrom-Json
+ if(-not$receipt.success -or $receipt.checks-ne$entry[1]){throw ('SQL/HTTPS failed '+$entry[0])}
+ if($entry[0]-eq'accepted-final' -and @($receipt.task61Waits).Count-ne8){throw 'SQL waits mismatch'}
+ $receipts[$entry[0]]=@{Checks=$receipt.checks;Database=$receipt.database}
+}
+$regressions=@{PermissionService=43;CurrentUserAccessor=14;Authorization=61;ResourceAuthorization=49}
+foreach($suite in $regressions.Keys){
+ $log=Get-Content ('obj/task61-'+$suite+'-final-regression.log') -Raw -Encoding UTF8
+ if($log-match'FAIL:' -or $log-notmatch('PASS:.*'+$regressions[$suite]+'.*checks')){throw ('Foundation regression failed '+$suite)}
+}
+$plan=Get-Content scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md -Raw -Encoding UTF8
+if($plan-notmatch'\| UC-141 \| View User List \| H \| PARTIAL \| 2 \| 6 \|' -or $plan-notmatch'12/256=4.69%' -or $plan-notmatch'Gain0'){throw 'Progress classification changed incorrectly'}
+$prior=$ErrorActionPreference;$ErrorActionPreference='Continue'
+$diff=@(git diff --check 2>&1|ForEach-Object{"$_"});$diffExit=$LASTEXITCODE
+$cached=@(git diff --cached --check 2>&1|ForEach-Object{"$_"});$cachedExit=$LASTEXITCODE
+$ErrorActionPreference=$prior
+if($diffExit-ne0 -or $cachedExit-ne0){throw 'Git diff check failed'}
+$hashes=@(foreach($p in $all){[ordered]@{Path=$p;SHA256=(Get-FileHash -LiteralPath $p -Algorithm SHA256).Hash}})
+$result=[ordered]@{Result='PASS';PreexistingFiles=$before.Files.Count;UnchangedProtectedFiles=$before.Files.Count-$changed.Count;
+ AuthorizedProtectedChanges=$changed;BackupPath=$pre;HeadUnchanged=$true;IndexUnchanged=$true;WorktreesUnchanged=$true;
+ ModifiedFiles=$modified;AddedFiles=$added;SourceEvidenceHashes=$hashes;ValidLocalLinks=$linkCount;
+ FinalReceipts=$receipts;DmvConfirmedWaits=8;AuthFoundations=$regressions;WeightedGain=0;VerifiedProgress='12/256 = 4.69%';Uc141='PARTIAL';
+ DiffExit=$diffExit;CachedDiffExit=$cachedExit;GitLineEndingNotices=$diff;
+ Timing=(Get-Content obj/task61-timing.local.json -Raw -Encoding UTF8|ConvertFrom-Json);
+ Build='PASS - NU1900 unavailable vulnerability feed, no C# errors/warnings';DotnetTest='Exit0, no discovered tests';ProductionDatabaseAccess='NONE'}
+$result|ConvertTo-Json -Depth 8|Set-Content obj/task61-validation.local.json -Encoding UTF8
+[pscustomobject]$result|Select-Object Result,PreexistingFiles,UnchangedProtectedFiles,AuthorizedProtectedChanges,ValidLocalLinks,DmvConfirmedWaits,Uc141,VerifiedProgress,DiffExit,CachedDiffExit|ConvertTo-Json

@@ -1,0 +1,46 @@
+﻿SOURCE: src/HotelOps.Api/Controllers/CleaningMonitorController.cs
+SHA256: D4275C18F07FC242981D5AAED3890D723CF8B6E633E3BF2D21E84E445A05E382
+Ranges: 1-100 (original source line numbers)
+    1: using System.ComponentModel.DataAnnotations;
+    2: using HotelOps.Api.DTOs.Housekeeping;
+    3: using HotelOps.Api.Security;
+    4: using HotelOps.Api.Services.Housekeeping;
+    5: using Microsoft.AspNetCore.Authorization;
+    6: using Microsoft.AspNetCore.Mvc;
+    7: 
+    8: namespace HotelOps.Api.Controllers;
+    9: 
+   10: [ApiController]
+   11: [Route("api/branches/{branchId:long}/cleaning-monitor")]
+   12: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+   13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+   14: public sealed class CleaningMonitorController(CleaningMonitorService service) : ControllerBase
+   15: {
+   16:     [HttpGet]
+   17:     public Task<IActionResult> List(long branchId, [FromQuery] CleaningMonitorQuery query, CancellationToken ct)
+   18:         => Execute((ticket, sessionId) => service.ListAsync(ticket, sessionId, branchId, query, ct));
+   19: 
+   20:     [HttpGet("{kind}/{id:long}")]
+   21:     public Task<IActionResult> Detail(long branchId, string kind, long id,
+   22:         [FromQuery] CleaningMonitorTimelineQuery query, CancellationToken ct)
+   23:         => Execute((ticket, sessionId) => service.DetailAsync(ticket, sessionId, branchId, kind, id, query, ct));
+   24: 
+   25:     private async Task<IActionResult> Execute(Func<Services.Authentication.SessionReference, long, Task<CleaningMonitorResult>> operation)
+   26:     {
+   27:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
+   28:         if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out var sessionId))
+   29:             return Problem(statusCode: 401, title: "SESSION_INVALID");
+   30:         try
+   31:         {
+   32:             var result = await operation(ticket!, sessionId);
+   33:             if (result.Status == CleaningMonitorStatus.Success) return Ok(result.Value);
+   34:             return Problem(statusCode: result.Status switch
+   35:             {
+   36:                 CleaningMonitorStatus.SessionInvalid => 401, CleaningMonitorStatus.Forbidden => 403,
+   37:                 CleaningMonitorStatus.NotFound => 404, _ => 503
+   38:             }, title: result.Status.ToString().ToUpperInvariant());
+   39:         }
+   40:         catch (ValidationException error) { return Problem(statusCode: 400, title: "INVALID_FILTER", detail: error.Message); }
+   41:     }
+   42: }
+

@@ -1,0 +1,16 @@
+var roomType=await db.RoomTypes.SingleAsync(x=>x.TypeCode=="T85B_TYPE",ct);
+var room=await db.Rooms.Where(x=>x.RoomNumber=="T85B_ROOM").Select(x=>x.RoomId).SingleAsync(ct);
+var emptyRoom=await db.Rooms.Where(x=>x.RoomNumber=="T85B_EMPTY").Select(x=>x.RoomId).SingleAsync(ct);
+var foreignRoom=await db.Rooms.Where(x=>x.RoomNumber=="T85B_FOREIGN").Select(x=>x.RoomId).SingleAsync(ct);
+var cycle=await db.CleaningTasks.SingleAsync(x=>x.TaskNo=="T85B_CYCLE",ct);
+var cancelled=await db.CleaningTasks.SingleAsync(x=>x.TaskNo=="T85B_CANCELLED",ct);
+var foreignCycle=await db.CleaningTasks.SingleAsync(x=>x.TaskNo=="T85B_FOREIGN",ct);
+var version=await db.InspectionChecklistVersions.SingleAsync(x=>x.Checklist.ChecklistCode=="T85B_HISTORY",ct);
+var at=DateTime.SpecifyKind(cycle.ActualStartAt!.Value,DateTimeKind.Utc);
+var attachment=await db.Attachments.SingleAsync(x=>x.EntityId==cycle.CleaningTaskId && x.DeletedAt==null && x.StorageKey=="history.pdf",ct);
+var unrelated=await db.Attachments.SingleAsync(x=>x.EntityId==foreignCycle.CleaningTaskId,ct);
+var deleted=await db.Attachments.SingleAsync(x=>x.DeletedAt!=null,ct);
+var traversal=await db.Attachments.SingleAsync(x=>x.StorageKey=="../history.pdf",ct);
+var evidenceRoot=Path.Combine(root,"scripts/verification/Task85/PhaseB/private-evidence");
+var pdf=await File.ReadAllBytesAsync(Path.Combine(evidenceRoot,"history.pdf"),ct);
+db.ChangeTracker.Clear();

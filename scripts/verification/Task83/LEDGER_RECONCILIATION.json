@@ -1,0 +1,24 @@
+{
+    "rows":  75,
+    "totalWeight":  256,
+    "completeCount":  26,
+    "verifiedPoints":  60,
+    "candidates":  [
+                       {
+                           "uc":  "UC-142",
+                           "title":  "View Room Types List",
+                           "classification":  "COMPLETE_VERIFIED_V1",
+                           "weight":  1,
+                           "verifiedPoints":  1,
+                           "evidenceSummary":  "Task70:49 independent HTTPS/SQL checks; explicit/automatic SQL branch scope, filters/sort/page/count/detail, global-only legacy read, final expiry/cancel rejection, no business writes; §18"
+                       },
+                       {
+                           "uc":  "UC-038",
+                           "title":  "View Room Turnover History",
+                           "classification":  "COMPLETE_VERIFIED_V1",
+                           "weight":  2,
+                           "verifiedPoints":  2,
+                           "evidenceSummary":  "Production scoped cycle/detail/private evidence; real HTTPS/SQL and revocation/cancellation evidence (§20)"
+                       }
+                   ]
+}

@@ -1,0 +1,65 @@
+12: These notes do not replace the complete SRS or the final approved Permission Matrix.
+13: 
+14: ## 2. Reception Role
+15: 
+16: ### Confirmed Changes
+17: 
+18: - A new role named `Reception` must be introduced.
+19: - Reception is separated from the existing `Operation Manager` role.
+20: - Reception is responsible for designated operations related to room lifecycle status updates.
+21: 
+22: ### Pending Clarifications
+23: 
+24: - Exact Reception use cases and permissions.
+25: - Which permissions remain with Operation Manager.
+26: - Valid room lifecycle statuses and transitions.
+27: - Authorization conditions for each status transition.
+28: - Any required audit logging or business validation.
+29: 
+30: Do not invent these rules or implement them without clarification.
+31: 
+32: ## 3. Department Head Role
+33: 
+34: ### Confirmed Clarification
+35: 
+36: `Department Head` does not represent the manager of one individual department.
+37: 
+38: Department Head manages departments within a hotel branch/facility.
+39: 
+40: ### Implementation Considerations
+41: 
+42: - Authorization must respect the applicable hotel branch scope.
+43: - Department Head must not automatically be restricted to one department.
+44: - The exact management permissions and access rules must be defined by the revised requirements.
+45: 
+46: Do not assume unrestricted access across all hotel branches.
+47: 
+48: ## 4. Permission Matrix Revision
+49: 
+50: Status: Pending
+51: 
+54: The revised matrix must:
+55: 
+56: - Include the new Reception role.
+57: - Reevaluate Operation Manager permissions.
+58: - Reflect the clarified Department Head responsibilities.
+59: - Match the final Use Case list.
+60: - Specify access and permission scope where necessary.
+61: - Be reviewed and approved before implementing affected RBAC rules.
+62: 
+63: ## 5. Impacted Features
+64: 
+65: Potentially affected modules include:
+66: 
+84: ## 7. Approval Status
+85: 
+86: Reception permissions: Pending
+87: 
+88: Operation Manager permission adjustments: Pending
+89: 
+90: Department Head permission details: Pending
+91: 
+92: Room lifecycle transition rules: Pending
+93: 
+94: Revised Permission Matrix: Pending
+95: 

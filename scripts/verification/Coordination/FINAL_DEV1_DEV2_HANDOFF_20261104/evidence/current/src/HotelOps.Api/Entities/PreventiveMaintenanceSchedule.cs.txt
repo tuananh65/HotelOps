@@ -1,0 +1,46 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class PreventiveMaintenanceSchedule
+7: {
+8:     public long ScheduleId { get; set; }
+9: 
+10:     public string ScheduleCode { get; set; } = null!;
+11: 
+12:     public long? AssetId { get; set; }
+13: 
+14:     public long? RoomId { get; set; }
+15: 
+16:     public long? AreaId { get; set; }
+17: 
+18:     public string Frequency { get; set; } = null!;
+19: 
+20:     public int FrequencyInterval { get; set; }
+21: 
+22:     public string? Instruction { get; set; }
+23: 
+24:     public DateTime? LastPerformedAt { get; set; }
+25: 
+26:     public DateTime NextDueAt { get; set; }
+27: 
+28:     public long? AssignedDepartmentId { get; set; }
+29: 
+30:     public bool IsActive { get; set; }
+31: 
+32:     public long? CreatedBy { get; set; }
+33: 
+34:     public virtual Area? Area { get; set; }
+35: 
+36:     public virtual Asset? Asset { get; set; }
+37: 
+38:     public virtual Department? AssignedDepartment { get; set; }
+39: 
+40:     public virtual User? CreatedByNavigation { get; set; }
+41: 
+42:     public virtual ICollection<PreventiveMaintenanceRun> PreventiveMaintenanceRuns { get; set; } = new List<PreventiveMaintenanceRun>();
+43: 
+44:     public virtual Room? Room { get; set; }
+45: }
+46: 

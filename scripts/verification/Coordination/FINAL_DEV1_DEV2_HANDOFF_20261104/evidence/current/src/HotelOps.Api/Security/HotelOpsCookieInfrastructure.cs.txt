@@ -1,0 +1,27 @@
+4: namespace HotelOps.Api.Security;
+5: 
+6: public static class HotelOpsCookieInfrastructure
+7: {
+8:     public static IServiceCollection AddHotelOpsCookieInfrastructure(this IServiceCollection services, IHostEnvironment environment)
+9:     {
+10:         // Deployment is not defined yet: do not silently launch production with an
+11:         // ephemeral/shared/plaintext key ring. Configure production explicitly later.
+27: 
+28:         services.AddScoped<CookieSessionValidator>();
+29:         services.AddScoped<ICookieSessionValidator>(provider => provider.GetRequiredService<CookieSessionValidator>());
+30:         services.AddScoped<ICookieSessionToucher>(provider => provider.GetRequiredService<CookieSessionValidator>());
+31:         services.AddScoped<HotelOpsCookieEvents>();
+32:         services.AddAuthentication(options =>
+33:         {
+40:         {
+41:             options.Cookie.Name = HotelOpsCookieTicket.CookieName;
+42:             options.Cookie.HttpOnly = true;
+43:             options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+44:             options.Cookie.SameSite = SameSiteMode.Lax;
+45:             options.Cookie.Path = "/";
+49:             options.ExpireTimeSpan = Services.Authentication.SqlSessionPolicy.NormalAbsoluteLifetime;
+50:         });
+51:         services.AddAuthorization(); // Permission registration configures the application fallback.
+52:         return services;
+53:     }
+54: }

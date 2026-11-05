@@ -1,0 +1,40 @@
+13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+14: [UserAccountActivationErrors]
+15: public sealed class TurnoverHistoryController(TurnoverHistoryService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
+16: {
+17:     private string PrivateRoot => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+18: 
+19:     [HttpGet("api/rooms/{roomId:long}/turnover-history")]
+20:     public Task<IActionResult> Turnovers(long roomId, [FromQuery] OperationalHistoryQuery query, CancellationToken ct)
+21:         => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, query, null, ct));
+22: 
+23:     [HttpGet("api/rooms/{roomId:long}/turnover-history/{id:long}")]
+24:     public Task<IActionResult> Turnover(long roomId, long id, [FromQuery] long? branchId, CancellationToken ct)
+25:         => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct));
+26: 
+27:     [HttpGet("api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}")]
+28:     public Task<IActionResult> TurnoverEvidence(long roomId, long id, long attachmentId, [FromQuery] long? branchId, CancellationToken ct)
+29:         => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct, attachmentId, PrivateRoot));
+30: 
+31:     private async Task<IActionResult> Execute(Func<SessionReference, long, Task<TurnoverHistoryResult>> operation)
+32:     {
+33:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
+34:         if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out var sid)) return Problem(statusCode: 401, title: "SESSION_INVALID");
+35:         try
+36:         {
+37:             var result = await operation(ticket!, sid);
+38:             if (result.Status == TurnoverHistoryStatus.Success)
+39:             {
+40:                 if (result.Value is PrivateHistoryFileDto file)
+41:                 {
+45:                 return Ok(result.Value);
+46:             }
+47:             return Problem(statusCode: result.Status switch
+48:             {
+49:                 TurnoverHistoryStatus.SessionInvalid => 401, TurnoverHistoryStatus.Forbidden => 403,
+50:                 TurnoverHistoryStatus.NotFound => 404,
+51:                 TurnoverHistoryStatus.Inactive => 409, _ => 503
+52:             }, title: result.Status.ToString().ToUpperInvariant());
+53:         }
+54:         catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
+55:     }

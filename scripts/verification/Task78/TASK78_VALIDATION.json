@@ -1,0 +1,11 @@
+﻿{
+    "status":  "TASK78_B11_IMPLEMENTED_SCHEDULED_PUBLIC_API_VERIFIED_FULL_UC139_BLOCKED",
+    "currentReceipt":  "TASK78_B11_VALIDATION.json",
+    "reviewReceipt":  "TASK78_REVIEW_VALIDATION.json",
+    "acceptanceReceipt":  "task78-b11-https-sql3.local.json",
+    "ledger":  "UC_LEDGER_TASK78.json",
+    "publicScheduledWorkdayApi":  true,
+    "fullUc139":  "BLOCKED_EXTERNAL",
+    "newCompleteUCs":  0,
+    "pointsGained":  0
+}

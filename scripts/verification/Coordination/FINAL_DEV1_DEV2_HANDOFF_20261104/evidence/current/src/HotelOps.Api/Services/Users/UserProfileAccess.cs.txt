@@ -1,0 +1,45 @@
+6: 
+7: /// <summary>Profile-only scope composition; the foundation remains the grant evaluator.</summary>
+8: public sealed class UserProfileAccess(HotelOpsDbContext db, ICurrentUserAccessor current,
+9:     IPermissionService permissions, IPermissionDataSource data, TimeProvider clock)
+10: {
+11:     // Profile supports OWN in addition to reset's scopes, but retains the same authority
+12:     // rows/ranges. Reuse only the lock acquisition, never the reset permission decision.
+14:         => new UserCredentialResetAccess(db, current, permissions, data, clock).LockAuthorityAsync(actorId, targetId, ct);
+15: 
+16:     public async Task<bool> CanManageAsync(long targetId, CancellationToken ct)
+17:     {
+18:         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted) return false;
+19:         if ((await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted) return true;
+21:         // Membership is authoritative for both users; PrimaryBranchId is never a substitute.
+22:         var branches = await db.UserBranchAccesses.AsNoTracking()
+23:             .Where(a => a.UserId == actor.UserId && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive
+24:                 && db.UserBranchAccesses.Any(t => t.UserId == targetId && t.RevokedAt == null && t.GrantedAt <= now
+25:                     && t.BranchId == a.BranchId && t.User.DeletedAt == null))
+26:             .Select(a => a.BranchId).Distinct().OrderBy(id => id).ToArrayAsync(ct);
+29:         {
+30:             // Filter scopes, not identities: no principal substitution, grant fabrication or copied evaluator.
+31:             var evaluator = new PermissionService(current, new ScopeData(data, scope),
+32:                 new ProfileResolver(actor.UserId, targetId, branch), clock);
+33:             if ((await evaluator.EvaluateResourceAsync("USER_MANAGE", new("user_profile", targetId), ct)).IsGranted)
+34:                 return true;
+37:     }
+38: 
+39:     private sealed class ScopeData(IPermissionDataSource source, string scope) : IPermissionDataSource
+40:     {
+41:         public Task<bool> IsActiveUserAsync(long id, CancellationToken ct) => source.IsActiveUserAsync(id, ct);
+42:         public Task<bool> IsActiveBranchAsync(long id, CancellationToken ct) => source.IsActiveBranchAsync(id, ct);
+43:         public async Task<IReadOnlyList<PermissionGrantPath>> ReadPathsAsync(long id, string code, DateTime now, CancellationToken ct)
+44:             => (await source.ReadPathsAsync(id, code, now, ct)).Where(p => p.DataScope == scope).ToArray();
+45:     }
+46: 
+47:     private sealed class ProfileResolver(long actorId, long targetId, long branchId) : IPermissionResourceResolver
+48:     {
+49:         public Task<VerifiedPermissionResource?> ResolveAsync(string code, PermissionResource resource, long callerId, CancellationToken ct)
+50:         {
+51:             ct.ThrowIfCancellationRequested();
+52:             return Task.FromResult(code == "USER_MANAGE" && callerId == actorId && resource.ResourceType == "user_profile"
+53:                 && resource.ResourceId == targetId ? new VerifiedPermissionResource(branchId, actorId == targetId) : null);
+54:         }
+55:     }
+56: }

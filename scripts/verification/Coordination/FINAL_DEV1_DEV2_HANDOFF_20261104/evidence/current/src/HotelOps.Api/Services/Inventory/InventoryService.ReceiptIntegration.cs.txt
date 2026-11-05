@@ -1,0 +1,18 @@
+4: namespace HotelOps.Api.Services.Inventory;
+5: 
+6: public sealed partial class InventoryService : IInventoryReceiptPosting, IInventoryQuantityContext
+7: {
+8:     public async Task<InventoryBaseQuantity> ConvertToBase(long item, long uom, decimal quantity, CancellationToken ct)
+9:     {
+10:         var catalog = await Item(item, ct);
+11:         return new(catalog.BaseUomId, Base(Qty(quantity), await Factor(catalog, uom, ct)));
+12:     }
+13:     public Task<decimal> ObserveStock(long warehouse, long item, CancellationToken ct) => Balance(warehouse, item, ct);
+14:     public async Task<InventoryReceiptPosted> PostReceipt(long id, InventoryReceiptPostRequest input, CancellationToken ct)
+15:     {
+16:         if (db.Database.CurrentTransaction is null) throw new InvalidOperationException("Receipt primitive requires caller transaction.");
+17:         await Gate("HotelOps:Inventory:Catalog", ct); await Actor(input.ActorUserId, ct);
+18:         var document = await PostCore("RECEIPT", id, input.ActorUserId, new InventoryPost(input.ExpectedRowVersion, input.Lines), ct) ?? throw Invalid("Receipt document does not exist.");
+19:         var lines = new List<InventoryReceiptPostedLine>();
+20:         foreach (var line in document.StockDocumentLines)
+21:             lines.Add(new(line.LineId, line.ItemId, line.UomId, (await Item(line.ItemId, ct)).BaseUomId, line.ActualQty, line.BaseQty));

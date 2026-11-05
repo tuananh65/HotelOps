@@ -1,0 +1,79 @@
+$ErrorActionPreference='Stop'
+$repoRoot=(Get-Location).Path
+$backup=Get-Content -LiteralPath 'obj/task58-backup-path.local.txt'
+$before=Get-Content -LiteralPath (Join-Path $backup 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$base='scripts/verification/UserAccountDeactivation/'
+$intended=@(
+ 'src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs',
+ 'src/HotelOps.Api/Services/Users/UserAccountCreationService.cs',
+ 'src/HotelOps.Api/Services/Users/UserProfileService.cs',
+ 'scripts/verification/UserAccountCreation/Program.cs',
+ 'scripts/verification/UserProfileUpdate/Program.cs',
+ ($base+'Program.cs'),($base+'GATE_RESOLUTION_MATRIX.md'),($base+'REMAINING_BLOCKERS.md'),($base+'VERIFICATION_RESULTS.md'))
+$newFiles=@('src/HotelOps.Api/Services/Users/AccountWriterSessionGate.cs',($base+'Task58WriterAcceptanceSqlSuite.cs'),
+ ($base+'TASK58_DEV1_WRITER_ACCEPTANCE.md'),($base+'TASK58_DEV2_HANDOFF.md'))
+$receiptNames=@('writers-baseline','writers-final','writers-accepted','service','contracts','returnwork','reauth','create-participant','profile')
+$newFiles+=@($receiptNames | ForEach-Object { $base+'task58-'+$_+'.local.json' })
+$issues=[System.Collections.Generic.List[string]]::new()
+$modifiedOriginals=[System.Collections.Generic.List[string]]::new()
+foreach($entry in $before.Files){
+ if(!(Test-Path -LiteralPath $entry.Path -PathType Leaf)){$issues.Add('Missing: '+$entry.Path);continue}
+ if((Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash -ne $entry.SHA256){
+  if($intended -contains $entry.Path){$modifiedOriginals.Add($entry.Path)}else{$issues.Add('Unexpected original change: '+$entry.Path)}
+ }
+}
+# Clean tracked source was copied before editing as well as dirty-file checksums.
+foreach($source in @(Get-ChildItem -LiteralPath (Join-Path $backup 'src') -File -Recurse)){
+ $relative=$source.FullName.Substring(([IO.Path]::GetFullPath($backup)).Length+1).Replace('\','/')
+ if($intended -notcontains $relative -and (Get-FileHash -LiteralPath $source.FullName).Hash -ne (Get-FileHash -LiteralPath $relative).Hash){$issues.Add('Unexpected protected source change: '+$relative)}
+}
+$current=@(git -c core.quotepath=false ls-files --modified --others --exclude-standard | Sort-Object -Unique)
+$original=@($before.Files | ForEach-Object Path)
+$additions=@($current | Where-Object {$original -notcontains $_})
+foreach($path in $additions){if(($intended+$newFiles) -notcontains $path){$issues.Add('Unexpected addition/change: '+$path)}}
+foreach($path in $newFiles){if(!(Test-Path -LiteralPath $path)){$issues.Add('Missing expected new file: '+$path)}}
+$indexUnchanged=@(Compare-Object @($before.IndexEntries) @(git ls-files --stage)).Count -eq 0
+$worktreesUnchanged=@(Compare-Object @($before.Worktrees) @(git worktree list --porcelain)).Count -eq 0
+if(!$indexUnchanged -or !$worktreesUnchanged){$issues.Add('Index/worktrees changed')}
+if((git rev-parse HEAD) -ne $before.Head -or (git branch --show-current) -ne $before.Branch -or (git rev-parse --abbrev-ref '@{upstream}') -ne $before.Upstream){$issues.Add('Git baseline changed')}
+$links=0
+$docs=@('TASK58_DEV1_WRITER_ACCEPTANCE.md','TASK58_DEV2_HANDOFF.md','GATE_RESOLUTION_MATRIX.md','REMAINING_BLOCKERS.md','VERIFICATION_RESULTS.md')
+foreach($doc in $docs){
+ $path=$base+$doc;$content=[IO.File]::ReadAllText((Join-Path $repoRoot $path))
+ foreach($match in [regex]::Matches($content,'\[[^\]\r\n]+\]\(([^\)\r\n]+)\)')){
+  $target=$match.Groups[1].Value.Trim('<','>');if($target -match '^https?://' -or $target.StartsWith('#')){continue}
+  $target=($target -split '#',2)[0];$resolved=[IO.Path]::GetFullPath((Join-Path (Split-Path (Join-Path $repoRoot $path)) $target))
+  if(!(Test-Path -LiteralPath $resolved)){$issues.Add('Broken link: '+$doc+' => '+$target)};$links++
+ }
+}
+foreach($path in ($intended+$newFiles | Where-Object {$_ -notlike '*.json'})){
+ $content=[IO.File]::ReadAllText((Join-Path $repoRoot $path))
+ if($content -match '(?m)[ \t]+\r?$'){$issues.Add('Trailing whitespace: '+$path)}
+ if($content -match '(?m)^(<<<<<<< |=======\s*$|>>>>>>> )'){$issues.Add('Conflict marker: '+$path)}
+}
+$accepted=Get-Content -LiteralPath ($base+'task58-writers-accepted.local.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if($accepted.passed -ne 112 -or $accepted.failed -ne 0 -or $accepted.waits.Count -ne 83 -or $accepted.gatesCleared -or $accepted.endpointEnabled -or $accepted.sa57Activated){$issues.Add('Accepted receipt mismatch')}
+if(!@($accepted.cases | Where-Object {$_.Scenario -eq 'all-mapped-row-preservation' -and $_.Result -eq 'PASS'}).Count){$issues.Add('No all-table preservation acceptance')}
+$contracts=Get-Content -LiteralPath ($base+'task58-contracts.local.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+if($contracts.after.Unresolved.Count -ne 5 -or $contracts.after.Unsupported.Count -ne 2 -or $contracts.pendingReleaseGates.Count -ne 3){$issues.Add('Runtime/release gate count changed')}
+$dev2Diff=@(git diff --name-only -- src/HotelOps.Api/Services/Maintenance src/HotelOps.Api/Services/Incidents src/HotelOps.Api/Services/Assets src/HotelOps.Api/Services/Inventory src/HotelOps.Api/Services/MaterialRequests src/HotelOps.Api/Services/Replenishments)
+if($dev2Diff.Count){$issues.Add('DEV2 source changed')}
+$ErrorActionPreference='Continue'
+$diffOutput=@(git diff --check 2>&1 | ForEach-Object {$_.ToString()});$diffExit=$LASTEXITCODE
+$ErrorActionPreference='Stop'
+if($diffExit -ne 0){$issues.Add('git diff --check failed')}
+$result=[ordered]@{
+ Task=58;Result=$(if($issues.Count){'FAIL'}else{'PASS'});Head=$before.Head;Branch=$before.Branch;Upstream=$before.Upstream;
+ ProtectedPreexistingModifiedUntrackedFiles=$before.Files.Count;IntendedEditedPreexistingDirtyFiles=@($modifiedOriginals);
+ IntendedFiles=$intended;NewFiles=$newFiles;UnexpectedOrMissing=@($issues);IndexUnchanged=$indexUnchanged;WorktreesUnchanged=$worktreesUnchanged;
+ DEV2SourceUnchanged=($dev2Diff.Count -eq 0);LocalLinksChecked=$links;GitDiffCheckExitCode=$diffExit;GitDiffCheckOutput=$diffOutput;
+ AcceptedWriterCases=$accepted.passed;AcceptedWriterFailures=$accepted.failed;AcceptedSqlWaits=$accepted.waits.Count;
+ BaselineReceipt='Retained 101 PASS / 6 FAIL, superseded';RuntimeUnresolved=$contracts.after.Unresolved;Unsupported=$contracts.after.Unsupported;ReleaseGates=$contracts.pendingReleaseGates;
+ Build='PASS: zero errors, one NU1900 in final solution build';DotnetTest='Exit 0; no discoverable tests in API-only solution';
+ FullUC006='BLOCKED';HTTPDeactivate='NOT REGISTERED';SA57='NOT ACTIVATED';
+ Regressions=@{Service=53;Contracts=64;ReturnWork=57;Reauthentication=165;CreationParticipant=26;ProfileHTTPS=329};
+ Receipts=@($receiptNames | ForEach-Object {$p=$base+'task58-'+$_+'.local.json';@{Path=$p;SHA256=(Get-FileHash -LiteralPath $p).Hash}})
+}
+$result | ConvertTo-Json -Depth 7 | Set-Content -LiteralPath 'obj/task58-preservation.local.json' -Encoding UTF8
+$result | ConvertTo-Json -Depth 7
+if($issues.Count){exit 1}

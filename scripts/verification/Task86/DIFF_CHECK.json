@@ -1,0 +1,10 @@
+﻿{
+    "recordedUtc":  "2026-11-04T16:05:34.5035484Z",
+    "trackedGitDiffCheckExit":  0,
+    "newSourceChecks":  4,
+    "newSourceDiagnostics":  [
+
+                             ],
+    "pass":  true,
+    "note":  "--no-index may exit 1 for file differences; PASS requires empty --check diagnostics. Initial wrapper incorrectly treated exit 1 as whitespace failure; corrected without source changes."
+}

@@ -1,0 +1,79 @@
+{
+    "status":  "PROPOSAL_ONLY_NOT_EXECUTED",
+    "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+    "target":  "HotelOps_Canonical_20261104_223000_c01286a1_Fresh",
+    "sources":  [
+                    {
+                        "path":  "scripts/database/release/01_HotelOps_Full_Schema.sql",
+                        "sha256":  "EEEF125A5F6595327A6BCDA99EB9E6A8555B46A0929345F84B9B4141BB3CF4D0",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+                        "sha256":  "DD6874DB482B770482B5B8D0B3230F2F4175618433E7A65E29F63C9670DC4F7B",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261019_inventory_contract.sql",
+                        "sha256":  "55437D8B08767C9722D323B808231552837C561663E6EDC192CE4670979A0D8E",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261020_material_request_contract.sql",
+                        "sha256":  "097AAA19389EAA137685EB1A078E55521EA16C20274D386C62B5BF182835B939",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261021_replenishment_contract.sql",
+                        "sha256":  "2CD673D0EE393FEB8FE0D7F340E5068F4858A853C2C9551B0D2394B27232B787",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261022_maintenance_material_usage_contract.sql",
+                        "sha256":  "132A69FC2C8C260BAF3249B2E9DCED4DB4A7DD46F919647D9CD6A5A6164F67F2",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql",
+                        "sha256":  "7BA7F2204F5ED7C9A28D89E03975AADD56C4C91A9DE43088115D5269B33BEDB3",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/canonical/01_Canonical_Seed.sql",
+                        "sha256":  "B14B510483B4655C0F18FE55F5BF2D8906C6E20F158700BC3928F0AC19DE1035",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/canonical/02_Canonical_Verify.sql",
+                        "sha256":  "C6CA47A8D083C112D98E5992C61E87825DD300A11C70F25562DC59D5C577D327",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/UserProfileUpdate/rowversion-forward.sql",
+                        "sha256":  "11EC75D8B94940ABE054F2F8DB70907E2B06B2D61A27538120A8C10A5601F18E",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/Task84/05_UC017_Branch_RoomTypes.sql.proposal",
+                        "sha256":  "C1A56FFAED6C096E5F64A6C746552E3DC6BF76BAC1F5209C4CCCC65902420929",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/Task84/06_UC017_Verify.sql.proposal",
+                        "sha256":  "88700D7384FED0B90ACD13A85A0ABEAA8F2B7639F88655A33395FCA70430ADE7",
+                        "matchesReviewedTask85Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/Task86/branch-rowversion-forward.sql.proposal",
+                        "sha256":  "A5A9CB55317222CE5B368754407F7F3386C052DA3DA710F4F752F4BDB39CC455",
+                        "approval":  "DESIGN_ONLY_NOT_EXECUTION"
+                    }
+                ],
+    "prepareDatabaseSha256":  "E7FEBA57AE93705C57DBA95DD503BD54AE4F33129ACD0918974C1C25B2C3D666",
+    "sqlConnections":  0,
+    "reviewedUtc":  "2026-11-04T15:32:50.8441394Z",
+    "notes":  "12 prerequisite hashes match Task85 reviewed bytes. New branch rowversion design approved only. Fresh canonical seed catalog is unchanged. Requires separate SQL/fixtures approval.",
+    "prepareProposalSha256":  "8A7A490AA12A841D549F4B3ACE0E5167E2D1D64F45D1DD4DFE4F44AF38E9F13B",
+    "fixtureHarnessSha256":  "AF006B5109B051222E70B065D407B3C234842CBCBEC14F0BC234913F3CB4DBA7",
+    "auditFailureConstraintSha256":  "4F2B5067FC779EE1FE672270597582B0E4F9D385F52629CCF5C5B1C8CCC59011"
+}

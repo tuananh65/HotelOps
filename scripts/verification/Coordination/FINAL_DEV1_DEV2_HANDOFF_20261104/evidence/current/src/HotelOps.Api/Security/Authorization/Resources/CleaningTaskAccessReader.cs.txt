@@ -1,0 +1,28 @@
+4: namespace HotelOps.Api.Security.Authorization;
+5: 
+6: public sealed record CleaningTaskAssignee(long UserId, string Status, DateTime AssignedAt, DateTime? EndedAt);
+7: public sealed record CleaningTaskAccess(long BranchId, bool RoomActive, string TaskStatus,
+8:     IReadOnlyList<CleaningTaskAssignee> Assignments);
+9: 
+10: public interface ICleaningTaskAccessReader
+11: {
+12:     Task<CleaningTaskAccess?> ReadAsync(long cleaningTaskId, CancellationToken cancellationToken);
+13: }
+14: 
+15: public sealed class EfCleaningTaskAccessReader(HotelOpsDbContext db) : ICleaningTaskAccessReader
+16: {
+17:     public async Task<CleaningTaskAccess?> ReadAsync(long cleaningTaskId, CancellationToken cancellationToken)
+18:     {
+19:         var task = await db.CleaningTasks.AsNoTracking().Where(t => t.CleaningTaskId == cleaningTaskId)
+20:             .Select(t => new
+21:             {
+22:                 t.Room.BranchId,
+23:                 RoomActive = t.Room.IsActive,
+24:                 t.Status,
+25:                 Assignments = t.CleaningAssignments.Select(a => new CleaningTaskAssignee(
+26:                     a.AssigneeUserId, a.AssignmentStatus, a.AssignedAt, a.EndedAt)).ToList()
+27:             }).SingleOrDefaultAsync(cancellationToken);
+28:         return task is null ? null : new CleaningTaskAccess(task.BranchId, task.RoomActive, task.Status, task.Assignments);
+29:     }
+30: }
+31: 

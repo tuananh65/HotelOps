@@ -1,0 +1,4 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/ResourceAuthorization/ResourceAuthorization.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/resource -p:RestoreIgnoreFailedSources=true ",
+    "exitCode":  0
+}

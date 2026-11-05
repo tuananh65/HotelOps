@@ -48,7 +48,7 @@ public static class HotelOpsCookieInfrastructure
             options.SlidingExpiration = false;
             options.ExpireTimeSpan = Services.Authentication.SqlSessionPolicy.NormalAbsoluteLifetime;
         });
-        services.AddAuthorization(); // No role/permission/fallback policies are added.
+        services.AddAuthorization(); // Permission registration configures the application fallback.
         return services;
     }
 }

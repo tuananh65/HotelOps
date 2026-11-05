@@ -1,0 +1,42 @@
+﻿SOURCE src/HotelOps.Api/Controllers/InventoryController.cs
+SHA256 8ACF5AD9C2DEC77EDD0419F172BDB632E5D11D2C96168E281FFDFFEDB149A63A
+    1: using System.ComponentModel.DataAnnotations;
+    2: using HotelOps.Api.DTOs.Inventory;
+    3: using HotelOps.Api.Services.Inventory;
+    4: using Microsoft.AspNetCore.Mvc;
+    5: using Microsoft.AspNetCore.Authorization;
+    6: using HotelOps.Api.Security;
+    7: using HotelOps.Api.Security.Authorization;
+    8: 
+    9: namespace HotelOps.Api.Controllers;
+   10: 
+   11: [ApiController]
+   12: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+   13: [Route("api/inventory")]
+   14: public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current) : ControllerBase
+   15: {
+   16:     private async Task<IActionResult> Execute<T>(Func<long, Task<T>> operation, Func<T, string>? location = null, object? input = null)
+   17:     {
+   18:         try
+   19:         {
+   20:             if (!current.TryGetCurrentUser(out var caller)) return Unauthorized();
+   21:             if (caller.IsRestricted) return Forbid(HotelOpsCookieTicket.Scheme);
+   22:             if (!await access.Authorize(ControllerContext.ActionDescriptor.ActionName, RouteData.Values, input, HttpContext.RequestAborted)) return NotFound();
+   23:             if (HttpMethods.IsGet(Request.Method)) service.RestrictReads(await access.ReadWarehouses(HttpContext.RequestAborted));
+   24:             var result = await operation(caller.UserId);
+   25:             if (result is null) return NotFound();
+   26:             return location is null ? Ok(result) : Created(location(result), result);
+   27:         }
+   28:         catch (InventoryAccessException e) { return e.Status == 401 ? Unauthorized() : Forbid(HotelOpsCookieTicket.Scheme); }
+   29:         catch (ValidationException exception)
+   30:         {
+   31:             return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Inventory validation failed", detail: exception.Message);
+   32:         }
+   33:     }
+   34:     [HttpGet("items")]
+   35:     public Task<IActionResult> Items([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetItems(page, ct));
+   36:     [HttpGet("items/{id:long}")]
+   37:     public Task<IActionResult> Item(long id, CancellationToken ct) => Execute(actor => service.GetItem(id, ct));
+   38:     [HttpPost("items")]
+   39:     public Task<IActionResult> CreateItem(InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(null, actor, request, ct), x => $"/api/inventory/items/{x!.ItemId}", input: request);
+   40:     [HttpPut("items/{id:long}")]

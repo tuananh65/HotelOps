@@ -1,0 +1,17 @@
+6: namespace HotelOps.Api.Security;
+7: 
+8: public static class HotelOpsCookieTicket
+9: {
+10:     public const string Scheme = "HotelOpsCookie";
+11:     public const string CookieName = "__Host-HotelOps.Auth";
+12:     public const string SessionIdClaim = "hotelops:session_id";
+13:     public const string CredentialClaim = "hotelops:session_credential";
+14:     public const string RestrictedClaim = "hotelops:restricted";
+15:     public const string CreatedClaim = "hotelops:created_ticks";
+16:     public const string VersionClaim = "hotelops:ticket_version";
+17: 
+18:     /// <summary>Call only after SQL commit; never serialize/log this ticket or its claims.</summary>
+19:     public static AuthenticationTicket Create(CreatedSqlSession created, TimeProvider clock)
+20:     {
+21:         var s = created.Session;
+22:         var reference = created.Ticket;

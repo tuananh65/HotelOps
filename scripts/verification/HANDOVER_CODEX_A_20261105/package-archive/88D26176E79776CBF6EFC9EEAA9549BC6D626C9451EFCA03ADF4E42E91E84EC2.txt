@@ -1,0 +1,56 @@
+﻿SOURCE: src/HotelOps.Api/Services/Users/UserAccountActivationService.cs
+SHA256: ABF83FC95ABFAB3D1B1CA1F17141D03E77DD8F8BB22DAEA19704E9C90E6EAAA5
+Ranges: 25-100 (original source line numbers)
+   25:     {
+   26:         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
+   27:         ArgumentNullException.ThrowIfNull(expectedVersion);
+   28:         ArgumentNullException.ThrowIfNull(change);
+   29:         if (expectedVersion.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
+   30:         if (!change.IsValid) throw new ArgumentException("Invalid status change.", nameof(change));
+   31:         if (change.Status != "ACTIVE") return new(AccountActivationStatus.DeactivationBlocked);
+   32:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
+   33:             return new(AccountActivationStatus.SessionInvalid);
+   34:         if (actor.IsRestricted || actor.UserId == targetId) return new(AccountActivationStatus.Forbidden);
+   35:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null || Transaction.Current is not null
+   36:             || db.ChangeTracker.Entries().Any())
+   37:             throw new InvalidOperationException("Activation requires a clean context and its own SQL transaction.");
+   38:         var expected = expectedVersion.ToArray();
+   39:         await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+   40:         foreach (var id in new[] { actor.UserId, targetId }.Order())
+   41:             _ = await db.Users.FromSqlInterpolated($"SELECT * FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id={id}")
+   42:                 .AsNoTracking().ToListAsync(ct);
+   43:         async Task<AccountActivationStatus?> Gate()
+   44:         {
+   45:             await access.LockAuthorityAsync(actor.UserId, targetId, ct);
+   46:             var validation = await sessions.ValidateSessionAsync(reference, ct);
+   47:             if (!validation.IsValid || validation.Session?.SessionId != sessionId || validation.Session.IsRestricted)
+   48:                 return AccountActivationStatus.SessionInvalid;
+   49:             if (!await access.CanManageAsync(targetId, ct)) return AccountActivationStatus.Forbidden;
+   50:             return null;
+   51:         }
+   52:         if (await Gate() is { } denied) return new(denied);
+   53:         var target = await db.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserId == targetId && u.DeletedAt == null, ct);
+   54:         if (target is null) return new(AccountActivationStatus.NotFound);
+   55:         if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AccountActivationStatus.Stale);
+   56:         if (!change.IsTransitionFrom(target.AccountStatus)) return new(AccountActivationStatus.Conflict);
+   57:         var now = clock.GetUtcNow().UtcDateTime;
+   58:         var count = await db.Users.Where(u => u.UserId == targetId && u.DeletedAt == null
+   59:                 && u.AccountStatus == "INACTIVE" && u.RowVersion == expected)
+   60:             .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.AccountStatus, "ACTIVE")
+   61:                 .SetProperty(u => u.UpdatedAt, now), ct);
+   62:         if (count != 1) return new(AccountActivationStatus.Stale);
+   63:         var audit = new AuditLog { ActorUserId = actor.UserId, EntityType = "users",
+   64:             EntityId = targetId.ToString(CultureInfo.InvariantCulture), Action = "UPDATE", OccurredAt = now,
+   65:             OldValues = JsonSerializer.Serialize(new { accountStatus = "INACTIVE" }),
+   66:             NewValues = JsonSerializer.Serialize(new { accountStatus = "ACTIVE", reason = change.Reason }),
+   67:             ChangedFields = JsonSerializer.Serialize(new[] { "accountStatus" }) };
+   68:         db.AuditLogs.Add(audit);
+   69:         try { await db.SaveChangesAsync(ct); }
+   70:         finally { db.Entry(audit).State = EntityState.Detached; }
+   71:         var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
+   72:         if (await Gate() is { } finalDenied) return new(finalDenied);
+   73:         await transaction.CommitAsync(ct);
+   74:         return new(AccountActivationStatus.Success, version);
+   75:     }
+   76: }
+

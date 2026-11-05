@@ -1,0 +1,8 @@
+{
+    "approval":  "User: Duyet trial moi va fixtures UC038 dung scope",
+    "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+    "target":  "HotelOps_Canonical_20261104_133500_c03885b1_Fresh",
+    "proposalSha256":  "B362629F4BF318A52FFF872FCEAD5BB71D3A11FB48319668CD71C085B439CFAC",
+    "approvedUtc":  "2026-11-04T06:47:41.6026364Z",
+    "scope":  "One fresh trial only; stop if exists; retain after tests; no existing DB reset/catalog edits"
+}

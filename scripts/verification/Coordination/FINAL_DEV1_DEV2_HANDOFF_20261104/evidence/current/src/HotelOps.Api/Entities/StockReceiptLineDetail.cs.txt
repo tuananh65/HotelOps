@@ -1,0 +1,18 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class StockReceiptLineDetail
+7: {
+8:     public long StockDocumentLineId { get; set; }
+9: 
+10:     public decimal RejectedQty { get; set; }
+11: 
+12:     public decimal DamagedQty { get; set; }
+13: 
+14:     public string? DiscrepancyReason { get; set; }
+15: 
+16:     public virtual StockDocumentLine StockDocumentLine { get; set; } = null!;
+17: }
+18: 

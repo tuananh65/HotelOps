@@ -1,0 +1,673 @@
+﻿{
+    "status":  "TASK80_HANDOFF_COMPLETE_UC138_READ_COMPONENT_VERIFIED_FULL_WORKFLOW_BLOCKED",
+    "baseline":  "scripts/verification/Task79/UC_LEDGER_TASK79.json",
+    "baselineSha256":  "04B60632D8B0F9AF2704BFEF16AE8946C994BE1B91958A0154F89461ACC977D9",
+    "completedUCs":  26,
+    "verifiedPoints":  60,
+    "ucDenominator":  75,
+    "pointDenominator":  256,
+    "weightedCompletionPercent":  23.4375,
+    "newlyCompletedUCs":  0,
+    "pointsGained":  0,
+    "classificationsChanged":  [
+
+                               ],
+    "foundation":  "Task80 current-vs-snapshot writer handoff complete;81 SQL conflict-reader checks and422 existing time-math checks PASS. No new public UC138 workflow; rowversion/mapping approval and mandatory DEV2 notifications unresolved. P0/A1/B1.1 preserved; no new complete UC.",
+    "rows":  [
+                 {
+                     "uc":  "UC-001",
+                     "title":  "Login",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Login/session/lockout và temporary credential có service + SQL evidence"
+                 },
+                 {
+                     "uc":  "UC-002",
+                     "title":  "Logout",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  1,
+                     "verifiedPoints":  1,
+                     "evidenceSummary":  "Logout idempotent và audit/revoke transaction đã kiểm thử"
+                 },
+                 {
+                     "uc":  "UC-003",
+                     "title":  "Change Password",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Đổi mật khẩu + revoke/replace sessions + atomic audit đã kiểm thử"
+                 },
+                 {
+                     "uc":  "UC-004",
+                     "title":  "Create User Account",
+                     "classification":  "PARTIAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Chỉ single-role allowlist V1; chưa full selected role(s)/scope của draft"
+                 },
+                 {
+                     "uc":  "UC-005",
+                     "title":  "Update User Account",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  5,
+                     "verifiedPoints":  5,
+                     "evidenceSummary":  "Profile allowlist + ETag; reset có reauth/identity confirmation/one-time handoff"
+                 },
+                 {
+                     "uc":  "UC-006",
+                     "title":  "Activate/Deactivate User Account",
+                     "classification":  "PARTIAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Activate có API; Deactivate internal còn blocked và không đăng ký"
+                 },
+                 {
+                     "uc":  "UC-007",
+                     "title":  "Assign User to Branch/Department",
+                     "classification":  "PARTIAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Add membership có; thiếu transfer department/primary branch/revoke + open-work guards"
+                 },
+                 {
+                     "uc":  "UC-008",
+                     "title":  "Create/Update User Role",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Dynamic role CRUD xung đột fixed canonical catalog; cần quyết định editable surface"
+                 },
+                 {
+                     "uc":  "UC-009",
+                     "title":  "Configure Role Permissions",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Thiếu grant editor; cần approved permission/scope anti-escalation contract"
+                 },
+                 {
+                     "uc":  "UC-010",
+                     "title":  "Assign/Revoke User Roles",
+                     "classification":  "PARTIAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Assign allowlist có; thiếu revoke/full role lifecycle/expiry và responsibility integration"
+                 },
+                 {
+                     "uc":  "UC-011",
+                     "title":  "Review User Access Permissions",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Task62 production HTTPS/SQL + regression PASS theo ASSUMED_V1, không thêm grants; §10"
+                 },
+                 {
+                     "uc":  "UC-141",
+                     "title":  "View User List",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task62 hoàn tất step6 bằng shared UC011 projection; giữ list/minimal-detail contract; §10"
+                 },
+                 {
+                     "uc":  "UC-012",
+                     "title":  "Update Branch Information",
+                     "classification":  "PARTIAL",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task74 create/read/conditional metadata update HTTPS/SQL verified; no deactivation mutation, GBR033/DEV2 writer protocol unresolved; aggregate ETag without invented Branch rowversion; no earned points (§22)"
+                 },
+                 {
+                     "uc":  "UC-013",
+                     "title":  "View Branch Structure",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task64 production GET, scoped physical tree/expansion/details/filter/pagination + management departments; explicit V1 ROOM_VIEW boundary, real HTTPS/SQL/concurrency and regressions PASS (§12)"
+                 },
+                 {
+                     "uc":  "UC-014",
+                     "title":  "Create Floor/Area",
+                     "classification":  "COMPLETE_VERIFIED",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task63 both production POSTs, scoped authority/parents/uniqueness/atomic audit, HTTPS+SQL fault/concurrency acceptance PASS (§11)"
+                 },
+                 {
+                     "uc":  "UC-015",
+                     "title":  "Update Floor/Area",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task65 both production GET/PUT edit paths, scoped strong If-Match/reason/audit, safe Area parent, ABA/no lost update, SQL faults +regressions PASS (§13)"
+                 },
+                 {
+                     "uc":  "UC-016",
+                     "title":  "Deactivate Floor/Area",
+                     "classification":  "PARTIAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task66 production HTTPS rejection/GBR035 SQL implemented; actual DEV2 inactive-location/stale-placement defects confirmed. Mutation BLOCKED, no verified gain (§14)"
+                 },
+                 {
+                     "uc":  "UC-017",
+                     "title":  "Create Room Type",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task69 full SRS fields; explicit canonical deployment + Database First legacy/V1 mapping; fresh/legacy/replay/recovery PASS;165 HTTPS/SQL checks + consumer/Auth regression PASS. No production deployment (§17)"
+                 },
+                 {
+                     "uc":  "UC-018",
+                     "title":  "Update Room Type",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task70:64 independent HTTPS/SQL checks; strong ETag/If-Match, branch/code/checklist validation, session/grant final gates, atomic audit/rollback, historical Room/inspection preservation; §18"
+                 },
+                 {
+                     "uc":  "UC-019",
+                     "title":  "Deactivate Room Type",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Task71:50 independent checks; scoped confirmation/reason/ETag, active-room dependency DTO, soft deactivation/atomic audit, create/deactivate race and rollback; §19"
+                 },
+                 {
+                     "uc":  "UC-020",
+                     "title":  "Create Room",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task70:55 independent HTTPS/SQL checks; scoped active references, DIRTY+INIT history+audit transaction, duplicate race and post-INSERT expiry/cancel/audit rollback; §18"
+                 },
+                 {
+                     "uc":  "UC-021",
+                     "title":  "Update Room Information",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task71:50 independent checks; scoped editable GET/conditional PUT, active references/uniqueness/reason, preserve identity/status/open work/history, reject inconsistent legacy parents, atomic audit/concurrency/rollback; §19"
+                 },
+                 {
+                     "uc":  "UC-022",
+                     "title":  "Deactivate Room",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Room deactivate cần open cleaning/inspection/incident/block/reference checks với DEV2"
+                 },
+                 {
+                     "uc":  "UC-023",
+                     "title":  "View Room Directory",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task67 production list/detail/reason/source/history; SQL ROOM_VIEW scope;227 UC023+2 startup checks,117 SQL regression and targeted structure/Auth regression PASS (§15)"
+                 },
+                 {
+                     "uc":  "UC-024",
+                     "title":  "Create Department",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task71:53 independent checks; developer-approved branch DH designation, SQL role/membership/User eligibility initial/final, sorted User locks, multi-department DH, no RBAC expansion, legacy schema and rollback; §19"
+                 },
+                 {
+                     "uc":  "UC-025",
+                     "title":  "Update Department",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task71:51 independent checks; scoped strong ETag/update/audit, immutable branch/code, commit-time DH eligibility and manager revocation race, no designation-induced RBAC changes; §19"
+                 },
+                 {
+                     "uc":  "UC-026",
+                     "title":  "Deactivate Department",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task74 review: GBR042 active users/warehouses/open work/requests/assets and retained writer protocol unresolved; Maintenance Create checks department branch but not active state; no mutation/points (§22)"
+                 },
+                 {
+                     "uc":  "UC-142",
+                     "title":  "View Room Types List",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  1,
+                     "verifiedPoints":  1,
+                     "evidenceSummary":  "Task70:49 independent HTTPS/SQL checks; explicit/automatic SQL branch scope, filters/sort/page/count/detail, global-only legacy read, final expiry/cancel rejection, no business writes; §18"
+                 },
+                 {
+                     "uc":  "UC-027",
+                     "title":  "Manage Operational Room Status",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Reception occupancy/release contract và model chưa chốt; DEV2 Incident/RoomBlock precedence"
+                 },
+                 {
+                     "uc":  "UC-028",
+                     "title":  "Create Cleaning Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task74 cleaning-item foundation supplied; GBR043/044 room lifecycle/effective-block precedence and DEV2 writer coordination not approved/verified; no create/room-status mutation or points (§22)"
+                 },
+                 {
+                     "uc":  "UC-029",
+                     "title":  "Assign Cleaning Task",
+                     "classification":  "PARTIAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Historical cf8fb02 AssignCleaningAsync core exists but writer/controllers/shared partials absent current tree. Notification/lifecycle integration pending; PARTIAL historical evidence, not live route."
+                 },
+                 {
+                     "uc":  "UC-030",
+                     "title":  "Reassign Cleaning Task",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Assign/reassign + retained Users + close interval + actor eligibility"
+                 },
+                 {
+                     "uc":  "UC-031",
+                     "title":  "Start Cleaning Task",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Start requires workday/interval and room state; resolver không phải workflow"
+                 },
+                 {
+                     "uc":  "UC-032",
+                     "title":  "Update Cleaning Progress",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task74:87 per-UC HTTPS/SQL checks; scoped current-assignee OWN, distinct frozen cleaning items, notes/private evidence, actual rowversion, 100% not completion, atomic audit/expiry rollback, real race/DMV cancellation and legacy parent revision; §22"
+                 },
+                 {
+                     "uc":  "UC-033",
+                     "title":  "Report Cleaning Blocker",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Report blocker + hold/resume + work interval và room status"
+                 },
+                 {
+                     "uc":  "UC-034",
+                     "title":  "Complete Cleaning Task",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Complete + interval close + inspection/room state/audit atomic"
+                 },
+                 {
+                     "uc":  "UC-035",
+                     "title":  "Receive Rework Task",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Start rework + original defect/assignee/time checks"
+                 },
+                 {
+                     "uc":  "UC-036",
+                     "title":  "Complete Cleaning Rework",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Complete rework + verification/defect/room state coordination"
+                 },
+                 {
+                     "uc":  "UC-037",
+                     "title":  "Monitor Cleaning Tasks",
+                     "classification":  "PARTIAL",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Current CleaningMonitorService.ListAsync/DetailAsync read-only; Cancel writer absent; notification/room lifecycle remain missing."
+                 },
+                 {
+                     "uc":  "UC-038",
+                     "title":  "View Room Turnover History",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Production scoped cycle/detail/private evidence; real HTTPS/SQL and revocation/cancellation evidence (§20)"
+                 },
+                 {
+                     "uc":  "UC-039",
+                     "title":  "Create Room Inspection Checklist",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Conditionally approved trial extension; SQL-scoped multi-type Draft/create/publish/group/mandatory, atomic audit, fresh/upgrade/replay/fault/rollback verified (§20)"
+                 },
+                 {
+                     "uc":  "UC-040",
+                     "title":  "Update Room Inspection Checklist",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Real rowversion If-Match; edit Draft/new Draft; immutable published/used content; atomic replacement/retirement; HTTPS/SQL races and historical version preservation verified (§20)"
+                 },
+                 {
+                     "uc":  "UC-041",
+                     "title":  "Assign Room Inspection",
+                     "classification":  "PARTIAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Historical cf8fb02 AssignInspectionAsync inspector/SoD/checklist core; absent current tree; notification/replay pending."
+                 },
+                 {
+                     "uc":  "UC-042",
+                     "title":  "Perform Room Inspection",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Task73: assigned-inspector Start/Save Draft/Finish, exact frozen version, PASS/FAIL/photo evidence, mandatory/defect validation, Pending Conclusion distinct from conclusion; HTTPS/SQL/rowversion/audit/cancellation verified (§21)"
+                 },
+                 {
+                     "uc":  "UC-043",
+                     "title":  "Record Inspection Defects",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  3,
+                     "verifiedPoints":  3,
+                     "evidenceSummary":  "Task73: assigned inspector + failed criterion, severity/location/private evidence links, Inspecting/Pending Conclusion only, concluded rejection, atomic audit/files rollback and stale-write race verified (§21)"
+                 },
+                 {
+                     "uc":  "UC-044",
+                     "title":  "Approve Room Inspection",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "No Approve writer current or inspected snapshot; ExecuteInspectionAsync finish only PENDING_CONCLUSION, not PASSED/Ready."
+                 },
+                 {
+                     "uc":  "UC-045",
+                     "title":  "Reject Room Inspection",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "No Reject writer current or inspected snapshot; record defect/FAIL criterion is not FAILED conclusion/lifecycle."
+                 },
+                 {
+                     "uc":  "UC-046",
+                     "title":  "Request Cleaning Rework",
+                     "classification":  "PARTIAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Historical cf8fb02 RequestCleaningReworkAsync and selected-defect links; absent current tree; no delivery/retry integration."
+                 },
+                 {
+                     "uc":  "UC-047",
+                     "title":  "Reinspect Room",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Exception/reinspection path + current-cycle evidence/SoD"
+                 },
+                 {
+                     "uc":  "UC-048",
+                     "title":  "View Room Inspection History",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Production SQL-scoped filters/detail/exact historical criteria/results/reworks/private evidence; HTTPS/SQL verified (§20)"
+                 },
+                 {
+                     "uc":  "UC-102",
+                     "title":  "Create Operational Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Recurring series/JOB05/completion criteria model missing; ad-hoc alone partial"
+                 },
+                 {
+                     "uc":  "UC-103",
+                     "title":  "Set Task Priority and Deadline",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Priority/deadline/cancel includes recurrence stop; source planning fields only"
+                 },
+                 {
+                     "uc":  "UC-104",
+                     "title":  "Assign/Reassign Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Reassign closes work interval; interval model/contract required"
+                 },
+                 {
+                     "uc":  "UC-105",
+                     "title":  "Review and Verify Task Completion",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Pending Verification/Closed/Return semantics differ SQL status support; decision required"
+                 },
+                 {
+                     "uc":  "UC-106",
+                     "title":  "Reopen Assigned Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Reopen verification cycle/status + last eligible assignee needs approved mapping"
+                 },
+                 {
+                     "uc":  "UC-107",
+                     "title":  "Accept Assigned Task",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Accept/decline + assigned actor + status/concurrency/audit"
+                 },
+                 {
+                     "uc":  "UC-108",
+                     "title":  "Start Assigned Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Start requires Working workday + one open interval; models missing"
+                 },
+                 {
+                     "uc":  "UC-109",
+                     "title":  "Update Task Progress",
+                     "classification":  "COMPLETE_VERIFIED_V1",
+                     "weight":  2,
+                     "verifiedPoints":  2,
+                     "evidenceSummary":  "Task74:89 per-UC HTTPS/SQL checks; IN_PROGRESS/explicit PAUSED current assignee, immutable completion criteria/results, private evidence, rowversion/audit/expiry rollback, real race/DMV cancellation; no fake time or auto-completion; §22"
+                 },
+                 {
+                     "uc":  "UC-110",
+                     "title":  "Pause/Resume Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Pause/resume opens/closes intervals; no interval model"
+                 },
+                 {
+                     "uc":  "UC-111",
+                     "title":  "Record Actual Working Time",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task77 A1 interval/correction model and math SQL foundation verified; no complete own time-log/correction API, permission/SoD/notification workflow or PM integration;0 earned."
+                 },
+                 {
+                     "uc":  "UC-112",
+                     "title":  "Complete Assigned Task",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Complete -\u003e Pending Verification + close interval + criteria/evidence missing mapping"
+                 },
+                 {
+                     "uc":  "UC-113",
+                     "title":  "Review Task Workload and Time Logs",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Effort from intervals not ShiftAttendance duration; model missing"
+                 },
+                 {
+                     "uc":  "UC-138",
+                     "title":  "Manage Operational Workday and Shift Records",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task80 internal ShiftAssignmentConflictReader81 real SQL checks + math422. Full definitions/weekly roster/CRUD/cancel API, three rowversions/mapping, write concurrency/audit and mandatory employee inbox notification not implemented."
+                 },
+                 {
+                     "uc":  "UC-139",
+                     "title":  "Record Workday Start and End",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Task78 B1.1: four production routes and approved own ATTENDANCE_RECORD/SHIFT_VIEW binding, SQL sessions/RBAC/ownership, concurrency, If-Match, wait-time revoke and audit rollback verified on disposable trial; full UC139 remains blocked by unscheduled DH inbox notification and Pause All."
+                 },
+                 {
+                     "uc":  "UC-140",
+                     "title":  "Manage Operational Shift Handover",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Snapshot + receiver ack/reject model missing; cross-module open work"
+                 },
+                 {
+                     "uc":  "UC-114",
+                     "title":  "Create Internal Request",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Create request + receiving branch department + notifications/audit"
+                 },
+                 {
+                     "uc":  "UC-115",
+                     "title":  "Route and Assign Internal Request",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Route/assign + authoritative handler reread + Users lock + notification"
+                 },
+                 {
+                     "uc":  "UC-116",
+                     "title":  "Accept/Reject Internal Request",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Accept/reject + scoped DH policy + atomic decision/audit"
+                 },
+                 {
+                     "uc":  "UC-117",
+                     "title":  "Update Internal Request Progress",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Progress/deadline change + reason/notification/audit"
+                 },
+                 {
+                     "uc":  "UC-118",
+                     "title":  "Create Linked Operational Work",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Generic mandatory linked work contract/storage absent; DEV2 Incident/MR adapters"
+                 },
+                 {
+                     "uc":  "UC-119",
+                     "title":  "Record Request Handover",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Acknowledged handover must retain sender until receiver accepts; model absent"
+                 },
+                 {
+                     "uc":  "UC-120",
+                     "title":  "Complete Internal Request",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Close requires mandatory linked work closed/no pending handover; model/contract required"
+                 },
+                 {
+                     "uc":  "UC-121",
+                     "title":  "Reopen Internal Request",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  5,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Reopen window/cycle + last handler eligible; approved policy needed"
+                 },
+                 {
+                     "uc":  "UC-122",
+                     "title":  "Escalate Overdue Internal Request",
+                     "classification":  "BLOCKED_EXTERNAL",
+                     "weight":  3,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "Escalation alert requires acknowledgment; DEV2 notification contract/storage dependency"
+                 },
+                 {
+                     "uc":  "UC-123",
+                     "title":  "View Internal Request History",
+                     "classification":  "NOT_IMPLEMENTED",
+                     "weight":  2,
+                     "verifiedPoints":  0,
+                     "evidenceSummary":  "History includes withdraw write and authorized linked work; not read-only list alone"
+                 }
+             ],
+    "a1Acceptance":  {
+                         "componentChecks":  96,
+                         "productionProgramChecks":  7,
+                         "userSqlRegression":  26,
+                         "securityRegression":  199,
+                         "mathChecks":  422,
+                         "fullUcAcceptance":  false,
+                         "source":  "scripts/verification/Task77/task77-a1-complete-accepted.local.json"
+                     },
+    "b11Acceptance":  {
+                          "receipt":  "scripts/verification/Task78/task78-b11-https-sql3.local.json",
+                          "checks":  159,
+                          "securityChecks":  199,
+                          "fullUC139":  "BLOCKED_EXTERNAL",
+                          "pointsGained":  0,
+                          "notification":  "NOT_IMPLEMENTED",
+                          "pauseAll":  "NOT_IMPLEMENTED"
+                      },
+    "task79Acceptance":  {
+                             "liveReproduction":  5,
+                             "liveAuth":  43,
+                             "policyAssertions":  53,
+                             "timezoneModelCases":  20,
+                             "userSqlRegression":  26,
+                             "securityRegression":  199,
+                             "actualOperatingSystemTimezone":  "SE Asia Standard Time",
+                             "utcOperatingSystemAcceptance":  "NOT_RUN",
+                             "b12":  "NOT_IMPLEMENTED_BLOCKED_CONTRACT",
+                             "pointsGained":  0
+                         },
+    "dependencyClosure":  {
+                              "source":  "USER_CONFIRMED_DEV2_CHECKPOINT",
+                              "branch":  "feature/DEV2-coordination-contracts",
+                              "worktree":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_Coordination",
+                              "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+                              "draftPath":  "scripts/verification/Coordination/NOTIFICATION_DELIVERY_RETRY_CONTRACT_DRAFT.md",
+                              "draftBlob":  "dc5ceb10121f752351e56e4b7150277c96271e1c",
+                              "draftStatus":  "DRAFT_READY_FOR_JOINT_REVIEW_NOT_APPROVED",
+                              "publisher":  "NOT_IMPLEMENTED",
+                              "outbox":  "NOT_IMPLEMENTED",
+                              "replayAdapter":  "NOT_IMPLEMENTED",
+                              "worker":  "NOT_IMPLEMENTED",
+                              "draftContentRead":  false,
+                              "resumption":  "JOINT_APPROVED_CONTRACT_PLUS_SOURCE_IMPLEMENTATION_PLUS_ACCEPTANCE_EVIDENCE"
+                          },
+    "task80Acceptance":  {
+                             "sqlReadChecks":  81,
+                             "mathRegressionChecks":  422,
+                             "fullUc138Https":  "NOT_RUN",
+                             "writeConcurrencyAuditNotification":  "NOT_RUN",
+                             "publicUc138Endpoints":  0,
+                             "sharedApproval":  "UC138_APPROVAL_SCOPE.md_C1_NOT_APPLIED",
+                             "newCompleteUCs":  0,
+                             "pointsGained":  0
+                         }
+}

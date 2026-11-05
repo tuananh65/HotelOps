@@ -1,0 +1,32 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class StockThreshold
+7: {
+8:     public long ThresholdId { get; set; }
+9: 
+10:     public long WarehouseId { get; set; }
+11: 
+12:     public long ItemId { get; set; }
+13: 
+14:     public decimal MinimumQty { get; set; }
+15: 
+16:     public decimal? MaximumQty { get; set; }
+17: 
+18:     public decimal? ReorderQty { get; set; }
+19: 
+20:     public bool AlertEnabled { get; set; }
+21: 
+22:     public DateTime? UpdatedAt { get; set; }
+23: 
+24:     public byte[] RowVersion { get; set; } = null!;
+25: 
+26:     public virtual InventoryItem Item { get; set; } = null!;
+27: 
+28:     public virtual Warehouse Warehouse { get; set; } = null!;
+29: 
+30:     public virtual ICollection<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; } = new List<MaterialReplenishmentLine>();
+31: }
+32: 

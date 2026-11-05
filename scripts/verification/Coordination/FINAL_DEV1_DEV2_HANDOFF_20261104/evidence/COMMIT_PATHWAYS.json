@@ -1,0 +1,937 @@
+[
+  {
+    "file": "src/HotelOps.Api/Data/StartupSchemaValidator.cs",
+    "line": 26,
+    "text": "            var connection = db.Database.GetDbConnection();"
+  },
+  {
+    "file": "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "line": 33,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "line": 37,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "line": 43,
+    "text": "            // Includes connection/BeginTransaction failures outside SqlSessionService."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "line": 15,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "line": 28,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "line": 41,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "line": 49,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "line": 51,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "line": 13,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "line": 30,
+    "text": "            await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "line": 37,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "line": 39,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 49,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 72,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 74,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 76,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 91,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 130,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 134,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "line": 136,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "line": 21,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "line": 73,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "line": 81,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "line": 83,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "line": 12,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "line": 19,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "line": 37,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "line": 39,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "line": 41,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "line": 11,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "line": 21,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "line": 29,
+    "text": "            await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "line": 36,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "line": 21,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "line": 30,
+    "text": "            await tx.CommitAsync(ct); // Persist existing brute-force counters/lockout, never revoke/replace session."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "line": 44,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "line": 46,
+    "text": "        await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 21,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 24,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 42,
+    "text": "                await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 92,
+    "text": "                try { await db.SaveChangesAsync(cancellationToken); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "line": 94,
+    "text": "                await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 22,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 44,
+    "text": "                await transaction.CommitAsync(cancellationToken); // Persist ordinary failure counters/lockout audit."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 68,
+    "text": "            try { await db.SaveChangesAsync(cancellationToken); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 70,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 78,
+    "text": "            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "line": 84,
+    "text": "            await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "line": 32,
+    "text": "        if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "line": 111,
+    "text": "            await db.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "line": 129,
+    "text": "        // Prevent a later SaveChanges (audit or caller) from writing stale User state."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/IInitialCredentialTransactionParticipant.cs",
+    "line": 23,
+    "text": "    // Trusted in-assembly orchestration must await successful CommitAsync before calling."
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "line": 22,
+    "text": "        if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 36,
+    "text": "            try { await db.SaveChangesAsync(cancellationToken); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 108,
+    "text": "        if (!db.Database.IsSqlServer() || tx.GetDbTransaction().IsolationLevel"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "line": 124,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 64,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 75,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 120,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 157,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "line": 201,
+    "text": "            await db.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 33,
+    "text": "            await using var command = db.Database.GetDbConnection().CreateCommand();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 34,
+    "text": "            command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 44,
+    "text": "            try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 119,
+    "text": "        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 131,
+    "text": "                await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "line": 162,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+    "line": 19,
+    "text": "        if(db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel!=IsolationLevel.Serializable)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 52,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 84,
+    "text": "            try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 106,
+    "text": "            try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "line": 109,
+    "text": "            await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 116,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "line": 136,
+    "text": "            await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "line": 30,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "line": 50,
+    "text": "            await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 119,
+    "text": "            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "line": 123,
+    "text": "            await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 23,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 126,
+    "text": "            await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 131,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 145,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 216,
+    "text": "            await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 221,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 232,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 293,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 312,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "line": 315,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "line": 48,
+    "text": "        await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "line": 91,
+    "text": "        await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "line": 137,
+    "text": "        await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "line": 196,
+    "text": "        await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 136,
+    "text": "            if (same) { await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 150,
+    "text": "        await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 157,
+    "text": "        await tx.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 204,
+    "text": "        await tx.CommitAsync(ct); return await GetDocument(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 224,
+    "text": "        await tx.CommitAsync(ct); return await GetDocument(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "line": 255,
+    "text": "        await tx.CommitAsync(ct); return await GetDocument(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 32,
+    "text": "        await tx.CommitAsync(ct); return Dto(x);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 43,
+    "text": "        await tx.CommitAsync(ct); return Dto(x);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 57,
+    "text": "        await tx.CommitAsync(ct); return Dto(x);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 102,
+    "text": "        await tx.CommitAsync(ct); return Dto(x);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "line": 115,
+    "text": "        await tx.CommitAsync(ct); return Dto(x);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "line": 36,
+    "text": "        await tx.CommitAsync(ct); return (await GetStocktake(x.StocktakeId, ct))!;"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "line": 61,
+    "text": "        await tx.CommitAsync(ct); return await GetStocktake(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "line": 95,
+    "text": "        await tx.CommitAsync(ct); return await GetStocktake(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 23,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 73,
+    "text": "        using var command = db.Database.GetDbConnection().CreateCommand();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 74,
+    "text": "        command.Transaction = db.Database.CurrentTransaction.GetDbTransaction();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "line": 92,
+    "text": "        var transaction = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 41,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 93,
+    "text": "            await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "line": 95,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "line": 16,
+    "text": "        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "line": 56,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "line": 59,
+    "text": "        await _dbContext.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "line": 61,
+    "text": "        await transaction.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Logs.cs",
+    "line": 45,
+    "text": "            await _dbContext.SaveChangesAsync(token);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 79,
+    "text": "        await _dbContext.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 110,
+    "text": "        await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "line": 139,
+    "text": "        await tx.CommitAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 22,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 52,
+    "text": "            if (!changed) { await tx.CommitAsync(ct); return await Get(r.RequestId, ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 53,
+    "text": "            if (id is null) { r.RequestNo = await Number(false, ct); db.MaterialRequests.Add(r); await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 56,
+    "text": "            await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 61,
+    "text": "            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(r.RequestId, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 90,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 149,
+    "text": "            await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 152,
+    "text": "            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 158,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 177,
+    "text": "            db.MaterialFulfillments.Add(f); await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 179,
+    "text": "            await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "line": 191,
+    "text": "            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Fulfillment(id, f.FulfillmentId, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 26,
+    "text": "        var connection = db.Database.GetDbConnection();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "line": 28,
+    "text": "        command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 17,
+    "text": "        using var command = db.Database.GetDbConnection().CreateCommand();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "line": 18,
+    "text": "        command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction() ?? throw new InvalidOperationException(\"Transaction required.\");"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 52,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct); var r = await Read(id, ct); await tx.CommitAsync(ct); return r;"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 57,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct); var r = await Read(id, ct); if (r is null) return null;"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 61,
+    "text": "        await tx.CommitAsync(ct); return new(r, rows.Select(x => x with { OccurredAt = Utc(x.OccurredAt) }).ToArray());"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 65,
+    "text": "        var offset = Offset(p); await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 75,
+    "text": "        await tx.CommitAsync(ct); return new(p.Page, p.PageSize, result.Count, result.Skip(offset).Take(p.PageSize).ToArray());"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 98,
+    "text": "        var offset = Offset(p); await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "line": 100,
+    "text": "        await tx.CommitAsync(ct); return new(p.Page, p.PageSize, rows.Length, rows.Skip(offset).Take(p.PageSize).ToArray());"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 48,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 85,
+    "text": "            var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 86,
+    "text": "            foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 88,
+    "text": "            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return (await Get(root.ReplenishmentId, ct))!;"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 94,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 103,
+    "text": "            Audit(db, r, input.ActorUserId, \"REMAINDER_CLOSED\", before); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 109,
+    "text": "        await using var tx = await db.Database.BeginTransactionAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 145,
+    "text": "            await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "line": 149,
+    "text": "            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 30,
+    "text": "        if (transaction.GetDbTransaction().IsolationLevel is not (System.Data.IsolationLevel.ReadCommitted"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 35,
+    "text": "        await using var command = db.Database.GetDbConnection().CreateCommand();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 36,
+    "text": "        command.Transaction = transaction.GetDbTransaction();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 105,
+    "text": "        await using var command = db.Database.GetDbConnection().CreateCommand();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "line": 106,
+    "text": "        command.Transaction = transaction.GetDbTransaction();"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "line": 39,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "line": 69,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "line": 73,
+    "text": "        await transaction.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 36,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 74,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 97,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "line": 114,
+    "text": "        await transaction.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 33,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 73,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 84,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "line": 89,
+    "text": "        await transaction.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "line": 34,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "line": 85,
+    "text": "            await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "line": 94,
+    "text": "            await transaction.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 35,
+    "text": "        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 88,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 99,
+    "text": "        try { await db.SaveChangesAsync(ct); }"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "line": 113,
+    "text": "        await transaction.CommitAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 92,
+    "text": "        await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 95,
+    "text": "        await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 120,
+    "text": "        await db.SaveChangesAsync(ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 144,
+    "text": "        await db.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 147,
+    "text": "        await db.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 175,
+    "text": "        await db.SaveChangesAsync(cancellationToken);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 186,
+    "text": "        if (transaction.GetDbTransaction().IsolationLevel != IsolationLevel.ReadCommitted"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "line": 187,
+    "text": "            && transaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 98,
+    "text": "            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 110,
+    "text": "            if (result.Status is >= 200 and < 300) await tx.CommitAsync(ct);"
+  }
+]

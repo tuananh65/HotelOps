@@ -1,0 +1,15 @@
+-- NOT APPROVED / NOT EXECUTED. One additive column, fresh disposable Task86 trial only.
+SET XACT_ABORT ON;
+IF DB_NAME()<>N'HotelOps_Canonical_20261104_223000_c01286a1_Fresh'
+ OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.UserDirectory.Trial' AND CONVERT(nvarchar(128),value)=N'Task17')
+ THROW 51986,'Exact new Task86 trial required',1;
+BEGIN TRANSACTION;
+IF COL_LENGTH(N'dbo.branches',N'row_version') IS NULL
+BEGIN
+ IF EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID(N'dbo.branches') AND system_type_id=189)
+  THROW 51986,'Another branch rowversion exists; review instead of duplicating',1;
+ ALTER TABLE dbo.branches ADD row_version rowversion NOT NULL;
+END;
+IF NOT EXISTS(SELECT 1 FROM sys.columns WHERE object_id=OBJECT_ID(N'dbo.branches') AND name=N'row_version' AND system_type_id=189 AND max_length=8 AND is_nullable=0)
+ THROW 51986,'Incompatible branch rowversion',1;
+COMMIT;

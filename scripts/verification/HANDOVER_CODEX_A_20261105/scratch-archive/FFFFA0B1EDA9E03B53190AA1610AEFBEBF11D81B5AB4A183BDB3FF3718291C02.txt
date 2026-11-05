@@ -1,0 +1,92 @@
+﻿{
+    "UC015Checks":  215,
+    "WorktreesUnchanged":  true,
+    "Result":  "PASS",
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "UC023Checks":  117,
+    "Branch":  "feature/BE1-database-integration",
+    "UC015Waits":  19,
+    "IndexUnchanged":  true,
+    "Upstream":  "origin/feature/BE1-database-integration",
+    "DotnetTest":  "Exit0; no discovered tests",
+    "FullScopePoints":  256,
+    "ValidatedAtUtc":  "2026-10-30T01:02:23.9640759+00:00",
+    "UC013Checks":  159,
+    "UC013Waits":  11,
+    "ElapsedMinutes":  18.2,
+    "VerifiedPoints":  23,
+    "Build":  "PASS; NU1900 vulnerability feed warnings",
+    "UCCategories":  [
+                         {
+                             "Count":  7,
+                             "Status":  "COMPLETE_VERIFIED"
+                         },
+                         {
+                             "Count":  5,
+                             "Status":  "PARTIAL"
+                         },
+                         {
+                             "Count":  20,
+                             "Status":  "BLOCKED_EXTERNAL"
+                         },
+                         {
+                             "Count":  41,
+                             "Status":  "NOT_IMPLEMENTED"
+                         },
+                         {
+                             "Count":  2,
+                             "Status":  "COMPLETE_VERIFIED_V1"
+                         }
+                     ],
+    "UC014Checks":  215,
+    "ProtectedFiles":  436,
+    "Unchanged":  433,
+    "NewDeliveryWhitespaceAndLinks":  "PASS",
+    "UC014Waits":  23,
+    "AuthFoundationChecks":  174,
+    "ValidBackups":  436,
+    "IntendedEdits":  [
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "scripts/verification/HotelStructure/Program.cs",
+                          "src/HotelOps.Api/Program.cs"
+                      ],
+    "DiffCheck":  "PASS",
+    "DeliveryHashes":  [
+                           {
+                               "SHA256":  "E9C99733A6FF59FE1294148208207948F3DA8830072F07F4A5FD5F046A8EB5A5",
+                               "Path":  "src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs"
+                           },
+                           {
+                               "SHA256":  "BBD85733B8958FA6778F8E6AE237074E78F3CB056A6974A0A8E7DCAC307F9D64",
+                               "Path":  "src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs"
+                           },
+                           {
+                               "SHA256":  "17654E6331F1A97A8E3AA3C5CD2FBB3DBFE6F26BD1131C98F6545907CE1741C2",
+                               "Path":  "src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs"
+                           },
+                           {
+                               "SHA256":  "7957748F495949AFB6CD046C3C39BF95C427A1E4100D6145A8FA0FB53BB011AF",
+                               "Path":  "scripts/verification/HotelStructure/Task65StructureCases.cs"
+                           },
+                           {
+                               "SHA256":  "118F5E5318311555E8FCB78C6EB68012ADE35A98E7047A9017C354E74635F666",
+                               "Path":  "scripts/verification/HotelStructure/Task65StructureConcurrency.cs"
+                           },
+                           {
+                               "SHA256":  "35509FC782EEDA5D46D9CC8E3ACC28F9A0DE5D46604EC34710D9688574FC120B",
+                               "Path":  "scripts/verification/HotelStructure/TASK65_UC015_IMPLEMENTATION.md"
+                           },
+                           {
+                               "SHA256":  "7659192E62A73FC53A4AC7EDFBC74301F076EE044E7E1ABF8EBC57C4E9913F1D",
+                               "Path":  "src/HotelOps.Api/Program.cs"
+                           },
+                           {
+                               "SHA256":  "2CDF6D90BC0C2CFAE6E7BF0035A407A3C68B5ABFDBC4A53706E6C2DD170A0B22",
+                               "Path":  "scripts/verification/HotelStructure/Program.cs"
+                           },
+                           {
+                               "SHA256":  "6ADD7A5A870121370798008BF5E5BB0116CDE38CE16CBF80F85F7031E1652EC6",
+                               "Path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md"
+                           }
+                       ]
+}

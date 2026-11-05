@@ -1,0 +1,44 @@
+[
+    {
+        "path":  "scripts/verification/CleaningMonitor/TASK75_VALIDATION.json",
+        "sha256":  "A0CB65AB336FDDC739B617E8E75ECC7D9AF4351B78D65432FF0F85FA3AA17EA1",
+        "status":  null,
+        "success":  true
+    },
+    {
+        "path":  "scripts/verification/Task76/TASK76_VALIDATION.json",
+        "sha256":  "48F904444DB38E09EDEC843A008C8845162E22F582E8BE7FD54FB7A07D3A8C32",
+        "status":  null,
+        "success":  null
+    },
+    {
+        "path":  "scripts/verification/Task77/TASK77_A1_VALIDATION.json",
+        "sha256":  "01FA92BFB121EDAAC8B5170C1BA75E9961BB39FFF7198281298534E87D264209",
+        "status":  "A1_IMPLEMENTED_COMPONENT_ACCEPTANCE_PASS_FULL_UCS_INCOMPLETE",
+        "success":  null
+    },
+    {
+        "path":  "scripts/verification/Task78/TASK78_B11_VALIDATION.json",
+        "sha256":  "FE84025B7BD34899F4B54577DCBA207B7010E41FD56B050659E810AFE65C6B9D",
+        "status":  "B11_IMPLEMENTED_PRODUCTION_HTTPS_SQL_ACCEPTANCE_PASS_FULL_UC139_BLOCKED",
+        "success":  null
+    },
+    {
+        "path":  "scripts/verification/Task79/TASK79_CLOSURE_VALIDATION.json",
+        "sha256":  "C4E631463487BDBF034520D9557E781EB0B80852C343437A4D6A415ABDAA572D",
+        "status":  "TASK79_CLOSED_P0_VERIFIED_B11_PRESERVED_B12_BLOCKED_EXTERNAL",
+        "success":  null
+    },
+    {
+        "path":  "scripts/verification/Task80/TASK80_VALIDATION.json",
+        "sha256":  "2B9D08B4B6AA48F50F431797F2D0723BBA8BC490ED1186051F1969A648846183",
+        "status":  "DEV2_HANDOFF_COMPLETED_UC138_READ_COMPONENT_VERIFIED_C1_AND_NOTIFICATION_BLOCKED",
+        "success":  null
+    },
+    {
+        "path":  "scripts/verification/Task81/TASK81_VALIDATION.json",
+        "sha256":  "1AAE0D0D9E085ABFB260E3846C7CADD663AD2C45886C10E1B9E20F5034099EEA",
+        "status":  "DONE — READINESS ONLY",
+        "success":  null
+    }
+]

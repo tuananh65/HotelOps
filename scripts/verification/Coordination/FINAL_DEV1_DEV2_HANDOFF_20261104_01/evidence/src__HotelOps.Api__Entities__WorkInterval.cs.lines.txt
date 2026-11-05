@@ -1,0 +1,22 @@
+﻿SOURCE: src/HotelOps.Api/Entities/WorkInterval.cs
+SHA256: 48F3CB02DED43DF0B67404E04DD5BF3450325AC7DE82DA951E16400BEE653573
+Ranges: 1-100 (original source line numbers)
+    1: namespace HotelOps.Api.Entities;
+    2: 
+    3: public partial class WorkInterval
+    4: {
+    5:     public long IntervalId { get; set; }
+    6:     public long WorkdayId { get; set; }
+    7:     public long UserId { get; set; }
+    8:     public long BranchId { get; set; }
+    9:     public string WorkItemKind { get; set; } = null!;
+   10:     public long WorkItemId { get; set; }
+   11:     public long OpenedBy { get; set; }
+   12:     public DateTime OpenedAt { get; set; }
+   13:     public long? ClosedBy { get; set; }
+   14:     public DateTime? ClosedAt { get; set; }
+   15:     public DateTime EffectiveStartedAt { get; set; }
+   16:     public DateTime? EffectiveEndedAt { get; set; }
+   17:     public byte[] RowVersion { get; set; } = null!;
+   18: }
+

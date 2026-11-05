@@ -1,0 +1,44 @@
+$ErrorActionPreference='Stop'
+$initial=Get-Content obj/task72-session.local.json -Raw|ConvertFrom-Json
+$continuation=Get-Content obj/task72-checklist-session.local.json -Raw|ConvertFrom-Json
+$allowed=@(
+ 'scripts/database/release/canonical/Run-Canonical.ps1',
+ 'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md',
+ 'scripts/verification/HotelStructure/Program.cs',
+ 'scripts/verification/HotelStructure/TASK72_BATCH3_IMPLEMENTATION.md',
+ 'scripts/verification/HotelStructure/TASK72_CHECKLIST_CONTRACT_PROPOSAL.md',
+ 'src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs',
+ 'src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs',
+ 'src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs',
+ 'src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs',
+ 'src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs')
+$bad=@();$backupBad=@();$snapshots=@()
+foreach($snapshot in @($initial,$continuation)){
+ $manifest=Get-Content (Join-Path $snapshot.Path 'manifest.json') -Raw|ConvertFrom-Json
+ foreach($item in $manifest){
+  if(!(Test-Path -LiteralPath $item.Path) -or ((Get-FileHash -LiteralPath $item.Path).Hash -ne $item.Hash -and $item.Path -notin $allowed)){$bad+=($snapshot.Path+':'+$item.Path)}
+  if((Get-FileHash -LiteralPath (Join-Path $snapshot.Path $item.Path)).Hash -ne $item.Hash){$backupBad+=($snapshot.Path+':'+$item.Path)}
+ }
+ $snapshots+=[pscustomobject]@{Path=$snapshot.Path;OriginalFiles=$manifest.Count}
+}
+$original=Get-Content (Join-Path $initial.Path 'manifest.json') -Raw|ConvertFrom-Json
+$new=@(git ls-files --others --exclude-standard|Where-Object{$_ -notin $original.Path})
+$indexSame=@(Compare-Object @(Get-Content (Join-Path $initial.Path 'index.txt')) @(git ls-files --stage)).Count -eq 0
+$treesSame=@(Compare-Object @(Get-Content (Join-Path $initial.Path 'worktrees.txt')) @(git worktree list --porcelain)).Count -eq 0
+$head=(git rev-parse HEAD).Trim()
+$headSame=$head -ceq (Get-Content (Join-Path $initial.Path 'head.txt') -Raw).Trim()
+git -c core.safecrlf=false diff --check
+$diffExit=$LASTEXITCODE
+$sourcePaths=@(($allowed+$new)|Where-Object{$_ -match '\.(cs|md|sql|ps1)$'}|Sort-Object -Unique)
+$whitespace=@(foreach($path in $sourcePaths){if(Select-String -LiteralPath $path -Pattern '[ \t]+$'){$path}})
+$receiptNames=@('task72-checklist-final.local.json','task72-checklist-history-regression.local.json','task72-checklist-batch-regression.local.json','task72-structure-regression-final.local.json','task72-rooms-regression-final.local.json')
+$receipts=@(foreach($name in $receiptNames){$path=Join-Path 'scripts/verification/HotelStructure' $name;$r=Get-Content $path -Raw|ConvertFrom-Json;[pscustomobject]@{Path=$path;Success=$r.success;Checks=$r.checks;Database=$r.database;SHA256=(Get-FileHash $path).Hash}})
+$rows=@(Get-Content scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md -Encoding UTF8|Where-Object{$_ -match '^\| UC-\d{3} \|'})
+$verified=@($rows|Where-Object{$_ -match '\| COMPLETE_VERIFIED(_V1)? \|'})
+$points=($verified|ForEach-Object{[int](($_ -split '\|')[5].Trim())}|Measure-Object -Sum).Sum
+$taxonomy=@($rows|ForEach-Object{($_ -split '\|')[4].Trim()}|Group-Object|Select-Object Name,Count)
+$end=[DateTime]::UtcNow
+$result=[ordered]@{Snapshots=$snapshots;UnexpectedChanges=$bad;BackupHashFailures=$backupBad;Head=$head;HeadUnchanged=$headSame;IndexUnchanged=$indexSame;FourWorktreesUnchanged=$treesSame;DiffCheckExit=$diffExit;WhitespaceFailures=$whitespace;NewFiles=$new;Receipts=$receipts;SourceFiles=@($sourcePaths|ForEach-Object{[pscustomobject]@{Path=$_;SHA256=(Get-FileHash -LiteralPath $_).Hash}});UseCases=$rows.Count;VerifiedUseCases=$verified.Count;VerifiedPoints=$points;Taxonomy=$taxonomy;OriginalTask72StartUtc=$initial.MeasuredStartUtc;ContinuationSnapshotUtc=$continuation.StartUtc;MeasuredEndUtc=$end.ToString('O');ContinuationWallSeconds=($end-[DateTime]::Parse($continuation.StartUtc).ToUniversalTime()).TotalSeconds;TotalTask72PreflightToFinalWallSeconds=($end-[DateTime]::Parse($initial.MeasuredStartUtc).ToUniversalTime()).TotalSeconds}
+$result|ConvertTo-Json -Depth 10|Set-Content obj/task72-checklist-validation.local.json
+[pscustomobject]@{Snapshots=$snapshots;UnexpectedChanges=$bad;BackupHashFailures=$backupBad;HeadUnchanged=$headSame;IndexUnchanged=$indexSame;FourWorktreesUnchanged=$treesSame;DiffCheckExit=$diffExit;WhitespaceFailures=$whitespace;VerifiedUseCases=$verified.Count;VerifiedPoints=$points;Receipts=$receipts;ContinuationWallSeconds=$result.ContinuationWallSeconds;TotalTask72WallSeconds=$result.TotalTask72PreflightToFinalWallSeconds}|ConvertTo-Json -Depth 6
+if($bad.Count -or $backupBad.Count -or !$headSame -or !$indexSame -or !$treesSame -or $diffExit -or $whitespace.Count -or @($receipts|Where-Object{!$_.Success}).Count -or $rows.Count -ne 75 -or $verified.Count -ne 22 -or $points -ne 50){throw 'Task72 final validation failed'}

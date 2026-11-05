@@ -1,0 +1,15 @@
+3: namespace HotelOps.Api.Services.Inventory;
+4: 
+5: public sealed record InventoryReceiptPostRequest(long ActorUserId, string ExpectedRowVersion, IReadOnlyList<InventoryAcceptedLine> Lines);
+6: public sealed record InventoryBaseQuantity(long BaseUomId, decimal BaseQty);
+7: public sealed record InventoryReceiptPostedLine(long StockDocumentLineId, long ItemId, long UomId, long BaseUomId, decimal ActualQty, decimal BaseQty);
+8: public sealed record InventoryReceiptPosted(long DocumentId, long WarehouseId, IReadOnlyList<InventoryReceiptPostedLine> Lines);
+9: /// <summary>Same scoped context; caller owns transaction and rollback. Never commits.</summary>
+10: public interface IInventoryReceiptPosting
+11: {
+12:     Task<InventoryReceiptPosted> PostReceipt(long id, InventoryReceiptPostRequest input, CancellationToken ct);
+13: }
+14: public interface IInventoryQuantityContext
+15: {
+16:     Task<InventoryBaseQuantity> ConvertToBase(long item, long uom, decimal quantity, CancellationToken ct);
+17:     Task<decimal> ObserveStock(long warehouse, long item, CancellationToken ct);

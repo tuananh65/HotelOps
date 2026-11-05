@@ -1,0 +1,62 @@
+6: namespace HotelOps.Api.Services.Inventory;
+7: 
+8: public sealed class InventoryAccessException(int status) : Exception("Inventory access denied.")
+9: {
+10:     public int Status { get; } = status;
+11: }
+12: 
+13: // Inventory has no approved OWN rule. Branch/global decisions use the existing
+14: // engine; no global resolver is replaced and no role name grants access.
+15: public sealed class InventoryAccess(HotelOpsDbContext db, IPermissionService permissions)
+16: {
+17:     private static void Require(PermissionEvaluation result)
+18:     {
+19:         if (!result.IsGranted) throw new InventoryAccessException(result.Decision == PermissionDecision.Unauthenticated ? 401 : 403);
+20:     }
+21:     private async Task Branch(long branch, string permission, CancellationToken ct) =>
+22:         Require(await permissions.EvaluateBranchAsync(permission, branch, ct));
+23: 
+24:     public async Task<long[]> ReadWarehouses(CancellationToken ct)
+25:     {
+26:         var branches = await db.Branches.AsNoTracking().Where(x => x.IsActive).Select(x => x.BranchId).ToListAsync(ct);
+27:         var allowed = new List<long>();
+28:         foreach (var branch in branches)
+29:             if ((await permissions.EvaluateBranchAsync("INVENTORY_VIEW", branch, ct)).IsGranted) allowed.Add(branch);
+31:         return await db.Warehouses.AsNoTracking().Where(x => allowed.Contains(x.BranchId)).Select(x => x.WarehouseId).ToArrayAsync(ct);
+32:     }
+33:     private async Task<bool> Warehouse(long? id, string permission, CancellationToken ct)
+34:     {
+35:         if (id is null) throw new InventoryAccessException(403);
+36:         var branch = await db.Warehouses.AsNoTracking().Where(x => x.WarehouseId == id).Select(x => (long?)x.BranchId).SingleOrDefaultAsync(ct);
+39:         return true;
+40:     }
+41:     private static string DocumentPermission(string type) => type switch
+42:     {
+43:         "RECEIPT" => "STOCK_RECEIPT_POST", "RETURN" => "STOCK_RETURN_POST", "TRANSFER" => "STOCK_TRANSFER_POST",
+44:         _ => throw new InventoryAccessException(403)
+45:     };
+46:     private async Task<bool> Document(long id, string? permission, string? side, CancellationToken ct)
+47:     {
+48:         var d = await db.StockDocuments.AsNoTracking().SingleOrDefaultAsync(x => x.DocumentId == id, ct);
+49:         if (d is null) return false;
+50:         permission ??= DocumentPermission(d.DocumentType);
+51:         var warehouses = side == "source" ? new[] { d.SourceWarehouseId } : side == "destination" ? new[] { d.DestinationWarehouseId }
+52:             : new[] { d.SourceWarehouseId, d.DestinationWarehouseId }.Where(x => x.HasValue).ToArray();
+53:         if (warehouses.Length == 0) throw new InventoryAccessException(403);
+59:         return true;
+60:     }
+61:     public async Task<bool> Authorize(string action, RouteValueDictionary route, object? input, CancellationToken ct)
+62:     {
+63:         long Id(string key = "id") => route.TryGetValue(key, out var value) && long.TryParse(value?.ToString(), out var id) ? id : 0;
+64:         if (input is InventoryItemWrite or InventoryUnitWrite or InventoryConversionWrite)
+65:         {
+66:             Require(await permissions.EvaluateGlobalAsync("ITEM_MASTER_MANAGE", ct));
+67:             return true;
+68:         }
+69:         if (input is InventoryWarehouseWrite warehouse)
+70:         {
+71:             if (Id() > 0 && !await Warehouse(Id(), "ITEM_MASTER_MANAGE", ct)) return false;
+72:             var branch = await db.Branches.AsNoTracking().Where(x => x.BranchId == warehouse.BranchId && x.IsActive).Select(x => (long?)x.BranchId).SingleOrDefaultAsync(ct);
+73:             if (branch is null) throw new InventoryAccessException(403);
+74:             await Branch(branch.Value, "ITEM_MASTER_MANAGE", ct);
+75:             // Department matching remains the existing business validation (400).

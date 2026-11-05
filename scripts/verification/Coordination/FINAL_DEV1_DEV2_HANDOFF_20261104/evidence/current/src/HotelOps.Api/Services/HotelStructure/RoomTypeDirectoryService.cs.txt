@@ -1,0 +1,165 @@
+14: namespace HotelOps.Api.Services.HotelStructure;
+15: 
+16: public enum RoomTypeDirectoryStatus { Success, SessionInvalid, Forbidden, NotFound, Inactive, SchemaRequired, Unavailable }
+17: public sealed record RoomTypeDirectoryResult(RoomTypeDirectoryStatus Status, object? Value = null, string? ETag = null);
+18: 
+19: /// <summary>UC142 read extraction from Task70; no UC017/018/019 writers or schema mutation.</summary>
+20: public sealed class RoomTypeDirectoryService(HotelOpsDbContext db, ICurrentUserAccessor current,
+21:     IPermissionService permissions, ISqlSessionService sessions)
+22: {
+23:     private const string Permission = "MASTER_DATA_MANAGE";
+24:     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+25: 
+26:     public Task<RoomTypeDirectoryResult> ListAsync(SessionReference ticket, long sessionId, long? branchId,
+27:         bool? active, string? search, int page, int pageSize, string sort, bool descending, CancellationToken ct)
+28:     {
+29:         search = search?.Trim();
+35:         {
+36:             var rows = Rows();
+37:             var global = await permissions.EvaluateGlobalAsync(Permission, token);
+38:             if (global.Decision == PermissionDecision.Unavailable) return new(RoomTypeDirectoryStatus.Unavailable);
+39:             var visible = new List<long>();
+40:             if (branchId is { } branch) rows = rows.Where(x => x.BranchId == branch);
+41:             else if (!global.IsGranted)
+43:                 foreach (var id in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(token))
+44:                 {
+45:                     var access = await permissions.EvaluateBranchAsync(Permission, id, token);
+46:                     if (access.Decision == PermissionDecision.Unavailable) return new(RoomTypeDirectoryStatus.Unavailable);
+47:                     if (access.IsGranted) visible.Add(id);
+48:                 }
+49:                 rows = rows.Where(x => x.BranchId != null && visible.Contains(x.BranchId.Value));
+50:             }
+51:             if (active != null) rows = rows.Where(x => x.IsActive == active);
+52:             if (!string.IsNullOrEmpty(search)) rows = rows.Where(x => x.TypeCode.Contains(search) || x.TypeName.Contains(search));
+53:             var total = await rows.CountAsync(token);
+54:             var ordered = (sort, descending) switch
+55:             {
+56:                 ("name", false) => rows.OrderBy(x => x.TypeName), ("name", true) => rows.OrderByDescending(x => x.TypeName),
+57:                 ("status", false) => rows.OrderBy(x => x.IsActive), ("status", true) => rows.OrderByDescending(x => x.IsActive),
+58:                 (_, true) => rows.OrderByDescending(x => x.TypeCode), _ => rows.OrderBy(x => x.TypeCode)
+59:             };
+60:             var slice = await ordered.ThenBy(x => x.BranchId).ThenBy(x => x.RoomTypeId)
+62:             var items = new List<RoomTypeListItem>();
+63:             foreach (var row in slice)
+64:                 items.Add(new(Details(row), await ActiveRoomsAsync(row.RoomTypeId, row.BranchId, token), row.BranchId != null && row.IsActive));
+65:             foreach (var id in visible)
+66:             {
+67:                 var access = await permissions.EvaluateBranchAsync(Permission, id, token);
+68:                 if (!access.IsGranted) return new(access.Decision == PermissionDecision.Unavailable
+69:                     ? RoomTypeDirectoryStatus.Unavailable : RoomTypeDirectoryStatus.Forbidden);
+70:             }
+71:             if (branchId == null && global.IsGranted)
+72:             {
+73:                 var final = await permissions.EvaluateGlobalAsync(Permission, token);
+74:                 if (!final.IsGranted) return new(final.Decision == PermissionDecision.Unavailable
+75:                     ? RoomTypeDirectoryStatus.Unavailable : RoomTypeDirectoryStatus.Forbidden);
+76:             }
+77:             return new(RoomTypeDirectoryStatus.Success,
+78:                 new RoomTypePage(items, total, page, pageSize, branchId, active, search, sort, descending));
+79:         }, ct);
+80:     }
+81: 
+82:     public Task<RoomTypeDirectoryResult> DetailAsync(SessionReference ticket, long sessionId,
+83:         long? branchId, long id, CancellationToken ct)
+84:     {
+85:         if (id <= 0) throw new ValidationException("Id must be positive.");
+88:             if (branchId == null)
+89:             {
+90:                 var global = await permissions.EvaluateGlobalAsync(Permission, token);
+91:                 if (!global.IsGranted) return new(global.Decision == PermissionDecision.Unavailable
+92:                     ? RoomTypeDirectoryStatus.Unavailable : RoomTypeDirectoryStatus.Forbidden);
+93:             }
+94:             var row = await Rows().SingleOrDefaultAsync(x => x.RoomTypeId == id && x.BranchId == branchId, token);
+95:             if (row == null) return new(RoomTypeDirectoryStatus.NotFound);
+96:             var value = Details(row);
+97:             var key = id.ToString(CultureInfo.InvariantCulture);
+98:             var revision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "room_types" && x.EntityId == key)
+100:             var activeRooms = await ActiveRoomsAsync(id, row.BranchId, token);
+101:             var tag = '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision, activeRooms }, Json))) + '"';
+102:             return new(RoomTypeDirectoryStatus.Success, new RoomTypeListItem(value, activeRooms, branchId != null && value.IsActive), tag);
+103:         }, ct, allowScopedList: false);
+104:     }
+105: 
+106:     private async Task<RoomTypeDirectoryResult> ReadAsync(SessionReference ticket, long sessionId, long? branchId,
+107:         Func<CancellationToken, Task<RoomTypeDirectoryResult>> read, CancellationToken ct, bool allowScopedList = true)
+108:     {
+109:         ArgumentNullException.ThrowIfNull(ticket);
+110:         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
+111:         ct.ThrowIfCancellationRequested();
+112:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+113:             || actor.IsRestricted || ticket.IsRestricted) return new(RoomTypeDirectoryStatus.SessionInvalid);
+114:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
+115:             || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
+116:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+117:         try
+118:         {
+119:             var locked = await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);
+120:             if (!locked.TryGetValue(actor.UserId, out var user) || user is null || user.DeletedAt != null
+121:                 || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE") return new(RoomTypeDirectoryStatus.SessionInvalid);
+122:             if (await Gate() is { } denied) return new(denied);
+123:             if (branchId is { } branch)
+124:             {
+125:                 var parent = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}")
+126:                     .AsNoTracking().SingleOrDefaultAsync(ct);
+127:                 if (parent == null) return new(RoomTypeDirectoryStatus.NotFound);
+128:                 if (!parent.IsActive) return new(RoomTypeDirectoryStatus.Inactive);
+129:             }
+130:             var locks = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:RoomTypes:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];").ToArrayAsync(ct);
+131:             if (locks.Length != 1 || locks[0] < 0) return new(RoomTypeDirectoryStatus.Unavailable);
+132:             if (await RoomTypeDirectorySchema.ReadAsync(db, ct) != 1) return new(RoomTypeDirectoryStatus.SchemaRequired);
+133:             var result = await read(ct);
+134:             if (result.Status != RoomTypeDirectoryStatus.Success) return result;
+135:             if (await Gate() is { } final) return new(final);
+136:             await tx.CommitAsync(ct);
+137:             return result;
+138:         }
+139:         catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2 or 207 or 208)
+140:         { return new(RoomTypeDirectoryStatus.Unavailable); }
+141:         catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
+142:         { throw new OperationCanceledException("Room type directory cancelled.", error, ct); }
+143: 
+144:         async Task<RoomTypeDirectoryStatus?> Gate()
+145:         {
+146:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+147:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return RoomTypeDirectoryStatus.SessionInvalid;
+148:             var access = branchId is { } branch ? await permissions.EvaluateBranchAsync(Permission, branch, ct)
+149:                 : await permissions.EvaluateGlobalAsync(Permission, ct);
+150:             ct.ThrowIfCancellationRequested();
+151:             if (access.IsGranted) return null;
+152:             if (access.Decision == PermissionDecision.Unavailable) return RoomTypeDirectoryStatus.Unavailable;
+153:             if (branchId == null && allowScopedList)
+154:                 foreach (var id in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(ct))
+155:                 {
+156:                     var scoped = await permissions.EvaluateBranchAsync(Permission, id, ct);
+157:                     if (scoped.Decision == PermissionDecision.Unavailable) return RoomTypeDirectoryStatus.Unavailable;
+158:                     if (scoped.IsGranted) return null;
+159:                 }
+160:             return RoomTypeDirectoryStatus.Forbidden;
+161:         }
+162:     }
+163: 
+165:         SELECT room_type_id AS RoomTypeId,branch_id AS BranchId,type_code AS TypeCode,type_name AS TypeName,
+166:         description AS Description,standard_cleaning_minutes AS StandardCleaningMinutes,
+167:         default_checklist_id AS DefaultChecklistId,standard_capacity AS StandardCapacity,is_active AS IsActive
+168:         FROM dbo.room_types
+169:         """);
+170:     private Task<int> ActiveRoomsAsync(long id, long? branch, CancellationToken ct) => db.Rooms.AsNoTracking()
+171:         .CountAsync(x => x.RoomTypeId == id && x.IsActive && (branch == null || x.BranchId == branch), ct);
+172:     private static RoomTypeDetailsDto Details(RoomTypeDirectoryRow row) => new(row.RoomTypeId, row.BranchId, row.TypeCode,
+173:         row.TypeName, row.Description, row.StandardCleaningMinutes, row.DefaultChecklistId, row.StandardCapacity, row.IsActive);
+174:     private static int? SqlNumber(Exception error)
+175:     { for (Exception? e = error; e != null; e = e.InnerException) if (e is SqlException sql) return sql.Number; return null; }
+176:     private sealed class RoomTypeDirectoryRow
+177:     {
+178:         public long RoomTypeId { get; set; }
+179:         public long? BranchId { get; set; }
+180:         public string TypeCode { get; set; } = "";
+181:         public string TypeName { get; set; } = "";
+182:         public string? Description { get; set; }
+183:         public int? StandardCleaningMinutes { get; set; }
+184:         public long? DefaultChecklistId { get; set; }
+185:         public int? StandardCapacity { get; set; }
+186:         public bool IsActive { get; set; }
+187:     }
+188: }
+189: 

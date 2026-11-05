@@ -1,0 +1,40 @@
+﻿SOURCE: src/HotelOps.Api/Services/Users/Dev1DeactivationPredicates.cs
+SHA256: 02AD51F6C1139B13441FAAF4427A8D48BC289E3DD2DA5CCF6BFA01733405DBF2
+Ranges: 1-100 (original source line numbers)
+    1: using System.Linq.Expressions;
+    2: using HotelOps.Api.Data;
+    3: using HotelOps.Api.Entities;
+    4: using Microsoft.EntityFrameworkCore;
+    5: 
+    6: namespace HotelOps.Api.Services.Users;
+    7: 
+    8: /// <summary>
+    9: /// Positive evidence only, derived from the existing cleaning execution ownership contract.
+   10: /// This is not a complete DEV1 eligibility gate. A negative result leaves other cleaning
+   11: /// states, inconsistent legacy data and all other DEV1 responsibilities unresolved.
+   12: /// Uses the caller's DbContext/transaction; does not acquire locks or perform mutations.
+   13: /// </summary>
+   14: internal static class Dev1DeactivationPredicates
+   15: {
+   16:     internal static Expression<Func<CleaningAssignment, bool>> KnownExecutingCleaning(long targetId, DateTime nowUtc)
+   17:     {
+   18:         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(targetId);
+   19:         if (nowUtc.Kind != DateTimeKind.Utc) throw new ArgumentException("UTC evaluation time is required.", nameof(nowUtc));
+   20:         // Match CleaningTaskResourceResolver's proven ownership subset. Do not broaden
+   21:         // these states or treat its permission-denial cases as absence of responsibility.
+   22:         return assignment => assignment.AssigneeUserId == targetId
+   23:             && assignment.AssignmentStatus == "ACTIVE" && assignment.EndedAt == null && assignment.AssignedAt <= nowUtc
+   24:             && assignment.CleaningTask.Status == "IN_PROGRESS"
+   25:             && assignment.CleaningTask.Room.IsActive && assignment.CleaningTask.Room.BranchId > 0
+   26:             && assignment.CleaningTask.CleaningAssignments.Count(other => other.AssignmentStatus == "ACTIVE"
+   27:                 && other.EndedAt == null && other.AssignedAt <= nowUtc) == 1;
+   28:     }
+   29: 
+   30:     internal static Task<bool> HasKnownExecutingCleaningAsync(HotelOpsDbContext db, long targetId,
+   31:         DateTime nowUtc, CancellationToken ct)
+   32:     {
+   33:         ct.ThrowIfCancellationRequested();
+   34:         return db.CleaningAssignments.AsNoTracking().AnyAsync(KnownExecutingCleaning(targetId, nowUtc), ct);
+   35:     }
+   36: }
+

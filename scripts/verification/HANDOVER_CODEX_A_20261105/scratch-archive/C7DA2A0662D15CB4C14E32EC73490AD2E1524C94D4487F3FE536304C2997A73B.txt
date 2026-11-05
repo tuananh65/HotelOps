@@ -1,0 +1,27 @@
+$ErrorActionPreference='Stop'
+$runId=(Get-Content obj/task74-progress-runid.local.txt -Raw).Trim()
+$fresh=(Get-Content obj/task74-api-database.local.txt -Raw).Trim()
+$targets=@($fresh,($runId+'_Upgrade'),($runId+'_AuthUpgrade'))
+$queries=@(
+ "SELECT t.name table_name,c.name column_name,c.column_id,TYPE_NAME(c.system_type_id) type_name,c.max_length,c.is_nullable,c.is_identity FROM sys.tables t JOIN sys.columns c ON c.object_id=t.object_id WHERE t.name IN('cleaning_item_definitions','cleaning_progress_versions','cleaning_task_items','task_progress_versions','task_completion_criteria','progress_evidence_links') ORDER BY t.name,c.column_id FOR JSON PATH",
+ "SELECT OBJECT_NAME(f.parent_object_id) table_name,pc.name column_name,OBJECT_NAME(f.referenced_object_id) target_table,rc.name target_column,f.delete_referential_action,f.update_referential_action,f.is_disabled,f.is_not_trusted FROM sys.foreign_keys f JOIN sys.foreign_key_columns fc ON fc.constraint_object_id=f.object_id JOIN sys.columns pc ON pc.object_id=f.parent_object_id AND pc.column_id=fc.parent_column_id JOIN sys.columns rc ON rc.object_id=f.referenced_object_id AND rc.column_id=fc.referenced_column_id WHERE OBJECT_NAME(f.parent_object_id) IN('cleaning_item_definitions','cleaning_progress_versions','cleaning_task_items','task_progress_versions','task_completion_criteria','progress_evidence_links') ORDER BY table_name,column_name,target_table,target_column FOR JSON PATH",
+ "SELECT OBJECT_NAME(parent_object_id) table_name,name,definition,is_disabled,is_not_trusted FROM sys.check_constraints WHERE OBJECT_NAME(parent_object_id) IN('cleaning_item_definitions','cleaning_progress_versions','cleaning_task_items','task_progress_versions','task_completion_criteria','progress_evidence_links') ORDER BY table_name,name FOR JSON PATH",
+ "SELECT OBJECT_NAME(i.object_id) table_name,CASE WHEN i.is_primary_key=1 THEN 'PRIMARY_KEY' ELSE i.name END index_name,i.is_unique,i.is_disabled,i.filter_definition,c.name column_name,ic.key_ordinal FROM sys.indexes i JOIN sys.index_columns ic ON ic.object_id=i.object_id AND ic.index_id=i.index_id JOIN sys.columns c ON c.object_id=ic.object_id AND c.column_id=ic.column_id WHERE OBJECT_NAME(i.object_id) IN('cleaning_item_definitions','cleaning_progress_versions','cleaning_task_items','task_progress_versions','task_completion_criteria','progress_evidence_links') ORDER BY table_name,index_name,ic.key_ordinal FOR JSON PATH"
+)
+$results=@()
+foreach($database in $targets){
+ if($database -cnotmatch '^HotelOps_Canonical_[0-9]{8}_[0-9]{6}_[a-f0-9]{8}_(Fresh|Upgrade|AuthUpgrade)$'){throw 'Forbidden target'}
+ & scripts/database/release/progress/Run-Progress.ps1 -Stage Verify -Database $database -Receipt ('obj/task74-postflight-'+$database+'-'+[guid]::NewGuid().ToString('N')+'.local.json')
+ $connection=New-Object System.Data.SqlClient.SqlConnection ('Data Source=REDACTED_LOCAL_SQL_HOST\SQLEXPRESS;Initial Catalog='+$database+';Integrated Security=True;TrustServerCertificate=True')
+ try{
+  $connection.Open();$command=$connection.CreateCommand();$command.CommandText='SELECT DB_NAME()';if($command.ExecuteScalar() -cne $database){throw 'Identity mismatch'}
+  $parts=@();foreach($query in $queries){$command.CommandText=$query;$reader=$command.ExecuteReader();$builder=New-Object Text.StringBuilder;try{while($reader.Read()){[void]$builder.Append($reader.GetString(0))}}finally{$reader.Dispose()};$parts+=@($builder.ToString())}
+  $bytes=[Text.Encoding]::UTF8.GetBytes(($parts -join "`n"));$sha=[Security.Cryptography.SHA256]::Create();try{$hash=[BitConverter]::ToString($sha.ComputeHash($bytes)).Replace('-','')}finally{$sha.Dispose()}
+  $command.CommandText='DBCC CHECKCONSTRAINTS WITH ALL_CONSTRAINTS, NO_INFOMSGS';$adapter=New-Object System.Data.SqlClient.SqlDataAdapter $command;$data=New-Object System.Data.DataSet;try{[void]$adapter.Fill($data);foreach($table in $data.Tables){if($table.Rows.Count){throw 'Constraint violations'}}}finally{$adapter.Dispose()}
+  $results+=@([pscustomobject]@{database=$database;shapeHash=$hash;constraints='PASS'})
+ }finally{$connection.Dispose()}
+}
+$same=@($results.shapeHash | Select-Object -Unique).Count -eq 1
+[pscustomobject]@{success=$same;targets=$results;scope='Progress columns/FKs/checks/indexes; exact trigger definitions verified by runner';finishedUtc=[DateTimeOffset]::UtcNow.ToString('o')} | ConvertTo-Json -Depth 5 | Set-Content obj/task74-shape-parity.local.json -Encoding UTF8
+if(-not $same){throw 'Progress fresh/upgrade shape differs'}
+'PASS three-target progress metadata parity and CHECKCONSTRAINTS'

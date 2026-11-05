@@ -1,0 +1,20 @@
+19:         if (query.RoleId is { } roleId)
+20:             users = users.Where(user => user.UserRoleUsers.Any(assignment => assignment.RoleId == roleId
+21:                 && assignment.IsActive && assignment.Role.IsActive && assignment.AssignedAt <= utcNow
+22:                 && (assignment.ExpiresAt == null || assignment.ExpiresAt > utcNow)));
+23:         if (query.AccountStatus?.Trim().ToUpperInvariant() is { Length: > 0 } status)
+24:             users = users.Where(user => user.AccountStatus == status);
+25:         return users;
+26:     }
+27: 
+36:             user.Department == null ? null : new UserDirectoryDepartmentDto(user.Department.DepartmentId,
+37:                 user.Department.DepartmentCode, user.Department.DepartmentName),
+38:             user.UserRoleUsers.Where(assignment => assignment.IsActive && assignment.Role.IsActive
+39:                 && assignment.AssignedAt <= utcNow && (assignment.ExpiresAt == null || assignment.ExpiresAt > utcNow))
+40:                 .OrderBy(assignment => assignment.Role.RoleCode).ThenBy(assignment => assignment.UserRoleId)
+41:                 .Select(assignment => new UserDirectoryRoleDto(assignment.RoleId, assignment.Role.RoleCode,
+43:                         : new UserDirectoryBranchDto(assignment.Branch.BranchId,
+44:                             assignment.Branch.BranchCode, assignment.Branch.BranchName))).ToList(),
+45:             user.AccountStatus));
+46: }
+47: 

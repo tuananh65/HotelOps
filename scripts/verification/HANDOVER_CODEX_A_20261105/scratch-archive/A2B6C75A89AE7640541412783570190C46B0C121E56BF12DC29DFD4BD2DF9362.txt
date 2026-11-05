@@ -1,0 +1,85 @@
+$ErrorActionPreference = 'Stop'
+$pre = Get-Content obj/task77-preflight.local.json -Raw | ConvertFrom-Json
+$allowedExisting = 'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md'
+$changed = @()
+$unexpected = @()
+foreach ($entry in $pre.paths) {
+    $hash = if (Test-Path -LiteralPath $entry.path -PathType Leaf) { (Get-FileHash -LiteralPath $entry.path).Hash } else { $null }
+    if ($hash -ne $entry.sha256) {
+        $changed += $entry.path
+        if ($entry.path -ne $allowedExisting) { $unexpected += $entry.path }
+    }
+}
+if ($unexpected.Count) { throw ('Unexpected change: ' + ($unexpected -join ',')) }
+if ((git rev-parse HEAD) -ne $pre.head -or (Get-FileHash .git/index).Hash -ne $pre.indexHash) { throw 'HEAD/index changed' }
+if (Compare-Object @(git worktree list --porcelain) $pre.worktrees) { throw 'Worktree registration/head changed' }
+$baseline = Get-Content scripts/verification/Task76/UC_LEDGER_TASK76.json -Raw -Encoding utf8 | ConvertFrom-Json
+$ledger = Get-Content scripts/verification/Task77/UC_LEDGER_TASK77.json -Raw -Encoding utf8 | ConvertFrom-Json
+if ($ledger.rows.Count -ne 75) { throw 'Ledger cardinality' }
+foreach ($row in $ledger.rows) {
+    $old = $baseline.rows | Where-Object { $_.uc -eq $row.uc }
+    foreach ($field in @('uc','title','classification','weight','verifiedPoints','evidenceSummary')) {
+        if ($old.$field -cne $row.$field) { throw ('Ledger changed: ' + $row.uc + ':' + $field) }
+    }
+}
+if (($ledger.rows | Measure-Object verifiedPoints -Sum).Sum -ne 60 -or ($ledger.rows | Measure-Object weight -Sum).Sum -ne 256) { throw 'Ledger weights' }
+$known = @{}
+foreach ($entry in $pre.paths) { $known[$entry.path] = $true }
+$newFiles = @(git ls-files --cached --others --exclude-standard | Sort-Object -Unique | Where-Object { !$known.ContainsKey($_) })
+foreach ($file in $newFiles) {
+    if (!$file.StartsWith('scripts/verification/Task77/') -and $file -ne 'src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs') { throw ('Unexpected new path: ' + $file) }
+}
+$whitespace = @()
+foreach ($file in @($newFiles) + @($allowedExisting)) {
+    $lineNumber = 0
+    foreach ($line in Get-Content -LiteralPath $file -Encoding utf8) {
+        $lineNumber++
+        if ($line -match '[\t ]+$') { $whitespace += ($file + ':' + $lineNumber) }
+    }
+}
+if ($whitespace.Count) { throw ('Whitespace: ' + ($whitespace -join ',')) }
+git diff --check
+if ($LASTEXITCODE -ne 0) { throw 'git diff --check failed' }
+git apply --check --ignore-space-change scripts/verification/Task77/proposal/WorkTime.shared.patch
+if ($LASTEXITCODE -ne 0) { throw 'Shared patch check failed' }
+git apply --check --ignore-space-change scripts/verification/Task77/proposal/Program.di.patch
+if ($LASTEXITCODE -ne 0) { throw 'DI patch check failed' }
+$manifestPath = 'scripts/verification/Task77/PROPOSAL_MANIFEST.json'
+$manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json
+foreach ($item in $manifest.proposalArtifacts) { $item.sha256 = (Get-FileHash -LiteralPath $item.path).Hash }
+$manifest | ConvertTo-Json -Depth 7 | Set-Content $manifestPath -Encoding utf8
+$checks = @(
+    @('obj/task77-build.local.log','Build succeeded.'),
+    @('obj/task77-worktime-verification.local.log','PASS: 422 WorkIntervalMath checks.'),
+    @('obj/task77-authorization-regression.local.log','PASS: 93 authorization checks'),
+    @('obj/task77-permission-regression.local.log','PASS: 43 checks.'),
+    @('obj/task77-current-user-regression.local.log','14 checks passed.'),
+    @('obj/task77-resource-regression.local.log','PASS: 49 resource authorization checks')
+)
+foreach ($check in $checks) {
+    if (!(Select-String -LiteralPath $check[0] -Pattern $check[1] -SimpleMatch -Quiet)) { throw ('Missing executed evidence: ' + $check[0]) }
+}
+$end = [DateTimeOffset]::Now.ToUniversalTime()
+$elapsed = $end - [DateTimeOffset]::Parse($pre.startedUtc)
+$receipt = [ordered]@{
+    status = 'INDEPENDENT_COMPONENT_IMPLEMENTED_SHARED_APPROVAL_PENDING'; validationPassed = $true; fullUcAcceptancePassed = $false
+    startedUtc = $pre.startedUtc; finishedUtc = $end.ToString('o'); elapsedSeconds = [math]::Round($elapsed.TotalSeconds,3); elapsedDisplay = $elapsed.ToString('hh\:mm\:ss')
+    protectedPaths = $pre.paths.Count; preservedPaths = $pre.paths.Count - $changed.Count
+    expectedChangedExistingPaths = $changed; unexpectedChangedExistingPaths = $unexpected
+    headUnchanged = $true; indexUnchanged = $true; fourWorktreeRegistrationsAndHeadsUnchanged = $true
+    productionSourceAdded = @('src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs')
+    existingCSharpFilesChanged = @(); sharedFilesApplied = @(); dev2FilesChanged = @(); sqlConnections = 0
+    build = [ordered]@{ result = 'PASS'; errors = 0; warningEntries = 2; warningCode = 'NU1900'; log = 'obj/task77-build.local.log' }
+    mathVerification = [ordered]@{ result = 'PASS'; checks = 422; limits = 'Pure UTC/overlap/effort only; no SQL/HTTP/auth/concurrency acceptance'; nu1900WarningLines = 4 }
+    securityRegression = [ordered]@{ result = 'PASS'; authorization = 93; permission = 43; currentUser = 14; resourceAuthorization = 49; total = 199; noBuildExecutables = $true; liveSql = $false }
+    frameworkTests = 'dotnet test HotelOps.slnx exit0, restore only; no cases; NOT_AVAILABLE, not PASS'
+    newWorkdaySqlHttpsAcceptance = 'NOT_RUN'; shiftAttendanceSqlRegression = 'NOT_RUN'; authenticationUserSqlRegression = 'NOT_RUN'
+    proposals = [ordered]@{ sharedPatchCheck = 'PASS_CHECK_ONLY'; diPatchCheck = 'PASS_CHECK_ONLY'; applied = $false; modelCompiled = $false; sqlExecuted = $false; diResolved = $false; approval = 'A1_PENDING' }
+    classifications = [ordered]@{ UC111 = 'BLOCKED_EXTERNAL'; UC138 = 'NOT_IMPLEMENTED'; UC139 = 'BLOCKED_EXTERNAL' }
+    completedUCs = 26; verifiedPoints = 60; pointDenominator = 256; weightedPercent = 23.4375; newlyCompletedUCs = 0; pointsGained = 0
+    ledgerClassificationsUnchanged = $true; diffCheck = 'PASS'; newFileWhitespace = 'PASS'
+    createdFiles = $newFiles
+    artifactHashes = @($newFiles | ForEach-Object { [ordered]@{ path = $_; sha256 = (Get-FileHash -LiteralPath $_).Hash } })
+}
+$receipt | ConvertTo-Json -Depth 8 | Set-Content scripts/verification/Task77/TASK77_VALIDATION.json -Encoding utf8
+[pscustomobject]@{ result = $receipt.status; elapsed = $receipt.elapsedDisplay; preserved = $receipt.preservedPaths; newFiles = $newFiles.Count; mathChecks = 422; securityChecks = 199; newCompleteUCs = 0; approval = 'A1_PENDING' } | ConvertTo-Json

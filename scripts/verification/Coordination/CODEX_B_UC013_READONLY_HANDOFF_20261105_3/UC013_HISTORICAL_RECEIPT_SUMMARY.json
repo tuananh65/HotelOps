@@ -1,0 +1,30 @@
+﻿{
+    "commit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "path":  "scripts/verification/HotelStructure/task64-accepted-final2.local.json",
+    "gitBlob":  "8366ce11a466e96d0927e1464d6a795a409abff2",
+    "structureReadChecks":  159,
+    "structureReadWaitCount":  11,
+    "structureReadFaults":  [
+                                {
+                                    "scenario":  "lock1222",
+                                    "numbers":  [
+                                                    1222
+                                                ]
+                                },
+                                {
+                                    "scenario":  "timeout",
+                                    "numbers":  [
+                                                    -2
+                                                ]
+                                },
+                                {
+                                    "scenario":  "query-fault",
+                                    "numbers":  [
+                                                    51064
+                                                ]
+                                }
+                            ],
+    "http":  "Actual root Program.cs HTTPS, real login/cookie/SQL/CSRF",
+    "rerun":  false,
+    "note":  "159 UC013 assertions is a historical receipt component, not new runtime acceptance. Combined receipt also contains UC014 checks; counts must not be double credited."
+}

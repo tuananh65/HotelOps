@@ -1,0 +1,46 @@
+$ErrorActionPreference='Stop'
+$backup=(Get-Content obj/task64-preflight-path.local.txt -Raw).Trim()
+$before=Get-Content (Join-Path $backup 'manifest.json') -Raw|ConvertFrom-Json
+$allowed=@('src/HotelOps.Api/Program.cs','scripts/verification/HotelStructure/Program.cs','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$changed=@(); $unchanged=0; $validBackups=0
+foreach($entry in $before.Files){
+    $copy=Join-Path (Join-Path $backup 'files') $entry.Path
+    if(!(Test-Path -LiteralPath $copy) -or (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $entry.SHA256){throw ('Backup mismatch: '+$entry.Path)}
+    $validBackups++
+    if(!(Test-Path -LiteralPath $entry.Path)){throw ('Missing protected file: '+$entry.Path)}
+    if((Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash -eq $entry.SHA256){$unchanged++}
+    elseif($allowed -contains $entry.Path){$changed+=$entry.Path}
+    else{throw ('Unexpected protected edit: '+$entry.Path)}
+}
+$head=git rev-parse HEAD
+$branch=git branch --show-current
+$upstream=git rev-parse --abbrev-ref '@{upstream}'
+$index=@(git ls-files --stage)
+$worktrees=@(git worktree list --porcelain)
+if($head -ne $before.Head -or $branch -ne $before.Branch -or $upstream -ne $before.Upstream -or ($index -join "`n") -cne ($before.IndexEntries -join "`n") -or ($worktrees -join "`n") -cne ($before.Worktrees -join "`n")){throw 'Git HEAD/branch/upstream/index/worktrees changed'}
+$paths=@('src/HotelOps.Api/Controllers/BranchStructureController.cs','src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs','src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs','scripts/verification/HotelStructure/Task64StructureCases.cs','scripts/verification/HotelStructure/Task64StructureConcurrency.cs','scripts/verification/HotelStructure/TASK64_UC013_IMPLEMENTATION.md')+$allowed
+$hashes=@()
+foreach($path in $paths){
+    $raw=[IO.File]::ReadAllText((Join-Path (Get-Location) $path))
+    if($raw -match '(?m)[\t ]+\r?$'){throw ('Trailing whitespace: '+$path)}
+    if($path.EndsWith('.md')){
+        foreach($m in [regex]::Matches($raw,'\]\(([^)]+)\)')){
+            $target=$m.Groups[1].Value
+            if($target -notmatch '^[a-z]+:' -and !$target.StartsWith('#')){
+                $target=($target -split '#')[0]
+                if(!(Test-Path -LiteralPath (Join-Path (Split-Path $path) $target))){throw ('Broken local link: '+$path+' -> '+$target)}
+            }
+        }
+    }
+    $hashes+=@{Path=$path;SHA256=(Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash}
+}
+$receipt=Get-Content scripts/verification/HotelStructure/task64-accepted-final2.local.json -Raw|ConvertFrom-Json
+$rooms=Get-Content scripts/verification/HotelStructure/task64-room-regression.local.json -Raw|ConvertFrom-Json
+if(!$receipt.success -or $receipt.checks -ne 374 -or $receipt.structureReadChecks -ne 159 -or @($receipt.structureReadWaits).Count -ne 11 -or $rooms.result -ne 'PASS'){throw 'Acceptance receipt mismatch'}
+$ucRows=@(Get-Content scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md -Encoding UTF8|Where-Object{$_ -match '^\| UC-\d{3} \|'})
+if($ucRows.Count -ne 75){throw 'UC denominator changed'}
+$categories=$ucRows|ForEach-Object{($_ -split '\|')[4].Trim()}|Group-Object|ForEach-Object{@{Status=$_.Name;Count=$_.Count}}
+$elapsed=[Math]::Round(([DateTimeOffset]::UtcNow-[DateTimeOffset]::Parse($before.StartUtc)).TotalMinutes,1)
+$result=@{Result='PASS';ValidatedAtUtc=[DateTimeOffset]::UtcNow.ToString('o');ElapsedMinutes=$elapsed;Head=$head;Branch=$branch;Upstream=$upstream;ProtectedFiles=$before.Files.Count;ValidBackups=$validBackups;Unchanged=$unchanged;IntendedEdits=$changed;IndexUnchanged=$true;WorktreesUnchanged=$true;DeliveryHashes=$hashes;UC013Checks=$receipt.structureReadChecks;UC014Checks=$receipt.checks-$receipt.structureReadChecks;UC013Waits=@($receipt.structureReadWaits).Count;UC014Waits=@($receipt.waits).Count;UC023Checks=@($rooms.checks).Count;UCCategories=$categories;VerifiedPoints=21;FullScopePoints=256;DotnetTest='Exit0; no discovered tests';Build='PASS; NU1900 vulnerability feed warnings';AuthFoundationChecks=174;DiffCheck='PASS';NewDeliveryWhitespaceAndLinks='PASS'}
+$result|ConvertTo-Json -Depth 8|Set-Content obj/task64-validation.local.json -Encoding UTF8
+[pscustomobject]@{Result='PASS';Protected=$before.Files.Count;Backups=$validBackups;Unchanged=$unchanged;Edits=($changed -join ', ');ElapsedMinutes=$elapsed;UCCategories=$categories}|ConvertTo-Json -Depth 5

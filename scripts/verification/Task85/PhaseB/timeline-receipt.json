@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "checks": 14,
+  "kind": "ISOLATED_SERVICE_BOUNDARIES_NO_SQL_NO_HTTPS_NOT_FRAMEWORK",
+  "cases": [
+    "Reject 0/100 before identity/SQL",
+    "Reject -1/100 before identity/SQL",
+    "Reject 1/0 before identity/SQL",
+    "Reject 1/-1 before identity/SQL",
+    "Reject 1/101 before identity/SQL",
+    "Reject 2147483647/100 before identity/SQL",
+    "Reject 2147483647/2147483647 before identity/SQL",
+    "Invalid pagination never reaches identity or SQL dependencies",
+    "Valid boundary 1/100 still rejects missing identity",
+    "Valid boundary 2/2 still rejects missing identity",
+    "Valid boundary 21474836/100 still rejects missing identity",
+    "Valid boundary 2147483647/1 still rejects missing identity",
+    "Legacy service overload retains default query and session gate",
+    "Backward compatible default latest-100 contract"
+  ]
+}

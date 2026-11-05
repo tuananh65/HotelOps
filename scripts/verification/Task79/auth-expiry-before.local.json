@@ -1,0 +1,17 @@
+{
+  "phase": "before",
+  "success": true,
+  "checks": 5,
+  "cases": [
+    "Actual SQL datetime2 materializes temporary expiry as Unspecified",
+    "Actual production Program HTTPS startup",
+    "CSRF bootstrap short",
+    "Real HTTPS credential login short expected 200",
+    "BASELINE DEFECT reproduced: valid short credential login200 followed by cookie session401 on UTC\u002B07"
+  ],
+  "trial": "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+  "actualProductionProgram": true,
+  "operatingSystemTimezone": "SE Asia Standard Time",
+  "utcOperatingSystemExecuted": false,
+  "finishedUtc": "2026-11-03T23:49:34.2648587+00:00"
+}

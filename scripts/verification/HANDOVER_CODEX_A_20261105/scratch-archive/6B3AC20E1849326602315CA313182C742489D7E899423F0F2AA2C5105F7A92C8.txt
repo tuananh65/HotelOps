@@ -1,0 +1,56 @@
+param([Parameter(Mandatory=$true)][ValidateRange(1,4)][int]$Group)
+$ErrorActionPreference='Stop'
+if ((git branch --show-current) -cne 'feature/BE1-database-integration') { throw 'Wrong branch' }
+if (@(git diff --cached --name-only).Count -ne 0) { throw 'Index not empty' }
+$manifest=[IO.File]::ReadAllText((Join-Path $PWD 'scripts/verification/UserManagementCommit/COMMIT_MANIFEST.md'))
+$names=@('Detail','Database artifacts','Startup gate','Profile and approved planning/verification')
+$heading='## '+$names[$Group-1]
+$begin=$manifest.IndexOf($heading)
+$end=$manifest.IndexOf('## ',$begin+3)
+$section=if($end -lt 0){$manifest.Substring($begin)}else{$manifest.Substring($begin,$end-$begin)}
+$paths=@([regex]::Matches($section,'(?m)^- `([^`]+)`')|ForEach-Object {$_.Groups[1].Value})
+$expected=@(11,4,7,53)[$Group-1]
+if($paths.Count -ne $expected){throw 'Allowlist count mismatch'}
+if($Group -eq 3){
+    $ordinary=@($paths|Where-Object {$_ -ne 'src/HotelOps.Api/Program.cs'})
+    git add -- $ordinary
+    if($LASTEXITCODE -ne 0){throw 'Selective add failed'}
+    $patch=(git diff -- src/HotelOps.Api/Program.cs) -join "`n"
+    $patch=$patch.Replace("+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();`n",'').Replace("+builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();`n",'')
+    $patch=$patch.Replace('@@ -11,6 +11,9 @@','@@ -11,6 +11,7 @@').Replace('@@ -57,6 +60,13 @@','@@ -57,6 +58,13 @@')
+    $patchFile=Join-Path $env:TEMP ('HotelOps-task29-'+[guid]::NewGuid().ToString('N')+'.patch')
+    [IO.File]::WriteAllText($patchFile,$patch+"`n",(New-Object System.Text.UTF8Encoding $false))
+    git apply --cached --check -- $patchFile
+    if($LASTEXITCODE -ne 0){throw 'Program patch check failed'}
+    git apply --cached -- $patchFile
+    if($LASTEXITCODE -ne 0){throw 'Program selective patch failed'}
+}else{
+    git add -- $paths
+    if($LASTEXITCODE -ne 0){throw 'Selective add failed'}
+}
+$actual=@(git diff --cached --name-only)
+if(@(Compare-Object ($paths|Sort-Object) ($actual|Sort-Object)).Count -ne 0){throw 'Staged allowlist mismatch'}
+git diff --cached --check
+if($LASTEXITCODE -ne 0){throw 'Staged whitespace failed'}
+foreach($f in $actual){
+    if($f -match '(?i)\.(json|wav|bak|pfx|dll|exe)$|(^|/)(bin|obj)/|secrets'){throw "Excluded path staged: $f"}
+    $blob=(git show ":$f") -join "`n"
+    if($blob -match '-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|gh[pousr]_[A-Za-z0-9]{30,}|sk-proj-[A-Za-z0-9_-]{20,}') {throw "Secret pattern: $f"}
+}
+if($Group -eq 3){
+    $program=(git show ':src/HotelOps.Api/Program.cs') -join "`n"
+    if($program -match 'Services.Users.UserProfile' -or $program -notmatch 'StartupSchemaValidator'){throw 'Program hunk mismatch'}
+}
+$tree=(git write-tree).Trim()
+if($LASTEXITCODE -ne 0){throw 'Cannot snapshot index'}
+$snapshot=Join-Path $PWD ('obj/task29-reviewed-'+[guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $snapshot | Out-Null
+$zip=Join-Path $snapshot 'source.zip'
+git archive --format=zip "--output=$zip" $tree
+if($LASTEXITCODE -ne 0){throw 'Snapshot archive failed'}
+$buildRoot=Join-Path $snapshot 'source'
+Expand-Archive -LiteralPath $zip -DestinationPath $buildRoot
+dotnet build (Join-Path $buildRoot 'HotelOps.slnx')
+if($LASTEXITCODE -ne 0){throw 'Index snapshot build failed; DO NOT COMMIT'}
+Write-Output "PASS: group $Group exact allowlist, staged whitespace/security patterns and independent index snapshot build ($tree)"
+git diff --cached --stat

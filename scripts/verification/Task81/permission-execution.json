@@ -1,0 +1,4 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/PermissionService/PermissionService.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/permission -p:RestoreIgnoreFailedSources=true ",
+    "exitCode":  0
+}

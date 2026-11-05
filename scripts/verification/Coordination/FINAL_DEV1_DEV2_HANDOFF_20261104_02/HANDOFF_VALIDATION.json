@@ -1,0 +1,161 @@
+﻿{
+    "task":  "COORD-FINAL-01",
+    "revision":  "PARALLEL_WORK_RULES",
+    "status":  "DONE_CONSOLIDATED_HANDOFF_NOT_RUNTIME_ACCEPTANCE",
+    "startedUtc":  "2026-11-04T17:16:11.8623942+00:00",
+    "recordedUtc":  "2026-11-04T17:16:20.9771213+00:00",
+    "elapsedSeconds":  9.1,
+    "timezone":  "Asia/Saigon",
+    "sourceSnapshotConsistent":  true,
+    "mainInputHashCount":  1156,
+    "changedMainInputs":  [
+
+                          ],
+    "newMainInputs":  [
+
+                      ],
+    "missingMainInputs":  [
+
+                          ],
+    "previousOutputFilesVerified":  368,
+    "previousOutputsChanged":  [
+
+                               ],
+    "currentMainCSharpIdentities":  317,
+    "worktreeCountPreflight":  5,
+    "worktreeCountPostflight":  5,
+    "worktreePathSetPreserved":  true,
+    "worktrees":  [
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps",
+                          "role":  "CURRENT_DEV1_SOURCE",
+                          "previouslyPresent":  true,
+                          "headPreserved":  true,
+                          "branchPreserved":  true,
+                          "indexPreserved":  true,
+                          "statusSame":  false,
+                          "preStatusLines":  764,
+                          "postStatusLines":  853
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps/obj/task11-dev2-rehearsal",
+                          "role":  "OTHER_WORKTREE_METADATA_ONLY",
+                          "previouslyPresent":  true,
+                          "headPreserved":  true,
+                          "branchPreserved":  true,
+                          "indexPreserved":  true,
+                          "statusSame":  true,
+                          "preStatusLines":  103,
+                          "postStatusLines":  103
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps/obj/task12-pr7-resolution",
+                          "role":  "OTHER_WORKTREE_METADATA_ONLY",
+                          "previouslyPresent":  true,
+                          "headPreserved":  true,
+                          "branchPreserved":  true,
+                          "indexPreserved":  true,
+                          "statusSame":  true,
+                          "preStatusLines":  0,
+                          "postStatusLines":  0
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps-AI-Loop",
+                          "role":  "OTHER_WORKTREE_METADATA_ONLY",
+                          "previouslyPresent":  true,
+                          "headPreserved":  true,
+                          "branchPreserved":  true,
+                          "indexPreserved":  true,
+                          "statusSame":  true,
+                          "preStatusLines":  0,
+                          "postStatusLines":  0
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps-Codex-B",
+                          "role":  "CODEX_B_INDEPENDENT_METADATA_ONLY",
+                          "previouslyPresent":  true,
+                          "headPreserved":  true,
+                          "branchPreserved":  true,
+                          "indexPreserved":  true,
+                          "statusSame":  true,
+                          "preStatusLines":  7,
+                          "postStatusLines":  7
+                      }
+                  ],
+    "mainStatusPreservedExcludingNewHandoff":  true,
+    "externalParallelMetadataChanges":  [
+
+                                        ],
+    "outsideMainSourceRescanned":  false,
+    "parallelPolicy":  "Metadata only outside main; no Codex B implementation/integration; exact diff + conflict review + separate approval required",
+    "programIdentity":  {
+                            "worktree":  "D:\\SEP490\\Projects\\HotelOps",
+                            "branch":  "feature/BE1-database-integration",
+                            "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+                            "program":  {
+                                            "path":  "src/HotelOps.Api/Program.cs",
+                                            "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Program.cs",
+                                            "sha256":  "586299FB650342F7389BAECD615DD29ACC94352857021FC4391554FF9372A505",
+                                            "headBlob":  "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+                                            "indexBlob":  "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+                                            "workingTreeRawBlob":  "ece1f08d2a55624e76594e06c3157a30a3d904dd",
+                                            "gitStatus":  " M",
+                                            "lineCount":  112
+                                        },
+                            "workingTreeFilteredBlob":  "b0dad3db4a086707a503a01564b0c975270d456c",
+                            "computedWorkingTreeBlobsAreNotWrittenToGit":  true
+                        },
+    "sourceEditsByTask":  0,
+    "programEditsByTask":  0,
+    "databaseConnections":  0,
+    "schemaEditsByTask":  0,
+    "rbacEditsByTask":  0,
+    "gitMutationsByTask":  0,
+    "worktreeMutationsByTask":  0,
+    "branchSyncs":  0,
+    "build":  "NOT_RUN",
+    "frameworkTests":  "NOT_RUN",
+    "sql":  "NOT_RUN",
+    "https":  "NOT_RUN",
+    "diffCheckExit":  0,
+    "progress":  {
+                     "completeUCs":  26,
+                     "totalUCs":  75,
+                     "points":  60,
+                     "totalPoints":  256,
+                     "percent":  23.4375,
+                     "ledgerModified":  false,
+                     "UC012":  "PARTIAL",
+                     "UC037":  "PARTIAL",
+                     "UC139":  "BLOCKED_EXTERNAL",
+                     "task87Started":  false
+                 },
+    "approvalBoundaries":  {
+                               "A01":  "ACCEPTED_USER_CONFIRMED_SOURCE_NOT_PRESENT_LOCALLY",
+                               "A02":  "DEV2_REPORTED_STRUCTURAL_COMPLETION_NOT_RUNTIME_ACCEPTED",
+                               "B01Architecture":  "APPROVED_DESIGN_ONLY",
+                               "B01ExecutableDdl":  "REVISE",
+                               "B02":  "REVISE",
+                               "C01":  "REVISE",
+                               "roomSharedDiffs":  "NOT_APPROVED",
+                               "globalTotalLockOrder":  "NOT_SOURCE_VERIFIED",
+                               "notificationRuntime":  "NOT_ACCEPTED"
+                           },
+    "limitations":  [
+                        "Historical receipts are not new execution results",
+                        "Task79 SQL instance absent from receipts; not inferred",
+                        "DEV2 accepted A01/A02/revised DDL/mapping/guard and external joint originals not locally verified",
+                        "Missing current six producer writers/cancellation/conclusion, final completer and cross-user source-read are explicit dependencies",
+                        "No global SQL lock/race runtime acceptance claimed"
+                    ],
+    "fullOriginalCoordinationElapsedSeconds":  2466.5,
+    "elapsedNote":  "Revision elapsed excludes earlier consolidation; historical receipts are not rerun",
+    "sixMainDocuments":  [
+                             "DEV1_SHARED_CONTRACT_FINAL_DECISIONS.md",
+                             "DEV1_CURRENT_SOURCE_EVIDENCE_MANIFEST.md",
+                             "DEV1_NOTIFICATION_INTEGRATION_CONTRACT.md",
+                             "DEV1_ROOM_WORKDAY_SHARED_CONTRACT.md",
+                             "DEV1_GLOBAL_LOCK_AND_AUTHORITY_MATRIX.md",
+                             "DEV1_SHARED_APPROVAL_AND_ACCEPTANCE_MATRIX.md"
+                         ]
+}

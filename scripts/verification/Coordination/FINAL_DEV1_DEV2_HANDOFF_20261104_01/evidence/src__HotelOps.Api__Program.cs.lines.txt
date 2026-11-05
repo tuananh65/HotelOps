@@ -1,0 +1,116 @@
+﻿SOURCE: src/HotelOps.Api/Program.cs
+SHA256: 586299FB650342F7389BAECD615DD29ACC94352857021FC4391554FF9372A505
+Ranges: 1-130 (original source line numbers)
+    1: using HotelOps.Api.Data;
+    2: using HotelOps.Api.Services.Authentication;
+    3: using HotelOps.Api.Security;
+    4: using HotelOps.Api.Security.Authorization;
+    5: using HotelOps.Api.Middleware;
+    6: using Microsoft.AspNetCore.Identity;
+    7: using HotelOps.Api.Services.Assets;
+    8: using HotelOps.Api.Services.Incidents;
+    9: using HotelOps.Api.Services.Maintenance;
+   10: using HotelOps.Api.Services.Inventory;
+   11: using Microsoft.EntityFrameworkCore;
+   12: 
+   13: var builder = WebApplication.CreateBuilder(args);
+   14: builder.Services.AddScoped<StartupSchemaValidator>();
+   15: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
+   16: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
+   17: 
+   18: builder.Services.AddDbContext<HotelOpsDbContext>(options =>
+   19:     options.UseSqlServer(
+   20:         builder.Configuration.GetConnectionString("HotelOpsDb")));
+   21: 
+   22: // Add services to the container.
+   23: builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
+   24: builder.Services.AddScoped<HotelOps.Api.Services.Housekeeping.CleaningMonitorService>();
+   25: builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeDirectoryService>();
+   26: builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.TurnoverHistoryService>();
+   27: builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.BranchAdministrationService>();
+   28: builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();
+   29: builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
+   30: builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();
+   31: builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.WorkdayService>();
+   32: builder.Services.AddScoped<IIncidentService, IncidentService>();
+   33: builder.Services.AddScoped<IAssetService, AssetService>();
+   34: builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
+   35: builder.Services.AddScoped<InventoryService>();
+   36: builder.Services.AddScoped<InventoryAccess>();
+   37: builder.Services.AddScoped<IInventoryIssueCapacity>(services => services.GetRequiredService<InventoryService>());
+   38: builder.Services.AddScoped<HotelOps.Api.Services.Replenishments.ReplenishmentService>();
+   39: builder.Services.AddScoped<IInventoryReceiptPosting>(services => services.GetRequiredService<InventoryService>());
+   40: builder.Services.AddScoped<IInventoryQuantityContext>(services => services.GetRequiredService<InventoryService>());
+   41: builder.Services.AddScoped<HotelOps.Api.Services.MaterialRequests.MaterialRequestService>();
+   42: builder.Services.AddScoped<IInventoryIssuePosting>(services => services.GetRequiredService<InventoryService>());
+   43: 
+   44: builder.Services.Configure<PasswordHasherOptions>(options =>
+   45: {
+   46:     options.CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3;
+   47:     options.IterationCount = PasswordCredentialService.BaselineIterationCount;
+   48: });
+   49: builder.Services.AddScoped<IPasswordCredentialService, PasswordCredentialService>();
+   50: builder.Services.AddSingleton<TimeProvider>(TimeProvider.System);
+   51: builder.Services.AddScoped<ICredentialLockoutService, CredentialLockoutService>();
+   52: builder.Services.AddScoped<ISessionRevocationService, SessionRevocationService>();
+   53: builder.Services.AddScoped<ITemporaryCredentialService, TemporaryCredentialService>();
+   54: builder.Services.AddScoped<IInitialCredentialTransactionParticipant>(services =>
+   55:     (IInitialCredentialTransactionParticipant)services.GetRequiredService<ITemporaryCredentialService>());
+   56: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountCreationService>();
+   57: builder.Services.AddScoped<ISqlSessionService, SqlSessionService>();
+   58: builder.Services.AddScoped<IAuthenticationLoginService, AuthenticationLoginService>();
+   59: builder.Services.AddScoped<IAuthenticationCredentialWorkflow, AuthenticationCredentialWorkflow>();
+   60: builder.Services.AddSingleton<ReauthenticationProofStore>();
+   61: builder.Services.AddScoped<AdminReauthenticationService>();
+   62: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserCredentialResetAccess>();
+   63: builder.Services.AddScoped<HotelOps.Api.Services.Users.AdminCredentialResetWorkflow>();
+   64: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountStatusAccess>();
+   65: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserAccountActivationService>();
+   66: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserBranchAssignmentAccess>();
+   67: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserBranchAssignmentService>();
+   68: builder.Services.AddScoped<HotelOps.Api.Services.Users.UserRoleAssignmentService>();
+   69: builder.Services.AddHotelOpsCookieInfrastructure(builder.Environment);
+   70: builder.Services.AddHotelOpsAntiforgery();
+   71: builder.Services.AddHttpContextAccessor();
+   72: builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+   73: builder.Services.AddScoped<IPermissionDataSource, EfPermissionDataSource>();
+   74: builder.Services.AddScoped<ICleaningTaskAccessReader, EfCleaningTaskAccessReader>();
+   75: builder.Services.AddScoped<IPermissionResourceResolver>(sp => new HotelOps.Api.Services.WorkTime.WorkdayPermissionResourceResolver(
+   76:     sp.GetRequiredService<HotelOpsDbContext>(),
+   77:     ActivatorUtilities.CreateInstance<CleaningTaskResourceResolver>(sp)));
+   78: builder.Services.AddScoped<IPermissionService, PermissionService>();
+   79: builder.Services.AddHotelOpsPermissionAuthorization();
+   80: 
+   81: builder.Services.AddControllers().ConfigureApiBehaviorOptions(AuthenticationApiBehavior.Configure);
+   82: // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+   83: builder.Services.AddOpenApi();
+   84: 
+   85: var app = builder.Build();
+   86: await using (var schemaScope = app.Services.CreateAsyncScope())
+   87: {
+   88:     var compatibility = await schemaScope.ServiceProvider.GetRequiredService<StartupSchemaValidator>()
+   89:         .ValidateAsync(app.Lifetime.ApplicationStopping);
+   90:     if (compatibility != SchemaCompatibility.Compatible)
+   91:         throw new InvalidOperationException($"Startup schema validation failed: {compatibility}. HTTP listener was not started.");
+   92: }
+   93: app.UseMiddleware<AuthenticationExceptionMiddleware>();
+   94: 
+   95: // Configure the HTTP request pipeline.
+   96: if (app.Environment.IsDevelopment())
+   97: {
+   98:     app.MapOpenApi().AllowAnonymous();
+   99: }
+  100: 
+  101: app.UseHttpsRedirection();
+  102: 
+  103: app.UseAuthentication();
+  104: app.UseMiddleware<InvalidCookieMiddleware>();
+  105: app.UseMiddleware<ApiCsrfMiddleware>();
+  106: app.UseMiddleware<RestrictedSessionMiddleware>();
+  107: app.UseAuthorization();
+  108: app.UseMiddleware<SessionTouchMiddleware>();
+  109: 
+  110: app.MapControllers();
+  111: 
+  112: app.Run();
+

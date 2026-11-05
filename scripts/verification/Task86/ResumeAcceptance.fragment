@@ -1,0 +1,48 @@
+    object Update(string name)=>new{Name=name,Address="Updated address",Phone="123456",Email="updated@example.invalid",Reason="Task86 verified update"};
+    var id=await db.Branches.Where(x=>x.BranchCode=="T86_NEW").Select(x=>x.BranchId).SingleAsync(ct);
+    var current=await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",admin,null,200,"Existing branch read after first receipt");
+    var etag=current.Tag!;
+    await Expect(HttpMethod.Get,$"/api/branches/{long.MaxValue}/edit",admin,null,404,"Missing branch");
+    await Expect(HttpMethod.Get,$"/api/rooms/{room}/turnover-history?branchId={a}",admin,null,403,"UC038 SYS_ADMIN has no catalog permission");
+    await Expect(HttpMethod.Get,$"/api/rooms/{room}/turnover-history?branchId={a}",jars["supervisor"],null,200,"UC038 allowed HK_SUPERVISOR HTTPS regression");
+    await Expect(HttpMethod.Get,$"/api/rooms/{room}/turnover-history?branchId={b}",jars["supervisor"],null,403,"UC038 supervisor cross-branch denial");
+    await Expect(HttpMethod.Get,$"/api/branches/{a}/cleaning-monitor",jars["supervisor"],null,200,"UC037 allowed supervisor HTTPS list regression");
+    await Expect(HttpMethod.Get,$"/api/branches/{a}/cleaning-monitor/cleaning/{cycle.CleaningTaskId}",jars["supervisor"],null,200,"UC037 allowed supervisor HTTPS detail regression");
+    var beforeDenied=await Fingerprint("branches","audit_logs");
+    await db.UserRoles.Where(x=>x.UserId==users["revoke"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,false),ct);
+    await Expect(HttpMethod.Put,$"/api/branches/{id}",jars["revoke"],Update("Forbidden"),403,"Permission revocation before mutation",etag);
+    await db.UserRoles.Where(x=>x.UserId==users["revoke"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,true),ct);
+    async Task RevokeDuringWait(bool session)
+    {
+        await using var blocker=new SqlConnection(connection);await blocker.OpenAsync(ct);await using var tx=await blocker.BeginTransactionAsync(ct);
+        await using var lockCommand=blocker.CreateCommand();lockCommand.Transaction=(SqlTransaction)tx;
+        lockCommand.CommandText="SELECT user_id FROM dbo.users WITH(UPDLOCK,HOLDLOCK) WHERE user_id=@u; SELECT @@SPID;";
+        lockCommand.Parameters.Add(new SqlParameter("@u",users["revoke"].UserId));
+        int blockerId;await using(var reader=await lockCommand.ExecuteReaderAsync(ct)){await reader.ReadAsync(ct);await reader.NextResultAsync(ct);await reader.ReadAsync(ct);blockerId=reader.GetInt32(0);}
+        var pending=Send(HttpMethod.Put,$"/api/branches/{id}",jars["revoke"],Update("Forbidden after wait"),etag);
+        var observed=false;
+        for(var i=0;i<40;i++)
+        {
+            await using var observer=db.Database.GetDbConnection().CreateCommand();
+            observer.CommandText="SELECT COUNT(*) FROM sys.dm_exec_requests WHERE blocking_session_id=@blocker AND database_id=DB_ID() AND wait_type LIKE 'LCK[_]%'";
+            observer.Parameters.Add(new SqlParameter("@blocker",blockerId));
+            if(Convert.ToInt32(await observer.ExecuteScalarAsync(ct))>0){observed=true;break;}await Task.Delay(100,ct);
+        }
+        Check(observed,(session?"Session":"Permission")+" revocation request observed waiting on actual SQL actor lock");
+        lockCommand.CommandText=session?"UPDATE dbo.user_sessions SET revoked_at=SYSUTCDATETIME() WHERE user_id=@u":"UPDATE dbo.user_roles SET is_active=0 WHERE user_id=@u";
+        await lockCommand.ExecuteNonQueryAsync(ct);await tx.CommitAsync(ct);
+        using var response=await pending;Check((int)response.StatusCode==(session?401:403),(session?"Session":"Permission")+" revocation during actual lock wait fails closed");
+    }
+    await RevokeDuringWait(false);
+    await db.UserRoles.Where(x=>x.UserId==users["revoke"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,true),ct);
+    await RevokeDuringWait(true);
+    Check(beforeDenied==await Fingerprint("branches","audit_logs"),"Revocation/wait denials make no branch or audit mutation");
+    await db.UserSessions.Where(x=>x.UserId==users["expired"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(s=>s.ExpiresAt,s=>s.CreatedAt),ct);
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["expired"],null,401,"Expired SQL session denied");
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["revoke"],null,401,"Revoked SQL session denied");
+    await db.Users.Where(x=>x.UserId==users["account"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(u=>u.AccountStatus,"INACTIVE"),ct);
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["account"],null,401,"Inactive account denied");
+    await db.Users.Where(x=>x.UserId==users["employment"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(u=>u.EmploymentStatus,"INACTIVE"),ct);
+    await Expect(HttpMethod.Get,$"/api/branches/{id}/edit",jars["employment"],null,401,"Inactive employment denied");
+    Check(catalog==await Fingerprint("roles","permissions","role_permissions","reference_values"),"Resume leaves RBAC catalog/grants unchanged");
+}

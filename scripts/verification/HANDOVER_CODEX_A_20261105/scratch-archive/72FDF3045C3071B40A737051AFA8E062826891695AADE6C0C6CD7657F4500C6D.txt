@@ -1,0 +1,83 @@
+$ErrorActionPreference = 'Stop'
+$pre = Get-Content obj/task76-preflight.local.json -Raw | ConvertFrom-Json
+$expected = 'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md'
+$unexpected = @()
+$actualChanged = @()
+foreach ($entry in $pre.paths) {
+    $hash = if (Test-Path -LiteralPath $entry.path -PathType Leaf) { (Get-FileHash -LiteralPath $entry.path).Hash } else { $null }
+    if ($hash -ne $entry.sha256) {
+        $actualChanged += $entry.path
+        if ($entry.path -ne $expected) { $unexpected += $entry.path }
+    }
+}
+$head = git rev-parse HEAD
+$indexHash = (Get-FileHash -LiteralPath .git/index).Hash
+$worktrees = @(git worktree list --porcelain)
+if ($head -ne $pre.head -or $indexHash -ne $pre.indexHash -or (Compare-Object $worktrees $pre.worktrees)) { throw 'HEAD/index/worktree registration changed' }
+if ($unexpected.Count) { throw ('Unexpected pre-existing file changes: ' + ($unexpected -join ',')) }
+$baseline = Get-Content scripts/verification/CleaningMonitor/UC_LEDGER_TASK75.json -Raw -Encoding utf8 | ConvertFrom-Json
+$ledger = Get-Content scripts/verification/Task76/UC_LEDGER_TASK76.json -Raw -Encoding utf8 | ConvertFrom-Json
+$differences = @()
+for ($i = 0; $i -lt $baseline.rows.Count; $i++) {
+    foreach ($field in @('uc','title','classification','weight','verifiedPoints','evidenceSummary')) {
+        if ($baseline.rows[$i].$field -cne $ledger.rows[$i].$field) { $differences += ($baseline.rows[$i].uc + ':' + $field) }
+    }
+}
+if ($differences.Count) { throw ('Ledger drift: ' + ($differences -join ',')) }
+$recovery = Get-Content scripts/verification/Task75Review/RECOVERY_RESULTS.json -Raw | ConvertFrom-Json
+$failedRecovery = @($recovery.restored | Where-Object { $_.path -ne $expected -and (Get-FileHash -LiteralPath $_.path).Hash -ne $_.sha256 })
+if ($failedRecovery.Count -or $recovery.restored.Count -ne 16 -or $recovery.deferred.Count -ne 210) { throw 'Recovery invariant failed' }
+$files = @(
+    'scripts/verification/Task76/TASK76_BATCH_IMPLEMENTATION.md',
+    'scripts/verification/Task76/DEV2_HANDOFF.md',
+    'scripts/verification/Task76/UC_LEDGER_TASK76.json',
+    $expected
+)
+$trailing = @()
+foreach ($file in $files) {
+    $line = 0
+    foreach ($value in Get-Content -LiteralPath $file -Encoding utf8) {
+        $line++
+        if ($value -match '[\t ]+$') { $trailing += ($file + ':' + $line) }
+    }
+}
+if ($trailing.Count) { throw ('Whitespace failure: ' + ($trailing -join ',')) }
+$diffOutput = @(git diff --check 2>&1)
+$diffExit = $LASTEXITCODE
+if ($diffExit -ne 0) { throw ('git diff --check failed: ' + ($diffOutput -join ' ')) }
+$logChecks = [ordered]@{
+    Authorization = @('obj/task76-authorization-regression.local.log', 'PASS: 93 authorization checks')
+    PermissionService = @('obj/task76-permission-regression.local.log', 'PASS: 43 checks.')
+    CurrentUserAccessor = @('obj/task76-current-user-regression.local.log', '14 checks passed.')
+    ResourceAuthorization = @('obj/task76-resource-regression.local.log', 'PASS: 49 resource authorization checks')
+}
+foreach ($key in $logChecks.Keys) {
+    if (!(Select-String -LiteralPath $logChecks[$key][0] -Pattern $logChecks[$key][1] -SimpleMatch -Quiet)) { throw ('Missing actual runner evidence: ' + $key) }
+}
+if (!(Select-String -LiteralPath obj/task76-build.local.log -Pattern 'Build succeeded.' -SimpleMatch -Quiet)) { throw 'Missing build success evidence' }
+$now = [DateTimeOffset]::Now
+$elapsed = $now.ToUniversalTime() - [DateTimeOffset]::Parse($pre.startedUtc)
+$receipt = [ordered]@{
+    validationPassed = $true; objectiveAchieved = $false; taskStatus = 'BLOCKED_BEFORE_IMPLEMENTATION'
+    startedUtc = $pre.startedUtc; finishedUtc = $now.ToUniversalTime().ToString('o')
+    elapsedSeconds = [math]::Round($elapsed.TotalSeconds, 3); elapsedDisplay = $elapsed.ToString('hh\:mm\:ss')
+    timingBoundary = 'Preflight snapshot start to final preservation/validation receipt; initial attachment/AGENTS/Git reads before first clock excluded; full-turn exact start not recorded.'
+    preflightPathCount = $pre.paths.Count; expectedChangedExistingPaths = $actualChanged
+    unexpectedChangedExistingPaths = $unexpected; unchangedExistingPathCount = $pre.paths.Count - $actualChanged.Count
+    headUnchanged = $true; indexUnchanged = $true; worktreeRegistrationsAndHeadsUnchanged = $true
+    otherWorktrees = 'Read-only status: rehearsal103 pre-existing staged entries, conflict-resolution clean, AI-Loop clean; no writes targeted these worktrees.'
+    task75RestoredPathCount = 16; task75RecoveredSourcesHashUnchanged = $true; deferredRecoveryPathCount = 210; newRecoveredPaths = @()
+    runtimeChangedPaths = @(); sharedOrDev2ChangedPaths = @(); sqlConnections = 0
+    ledgerRows = 75; classificationsChanged = $differences; unfinishedEligibilityReviewed = 49; selectedUCs = @()
+    completedUCs = 26; points = 60; pointDenominator = 256; weightedProgressPercent = 23.4375
+    newlyCompletedUCs = 0; pointsGained = 0; remainingUCs = 49; remainingPoints = 196
+    taxonomy = [ordered]@{ COMPLETE_VERIFIED = 7; COMPLETE_VERIFIED_V1 = 19; PARTIAL = 10; NOT_IMPLEMENTED = 18; BLOCKED_EXTERNAL = 21 }
+    build = [ordered]@{ result = 'PASS'; errors = 0; warningEntries = 2; warningCode = 'NU1900'; log = 'obj/task76-build.local.log' }
+    regression = [ordered]@{ Authorization = 93; PermissionService = 43; CurrentUserAccessor = 14; ResourceAuthorization = 49; total = 199; result = 'PASS'; harnessesRebuiltInTask76 = $false; limits = 'Existing no-build console executables; isolated doubles, no live SQL/business acceptance.' }
+    frameworkTests = 'dotnet test HotelOps.slnx --no-restore exit0; no output/test cases; NOT_AVAILABLE, not PASS'
+    newUcHttpsSqlAcceptance = 'NOT_RUN'; task75SqlChecks = 'Historical120 only; not rerun'
+    diffCheckExit = $diffExit; newFileWhitespacePassed = $true
+    artifacts = @($files | ForEach-Object { [ordered]@{ path = $_; sha256 = (Get-FileHash -LiteralPath $_).Hash } })
+}
+$receipt | ConvertTo-Json -Depth 8 | Set-Content scripts/verification/Task76/TASK76_VALIDATION.json -Encoding utf8
+[pscustomobject]@{ validationPassed = $true; implementationTargetAchieved = $false; elapsed = $receipt.elapsedDisplay; pathsPreserved = $receipt.unchangedExistingPathCount; existingChanged = $actualChanged; ledger = '26/75;60/256;23.4375%'; sourceChanges = 0 } | ConvertTo-Json -Depth 4

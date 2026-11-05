@@ -1,0 +1,11 @@
+4: namespace HotelOps.Api.Services.Inventory;
+5: 
+6: public sealed partial class InventoryService
+7: {
+8:     private long[]? readableWarehouses;
+9:     // Set only by the HTTP controller after production permission evaluation.
+10:     // Trusted in-process workflow queries retain their existing behaviour.
+11:     public void RestrictReads(long[] warehouseIds) => readableWarehouses = warehouseIds;
+12:     private IQueryable<Warehouse> ReadWarehouses() => readableWarehouses is { } ids
+13:         ? db.Warehouses.Where(x => ids.Contains(x.WarehouseId)) : db.Warehouses;
+14:     private IQueryable<StockDocument> ReadDocuments() => readableWarehouses is { } ids

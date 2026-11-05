@@ -1,0 +1,48 @@
+8: /// no cookie may be issued before commit. Never use these results as HTTP DTOs.
+9: /// </summary>
+10: public interface ISqlSessionService
+11: {
+12:     Task<CreatedSqlSession> CreateSessionAsync(CredentialLockoutResult verifiedCredential, CancellationToken cancellationToken = default);
+13:     Task<SessionValidationResult> ValidateSessionAsync(SessionReference ticket, CancellationToken cancellationToken = default);
+14:     Task<SessionValidationResult> TouchSessionAsync(SessionReference ticket, CancellationToken cancellationToken = default);
+15:     Task<bool> RevokeSessionAsync(SessionReference ticket, CancellationToken cancellationToken = default);
+16:     Task<int> RevokeAllSessionsAsync(long userId, CancellationToken cancellationToken = default);
+17: }
+18: 
+19: public sealed record SessionSnapshot(long SessionId, long UserId, DateTime CreatedAtUtc,
+20:     DateTime ExpiresAtUtc, DateTime AbsoluteExpiresAtUtc, bool IsRestricted);
+21: 
+22: public sealed record SessionValidationResult(bool IsValid, SessionSnapshot? Session = null);
+23: 
+24: public sealed class CreatedSqlSession(SessionReference ticket, SessionSnapshot session)
+25: {
+26:     [JsonIgnore]
+27:     public SessionReference Ticket { get; } = ticket;
+28:     public SessionSnapshot Session { get; } = session;
+29:     public override string ToString() => "[Created session: credential redacted; commit required]";
+30: }
+31: 
+32: /// <summary>
+35: /// ExportCredentialForProtectedTicket must never go to JSON, logs, audit or URLs.
+36: /// </summary>
+37: public sealed class SessionReference
+38: {
+39:     private readonly string _credential;
+40:     public long UserId { get; }
+41:     public bool IsRestricted { get; }
+42:     public DateTime CreatedAtUtc { get; }
+43:     internal string KeyHash => SessionCredential.Hash(_credential);
+44: 
+45:     private SessionReference(long userId, string credential, bool restricted, DateTime createdAtUtc)
+46:         => (UserId, _credential, IsRestricted, CreatedAtUtc) = (userId, credential, restricted, createdAtUtc);
+47: 
+48:     public static SessionReference FromProtectedTicket(long userId, string credential, bool restricted, DateTime createdAtUtc)
+49:     {
+50:         if (userId <= 0 || createdAtUtc.Kind != DateTimeKind.Utc || !SessionCredential.IsValid(credential))
+51:             throw new ArgumentException("Invalid protected session ticket fields.");
+53:     }
+54: 
+55:     public string ExportCredentialForProtectedTicket() => _credential;
+56:     public override string ToString() => "[Session reference: credential redacted]";
+57: }
+58: 

@@ -1,0 +1,134 @@
+{
+    "framework":  {
+                      "passed":  91,
+                      "httpHostExecuted":  false,
+                      "failed":  0,
+                      "total":  91,
+                      "skipped":  0,
+                      "sqlExecuted":  false,
+                      "trx":  "results-final/task87.trx"
+                  },
+    "productionBugs":  [
+
+                       ],
+    "task":  87,
+    "postflight":  {
+                       "branchPreserved":  true,
+                       "sqlAccessed":  false,
+                       "protectedFilesChecked":  1129,
+                       "productionModified":  false,
+                       "worktrees":  [
+                                         {
+                                             "path":  "D:/SEP490/Projects/HotelOps",
+                                             "indexPreserved":  true,
+                                             "statusPreserved":  true,
+                                             "headPreserved":  true
+                                         },
+                                         {
+                                             "path":  "D:/SEP490/Projects/HotelOps/obj/task11-dev2-rehearsal",
+                                             "indexPreserved":  true,
+                                             "statusPreserved":  true,
+                                             "headPreserved":  true
+                                         },
+                                         {
+                                             "path":  "D:/SEP490/Projects/HotelOps/obj/task12-pr7-resolution",
+                                             "indexPreserved":  true,
+                                             "statusPreserved":  true,
+                                             "headPreserved":  true
+                                         },
+                                         {
+                                             "path":  "D:/SEP490/Projects/HotelOps-AI-Loop",
+                                             "indexPreserved":  true,
+                                             "statusPreserved":  true,
+                                             "headPreserved":  true
+                                         },
+                                         {
+                                             "path":  "D:/SEP490/Projects/HotelOps-Codex-B",
+                                             "indexPreserved":  true,
+                                             "statusPreserved":  true,
+                                             "headPreserved":  true
+                                         }
+                                     ],
+                       "gitMutations":  false,
+                       "headPreserved":  true,
+                       "worktreeCount":  5,
+                       "diffCheckExit":  0,
+                       "changedProtectedFiles":  [
+
+                                                 ]
+                   },
+    "hardening":  {
+                      "name":  "AuthorizationHardening",
+                      "exitCode":  0
+                  },
+    "sqlGate":  "NOT_RUN_SQL_GATE",
+    "build":  {
+                  "warningCodes":  [
+                                       "NU1900"
+                                   ],
+                  "exitCode":  0,
+                  "result":  "Passed",
+                  "errors":  0,
+                  "warnings":  2
+              },
+    "status":  "DONE_FOUNDATION_SQL_ACCEPTANCE_NOT_RUN",
+    "securityCountDiscrepancy":  "Current core runners report 167, historical baseline 199; do not claim missing historical checks ran",
+    "progress":  {
+                     "totalPoints":  256,
+                     "totalUCs":  75,
+                     "acceptedUCs":  26,
+                     "points":  60
+                 },
+    "recordedUtc":  "2026-11-05T06:36:31.7213379Z",
+    "regressions":  {
+                        "value":  [
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "Authorization",
+                                          "log":  "regression-Authorization.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "ResourceAuthorization",
+                                          "log":  "regression-ResourceAuthorization.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "PermissionService",
+                                          "log":  "regression-PermissionService.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "CurrentUserAccessor",
+                                          "log":  "regression-CurrentUserAccessor.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "UC037",
+                                          "log":  "regression-UC037.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "UC038",
+                                          "log":  "regression-UC038.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "UC142",
+                                          "log":  "regression-UC142.log"
+                                      },
+                                      {
+                                          "exitCode":  0,
+                                          "name":  "UC012",
+                                          "log":  "regression-UC012.log"
+                                      }
+                                  ],
+                        "Count":  8
+                    },
+    "solutionTest":  {
+                         "exitCode":  0,
+                         "discoveredCases":  0,
+                         "note":  "Suite run explicitly by project; shared solution unchanged"
+                     },
+    "lineCoverage":  "NOT_RUN_NO_COLLECTOR_CONFIGURED"
+}

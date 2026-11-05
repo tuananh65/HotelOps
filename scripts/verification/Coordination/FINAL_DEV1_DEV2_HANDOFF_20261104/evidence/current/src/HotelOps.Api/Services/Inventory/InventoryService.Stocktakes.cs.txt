@@ -1,0 +1,75 @@
+5: namespace HotelOps.Api.Services.Inventory;
+6: 
+7: public sealed partial class InventoryService
+8: {
+9:     private async Task<Stocktake?> Stocktake(long id, CancellationToken ct)
+10:     {
+11:         await Gate($"HotelOps:Inventory:Stocktake:{id}", ct);
+12:         var x = await db.Stocktakes.FromSqlInterpolated($"SELECT * FROM dbo.stocktakes WITH (UPDLOCK,HOLDLOCK) WHERE stocktake_id={id}").SingleOrDefaultAsync(ct);
+13:         if (x is not null) await db.Entry(x).Collection(x => x.StocktakeLines).LoadAsync(ct); return x;
+14:     }
+15:     public async Task<InventoryStocktakeDto> CreateStocktake(long actorUserId, InventoryStocktakeCreate r, CancellationToken ct)
+16:     {
+17:         await using var tx = await Begin(actorUserId, ct); var warehouse = (await Warehouses([r.WarehouseId], true, ct)).Single();
+18:         if (await db.Stocktakes.AnyAsync(x => x.WarehouseId == r.WarehouseId && OpenStocktakes.Contains(x.Status), ct)) throw Invalid("A canonical open stocktake already exists.");
+19:         var now = DateTime.UtcNow;
+20:         var balances = await db.StockMovements.Where(x => x.WarehouseId == r.WarehouseId && x.OccurredAt <= now)
+21:             .GroupBy(x => x.ItemId).Select(g => new { ItemId = g.Key, Qty = g.Sum(x => x.SignedBaseQty) }).ToDictionaryAsync(x => x.ItemId, x => x.Qty, ct);
+27:             StartedAt = now,
+28:             CreatedAt = now,
+29:             Status = "IN_PROGRESS",
+30:             Note = r.Note,
+31:             StocktakeNo = await Number("ST", now, true, ct)
+32:         };
+34:             x.StocktakeLines.Add(new() { ItemId = item, SystemQty = balances.GetValueOrDefault(item) });
+35:         db.Stocktakes.Add(x); await Audit(x, "stocktakes", 0, actorUserId, "CREATE", "STOCKTAKE_STARTED", null, [warehouse.BranchId], now, ct, ["lines"]);
+36:         await tx.CommitAsync(ct); return (await GetStocktake(x.StocktakeId, ct))!;
+37:     }
+38:     public async Task<InventoryStocktakeDto?> SaveCounts(long id, long actorUserId, InventoryCounts r, CancellationToken ct)
+39:     {
+40:         await using var tx = await Begin(actorUserId, ct); var x = await Stocktake(id, ct); if (x is null) return null;
+41:         Version(x.RowVersion, r.ExpectedRowVersion); if (x.Status is not ("IN_PROGRESS" or "COUNTED")) throw Invalid("Stocktake is not open for counts.");
+42:         var warehouse = (await Warehouses([x.WarehouseId], true, ct)).Single();
+43:         if (r.Lines is null || r.Lines.Any(x => x is null) || r.Lines.Count == 0 || r.Lines.Select(l => l.StocktakeLineId).Distinct().Count() != r.Lines.Count) throw Invalid("Supply distinct count lines.");
+44:         var before = new { stocktake = Scalars(x), lines = x.StocktakeLines.Select(Scalars).ToList() }; var now = DateTime.UtcNow; var changed = false;
+56:         if (changed)
+57:         {
+58:             db.Entry(x).Property(s => s.Status).IsModified = true;
+59:             await Audit(x, "stocktakes", id, actorUserId, "UPDATE", "COUNTS_SAVED", before, [warehouse.BranchId], now, ct, ["lines"]);
+60:         }
+61:         await tx.CommitAsync(ct); return await GetStocktake(id, ct);
+62:     }
+63:     public async Task<InventoryStocktakeDto?> StocktakeAction(long id, string action, long actorUserId, InventoryCommand r, CancellationToken ct)
+64:     {
+65:         await using var tx = await Begin(actorUserId, ct); var x = await Stocktake(id, ct); if (x is null) return null;
+66:         Version(x.RowVersion, r.ExpectedRowVersion); var warehouse = (await Warehouses([x.WarehouseId], true, ct)).Single();
+69:         {
+70:             case "submit":
+71:                 if (x.Status != "IN_PROGRESS" || x.StocktakeLines.Any(l => l.CountedQty is null)) throw Invalid("IN_PROGRESS stocktake must have every line counted.");
+72:                 x.Status = "COUNTED"; x.CountedBy = actorUserId; x.CompletedAt = now; break;
+73:             case "reconcile":
+74:                 if (x.Status != "COUNTED" || x.StocktakeLines.Any(l => l.CountedQty is null)) throw Invalid("A fully counted COUNTED stocktake is required.");
+75:                 foreach (var l in x.StocktakeLines) { l.VarianceQty = l.CountedQty - l.SystemQty; if (l.VarianceQty != 0) Reason(l.DiscrepancyReason); }
+76:                 x.Status = x.StocktakeLines.All(l => l.VarianceQty == 0) ? "RECONCILED" : "PENDING_ADJUSTMENT"; break;
+77:             case "approve-adjustment":
+78:                 if (x.Status != "PENDING_ADJUSTMENT" || x.AdjustmentDocumentId.HasValue) throw Invalid("Stocktake is not awaiting its first adjustment.");
+79:                 if (x.CountedBy == actorUserId || x.StocktakeLines.Any(l => l.CountedBy == actorUserId)) throw Invalid("Adjustment approver must differ from counting/performing actors.");
+80:                 var deltas = x.StocktakeLines.Where(l => l.VarianceQty != 0).Select(l => new InventoryDelta(l.ItemId, l.VarianceQty ?? throw Invalid("Variance missing."))).ToList();
+81:                 if (deltas.Count == 0) throw Invalid("No adjustment is required.");
+82:                 var document = await Adjustment(actorUserId, new(x.WarehouseId, DateOnly.FromDateTime(now), Reason(r.Reason), deltas), [warehouse], now, postApprovedStocktake: true, ct);
+83:                 x.AdjustmentDocumentId = document.DocumentId; x.Status = "RECONCILED"; x.ApprovedBy = actorUserId; x.ApprovedAt = now; break;
+84:             case "return":
+85:                 if (x.Status != "PENDING_ADJUSTMENT") throw Invalid("Only PENDING_ADJUSTMENT may be returned.");
+86:                 x.Note = Reason(r.Reason); x.Status = "COUNTED"; break;
+87:             case "cancel":
+88:                 if (x.Status != "IN_PROGRESS") throw Invalid("Only IN_PROGRESS may be cancelled.");
+89:                 x.Note = Reason(r.Reason); x.Status = "CANCELLED"; break;
+90:             default: throw Invalid("Unknown stocktake action.");
+91:         }
+92:         var lineChanges = db.ChangeTracker.Entries<StocktakeLine>().Any(e => e.Entity.StocktakeId == id &&
+93:             e.State == EntityState.Modified && e.Properties.Any(p => p.IsModified && !Equals(p.OriginalValue, p.CurrentValue)));
+94:         await Audit(x, "stocktakes", id, actorUserId, action == "cancel" ? "CANCEL" : "UPDATE", action, before, [warehouse.BranchId], now, ct, lineChanges ? ["lines"] : null);
+95:         await tx.CommitAsync(ct); return await GetStocktake(id, ct);
+96:     }
+97: }
+98: 

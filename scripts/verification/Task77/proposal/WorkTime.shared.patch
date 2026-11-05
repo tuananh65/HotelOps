@@ -1,0 +1,204 @@
+diff --git a/src/HotelOps.Api/Entities/Workday.cs b/src/HotelOps.Api/Entities/Workday.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Entities/Workday.cs
+@@ -0,0 +1,18 @@
++namespace HotelOps.Api.Entities;
++
++// Proposed Database First model of Task77 DDL; not active in the production model.
++public partial class Workday
++{
++    public long WorkdayId { get; set; }
++    public long UserId { get; set; }
++    public long BranchId { get; set; }
++    public long DepartmentId { get; set; }
++    public DateOnly WorkDate { get; set; }
++    public long? ShiftAssignmentId { get; set; }
++    public bool IsUnscheduled { get; set; }
++    public string? UnscheduledReason { get; set; }
++    public string Status { get; set; } = null!;
++    public DateTime StartedAt { get; set; }
++    public DateTime? EndedAt { get; set; }
++    public byte[] RowVersion { get; set; } = null!;
++}
+diff --git a/src/HotelOps.Api/Entities/WorkInterval.cs b/src/HotelOps.Api/Entities/WorkInterval.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Entities/WorkInterval.cs
+@@ -0,0 +1,18 @@
++namespace HotelOps.Api.Entities;
++
++public partial class WorkInterval
++{
++    public long IntervalId { get; set; }
++    public long WorkdayId { get; set; }
++    public long UserId { get; set; }
++    public long BranchId { get; set; }
++    public string WorkItemKind { get; set; } = null!;
++    public long WorkItemId { get; set; }
++    public long OpenedBy { get; set; }
++    public DateTime OpenedAt { get; set; }
++    public long? ClosedBy { get; set; }
++    public DateTime? ClosedAt { get; set; }
++    public DateTime EffectiveStartedAt { get; set; }
++    public DateTime? EffectiveEndedAt { get; set; }
++    public byte[] RowVersion { get; set; } = null!;
++}
+diff --git a/src/HotelOps.Api/Entities/TimeCorrectionRequest.cs b/src/HotelOps.Api/Entities/TimeCorrectionRequest.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Entities/TimeCorrectionRequest.cs
+@@ -0,0 +1,22 @@
++namespace HotelOps.Api.Entities;
++
++public partial class TimeCorrectionRequest
++{
++    public long CorrectionId { get; set; }
++    public long IntervalId { get; set; }
++    public long RequestedBy { get; set; }
++    public DateTime RequestedAt { get; set; }
++    public DateTime OriginalStartedAt { get; set; }
++    public DateTime OriginalEndedAt { get; set; }
++    public byte[] OriginalIntervalVersion { get; set; } = null!;
++    public DateTime ProposedStartedAt { get; set; }
++    public DateTime ProposedEndedAt { get; set; }
++    public string Reason { get; set; } = null!;
++    public string Status { get; set; } = null!;
++    public long? DecidedBy { get; set; }
++    public DateTime? DecidedAt { get; set; }
++    public string? DecisionReason { get; set; }
++    public DateTime? AppliedStartedAt { get; set; }
++    public DateTime? AppliedEndedAt { get; set; }
++    public byte[] RowVersion { get; set; } = null!;
++}
+diff --git a/src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs b/src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs
+@@ -0,0 +1,91 @@
++using HotelOps.Api.Entities;
++using Microsoft.EntityFrameworkCore;
++
++namespace HotelOps.Api.Data;
++
++public partial class HotelOpsDbContext
++{
++    public virtual DbSet<Workday> Workdays { get; set; }
++    public virtual DbSet<WorkInterval> WorkIntervals { get; set; }
++    public virtual DbSet<TimeCorrectionRequest> TimeCorrectionRequests { get; set; }
++
++    // Called explicitly before the existing OnModelCreatingPartial; no second partial implementation.
++    private static void ConfigureWorkTime(ModelBuilder modelBuilder)
++    {
++        modelBuilder.Entity<Workday>(e =>
++        {
++            e.ToTable("workdays");
++            e.HasKey(x => x.WorkdayId).HasName("PK_workdays");
++            e.HasAlternateKey(x => new { x.WorkdayId, x.UserId, x.BranchId }).HasName("UQ_workdays_identity");
++            e.Property(x => x.WorkdayId).HasColumnName("workday_id");
++            e.Property(x => x.UserId).HasColumnName("user_id");
++            e.Property(x => x.BranchId).HasColumnName("branch_id");
++            e.Property(x => x.DepartmentId).HasColumnName("department_id");
++            e.Property(x => x.WorkDate).HasColumnName("work_date").HasColumnType("date");
++            e.Property(x => x.ShiftAssignmentId).HasColumnName("shift_assignment_id");
++            e.Property(x => x.IsUnscheduled).HasColumnName("is_unscheduled");
++            e.Property(x => x.UnscheduledReason).HasColumnName("unscheduled_reason").HasMaxLength(1000);
++            e.Property(x => x.Status).HasColumnName("status").HasMaxLength(10).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
++            e.Property(x => x.StartedAt).HasColumnName("started_at").HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
++            e.Property(x => x.EndedAt).HasColumnName("ended_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
++            e.HasIndex(x => x.UserId).IsUnique().HasFilter("[status] = 'WORKING'").HasDatabaseName("UX_workdays_one_working");
++            e.HasIndex(x => new { x.UserId, x.WorkDate, x.WorkdayId }).HasDatabaseName("IX_workdays_user_date");
++            e.HasOne<User>().WithMany().HasForeignKey(x => x.UserId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_user");
++            e.HasOne<Branch>().WithMany().HasForeignKey(x => x.BranchId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_branch");
++            e.HasOne<Department>().WithMany().HasForeignKey(x => x.DepartmentId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_department");
++            e.HasOne<ShiftAssignment>().WithMany().HasForeignKey(x => x.ShiftAssignmentId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_workdays_assignment");
++        });
++        modelBuilder.Entity<WorkInterval>(e =>
++        {
++            e.ToTable("work_intervals");
++            e.HasKey(x => x.IntervalId).HasName("PK_work_intervals");
++            e.Property(x => x.IntervalId).HasColumnName("interval_id");
++            e.Property(x => x.WorkdayId).HasColumnName("workday_id");
++            e.Property(x => x.UserId).HasColumnName("user_id");
++            e.Property(x => x.BranchId).HasColumnName("branch_id");
++            e.Property(x => x.WorkItemKind).HasColumnName("work_item_kind").HasMaxLength(24).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
++            e.Property(x => x.WorkItemId).HasColumnName("work_item_id");
++            e.Property(x => x.OpenedBy).HasColumnName("opened_by");
++            e.Property(x => x.OpenedAt).HasColumnName("opened_at").HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
++            e.Property(x => x.ClosedBy).HasColumnName("closed_by");
++            e.Property(x => x.ClosedAt).HasColumnName("closed_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.EffectiveStartedAt).HasColumnName("effective_started_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.EffectiveEndedAt).HasColumnName("effective_ended_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
++            e.HasIndex(x => x.UserId).IsUnique().HasFilter("[closed_at] IS NULL").HasDatabaseName("UX_work_intervals_one_open");
++            e.HasIndex(x => new { x.UserId, x.EffectiveStartedAt, x.IntervalId }).HasDatabaseName("IX_work_intervals_user_time");
++            e.HasIndex(x => new { x.WorkItemKind, x.WorkItemId, x.IntervalId }).HasDatabaseName("IX_work_intervals_item");
++            e.HasOne<Workday>().WithMany().HasForeignKey(x => new { x.WorkdayId, x.UserId, x.BranchId })
++                .HasPrincipalKey(x => new { x.WorkdayId, x.UserId, x.BranchId }).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_work_intervals_workday");
++            e.HasOne<User>().WithMany().HasForeignKey(x => x.OpenedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_work_intervals_opened_by");
++            e.HasOne<User>().WithMany().HasForeignKey(x => x.ClosedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_work_intervals_closed_by");
++        });
++        modelBuilder.Entity<TimeCorrectionRequest>(e =>
++        {
++            e.ToTable("time_correction_requests");
++            e.HasKey(x => x.CorrectionId).HasName("PK_time_correction_requests");
++            e.Property(x => x.CorrectionId).HasColumnName("correction_id");
++            e.Property(x => x.IntervalId).HasColumnName("interval_id");
++            e.Property(x => x.RequestedBy).HasColumnName("requested_by");
++            e.Property(x => x.RequestedAt).HasColumnName("requested_at").HasColumnType("datetime2(7)").HasDefaultValueSql("SYSUTCDATETIME()");
++            e.Property(x => x.OriginalStartedAt).HasColumnName("original_started_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.OriginalEndedAt).HasColumnName("original_ended_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.OriginalIntervalVersion).HasColumnName("original_interval_version").HasColumnType("binary(8)").HasMaxLength(8).IsFixedLength();
++            e.Property(x => x.ProposedStartedAt).HasColumnName("proposed_started_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.ProposedEndedAt).HasColumnName("proposed_ended_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.Reason).HasColumnName("reason").HasMaxLength(1000);
++            e.Property(x => x.Status).HasColumnName("status").HasMaxLength(10).IsUnicode(false).UseCollation("Latin1_General_100_BIN2");
++            e.Property(x => x.DecidedBy).HasColumnName("decided_by");
++            e.Property(x => x.DecidedAt).HasColumnName("decided_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.DecisionReason).HasColumnName("decision_reason").HasMaxLength(1000);
++            e.Property(x => x.AppliedStartedAt).HasColumnName("applied_started_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.AppliedEndedAt).HasColumnName("applied_ended_at").HasColumnType("datetime2(7)");
++            e.Property(x => x.RowVersion).HasColumnName("row_version").IsRowVersion();
++            e.HasIndex(x => new { x.IntervalId, x.RequestedAt, x.CorrectionId }).HasDatabaseName("IX_time_corrections_interval");
++            e.HasOne<WorkInterval>().WithMany().HasForeignKey(x => x.IntervalId).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_time_corrections_interval");
++            e.HasOne<User>().WithMany().HasForeignKey(x => x.RequestedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_time_corrections_requester");
++            e.HasOne<User>().WithMany().HasForeignKey(x => x.DecidedBy).OnDelete(DeleteBehavior.NoAction).HasConstraintName("FK_time_corrections_decider");
++        });
++    }
++}
+diff --git a/src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs b/src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs
+new file mode 100644
+--- /dev/null
++++ b/src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs
+@@ -0,0 +1,24 @@
++namespace HotelOps.Api.Services.WorkTime;
++
++// REVIEW PROPOSAL. Trusted backend calls only; never model-bind these records from HTTP.
++public sealed record WorkTimeOperation(long ActorUserId, long OwnerUserId, long BranchId,
++    string WorkItemKind, long WorkItemId);
++public sealed record WorkTimeIntervalResult(long IntervalId, long WorkdayId, DateTime OpenedAtUtc,
++    DateTime? ClosedAtUtc, byte[] RowVersion);
++
++public interface IWorkTimeTransactionParticipant
++{
++    // Caller begins SAME scoped HotelOpsDbContext transaction before this call.
++    // Must precede all location/feature locks. Locks actor/owners in ascending ID order;
++    // reads fresh eligibility; action-specific eligibility/time checks follow under those locks.
++    // Result/error codes and authorization responsibilities are specified in DEV2 contract.
++    Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken);
++
++    // Caller must hold time/user locks, then lock and re-read authoritative source/owner/branch,
++    // authorize source action and validate transition BEFORE invoking these methods.
++    // Methods recheck time invariants and require the user set locked by this participant.
++    // No caller timestamps, implicit commit, independent connection, queue, or HTTP callback.
++    Task<WorkTimeIntervalResult> OpenIntervalAsync(WorkTimeOperation operation, CancellationToken cancellationToken);
++    Task<WorkTimeIntervalResult> CloseIntervalAsync(WorkTimeOperation operation, long intervalId,
++        byte[] expectedRowVersion, CancellationToken cancellationToken);
++}
+diff --git a/src/HotelOps.Api/Data/HotelOpsDbContext.cs b/src/HotelOps.Api/Data/HotelOpsDbContext.cs
+--- a/src/HotelOps.Api/Data/HotelOpsDbContext.cs
++++ b/src/HotelOps.Api/Data/HotelOpsDbContext.cs
+@@ -3611,1 +3611,2 @@
++        ConfigureWorkTime(modelBuilder);
+         OnModelCreatingPartial(modelBuilder);

@@ -1,0 +1,22 @@
+[
+    {
+        "path":  "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+        "sha256":  "0102E5F301A52DDE085C9C8D3D645809BBDDBCEF4F115CBEB394F7DF948AE746",
+        "status":  "NEW_DEV1_SOURCE"
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+        "sha256":  "21649003343219A8BBA9B333B79C7AE5151C51AD4F2CC74D08BDF18A9B027E19",
+        "status":  "NEW_DEV1_SOURCE"
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+        "sha256":  "22675D6639366F703543BB921392B093720383ADBAA8D64BEF0EDC12EDFF4A81",
+        "status":  "NEW_DEV1_SOURCE"
+    },
+    {
+        "path":  "src/HotelOps.Api/Program.cs",
+        "sha256":  "145B736DE14ECD931F704DC5F7E9B24A80AF2A136718F4000200B2D40C51EF5E",
+        "status":  "MODIFIED_APPROVED_ONE_LINE"
+    }
+]

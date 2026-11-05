@@ -1,0 +1,127 @@
+11: [ApiController]
+12: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+13: [Route("api/inventory")]
+14: public sealed class InventoryController(InventoryService service, InventoryAccess access, ICurrentUserAccessor current) : ControllerBase
+15: {
+16:     private async Task<IActionResult> Execute<T>(Func<long, Task<T>> operation, Func<T, string>? location = null, object? input = null)
+17:     {
+18:         try
+19:         {
+20:             if (!current.TryGetCurrentUser(out var caller)) return Unauthorized();
+21:             if (caller.IsRestricted) return Forbid(HotelOpsCookieTicket.Scheme);
+22:             if (!await access.Authorize(ControllerContext.ActionDescriptor.ActionName, RouteData.Values, input, HttpContext.RequestAborted)) return NotFound();
+23:             if (HttpMethods.IsGet(Request.Method)) service.RestrictReads(await access.ReadWarehouses(HttpContext.RequestAborted));
+24:             var result = await operation(caller.UserId);
+25:             if (result is null) return NotFound();
+26:             return location is null ? Ok(result) : Created(location(result), result);
+27:         }
+28:         catch (InventoryAccessException e) { return e.Status == 401 ? Unauthorized() : Forbid(HotelOpsCookieTicket.Scheme); }
+29:         catch (ValidationException exception)
+30:         {
+31:             return Problem(statusCode: StatusCodes.Status400BadRequest, title: "Inventory validation failed", detail: exception.Message);
+32:         }
+33:     }
+34:     [HttpGet("items")]
+35:     public Task<IActionResult> Items([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetItems(page, ct));
+36:     [HttpGet("items/{id:long}")]
+37:     public Task<IActionResult> Item(long id, CancellationToken ct) => Execute(actor => service.GetItem(id, ct));
+38:     [HttpPost("items")]
+39:     public Task<IActionResult> CreateItem(InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(null, actor, request, ct), x => $"/api/inventory/items/{x!.ItemId}", input: request);
+40:     [HttpPut("items/{id:long}")]
+41:     public Task<IActionResult> UpdateItem(long id, InventoryItemWrite request, CancellationToken ct) => Execute(actor => service.SaveItem(id, actor, request, ct), input: request);
+42:     [HttpGet("item-categories")]
+43:     public Task<IActionResult> Categories(CancellationToken ct) => Execute(actor => service.GetCategories(ct));
+44:     [HttpGet("units")]
+45:     public Task<IActionResult> Units([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetUnits(page, ct));
+46:     [HttpGet("units/{id:long}")]
+47:     public Task<IActionResult> Unit(long id, CancellationToken ct) => Execute(actor => service.GetUnit(id, ct));
+48:     [HttpPost("units")]
+49:     public Task<IActionResult> CreateUnit(InventoryUnitWrite request, CancellationToken ct) => Execute(actor => service.SaveUnit(null, actor, request, ct), x => $"/api/inventory/units/{x!.UomId}", input: request);
+50:     [HttpPut("units/{id:long}")]
+51:     public Task<IActionResult> UpdateUnit(long id, InventoryUnitWrite request, CancellationToken ct) => Execute(actor => service.SaveUnit(id, actor, request, ct), input: request);
+52:     [HttpGet("items/{id:long}/conversions")]
+53:     public Task<IActionResult> Conversions(long id, CancellationToken ct) => Execute(actor => service.GetConversions(id, ct));
+54:     [HttpGet("items/{id:long}/conversions/{conversionId:long}")]
+55:     public Task<IActionResult> Conversion(long id, long conversionId, CancellationToken ct) => Execute(actor => service.GetConversion(id, conversionId, ct));
+56:     [HttpPost("items/{id:long}/conversions")]
+57:     public Task<IActionResult> CreateConversion(long id, InventoryConversionWrite request, CancellationToken ct) => Execute(actor => service.SaveConversion(id, null, actor, request, ct), x => $"/api/inventory/items/{id}/conversions/{x!.ConversionId}", input: request);
+58:     [HttpPut("items/{id:long}/conversions/{conversionId:long}")]
+59:     public Task<IActionResult> UpdateConversion(long id, long conversionId, InventoryConversionWrite request, CancellationToken ct) => Execute(actor => service.SaveConversion(id, conversionId, actor, request, ct), input: request);
+60:     [HttpGet("warehouses")]
+61:     public Task<IActionResult> Warehouses([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetWarehouses(page, ct));
+62:     [HttpGet("warehouses/{id:long}")]
+63:     public Task<IActionResult> Warehouse(long id, CancellationToken ct) => Execute(actor => service.GetWarehouse(id, ct));
+64:     [HttpPost("warehouses")]
+65:     public Task<IActionResult> CreateWarehouse(InventoryWarehouseWrite request, CancellationToken ct) => Execute(actor => service.SaveWarehouse(null, actor, request, ct), x => $"/api/inventory/warehouses/{x!.WarehouseId}", input: request);
+66:     [HttpPut("warehouses/{id:long}")]
+67:     public Task<IActionResult> UpdateWarehouse(long id, InventoryWarehouseWrite request, CancellationToken ct) => Execute(actor => service.SaveWarehouse(id, actor, request, ct), input: request);
+68:     [HttpGet("warehouses/{warehouseId:long}/thresholds")]
+69:     public Task<IActionResult> Thresholds(long warehouseId, CancellationToken ct) => Execute(actor => service.GetThresholds(warehouseId, ct));
+70:     [HttpPut("warehouses/{warehouseId:long}/items/{itemId:long}/threshold")]
+71:     public Task<IActionResult> Threshold(long warehouseId, long itemId, InventoryThresholdWrite request, CancellationToken ct) => Execute(actor => service.SaveThreshold(warehouseId, itemId, actor, request, ct), input: request);
+72:     [HttpGet("stock")]
+73:     public Task<IActionResult> Stock([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetStock(page, false, ct));
+74:     [HttpGet("low-stock")]
+75:     public Task<IActionResult> LowStock([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetStock(page, true, ct));
+76:     [HttpGet("warehouses/{warehouseId:long}/items/{itemId:long}/stock")]
+77:     public Task<IActionResult> StockPair(long warehouseId, long itemId, CancellationToken ct) => Execute(actor => service.GetStock(warehouseId, itemId, ct));
+78:     [HttpGet("movements")]
+79:     public Task<IActionResult> Movements([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetMovements(page, ct));
+80:     [HttpGet("warehouses/{warehouseId:long}/items/{itemId:long}/ledger")]
+81:     public Task<IActionResult> Ledger(long warehouseId, long itemId, [FromQuery] DateTime from, [FromQuery] DateTime to, CancellationToken ct) => Execute(actor => service.GetLedger(warehouseId, itemId, from, to, ct));
+82:     [HttpGet("documents")]
+83:     public Task<IActionResult> Documents([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetDocuments(page, ct));
+84:     [HttpGet("documents/{id:long}")]
+85:     public Task<IActionResult> Document(long id, CancellationToken ct) => Execute(actor => service.GetDocument(id, ct));
+86:     [HttpGet("documents/{id:long}/history")]
+87:     public Task<IActionResult> History(long id, CancellationToken ct) => Execute(actor => service.GetHistory(id, ct));
+88:     [HttpPost("documents/{id:long}/cancel")]
+89:     public Task<IActionResult> Cancel(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.CancelDocument(id, actor, request, ct), input: request);
+90:     [HttpPost("documents/{id:long}/reverse")]
+91:     public Task<IActionResult> Reverse(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.Reverse(id, actor, request, ct), input: request);
+92:     [HttpPost("receipts")]
+93:     public Task<IActionResult> CreateReceipt(InventoryDraft request, CancellationToken ct) => Execute(actor => service.SaveDraft("RECEIPT", null, actor, request, ct), x => $"/api/inventory/documents/{x!.DocumentId}", input: request);
+94:     [HttpPut("receipts/{id:long}")]
+95:     public Task<IActionResult> EditReceipt(long id, InventoryDraft request, CancellationToken ct) => Execute(actor => service.SaveDraft("RECEIPT", id, actor, request, ct), input: request);
+96:     [HttpPost("receipts/{id:long}/post")]
+97:     public Task<IActionResult> PostReceipt(long id, InventoryPost request, CancellationToken ct) => Execute(actor => service.Post("RECEIPT", id, actor, request, ct), input: request);
+98:     [HttpPost("returns")]
+99:     public Task<IActionResult> CreateReturn(InventoryDraft request, CancellationToken ct) => Execute(actor => service.SaveDraft("RETURN", null, actor, request, ct), x => $"/api/inventory/documents/{x!.DocumentId}", input: request);
+100:     [HttpPut("returns/{id:long}")]
+101:     public Task<IActionResult> EditReturn(long id, InventoryDraft request, CancellationToken ct) => Execute(actor => service.SaveDraft("RETURN", id, actor, request, ct), input: request);
+102:     [HttpPost("returns/{id:long}/post")]
+103:     public Task<IActionResult> PostReturn(long id, InventoryPost request, CancellationToken ct) => Execute(actor => service.Post("RETURN", id, actor, request, ct), input: request);
+104:     [HttpPost("transfers")]
+105:     public Task<IActionResult> CreateTransfer(InventoryDraft request, CancellationToken ct) => Execute(actor => service.SaveDraft("TRANSFER", null, actor, request, ct), x => $"/api/inventory/documents/{x!.DocumentId}", input: request);
+106:     [HttpPut("transfers/{id:long}")]
+107:     public Task<IActionResult> EditTransfer(long id, InventoryDraft request, CancellationToken ct) => Execute(actor => service.SaveDraft("TRANSFER", id, actor, request, ct), input: request);
+108:     [HttpPost("transfers/{id:long}/dispatch")]
+109:     public Task<IActionResult> Dispatch(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.Dispatch(id, actor, request, ct), input: request);
+110:     [HttpPost("transfers/{id:long}/receipts")]
+111:     public Task<IActionResult> Receive(long id, InventoryReceive request, CancellationToken ct) => Execute(actor => service.Receive(id, actor, request, ct), input: request);
+112:     [HttpPost("adjustments")]
+113:     public Task<IActionResult> Adjust(InventoryAdjustment request, CancellationToken ct) => Execute(actor => service.CreateAdjustment(actor, request, ct), x => $"/api/inventory/documents/{x.DocumentId}", input: request);
+114:     [HttpPost("adjustments/{id:long}/post")]
+115:     public Task<IActionResult> PostAdjustment(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.PostAdjustment(id, actor, request, ct), input: request);
+116:     [HttpPost("reversals/{id:long}/post")]
+117:     public Task<IActionResult> PostReversal(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.PostReversal(id, actor, request, ct), input: request);
+118:     [HttpGet("stocktakes")]
+119:     public Task<IActionResult> Stocktakes([FromQuery] InventoryPage page, CancellationToken ct) => Execute(actor => service.GetStocktakes(page, ct));
+120:     [HttpGet("stocktakes/{id:long}")]
+121:     public Task<IActionResult> Stocktake(long id, CancellationToken ct) => Execute(actor => service.GetStocktake(id, ct));
+122:     [HttpPost("stocktakes")]
+123:     public Task<IActionResult> CreateStocktake(InventoryStocktakeCreate request, CancellationToken ct) => Execute(actor => service.CreateStocktake(actor, request, ct), x => $"/api/inventory/stocktakes/{x.StocktakeId}", input: request);
+124:     [HttpPut("stocktakes/{id:long}/counts")]
+125:     public Task<IActionResult> Counts(long id, InventoryCounts request, CancellationToken ct) => Execute(actor => service.SaveCounts(id, actor, request, ct), input: request);
+126:     [HttpPost("stocktakes/{id:long}/submit")]
+127:     public Task<IActionResult> Submit(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.StocktakeAction(id, "submit", actor, request, ct), input: request);
+128:     [HttpPost("stocktakes/{id:long}/reconcile")]
+129:     public Task<IActionResult> Reconcile(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.StocktakeAction(id, "reconcile", actor, request, ct), input: request);
+130:     [HttpPost("stocktakes/{id:long}/approve-adjustment")]
+131:     public Task<IActionResult> ApproveAdjustment(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.StocktakeAction(id, "approve-adjustment", actor, request, ct), input: request);
+132:     [HttpPost("stocktakes/{id:long}/return")]
+133:     public Task<IActionResult> ReturnStocktake(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.StocktakeAction(id, "return", actor, request, ct), input: request);
+134:     [HttpPost("stocktakes/{id:long}/cancel")]
+135:     public Task<IActionResult> CancelStocktake(long id, InventoryCommand request, CancellationToken ct) => Execute(actor => service.StocktakeAction(id, "cancel", actor, request, ct), input: request);
+136: }
+137: 

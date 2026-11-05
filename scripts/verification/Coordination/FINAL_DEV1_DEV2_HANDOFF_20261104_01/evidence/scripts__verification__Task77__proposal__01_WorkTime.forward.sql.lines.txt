@@ -1,0 +1,121 @@
+﻿SOURCE: scripts/verification/Task77/proposal/01_WorkTime.forward.sql
+SHA256: 74F881B740386CF04536ECEBDC5B4F5ADE0D4288A60C9D09601979F7397ADE03
+Ranges: 1-220 (original source line numbers)
+    1: -- REVIEW CANDIDATE ONLY. No EF migration. Do not execute before explicit approval.
+    2: -- Runner must set this session flag AFTER approval and guarded disposable-trial preparation.
+    3: SET XACT_ABORT ON;
+    4: IF COALESCE(TRY_CONVERT(int, SESSION_CONTEXT(N'HotelOps.Task77Approved')), 0) <> 1
+    5:     THROW 51770, 'Task77 shared schema approval is required.', 1;
+    6: IF LEN(DB_NAME()) <> 49 OR LEFT(DB_NAME(),19) <> N'HotelOps_Canonical_'
+    7:     OR SUBSTRING(DB_NAME(),20,8) LIKE N'%[^0-9]%' OR SUBSTRING(DB_NAME(),28,1) <> N'_'
+    8:     OR SUBSTRING(DB_NAME(),29,6) LIKE N'%[^0-9]%' OR SUBSTRING(DB_NAME(),35,1) <> N'_'
+    9:     OR SUBSTRING(DB_NAME(),36,8) COLLATE Latin1_General_100_BIN2 LIKE N'%[^a-f0-9]%'
+   10:     OR RIGHT(DB_NAME(),6) <> N'_Fresh'
+   11:     OR NOT EXISTS (SELECT 1 FROM sys.extended_properties
+   12:         WHERE class = 0 AND name = N'HotelOps.UserDirectory.Trial' AND CONVERT(nvarchar(128), value) = N'Task17')
+   13:     THROW 51771, 'Only a guarded disposable canonical trial is allowed.', 1;
+   14: IF @@TRANCOUNT <> 0 THROW 51772, 'Schema runner must not have an ambient transaction.', 1;
+   15: IF OBJECT_ID(N'dbo.workdays') IS NOT NULL OR OBJECT_ID(N'dbo.work_intervals') IS NOT NULL
+   16:     OR OBJECT_ID(N'dbo.time_correction_requests') IS NOT NULL
+   17:     THROW 51773, 'Existing time tables require explicit compatibility review; no overwrite or replay.', 1;
+   18: 
+   19: BEGIN TRANSACTION;
+   20: CREATE TABLE dbo.workdays
+   21: (
+   22:     workday_id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_workdays PRIMARY KEY,
+   23:     user_id bigint NOT NULL,
+   24:     branch_id bigint NOT NULL,
+   25:     department_id bigint NOT NULL,
+   26:     work_date date NOT NULL,
+   27:     shift_assignment_id bigint NULL,
+   28:     is_unscheduled bit NOT NULL,
+   29:     unscheduled_reason nvarchar(1000) NULL,
+   30:     status varchar(10) COLLATE Latin1_General_100_BIN2 NOT NULL,
+   31:     started_at datetime2(7) NOT NULL CONSTRAINT DF_workdays_started DEFAULT SYSUTCDATETIME(),
+   32:     ended_at datetime2(7) NULL,
+   33:     row_version rowversion NOT NULL,
+   34:     CONSTRAINT FK_workdays_user FOREIGN KEY(user_id) REFERENCES dbo.users(user_id),
+   35:     CONSTRAINT FK_workdays_branch FOREIGN KEY(branch_id) REFERENCES dbo.branches(branch_id),
+   36:     CONSTRAINT FK_workdays_department FOREIGN KEY(department_id) REFERENCES dbo.departments(department_id),
+   37:     CONSTRAINT FK_workdays_assignment FOREIGN KEY(shift_assignment_id) REFERENCES dbo.shift_assignments(shift_assignment_id),
+   38:     CONSTRAINT UQ_workdays_identity UNIQUE(workday_id, user_id, branch_id),
+   39:     CONSTRAINT CK_workdays_state CHECK
+   40:         ((status = 'WORKING' AND ended_at IS NULL) OR (status = 'ENDED' AND ended_at IS NOT NULL AND ended_at >= started_at)),
+   41:     CONSTRAINT CK_workdays_schedule CHECK
+   42:         ((is_unscheduled = 0 AND shift_assignment_id IS NOT NULL AND unscheduled_reason IS NULL)
+   43:           OR (is_unscheduled = 1 AND shift_assignment_id IS NULL AND LEN(LTRIM(RTRIM(unscheduled_reason))) >= 10
+   44:               AND unscheduled_reason IS NOT NULL))
+   45: );
+   46: CREATE UNIQUE INDEX UX_workdays_one_working ON dbo.workdays(user_id) WHERE status = 'WORKING';
+   47: CREATE INDEX IX_workdays_user_date ON dbo.workdays(user_id, work_date, workday_id);
+   48: 
+   49: CREATE TABLE dbo.work_intervals
+   50: (
+   51:     interval_id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_work_intervals PRIMARY KEY,
+   52:     workday_id bigint NOT NULL,
+   53:     user_id bigint NOT NULL,
+   54:     branch_id bigint NOT NULL,
+   55:     work_item_kind varchar(24) COLLATE Latin1_General_100_BIN2 NOT NULL,
+   56:     work_item_id bigint NOT NULL,
+   57:     opened_by bigint NOT NULL,
+   58:     opened_at datetime2(7) NOT NULL CONSTRAINT DF_work_intervals_opened DEFAULT SYSUTCDATETIME(),
+   59:     closed_by bigint NULL,
+   60:     closed_at datetime2(7) NULL,
+   61:     effective_started_at datetime2(7) NOT NULL,
+   62:     effective_ended_at datetime2(7) NULL,
+   63:     row_version rowversion NOT NULL,
+   64:     CONSTRAINT FK_work_intervals_workday FOREIGN KEY(workday_id, user_id, branch_id)
+   65:         REFERENCES dbo.workdays(workday_id, user_id, branch_id),
+   66:     CONSTRAINT FK_work_intervals_opened_by FOREIGN KEY(opened_by) REFERENCES dbo.users(user_id),
+   67:     CONSTRAINT FK_work_intervals_closed_by FOREIGN KEY(closed_by) REFERENCES dbo.users(user_id),
+   68:     CONSTRAINT CK_work_intervals_identity CHECK(work_item_id > 0 AND work_item_kind IN
+   69:         ('CLEANING', 'REWORK', 'INCIDENT', 'MAINTENANCE_OCCURRENCE', 'TASK')),
+   70:     CONSTRAINT CK_work_intervals_state CHECK
+   71:         ((closed_at IS NULL AND closed_by IS NULL AND effective_ended_at IS NULL AND effective_started_at = opened_at)
+   72:           OR (closed_at IS NOT NULL AND closed_by IS NOT NULL AND closed_at >= opened_at
+   73:               AND effective_ended_at IS NOT NULL AND effective_ended_at >= effective_started_at))
+   74: );
+   75: -- GLOBAL user key: deliberately not scoped by branch or work-item module.
+   76: CREATE UNIQUE INDEX UX_work_intervals_one_open ON dbo.work_intervals(user_id) WHERE closed_at IS NULL;
+   77: CREATE INDEX IX_work_intervals_user_time ON dbo.work_intervals(user_id, effective_started_at, interval_id);
+   78: CREATE INDEX IX_work_intervals_item ON dbo.work_intervals(work_item_kind, work_item_id, interval_id);
+   79: 
+   80: CREATE TABLE dbo.time_correction_requests
+   81: (
+   82:     correction_id bigint IDENTITY(1,1) NOT NULL CONSTRAINT PK_time_correction_requests PRIMARY KEY,
+   83:     interval_id bigint NOT NULL,
+   84:     requested_by bigint NOT NULL,
+   85:     requested_at datetime2(7) NOT NULL CONSTRAINT DF_time_corrections_requested DEFAULT SYSUTCDATETIME(),
+   86:     original_started_at datetime2(7) NOT NULL,
+   87:     original_ended_at datetime2(7) NOT NULL,
+   88:     original_interval_version binary(8) NOT NULL,
+   89:     proposed_started_at datetime2(7) NOT NULL,
+   90:     proposed_ended_at datetime2(7) NOT NULL,
+   91:     reason nvarchar(1000) NOT NULL,
+   92:     status varchar(10) COLLATE Latin1_General_100_BIN2 NOT NULL,
+   93:     decided_by bigint NULL,
+   94:     decided_at datetime2(7) NULL,
+   95:     decision_reason nvarchar(1000) NULL,
+   96:     applied_started_at datetime2(7) NULL,
+   97:     applied_ended_at datetime2(7) NULL,
+   98:     row_version rowversion NOT NULL,
+   99:     CONSTRAINT FK_time_corrections_interval FOREIGN KEY(interval_id) REFERENCES dbo.work_intervals(interval_id),
+  100:     CONSTRAINT FK_time_corrections_requester FOREIGN KEY(requested_by) REFERENCES dbo.users(user_id),
+  101:     CONSTRAINT FK_time_corrections_decider FOREIGN KEY(decided_by) REFERENCES dbo.users(user_id),
+  102:     CONSTRAINT CK_time_corrections_values CHECK
+  103:         (original_ended_at >= original_started_at AND proposed_ended_at >= proposed_started_at
+  104:           AND LEN(LTRIM(RTRIM(reason))) >= 10),
+  105:     CONSTRAINT CK_time_corrections_state CHECK
+  106:         ((status = 'PENDING' AND decided_by IS NULL AND decided_at IS NULL
+  107:             AND applied_started_at IS NULL AND applied_ended_at IS NULL AND decision_reason IS NULL)
+  108:           OR (status = 'APPLIED' AND decided_by IS NOT NULL AND decided_by <> requested_by AND decided_at IS NOT NULL AND decided_at >= requested_at
+  109:             AND applied_started_at IS NOT NULL AND applied_ended_at IS NOT NULL AND applied_ended_at >= applied_started_at)
+  110:           OR (status = 'REJECTED' AND decided_by IS NOT NULL AND decided_by <> requested_by AND decided_at IS NOT NULL AND decided_at >= requested_at
+  111:             AND applied_started_at IS NULL AND applied_ended_at IS NULL
+  112:             AND decision_reason IS NOT NULL AND LEN(LTRIM(RTRIM(decision_reason))) >= 10))
+  113: );
+  114: CREATE INDEX IX_time_corrections_interval ON dbo.time_correction_requests(interval_id, requested_at, correction_id);
+  115: EXEC sys.sp_addextendedproperty @name=N'HotelOps.WorkTime.Contract', @value=N'Task77-v1';
+  116: COMMIT TRANSACTION;
+  117: -- No seeds, grants, ShiftAttendance updates, triggers, existing-table changes or deployment to shared DBs.
+

@@ -1,0 +1,23 @@
+using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.HotelStructure;
+using HotelOps.Api.Services.Users;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+if(args.Length!=1||!System.Text.RegularExpressions.Regex.IsMatch(args[0],@"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$"))throw new Exception("Trial only");
+await using var db=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(@"Data Source=REDACTED_LOCAL_SQL_HOST\SQLEXPRESS;Initial Catalog="+args[0]+";Integrated Security=True;TrustServerCertificate=True").Options);
+var actor=await db.Users.Where(x=>x.Username=="t63.admin").Select(x=>x.UserId).SingleAsync();
+var raw=SessionCredential.Generate();var now=DateTime.UtcNow;
+var session=new UserSession{UserId=actor,SessionKeyHash=SessionCredential.Hash(raw),CreatedAt=now,LastUsedAt=now,ExpiresAt=now.AddHours(1)};
+db.Add(session);await db.SaveChangesAsync();db.ChangeTracker.Clear();
+var ticket=SessionReference.FromProtectedTicket(actor,raw,false,now);var snap=new SessionSnapshot(session.SessionId,actor,now,session.ExpiresAt,now.AddHours(12),false);
+var ctx=new DefaultHttpContext{User=HotelOpsCookieTicket.Create(new(ticket,snap),TimeProvider.System).Principal};ctx.Items[typeof(SessionSnapshot)]=snap;
+var current=new CurrentUserAccessor(new HttpContextAccessor{HttpContext=ctx});
+var service=new RoomTypeCreationService(db,current,new PermissionService(current,new EfPermissionDataSource(db),new UnresolvedPermissionResourceResolver(),TimeProvider.System),new SqlSessionService(db,new SessionRevocationService(db),TimeProvider.System),TimeProvider.System);
+var type=await db.BranchRoomTypes.AsNoTracking().SingleAsync(x=>x.TypeCode=="T70_TYPE"&&x.BranchId==1);
+var loaded=await service.ReadRoomTypeAsync(ticket,session.SessionId,1,type.RoomTypeId,default);
+try{var result=await service.UpdateRoomTypeAsync(ticket,session.SessionId,1,type.RoomTypeId,loaded.ETag!,new("Diagnostic",45,type.DefaultChecklistId!.Value),default);System.Console.WriteLine(result.Status);}
+catch(Exception ex){System.Console.WriteLine(ex);}

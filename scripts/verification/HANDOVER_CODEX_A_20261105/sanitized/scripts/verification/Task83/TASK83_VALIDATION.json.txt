@@ -1,0 +1,146 @@
+{
+    "status":  "BLOCKED_NO_ELIGIBLE_NEW_UC_BOTH_HISTORICALLY_COMPLETE_RUNTIME_UNINTEGRATED",
+    "completionTargetAchieved":  false,
+    "selectedUC":  null,
+    "productionImplementationPerformed":  false,
+    "startedUtc":  "2026-11-04T01:25:13.3525729+00:00",
+    "finishedUtc":  "2026-11-04T01:33:44.0519518+00:00",
+    "elapsedSeconds":  510.7,
+    "elapsedDisplay":  "00:08:30",
+    "measurement":  "Recorded preflight to final checks; initial requirements reading excluded",
+    "baselineTimingCaveat":  "Git/path baseline and Task82 source SHA256 checks completed before build. Full physical SHA capture overlapped isolated Task83 baseline build, then full postflight SHA/mtime showed no changes. Not a full pre-build byte snapshot.",
+    "candidateStatuses":  [
+                              {
+                                  "currentIntegration":  "MISSING_SERVICE_CONTROLLER_DI_AND_OPTIONAL_MAPPING_DEPENDENCIES",
+                                  "historicalSnapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                  "historicalIndependentChecks":  49,
+                                  "weight":  1,
+                                  "uc":  "UC-142",
+                                  "earnedPoints":  1,
+                                  "ledger":  "COMPLETE_VERIFIED_V1"
+                              },
+                              {
+                                  "historicalCombinedUc038Uc048Checks":  208,
+                                  "currentIntegration":  "MISSING_SERVICE_CONTROLLER_FILES_AND_PARTIAL_SERVICE_DEPENDENCIES",
+                                  "weight":  2,
+                                  "uc":  "UC-038",
+                                  "earnedPoints":  2,
+                                  "ledger":  "COMPLETE_VERIFIED_V1"
+                              }
+                          ],
+    "progress":  {
+                     "uc138":  "NOT_IMPLEMENTED",
+                     "uc139":  "BLOCKED_EXTERNAL",
+                     "verifiedPoints":  60,
+                     "weightedPercent":  23.4375,
+                     "pointDenominator":  256,
+                     "uc037":  "PARTIAL",
+                     "ucDenominator":  75,
+                     "ledgerModified":  false,
+                     "completedUCs":  26,
+                     "newPoints":  0,
+                     "newCompletions":  0
+                 },
+    "commands":  [
+                     {
+                         "exitCode":  0,
+                         "errors":  0,
+                         "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task83/artifacts/build -p:RestoreIgnoreFailedSources=true",
+                         "result":  "BASELINE_BUILD_PASS",
+                         "warnings":  "2 NU1900",
+                         "log":  "build.log"
+                     },
+                     {
+                         "exitCode":  0,
+                         "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task83/artifacts/build --no-restore",
+                         "cases":  0,
+                         "log":  "framework.log",
+                         "result":  "NOT_AVAILABLE_NO_FRAMEWORK_CASES"
+                     },
+                     {
+                         "exitCode":  0,
+                         "command":  "git diff --check",
+                         "result":  "PASS"
+                     },
+                     {
+                         "checkedFiles":  25397,
+                         "exitCode":  0,
+                         "command":  "dotnet scripts/verification/Task81/artifacts/inventory-fast/bin/FilePostflight/debug/FilePostflight.dll capture \u003cFILE_PATHS.json\u003e \u003cFILE_HASHES.json\u003e"
+                     },
+                     {
+                         "checkedFiles":  25397,
+                         "exitCode":  0,
+                         "command":  "dotnet scripts/verification/Task81/artifacts/inventory-fast/bin/FilePostflight/debug/FilePostflight.dll \u003cFILE_HASHES.json\u003e \u003cPOSTFLIGHT_FILES.json\u003e",
+                         "changedFiles":  0,
+                         "readErrors":  0
+                     }
+                 ],
+    "securityRegressions":  [
+                                {
+                                    "args":  "--production-fallback",
+                                    "exitCode":  0,
+                                    "name":  "Authorization",
+                                    "checks":  93
+                                },
+                                {
+                                    "exitCode":  0,
+                                    "name":  "PermissionService",
+                                    "checks":  43
+                                },
+                                {
+                                    "exitCode":  0,
+                                    "name":  "CurrentUserAccessor",
+                                    "checks":  14
+                                },
+                                {
+                                    "exitCode":  0,
+                                    "name":  "ResourceAuthorization",
+                                    "checks":  49
+                                }
+                            ],
+    "regressionBinaryPattern":  "dotnet scripts/verification/Task82/artifacts/\u003cname\u003e/bin/\u003cname\u003e.Verification/debug/\u003cname\u003e.Verification.dll \u003cargs\u003e",
+    "regressionScope":  "Existing Task82 binaries re-executed, isolated doubles/loopback, not new live SQL UC acceptance",
+    "newUc142Uc038HttpsSql":  "NOT_RUN",
+    "historicalReceiptsCountedAsNewTests":  false,
+    "database":  {
+                     "task82TrialPresent":  true,
+                     "newTrials":  0,
+                     "writes":  0,
+                     "readOnlyInventory":  "TRIAL_INVENTORY.json",
+                     "businessDatabasesOpened":  0,
+                     "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+                     "existingCanonicalTrials":  310,
+                     "masterMetadataOnly":  true,
+                     "protectedDatabaseAccess":  false
+                 },
+    "preservation":  {
+                         "upstreamUnchanged":  true,
+                         "task82SourceHashesUnchanged":  true,
+                         "readErrors":  0,
+                         "changedExistingFiles":  0,
+                         "externalSiblingWorktree":  "Registration/HEAD checked; no filesystem writes attempted; not included in root physical hash inventory",
+                         "newPathsOutsideTask83":  0,
+                         "headUnchanged":  true,
+                         "missingExistingFiles":  0,
+                         "indexUnchanged":  true,
+                         "branchUnchanged":  true,
+                         "checkedExistingFiles":  25397,
+                         "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+                         "statusExcludingTask83Unchanged":  true
+                     },
+    "sourceFilesCreated":  0,
+    "sourceFilesModified":  0,
+    "sourceFilesDeleted":  0,
+    "sharedChanges":  0,
+    "dev2Changes":  0,
+    "gitMutations":  0,
+    "task84Started":  false,
+    "deliverables":  [
+                         "TASK83_UC_SELECTION.md",
+                         "TASK83_IMPLEMENTATION_REPORT.md",
+                         "TASK83_ACCEPTANCE_MATRIX.md",
+                         "TASK83_VALIDATION.json",
+                         "TASK83_CHANGELOG.md",
+                         "TASK83_DEV1_PROGRESS.md"
+                     ]
+}

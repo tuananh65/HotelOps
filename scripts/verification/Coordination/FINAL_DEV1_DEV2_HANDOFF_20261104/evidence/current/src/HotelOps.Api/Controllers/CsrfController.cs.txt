@@ -1,0 +1,10 @@
+7: 
+8: [ApiController]
+9: [Route("api/auth/csrf")]
+10: public sealed class CsrfController(IAntiforgery antiforgery) : ControllerBase
+11: {
+12:     [HttpGet]
+13:     [AllowAnonymous]
+14:     public ActionResult<CsrfBootstrapResponse> Get() => HotelOpsAntiforgery.Issue(HttpContext, antiforgery);
+15: }
+16: 

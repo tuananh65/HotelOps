@@ -1,0 +1,28 @@
+{
+    "count":  26,
+    "points":  60,
+    "uc032":  {
+                  "uc":  "UC-032",
+                  "title":  "Update Cleaning Progress",
+                  "classification":  "COMPLETE_VERIFIED_V1",
+                  "weight":  2,
+                  "verifiedPoints":  2,
+                  "evidenceSummary":  "Task74:87 per-UC HTTPS/SQL checks; scoped current-assignee OWN, distinct frozen cleaning items, notes/private evidence, actual rowversion, 100% not completion, atomic audit/expiry rollback, real race/DMV cancellation and legacy parent revision; §22"
+              },
+    "uc109":  {
+                  "uc":  "UC-109",
+                  "title":  "Update Task Progress",
+                  "classification":  "COMPLETE_VERIFIED_V1",
+                  "weight":  2,
+                  "verifiedPoints":  2,
+                  "evidenceSummary":  "Task74:89 per-UC HTTPS/SQL checks; IN_PROGRESS/explicit PAUSED current assignee, immutable completion criteria/results, private evidence, rowversion/audit/expiry rollback, real race/DMV cancellation; no fake time or auto-completion; §22"
+              },
+    "uc037":  {
+                  "uc":  "UC-037",
+                  "title":  "Monitor Cleaning Tasks",
+                  "classification":  "PARTIAL",
+                  "weight":  2,
+                  "verifiedPoints":  0,
+                  "evidenceSummary":  "Current CleaningMonitorService.ListAsync/DetailAsync read-only; Cancel writer absent; notification/room lifecycle remain missing."
+              }
+}

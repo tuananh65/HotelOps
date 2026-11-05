@@ -1,0 +1,65 @@
+﻿{
+    "Result":  "PASS",
+    "ExistingFilesPreserved":  385,
+    "IndexUnchanged":  true,
+    "HeadUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "AddedFiles":  [
+                       "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+                       "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+                       "scripts/verification/RoomDirectory/Program.cs",
+                       "scripts/verification/RoomDirectory/RoomDirectory.Verification.csproj",
+                       "scripts/verification/RoomDirectory/README.md",
+                       "scripts/verification/RoomDirectory/task60-sql-accepted.local.json"
+                   ],
+    "SourceAndEvidenceHashes":  [
+                                    {
+                                        "Path":  "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+                                        "SHA256":  "C64D741198A90EFD7B62683086FE1770C2C56958730B593EFB6116857F31E7C4"
+                                    },
+                                    {
+                                        "Path":  "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+                                        "SHA256":  "460F4B710CF266B92AF26D322F735B4FFEE03283D6C5C83DF53DF0B11056B37A"
+                                    },
+                                    {
+                                        "Path":  "scripts/verification/RoomDirectory/Program.cs",
+                                        "SHA256":  "0FF5F3F4115A1F1B1E19FFEF979165E20D2BDA96C5202080BAF34FB27D65B4D1"
+                                    },
+                                    {
+                                        "Path":  "scripts/verification/RoomDirectory/RoomDirectory.Verification.csproj",
+                                        "SHA256":  "BE7B9E32834B1025C47D6683EBF3E82DB4379F403A55D7FF3D217AFD072BAD73"
+                                    },
+                                    {
+                                        "Path":  "scripts/verification/RoomDirectory/README.md",
+                                        "SHA256":  "839B77F391C545ED18EB12D633FBDD6EAF52A6584297216FC17E0957F7569A9B"
+                                    },
+                                    {
+                                        "Path":  "scripts/verification/RoomDirectory/task60-sql-accepted.local.json",
+                                        "SHA256":  "681AD97C4B15283216350048D99B01DB70BE52FFB487CF5C78FDD70D16390693"
+                                    }
+                                ],
+    "LinkedFiles":  9,
+    "SqlAssertions":  117,
+    "DmvConfirmedWaits":  11,
+    "AuthorizationRegression":  {
+                                    "PermissionService":  43,
+                                    "CurrentUserAccessor":  14,
+                                    "ResourceAuthorization":  49,
+                                    "Authorization":  61
+                                },
+    "DiffCheckExit":  0,
+    "CachedDiffCheckExit":  0,
+    "DiffNotices":  [
+                        "warning: in the working copy of \u0027scripts/verification/StartupSchemaGate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                        "warning: in the working copy of \u0027scripts/verification/UserAccountCreation/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                        "warning: in the working copy of \u0027scripts/verification/UserProfileUpdate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                        "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                        "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/UserAccountCreationService.cs\u0027, LF will be replaced by CRLF the next time Git touches it",
+                        "warning: in the working copy of \u0027src/HotelOps.Api/Services/Users/UserProfileService.cs\u0027, LF will be replaced by CRLF the next time Git touches it"
+                    ],
+    "Build":  "PASS: dotnet build HotelOps.slnx; NU1900 feed warnings; no C# errors/warnings",
+    "DotnetTest":  "exit0, no discovered test projects; actual verification in SQL/authorization harnesses",
+    "HttpUc023":  "NOT RUN; no endpoint/DI registered",
+    "ProductionDatabaseAccess":  "NONE",
+    "Uc023":  "PARTIAL"
+}

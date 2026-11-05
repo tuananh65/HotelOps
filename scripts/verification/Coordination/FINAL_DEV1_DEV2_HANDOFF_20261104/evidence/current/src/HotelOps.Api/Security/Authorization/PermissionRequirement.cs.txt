@@ -1,0 +1,31 @@
+3: namespace HotelOps.Api.Security.Authorization;
+4: 
+5: public enum PermissionCheck { Resource, Branch, Global }
+6: 
+7: public sealed class PermissionRequirement : IAuthorizationRequirement
+8: {
+9:     public string PermissionCode { get; }
+10:     public PermissionCheck Check { get; }
+11: 
+12:     public PermissionRequirement(string permissionCode, PermissionCheck check = PermissionCheck.Resource)
+13:     {
+14:         if (!PermissionPolicy.IsValidCode(permissionCode) || !Enum.IsDefined(check))
+15:             throw new ArgumentException("Invalid permission requirement.");
+16:         PermissionCode = permissionCode;
+17:         Check = check;
+18:     }
+19: }
+20: 
+21: /// <summary>Branch-level check only; not evidence of a particular resource's branch or ownership.</summary>
+22: public sealed record PermissionBranchContext(long BranchId);
+23: 
+24: public static class PermissionPolicy
+25: {
+26:     public const string Prefix = "HotelOps.Permission:";
+27: 
+28:     public static string Name(string permissionCode, PermissionCheck check = PermissionCheck.Resource)
+29:     {
+30:         _ = new PermissionRequirement(permissionCode, check);
+31:         return $"{Prefix}{check}:{permissionCode}";
+32:     }
+33: 

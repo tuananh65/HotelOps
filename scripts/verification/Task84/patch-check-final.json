@@ -1,0 +1,6 @@
+{
+    "command":  "git apply --check scripts/verification/Task84/Program.di.patch",
+    "exitCode":  0,
+    "applied":  false,
+    "note":  "Initial mixed-line-ending proposal failed check, normalized artifact to LF only; production untouched"
+}

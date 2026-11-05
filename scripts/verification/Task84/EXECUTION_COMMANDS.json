@@ -1,0 +1,62 @@
+[
+    {
+        "name":  "api-build",
+        "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task84/artifacts/build -p:RestoreIgnoreFailedSources=true",
+        "exitCode":  0,
+        "errors":  0,
+        "warnings":  "2 NU1900",
+        "log":  "build.log"
+    },
+    {
+        "name":  "initial-verification",
+        "command":  "dotnet run --project scripts/verification/Task84/Task84.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/verification -p:RestoreIgnoreFailedSources=true -- scripts/verification/Task84/di-boundary-receipt.json",
+        "exitCode":  1,
+        "error":  "CS0117: proposal in separate assembly could not access internal CookieTicket.TryRead",
+        "log":  "di-boundary.log",
+        "countedAsPass":  false
+    },
+    {
+        "name":  "accepted-verification",
+        "command":  "dotnet run --project scripts/verification/Task84/Task84.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/verification2 -p:RestoreIgnoreFailedSources=true -p:CustomBeforeMicrosoftCommonTargets=D:/SEP490/Projects/HotelOps/scripts/verification/Task84/ProposalController.targets -- scripts/verification/Task84/di-boundary-receipt.json",
+        "exitCode":  0,
+        "checks":  19,
+        "kind":  "fresh source DI/static/boundaries and SQL translation, no SQL execution/HTTPS",
+        "log":  "di-boundary-attempt2.log"
+    },
+    {
+        "name":  "framework",
+        "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task84/artifacts/build --no-restore",
+        "exitCode":  0,
+        "cases":  0,
+        "result":  "NOT_AVAILABLE",
+        "log":  "framework.log"
+    },
+    {
+        "name":  "Authorization",
+        "command":  "dotnet run --project scripts/verification/Authorization/Authorization.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/Authorization -p:RestoreIgnoreFailedSources=true -- --production-fallback",
+        "exitCode":  0,
+        "kind":  "FRESH_SOURCE_ISOLATED_REGRESSION_NOT_SQL_UC_ACCEPTANCE",
+        "log":  "Authorization.log"
+    },
+    {
+        "name":  "PermissionService",
+        "command":  "dotnet run --project scripts/verification/PermissionService/PermissionService.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/PermissionService -p:RestoreIgnoreFailedSources=true",
+        "exitCode":  0,
+        "kind":  "FRESH_SOURCE_ISOLATED_REGRESSION_NOT_SQL_UC_ACCEPTANCE",
+        "log":  "PermissionService.log"
+    },
+    {
+        "name":  "CurrentUserAccessor",
+        "command":  "dotnet run --project scripts/verification/CurrentUserAccessor/CurrentUserAccessor.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/CurrentUserAccessor -p:RestoreIgnoreFailedSources=true",
+        "exitCode":  0,
+        "kind":  "FRESH_SOURCE_ISOLATED_REGRESSION_NOT_SQL_UC_ACCEPTANCE",
+        "log":  "CurrentUserAccessor.log"
+    },
+    {
+        "name":  "ResourceAuthorization",
+        "command":  "dotnet run --project scripts/verification/ResourceAuthorization/ResourceAuthorization.Verification.csproj --artifacts-path scripts/verification/Task84/artifacts/ResourceAuthorization -p:RestoreIgnoreFailedSources=true",
+        "exitCode":  0,
+        "kind":  "FRESH_SOURCE_ISOLATED_REGRESSION_NOT_SQL_UC_ACCEPTANCE",
+        "log":  "ResourceAuthorization.log"
+    }
+]

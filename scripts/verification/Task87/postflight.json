@@ -1,0 +1,45 @@
+{
+    "branchPreserved":  true,
+    "sqlAccessed":  false,
+    "protectedFilesChecked":  1129,
+    "productionModified":  false,
+    "worktrees":  [
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps",
+                          "indexPreserved":  true,
+                          "statusPreserved":  true,
+                          "headPreserved":  true
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps/obj/task11-dev2-rehearsal",
+                          "indexPreserved":  true,
+                          "statusPreserved":  true,
+                          "headPreserved":  true
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps/obj/task12-pr7-resolution",
+                          "indexPreserved":  true,
+                          "statusPreserved":  true,
+                          "headPreserved":  true
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps-AI-Loop",
+                          "indexPreserved":  true,
+                          "statusPreserved":  true,
+                          "headPreserved":  true
+                      },
+                      {
+                          "path":  "D:/SEP490/Projects/HotelOps-Codex-B",
+                          "indexPreserved":  true,
+                          "statusPreserved":  true,
+                          "headPreserved":  true
+                      }
+                  ],
+    "gitMutations":  false,
+    "headPreserved":  true,
+    "worktreeCount":  5,
+    "diffCheckExit":  0,
+    "changedProtectedFiles":  [
+
+                              ]
+}

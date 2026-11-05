@@ -1,0 +1,35 @@
+$ErrorActionPreference='Stop'
+$session=Get-Content obj/task73-session.local.json -Raw|ConvertFrom-Json
+$manifest=Get-Content (Join-Path $session.Path 'manifest.json') -Raw|ConvertFrom-Json
+$allowed=@('scripts/database/release/canonical/Run-Canonical.ps1','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md','scripts/verification/HotelStructure/Program.cs','scripts/verification/HotelStructure/Task72ChecklistCases.cs','src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs','src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs','src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs','src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs')
+$bad=@();$backupBad=@();$changed=@()
+foreach($item in $manifest){
+ if(!(Test-Path -LiteralPath $item.Path)){$bad+=$item.Path}
+ elseif((Get-FileHash -LiteralPath $item.Path).Hash -ne $item.Hash){$changed+=$item.Path;if($item.Path -notin $allowed){$bad+=$item.Path}}
+ if((Get-FileHash -LiteralPath (Join-Path $session.Path $item.Path)).Hash -ne $item.Hash){$backupBad+=$item.Path}
+}
+$new=@(git ls-files --others --exclude-standard|Where-Object{$_ -notin $manifest.Path})
+$tracked=@(git -c core.safecrlf=false diff --name-only)
+$unexpectedTracked=@($tracked|Where-Object{$_ -notin $manifest.Path -and $_ -notin $allowed})
+$head=(git rev-parse HEAD).Trim();$branch=(git branch --show-current).Trim()
+$headSame=$head -ceq (Get-Content (Join-Path $session.Path 'head.txt') -Raw).Trim()
+$branchSame=$branch -ceq (Get-Content (Join-Path $session.Path 'branch.txt') -Raw).Trim()
+$indexSame=@(Compare-Object @(Get-Content (Join-Path $session.Path 'index.txt')) @(git ls-files --stage)).Count -eq 0
+$treesSame=@(Compare-Object @(Get-Content (Join-Path $session.Path 'worktrees.txt')) @(git worktree list --porcelain)).Count -eq 0
+git -c core.safecrlf=false diff --check
+$diffExit=$LASTEXITCODE
+$sources=@(($changed+$new)|Where-Object{$_ -match '\.(cs|md|sql|ps1)$'}|Sort-Object -Unique)
+$whitespace=@(foreach($path in $sources){if(Select-String -LiteralPath $path -Pattern '[ \t]+$'){$path}})
+$receipts=@(foreach($name in @('task73-accepted.local.json','task73-history-regression.local.json','task73-room-regression.local.json')){
+ $path=Join-Path 'scripts/verification/Housekeeping' $name;$r=Get-Content $path -Raw|ConvertFrom-Json
+ [pscustomobject]@{Path=$path;Success=$r.success;Checks=$r.checks;Database=$r.database;SHA256=(Get-FileHash -LiteralPath $path).Hash}
+})
+$shape=@(foreach($suffix in @('Fresh','Upgrade','AuthUpgrade')){$path='obj/task73-shape-final-'+$suffix+'.local.json';$r=Get-Content $path -Raw|ConvertFrom-Json;[pscustomobject]@{Path=$path;Success=$r.success;Database=$r.database}})
+$rows=@(Get-Content scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md -Encoding UTF8|Where-Object{$_ -match '^\| UC-\d{3} \|'})
+$verified=@($rows|Where-Object{$_ -match '\| COMPLETE_VERIFIED(_V1)? \|'});$points=($verified|ForEach-Object{[int](($_ -split '\|')[5].Trim())}|Measure-Object -Sum).Sum
+$taxonomy=@($rows|ForEach-Object{($_ -split '\|')[4].Trim()}|Group-Object|Select-Object Name,Count)
+$end=[DateTime]::UtcNow
+$result=[ordered]@{OriginalFiles=$manifest.Count;UnexpectedChanges=$bad;UnexpectedTrackedChanges=$unexpectedTracked;BackupHashFailures=$backupBad;Head=$head;HeadUnchanged=$headSame;Branch=$branch;BranchUnchanged=$branchSame;IndexUnchanged=$indexSame;FourWorktreesUnchanged=$treesSame;DiffCheckExit=$diffExit;TextWhitespaceFailures=$whitespace;ModifiedExistingFiles=$changed;NewFiles=$new;SourceFiles=@($sources|ForEach-Object{[pscustomobject]@{Path=$_;SHA256=(Get-FileHash -LiteralPath $_).Hash}});Receipts=$receipts;FinalSchemaVerification=$shape;UseCases=$rows.Count;VerifiedUseCases=$verified.Count;VerifiedPoints=$points;Taxonomy=$taxonomy;BatchStartUtc=$session.StartUtc;BatchEndUtc=$end.ToString('O');ElapsedSeconds=($end-[DateTime]::Parse($session.StartUtc).ToUniversalTime()).TotalSeconds}
+$result|ConvertTo-Json -Depth 10|Set-Content obj/task73-validation.local.json
+[pscustomobject]@{OriginalFiles=$manifest.Count;UnexpectedChanges=$bad;UnexpectedTrackedChanges=$unexpectedTracked;BackupHashFailures=$backupBad;HeadUnchanged=$headSame;BranchUnchanged=$branchSame;IndexUnchanged=$indexSame;FourWorktreesUnchanged=$treesSame;DiffCheckExit=$diffExit;TextWhitespaceFailures=$whitespace;VerifiedUseCases=$verified.Count;VerifiedPoints=$points;Receipts=$receipts;FinalSchemaVerification=$shape;ElapsedSeconds=$result.ElapsedSeconds}|ConvertTo-Json -Depth 6
+if($bad.Count -or $unexpectedTracked.Count -or $backupBad.Count -or !$headSame -or !$branchSame -or !$indexSame -or !$treesSame -or $diffExit -or $whitespace.Count -or @($receipts|Where-Object{!$_.Success}).Count -or @($shape|Where-Object{!$_.Success}).Count -or $rows.Count -ne 75 -or $verified.Count -ne 24 -or $points -ne 56){throw 'Task73 validation failed'}

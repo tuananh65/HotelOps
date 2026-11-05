@@ -1,0 +1,5 @@
+﻿{
+    "exitCode":  0,
+    "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task81/artifacts/framework -p:RestoreIgnoreFailedSources=true",
+    "frameworkCases":  0
+}

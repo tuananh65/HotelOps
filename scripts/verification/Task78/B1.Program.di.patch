@@ -1,0 +1,24 @@
+--- a/src/HotelOps.Api/Program.cs
++++ b/src/HotelOps.Api/Program.cs
+@@ -22,7 +22,10 @@
+ // Add services to the container.
+ builder.Services.AddScoped<HotelOps.Api.Services.Users.IUserDirectoryService, HotelOps.Api.Services.Users.UserDirectoryService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.Housekeeping.CleaningMonitorService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();
++builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
++builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();
++builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.WorkdayService>();
+ builder.Services.AddScoped<IIncidentService, IncidentService>();
+ builder.Services.AddScoped<IAssetService, AssetService>();
+ builder.Services.AddScoped<IMaintenanceWorkService, MaintenanceWorkService>();
+@@ -66,7 +69,9 @@
+ builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
+ builder.Services.AddScoped<IPermissionDataSource, EfPermissionDataSource>();
+ builder.Services.AddScoped<ICleaningTaskAccessReader, EfCleaningTaskAccessReader>();
+-builder.Services.AddScoped<IPermissionResourceResolver, CleaningTaskResourceResolver>();
++builder.Services.AddScoped<IPermissionResourceResolver>(sp => new HotelOps.Api.Services.WorkTime.WorkdayPermissionResourceResolver(
++    sp.GetRequiredService<HotelOpsDbContext>(),
++    ActivatorUtilities.CreateInstance<CleaningTaskResourceResolver>(sp)));
+ builder.Services.AddScoped<IPermissionService, PermissionService>();
+ builder.Services.AddHotelOpsPermissionAuthorization();
+ 

@@ -1,0 +1,99 @@
+5: namespace HotelOps.Api.Services.Inventory;
+6: 
+7: public sealed partial class InventoryService
+8: {
+9:     private async Task<InventoryPaged<TResult>> Page<TEntity, TResult>(IQueryable<TEntity> source,
+10:         InventoryPage page, Func<TEntity, TResult> map, CancellationToken ct)
+11:     {
+12:         var (offset, size) = Paging(page);
+13:         var count = await source.CountAsync(ct);
+16:     }
+17:     private static InventoryItemDto Dto(InventoryItem x) => new(x.ItemId, x.ItemCode, x.ItemName, x.CategoryId,
+18:         x.BaseUomId, x.IsActive, x.IsConsumable, x.Description, x.Specification, Convert.ToBase64String(x.RowVersion));
+19:     private static InventoryUnitDto Dto(UnitsOfMeasure x) => new(x.UomId, x.UomCode, x.UomName, x.IsActive, x.Description, Convert.ToBase64String(x.RowVersion));
+20:     private static InventoryConversionDto Dto(UomConversion x) => new(x.ConversionId, x.ItemId, x.FromUomId, x.ToUomId, x.ConversionFactor, x.IsActive, Convert.ToBase64String(x.RowVersion));
+21:     private static InventoryWarehouseDto Dto(Warehouse x) => new(x.WarehouseId, x.BranchId, x.DepartmentId, x.WarehouseCode, x.WarehouseName, x.ManagerUserId, x.LocationDescription, x.IsActive, Convert.ToBase64String(x.RowVersion));
+22:     private static InventoryThresholdDto Dto(StockThreshold x) => new(x.ThresholdId, x.WarehouseId, x.ItemId, x.MinimumQty, x.MaximumQty, x.ReorderQty, x.AlertEnabled, Convert.ToBase64String(x.RowVersion));
+23:     public Task<InventoryPaged<InventoryItemDto>> GetItems(InventoryPage page, CancellationToken ct) => Page(db.InventoryItems.AsNoTracking().OrderBy(x => x.ItemId), page, Dto, ct);
+24:     public async Task<InventoryItemDto?> GetItem(long id, CancellationToken ct) => await db.InventoryItems.AsNoTracking().SingleOrDefaultAsync(x => x.ItemId == id, ct) is { } x ? Dto(x) : null;
+25:     public Task<List<InventoryLookup>> GetCategories(CancellationToken ct) => db.ItemCategories.AsNoTracking().OrderBy(x => x.ItemCategoryId).Select(x => new InventoryLookup(x.ItemCategoryId, x.CategoryCode, x.CategoryName, x.IsActive)).ToListAsync(ct);
+26:     public Task<InventoryPaged<InventoryUnitDto>> GetUnits(InventoryPage page, CancellationToken ct) => Page(db.UnitsOfMeasures.AsNoTracking().OrderBy(x => x.UomId), page, Dto, ct);
+27:     public async Task<InventoryUnitDto?> GetUnit(long id, CancellationToken ct) => await db.UnitsOfMeasures.AsNoTracking().SingleOrDefaultAsync(x => x.UomId == id, ct) is { } x ? Dto(x) : null;
+28:     public async Task<InventoryConversionDto?> GetConversion(long item, long id, CancellationToken ct) => await db.UomConversions.AsNoTracking().SingleOrDefaultAsync(x => x.ItemId == item && x.ConversionId == id, ct) is { } x ? Dto(x) : null;
+29:     public async Task<IReadOnlyList<InventoryConversionDto>?> GetConversions(long item, CancellationToken ct)
+30:     {
+31:         if (!await db.InventoryItems.AsNoTracking().AnyAsync(x => x.ItemId == item, ct)) return null;
+32:         return (await db.UomConversions.AsNoTracking().Where(x => x.ItemId == item || x.ItemId == null).OrderBy(x => x.ConversionId).ToListAsync(ct)).Select(Dto).ToList();
+33:     }
+34:     public Task<InventoryPaged<InventoryWarehouseDto>> GetWarehouses(InventoryPage page, CancellationToken ct) => Page(ReadWarehouses().AsNoTracking().OrderBy(x => x.WarehouseId), page, Dto, ct);
+35:     public async Task<InventoryWarehouseDto?> GetWarehouse(long id, CancellationToken ct) => await db.Warehouses.AsNoTracking().SingleOrDefaultAsync(x => x.WarehouseId == id, ct) is { } x ? Dto(x) : null;
+36:     private IQueryable<InventoryStockDto> StockQuery()
+37:     {
+38:         var balances = db.StockMovements.GroupBy(x => new { x.WarehouseId, x.ItemId })
+54:                };
+55:     }
+56:     public Task<InventoryPaged<InventoryStockDto>> GetStock(InventoryPage page, bool lowOnly, CancellationToken ct) =>
+57:         Page(ReadStock().Where(x => !lowOnly || x.BelowMinimum).OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId), page, x => x, ct);
+58:     public async Task<InventoryStockDto?> GetStock(long warehouse, long item, CancellationToken ct)
+59:     {
+60:         if (!await db.Warehouses.AsNoTracking().AnyAsync(x => x.WarehouseId == warehouse, ct) ||
+61:             !await db.InventoryItems.AsNoTracking().AnyAsync(x => x.ItemId == item, ct)) return null;
+70:         DocumentNo = x.DocumentLine.Document.DocumentNo,
+71:         DocumentType = x.DocumentLine.Document.DocumentType,
+72:         Status = x.DocumentLine.Document.Status,
+73:         WarehouseId = x.WarehouseId,
+74:         ItemId = x.ItemId,
+75:         SignedBaseQty = x.SignedBaseQty,
+76:         OccurredAt = x.OccurredAt
+77:     });
+78:     public Task<InventoryPaged<InventoryMovementDto>> GetMovements(InventoryPage page, CancellationToken ct) =>
+79:         Page(MovementQuery().OrderBy(x => x.OccurredAt).ThenBy(x => x.MovementId), page, x => x, ct);
+80:     public async Task<InventoryLedger?> GetLedger(long warehouse, long item, DateTime from, DateTime to, CancellationToken ct)
+81:     {
+82:         if (from.Kind != DateTimeKind.Utc || to.Kind != DateTimeKind.Utc || to < from) throw Invalid("From and To must be UTC and From <= To.");
+83:         if (await GetStock(warehouse, item, ct) is null) return null;
+88:         return new(opening, movements, opening + movements.Sum(x => x.SignedBaseQty));
+89:     }
+90:     public async Task<InventoryDocumentDto?> GetDocument(long id, CancellationToken ct)
+91:     {
+92:         var x = await db.StockDocuments.AsNoTracking().Include(d => d.StockDocumentLines).ThenInclude(l => l.StockReceiptLineDetail)
+93:             .Include(d => d.StockDocumentLines).ThenInclude(l => l.StockReturnLineDetailStockDocumentLine)
+97:         var batches = x.StockTransferReceipts.OrderBy(r => r.TransferReceiptId).Select(r => new InventoryBatchDto(r.TransferReceiptId, r.ReceivedBy, r.ReceivedAt, r.Note,
+98:             r.StockTransferReceiptLines.OrderBy(l => l.TransferReceiptLineId).Select(l => new InventoryBatchLineDto(l.TransferLineId, l.ReceivedQty, l.DamagedQty, l.MissingQty, l.Note)).ToList())).ToList();
+99:         var canonical = x.DocumentType == "TRANSFER" && x.Status is "DRAFT" or "IN_TRANSIT" or "PARTIALLY_RECEIVED" or "RECEIVED" or "CANCELLED";
+100:         var lines = x.StockDocumentLines.OrderBy(l => l.LineNo).Select(l =>
+101:         {
+102:             var receipts = batches.SelectMany(b => b.Lines).Where(r => r.TransferLineId == l.LineId).ToList();
+104:             decimal? damaged = canonical ? receipts.Sum(r => r.DamagedQty) : l.StockReceiptLineDetail?.DamagedQty ?? l.StockReturnLineDetailStockDocumentLine?.DamagedQty;
+105:             decimal? missing = canonical ? receipts.Sum(r => r.MissingQty) : null;
+106:             decimal? transit = canonical ? (x.Status is "DRAFT" or "CANCELLED" ? 0 : l.ActualQty - received - damaged - missing) : null;
+107:             return new InventoryLineDto(l.LineId, l.LineNo, l.ItemId, l.UomId, l.ConversionFactor, l.RequestedQty, l.ActualQty, l.BaseQty,
+108:                 l.StockReceiptLineDetail?.RejectedQty, damaged, l.StockReceiptLineDetail?.DiscrepancyReason ?? l.StockReturnLineDetailStockDocumentLine?.Note,
+109:                 l.StockReturnLineDetailStockDocumentLine?.OriginalIssueLineId, received, missing, transit);
+110:         }).ToList();
+111:         return new(x.DocumentId, x.DocumentNo, x.DocumentType, x.Status, x.SourceWarehouseId, x.DestinationWarehouseId, x.DocumentDate, x.Reason, x.Note,
+112:             x.CreatedAt, x.PostedAt, x.CancelledAt, x.ReversalOfDocumentId, Convert.ToBase64String(x.RowVersion), lines, batches);
+113:     }
+114:     public async Task<InventoryPaged<InventoryDocumentDto>> GetDocuments(InventoryPage page, CancellationToken ct)
+115:     {
+116:         var (offset, size) = Paging(page); var q = ReadDocuments().AsNoTracking();
+117:         var count = await q.CountAsync(ct); var ids = await q.OrderBy(x => x.DocumentId).Skip(offset).Take(size).Select(x => x.DocumentId).ToListAsync(ct);
+119:         return new(items, count, page.Page, size);
+120:     }
+121:     public async Task<IReadOnlyList<InventoryHistoryDto>?> GetHistory(long id, CancellationToken ct)
+122:     {
+123:         if (!await db.StockDocuments.AsNoTracking().AnyAsync(x => x.DocumentId == id, ct)) return null;
+124:         var key = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+125:         return await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "stock_documents" && x.EntityId == key)
+126:             .OrderBy(x => x.OccurredAt).ThenBy(x => x.AuditId).Select(x => new InventoryHistoryDto(x.AuditId, x.BranchId, x.ActorUserId, x.Action, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields)).ToListAsync(ct);
+127:     }
+128:     public async Task<InventoryStocktakeDto?> GetStocktake(long id, CancellationToken ct)
+129:     {
+130:         var x = await db.Stocktakes.AsNoTracking().Include(x => x.StocktakeLines).SingleOrDefaultAsync(x => x.StocktakeId == id, ct);
+131:         return x is null ? null : new(x.StocktakeId, x.StocktakeNo, x.WarehouseId, x.SnapshotAt, x.Status, x.CountedBy, x.ApprovedBy, x.AdjustmentDocumentId, x.Note,
+132:             Convert.ToBase64String(x.RowVersion), x.StocktakeLines.OrderBy(l => l.StocktakeLineId).Select(l => new InventoryStocktakeLineDto(l.StocktakeLineId, l.ItemId, l.SystemQty, l.CountedQty, l.VarianceQty, l.DiscrepancyReason, l.CountedBy, l.CountedAt)).ToList());
+133:     }
+134:     public async Task<InventoryPaged<InventoryStocktakeDto>> GetStocktakes(InventoryPage page, CancellationToken ct)
+135:     {
+136:         var (offset, size) = Paging(page); var count = await ReadStocktakes().CountAsync(ct);
+137:         var ids = await ReadStocktakes().AsNoTracking().OrderBy(x => x.StocktakeId).Skip(offset).Take(size).Select(x => x.StocktakeId).ToListAsync(ct);

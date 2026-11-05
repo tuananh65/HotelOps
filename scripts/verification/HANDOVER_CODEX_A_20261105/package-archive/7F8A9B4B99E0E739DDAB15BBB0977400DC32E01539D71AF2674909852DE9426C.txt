@@ -1,0 +1,64 @@
+﻿SOURCE: src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs
+SHA256: 975EB7BB337BB2DD919412C79478EE54D9C7E9C2F3F181CAF57C380D318A99D7
+Ranges: 1-130 (original source line numbers)
+    1: using HotelOps.Api.Data;
+    2: using HotelOps.Api.Security.Authorization;
+    3: using Microsoft.EntityFrameworkCore;
+    4: 
+    5: namespace HotelOps.Api.Services.WorkTime;
+    6: 
+    7: public sealed record OwnOpenWorkInterval(long IntervalId, string WorkItemKind, long WorkItemId,
+    8:     DateTimeOffset OpenedAtUtc, string RowVersion);
+    9: 
+   10: public sealed record OwnWorkingDaySnapshot(long WorkdayId, long BranchId, long DepartmentId,
+   11:     DateOnly WorkDate, long? ShiftAssignmentId, bool IsUnscheduled, DateTimeOffset StartedAtUtc,
+   12:     string RowVersion, OwnOpenWorkInterval? OpenInterval);
+   13: 
+   14: /// <summary>
+   15: /// Read-only presentation query, not a permission boundary or a transition precondition.
+   16: /// The eventual API service must authorize its approved UC139 binding and revalidate the
+   17: /// SQL session before returning this result. No route or DI activation is included here.
+   18: /// Actor identity comes only from the authenticated request context, never request DTOs.
+   19: /// Writes must independently re-read state under the A1 transaction/locking protocol.
+   20: /// </summary>
+   21: public sealed class OwnWorkdaySnapshotReader(HotelOpsDbContext db, ICurrentUserAccessor current)
+   22: {
+   23:     public async Task<OwnWorkingDaySnapshot?> ReadAsync(long branchId, CancellationToken ct)
+   24:     {
+   25:         ct.ThrowIfCancellationRequested();
+   26:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId <= 0 || actor.SessionId <= 0)
+   27:             throw new WorkTimeContractException("TIME_SESSION_INVALID");
+   28:         if (actor.IsRestricted) throw new WorkTimeContractException("TIME_RESTRICTED");
+   29:         if (branchId <= 0) throw new WorkTimeContractException("TIME_SCOPE_DENIED");
+   30: 
+   31:         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct);
+   32:         if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == actor.UserId
+   33:                 && u.DeletedAt == null && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE", ct))
+   34:             throw new WorkTimeContractException("TIME_ACTOR_INVALID");
+   35:         if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a => a.UserId == actor.UserId
+   36:                 && a.BranchId == branchId && a.GrantedAt <= now && a.RevokedAt == null && a.Branch.IsActive, ct))
+   37:             throw new WorkTimeContractException("TIME_SCOPE_DENIED");
+   38: 
+   39:         var days = await db.Workdays.AsNoTracking().Where(d => d.UserId == actor.UserId
+   40:                 && d.BranchId == branchId && d.Status == "WORKING")
+   41:             .Select(d => new { d.WorkdayId, d.BranchId, d.DepartmentId, d.WorkDate,
+   42:                 d.ShiftAssignmentId, d.IsUnscheduled, d.StartedAt, d.RowVersion })
+   43:             .Take(2).ToArrayAsync(ct);
+   44:         if (days.Length > 1) throw new WorkTimeContractException("TIME_STATE_CONFLICT");
+   45:         if (days.Length == 0) return null;
+   46:         var day = days[0];
+   47:         var intervals = await db.WorkIntervals.AsNoTracking().Where(i => i.UserId == actor.UserId
+   48:                 && i.BranchId == branchId && i.WorkdayId == day.WorkdayId && i.ClosedAt == null)
+   49:             .Select(i => new { i.IntervalId, i.WorkItemKind, i.WorkItemId, i.OpenedAt, i.RowVersion })
+   50:             .Take(2).ToArrayAsync(ct);
+   51:         if (intervals.Length > 1) throw new WorkTimeContractException("TIME_STATE_CONFLICT");
+   52:         var open = intervals.SingleOrDefault();
+   53:         return new(day.WorkdayId, day.BranchId, day.DepartmentId, day.WorkDate, day.ShiftAssignmentId,
+   54:             day.IsUnscheduled, Utc(day.StartedAt), Convert.ToBase64String(day.RowVersion),
+   55:             open is null ? null : new(open.IntervalId, open.WorkItemKind, open.WorkItemId,
+   56:                 Utc(open.OpenedAt), Convert.ToBase64String(open.RowVersion)));
+   57:     }
+   58: 
+   59:     private static DateTimeOffset Utc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
+   60: }
+

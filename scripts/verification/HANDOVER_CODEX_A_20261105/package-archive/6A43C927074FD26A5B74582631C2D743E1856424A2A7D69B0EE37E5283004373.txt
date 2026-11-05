@@ -1,0 +1,157 @@
+﻿{
+    "capturedUtc":  "2026-11-04T16:56:26.9047887Z",
+    "receipts":  [
+                     {
+                         "path":  "scripts/verification/Task79/auth-expiry-after.local.json",
+                         "sha256":  "BD4789D8B1012FCA31BA87908F5E3EB171E8CFDC8D856AC73704084DC5EF125E",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "success":  true,
+                                                "checks":  43,
+                                                "trial":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+                                                "phase":  "after",
+                                                "operatingSystemTimezone":  "SE Asia Standard Time",
+                                                "utcOperatingSystemExecuted":  false
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task79/auth-expiry-before.local.json",
+                         "sha256":  "C6146DC49B74706EC3DA26893FA63846BF80E1F8918EC74D88BD49F8F85A76A3",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "success":  true,
+                                                "checks":  5,
+                                                "trial":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+                                                "phase":  "before",
+                                                "operatingSystemTimezone":  "SE Asia Standard Time",
+                                                "utcOperatingSystemExecuted":  false
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task79/boundaries-final.local.json",
+                         "sha256":  "C93A0CB796D12565AF42F35487976D3CC0F82580C6236C86AA45B25AC2D3C475",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "checks":  53,
+                                                "phase":  "after"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task79/user-sql-regression.local.json",
+                         "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "success":  true,
+                                                "checks":  26,
+                                                "scope":  "Technical participant only, not UC004 endpoint certification"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task79/TASK79_VALIDATION.json",
+                         "sha256":  "DEF1789CE6F2FDD104CA893DCB431B3375AFFAFF4B7A3B1509D310CB2E7824F7",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "trial":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+                                                "fixedLiveHttpsSqlChecks":  43,
+                                                "policyAssertions":  53,
+                                                "userSqlRegressionChecks":  26,
+                                                "securityChecks":  199,
+                                                "build":  "PASS_0_ERRORS_2_NU1900",
+                                                "frameworkTests":  "NO_CASES_NOT_AVAILABLE_EXIT_0",
+                                                "notificationAcceptance":  "NOT_RUN",
+                                                "pauseAllAcceptance":  "NOT_RUN",
+                                                "b12Runtime":  "NOT_IMPLEMENTED_UNSCHEDULED_PAUSE_ALL_REMAIN_FAIL_CLOSED",
+                                                "utcOsAcceptance":  "NOT_RUN",
+                                                "knownFailedProbe":  "Post-fix boundary run copied stale DLL before API build finished; log retained; waited/rebuilt and final53 PASS"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task79/TASK79_CLOSURE_VALIDATION.json",
+                         "sha256":  "C4E631463487BDBF034520D9557E781EB0B80852C343437A4D6A415ABDAA572D",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task86/HTTPS_SQL_RECEIPT.json",
+                         "sha256":  "6142EC75EC2382CF73A0344FA07BB697FF424F64D597267152A9647727D27A16",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "success":  false,
+                                                "passed":  83,
+                                                "failed":  1,
+                                                "failure":  "UC038 HTTPS empty history regression status 403",
+                                                "database":  "HotelOps_Canonical_20261104_223000_c01286a1_Fresh"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task86/HTTPS_RESUME_RECEIPT.json",
+                         "sha256":  "DC949D10846F2922B8A600A90CE2320CECCE43C1C03F1198D47A3A24C90AB782",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "success":  false,
+                                                "passed":  37,
+                                                "failed":  1,
+                                                "failure":  "InvalidCastException",
+                                                "database":  "HotelOps_Canonical_20261104_223000_c01286a1_Fresh"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task86/HTTPS_RESUME2_RECEIPT.json",
+                         "sha256":  "5359324B018D12EFE8C139F83E78BD9189ACBCC3BB4379CB4076FB47E761FC25",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "success":  true,
+                                                "passed":  51,
+                                                "failed":  0,
+                                                "failure":  null,
+                                                "database":  "HotelOps_Canonical_20261104_223000_c01286a1_Fresh"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task86/SQL_ORACLE_FINAL_RECEIPT.json",
+                         "sha256":  "33E78FCA53FFA415877196A4587ECB3A1E02EC301B962A1C145ADB93230139EC",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "checks":  13,
+                                                "passed":  13,
+                                                "failed":  0,
+                                                "scope":  "READ_ONLY_SQL_METADATA_AND_PERSISTED_BUSINESS_AUDIT_ORACLE"
+                                            }
+                     },
+                     {
+                         "path":  "scripts/verification/Task86/TASK86_VALIDATION.json",
+                         "sha256":  "762B2138D25673FF7A7FBCC181732B5F2DEE5CD696C0E6F9615BD94BF53E72BB",
+                         "historicalEvidenceOnly":  true,
+                         "selectedFields":  {
+                                                "build":  {
+                                                              "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task86/artifacts/integrated --no-restore",
+                                                              "exitCode":  0,
+                                                              "errors":  0,
+                                                              "warnings":  1,
+                                                              "warningCodes":  [
+                                                                                   "NU1900"
+                                                                               ],
+                                                              "result":  "PASS",
+                                                              "log":  "build-sql-ready.log",
+                                                              "initialBuildWarnings":  2
+                                                          }
+                                            }
+                     }
+                 ],
+    "B12":  {
+                "path":  "scripts/verification/Task79/B12_APPROVAL_SCOPE.md",
+                "sha256":  "B912CFCE7DCCF5B5AF1596958DEE2B6CA22204B61DB93F9A6B4F9E40965CA8E0",
+                "approval":  "REVIEW_PROPOSAL_NOT_APPLIED",
+                "A1B11":  "PRESERVED_APPROVED_SCOPE",
+                "currentPrinciples":  "COORD-FINAL-01 authorizes business decisions, not implementation diffs"
+            },
+    "task79SqlInstance":  "NOT_RECORDED_IN_RECEIPT_NOT_INFERRED",
+    "currentExecution":  {
+                             "build":  "NOT_RUN",
+                             "sql":  "NOT_RUN",
+                             "https":  "NOT_RUN",
+                             "databaseConnections":  0
+                         }
+}

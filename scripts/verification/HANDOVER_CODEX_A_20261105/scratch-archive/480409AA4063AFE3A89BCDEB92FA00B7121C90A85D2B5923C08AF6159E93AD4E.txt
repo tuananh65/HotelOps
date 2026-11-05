@@ -1,0 +1,28 @@
+using HotelOps.Api.Data;
+
+namespace HotelOps.Api.Services.Users;
+
+/// <summary>Combines existing predicates without modifying the protected Task46 helper.</summary>
+internal sealed class IntegratedDeactivationResponsibilityQueries(HotelOpsDbContext db)
+{
+    internal async Task<Dev1ResponsibilityReview> ReadAsync(long targetId, CancellationToken ct)
+    {
+        if (db.Database.CurrentTransaction is null)
+            throw new InvalidOperationException("Integrated review requires the deactivation transaction and retained User locks.");
+        var dev1 = await new ApprovedDev1ResponsibilityQueries(db).ReadAsync(targetId, ct);
+        var dev2 = await new DeactivationResponsibilityQueries(db).ReadApprovedDev2BlockersAsync(targetId, ct);
+        var dev2States = await new Dev2ResponsibilityStateQueries(db).ReadUnresolvedAsync(targetId, ct);
+        // Merged source is not runtime acceptance. In particular, resource-first release
+        // paths still read actor Users after feature locks, conflicting with TABLOCKX.
+        // No runtime switch can remove these gates; a reviewed source change is required.
+        // Task55A: official ReturnWork hotfix uses the shared retained User lock and
+        // passes scoped actual SQL races/faults. Its missing-writer gate is closed;
+        // full DEV2 and global lock-order acceptance below remain independent.
+        return new(dev1.Blockers.Concat(dev2).Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray(),
+            dev1.Unresolved.Concat(dev2States).Concat(new[] { "DEV2_INTEGRATED_SQL_ACCEPTANCE",
+                "GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE" }).Order(StringComparer.Ordinal).ToArray())
+        {
+            Unsupported = dev1.Unsupported
+        };
+    }
+}

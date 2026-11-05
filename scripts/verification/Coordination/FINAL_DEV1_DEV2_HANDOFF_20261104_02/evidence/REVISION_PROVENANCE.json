@@ -1,0 +1,14 @@
+﻿{
+    "task":  "COORD-FINAL-01",
+    "reason":  "User parallel-work amendment: Codex B independent ownership; dynamic pre/post worktrees; separate integration approval",
+    "previousPackage":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_01",
+    "previousZipSha256":  "D775428DD8249ECFE84A6E7C7CB71FADCDF8DCB013F5ADAAF54FA5E8C525A656",
+    "sourceIdsRevalidated":  317,
+    "previousManifestEntriesVerified":  87,
+    "previousPackagesPreservedFiles":  368,
+    "sourceReusedOnlyAfterHashEquality":  true,
+    "outsideMainWorktreeSourceRecaptured":  false,
+    "taskDateLabel":  "20261104",
+    "actualCaptureUtc":  "2026-11-04T17:16:11.8623942+00:00",
+    "timezone":  "Asia/Saigon"
+}

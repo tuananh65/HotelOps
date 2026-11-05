@@ -1,0 +1,85 @@
+﻿SOURCE: src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs
+SHA256: 589351F318E03A575B1A7F763CDC4744DD76D1CD222D0D5988EC0203E4D69F75
+Ranges: 35-115 (original source line numbers)
+   35:         if (request.FloorId <= 0) throw new ValidationException("FloorId must be a positive Int64 or null.");
+   36:         var (code, name, description) = Normalize(request.Code, request.Name, request.Description, 150);
+   37:         return CreateAsync(ticket, sessionId, branchId, code, name, description, null, request.FloorId, true, ct);
+   38:     }
+   39: 
+   40:     private async Task<StructureCreationResult> CreateAsync(SessionReference ticket, long sessionId, long branchId,
+   41:         string code, string name, string? description, int? floorNumber, long? floorId, bool area, CancellationToken ct)
+   42:     {
+   43:         ArgumentNullException.ThrowIfNull(ticket);
+   44:         if (branchId <= 0) throw new ValidationException("BranchId must be a positive Int64.");
+   45:         ct.ThrowIfCancellationRequested();
+   46:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+   47:             || actor.IsRestricted || ticket.IsRestricted) return new(StructureCreationStatus.SessionInvalid);
+   48:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null
+   49:             || System.Transactions.Transaction.Current != null || db.ChangeTracker.Entries().Any())
+   50:             throw new InvalidOperationException("Structure creation requires a clean local SQL Server context and its own transaction.");
+   51: 
+   52:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+   53:         try
+   54:         {
+   55:             // The only User participant is the authenticated actor. Retain it BEFORE session,
+   56:             // grant or feature locks; final checks only reread locks already retained here.
+   57:             await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);
+   58:             if (await Gate() is { } initial) return new(initial);
+   59: 
+   60:             // One retained parent update lock serializes every Floor/Area producer in this
+   61:             // branch, including absent/cross-table codes; existing unique indexes back it up.
+   62:             var branch = await db.Branches.FromSqlInterpolated(
+   63:                     $"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={branchId}")
+   64:                 .AsNoTracking().TagWith("UC014:BranchLock").SingleOrDefaultAsync(ct);
+   65:             if (branch is null || !branch.IsActive) return new(StructureCreationStatus.InvalidBranch);
+   66:             if (floorId is { } parent)
+   67:             {
+   68:                 var floor = await db.Floors.FromSqlInterpolated(
+   69:                         $"SELECT * FROM dbo.floors WITH (HOLDLOCK) WHERE floor_id={parent}")
+   70:                     .AsNoTracking().TagWith("UC014:ParentFloor").SingleOrDefaultAsync(ct);
+   71:                 if (floor is null || !floor.IsActive || floor.BranchId != branchId)
+   72:                     return new(StructureCreationStatus.InvalidFloor);
+   73:             }
+   74:             // GBR003/034: case-insensitive, trimmed branch namespace. Checking both types
+   75:             // also preserves the SRS's unified floor/area-code rule without a schema change.
+   76:             if (await db.Floors.AsNoTracking().AnyAsync(x => x.BranchId == branchId && x.FloorCode.Trim().ToUpper() == code, ct)
+   77:                 || await db.Areas.AsNoTracking().AnyAsync(x => x.BranchId == branchId && x.AreaCode.Trim().ToUpper() == code, ct))
+   78:                 return new(StructureCreationStatus.DuplicateCode);
+   79: 
+   80:             object row = area
+   81:                 ? new Area { BranchId = branchId, FloorId = floorId, AreaCode = code, AreaName = name, Description = description, IsActive = true }
+   82:                 : new Floor { BranchId = branchId, FloorCode = code, FloorName = name, FloorNumber = floorNumber, Description = description, IsActive = true };
+   83:             db.Add(row);
+   84:             try { await db.SaveChangesAsync(ct); }
+   85:             catch (DbUpdateException error) when (SqlNumber(error) is 2601 or 2627)
+   86:             { return new(StructureCreationStatus.DuplicateCode); }
+   87:             finally { db.Entry(row).State = EntityState.Detached; }
+   88: 
+   89:             object value = row is Area ar
+   90:                 ? new CreatedAreaDto(ar.AreaId, branchId, code, name, floorId, description, true)
+   91:                 : new CreatedFloorDto(((Floor)row).FloorId, branchId, code, name, floorNumber, description, true);
+   92:             var id = row is Area added ? added.AreaId : ((Floor)row).FloorId;
+   93:             var audit = new AuditLog
+   94:             {
+   95:                 ActorUserId = actor.UserId, BranchId = branchId, EntityType = area ? "areas" : "floors",
+   96:                 EntityId = id.ToString(CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
+   97:                 // The canonical audit CHECK uses ISJSON without SCALAR: wrap absence
+   98:                 // in an object, as existing account-creation audits do.
+   99:                 OldValues = JsonSerializer.Serialize(new { entity = (object?)null }),
+  100:                 NewValues = JsonSerializer.Serialize(value, value.GetType(), AuditJson),
+  101:                 ChangedFields = JsonSerializer.Serialize(area
+  102:                     ? new[] { "branchId", "code", "name", "floorId", "description", "isActive" }
+  103:                     : new[] { "branchId", "code", "name", "floorNumber", "description", "isActive" })
+  104:             };
+  105:             db.Add(audit);
+  106:             try { await db.SaveChangesAsync(ct); }
+  107:             finally { db.Entry(audit).State = EntityState.Detached; }
+  108:             if (await Gate() is { } final) return new(final); // expiry while waiting/writing rolls back both inserts
+  109:             await tx.CommitAsync(ct);
+  110:             return new(StructureCreationStatus.Success, value);
+  111:         }
+  112:         catch (Exception error) when (ct.IsCancellationRequested && error is DbException or DbUpdateException or SessionStoreUnavailableException)
+  113:         { throw new OperationCanceledException("Structure creation cancelled.", error, ct); }
+  114:         catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2)
+  115:         {
+

@@ -1,0 +1,98 @@
+﻿{
+    "validationPassed":  true,
+    "objectiveAchieved":  false,
+    "taskStatus":  "BLOCKED_BEFORE_IMPLEMENTATION",
+    "startedUtc":  "2026-11-03T08:07:43.3170949+00:00",
+    "finishedUtc":  "2026-11-03T08:16:13.6149413+00:00",
+    "elapsedSeconds":  510.298,
+    "elapsedDisplay":  "00:08:30",
+    "timingBoundary":  "Preflight snapshot start to final preservation/validation receipt; initial attachment/AGENTS/Git reads before first clock excluded; full-turn exact start not recorded.",
+    "preflightPathCount":  697,
+    "expectedChangedExistingPaths":  [
+                                         "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md"
+                                     ],
+    "unexpectedChangedExistingPaths":  [
+
+                                       ],
+    "unchangedExistingPathCount":  696,
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "worktreeRegistrationsAndHeadsUnchanged":  true,
+    "otherWorktrees":  "Read-only status: rehearsal103 pre-existing staged entries, conflict-resolution clean, AI-Loop clean; no writes targeted these worktrees.",
+    "task75RestoredPathCount":  16,
+    "task75RecoveredSourcesHashUnchanged":  true,
+    "deferredRecoveryPathCount":  210,
+    "newRecoveredPaths":  [
+
+                          ],
+    "runtimeChangedPaths":  [
+
+                            ],
+    "sharedOrDev2ChangedPaths":  [
+
+                                 ],
+    "sqlConnections":  0,
+    "ledgerRows":  75,
+    "classificationsChanged":  [
+
+                               ],
+    "unfinishedEligibilityReviewed":  49,
+    "selectedUCs":  [
+
+                    ],
+    "completedUCs":  26,
+    "points":  60,
+    "pointDenominator":  256,
+    "weightedProgressPercent":  23.4375,
+    "newlyCompletedUCs":  0,
+    "pointsGained":  0,
+    "remainingUCs":  49,
+    "remainingPoints":  196,
+    "taxonomy":  {
+                     "COMPLETE_VERIFIED":  7,
+                     "COMPLETE_VERIFIED_V1":  19,
+                     "PARTIAL":  10,
+                     "NOT_IMPLEMENTED":  18,
+                     "BLOCKED_EXTERNAL":  21
+                 },
+    "build":  {
+                  "result":  "PASS",
+                  "errors":  0,
+                  "warningEntries":  2,
+                  "warningCode":  "NU1900",
+                  "log":  "obj/task76-build.local.log"
+              },
+    "regression":  {
+                       "Authorization":  93,
+                       "PermissionService":  43,
+                       "CurrentUserAccessor":  14,
+                       "ResourceAuthorization":  49,
+                       "total":  199,
+                       "result":  "PASS",
+                       "harnessesRebuiltInTask76":  false,
+                       "limits":  "Existing no-build console executables; isolated doubles, no live SQL/business acceptance."
+                   },
+    "frameworkTests":  "dotnet test HotelOps.slnx --no-restore exit0; no output/test cases; NOT_AVAILABLE, not PASS",
+    "newUcHttpsSqlAcceptance":  "NOT_RUN",
+    "task75SqlChecks":  "Historical120 only; not rerun",
+    "diffCheckExit":  0,
+    "newFileWhitespacePassed":  true,
+    "artifacts":  [
+                      {
+                          "path":  "scripts/verification/Task76/TASK76_BATCH_IMPLEMENTATION.md",
+                          "sha256":  "962D59598963316F11FEC9D8D6F553B578DEA0759315089BADB6B1867987D44A"
+                      },
+                      {
+                          "path":  "scripts/verification/Task76/DEV2_HANDOFF.md",
+                          "sha256":  "92DF069CF591BC7C2D14B51B875BF968587E3ECFBDD985E345A667CE7AC0E85F"
+                      },
+                      {
+                          "path":  "scripts/verification/Task76/UC_LEDGER_TASK76.json",
+                          "sha256":  "BA1285B627B9A2883F7F84528C772F1063DBDFD18A283F5D8E866A1027AFB754"
+                      },
+                      {
+                          "path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "sha256":  "8A678184C79FB64FA8B9B2E1B5FDFF84C8A0E4DCC39585ACB2FE5F3ACD2B00AE"
+                      }
+                  ]
+}

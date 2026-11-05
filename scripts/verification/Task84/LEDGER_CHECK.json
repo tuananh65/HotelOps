@@ -1,0 +1,15 @@
+{
+    "source":  "Task83 ledger reconciliation / Task80 canonical UC ledger",
+    "rows":  75,
+    "completeCount":  26,
+    "points":  60,
+    "uc142":  {
+                  "uc":  "UC-142",
+                  "title":  "View Room Types List",
+                  "classification":  "COMPLETE_VERIFIED_V1",
+                  "weight":  1,
+                  "verifiedPoints":  1,
+                  "evidenceSummary":  "Task70:49 independent HTTPS/SQL checks; explicit/automatic SQL branch scope, filters/sort/page/count/detail, global-only legacy read, final expiry/cancel rejection, no business writes; §18"
+              },
+    "modified":  false
+}

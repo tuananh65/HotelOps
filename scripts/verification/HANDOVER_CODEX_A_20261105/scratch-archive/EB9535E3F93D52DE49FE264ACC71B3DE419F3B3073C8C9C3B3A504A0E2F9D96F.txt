@@ -1,0 +1,52 @@
+using System.Runtime.ExceptionServices;
+using HotelOps.Api.Data;
+using HotelOps.Api.Security;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Users;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+
+namespace HotelOps.Api.Controllers.Filters;
+
+// TypeFilter composes only this controller's read boundary from existing scoped services;
+// no shared DI, cookie middleware or permission evaluator change is needed.
+public sealed class UserDirectoryReadFilter(HotelOpsDbContext db, ICurrentUserAccessor current,
+    IPermissionService permissions, TimeProvider clock) : IAsyncActionFilter
+{
+    public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        context.HttpContext.Response.Headers.CacheControl = "no-store";
+        if (!HotelOpsCookieTicket.TryRead(context.HttpContext.User, out var ticket, out _))
+        {
+            context.Result = Error(401, "SESSION_INVALID"); return;
+        }
+        ActionExecutedContext? executed = null;
+        var guarded = await new UserDirectoryReadGuard(db, current, permissions, clock).RunAsync(ticket!, async () =>
+        {
+            executed = await next();
+            if (executed.Exception is { } error && !executed.ExceptionHandled)
+                ExceptionDispatchInfo.Capture(error).Throw();
+            return executed;
+        }, context.HttpContext.RequestAborted);
+        var result = guarded.Status switch
+        {
+            UserDirectoryReadStatus.Success => guarded.Value!.Result,
+            UserDirectoryReadStatus.SessionInvalid => Error(401, "SESSION_INVALID"),
+            UserDirectoryReadStatus.Forbidden => Error(403, "PERMISSION_DENIED"),
+            UserDirectoryReadStatus.AuthorizationUnavailable => Error(503, "AUTH_SERVICE_UNAVAILABLE"),
+            _ => throw new InvalidOperationException("Unknown user directory read status.")
+        };
+        // After next(), MVC uses ActionExecutedContext.Result. Replacing only the
+        // executing context would accidentally publish data rejected by the final gate.
+        if (executed is null) context.Result = result;
+        else executed.Result = result;
+    }
+
+    private static ObjectResult Error(int status, string code) => new(new ProblemDetails
+    {
+        Status = status, Type = "about:blank",
+        Title = status switch { 401 => "Authentication required", 403 => "Access denied", _ => "Authentication service unavailable" },
+        Extensions = { ["code"] = code }
+    }) { StatusCode = status, ContentTypes = { "application/problem+json" } };
+}

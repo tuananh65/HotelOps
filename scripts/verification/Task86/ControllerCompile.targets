@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'HotelOps.Api'">
+    <Compile Include="$(MSBuildThisFileDirectory)BranchAdministrationController.cs.proposal" />
+  </ItemGroup>
+</Project>

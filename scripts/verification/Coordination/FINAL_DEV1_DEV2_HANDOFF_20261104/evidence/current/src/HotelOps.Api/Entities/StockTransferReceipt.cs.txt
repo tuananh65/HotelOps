@@ -1,0 +1,24 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class StockTransferReceipt
+7: {
+8:     public long TransferReceiptId { get; set; }
+9: 
+10:     public long TransferDocumentId { get; set; }
+11: 
+12:     public long ReceivedBy { get; set; }
+13: 
+14:     public DateTime ReceivedAt { get; set; }
+15: 
+16:     public string? Note { get; set; }
+17: 
+18:     public virtual User ReceivedByNavigation { get; set; } = null!;
+19: 
+20:     public virtual ICollection<StockTransferReceiptLine> StockTransferReceiptLines { get; set; } = new List<StockTransferReceiptLine>();
+21: 
+22:     public virtual StockDocument TransferDocument { get; set; } = null!;
+23: }
+24: 

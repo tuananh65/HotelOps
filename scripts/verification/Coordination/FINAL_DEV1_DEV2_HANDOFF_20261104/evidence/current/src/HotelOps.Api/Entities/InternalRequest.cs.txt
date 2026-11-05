@@ -1,0 +1,76 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class InternalRequest
+7: {
+8:     public long InternalRequestId { get; set; }
+9: 
+10:     public string RequestNo { get; set; } = null!;
+11: 
+12:     public long BranchId { get; set; }
+13: 
+14:     public long RequestTypeId { get; set; }
+15: 
+16:     public long RequesterId { get; set; }
+17: 
+18:     public long? RequesterDepartmentId { get; set; }
+19: 
+20:     public long? ReceivingDepartmentId { get; set; }
+21: 
+22:     public long? RoomId { get; set; }
+23: 
+24:     public long? AreaId { get; set; }
+25: 
+26:     public long? RelatedIncidentId { get; set; }
+27: 
+28:     public string Subject { get; set; } = null!;
+29: 
+30:     public string Description { get; set; } = null!;
+31: 
+32:     public long? PriorityId { get; set; }
+33: 
+34:     public string Status { get; set; } = null!;
+35: 
+36:     public DateTime? RequiredAt { get; set; }
+37: 
+38:     public DateTime? DueAt { get; set; }
+39: 
+40:     public DateTime? SubmittedAt { get; set; }
+41: 
+42:     public DateTime? CompletedAt { get; set; }
+43: 
+44:     public DateTime? ClosedAt { get; set; }
+45: 
+46:     public string? CancellationReason { get; set; }
+47: 
+48:     public DateTime CreatedAt { get; set; }
+49: 
+50:     public DateTime? UpdatedAt { get; set; }
+51: 
+52:     public virtual Area? Area { get; set; }
+53: 
+54:     public virtual Branch Branch { get; set; } = null!;
+55: 
+56:     public virtual ICollection<InternalRequestAssignment> InternalRequestAssignments { get; set; } = new List<InternalRequestAssignment>();
+57: 
+58:     public virtual ICollection<InternalRequestEvent> InternalRequestEvents { get; set; } = new List<InternalRequestEvent>();
+59: 
+60:     public virtual InternalRequestFeedback? InternalRequestFeedback { get; set; }
+61: 
+62:     public virtual ReferenceValue? Priority { get; set; }
+63: 
+64:     public virtual Department? ReceivingDepartment { get; set; }
+65: 
+66:     public virtual Incident? RelatedIncident { get; set; }
+67: 
+68:     public virtual InternalRequestType RequestType { get; set; } = null!;
+69: 
+70:     public virtual User Requester { get; set; } = null!;
+71: 
+72:     public virtual Department? RequesterDepartment { get; set; }
+73: 
+74:     public virtual Room? Room { get; set; }
+75: }
+76: 

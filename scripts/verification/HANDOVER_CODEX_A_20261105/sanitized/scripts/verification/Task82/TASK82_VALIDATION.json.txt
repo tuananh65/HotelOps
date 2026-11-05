@@ -1,0 +1,163 @@
+{
+    "status":  "IMPLEMENTED_VERIFIED_READ_SUBSET_FULL_UC_PARTIAL",
+    "completionTargetAchieved":  false,
+    "selectedUC":  "UC-037 Monitor Cleaning Tasks",
+    "classification":  "PARTIAL",
+    "startedUtc":  "2026-11-04T01:03:45.2276662+00:00",
+    "finishedUtc":  "2026-11-04T01:16:42.8576064+00:00",
+    "elapsedSeconds":  777.63,
+    "elapsedDisplay":  "00:12:57",
+    "timing":  "Recorded preflight through final checks; initial requirements reading excluded",
+    "progress":  {
+                     "ucDenominator":  75,
+                     "uc139":  "BLOCKED_EXTERNAL",
+                     "weightedPercent":  23.4375,
+                     "pointDenominator":  256,
+                     "uc138":  "NOT_IMPLEMENTED",
+                     "verifiedPoints":  60,
+                     "ledgerModified":  false,
+                     "completedUCs":  26,
+                     "newPoints":  0,
+                     "newCompletions":  0
+                 },
+    "build":  {
+                  "exitCode":  0,
+                  "errors":  0,
+                  "result":  "PASS",
+                  "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task82/artifacts/build -p:RestoreIgnoreFailedSources=true",
+                  "warnings":  "2 NU1900",
+                  "log":  "build.log"
+              },
+    "httpsHarnessBuild":  {
+                              "exitCode":  0,
+                              "result":  "PASS",
+                              "warnings":  "4 NU1900",
+                              "log":  "https-build.log",
+                              "command":  "dotnet build scripts/verification/Task82/Task82.Verification.csproj --artifacts-path scripts/verification/Task82/artifacts/https -p:RestoreIgnoreFailedSources=true"
+                          },
+    "realHttpsSql":  {
+                         "log":  "https-sql.log",
+                         "exitCode":  0,
+                         "result":  "PASS",
+                         "database":  "HotelOps_Canonical_20261104_010556_0c10a82d_Fresh",
+                         "command":  "dotnet scripts/verification/Task82/artifacts/https/bin/Task82.Verification/debug/Task82.Verification.dll \u003cTRIAL_NAME.txt\u003e scripts/verification/Task82/https-sql-receipt.json",
+                         "scope":  "UC037 read subset, not full Cancel acceptance",
+                         "receipt":  "https-sql-receipt.json",
+                         "checks":  167
+                     },
+    "boundaries":  {
+                       "exitCode":  0,
+                       "checks":  14,
+                       "type":  "ISOLATED_SERVICE_BOUNDARIES_NO_SQL_NO_HTTPS_NOT_FRAMEWORK",
+                       "command":  "dotnet run --project scripts/verification/Task82/TimelineBoundaries.csproj --artifacts-path scripts/verification/Task82/artifacts/boundaries -p:RestoreIgnoreFailedSources=true -- scripts/verification/Task82/boundaries-receipt.json",
+                       "result":  "PASS",
+                       "receipt":  "boundaries-receipt.json"
+                   },
+    "regressions":  [
+                        {
+                            "exitCode":  0,
+                            "arguments":  "--production-fallback",
+                            "name":  "Authorization",
+                            "checks":  93
+                        },
+                        {
+                            "exitCode":  0,
+                            "name":  "PermissionService",
+                            "checks":  43
+                        },
+                        {
+                            "exitCode":  0,
+                            "name":  "CurrentUserAccessor",
+                            "checks":  14
+                        },
+                        {
+                            "exitCode":  0,
+                            "name":  "ResourceAuthorization",
+                            "checks":  49
+                        }
+                    ],
+    "regressionKind":  "Console checks with doubles/loopback; not live SQL/framework",
+    "framework":  {
+                      "exitCode":  0,
+                      "result":  "NOT_AVAILABLE",
+                      "cases":  0,
+                      "log":  "framework.log",
+                      "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task82/artifacts/framework -p:RestoreIgnoreFailedSources=true"
+                  },
+    "notRun":  [
+                   "Full Cancel/lifecycle/notification acceptance",
+                   "Optional Task73 columns",
+                   "Positive ALL live SQL: canonical CLEANING_VIEW has BRANCH/OWN only"
+               ],
+    "notApplicable":  [
+                          "Business write-audit fault rollback for a GET-only enhancement"
+                      ],
+    "trial":  {
+                  "markerAndEmptyBusinessGuard":  "Program.cs",
+                  "newDatabaseOnly":  true,
+                  "instanceAndNonexistenceGuard":  "Prepare-Database.ps1",
+                  "explicitUserApproval":  true,
+                  "systemMasterUse":  "Only instance/nonexistence checks and creation of the approved target",
+                  "name":  "HotelOps_Canonical_20261104_010556_0c10a82d_Fresh",
+                  "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+                  "preexistingBusinessDatabaseAccess":  false,
+                  "setupLog":  "trial-setup-approved.log",
+                  "retained":  true
+              },
+    "initialFailures":  [
+                            "Sandbox setup failed SSPI before database creation",
+                            "Auto-review rejected first escalation; awaited explicit user approval, then same approved script succeeded",
+                            "Context patch misses made no changes",
+                            "Python unavailable; not used",
+                            "Old inventory-fast names mode unsupported; HashSet filename comparison PASS"
+                        ],
+    "diffCheck":  {
+                      "result":  "PASS",
+                      "exitCode":  0
+                  },
+    "preservation":  {
+                         "indexUnchanged":  true,
+                         "readErrors":  0,
+                         "gitStatusExcludingTask82Unchanged":  true,
+                         "captureTiming":  "Full initial capture completed before source edits and builds",
+                         "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+                         "existingFilesChecked":  23708,
+                         "missingOldFiles":  0,
+                         "unexpectedOldFileChanges":  0,
+                         "headUnchanged":  true,
+                         "expectedSourceChanges":  {
+                                                       "value":  [
+                                                                     {
+                                                                         "path":  "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+                                                                         "beforeSha256":  "5840A2B061F5CB06255E1CE41B43D7855587667467B611C6FC96E552B95064B9",
+                                                                         "afterSha256":  "D4275C18F07FC242981D5AAED3890D723CF8B6E633E3BF2D21E84E445A05E382"
+                                                                     },
+                                                                     {
+                                                                         "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+                                                                         "beforeSha256":  "DEBDCA5ED567ED1D1AD25651ECCD49045C02853AE5C4F30FCB14DFCE9C2A3F7C",
+                                                                         "afterSha256":  "DE513DD058EFD8E4C1401D6103175FA0D3F3C59B83888385FC26295A6F4C3B76"
+                                                                     },
+                                                                     {
+                                                                         "path":  "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+                                                                         "beforeSha256":  "EB60074B39C8819A564841C5AEC961F27C5D9E490B9FD456C1454F402AE094ED",
+                                                                         "afterSha256":  "5DB908A0986905CB9A44C2588FEDBA8978EA262B5913F214881B4905953FE89F"
+                                                                     }
+                                                                 ],
+                                                       "Count":  3
+                                                   },
+                         "newPathsOutsideTask82":  0,
+                         "sourceHashesRecheckedAfterAcceptance":  true,
+                         "branchUnchanged":  true,
+                         "upstreamUnchanged":  true
+                     },
+    "sharedSourceChanges":  0,
+    "dev2SourceChanges":  0,
+    "gitMutations":  0,
+    "hotelOpsDbAccess":  false,
+    "reports":  [
+                    "TASK82_UC_SELECTION.md",
+                    "TASK82_IMPLEMENTATION_REPORT.md",
+                    "TASK82_CHANGELOG.md",
+                    "TASK82_DEV1_PROGRESS.md"
+                ]
+}

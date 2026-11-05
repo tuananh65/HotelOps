@@ -1,0 +1,11 @@
+$ErrorActionPreference='Stop'
+$trialDatabase='HotelOps_Canonical_'+(Get-Date -Format 'yyyyMMdd_HHmmss')+'_'+([guid]::NewGuid().ToString('N').Substring(0,8))+'_Fresh'
+$trialDatabase | Set-Content obj/task74-api-database.local.txt
+& scripts/verification/UserDirectory/Prepare-Database.ps1 -Database $trialDatabase
+& scripts/database/release/uc017/Run-Uc017.ps1 -Stage Apply -Server 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS' -Database $trialDatabase -Receipt ('obj/task74-'+$trialDatabase+'-uc017.local.json')
+& scripts/database/release/checklists/Run-Checklists.ps1 -Stage Apply -Database $trialDatabase -Receipt ('obj/task74-'+$trialDatabase+'-checklists.local.json')
+& scripts/database/release/housekeeping/Run-Housekeeping.ps1 -Stage Apply -Database $trialDatabase -Receipt ('obj/task74-'+$trialDatabase+'-housekeeping.local.json')
+if($trialDatabase -cnotmatch '^HotelOps_Canonical_[0-9]{8}_[0-9]{6}_[a-f0-9]{8}_Fresh$'){throw 'Forbidden target'}
+$trialSql=New-Object System.Data.SqlClient.SqlConnection ('Data Source=REDACTED_LOCAL_SQL_HOST\SQLEXPRESS;Initial Catalog='+$trialDatabase+';Integrated Security=True;TrustServerCertificate=True')
+try{$trialSql.Open();$trialCommand=$trialSql.CreateCommand();$trialCommand.CommandText=[IO.File]::ReadAllText((Join-Path (Get-Location) 'scripts/verification/UserProfileUpdate/rowversion-forward.sql'));[void]$trialCommand.ExecuteNonQuery()}finally{$trialSql.Dispose()}
+Write-Output ('PASS full prerequisites: '+$trialDatabase)

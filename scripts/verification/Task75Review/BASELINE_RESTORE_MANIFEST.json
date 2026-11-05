@@ -1,0 +1,2056 @@
+﻿{
+    "status":  "REVIEW_ONLY_NO_RESTORE_OR_IMPLEMENTATION_AUTHORIZED",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "branch":  "feature/BE1-database-integration",
+    "protectedLocalChanges":  [
+                                  " M scripts/verification/Authorization/Authorization.Verification.csproj",
+                                  " M scripts/verification/Authorization/Program.cs",
+                                  " M scripts/verification/Authorization/README.md",
+                                  " M src/HotelOps.Api/Controllers/HealthController.cs",
+                                  " D src/HotelOps.Api/Controllers/WeatherForecastController.cs",
+                                  " D src/HotelOps.Api/HotelOps.Api.http",
+                                  " M src/HotelOps.Api/Program.cs",
+                                  " M src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs",
+                                  " M src/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs",
+                                  " D src/HotelOps.Api/WeatherForecast.cs",
+                                  "?? scripts/verification/FallbackAuthorization/"
+                              ],
+    "excluded":  "Receipts (*.local.json), canonical evidence dumps, WAV, bin/obj, Git configuration/history, RBAC catalog and generated baseline entities. Generated baseline entity files have no diff; two new snapshot models require review.",
+    "paths":  [
+                  {
+                      "path":  "docs/database/DATABASE_FIRST_REGENERATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "134916633849c2fceb002f208e55ad2761aa5344",
+                      "currentFileExists":  true,
+                      "currentSha256":  "C1C60C5479ED69FE5FAE75EF87B74996C3C73D02A4C6EECB4386374ACC41E6BF",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/README.md",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "2dbad0cf569d2c1dd5df1aa2ad158e57cf8d91b3",
+                      "currentFileExists":  true,
+                      "currentSha256":  "79C4EC0BFC572EC8D4E0BA5C0DFD83FCE02D4EAFA8671FD88C0CF24D124050D8",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/candidates/Task68_UC017.forward.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1ec581bc2ed70636d09300dbc1cb16f89278eeeb",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/candidates/Task68_UC017.rollback.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "e9a4d291188cb626651a3af1e275bd439e54c54e",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/canonical/Run-Canonical.ps1",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "d4528f63131b7b91e85e35ad77fe6c01fe72eefe",
+                      "currentFileExists":  true,
+                      "currentSha256":  "5CCCC67E6F751975A8FDCAF3C191661D5797DF3971000E4CAABD5C804D6996BD",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/checklists/01_Checklists.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1e87199fedc065516a37db19548c11ef4dfa78b9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/checklists/02_Verify.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3c521708cb18b2fef1c6e562bdd81d0b56eb561c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/checklists/03_Rollback.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b01ea712caef20dec0dd43ceb46d4a9d97ac15f6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/checklists/README.md",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d4358edbee6051380a158038e4bd17d531f3eafa",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/checklists/Run-Checklists.ps1",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "819fa6250434c8e10dfcf3754423d33c2edb8a79",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/housekeeping/01_Housekeeping.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "622b64f51b2767575575b56a4e9530225cd2534b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/housekeeping/02_Verify.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4daea294059f5067c5c13eb58f85c7c2e66eb5c5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/housekeeping/03_Rollback.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "6919cd6af2dd4b8dd8e90879051ea0cc2b910fc3",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/housekeeping/README.md",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "2c0db1ba5f7ac19a5ed2c96c1b6010a852ef18b4",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/housekeeping/Run-Housekeeping.ps1",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f223506eb6aede5bf467b977d795e1b25167272e",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/progress/01_Progress.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "add8a5b97a06836e179e4e66d22c641fb35ad4d5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/progress/02_Verify.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "45dfda47783ba0c4b8b226b9eeebe69415e5302d",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/progress/03_Rollback.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "11d02f347c4181e8ab1208647ec95d2a20812987",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/progress/README.md",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4fd4ec16b96371e1469630ace30bc7915c7a41d1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/progress/Run-Progress.ps1",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f476f9ddd808e432cefc5b52c256332d22846cbc",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f4b81c3c6a480acfd5071391a8ff6e1fca341d51",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/uc017/06_UC017_Verify.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "fc691527b534332dc5b266c3127157b1f6198699",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/uc017/07_UC017_Rollback.sql",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9e6ac9f86468e29544c2ff7125d1bf894ad4ffd5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/database/release/uc017/Run-Uc017.ps1",
+                      "category":  "existing_dev1_deployment_package_review_only",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "a628d781eee5005958ce2bd350072d0607cd0d97",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/AccessReview/TASK62_UC011_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0601d41ce0732008e578c53cf5a8076e1f5ac993",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/AccessReview/Task62AcceptanceCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ce320df38533a361ee31f1e341dc847f2cd834f6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Authorization/RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8505397b57c1cba6bc4b763b1f2b3b23746af6d0",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5b6f857aa3cc446b948b4f1176b81d9d5fb2b2e9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/DEV1_DEV2_WORKDAY_PM_CONTRACT_AUDIT.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8de3f30c56485709dcab7d9cc9032b7dd95a84c2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/DataScope/RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "e387cd37935f2a2cf769431c27a395409b90ea2b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Dev1Deactivation/CURRENT_RESPONSIBILITY_MATRIX.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "73d8accc19d67ef86bde5cfd22c40c226b596db9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Dev1Deactivation/LAST_ADMIN_REVIEW.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "7375a5717236394f557e994b4578e81922d075cd",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Dev1Deactivation/OPEN_BLOCKERS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "53638d1eb367ee2df465f1fdacfc0b57d0180311",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Dev1Deactivation/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b4942696097a691efe4c5bb32a5488d221fd5b2c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Dev1Deactivation/VERIFICATION_RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8971679fd8d3957ca46b7468b6d30d11e91e318c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Dev1Deactivation/WRITER_AND_LOCK_AUDIT.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "bcff64921732cd78ad8cc858d2dc1e85e96906e6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/HotelStructure.Verification.csproj",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "67e353319def4efe8fdf228091898f96e0316e22",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d2df5312962b6b16aa72a7d81b61c5808a68c287",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/StructureSqlAcceptance.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "a7f5b531013a209ce608355abe29d29170f2d895",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK63_UC014_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4c2a9b3faf716fed07d1dbb5abead5ede84fc8a5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK64_UC013_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f0bc0b412cbfa8922ae8b8cf87cf13668f2fe6ee",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK65_UC015_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5c9e23ab150d599c72d062fc849ce14fa3720aee",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK66_UC016_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "53ca88d1ac89c0ce068bfeed53913bbea459456f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK68_UC017_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8f818995e5d3f1fe65e8e443c28b131e9412f0ff",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK69_UC017_DEPLOYMENT_ACCEPTANCE.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "60d15b3c7df60b5440decf0593ff08f9f1b72af1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK70_BATCH1_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8d035b48f073c65fe45617c7ba2fd11b9dc7f1d8",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK71_BATCH2_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "96383a93d5d299166f97a7e4a8951b55a31af820",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK72_BATCH3_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5c0184c206a6223062e9a3fc602fab4e5da7c4b0",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/TASK72_CHECKLIST_CONTRACT_PROPOSAL.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "2373278296776088e963da397927662c30528fa8",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task64StructureCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c3f99d3dbaf5992b63444fa848888ac27ce9eb9f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task64StructureConcurrency.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0ab5c31072223bd8ca1db95b4bb70409a629b0f9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task65StructureCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "a47816d87bfb08844037c4aa3e461af4308a3cfb",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task65StructureConcurrency.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4ace2e9c6df85f70d2b03ad6c4c6d2e95675526c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task66StructureCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "6d9eb410413834d4bf6ffeef49595df4e602bb2a",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task67RoomCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "2b5346d87fbf16baaf7fe505cc9facda54fa3fc2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task68RoomTypeCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3bf78245374e83353fdc616033fcb344bddfdff9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task68RoomTypeFaults.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0f975fde20549466c34947992a12dc4ab19c8d1d",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task69DeploymentCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "cd574f25ba5f163f7df2cd38e6d62f0c725b0796",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task70BatchCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "98929007ea239c04c4bb2adb67f4bf8857b24d6f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task70SqlCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "73e230cee0e9d7f678ed3b5477b56ea76983af77",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task71BatchCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9b753e1ea17f2969c75a549f89ac3c98457cb9ef",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task71SqlCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b625ef0bca0730a8bf76b49a734761b49a64e640",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task72ChecklistCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1b27f0f808d603602dddb88e6924791439221ca9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task72HistoryCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "298a50376337b03501c3e2f52c4c5dbb9bf5c715",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task73PlanningCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "50c27b4e42f3329c0ddc67d55ee22bac7767fff5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task73WorkflowCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "63aaf27954b2a89996ea7c5df77f921666b2a534",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task74BranchCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d6a603eedd4026c64714cf3c7f0a38cf1fa30f54",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HotelStructure/Task74ProgressCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "fa326850b283a836285c7ceb799a1b79593670e8",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Housekeeping/TASK73_BATCH4_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "587119836f9fe8e4fc14b5d265e608f810df7a5b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Housekeeping/TASK73_CONTRACT_PROPOSAL.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b444ec1a5b33d4710f60b588c47069fa927473f2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Housekeeping/TASK73_DEV2_NOTIFICATION_HANDOFF.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c4cdf3e7377a87bbc0189bcd0b8390dc4f9eacac",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Housekeeping/TASK74_BATCH5_IMPLEMENTATION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ffdf3e5719d904c6de867a0af754bba2ae490696",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/Housekeeping/TASK74_CONTRACT_PROPOSAL.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9378656d862bddf3b730c7ef5afc6d6713d92c5b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HttpSqlIntegration/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f698e4ce0a5cf6b7ebfdcf5c6aaf6d82dd43e735",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/HttpSqlIntegration/RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f55f6c9e28ec54ee044c5734c5fc2bcc08cab1fc",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/PermissionService/RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c64aed086cf46f92a7db8621407ead02e10c3909",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/BACKUP_RECOVERY_PLAN.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "749c65be32c09628c1d708dd1769ef31989b9ca9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/DEPLOYMENT_READINESS_REPORT.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "22342fd22688883337e711fda8ea78c6bb18b867",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/PREFLIGHT_RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "199f694d986284ee6c76c411d6f72460eadb9d25",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/Prepare-Task03A.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "312ccb47299cbdb2450474d9c9dc1e4e58ae6254",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4d730cdaa08902c743d790dd3674700f210ddada",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9f554fa55dfbf4847d517606047d28a25fd9c962",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/VERIFICATION_PLAN.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "6dead1ef2c510a47794968749f66353719ca543b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/Verify-Rehearsal.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "758801dd3d6b9bb91d3d5c368f142bef2eeb5bb3",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/REVIEWED_MAIN_DEPLOYMENT_TASK03B_PENDING.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "34a915a37fe7297dea6d16d1de989f1411da2b03",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-commit.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b5debdd753dacbf4e176ae59bc1e53ad3fc6a405",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/initial-rehearsal-evidence/rehearsal-dry-run.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0f9fad8b89d26fb18447cc983195b997671c3e71",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/postdeployment-readonly.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "2544305038ef6c0a4f48c843634bb60116568490",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/preflight-readonly.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5ebbad573a9f74d4fda92eb5f34360919f6d920f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-commit.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "baac28514a326cb9822a175ec6ea3da87dc380e9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03A/rehearsal-dry-run.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "020cd6b376c54f2f648ed0be014b70d9d892919b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/DEPLOYMENT_EXECUTION_REPORT.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1c8fb23a14270b5c1db5613553d82f55146c00b6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/Deploy-Task03B.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9b270f50b8b321c3481de8ae03df71454d0a6ac1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/Inspect-Task03B.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "798721ae8fe007368f87bbd2fc2625de4a281b45",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5665ab7d399eeafe14ca8d293adbe596800247b1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeDeployment/Task03B/RECOVERY_AND_INCIDENT_NOTES.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "06625d59b87ce0d9426a3487ec152c7968bc7d0b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "409f292df235ce63c7b51556072ed75d0b06cb0c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Run-DepartmentCleanup.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "54efdc321d8ec754e7088b4130bb7875aaa5e698",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Run-Trial.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8a7c44cd82a50e730aa725fdf78f7f0ce1fc4adc",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02B/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f263a00f53970806231bd0ce6792403831b9a8f7",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02B/department-cleanup.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b389668d335ab7995a8452064efab3a40217f2a1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02C/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ba0d8ea9444a9c4b7f3a195cc64cbe924d6df432",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02C/Run-Task02C.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "2790d184f576f02940f44bcea8a1a7ccdd979834",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02C/preflight.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d754da2a1035da279aa14d758b83026db14030e1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02C/resolve-safe-dependencies.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5d567b048231619e311f6c442aefb612d49be280",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02D/FINAL_RESOLUTION_PLAN.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b7d853d22e151bc9d7bd1d0c53bdc04b47b991b8",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02E/EXECUTION_PLAN.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b76e0547ee9c086cf64e56a667952aa0bdba3a27",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02E/FIXTURE_RESET_MANIFEST.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "7eea0b4ed9408d83e39eeb5a716b73b7d3d85251",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Task02E/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4081c6e6805a0b4371a929c64c5dcc40bdc13cb5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/Verify-Trial.ps1",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "22aa6873086c541e4a1e17f64d09e78e6635dc19",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/trial-dry-run.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "e228b60c5d1fe801058d0064b775eaa10bb6bbf2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RbacUpgradeTrial/trial-upgrade.sql",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4a6aae627db43c4a62c355ba89eeaef9d3d671a8",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/ResourceAuthorization/RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c2bbbdd324bd65f500f52947b0a7d5b1fb796820",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RoomDirectory/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5047f1df70779967c76eeb6a57676123b999b95c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RoomDirectory/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "467954c10c789e1fcf28103d86605eed7a40ac1f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RoomDirectory/RoomDirectory.Verification.csproj",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "67e353319def4efe8fdf228091898f96e0316e22",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/RoomDirectory/TASK67_UC023_COMPLETION.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5faefe8b4a7b6e1fe9673a60c42ab5328fb760bc",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/StartupSchemaGate/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "df8035ed70f4adce7451c41b0aa1daa6d358974a",
+                      "currentFileExists":  true,
+                      "currentSha256":  "126032ACDCDB10DC906BD8C914719DF5775A7EE8980BEBA901C5EDA8B46636B4",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/StartupSchemaGate/StartupProbeProcess.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d493a4630101a246da20e9eedf429d7fd7705706",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountCreation/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "515b5a1168ed76347f3dd20c74e3176378a3b5cd",
+                      "currentFileExists":  true,
+                      "currentSha256":  "619A96D187C4F10A8E032B3064D01A2F10AA2B887357DED5724A1EF8C0F5707E",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/BusinessContractSqlSuite.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0fc02c5d560952024e7e3de1bd5bfe47e155a8f5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/Dev1WriterSqlSuite.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d14027d0663dae2ed8e94cd0515b325b08faf7de",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/GATE_RESOLUTION_MATRIX.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "960bffca65e870d9d5e3b1f89f28c0261c79654e",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/GateResolutionSqlSuite.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "bc646951188b8a24212e7f8c604abea51535f46f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/INTEGRATION_DEPENDENCIES.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "1295939b7546191de1db2ab1b67a5039d78f1507",
+                      "currentFileExists":  true,
+                      "currentSha256":  "FFC8EE858DA32B4D1B6D7B93F2389A3E2A558B277DD854012B68F6BFEB9D353A",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/LOCK_ORDER.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "6bb906a8a40e6ef8405c94b23778c24beb594d9f",
+                      "currentFileExists":  true,
+                      "currentSha256":  "B47BFBFA14CA75CA662DC3D503A6EB9CD0FFEE7D5539F97DC5BF1CFEE873D0F7",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/OPEN_WORK_PREDICATES.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "f1000c18bc149dc72e1d057ff960e24796a8b2f0",
+                      "currentFileExists":  true,
+                      "currentSha256":  "41A0FD47CFE068E204E652F09A7B2E6E8052B0DF761EFBF361755B04CF0A9207",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "23ba23274ca11c9c0bfa0ee33e8ad63b5ea4f1d6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "b43b280c572cb6b54a7e0846c917223f898a8a33",
+                      "currentFileExists":  true,
+                      "currentSha256":  "79E247252D45648395B596EEDD2B4F014BBE6B497943CCAA8687237522B26144",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/REMAINING_BLOCKERS.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "39e5e1608d3b19552965a0516ec316ed593ac3f3",
+                      "currentFileExists":  true,
+                      "currentSha256":  "A1DEDD0A304FBAA28032491DD519AA10979146FFC897B90AAFF21E039941B57C",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/ReadinessSqlSuite.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "099acbd03e98b563cd416ea2b3a55333fcf0718c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/ReturnWorkSqlSuite.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1d0bb043ac8a6ee852ea28fdc56ec3a43a860ef1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/ServiceSqlValidation.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0b8b21f51760559011ad593760fa2dc821a41261",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/TASK58_DEV1_WRITER_ACCEPTANCE.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ed91cca80758ec44bb40f412a3342dda0442715c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/TASK58_DEV2_HANDOFF.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c232df40860b2c753bb24502767d93e9caf1a92a",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/Task58WriterAcceptanceSqlSuite.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "086b55c57c3611089e9c984dd23fa6791029d0b5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/UC006_DEFERRED_WORKFLOWS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5153b6b4c8d7e7f5583cdcf67ecd2f1c0b14a55e",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/UC006_V1_CONTRACT_MATRIX.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3ef666bdef94104eaf25d4dc8857482c6eb744e1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/UC006_V1_DEPLOYMENT_SCOPE.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4a7b7459d7c650e356216d435b88fa81deae7a62",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/UserAccountDeactivation.Verification.csproj",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "67e353319def4efe8fdf228091898f96e0316e22",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserAccountDeactivation/VERIFICATION_RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "b4a45c1095a6bedabb69bff85de5a0f41bce6833",
+                      "currentFileExists":  true,
+                      "currentSha256":  "F366E7C042989FDE6642E5325841EA318786A84A0AAA39FD44C9344731A5B8DA",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserDirectory/API_CONTRACT.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "65845cb1b49a8e429c554235f340945370590323",
+                      "currentFileExists":  true,
+                      "currentSha256":  "2337CC616E2EAEA81652EBE7250B4258F94D10CA76B62E123B88754603AADFD8",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md",
+                      "category":  "documentation",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "1f3b4207db15c71fbc2b2dc4850f30f1482bafbe",
+                      "currentFileExists":  true,
+                      "currentSha256":  "6046D103562DC8C6474DA30BF216C3BE89FE9D709FEA0C6608987957C15BC8E5",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserDirectory/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "c5279a734c5066c2bc933358673679c2ce1c6ad3",
+                      "currentFileExists":  true,
+                      "currentSha256":  "96CACC10D8E40BED22E283822E8FCA48DB454D74C4164FA1ECDAB475D2990503",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserDirectory/UserDirectory.Verification.csproj",
+                      "category":  "verification_harness",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "fcd8c9fbd7c8159b519fd110b05451cd31aaa505",
+                      "currentFileExists":  true,
+                      "currentSha256":  "9BE8DE29B3B958D40BB09A8D0C961F70070CC8FABC049E5BD2399F5F043D669E",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserList/TASK61_UC141_ACCEPTANCE.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b07cb9d820678ba6259df2172ba75abc4a7a01a2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserList/Task61AcceptanceCases.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c20b2785cabc3c4b9c02d0899a23ea2696959bf7",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserManagementCommit/COMMIT_MANIFEST.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "44deaa7cf1002cef2b51d600711c38082ec7913d",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserManagementCommit/README.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "6127ec971393eb59ab8b4f63985116a1dcb22edc",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserManagementCommit/RELEASE_RESTRICTIONS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ba2665ab10c510022e33f428af16d0516cf41e07",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserManagementCommit/SECURITY_REVIEW.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "e87dc603ce635586e848c72d12502e489cbe5b09",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserManagementCommit/VERIFICATION_RESULTS.md",
+                      "category":  "documentation",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3216bb0279b03c0d6c5afa95636f4e1d06be83f2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "scripts/verification/UserProfileUpdate/Program.cs",
+                      "category":  "verification_harness",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "e3a0fcec5d33c56339488928ef9bfd7711d90469",
+                      "currentFileExists":  true,
+                      "currentSha256":  "8F7B6614324F8D80BA82D80EBA62963F5A3BA2D545B9404AEB41414A922CE40A",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/BranchMaintenanceController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8a6a4c6a92bb4bbe499eef50d62664c8bbe77c82",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/BranchStructureController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "7a1c9c8cb076b805633ea56bbf49c41ea473857a",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/Filters/UserAccessReviewAttribute.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1eb0be927a2cb4e86feea801d334f6dbe14b436d",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "577acdda00647fa1676d443bbc4f571520e1423f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/HotelStructureCreationController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0a4b6116ab4f7a3d0ff8062769ad7583aaf1da11",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "50ac05a1bc4f767b299ffa7765b01df697c9f9d9",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "7878e7d2ebe09c9593f98ed6fd6d6b099b4c356f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f2b771332a2cdb8942c809bfcd339c6d68df6550",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d5b95742c9dc0452fb070d483b9ca4d28b9c0c34",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "40d355b13d349557f33100e469825d2bf8ead851",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/RoomTypeBatchController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "fe3f39385f63ca00a0a1f90318c868fc82364628",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/RoomTypesController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f862b0674b2d5671963e823203a4c4cbd6668454",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/RoomsController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f2ed68a760d47e33cde04755551bc593d4fd8471",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/UserAccessReviewController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "fc2c2ab2ef0c67c6d564d9a5e6834caa4bd57311",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/UsersController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "ec573ac2be92c25a874a8379d42a02c147e4035f",
+                      "currentFileExists":  true,
+                      "currentSha256":  "560F72FE026CC488437530D2728A1F8CEA4AEF89F9683C23198A6812E19D90E1",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/WorkProgressController.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "47c5ae572a36364ffc285dc0d3ce9b6d5013ffcb",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/Batch2Dtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8633f699453ded30854bc2fab38072bad5851410",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchMaintenanceDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "095441814e0a03d51a736b4031d52598ec3a8bfd",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "5ffe8bcf632116541397ed1076e5097b629547ee",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b0e9c96e06c3b0d71acbc4ab62aa1481a0af5897",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "6085f7d53e33e45f6f0b5c3f64df7605e309dba4",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/CreateStructureDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "caa8a8d693d46cfd9438b66b07e7c042345a6f5a",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "38cde9dbe0b8a068886926e3b94ed1b3a1b5651b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c0648a68711ac57aa51a65c9ae62876817d13e4f",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "71b9ccacca446cceecd0b063d71f8f8dd3c2c6db",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3ccae45c0b537291277b51041079c260f14d4b8b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b0bd6484baf901198931fd2bd81a4fce5d17469c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "acc03d1d7d1b6109af7d745e9f7717b9a7f49901",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Housekeeping/ProgressDtos.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d01774e5ff17b220a11253ec1f471aee140d8046",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1cfa93754076750b5d7d82a70e66218068669abe",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Users/UserAccessReviewDto.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "87601daf4de6ed87a4d16e7684626af9f6e8c540",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Users/UserAccountDeactivationRequest.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "485e73f0fc13eff99e7268ba5ea6678a70b579bc",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Data/ChecklistSchema.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8ba2d5525b24782edf9b4bc758a68d3c2779196c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ecc4c27b757d3157921aa3348ad300107107e9be",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "ac05132babef0c18ef3b4bf2233bd988c38ca568",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Data/HousekeepingSchema.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "93cbedf3334efaa61c92098639a1174288abf30e",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Data/ProgressSchema.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "2f71e85c0593f4caec9aac690755bf186aa02e36",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Data/RoomTypeSchema.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c9855ea1f4426957ad669563623feceec0609e34",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Entities/ChecklistV1.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f62d4ea6cbd2d430c33bbe2270cbe3d44e65fcf1",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Entities/RoomTypeBranchV1.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "62b2532f13be08110ef83f425438752c70cfc40b",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Program.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "514c675d8730f6bf065076e23f21e2deeecbd7af",
+                      "currentFileExists":  true,
+                      "currentSha256":  "2858FBF1EE25AA8CC4FC5ECE38FBC1C75188401EC89D504A13EE16164950E8D3",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Security/Authorization/PermissionGrantRules.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9b2bd9de7a85f972a1c0f756f95a03f246ae37ca",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "9b77e6206647ef05b5a64ed3992e3004ee7a66c5",
+                      "currentFileExists":  true,
+                      "currentSha256":  "DC5AE7D22C7E31D466BAE4E78154A549D1CB64319E661926755C7508111E4796",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/BranchMaintenanceService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "26e490fd890aa24e1b5b0b50936dd35981b73893",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1130dd0acf655c7a96f21d6eb04b4869a8019858",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b3e3f08026da029ff48d3b1ccb3eea5b119a9c27",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/DepartmentBatch2Service.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "a2018ecb634d724bc7e04afda7d63f196e437e02",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "70314996403a09b1cd4e9efac84dab7d570c7e15",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "bc2006087d43010ceee0bebe4c83ab1e9972eefb",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "149d0b1e3ab00d1acdfa9abb2d2bc296939126b2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "43cc5d21eb46bd523fabd0123d3f82c3aa2e138d",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/RoomBatch2Service.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "0bac124e3fa0dfe0591758f5c4847109b7ee725c",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/RoomCreationService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8822426bd8dfc9cf0420b6b94f1438647ff0fd84",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "8aba8703a8e26808af57208cdd7439ceb43c099e",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "6aa05682a9545d5332e6fbe8dc4afc0661d02d2d",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/StructureDeactivationDependencies.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "d58e1140d60a8f7b0af8f33ccec40afd07c37165",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "1b9f0d49b1a8d4a7435db421733c6472e6864b11",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "edf04aa994f9797e01d11ea83099785a7f073081",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "87e1a7d6bbc5496d850253d7a84208de64326ac6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/WorkProgressService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "f913b80e69153682e066513d87d6a35a56d1cc10",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "b0c5f5d376b68de90601cb00b5472905d173d9f6",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/AccountWriterSessionGate.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "302b847f1a80cd1ab0bb03b0d4f81d99c40c4db2",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "b386ae29583e861337d80efeae456f3ac4de42f1",
+                      "currentFileExists":  true,
+                      "currentSha256":  "407E07AA7D9379AE53F32B13C5AF3F93B5CF0D49AFFC26CCBF46550CFE4E5927",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/DeactivationResponsibilityQueries.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "4892e8c8eade1145dc7035986317e549f30fde94",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/Dev2ResponsibilityStateQueries.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "c3fb212871a48c56eadd9d6c9def4b09cb17dcb7",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "b4a20dd771cf4038eb0b9d9cf03929803470667f",
+                      "currentFileExists":  true,
+                      "currentSha256":  "1DB3B70BAD1BCA14DA3E1F5F5AEE14A2B2E634C5B26B77BBB672F19C75A716CA",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/IntegratedDeactivationResponsibilityQueries.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "07f670d6f7852866ae50de8d266361cd62f68e86",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/UserAccessReviewService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3c9887020944863dd1bc4fff645f750236b34ff5",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "af4dad1ac0d549016308029b9887a80e3032c755",
+                      "currentFileExists":  true,
+                      "currentSha256":  "18E0A812C7723F21EA85F1B9FB4D159D3A2DFFBD7A1D5B891FF0D36282DC1894",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/UserAccountDeactivationReleaseAcceptance.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9e96c88bd05fe423a018a0e345e2082bf1e3becd",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/UserAccountDeactivationService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "3398e0bfcaf50d29df437d1afd259ab1c6e9a397",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs",
+                      "category":  "production_source",
+                      "gitChange":  "A",
+                      "snapshotBlob":  "9db320d420f376ff5ba8276cbf49c2ef1ec5af20",
+                      "currentFileExists":  false,
+                      "currentSha256":  null,
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+                      "category":  "production_source",
+                      "gitChange":  "M",
+                      "snapshotBlob":  "91c508e60eb7d1cd216d3c56f68a5ff5e5fb8ca2",
+                      "currentFileExists":  true,
+                      "currentSha256":  "44BFF2E854241990BD5BA83EC3CFE396E59CDAE16F600CCF06924BA7C96EC41C",
+                      "action":  "PROPOSED_ONLY_NOT_APPLIED"
+                  }
+              ]
+}

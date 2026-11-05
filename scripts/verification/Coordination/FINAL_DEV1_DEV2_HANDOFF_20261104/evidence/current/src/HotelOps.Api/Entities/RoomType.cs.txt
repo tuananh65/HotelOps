@@ -1,0 +1,24 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class RoomType
+7: {
+8:     public long RoomTypeId { get; set; }
+9: 
+10:     public string TypeCode { get; set; } = null!;
+11: 
+12:     public string TypeName { get; set; } = null!;
+13: 
+14:     public string? Description { get; set; }
+15: 
+16:     public int? StandardCapacity { get; set; }
+17: 
+18:     public bool IsActive { get; set; }
+19: 
+20:     public virtual ICollection<InspectionChecklist> InspectionChecklists { get; set; } = new List<InspectionChecklist>();
+21: 
+22:     public virtual ICollection<Room> Rooms { get; set; } = new List<Room>();
+23: }
+24: 

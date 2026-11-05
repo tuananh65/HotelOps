@@ -1,0 +1,15 @@
+param([string]$RunId,[ValidateSet("Fresh","Upgrade","AuthUpgrade")][string]$Suffix="Fresh")
+$ErrorActionPreference='Stop'
+if($RunId -cnotmatch '^HotelOps_Canonical_[0-9]{8}_[0-9]{6}_[a-f0-9]{8}$'){throw 'Invalid trial'}
+$name=$RunId+'_'+$Suffix
+$b=New-Object System.Data.SqlClient.SqlConnectionStringBuilder
+$b['Data Source']='REDACTED_LOCAL_SQL_HOST\SQLEXPRESS';$b['Initial Catalog']=$name;$b['Integrated Security']=$true;$b['TrustServerCertificate']=$true
+$c=New-Object System.Data.SqlClient.SqlConnection $b.ConnectionString
+$c.Open()
+try{
+ $cmd=$c.CreateCommand()
+ $cmd.CommandText="IF DB_NAME()<>N'$name' OR EXISTS(SELECT 1 FROM dbo.users) THROW 51970,'Wrong/nonempty trial',1; IF NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.UserDirectory.Trial') EXEC sys.sp_addextendedproperty @name=N'HotelOps.UserDirectory.Trial',@value=N'Task17';"
+ [void]$cmd.ExecuteNonQuery()
+ $cmd.CommandText=[IO.File]::ReadAllText((Join-Path (Get-Location) 'scripts/verification/UserProfileUpdate/rowversion-forward.sql'))
+ [void]$cmd.ExecuteNonQuery()
+}finally{$c.Dispose()}

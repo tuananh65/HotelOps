@@ -1,0 +1,5 @@
+﻿{
+    "exitCode":  0,
+    "command":  "dotnet artifacts/readiness/bin/SqlReadiness/debug/SqlReadiness.dll sql-readiness-receipt.json",
+    "finishedUtc":  "2026-11-04T00:43:02.7341122+00:00"
+}

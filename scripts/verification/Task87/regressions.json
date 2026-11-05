@@ -1,0 +1,42 @@
+[
+    {
+        "exitCode":  0,
+        "name":  "Authorization",
+        "log":  "regression-Authorization.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "ResourceAuthorization",
+        "log":  "regression-ResourceAuthorization.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "PermissionService",
+        "log":  "regression-PermissionService.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "CurrentUserAccessor",
+        "log":  "regression-CurrentUserAccessor.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "UC037",
+        "log":  "regression-UC037.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "UC038",
+        "log":  "regression-UC038.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "UC142",
+        "log":  "regression-UC142.log"
+    },
+    {
+        "exitCode":  0,
+        "name":  "UC012",
+        "log":  "regression-UC012.log"
+    }
+]

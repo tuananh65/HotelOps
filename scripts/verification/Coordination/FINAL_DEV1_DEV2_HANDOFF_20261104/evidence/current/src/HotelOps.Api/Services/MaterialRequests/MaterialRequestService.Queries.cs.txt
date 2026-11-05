@@ -1,0 +1,66 @@
+4: namespace HotelOps.Api.Services.MaterialRequests;
+5: 
+6: public sealed partial class MaterialRequestService
+7: {
+8:     private static DateTime Utc(DateTime value) => DateTime.SpecifyKind(value, DateTimeKind.Utc);
+9:     private static DateTime? Utc(DateTime? value) => value.HasValue ? Utc(value.Value) : null;
+10:     public async Task<MaterialPageDto> List(MaterialPage p, CancellationToken ct)
+11:     {
+12:         if (p.Page < 1 || p.PageSize < 1 || p.PageSize > 100 || (long)(p.Page - 1) * p.PageSize > int.MaxValue || p.From > p.To) throw Invalid("Invalid page/date range.");
+13:         var q = db.MaterialRequests.AsNoTracking();
+16:         if (p.RequesterId is long u) q = q.Where(x => x.RequesterId == u);
+17:         if (p.IncidentId is long i) q = q.Where(x => x.IncidentId == i);
+18:         if (p.ItemId is long item) q = q.Where(x => x.MaterialRequestLines.Any(l => l.IsActive && l.ItemId == item));
+19:         if (!string.IsNullOrWhiteSpace(p.Status)) q = q.Where(x => x.Status == p.Status);
+20:         if (!string.IsNullOrWhiteSpace(p.Keyword)) q = q.Where(x => x.RequestNo.Contains(p.Keyword) || x.Purpose.Contains(p.Keyword));
+21:         if (p.From is DateTime from) q = q.Where(x => x.CreatedAt >= from);
+22:         if (p.To is DateTime to) q = q.Where(x => x.CreatedAt <= to);
+23:         var total = await q.CountAsync(ct);
+24:         var rows = await q.OrderByDescending(x => x.CreatedAt).ThenByDescending(x => x.RequestId).Skip((p.Page - 1) * p.PageSize).Take(p.PageSize)
+25:             .Select(x => new MaterialSummaryDto(x.RequestId, x.RequestNo, x.Status, x.BranchId, x.DepartmentId, x.RequesterId, x.CreatedAt, x.NeededAt)).ToListAsync(ct);
+26:         return new(p.Page, p.PageSize, total, rows.Select(x => x with { CreatedAt = Utc(x.CreatedAt), NeededAt = Utc(x.NeededAt) }).ToArray());
+27:     }
+28:     public async Task<MaterialRequestDto?> Get(long id, CancellationToken ct)
+29:     {
+30:         var r = await db.MaterialRequests.AsNoTracking().Include(x => x.MaterialRequestLines).SingleOrDefaultAsync(x => x.RequestId == id, ct);
+31:         if (r is null) return null;
+38:         var issueDocuments = batches.Where(x => x.StockDocumentId != null).Select(x => x.StockDocumentId!.Value).ToArray();
+39:         var returns = await db.StockReturnLineDetails.AsNoTracking().Where(x => issueDocuments.Contains(x.OriginalIssueLine.DocumentId) && x.OriginalIssueLine.Document.DocumentType == "ISSUE")
+40:             .Select(x => new MaterialReturnDto(x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo, x.StockDocumentLine.Document.Status, x.OriginalIssueLineId)).Distinct().ToListAsync(ct);
+41:         var isNew = await NewWorkflow(r, ct); var eligible = isNew && r.Status is "DRAFT" or "PENDING_APPROVAL" or "NEEDS_INFORMATION" or "APPROVED" or "PARTIALLY_ISSUED";
+42:         return new(r.RequestId, r.RequestNo, r.Status, isNew, eligible, eligible ? null : isNew ? "Terminal workflow state." : "Legacy workflow: mutation reconciliation unavailable.", Convert.ToBase64String(r.RowVersion),
+43:             r.BranchId, r.DepartmentId, r.RequesterId, r.SourceWarehouseId, r.Purpose, Utc(r.NeededAt), r.PriorityId, r.ReceivingRoomId, r.ReceivingAreaId, r.IncidentId,
+44:             Utc(r.CreatedAt), Utc(r.SubmittedAt), Utc(r.CompletedAt), Utc(r.UpdatedAt), r.CancellationReason, Utc(r.RemainderClosedAt), r.RemainderClosedBy, r.RemainderCloseReason,
+45:             r.MaterialRequestLines.OrderBy(x => x.LineNo).Select(x => new MaterialLineDto(x.LineId, x.LineNo, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.ApprovedQty - x.FulfilledQty,
+46:                 x.IsActive && r.Status is "APPROVED" or "PARTIALLY_ISSUED" ? (x.ApprovedQty ?? 0) - x.FulfilledQty : 0, x.IsActive, x.Note)).ToArray(),
+47:             cycles.Select(x => new MaterialCycleDto(x.ApprovalCycleId, x.RevisionNo, x.SubmittedBy, x.AssignedApproverId, x.Status, Utc(x.SubmittedAt), Utc(x.ResolvedAt),
+48:                 x.MaterialRequestApprovalLineSnapshots.OrderBy(l => l.LineNo).Select(l => new MaterialCycleLineDto(l.RequestLineId, l.LineNo, l.ItemId, l.UomId, l.RequestedQty, l.ApprovedQty, l.Note)).ToArray())).ToArray(),
+49:             decisions.Select(x => x with { DecidedAt = Utc(x.DecidedAt) }).ToArray(), batches, returns);
+50:     }
+51:     public async Task<IReadOnlyList<MaterialFulfillmentDto>?> Fulfillments(long id, CancellationToken ct)
+52:     {
+53:         if (!await db.MaterialRequests.AnyAsync(x => x.RequestId == id, ct)) return null;
+54:         var rows = await db.MaterialFulfillments.AsNoTracking().Include(x => x.StockDocument).Include(x => x.MaterialFulfillmentLines).Where(x => x.RequestId == id).OrderBy(x => x.FulfillmentId).ToListAsync(ct);
+55:         return rows.Select(x => new MaterialFulfillmentDto(x.FulfillmentId, x.FulfillmentNo, id, x.WarehouseId, x.FulfilledBy, x.ReceivedBy, x.Status, Utc(x.FulfilledAt), Utc(x.ReceivedAt), x.StockDocumentId, x.StockDocument?.DocumentNo,
+56:             x.MaterialFulfillmentLines.OrderBy(l => l.FulfillmentLineId).Select(l => new MaterialFulfillmentLineDto(l.FulfillmentLineId, l.RequestLineId, l.ItemId, l.UomId, l.IssuedQty, l.ReceivedQty, l.StockDocumentLineId)).ToArray())).ToArray();
+57:     }
+58:     public async Task<MaterialFulfillmentDto?> Fulfillment(long id, long fulfillmentId, CancellationToken ct) => (await Fulfillments(id, ct))?.SingleOrDefault(x => x.FulfillmentId == fulfillmentId);
+59:     public async Task<MaterialHistoryDto?> History(long id, CancellationToken ct)
+60:     {
+61:         var r = await Get(id, ct); if (r is null) return null;
+62:         var batches = r.Fulfillments.Select(x => x.FulfillmentId.ToString()).ToArray(); var docs = r.Fulfillments.Where(x => x.StockDocumentId != null).Select(x => x.StockDocumentId!.Value.ToString()).ToArray();
+63:         var audits = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "material_requests" && x.EntityId == id.ToString() || x.EntityType == "material_fulfillments" && batches.Contains(x.EntityId) || x.EntityType == "stock_documents" && docs.Contains(x.EntityId))
+64:             .OrderBy(x => x.OccurredAt).ThenBy(x => x.AuditId).Select(x => new MaterialAuditDto(x.AuditId, x.EntityType, x.EntityId, x.Action, x.ActorUserId, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields)).ToListAsync(ct);
+65:         return new(r, audits.Select(x => x with { OccurredAt = Utc(x.OccurredAt) }).ToArray());
+66:     }
+67:     public async Task<MaterialAvailabilityDto?> Availability(long id, CancellationToken ct)
+68:     {
+69:         var r = await Get(id, ct); if (r is null) return null;
+70:         if (r.SourceWarehouseId is not long w) throw Invalid("Source warehouse is required for availability.");
+71:         var stocks = new List<object>();
+72:         foreach (var item in r.Lines.Where(x => x.IsActive).Select(x => x.ItemId).Distinct()) { var s = await inventory.GetStock(w, item, ct); if (s != null) stocks.Add(s); }
+73:         return new(id, w, "Preview only. Shared stock is reported once per item in base UOM; line quantities are not independent stock promises. No reservation.", stocks,
+74:             r.Lines.Where(x => x.IsActive).Select(x => new MaterialAvailabilityLineDto(x.RequestLineId, x.ItemId, x.UomId, x.RequestedQty, x.ApprovedQty, x.FulfilledQty, x.HistoricalRemainingQty)).ToArray());
+75:     }
+76: }
+77: 

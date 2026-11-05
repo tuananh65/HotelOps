@@ -1,0 +1,26 @@
+[
+  {
+    "origin": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs:25",
+    "line": 1
+  },
+  {
+    "origin": "src/HotelOps.Api/Services/Authentication/ICredentialLockoutService.cs:32",
+    "line": 1
+  },
+  {
+    "origin": "src/HotelOps.Api/Services/Authentication/ICredentialLockoutService.cs",
+    "line": 29
+  },
+  {
+    "origin": "src/HotelOps.Api/Services/Authentication/ITemporaryCredentialService.cs:40",
+    "line": 1
+  },
+  {
+    "origin": "src/HotelOps.Api/Services/Authentication/ITemporaryCredentialService.cs:49",
+    "line": 1
+  },
+  {
+    "origin": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs:26",
+    "line": 1
+  }
+]

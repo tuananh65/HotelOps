@@ -1,0 +1,119 @@
+1: using System.ComponentModel.DataAnnotations;
+2: using HotelOps.Api.Data;
+3: using HotelOps.Api.DTOs.Housekeeping;
+4: using HotelOps.Api.Entities;
+5: using HotelOps.Api.Services.Authentication;
+6: using Microsoft.EntityFrameworkCore;
+7: 
+8: namespace HotelOps.Api.Services.HotelStructure;
+9: 
+10: public sealed partial class RoomTypeCreationService
+11: {
+12:     private async Task<bool> EligibleHousekeeper(long user, long branch, DateTime now, CancellationToken ct) => await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user
+13:         && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
+14:         && u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == "HK"
+15:         && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
+16:         && db.UserRoles.Any(r => r.UserId == user && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_STAFF" && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now))
+17:         && db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
+18:             && a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch
+19:             && a.Shift.ScheduledStartAt <= now && a.Shift.ScheduledEndAt > now), ct);
+20:     private async Task<bool> EligibleInspector(long user, long branch, CancellationToken ct)
+21:     {
+22:         var now = clock.GetUtcNow().UtcDateTime;
+23:         return await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
+24:             && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
+25:             && db.UserRoles.Any(r => r.UserId == user && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_SUPERVISOR"
+26:                 && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)), ct);
+27:     }
+28:     private static void WorkflowDue(DateTime due, DateTime now)
+29:     {
+30:         if (due.Kind != DateTimeKind.Utc || due <= now) throw new ValidationException("Due time must be future UTC.");
+31:     }
+32:     public Task<RoomTypeBatchResult> AssignCleaningAsync(SessionReference ticket, long sid, long branch, long task, string tag, AssignCleaningRequest input, CancellationToken ct)
+33:     {
+34:         if (task <= 0 || input.AssigneeId <= 0 || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid assignment or If-Match.");
+35:         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+36:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+37:         {
+38:             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+39:             var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+40:             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive).Select(r => r.RoomId);
+41:             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(t => t.CleaningTaskId == task && ids.Contains(t.RoomId), token);
+42:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+43:             var state = await CleaningState(task, token);
+44:             if (tag != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
+45:             if (state.State != "PENDING_ASSIGNMENT" && !(state.State == null && row.Status == "PENDING" && input.AdoptUnassignedLegacy)) return new(RoomTypeBatchStatus.Inactive);
+46:             if (await db.CleaningAssignments.AnyAsync(a => a.CleaningTaskId == task && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null, token)) return new(RoomTypeBatchStatus.Duplicate);
+47:             db.Add(new CleaningAssignment { CleaningTaskId = task, AssigneeUserId = input.AssigneeId, AssignedBy = actor, AssignedAt = clock.GetUtcNow().UtcDateTime, AssignmentStatus = "ACTIVE", Reason = reason });
+48:             await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+49:             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status={"ASSIGNED"},status={"PENDING"},due_at={input.DueAt} WHERE cleaning_task_id={task}", token);
+50:             var after = new HousekeepingWriteDto(task, "ASSIGNED");
+51:             await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { row.Status, state.State }, new { reason, assigneeId = input.AssigneeId, entity = after }, ["assignee", "workflowStatus", "dueAt"], token);
+52:             return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await CleaningState(task, token)).Revision));
+53:         }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueHousekeeper(input.AssigneeId, branch, input.DueAt, token), permissionCode: "CLEANING_ASSIGN");
+54:     }
+55: 
+56:     public Task<RoomTypeBatchResult> AssignInspectionAsync(SessionReference ticket, long sid, long branch, long task, AssignInspectionRequest input, CancellationToken ct)
+57:     {
+58:         if (task <= 0 || input.InspectorId <= 0) throw new ValidationException("Invalid task or inspector.");
+59:         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+60:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+61:         {
+62:             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+63:             var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+64:             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive && r.Floor.IsActive && (r.AreaId == null || r.Area!.IsActive)).Select(r => r.RoomId);
+65:             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(t => t.CleaningTaskId == task && ids.Contains(t.RoomId), token);
+66:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+67:             var state = await CleaningState(task, token);
+68:             if (state.State != "PENDING_INSPECTION" && !await db.Database.SqlQuery<int>($"SELECT CONVERT(int,rework_id) AS [Value] FROM dbo.cleaning_reworks WHERE cleaning_task_id={task} AND workflow_status={"PENDING_REINSPECTION"}").AnyAsync(token))
+69:                 return new(RoomTypeBatchStatus.Inactive);
+70:             if (await db.CleaningAssignments.AnyAsync(a => a.CleaningTaskId == task && a.AssigneeUserId == input.InspectorId && a.AssignmentStatus != "CANCELLED", token)
+71:                 || await db.CleaningProgressLogs.AnyAsync(p => p.CleaningTaskId == task && p.LoggedBy == input.InspectorId, token)
+72:                 || await db.CleaningReworks.AnyAsync(r => r.CleaningTaskId == task && r.AssigneeUserId == input.InspectorId, token)) return new(RoomTypeBatchStatus.InvalidReference);
+73:             if (await db.RoomInspections.AnyAsync(i => i.CleaningTaskId == task && i.Status != "COMPLETED" && i.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
+74:             var type = await db.Rooms.Where(r => r.RoomId == row.RoomId).Select(r => r.RoomTypeId).SingleAsync(token);
+75:             var checklist = await db.BranchRoomTypes.Where(t => t.RoomTypeId == type && t.IsActive && (t.BranchId == branch || t.BranchId == null)).Select(t => t.DefaultChecklistId).SingleOrDefaultAsync(token);
+76:             if (checklist == null || !await ChecklistEligible(checklist.Value, branch, type, token)) return new(RoomTypeBatchStatus.InvalidReference);
+77:             var now = clock.GetUtcNow().UtcDateTime;
+78:             var version = await db.InspectionChecklistVersions.Where(v => v.ChecklistId == checklist && v.Status == "PUBLISHED" && (v.EffectiveAt == null || v.EffectiveAt <= now)
+79:                 && v.InspectionChecklistItems.Any(c => c.IsActive)).OrderByDescending(v => v.VersionNo).Select(v => v.VersionId).FirstAsync(token);
+80:             var inspection = new RoomInspection { InspectionNo = "INSP-" + Guid.NewGuid().ToString("N"), RoomId = row.RoomId, CleaningTaskId = task,
+81:                 InspectorUserId = input.InspectorId, VersionId = version, Status = "PENDING", CreatedAt = now };
+82:             db.Add(inspection); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+83:             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status={"ASSIGNED"},due_at={input.DueAt} WHERE inspection_id={inspection.InspectionId}", token);
+84:             var after = new HousekeepingWriteDto(inspection.InspectionId, "ASSIGNED");
+85:             await BatchAuditAsync(actor, branch, "room_inspections", inspection.InspectionId, null, new { reason, inspectorId = input.InspectorId, version, entity = after }, ["assignedInspector", "version", "dueAt"], token);
+86:             return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await InspectionState(inspection.InspectionId, token)).Revision));
+87:         }, ct, additionalUsers: [input.InspectorId], eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token), permissionCode: "INSPECTION_PERFORM");
+88:     }
+89: 
+90:     public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket, long sid, long branch, long inspection, string tag, RequestReworkRequest input, CancellationToken ct)
+91:     {
+92:         if (inspection <= 0 || input.AssigneeId <= 0 || input.DefectIds == null || input.DefectIds.Count is < 1 or > 200
+93:             || input.DefectIds.Distinct().Count() != input.DefectIds.Count || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid rework request.");
+94:         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+95:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+96:         {
+97:             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+98:             var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+99:             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive).Select(r => r.RoomId);
+100:             var row = await db.RoomInspections.AsNoTracking().SingleOrDefaultAsync(i => i.InspectionId == inspection && ids.Contains(i.RoomId) && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
+101:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+102:             var state = await InspectionState(inspection, token);
+103:             if (tag != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
+104:             if (state.State != "FAILED" || (await CleaningState(row.CleaningTaskId!.Value, token)).State != "REWORK_REQUIRED") return new(RoomTypeBatchStatus.Inactive);
+105:             if (await db.CleaningReworks.AnyAsync(r => r.InspectionId == inspection && r.Status != "COMPLETED" && r.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
+106:             if (await db.InspectionDefects.CountAsync(d => d.InspectionId == inspection && input.DefectIds.Contains(d.DefectId), token) != input.DefectIds.Count) return new(RoomTypeBatchStatus.InvalidReference);
+107:             var rework = new CleaningRework { InspectionId = inspection, CleaningTaskId = row.CleaningTaskId.Value, AssigneeUserId = input.AssigneeId, Reason = reason, Status = "PENDING", RequestedAt = clock.GetUtcNow().UtcDateTime };
+108:             db.Add(rework); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+109:             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={"PENDING_ACCEPTANCE"},due_at={input.DueAt} WHERE rework_id={rework.ReworkId}", token);
+110:             foreach (var defect in input.DefectIds) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_rework_defects(rework_id,defect_id) VALUES({rework.ReworkId},{defect})", token);
+111:             var after = new HousekeepingWriteDto(rework.ReworkId, "PENDING_ACCEPTANCE");
+112:             await BatchAuditAsync(actor, branch, "cleaning_reworks", rework.ReworkId, null, new { reason, defects = input.DefectIds, entity = after }, ["assignee", "defects", "dueAt"], token);
+113:             return new(RoomTypeBatchStatus.Success, after);
+114:         }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueHousekeeper(input.AssigneeId, branch, input.DueAt, token), permissionCode: "INSPECTION_PERFORM");
+115:     }
+116:     private async Task<bool> DueHousekeeper(long id, long branch, DateTime due, CancellationToken ct) => due > clock.GetUtcNow().UtcDateTime
+117:         && await EligibleHousekeeper(id, branch, clock.GetUtcNow().UtcDateTime, ct);
+118: }
+119: 

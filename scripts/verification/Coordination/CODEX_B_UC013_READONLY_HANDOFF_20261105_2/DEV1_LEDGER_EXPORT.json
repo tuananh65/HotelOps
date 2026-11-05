@@ -1,0 +1,1489 @@
+﻿{
+    "source":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+    "sourceSha256":  "C0CBA3FEE01162AEC5ECDC1F5B2948FD97AAAF9A7D28FE70C3B2717937ABEB69",
+    "corroboration":  [
+                          "scripts/verification/Task83/LEDGER_RECONCILIATION.json",
+                          "scripts/verification/Task84/LEDGER_CHECK.json",
+                          "scripts/verification/Task85/PhaseB/TASK85B_RUNTIME_PROGRESS.md",
+                          "scripts/verification/Task86/TASK86_DEV1_PROGRESS.md"
+                      ],
+    "ucCount":  75,
+    "weightTotal":  256,
+    "creditedTotal":  60,
+    "completeCount":  26,
+    "percent":  23.4375,
+    "ledgerModified":  false,
+    "uc013":  {
+                  "ucId":  "UC-013",
+                  "title":  "View Branch Structure",
+                  "status":  "COMPLETE_VERIFIED_V1",
+                  "pointWeight":  2,
+                  "creditedPoints":  2,
+                  "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                  "sourceEvidenceSummary":  "Task64 production GET, scoped physical tree/expansion/details/filter/pagination + management departments; explicit V1 ROOM_VIEW boundary, real HTTPS/SQL/concurrency and regressions PASS (§12)",
+                  "planSection":  12,
+                  "receiptReferences":  [
+                                            {
+                                                "path":  "scripts/verification/HotelStructure/task64-accepted-final2.local.json",
+                                                "existsInMain":  false,
+                                                "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                "historicalBlob":  "8366ce11a466e96d0927e1464d6a795a409abff2",
+                                                "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                            },
+                                            {
+                                                "path":  "scripts/verification/HotelStructure/task64-room-regression.local.json",
+                                                "existsInMain":  false,
+                                                "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                "historicalBlob":  "115370ca1b02e6d9b7eace1464decfd9c38a1442",
+                                                "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                            }
+                                        ],
+                  "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                  "runtimeAcceptanceThisTask":  "NOT_RUN"
+              },
+    "requestedUncreditedConfirmation":  "CONTRADICTED_BY_LEDGER_UC013_ALREADY_CREDITED_2",
+    "receiptSemantics":  "Exact paths resolved from linked historical plan sections. Empty references explicitly mean missing per-row receipt provenance, not failed acceptance or no historical credit. Runtime coverage is not inferred from ledger status.",
+    "rows":  [
+                 {
+                     "ucId":  "UC-001",
+                     "title":  "Login",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Login/session/lockout và temporary credential có service + SQL evidence",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-002",
+                     "title":  "Logout",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  1,
+                     "creditedPoints":  1,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Logout idempotent và audit/revoke transaction đã kiểm thử",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-003",
+                     "title":  "Change Password",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Đổi mật khẩu + revoke/replace sessions + atomic audit đã kiểm thử",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-004",
+                     "title":  "Create User Account",
+                     "status":  "PARTIAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Chỉ single-role allowlist V1; chưa full selected role(s)/scope của draft",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-005",
+                     "title":  "Update User Account",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  5,
+                     "creditedPoints":  5,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Profile allowlist + ETag; reset có reauth/identity confirmation/one-time handoff",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-006",
+                     "title":  "Activate/Deactivate User Account",
+                     "status":  "PARTIAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Activate có API; Deactivate internal còn blocked và không đăng ký",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-007",
+                     "title":  "Assign User to Branch/Department",
+                     "status":  "PARTIAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Add membership có; thiếu transfer department/primary branch/revoke + open-work guards",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-008",
+                     "title":  "Create/Update User Role",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Dynamic role CRUD xung đột fixed canonical catalog; cần quyết định editable surface",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-009",
+                     "title":  "Configure Role Permissions",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Thiếu grant editor; cần approved permission/scope anti-escalation contract",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-010",
+                     "title":  "Assign/Revoke User Roles",
+                     "status":  "PARTIAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Assign allowlist có; thiếu revoke/full role lifecycle/expiry và responsibility integration",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-011",
+                     "title":  "Review User Access Permissions",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task62 production HTTPS/SQL + regression PASS theo ASSUMED_V1, không thêm grants; §10",
+                     "planSection":  10,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/AccessReview/task62-accepted-final.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "52ee27ea53a7383e5dae94ccf84e8f6571fe93f0",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-141",
+                     "title":  "View User List",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task62 hoàn tất step6 bằng shared UC011 projection; giữ list/minimal-detail contract; §10",
+                     "planSection":  10,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/AccessReview/task62-accepted-final.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "52ee27ea53a7383e5dae94ccf84e8f6571fe93f0",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-012",
+                     "title":  "Update Branch Information",
+                     "status":  "PARTIAL",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task74 create/read/conditional metadata update HTTPS/SQL verified; no deactivation mutation, GBR033/DEV2 writer protocol unresolved; aggregate ETag without invented Branch rowversion; no earned points (§22)",
+                     "planSection":  22,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/Housekeeping/task74-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "a78fdffea6910e8fd52c501a16ce09c19fa80e36",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-013",
+                     "title":  "View Branch Structure",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task64 production GET, scoped physical tree/expansion/details/filter/pagination + management departments; explicit V1 ROOM_VIEW boundary, real HTTPS/SQL/concurrency and regressions PASS (§12)",
+                     "planSection":  12,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task64-accepted-final2.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "8366ce11a466e96d0927e1464d6a795a409abff2",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task64-room-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "115370ca1b02e6d9b7eace1464decfd9c38a1442",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-014",
+                     "title":  "Create Floor/Area",
+                     "status":  "COMPLETE_VERIFIED",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task63 both production POSTs, scoped authority/parents/uniqueness/atomic audit, HTTPS+SQL fault/concurrency acceptance PASS (§11)",
+                     "planSection":  11,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task63-accepted-final.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "0748d5bd51629c26ea63d077ca64f40be95968a0",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task63-room-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "eac7a12f999669b0eeafde9959bbf5d958644128",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-015",
+                     "title":  "Update Floor/Area",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task65 both production GET/PUT edit paths, scoped strong If-Match/reason/audit, safe Area parent, ABA/no lost update, SQL faults +regressions PASS (§13)",
+                     "planSection":  13,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task65-accepted-final2.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "1f7f036a893f18493b3ff8be5b814c68cd84e453",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task65-room-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "786ef481805f2e34ff35b8396273f4bcf570b094",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-016",
+                     "title":  "Deactivate Floor/Area",
+                     "status":  "PARTIAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task66 production HTTPS rejection/GBR035 SQL implemented; actual DEV2 inactive-location/stale-placement defects confirmed. Mutation BLOCKED, no verified gain (§14)",
+                     "planSection":  14,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task66-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "3e39ad4a5ff4fa3109ec893cfb8a7579dfe1ff01",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task66-regression-recheck.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "f87decdacd1bda6f2bbca899b6e030cfcbdd0ae1",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-017",
+                     "title":  "Create Room Type",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task69 full SRS fields; explicit canonical deployment + Database First legacy/V1 mapping; fresh/legacy/replay/recovery PASS;165 HTTPS/SQL checks + consumer/Auth regression PASS. No production deployment (§17)",
+                     "planSection":  17,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/CanonicalDatabase/evidence/HotelOps_Canonical_20261030_181243_928419f1.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "bb414e1fdfec6cc2d902bd42b21edc3d4bab5406",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task69-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "f16a2e4d7d28d6224c01ec56ddd8fac5b0d59277",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task69-legacy-read.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "feb61faaa9f03298efa49cf57eb0fef2f0bc7da1",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task69-scoped-rooms.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "33483a4e1c508f2f102b2e15a12c6de430a6137a",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task69-scoped-structure.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "a71d541b9be5475ebd340a23a1b0aa163b19b1e8",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-018",
+                     "title":  "Update Room Type",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task70:64 independent HTTPS/SQL checks; strong ETag/If-Match, branch/code/checklist validation, session/grant final gates, atomic audit/rollback, historical Room/inspection preservation; §18",
+                     "planSection":  18,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "fb377328de39422d17f442a7d4286114d0111abd",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "50d679d3e552dfd247d5c27c30b7c54de9280ca9",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "1f5acde41aaea4172f6f54052a657ac510e32728",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-019",
+                     "title":  "Deactivate Room Type",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task71:50 independent checks; scoped confirmation/reason/ETag, active-room dependency DTO, soft deactivation/atomic audit, create/deactivate race and rollback; §19",
+                     "planSection":  19,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-complete.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "780cac269beaa814b300fcdb62024d798f70c719",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "b4126f2a51977f63b254bcb322e85b2a077002bb",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "d4900d0109ae36afb99d4eebbe602401ac2852b1",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "62b6c4c5df540290f7ce46059e9f65dc218c3c39",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-020",
+                     "title":  "Create Room",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task70:55 independent HTTPS/SQL checks; scoped active references, DIRTY+INIT history+audit transaction, duplicate race and post-INSERT expiry/cancel/audit rollback; §18",
+                     "planSection":  18,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "fb377328de39422d17f442a7d4286114d0111abd",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "50d679d3e552dfd247d5c27c30b7c54de9280ca9",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "1f5acde41aaea4172f6f54052a657ac510e32728",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-021",
+                     "title":  "Update Room Information",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task71:50 independent checks; scoped editable GET/conditional PUT, active references/uniqueness/reason, preserve identity/status/open work/history, reject inconsistent legacy parents, atomic audit/concurrency/rollback; §19",
+                     "planSection":  19,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-complete.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "780cac269beaa814b300fcdb62024d798f70c719",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "b4126f2a51977f63b254bcb322e85b2a077002bb",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "d4900d0109ae36afb99d4eebbe602401ac2852b1",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "62b6c4c5df540290f7ce46059e9f65dc218c3c39",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-022",
+                     "title":  "Deactivate Room",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Room deactivate cần open cleaning/inspection/incident/block/reference checks với DEV2",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-023",
+                     "title":  "View Room Directory",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task67 production list/detail/reason/source/history; SQL ROOM_VIEW scope;227 UC023+2 startup checks,117 SQL regression and targeted structure/Auth regression PASS (§15)",
+                     "planSection":  15,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/RoomDirectory/task67-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "86e8c59392360ab6eeea0c050621818999a2146a",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/RoomDirectory/task67-sql-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "ef2871425907607a597bb6594107666b3695900c",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/RoomDirectory/task67-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "6810daab4612345f768a7345b585acf14b94bf47",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-024",
+                     "title":  "Create Department",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task71:53 independent checks; developer-approved branch DH designation, SQL role/membership/User eligibility initial/final, sorted User locks, multi-department DH, no RBAC expansion, legacy schema and rollback; §19",
+                     "planSection":  19,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-complete.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "780cac269beaa814b300fcdb62024d798f70c719",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "b4126f2a51977f63b254bcb322e85b2a077002bb",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "d4900d0109ae36afb99d4eebbe602401ac2852b1",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "62b6c4c5df540290f7ce46059e9f65dc218c3c39",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-025",
+                     "title":  "Update Department",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task71:51 independent checks; scoped strong ETag/update/audit, immutable branch/code, commit-time DH eligibility and manager revocation race, no designation-induced RBAC changes; §19",
+                     "planSection":  19,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-complete.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "780cac269beaa814b300fcdb62024d798f70c719",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "b4126f2a51977f63b254bcb322e85b2a077002bb",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "d4900d0109ae36afb99d4eebbe602401ac2852b1",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task71-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "62b6c4c5df540290f7ce46059e9f65dc218c3c39",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-026",
+                     "title":  "Deactivate Department",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task74 review: GBR042 active users/warehouses/open work/requests/assets and retained writer protocol unresolved; Maintenance Create checks department branch but not active state; no mutation/points (§22)",
+                     "planSection":  22,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/Housekeeping/task74-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "a78fdffea6910e8fd52c501a16ce09c19fa80e36",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-142",
+                     "title":  "View Room Types List",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  1,
+                     "creditedPoints":  1,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task70:49 independent HTTPS/SQL checks; explicit/automatic SQL branch scope, filters/sort/page/count/detail, global-only legacy read, final expiry/cancel rejection, no business writes; §18",
+                     "planSection":  18,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "fb377328de39422d17f442a7d4286114d0111abd",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-structure-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "50d679d3e552dfd247d5c27c30b7c54de9280ca9",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               },
+                                               {
+                                                   "path":  "scripts/verification/HotelStructure/task70-rooms-regression.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "1f5acde41aaea4172f6f54052a657ac510e32728",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-027",
+                     "title":  "Manage Operational Room Status",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Reception occupancy/release contract và model chưa chốt; DEV2 Incident/RoomBlock precedence",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-028",
+                     "title":  "Create Cleaning Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task74 cleaning-item foundation supplied; GBR043/044 room lifecycle/effective-block precedence and DEV2 writer coordination not approved/verified; no create/room-status mutation or points (§22)",
+                     "planSection":  22,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/Housekeeping/task74-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "a78fdffea6910e8fd52c501a16ce09c19fa80e36",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-029",
+                     "title":  "Assign Cleaning Task",
+                     "status":  "PARTIAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Historical cf8fb02 AssignCleaningAsync core exists but writer/controllers/shared partials absent current tree. Notification/lifecycle integration pending; PARTIAL historical evidence, not live route.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-030",
+                     "title":  "Reassign Cleaning Task",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Assign/reassign + retained Users + close interval + actor eligibility",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-031",
+                     "title":  "Start Cleaning Task",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Start requires workday/interval and room state; resolver không phải workflow",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-032",
+                     "title":  "Update Cleaning Progress",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task74:87 per-UC HTTPS/SQL checks; scoped current-assignee OWN, distinct frozen cleaning items, notes/private evidence, actual rowversion, 100% not completion, atomic audit/expiry rollback, real race/DMV cancellation and legacy parent revision; §22",
+                     "planSection":  22,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/Housekeeping/task74-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "a78fdffea6910e8fd52c501a16ce09c19fa80e36",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-033",
+                     "title":  "Report Cleaning Blocker",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Report blocker + hold/resume + work interval và room status",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-034",
+                     "title":  "Complete Cleaning Task",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Complete + interval close + inspection/room state/audit atomic",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-035",
+                     "title":  "Receive Rework Task",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Start rework + original defect/assignee/time checks",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-036",
+                     "title":  "Complete Cleaning Rework",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Complete rework + verification/defect/room state coordination",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-037",
+                     "title":  "Monitor Cleaning Tasks",
+                     "status":  "PARTIAL",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Current CleaningMonitorService.ListAsync/DetailAsync read-only; Cancel writer absent; notification/room lifecycle remain missing.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-038",
+                     "title":  "View Room Turnover History",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Production scoped cycle/detail/private evidence; real HTTPS/SQL and revocation/cancellation evidence (§20)",
+                     "planSection":  20,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-039",
+                     "title":  "Create Room Inspection Checklist",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Conditionally approved trial extension; SQL-scoped multi-type Draft/create/publish/group/mandatory, atomic audit, fresh/upgrade/replay/fault/rollback verified (§20)",
+                     "planSection":  20,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-040",
+                     "title":  "Update Room Inspection Checklist",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Real rowversion If-Match; edit Draft/new Draft; immutable published/used content; atomic replacement/retirement; HTTPS/SQL races and historical version preservation verified (§20)",
+                     "planSection":  20,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-041",
+                     "title":  "Assign Room Inspection",
+                     "status":  "PARTIAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Historical cf8fb02 AssignInspectionAsync inspector/SoD/checklist core; absent current tree; notification/replay pending.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-042",
+                     "title":  "Perform Room Inspection",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task73: assigned-inspector Start/Save Draft/Finish, exact frozen version, PASS/FAIL/photo evidence, mandatory/defect validation, Pending Conclusion distinct from conclusion; HTTPS/SQL/rowversion/audit/cancellation verified (§21)",
+                     "planSection":  21,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-043",
+                     "title":  "Record Inspection Defects",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  3,
+                     "creditedPoints":  3,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task73: assigned inspector + failed criterion, severity/location/private evidence links, Inspecting/Pending Conclusion only, concluded rejection, atomic audit/files rollback and stale-write race verified (§21)",
+                     "planSection":  21,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-044",
+                     "title":  "Approve Room Inspection",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "No Approve writer current or inspected snapshot; ExecuteInspectionAsync finish only PENDING_CONCLUSION, not PASSED/Ready.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-045",
+                     "title":  "Reject Room Inspection",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "No Reject writer current or inspected snapshot; record defect/FAIL criterion is not FAILED conclusion/lifecycle.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-046",
+                     "title":  "Request Cleaning Rework",
+                     "status":  "PARTIAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Historical cf8fb02 RequestCleaningReworkAsync and selected-defect links; absent current tree; no delivery/retry integration.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-047",
+                     "title":  "Reinspect Room",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Exception/reinspection path + current-cycle evidence/SoD",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-048",
+                     "title":  "View Room Inspection History",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Production SQL-scoped filters/detail/exact historical criteria/results/reworks/private evidence; HTTPS/SQL verified (§20)",
+                     "planSection":  20,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-102",
+                     "title":  "Create Operational Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Recurring series/JOB05/completion criteria model missing; ad-hoc alone partial",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-103",
+                     "title":  "Set Task Priority and Deadline",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Priority/deadline/cancel includes recurrence stop; source planning fields only",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-104",
+                     "title":  "Assign/Reassign Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Reassign closes work interval; interval model/contract required",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-105",
+                     "title":  "Review and Verify Task Completion",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Pending Verification/Closed/Return semantics differ SQL status support; decision required",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-106",
+                     "title":  "Reopen Assigned Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Reopen verification cycle/status + last eligible assignee needs approved mapping",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-107",
+                     "title":  "Accept Assigned Task",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Accept/decline + assigned actor + status/concurrency/audit",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-108",
+                     "title":  "Start Assigned Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Start requires Working workday + one open interval; models missing",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-109",
+                     "title":  "Update Task Progress",
+                     "status":  "COMPLETE_VERIFIED_V1",
+                     "pointWeight":  2,
+                     "creditedPoints":  2,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task74:89 per-UC HTTPS/SQL checks; IN_PROGRESS/explicit PAUSED current assignee, immutable completion criteria/results, private evidence, rowversion/audit/expiry rollback, real race/DMV cancellation; no fake time or auto-completion; §22",
+                     "planSection":  22,
+                     "receiptReferences":  [
+                                               {
+                                                   "path":  "scripts/verification/Housekeeping/task74-accepted.local.json",
+                                                   "existsInMain":  false,
+                                                   "historicalCommit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+                                                   "historicalBlob":  "a78fdffea6910e8fd52c501a16ce09c19fa80e36",
+                                                   "relationship":  "Linked receipt in historical plan section; may cover multiple UCs/regressions, not independently re-executed"
+                                               }
+                                           ],
+                     "receiptReferenceStatus":  "HISTORICAL_REFERENCES_RESOLVED_NOT_RERUN",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-110",
+                     "title":  "Pause/Resume Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Pause/resume opens/closes intervals; no interval model",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-111",
+                     "title":  "Record Actual Working Time",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task77 A1 interval/correction model and math SQL foundation verified; no complete own time-log/correction API, permission/SoD/notification workflow or PM integration;0 earned.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-112",
+                     "title":  "Complete Assigned Task",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Complete -\u003e Pending Verification + close interval + criteria/evidence missing mapping",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-113",
+                     "title":  "Review Task Workload and Time Logs",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Effort from intervals not ShiftAttendance duration; model missing",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-138",
+                     "title":  "Manage Operational Workday and Shift Records",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task80 internal ShiftAssignmentConflictReader81 real SQL checks + math422. Full definitions/weekly roster/CRUD/cancel API, three rowversions/mapping, write concurrency/audit and mandatory employee inbox notification not implemented.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-139",
+                     "title":  "Record Workday Start and End",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Task78 B1.1: four production routes and approved own ATTENDANCE_RECORD/SHIFT_VIEW binding, SQL sessions/RBAC/ownership, concurrency, If-Match, wait-time revoke and audit rollback verified on disposable trial; full UC139 remains blocked by unscheduled DH inbox notification and Pause All.",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-140",
+                     "title":  "Manage Operational Shift Handover",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Snapshot + receiver ack/reject model missing; cross-module open work",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-114",
+                     "title":  "Create Internal Request",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Create request + receiving branch department + notifications/audit",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-115",
+                     "title":  "Route and Assign Internal Request",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Route/assign + authoritative handler reread + Users lock + notification",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-116",
+                     "title":  "Accept/Reject Internal Request",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Accept/reject + scoped DH policy + atomic decision/audit",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-117",
+                     "title":  "Update Internal Request Progress",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Progress/deadline change + reason/notification/audit",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-118",
+                     "title":  "Create Linked Operational Work",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Generic mandatory linked work contract/storage absent; DEV2 Incident/MR adapters",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-119",
+                     "title":  "Record Request Handover",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Acknowledged handover must retain sender until receiver accepts; model absent",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-120",
+                     "title":  "Complete Internal Request",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Close requires mandatory linked work closed/no pending handover; model/contract required",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-121",
+                     "title":  "Reopen Internal Request",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  5,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Reopen window/cycle + last handler eligible; approved policy needed",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-122",
+                     "title":  "Escalate Overdue Internal Request",
+                     "status":  "BLOCKED_EXTERNAL",
+                     "pointWeight":  3,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "Escalation alert requires acknowledgment; DEV2 notification contract/storage dependency",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 },
+                 {
+                     "ucId":  "UC-123",
+                     "title":  "View Internal Request History",
+                     "status":  "NOT_IMPLEMENTED",
+                     "pointWeight":  2,
+                     "creditedPoints":  0,
+                     "sourceLedger":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                     "sourceEvidenceSummary":  "History includes withdraw write and authorized linked work; not read-only list alone",
+                     "planSection":  null,
+                     "receiptReferences":  [
+
+                                           ],
+                     "receiptReferenceStatus":  "PENDING_EVIDENCE_NO_EXACT_RECEIPT_PATH_IN_LEDGER_ROW",
+                     "runtimeAcceptanceThisTask":  "NOT_RUN"
+                 }
+             ]
+}

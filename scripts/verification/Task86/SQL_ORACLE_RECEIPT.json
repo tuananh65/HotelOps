@@ -1,0 +1,89 @@
+﻿{
+    "recordedUtc":  "2026-11-04T15:59:25.0448981Z",
+    "target":  "HotelOps_Canonical_20261104_223000_c01286a1_Fresh",
+    "scope":  "READ_ONLY_SQL_METADATA_AND_PERSISTED_BUSINESS_AUDIT_ORACLE",
+    "checks":  13,
+    "passed":  13,
+    "failed":  0,
+    "cases":  [
+                  {
+                      "name":  "branch_rowversion_metadata",
+                      "actual":  1,
+                      "expected":  1,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "exactly_one_branch_rowversion",
+                      "actual":  1,
+                      "expected":  1,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "new_branch_code_active_timezone",
+                      "actual":  1,
+                      "expected":  1,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "race_single_persisted_branch",
+                      "actual":  1,
+                      "expected":  1,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "failed_branches_absent",
+                      "actual":  0,
+                      "expected":  0,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "create_audit_exact_actor_branch_json",
+                      "actual":  1,
+                      "expected":  1,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "exactly_two_committed_updates",
+                      "actual":  2,
+                      "expected":  2,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "update_before_after_fields_present",
+                      "actual":  2,
+                      "expected":  2,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "audit_failure_marker_absent",
+                      "actual":  0,
+                      "expected":  0,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "trial_fault_constraint_removed",
+                      "actual":  0,
+                      "expected":  0,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "role_count",
+                      "actual":  12,
+                      "expected":  12,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "permission_count",
+                      "actual":  62,
+                      "expected":  62,
+                      "pass":  true
+                  },
+                  {
+                      "name":  "grant_count",
+                      "actual":  140,
+                      "expected":  140,
+                      "pass":  true
+                  }
+              ],
+    "writes":  0
+}

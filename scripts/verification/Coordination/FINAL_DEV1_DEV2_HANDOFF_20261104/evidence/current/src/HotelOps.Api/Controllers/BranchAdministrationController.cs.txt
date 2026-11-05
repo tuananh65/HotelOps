@@ -1,0 +1,32 @@
+13: [UserAccountActivationErrors]
+14: [RequestSizeLimit(32*1024)]
+15: public sealed class BranchAdministrationController(BranchAdministrationService service):ControllerBase
+16: {
+17:     [HttpPost("api/branches")]
+18:     public Task<IActionResult> Create(CreateBranchRequest input,CancellationToken ct)=>Run((t,s)=>service.CreateAsync(t,s,input,ct),false);
+19:     [HttpGet("api/branches/{id:long}/edit")]
+20:     public Task<IActionResult> Read(long id,CancellationToken ct)=>Run((t,s)=>service.ReadAsync(t,s,id,ct),false);
+21:     [HttpPut("api/branches/{id:long}")]
+22:     public Task<IActionResult> Update(long id,UpdateBranchRequest input,CancellationToken ct)=>Run((t,s)=>service.UpdateAsync(t,s,id,Tag(),input,ct),true);
+23:     [HttpGet("api/branches/{id:long}/deactivation-dependencies")]
+24:     public Task<IActionResult> Dependencies(long id,CancellationToken ct)=>Run((t,s)=>service.DependenciesAsync(t,s,id,ct),false);
+25:     [HttpPost("api/branches/{id:long}/deactivate")]
+26:     public Task<IActionResult> Deactivate(long id,DeactivateStructureRequest input,CancellationToken ct)=>Run((t,s)=>service.DeactivateAsync(t,s,id,Tag(),input,ct),true);
+27: 
+28:     private byte[] Tag()
+29:     {
+34:         throw new ValidationException("INVALID_IF_MATCH");
+35:     }
+36:     private async Task<IActionResult> Run(Func<HotelOps.Api.Services.Authentication.SessionReference,long,Task<BranchAdministrationResult>> call,bool conditional)
+37:     {
+38:         if(!Request.IsHttps)return Problem(statusCode:400,title:"HTTPS_REQUIRED");
+39:         if(!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid))return Problem(statusCode:401,title:"SESSION_INVALID");
+40:         if(conditional && !Request.Headers.ContainsKey("If-Match"))return Problem(statusCode:428,title:"IF_MATCH_REQUIRED");
+41:         try
+43:             var result=await call(ticket!,sid);
+44:             if(result.ETag!=null)Response.Headers.ETag=result.ETag;
+45:             if(result.Status<400)return StatusCode(result.Status,result.Value);
+46:             return new ObjectResult(new ProblemDetails{Status=result.Status,Title=result.Code,Extensions={ ["dependencies"]=result.Value }}){StatusCode=result.Status};
+47:         }
+48:         catch(ValidationException e){return Problem(statusCode:400,title:"VALIDATION_FAILED",detail:e.Message);}
+49:     }

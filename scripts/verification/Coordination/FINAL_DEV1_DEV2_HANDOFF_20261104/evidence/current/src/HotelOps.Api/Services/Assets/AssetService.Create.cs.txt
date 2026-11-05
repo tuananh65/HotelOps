@@ -1,0 +1,37 @@
+6: namespace HotelOps.Api.Services.Assets;
+7: 
+8: public sealed partial class AssetService
+9: {
+10:     public async Task<AssetDetailDto> CreateAssetAsync(CreateAssetRequest request, CancellationToken cancellationToken)
+11:     {
+12:         await ValidateMasterAsync(request, cancellationToken);
+13:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+14:         if (!await _dbContext.Branches.AsNoTracking()
+15:             .AnyAsync(b => b.BranchId == request.BranchId && b.IsActive, cancellationToken))
+16:             throw new ValidationException("BranchId must identify an active Branch.");
+17:         if (request.CurrentDepartmentId is long department && !await _dbContext.Departments.AsNoTracking()
+18:             .AnyAsync(d => d.DepartmentId == department && d.BranchId == request.BranchId && d.IsActive, cancellationToken))
+19:             throw new ValidationException("CurrentDepartmentId must identify an active department in the Asset branch.");
+20:         var now = DateTime.UtcNow;
+21:         var asset = new Asset
+22:         {
+23:             BranchId = request.BranchId, CurrentDepartmentId = request.CurrentDepartmentId,
+24:             ConditionStatus = "GOOD", LifecycleStatus = "IN_USE", CreatedAt = now
+25:         };
+26:         ApplyMaster(asset, request);
+27:         _dbContext.Assets.Add(asset);
+28:         try
+29:         {
+30:             await _dbContext.SaveChangesAsync(cancellationToken);
+31:         }
+32:         catch (DbUpdateException exception) when (IsDuplicateAssetCode(exception))
+33:         {
+34:             throw new ValidationException("AssetCode already exists.", exception);
+35:         }
+36:         Audit("assets", asset.AssetId, asset, request.ActorUserId, now, null, Snapshot(asset));
+37:         await _dbContext.SaveChangesAsync(cancellationToken);
+38:         var result = await RequireDetailAsync(asset.AssetId, cancellationToken);
+39:         await transaction.CommitAsync(cancellationToken);
+40:         return result;
+41:     }
+42: }

@@ -1,0 +1,217 @@
+﻿D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Data\StartupSchemaValidator.cs:26:            var connection = db.Database.GetDbConnection();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Data\StartupSchemaValidator.cs:30:            await using var command = connection.CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Security\CookieSessionValidator.cs:33:            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Security\CookieSessionValidator.cs:37:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Security\CookieSessionValidator.cs:43:            // Includes connection/BeginTransaction failures outside SqlSessionService.
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\WorkdayService.cs:98:            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\WorkdayService.cs:110:            if (result.Status is >= 200 and < 300) await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Housekeeping\CleaningMonitorService.cs:119:            await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Housekeeping\CleaningMonitorService.cs:123:            await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.cs:26:        var connection = db.Database.GetDbConnection();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.cs:27:        using var command = connection.CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.cs:28:        command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Create.cs:13:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Create.cs:30:            await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Create.cs:37:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Create.cs:39:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:22:        await using var tx = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:52:            if (!changed) { await tx.CommitAsync(ct); return await Get(r.RequestId, ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:53:            if (id is null) { r.RequestNo = await Number(false, ct); db.MaterialRequests.Add(r); await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:56:            await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:61:            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(r.RequestId, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:63:        catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:90:        await using var tx = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:149:            await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:152:            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:154:        catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:158:        await using var tx = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:177:            db.MaterialFulfillments.Add(f); await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:179:            await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:191:            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Fulfillment(id, f.FulfillmentId, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\MaterialRequests\MaterialRequestService.Commands.cs:193:        catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Condition.cs:15:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Condition.cs:28:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Condition.cs:41:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Condition.cs:49:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Condition.cs:51:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:49:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:72:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:74:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:76:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:91:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:130:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:134:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:136:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Handover.cs:153:        await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AdminReauthenticationService.cs:21:        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AdminReauthenticationService.cs:30:            await tx.CommitAsync(ct); // Persist existing brute-force counters/lockout, never revoke/replace session.
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AdminReauthenticationService.cs:44:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AdminReauthenticationService.cs:46:        await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountCreationService.cs:36:        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountCreationService.cs:74:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountCreationService.cs:78:            await transaction.RollbackAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountCreationService.cs:97:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountCreationService.cs:114:        await transaction.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Update.cs:11:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Update.cs:21:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Update.cs:29:            await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Update.cs:36:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Location.cs:21:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Location.cs:73:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Location.cs:81:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Location.cs:83:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:22:            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:44:                await transaction.CommitAsync(cancellationToken); // Persist ordinary failure counters/lockout audit.
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:61:                ? await update.ExecuteUpdateAsync(s => s.SetProperty(u => u.LastLoginAt, now)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:63:                : await update.ExecuteUpdateAsync(s => s.SetProperty(u => u.LastLoginAt, now), cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:68:            try { await db.SaveChangesAsync(cancellationToken); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:70:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:78:            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationLoginService.cs:84:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationCredentialWorkflow.cs:21:            await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationCredentialWorkflow.cs:24:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationCredentialWorkflow.cs:42:                await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationCredentialWorkflow.cs:69:                    .ExecuteUpdateAsync(s => s.SetProperty(u => u.PasswordHash, newHash)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationCredentialWorkflow.cs:92:                try { await db.SaveChangesAsync(cancellationToken); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\AuthenticationCredentialWorkflow.cs:94:                await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Retirement.cs:12:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Retirement.cs:19:            await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Retirement.cs:37:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Retirement.cs:39:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Assets\AssetService.Retirement.cs:41:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountActivationService.cs:39:        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountActivationService.cs:60:            .ExecuteUpdateAsync(setters => setters.SetProperty(u => u.AccountStatus, "ACTIVE")
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountActivationService.cs:69:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserAccountActivationService.cs:73:        await transaction.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserRoleAssignmentService.cs:35:        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserRoleAssignmentService.cs:84:            .ExecuteUpdateAsync(s => s.SetProperty(u => u.UpdatedAt, assignedAt), ct) != 1) return new(AssignRoleStatus.Stale);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserRoleAssignmentService.cs:88:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserRoleAssignmentService.cs:99:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserRoleAssignmentService.cs:113:        await transaction.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\CredentialLockoutService.cs:32:        if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\CredentialLockoutService.cs:97:                .ExecuteUpdateAsync(setters => setters
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\CredentialLockoutService.cs:111:            await db.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\CredentialLockoutService.cs:129:        // Prevent a later SaveChanges (audit or caller) from writing stale User state.
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\IInitialCredentialTransactionParticipant.cs:23:    // Trusted in-assembly orchestration must await successful CommitAsync before calling.
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\TemporaryCredentialService.cs:64:        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\TemporaryCredentialService.cs:75:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\TemporaryCredentialService.cs:120:        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\TemporaryCredentialService.cs:157:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\TemporaryCredentialService.cs:182:                .ExecuteUpdateAsync(setters => setters
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\TemporaryCredentialService.cs:201:            await db.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\GlobalAdminSerialization.cs:30:        if (transaction.GetDbTransaction().IsolationLevel is not (System.Data.IsolationLevel.ReadCommitted
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\GlobalAdminSerialization.cs:35:        await using var command = db.Database.GetDbConnection().CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\GlobalAdminSerialization.cs:36:        command.Transaction = transaction.GetDbTransaction();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\GlobalAdminSerialization.cs:105:        await using var command = db.Database.GetDbConnection().CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\GlobalAdminSerialization.cs:106:        command.Transaction = transaction.GetDbTransaction();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserProfileService.cs:34:        await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserProfileService.cs:64:                .ExecuteUpdateAsync(s => s.SetProperty(u => u.FullName, after.FullName)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserProfileService.cs:72:            await transaction.RollbackAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserProfileService.cs:85:            await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserProfileService.cs:94:            await transaction.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SqlSessionService.cs:36:            try { await db.SaveChangesAsync(cancellationToken); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SqlSessionService.cs:64:                .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.LastUsedAt, window.LastUsedAt)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SqlSessionService.cs:79:                .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.RevokedAt, now), cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SqlSessionService.cs:108:        if (!db.Database.IsSqlServer() || tx.GetDbTransaction().IsolationLevel
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SqlSessionService.cs:124:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Commands.cs:41:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Commands.cs:93:            await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Commands.cs:95:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SessionRevocationService.cs:22:        if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Authentication\SessionRevocationService.cs:36:            .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.RevokedAt, utcNow), cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Create.cs:16:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Create.cs:56:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Create.cs:59:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Create.cs:61:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Create.cs:69:        await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Materials.cs:79:        await _dbContext.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Materials.cs:110:        await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Materials.cs:139:        await tx.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Maintenance\MaintenanceWorkService.Logs.cs:45:            await _dbContext.SaveChangesAsync(token);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:33:            await using var command = db.Database.GetDbConnection().CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:34:            command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:44:            try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:74:            var changed=await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.branches SET branch_name={fields.Name},address={fields.Address},phone={fields.Phone},email={fields.Email},updated_at={now} WHERE branch_id={id} AND row_version={expected}",ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:119:        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:131:                await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchAdministrationService.cs:162:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:52:        await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct); var r = await Read(id, ct); await tx.CommitAsync(ct); return r;
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:57:        await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct); var r = await Read(id, ct); if (r is null) return null;
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:61:        await tx.CommitAsync(ct); return new(r, rows.Select(x => x with { OccurredAt = Utc(x.OccurredAt) }).ToArray());
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:65:        var offset = Offset(p); await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:75:        await tx.CommitAsync(ct); return new(p.Page, p.PageSize, result.Count, result.Skip(offset).Take(p.PageSize).ToArray());
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:98:        var offset = Offset(p); await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.Queries.cs:100:        await tx.CommitAsync(ct); return new(p.Page, p.PageSize, rows.Length, rows.Skip(offset).Take(p.PageSize).ToArray());
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:43:            await db.Database.ExecuteSqlInterpolatedAsync($"""
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:92:        await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:95:        await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:113:        // ExecuteUpdate avoids a stale tracked entity surviving a User-lock wait.
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:116:            .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "ENDED").SetProperty(x => x.EndedAt, now), ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:120:        await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:144:        await db.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:147:        await db.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:170:            .ExecuteUpdateAsync(s => s.SetProperty(x => x.ClosedAt, now).SetProperty(x => x.ClosedBy, operation.ActorUserId)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:175:        await db.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:186:        if (transaction.GetDbTransaction().IsolationLevel != IsolationLevel.ReadCommitted
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\WorkTime\SqlWorkTimeTransactionParticipant.cs:187:            && transaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\BranchDeactivationDependencyReader.cs:19:        if(db.Database.CurrentTransaction?.GetDbTransaction().IsolationLevel!=IsolationLevel.Serializable)
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserBranchAssignmentService.cs:33:        await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.ReadCommitted, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserBranchAssignmentService.cs:69:            .ExecuteUpdateAsync(s => s.SetProperty(u => u.UpdatedAt, now), ct) != 1) return new(AddBranchStatus.Stale);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserBranchAssignmentService.cs:73:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserBranchAssignmentService.cs:84:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Users\UserBranchAssignmentService.cs:89:        await transaction.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\HotelStructureCreationService.cs:52:        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\HotelStructureCreationService.cs:84:            try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\HotelStructureCreationService.cs:106:            try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\HotelStructureCreationService.cs:109:            await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:48:        await using var tx = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:85:            var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:86:            foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:88:            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return (await Get(root.ReplenishmentId, ct))!;
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:90:        catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:94:        await using var tx = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:103:            Audit(db, r, input.ActorUserId, "REMAINDER_CLOSED", before); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:105:        catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:109:        await using var tx = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:145:            await db.SaveChangesAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:149:            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentService.cs:151:        catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentRules.cs:17:        using var command = db.Database.GetDbConnection().CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Replenishments\ReplenishmentRules.cs:18:        command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction() ?? throw new InvalidOperationException("Transaction required.");
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Adjustments.cs:48:        await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Adjustments.cs:91:        await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Adjustments.cs:137:        await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Adjustments.cs:196:        await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Documents.cs:136:            if (same) { await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Documents.cs:150:        await tx.CommitAsync(ct); return await GetDocument(d.DocumentId, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Documents.cs:157:        await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Documents.cs:204:        await tx.CommitAsync(ct); return await GetDocument(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Documents.cs:224:        await tx.CommitAsync(ct); return await GetDocument(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Documents.cs:255:        await tx.CommitAsync(ct); return await GetDocument(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\RoomTypeDirectoryService.cs:116:        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\RoomTypeDirectoryService.cs:136:            await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\TurnoverHistoryBoundary.cs:30:        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\HotelStructure\TurnoverHistoryBoundary.cs:50:            await tx.CommitAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.cs:23:        try { await db.SaveChangesAsync(ct); }
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.cs:73:        using var command = db.Database.GetDbConnection().CreateCommand();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.cs:74:        command.Transaction = db.Database.CurrentTransaction.GetDbTransaction();
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.cs:92:        var transaction = await db.Database.BeginTransactionAsync(ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Masters.cs:32:        await tx.CommitAsync(ct); return Dto(x);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Masters.cs:43:        await tx.CommitAsync(ct); return Dto(x);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Masters.cs:57:        await tx.CommitAsync(ct); return Dto(x);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Masters.cs:102:        await tx.CommitAsync(ct); return Dto(x);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Masters.cs:115:        await tx.CommitAsync(ct); return Dto(x);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:23:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:126:            await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:131:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:145:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:216:            await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:221:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:232:        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:250:        await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:293:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:312:        await _dbContext.SaveChangesAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Incidents\IncidentService.cs:315:        await transaction.CommitAsync(cancellationToken);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Stocktakes.cs:36:        await tx.CommitAsync(ct); return (await GetStocktake(x.StocktakeId, ct))!;
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Stocktakes.cs:61:        await tx.CommitAsync(ct); return await GetStocktake(id, ct);
+D:\SEP490\Projects\HotelOps\src\HotelOps.Api\Services\Inventory\InventoryService.Stocktakes.cs:95:        await tx.CommitAsync(ct); return await GetStocktake(id, ct);

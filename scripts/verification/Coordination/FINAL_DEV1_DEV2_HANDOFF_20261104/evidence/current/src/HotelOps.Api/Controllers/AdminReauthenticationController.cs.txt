@@ -1,0 +1,30 @@
+8: 
+9: [ApiController]
+10: [Route("api/auth/reauthenticate")]
+11: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+12: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+13: public sealed class AdminReauthenticationController(AdminReauthenticationService authentication) : ControllerBase
+14: {
+15:     [HttpPost]
+16:     public async Task<IActionResult> Reauthenticate([FromBody] JsonElement body, CancellationToken ct)
+17:     {
+18:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS is required");
+19:         if (!HotelOpsCookieTicket.TryRead(User, out var reference, out var sessionId))
+20:             return Failure(401, "SESSION_INVALID");
+21:         if (body.ValueKind != JsonValueKind.Object) return Failure(400, "VALIDATION_FAILED");
+26:         if (string.IsNullOrWhiteSpace(password) || password.Length > 256) return Failure(400, "VALIDATION_FAILED");
+27:         var result = await authentication.ReauthenticateAsync(reference!, sessionId, password, ct);
+28:         return result.Status switch
+29:         {
+30:             ReauthenticationStatus.Succeeded => Ok(new { expiresAtUtc = result.ExpiresAtUtc }),
+31:             ReauthenticationStatus.Locked => Failure(423, "ACCOUNT_LOCKED"),
+32:             ReauthenticationStatus.Restricted => Failure(403, "PASSWORD_CHANGE_REQUIRED"),
+33:             ReauthenticationStatus.SessionInvalid => Failure(401, "SESSION_INVALID"),
+34:             _ => Failure(401, "INVALID_CREDENTIALS")
+35:         };
+36:     }
+37: 
+38:     private ObjectResult Failure(int status, string code) => Problem(statusCode: status, title: code,
+39:         extensions: new Dictionary<string, object?> { ["code"] = code });
+40: }
+41: 

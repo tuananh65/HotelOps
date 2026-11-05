@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "checks": 19,
+  "cases": [
+    "B1.1 real DI graph validates scopes and cycles",
+    "A1 participant interface/concrete same scoped instance",
+    "A1 participant isolated across scopes",
+    "Directory scoped lifetime",
+    "Directory isolated across scopes",
+    "Proposed controller resolves through DI without manual construction",
+    "Directory uses same scoped DbContext",
+    "Reject invalid list pagination/sort before SQL: (0, 20, code)",
+    "Reject invalid list pagination/sort before SQL: (1, 0, code)",
+    "Reject invalid list pagination/sort before SQL: (1, 101, code)",
+    "Reject invalid list pagination/sort before SQL: (2147483647, 100, code)",
+    "Reject invalid list pagination/sort before SQL: (1, 20, unknown)",
+    "Reject oversized/control keyword before SQL",
+    "Reject oversized/control keyword before SQL",
+    "Reject invalid detail ID before SQL",
+    "Exactly two historical GET routes; no writer routes",
+    "No conflict with current API GET routes",
+    "EF unmapped read projection translates without changing global model",
+    "Read projection not registered as shared EF entity"
+  ],
+  "kind": "FRESH_SOURCE_DI_STATIC_AND_ISOLATED_VALIDATION_NO_SQL_NO_HTTPS",
+  "proposedRegistrationOnly": true
+}

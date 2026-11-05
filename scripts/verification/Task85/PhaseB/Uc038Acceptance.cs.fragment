@@ -1,0 +1,104 @@
+    var route=$"/api/rooms/{room}/turnover-history?branchId={a}";
+    var detail=$"/api/rooms/{room}/turnover-history/{cycle.CleaningTaskId}?branchId={a}";
+    var readTables=new[]{"cleaning_tasks","cleaning_assignments","cleaning_progress_logs","room_inspections","inspection_checklist_versions","inspection_checklist_items","inspection_results","inspection_defects","cleaning_reworks","attachments","audit_logs","rooms"};
+    var beforeReads=await Fingerprint(readTables);
+    foreach(var (jar,code,label) in new[]{(anonymous,401,"anonymous"),(denied,403,"cleaning grant without inspection grant"),(own,403,"OWN cannot promote branch history"),(restricted,403,"restricted")})
+    {await Expect(jar,route,code,label+" list");await Expect(jar,detail,code,label+" detail");}
+    var list=(await Expect(supervisor,route,200,"branch supervisor list"))!.Value;
+    Check(list.GetProperty("total").GetInt32()==2,"two explicit cleaning cycles; no foreign cycle inferred");
+    Check(list.GetProperty("items")[0].GetProperty("id").GetInt64()==cancelled.CleaningTaskId,"newest timestamp ties use stable cycle ID order");
+    var stored=list.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetInt64()==cycle.CleaningTaskId);
+    Check(stored.GetProperty("result").GetString()=="PASS","latest inspection within exact room/cycle; corrupt foreign link excluded");
+    Check(stored.GetProperty("reworkCount").GetInt32()==1 && stored.GetProperty("assignees").GetArrayLength()==2,"rework count and full assignment history");
+    Check(stored.GetProperty("start").ValueKind==JsonValueKind.String && stored.GetProperty("end").ValueKind==JsonValueKind.String,"persisted start/end times returned");
+    Check(list.GetProperty("items")[0].GetProperty("cancellationReason").GetString()=="Room not checked out","recorded cancellation reason");
+    await Expect(admin,route,403,"SYS_ADMIN has no operational cleaning/inspection bypass");
+    var body=(await Expect(supervisor,detail,200,"cycle detail"))!.Value;
+    Check(body.GetProperty("progress").GetArrayLength()==2 && body.GetProperty("progress")[0].GetProperty("note").GetString()=="Missing supplies","progress/blocker timeline");
+    Check(body.GetProperty("inspections").GetArrayLength()==2 && body.GetProperty("reworks").GetArrayLength()==1,"only relationally consistent inspections and reworks");
+    var inspection=body.GetProperty("inspections")[0];
+    Check(inspection.GetProperty("inspection").GetProperty("versionId").GetInt64()==version.VersionId,"historical checklist version retained");
+    Check(inspection.GetProperty("criteria").GetArrayLength()==2 && inspection.GetProperty("defects").GetArrayLength()==1,"inactive/unanswered historical criteria and defects preserved");
+    var serialized=body.GetRawText();
+    Check(!serialized.Contains("storageKey",StringComparison.OrdinalIgnoreCase)&&!serialized.Contains("private.invalid")&&!serialized.Contains("fileUrl",StringComparison.OrdinalIgnoreCase),"no private file path/provider URL disclosure");
+    var firstPage=(await Expect(supervisor,route+"&pageSize=1",200,"first tied page"))!.Value;
+    var nextPage=(await Expect(supervisor,route+"&page=2&pageSize=1",200,"next tied page"))!.Value;
+    Check(firstPage.GetProperty("total").GetInt32()==2 && firstPage.GetProperty("items").GetArrayLength()==1
+        && firstPage.GetProperty("items")[0].GetProperty("id").GetInt64()==cancelled.CleaningTaskId
+        && nextPage.GetProperty("items")[0].GetProperty("id").GetInt64()==cycle.CleaningTaskId,"actual stable page identities and SQL total");
+    var passPage=(await Expect(supervisor,route+"&result=pass",200,"normalized PASS filter"))!.Value;
+    Check(passPage.GetProperty("total").GetInt32()==1 && passPage.GetProperty("items")[0].GetProperty("id").GetInt64()==cycle.CleaningTaskId,"result filter excludes cancelled/no-result cycle");
+    var datePage=(await Expect(supervisor,route+"&from="+Uri.EscapeDataString(at.AddMinutes(-1).ToString("O"))+"&to="+Uri.EscapeDataString(at.AddMinutes(1).ToString("O")),200,"inclusive UTC date filter"))!.Value;
+    Check(datePage.GetProperty("total").GetInt32()==2,"date window returns exact fixture cycle count");
+    var outside=(await Expect(supervisor,route+"&from="+Uri.EscapeDataString(at.AddDays(1).ToString("O")),200,"date window outside cycles"))!.Value;
+    Check(outside.GetProperty("total").GetInt32()==0,"date filter actually excludes older cycles");
+    var noMatch=(await Expect(supervisor,route+"&result=FAIL",200,"result no match"))!.Value;
+    Check(noMatch.GetProperty("items").GetArrayLength()==0 && noMatch.GetProperty("filters").GetProperty("result").GetString()=="FAIL","empty list preserves normalized filters");
+    var empty=(await Expect(supervisor,$"/api/rooms/{emptyRoom}/turnover-history?branchId={a}",200,"room without cycles"))!.Value;
+    Check(empty.GetProperty("total").GetInt32()==0,"known empty room distinct from missing room");
+    await Expect(supervisor,$"/api/rooms/{foreignRoom}/turnover-history?branchId={b}",403,"cross-branch denied");
+    await Expect(supervisor,$"/api/rooms/{foreignRoom}/turnover-history?branchId={a}",404,"foreign room masked in authorized branch");
+    await Expect(supervisor,$"/api/rooms/{room}/turnover-history/{foreignCycle.CleaningTaskId}?branchId={a}",404,"foreign cycle cannot be adopted");
+    await Expect(supervisor,$"/api/rooms/{long.MaxValue}/turnover-history?branchId={a}",404,"missing room");
+    foreach(var query in new[]{"page=0","pageSize=0","pageSize=101","page=2147483647&pageSize=100","result=INVALID","branchId=0","inspectorId=1","housekeeperId=1","search=x","from=2026-01-02T00%3A00%3A00Z&to=2026-01-01T00%3A00%3A00Z"})
+        await Expect(supervisor,$"/api/rooms/{room}/turnover-history?"+query,400,"invalid query "+query);
+    var fileRoute=$"/api/rooms/{room}/turnover-history/{cycle.CleaningTaskId}/evidence/";
+    using(var download=await Send(HttpMethod.Get,fileRoute+attachment.AttachmentId+$"?branchId={a}",supervisor))
+        Check(download.IsSuccessStatusCode && (await download.Content.ReadAsByteArrayAsync(ct)).SequenceEqual(pdf),"real source-authorized private PDF bytes");
+    foreach(var (jar,code,label) in new[]{(anonymous,401,"anonymous"),(denied,403,"permission missing"),(own,403,"OWN"),(other,403,"cross-branch")})
+    {using var response=await Send(HttpMethod.Get,fileRoute+attachment.AttachmentId+$"?branchId={a}",jar);Check((int)response.StatusCode==code,"attachment "+label+" denied");}
+    foreach(var id in new[]{unrelated.AttachmentId,deleted.AttachmentId,traversal.AttachmentId,long.MaxValue})
+    {using var response=await Send(HttpMethod.Get,fileRoute+id+$"?branchId={a}",supervisor);Check(response.StatusCode==HttpStatusCode.NotFound,"unrelated/deleted/traversal/missing file denied "+id);}
+    Check(beforeReads==await Fingerprint(readTables),"UC038 GETs leave exact business/audit data unchanged");
+    await Expect(supervisor,$"/api/branches/{a}/cleaning-monitor?PageSize=1",200,"UC037 production list regression");
+    var monitor=(await Expect(supervisor,$"/api/branches/{a}/cleaning-monitor/cleaning/{cycle.CleaningTaskId}?timelinePage=2&timelinePageSize=1",200,"UC037 paged detail regression"))!.Value;
+    Check(monitor.GetProperty("timelinePage").GetInt32()==2 && monitor.GetProperty("timelineLimit").GetInt32()==1
+        && monitor.GetProperty("assignmentCount").GetInt32()==2 && monitor.GetProperty("assignments").GetArrayLength()==1
+        && monitor.GetProperty("progressCount").GetInt32()==2 && monitor.GetProperty("progress").GetArrayLength()==1,"UC037 Task82 page/limit/totals and paged arrays retained");
+    await Expect(admin,"/api/room-types",200,"UC142 current production V1 list regression");
+    await Expect(admin,$"/api/room-types/{roomType.RoomTypeId}",200,"UC142 current legacy-owned type detail on V1 schema regression");
+    Check(beforeReads==await Fingerprint(readTables),"regression reads preserve business and audit data");
+    await db.Rooms.Where(x=>x.RoomId==room).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.IsActive,false),ct);
+    await Expect(supervisor,route,200,"inactive room retains historical list");
+    await Expect(supervisor,detail,200,"inactive room retains cycle detail");
+    await db.Rooms.Where(x=>x.RoomId==room).ExecuteUpdateAsync(s=>s.SetProperty(x=>x.IsActive,true),ct);
+    await using(var blocker=new SqlConnection(connection.ConnectionString))
+    {
+        await blocker.OpenAsync(ct);await using var tx=(SqlTransaction)await blocker.BeginTransactionAsync(ct);
+        await using var command=blocker.CreateCommand();command.Transaction=tx;
+        command.CommandText="UPDATE dbo.cleaning_progress_logs SET note=N'Uncommitted Task85B note' WHERE cleaning_task_id=@id AND progress_percent=25;SELECT CONVERT(int,@@SPID)";
+        command.Parameters.AddWithValue("@id",cycle.CleaningTaskId);
+        var spid=Convert.ToInt32(await command.ExecuteScalarAsync(ct));
+        var pending=Send(HttpMethod.Get,detail,supervisor);
+        var observed=false;
+        for(var i=0;i<40;i++)
+        {
+            await using var observer=db.Database.GetDbConnection().CreateCommand();
+            observer.CommandText="SELECT COUNT(*) FROM sys.dm_exec_requests WHERE database_id=DB_ID() AND blocking_session_id=@spid";
+            var p=observer.CreateParameter();p.ParameterName="@spid";p.Value=spid;observer.Parameters.Add(p);
+            if(Convert.ToInt32(await observer.ExecuteScalarAsync(ct))>0){observed=true;break;}
+            await Task.Delay(100,ct);
+        }
+        Check(observed && !pending.IsCompleted,"DMV confirms actual UC038 HTTPS waits for conflicting SQL progress writer");
+        await tx.RollbackAsync(ct);using var response=await pending;
+        Check(response.IsSuccessStatusCode,"UC038 detail completes after actual writer rollback");
+        using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+        Check(json.RootElement.GetProperty("progress")[0].GetProperty("note").GetString()=="Missing supplies","uncommitted timeline note never leaks");
+    }
+    Check(beforeReads==await Fingerprint(readTables),"rollback and inactive-room probes preserve exact business/audit snapshot");
+
+    await db.UserRoles.Where(x=>x.UserId==users["supervisor"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,false),ct);
+    await Expect(supervisor,route,403,"role revocation read from SQL");
+    await db.UserRoles.Where(x=>x.UserId==users["supervisor"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(r=>r.IsActive,true),ct);
+    await db.Users.Where(x=>x.UserId==users["other"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(u=>u.EmploymentStatus,"INACTIVE"),ct);
+    await Expect(other,$"/api/rooms/{foreignRoom}/turnover-history?branchId={b}",401,"inactive employment invalidates session");
+    await db.UserSessions.Where(x=>x.UserId==users["supervisor"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(s=>s.RevokedAt,now),ct);
+    await Expect(supervisor,route,401,"revoked SQL session");
+    await db.Users.Where(x=>x.UserId==users["own"].UserId).ExecuteUpdateAsync(x=>x.SetProperty(u=>u.AccountStatus,"INACTIVE"),ct);
+    await Expect(own,route,401,"inactive account invalidates SQL session");
+    Check(catalogBefore==await Fingerprint("roles","permissions","role_permissions","branches","departments","reference_values"),"RBAC catalog and canonical master data unchanged");
+    await File.WriteAllTextAsync(args[1],JsonSerializer.Serialize(new {success=true,database=args[0],checks=cases.Count,cases,
+        kind="CURRENT_SOURCE_REAL_PRODUCTION_HTTPS_SQL_UC038",completedUCs=26,verifiedPoints=60},new JsonSerializerOptions{WriteIndented=true}),ct);
+    Console.WriteLine($"PASS {cases.Count} Task85B real HTTPS/SQL checks");
+}
+

@@ -1,0 +1,84 @@
+﻿{
+    "status":  "DEV2_HANDOFF_COMPLETED_UC138_READ_COMPONENT_VERIFIED_C1_AND_NOTIFICATION_BLOCKED",
+    "startedUtc":  "2026-11-04T00:06:07.4211599+00:00",
+    "finishedUtc":  "2026-11-04T00:15:10.7037126+00:00",
+    "elapsedSeconds":  543.283,
+    "elapsedDisplay":  "00:09:03",
+    "timingScope":  "Preflight to final verification; initial requirements/snapshot review not separately timed",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+    "protectedExistingPaths":  768,
+    "existingPathsChanged":  [
+
+                             ],
+    "p0A1B11Preserved":  true,
+    "newProductionFiles":  [
+                               "src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs"
+                           ],
+    "restoredPaths":  [
+
+                      ],
+    "sharedSourceSchemaRbacChanges":  0,
+    "dev2SourceChanges":  0,
+    "newPublicEndpoints":  0,
+    "sqlComponentChecks":  81,
+    "mathRegressionChecks":  422,
+    "build":  "PASS_0_ERRORS_2_NU1900",
+    "harnessBuild":  "PASS_0_ERRORS_4_NU1900",
+    "frameworkTests":  "NO_CASES_NOT_AVAILABLE_EXIT_0",
+    "diffCheck":  "PASS",
+    "trial":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+    "fixtureRollbackVerified":  true,
+    "protectedDatabaseAccess":  false,
+    "newDatabasesCreated":  0,
+    "databasesDropped":  0,
+    "publicHttpsSqlAuthorizationAcceptance":  "NOT_RUN_COMPONENT_HAS_NO_ROUTE",
+    "writeConcurrencyAuditRollbackAcceptance":  "NOT_RUN_NOT_IMPLEMENTED",
+    "notifications":  "NOT_IMPLEMENTED_CONFIRMED_DEV2_EXTERNAL_DEPENDENCY",
+    "snapshotSource":  "cf8fb02_WRITERS_ABSENT_CURRENT_TREE_NO_RESTORE",
+    "snapshotInventory":  "SNAPSHOT_WRITER_EVIDENCE.json",
+    "approval":  "UC138_APPROVAL_SCOPE.md_C1_NOT_APPLIED",
+    "handoffSentExternally":  false,
+    "all75LedgerClassificationsWeightsPointsUnchanged":  true,
+    "UC138":  "NOT_IMPLEMENTED",
+    "UC139":  "BLOCKED_EXTERNAL",
+    "completeUCs":  26,
+    "totalUCs":  75,
+    "points":  60,
+    "totalPoints":  256,
+    "weightedPercent":  23.4375,
+    "newCompleteUCs":  0,
+    "pointsGained":  0,
+    "fileHashes":  [
+                       {
+                           "path":  "src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs",
+                           "sha256":  "E681F6B007F0172A80EAE517C30737F2B1030211F029B82554E4A19F3898CAF5"
+                       },
+                       {
+                           "path":  "scripts/verification/Task80/shift-conflict-sql.local.json",
+                           "sha256":  "10127424D92A2D395E3824897FD1F0B2448260C2A543B809F247BA1D0DEF010D"
+                       },
+                       {
+                           "path":  "scripts/verification/Task80/ShiftConflictSqlVerification.cs",
+                           "sha256":  "C5D1DA1CF497D209CB31CCCD615535B0DCC46012A31728C4B853EDA0198750B2"
+                       },
+                       {
+                           "path":  "scripts/verification/Task80/SNAPSHOT_WRITER_EVIDENCE.json",
+                           "sha256":  "7ECDFB648FCCF6F6B2A73AED11EF2011EE67F33B6E2178BAE587A97EC0015A4F"
+                       },
+                       {
+                           "path":  "scripts/verification/Task80/TASK80_DEV2_HANDOFF_AND_UC138.md",
+                           "sha256":  "0D854EDC70D60B039263E351D17503093CD6E17BEA1DE20AA18807D044589E25"
+                       },
+                       {
+                           "path":  "scripts/verification/Task80/UC138_APPROVAL_SCOPE.md",
+                           "sha256":  "91E2D7217BF0E15B5C0B3BF856D48970501DCA5E3F177DC3FE91CD85C40E1391"
+                       },
+                       {
+                           "path":  "scripts/verification/Task80/UC_LEDGER_TASK80.json",
+                           "sha256":  "C0CBA3FEE01162AEC5ECDC1F5B2948FD97AAAF9A7D28FE70C3B2717937ABEB69"
+                       }
+                   ]
+}

@@ -1,0 +1,896 @@
+﻿# Historical source evidence — NOT current runtime
+Snapshot: cf8fb020362f8f64192e7f2f14a10547cebe5b91
+
+## cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs
+Blob: 1b9f0d49b1a8d4a7435db421733c6472e6864b11
+1: using System.ComponentModel.DataAnnotations;
+2: using HotelOps.Api.Data;
+3: using HotelOps.Api.DTOs.Housekeeping;
+4: using HotelOps.Api.Entities;
+5: using HotelOps.Api.Services.Authentication;
+6: using Microsoft.EntityFrameworkCore;
+7: 
+8: namespace HotelOps.Api.Services.HotelStructure;
+9: 
+10: public sealed partial class RoomTypeCreationService
+11: {
+12:     private async Task<bool> EligibleHousekeeper(long user, long branch, DateTime now, CancellationToken ct) => await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user
+13:         && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
+14:         && u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == "HK"
+15:         && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
+16:         && db.UserRoles.Any(r => r.UserId == user && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_STAFF" && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now))
+17:         && db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
+18:             && a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch
+19:             && a.Shift.ScheduledStartAt <= now && a.Shift.ScheduledEndAt > now), ct);
+20:     private async Task<bool> EligibleInspector(long user, long branch, CancellationToken ct)
+21:     {
+22:         var now = clock.GetUtcNow().UtcDateTime;
+23:         return await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
+24:             && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
+25:             && db.UserRoles.Any(r => r.UserId == user && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_SUPERVISOR"
+26:                 && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)), ct);
+27:     }
+28:     private static void WorkflowDue(DateTime due, DateTime now)
+29:     {
+30:         if (due.Kind != DateTimeKind.Utc || due <= now) throw new ValidationException("Due time must be future UTC.");
+31:     }
+32:     public Task<RoomTypeBatchResult> AssignCleaningAsync(SessionReference ticket, long sid, long branch, long task, string tag, AssignCleaningRequest input, CancellationToken ct)
+33:     {
+34:         if (task <= 0 || input.AssigneeId <= 0 || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid assignment or If-Match.");
+35:         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+36:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+37:         {
+38:             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+39:             var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+40:             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive).Select(r => r.RoomId);
+41:             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(t => t.CleaningTaskId == task && ids.Contains(t.RoomId), token);
+42:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+43:             var state = await CleaningState(task, token);
+44:             if (tag != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
+45:             if (state.State != "PENDING_ASSIGNMENT" && !(state.State == null && row.Status == "PENDING" && input.AdoptUnassignedLegacy)) return new(RoomTypeBatchStatus.Inactive);
+46:             if (await db.CleaningAssignments.AnyAsync(a => a.CleaningTaskId == task && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null, token)) return new(RoomTypeBatchStatus.Duplicate);
+47:             db.Add(new CleaningAssignment { CleaningTaskId = task, AssigneeUserId = input.AssigneeId, AssignedBy = actor, AssignedAt = clock.GetUtcNow().UtcDateTime, AssignmentStatus = "ACTIVE", Reason = reason });
+48:             await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+49:             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status={"ASSIGNED"},status={"PENDING"},due_at={input.DueAt} WHERE cleaning_task_id={task}", token);
+50:             var after = new HousekeepingWriteDto(task, "ASSIGNED");
+51:             await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { row.Status, state.State }, new { reason, assigneeId = input.AssigneeId, entity = after }, ["assignee", "workflowStatus", "dueAt"], token);
+52:             return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await CleaningState(task, token)).Revision));
+53:         }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueHousekeeper(input.AssigneeId, branch, input.DueAt, token), permissionCode: "CLEANING_ASSIGN");
+54:     }
+55: 
+56:     public Task<RoomTypeBatchResult> AssignInspectionAsync(SessionReference ticket, long sid, long branch, long task, AssignInspectionRequest input, CancellationToken ct)
+57:     {
+58:         if (task <= 0 || input.InspectorId <= 0) throw new ValidationException("Invalid task or inspector.");
+59:         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+60:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+61:         {
+62:             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+63:             var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+64:             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive && r.Floor.IsActive && (r.AreaId == null || r.Area!.IsActive)).Select(r => r.RoomId);
+65:             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(t => t.CleaningTaskId == task && ids.Contains(t.RoomId), token);
+66:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+67:             var state = await CleaningState(task, token);
+68:             if (state.State != "PENDING_INSPECTION" && !await db.Database.SqlQuery<int>($"SELECT CONVERT(int,rework_id) AS [Value] FROM dbo.cleaning_reworks WHERE cleaning_task_id={task} AND workflow_status={"PENDING_REINSPECTION"}").AnyAsync(token))
+69:                 return new(RoomTypeBatchStatus.Inactive);
+70:             if (await db.CleaningAssignments.AnyAsync(a => a.CleaningTaskId == task && a.AssigneeUserId == input.InspectorId && a.AssignmentStatus != "CANCELLED", token)
+71:                 || await db.CleaningProgressLogs.AnyAsync(p => p.CleaningTaskId == task && p.LoggedBy == input.InspectorId, token)
+72:                 || await db.CleaningReworks.AnyAsync(r => r.CleaningTaskId == task && r.AssigneeUserId == input.InspectorId, token)) return new(RoomTypeBatchStatus.InvalidReference);
+73:             if (await db.RoomInspections.AnyAsync(i => i.CleaningTaskId == task && i.Status != "COMPLETED" && i.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
+74:             var type = await db.Rooms.Where(r => r.RoomId == row.RoomId).Select(r => r.RoomTypeId).SingleAsync(token);
+75:             var checklist = await db.BranchRoomTypes.Where(t => t.RoomTypeId == type && t.IsActive && (t.BranchId == branch || t.BranchId == null)).Select(t => t.DefaultChecklistId).SingleOrDefaultAsync(token);
+76:             if (checklist == null || !await ChecklistEligible(checklist.Value, branch, type, token)) return new(RoomTypeBatchStatus.InvalidReference);
+77:             var now = clock.GetUtcNow().UtcDateTime;
+78:             var version = await db.InspectionChecklistVersions.Where(v => v.ChecklistId == checklist && v.Status == "PUBLISHED" && (v.EffectiveAt == null || v.EffectiveAt <= now)
+79:                 && v.InspectionChecklistItems.Any(c => c.IsActive)).OrderByDescending(v => v.VersionNo).Select(v => v.VersionId).FirstAsync(token);
+80:             var inspection = new RoomInspection { InspectionNo = "INSP-" + Guid.NewGuid().ToString("N"), RoomId = row.RoomId, CleaningTaskId = task,
+81:                 InspectorUserId = input.InspectorId, VersionId = version, Status = "PENDING", CreatedAt = now };
+82:             db.Add(inspection); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+83:             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status={"ASSIGNED"},due_at={input.DueAt} WHERE inspection_id={inspection.InspectionId}", token);
+84:             var after = new HousekeepingWriteDto(inspection.InspectionId, "ASSIGNED");
+85:             await BatchAuditAsync(actor, branch, "room_inspections", inspection.InspectionId, null, new { reason, inspectorId = input.InspectorId, version, entity = after }, ["assignedInspector", "version", "dueAt"], token);
+86:             return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await InspectionState(inspection.InspectionId, token)).Revision));
+87:         }, ct, additionalUsers: [input.InspectorId], eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token), permissionCode: "INSPECTION_PERFORM");
+88:     }
+89: 
+90:     public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket, long sid, long branch, long inspection, string tag, RequestReworkRequest input, CancellationToken ct)
+91:     {
+92:         if (inspection <= 0 || input.AssigneeId <= 0 || input.DefectIds == null || input.DefectIds.Count is < 1 or > 200
+93:             || input.DefectIds.Distinct().Count() != input.DefectIds.Count || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid rework request.");
+94:         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+95:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+96:         {
+97:             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+98:             var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+99:             var ids = rooms.Where(r => r.BranchId == branch && r.IsActive).Select(r => r.RoomId);
+100:             var row = await db.RoomInspections.AsNoTracking().SingleOrDefaultAsync(i => i.InspectionId == inspection && ids.Contains(i.RoomId) && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
+101:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+102:             var state = await InspectionState(inspection, token);
+103:             if (tag != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
+104:             if (state.State != "FAILED" || (await CleaningState(row.CleaningTaskId!.Value, token)).State != "REWORK_REQUIRED") return new(RoomTypeBatchStatus.Inactive);
+105:             if (await db.CleaningReworks.AnyAsync(r => r.InspectionId == inspection && r.Status != "COMPLETED" && r.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
+106:             if (await db.InspectionDefects.CountAsync(d => d.InspectionId == inspection && input.DefectIds.Contains(d.DefectId), token) != input.DefectIds.Count) return new(RoomTypeBatchStatus.InvalidReference);
+107:             var rework = new CleaningRework { InspectionId = inspection, CleaningTaskId = row.CleaningTaskId.Value, AssigneeUserId = input.AssigneeId, Reason = reason, Status = "PENDING", RequestedAt = clock.GetUtcNow().UtcDateTime };
+108:             db.Add(rework); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+109:             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={"PENDING_ACCEPTANCE"},due_at={input.DueAt} WHERE rework_id={rework.ReworkId}", token);
+110:             foreach (var defect in input.DefectIds) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_rework_defects(rework_id,defect_id) VALUES({rework.ReworkId},{defect})", token);
+111:             var after = new HousekeepingWriteDto(rework.ReworkId, "PENDING_ACCEPTANCE");
+112:             await BatchAuditAsync(actor, branch, "cleaning_reworks", rework.ReworkId, null, new { reason, defects = input.DefectIds, entity = after }, ["assignee", "defects", "dueAt"], token);
+113:             return new(RoomTypeBatchStatus.Success, after);
+114:         }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueHousekeeper(input.AssigneeId, branch, input.DueAt, token), permissionCode: "INSPECTION_PERFORM");
+115:     }
+116:     private async Task<bool> DueHousekeeper(long id, long branch, DateTime due, CancellationToken ct) => due > clock.GetUtcNow().UtcDateTime
+117:         && await EligibleHousekeeper(id, branch, clock.GetUtcNow().UtcDateTime, ct);
+118: }
+
+## cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs
+Blob: 87e1a7d6bbc5496d850253d7a84208de64326ac6
+1: using System.ComponentModel.DataAnnotations;
+2: using HotelOps.Api.Data;
+3: using HotelOps.Api.DTOs.Housekeeping;
+4: using HotelOps.Api.Entities;
+5: using HotelOps.Api.Services.Authentication;
+6: using Microsoft.EntityFrameworkCore;
+7: 
+8: namespace HotelOps.Api.Services.HotelStructure;
+9: 
+10: public sealed partial class RoomTypeCreationService
+11: {
+12:     public sealed class HousekeepingState
+13:     {
+14:         public long Id { get; set; }
+15:         public string? State { get; set; }
+16:         public byte[] Revision { get; set; } = [];
+17:         public DateTime? DueAt { get; set; }
+18:     }
+19:     private Task<HousekeepingState> InspectionState(long id, CancellationToken ct) => db.Database.SqlQuery<HousekeepingState>(
+20:         $"SELECT inspection_id AS Id,workflow_status AS State,row_version AS Revision,due_at AS DueAt FROM dbo.room_inspections WHERE inspection_id={id}").SingleAsync(ct);
+21:     private Task<HousekeepingState> CleaningState(long id, CancellationToken ct) => db.Database.SqlQuery<HousekeepingState>(
+22:         $"SELECT cleaning_task_id AS Id,workflow_status AS State,row_version AS Revision,due_at AS DueAt FROM dbo.cleaning_tasks WHERE cleaning_task_id={id}").SingleAsync(ct);
+23:     private static string WorkflowTag(byte[] bytes) => '"' + Convert.ToHexString(bytes) + '"';
+24:     private static bool WorkflowStrongTag(string? tag) => tag is { Length: 18 } && tag[0] == '"' && tag[^1] == '"'
+25:         && tag.Skip(1).Take(16).All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
+26:     private static string WorkflowReason(string? text) => ChecklistText(text, 500);
+27: 
+28:     public async Task<RoomTypeBatchResult> ExecuteInspectionAsync(SessionReference ticket, long sid, long branch, long id, string? expected,
+29:         string operation, SaveInspectionRequest? save, RecordInspectionDefectRequest? defect, string? reason, string privateRoot, CancellationToken ct)
+30:     {
+31:         if (id <= 0 || operation is not ("read" or "start" or "save" or "finish" or "defect")) throw new ValidationException("Invalid inspection operation.");
+32:         if (operation != "read" && !WorkflowStrongTag(expected)) throw new ValidationException("A strong rowversion If-Match is required.");
+33:         var files = new List<string>(); var committed = false;
+34:         try
+35:         {
+36:             var response = await BatchAsync(ticket, sid, branch, async (actor, token) =>
+37:             {
+38:                 if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+39:                 var rooms = await HistoryRooms(token);
+40:                 if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
+41:                 var scopedRooms = rooms.Where(r => r.BranchId == branch && r.IsActive && r.Floor.IsActive && (r.AreaId == null || r.Area!.IsActive)).Select(r => r.RoomId);
+42:                 var source = await db.RoomInspections.AsNoTracking().SingleOrDefaultAsync(i => i.InspectionId == id && scopedRooms.Contains(i.RoomId)
+43:                     && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
+44:                 if (source == null) return new(RoomTypeBatchStatus.NotFound);
+45:                 if (source.InspectorUserId != actor) return new(RoomTypeBatchStatus.Forbidden);
+46:                 var state = await InspectionState(id, token);
+47:                 if (state.State == null) return new(RoomTypeBatchStatus.SchemaRequired);
+48:                 if (operation != "read" && expected != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
+49:                 var before = await ExecutionDto(source, state, branch, token);
+50:                 if (operation == "read") return new(RoomTypeBatchStatus.Success, before, WorkflowTag(state.Revision));
+51:                 var auditReason = operation == "save" ? WorkflowReason(save?.Reason) : operation == "defect" ? "Record inspection defect" : WorkflowReason(reason);
+52:                 if (operation == "start")
+53:                 {
+54:                     if (state.State != "ASSIGNED") return new(RoomTypeBatchStatus.Inactive);
+55:                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status={"INSPECTING"},status={"IN_PROGRESS"} WHERE inspection_id={id}", token);
+56:                 }
+57:                 else if (operation == "save")
+58:                 {
+59:                     if (state.State != "INSPECTING") return new(RoomTypeBatchStatus.Inactive);
+60:                     if (save?.Results == null || save.Results.Count > 200 || save.Results.Any(r => r == null) || save.Results.Select(r => r.ItemId).Distinct().Count() != save.Results.Count)
+61:                         throw new ValidationException("Invalid criterion results.");
+62:                     if (save.Results.Sum(r => r.Photos?.Count ?? 0) > 5) throw new ValidationException("At most five files per save.");
+63:                     var validItems = await db.InspectionChecklistItems.AsNoTracking().Where(i => i.VersionId == source.VersionId && i.IsActive).Select(i => i.ItemId).ToArrayAsync(token);
+64:                     foreach (var result in save.Results)
+65:                     {
+66:                         if (!validItems.Contains(result.ItemId) || result.Outcome is not ("PASS" or "FAIL")) throw new ValidationException("Result must be PASS/FAIL for an active assigned criterion.");
+67:                         var note = ChecklistText(result.Note, 4000, false);
+68:                         if (result.Outcome == "PASS" && await db.InspectionDefects.AnyAsync(d => d.InspectionId == id && d.ChecklistItemId == result.ItemId, token))
+69:                             return new(RoomTypeBatchStatus.InvalidReference);
+70:                         var row = await db.InspectionResults.SingleOrDefaultAsync(r => r.InspectionId == id && r.ChecklistItemId == result.ItemId, token);
+71:                         if (row == null) { row = new InspectionResult { InspectionId = id, ChecklistItemId = result.ItemId }; db.Add(row); }
+72:                         row.Outcome = result.Outcome; row.Note = note; row.InspectedAt = clock.GetUtcNow().UtcDateTime;
+73:                         await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+74:                         foreach (var photo in result.Photos ?? [])
+75:                         {
+76:                             var attachment = await StoreInspectionEvidence(id, actor, photo, privateRoot, files, token);
+77:                             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.inspection_result_attachments(result_id,attachment_id) VALUES({row.ResultId},{attachment})", token);
+78:                         }
+79:                     }
+80:                 }
+81:                 else if (operation == "finish")
+82:                 {
+83:                     if (state.State != "INSPECTING") return new(RoomTypeBatchStatus.Inactive);
+84:                     var criteria = await db.InspectionChecklistItems.AsNoTracking().Where(i => i.VersionId == source.VersionId && i.IsActive).ToArrayAsync(token);
+85:                     var results = await db.InspectionResults.AsNoTracking().Where(r => r.InspectionId == id && r.ChecklistItem.VersionId == source.VersionId).ToArrayAsync(token);
+86:                     var defects = await db.InspectionDefects.AsNoTracking().Where(d => d.InspectionId == id && d.Description.Trim() != "").Select(d => d.ChecklistItemId).ToArrayAsync(token);
+87:                     if (criteria.Length == 0 || criteria.Any(i => i.IsRequired && !results.Any(r => r.ChecklistItemId == i.ItemId && r.Outcome is "PASS" or "FAIL"))
+88:                         || results.Any(r => r.Outcome == "FAIL" && !defects.Contains(r.ChecklistItemId))) return new(RoomTypeBatchStatus.InvalidReference);
+89:                     var now = clock.GetUtcNow().UtcDateTime;
+90:                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status={"PENDING_CONCLUSION"},status={"IN_PROGRESS"},inspected_at={now} WHERE inspection_id={id}", token);
+91:                 }
+92:                 else
+93:                 {
+94:                     if (state.State is not ("INSPECTING" or "PENDING_CONCLUSION")) return new(RoomTypeBatchStatus.Inactive);
+95:                     if (defect == null || defect.ItemId <= 0 || defect.SeverityId <= 0 || (defect.Photos?.Count ?? 0) > 5) throw new ValidationException("Invalid defect.");
+96:                     var description = ChecklistText(defect.Description, 4000); var location = ChecklistText(defect.Location, 250);
+97:                     if (!await db.ReferenceValues.AnyAsync(r => r.ReferenceId == defect.SeverityId && r.IsActive && r.GroupCode == "SEVERITY" && (r.ValueCode == "MINOR" || r.ValueCode == "MAJOR"), token)
+98:                         || !await db.InspectionResults.AnyAsync(r => r.InspectionId == id && r.ChecklistItemId == defect.ItemId && r.Outcome == "FAIL"
+99:                             && r.ChecklistItem.VersionId == source.VersionId && r.ChecklistItem.IsActive, token)) return new(RoomTypeBatchStatus.InvalidReference);
+100:                     var row = new InspectionDefect { InspectionId = id, ChecklistItemId = defect.ItemId, SeverityId = defect.SeverityId, Description = description, Status = "OPEN" };
+101:                     db.Add(row); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+102:                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.inspection_defects SET room_location={location} WHERE defect_id={row.DefectId}", token);
+103:                     foreach (var photo in defect.Photos ?? [])
+104:                     {
+105:                         var attachment = await StoreInspectionEvidence(id, actor, photo, privateRoot, files, token);
+106:                         await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.inspection_defect_attachments(defect_id,attachment_id) VALUES({row.DefectId},{attachment})", token);
+107:                     }
+108:                 }
+109:                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET summary_note=summary_note WHERE inspection_id={id}", token);
+110:                 var afterState = await InspectionState(id, token);
+111:                 var after = await ExecutionDto(source, afterState, branch, token);
+112:                 await BatchAuditAsync(actor, branch, "room_inspections", id, before, new { reason = auditReason, operation, entity = after }, [operation, "workflowStatus", "criteria", "defects", "evidence"], token);
+113:                 return new(RoomTypeBatchStatus.Success, after, WorkflowTag(afterState.Revision));
+114:             }, ct, permissionCode: "INSPECTION_PERFORM");
+115:             committed = response.Status == RoomTypeBatchStatus.Success;
+116:             return response;
+117:         }
+118:         finally
+119:         {
+120:             if (!committed) foreach (var file in files) File.Delete(file); // Only server-generated files owned by this invocation.
+121:         }
+122:     }
+123:     private async Task<InspectionExecutionDto> ExecutionDto(RoomInspection source, HousekeepingState state, long branch, CancellationToken ct)
+124:     {
+125:         var history = await HistoryInspectionRows(db.RoomInspections.AsNoTracking().Where(i => i.InspectionId == source.InspectionId)).SingleAsync(ct);
+126:         var detail = (await HistoryInspectionDetails([history], ct))[0];
+127:         return new(source.InspectionId, branch, source.RoomId, source.CleaningTaskId!.Value, source.InspectorUserId, source.VersionId, state.State!, state.DueAt, detail.Criteria, detail.Defects, detail.Evidence);
+128:     }
+129:     private async Task<long> StoreInspectionEvidence(long inspection, long actor, EvidenceUpload upload, string root, List<string> owned, CancellationToken ct)
+130:         => await StoreFeatureEvidence("INSPECTION", inspection, actor, upload, root, owned, ct);
+131: 
+132:     private async Task<long> StoreFeatureEvidence(string entityType, long source, long actor, EvidenceUpload upload, string root, List<string> owned, CancellationToken ct)
+133:     {
+134:         if (upload == null || string.IsNullOrWhiteSpace(upload.Name) || upload.Name.Length > 200 || upload.Name.Any(char.IsControl)
+135:             || upload.Name.IndexOfAny(['/', '\\', ':']) >= 0 || string.IsNullOrEmpty(upload.Base64) || upload.Base64.Length > 14 * 1024 * 1024)
+136:             throw new ValidationException("Invalid evidence metadata.");
+137:         byte[] bytes;
+138:         try { bytes = Convert.FromBase64String(upload.Base64); } catch (FormatException) { throw new ValidationException("Invalid evidence encoding."); }
+139:         if (bytes.Length is < 1 or > 10 * 1024 * 1024) throw new ValidationException("Evidence must be at most 10 MiB.");
+140:         var mime = bytes.AsSpan().StartsWith(new byte[] {137,80,78,71,13,10,26,10}) ? "image/png"
+141:             : bytes.AsSpan().StartsWith(new byte[] {255,216,255}) ? "image/jpeg" : bytes.AsSpan().StartsWith("%PDF-"u8) ? "application/pdf" : null;
+142:         if (mime == null || mime != upload.MimeType) throw new ValidationException("Evidence must be JPG, PNG or PDF with matching MIME.");
+143:         var extension = Path.GetExtension(upload.Name).ToLowerInvariant();
+144:         if (mime == "image/png" && extension != ".png" || mime == "image/jpeg" && extension is not (".jpg" or ".jpeg") || mime == "application/pdf" && extension != ".pdf")
+145:             throw new ValidationException("Evidence extension must match its format.");
+146:         var directory = Path.GetFullPath(root); Directory.CreateDirectory(directory);
+147:         if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new ValidationException("Private storage unavailable.");
+148:         var key = Guid.NewGuid().ToString("N") + (mime == "image/png" ? ".png" : mime == "image/jpeg" ? ".jpg" : ".pdf");
+149:         var path = Path.Combine(directory, key);
+150:         await using (var stream = new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.None, 81920, FileOptions.Asynchronous))
+151:         { owned.Add(path); await stream.WriteAsync(bytes, ct); await stream.FlushAsync(ct); }
+152:         var row = new Attachment { EntityType = entityType, EntityId = source, FileName = key, OriginalFileName = upload.Name,
+153:             MimeType = mime, FileSizeBytes = bytes.Length, StorageKey = key, UploadedBy = actor, UploadedAt = clock.GetUtcNow().UtcDateTime };
+154:         db.Add(row); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear(); return row.AttachmentId;
+155:     }
+156: }
+
+## cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/Housekeeping/WorkProgressService.cs
+Blob: f913b80e69153682e066513d87d6a35a56d1cc10
+1: using System.ComponentModel.DataAnnotations;
+2: using HotelOps.Api.Data;
+3: using HotelOps.Api.DTOs.HotelStructure;
+4: using HotelOps.Api.DTOs.Housekeeping;
+5: using HotelOps.Api.Entities;
+6: using HotelOps.Api.Security.Authorization;
+7: using HotelOps.Api.Services.Authentication;
+8: using Microsoft.EntityFrameworkCore;
+9: 
+10: namespace HotelOps.Api.Services.HotelStructure;
+11: 
+12: public sealed partial class RoomTypeCreationService
+13: {
+14:     public sealed class ProgressVersion
+15:     {
+16:         public long Id { get; set; }
+17:         public byte[] Revision { get; set; } = [];
+18:         public string State { get; set; } = "IN_PROGRESS";
+19:     }
+20:     public sealed class StoredProgressItem
+21:     {
+22:         public long Id { get; set; }
+23:         public string Label { get; set; } = "";
+24:         public bool Required { get; set; }
+25:         public int Sort { get; set; }
+26:         public bool? Done { get; set; }
+27:         public string? Outcome { get; set; }
+28:         public string? Note { get; set; }
+29:     }
+30:     private Task<ProgressVersion?> ProgressRevision(bool cleaning, long id, CancellationToken ct) => cleaning
+31:         ? db.Database.SqlQuery<ProgressVersion>($"SELECT cleaning_task_id AS Id,row_version AS Revision,CAST('IN_PROGRESS' AS varchar(20)) AS State FROM dbo.cleaning_progress_versions WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id={id}").SingleOrDefaultAsync(ct)
+32:         : db.Database.SqlQuery<ProgressVersion>($"SELECT task_id AS Id,row_version AS Revision,workflow_status AS State FROM dbo.task_progress_versions WITH(UPDLOCK,HOLDLOCK) WHERE task_id={id}").SingleOrDefaultAsync(ct);
+33: 
+34:     // Trusted SQL resource ownership, including for global grants. No role-name bypass.
+35:     private async Task<bool> ProgressOwned(bool cleaning, long id, long branch, long actor, CancellationToken ct)
+36:     {
+37:         var now = clock.GetUtcNow().UtcDateTime;
+38:         if (cleaning)
+39:         {
+40:             if (!await db.CleaningTasks.AsNoTracking().AnyAsync(t => t.CleaningTaskId == id && t.Room.BranchId == branch, ct)) return false;
+41:             var owners = await db.CleaningAssignments.AsNoTracking().Where(a => a.CleaningTaskId == id && a.AssignmentStatus == "ACTIVE"
+42:                 && a.EndedAt == null && a.AssignedAt <= now).Select(a => a.AssigneeUserId).Take(2).ToArrayAsync(ct);
+43:             return owners.Length == 1 && owners[0] == actor;
+44:         }
+45:         if (!await db.OperationalTasks.AsNoTracking().AnyAsync(t => t.TaskId == id && t.BranchId == branch, ct)) return false;
+46:         var assigned = await db.OperationalTaskAssignments.AsNoTracking().Where(a => a.TaskId == id && a.AssignmentStatus == "ACTIVE"
+47:             && a.EndedAt == null && a.AssignedAt <= now).Select(a => a.AssigneeId).Take(2).ToArrayAsync(ct);
+48:         return assigned.Length == 1 && assigned[0] == actor;
+49:     }
+50:     private async Task<PermissionEvaluation> ProgressAccess(bool cleaning, long id, long branch, long actor, CancellationToken ct)
+51:     {
+52:         var data = new EfPermissionDataSource(db); var now = clock.GetUtcNow().UtcDateTime;
+53:         if (!await data.IsActiveUserAsync(actor, ct) || !await data.IsActiveBranchAsync(branch, ct)) return new(PermissionDecision.Denied);
+54:         var code = cleaning ? "CLEANING_EXECUTE" : "TASK_EXECUTE";
+55:         var owned = await ProgressOwned(cleaning, id, branch, actor, ct);
+56:         foreach (var grant in await data.ReadPathsAsync(actor, code, now, ct))
+57:         {
+58:             if (grant.PermissionCode != code || !PermissionGrantRules.IsEligible(grant, now)) continue;
+59:             var scope = PermissionGrantRules.EffectiveScope(grant);
+60:             if (scope == "GLOBAL" || grant.BranchId == branch && (scope == "BRANCH" || scope == "OWN" && owned))
+61:                 return new(PermissionDecision.Granted);
+62:         }
+63:         return new(PermissionDecision.Denied);
+64:     }
+65:     private static IReadOnlyList<ProgressDefinition> Definitions(InitializeProgressRequest input)
+66:     {
+67:         if (input.Items == null || input.Items.Count is < 1 or > 100 || input.Items.Any(x => x == null))
+68:             throw new ValidationException("Provide one to one hundred definitions.");
+69:         var items = input.Items.Select(x => x with { Label = ChecklistText(x.Label, 250) }).ToArray();
+70:         if (items.Select(x => x.Label).Distinct(StringComparer.OrdinalIgnoreCase).Count() != items.Length)
+71:             throw new ValidationException("Duplicate item labels.");
+72:         return items;
+73:     }
+74:     public Task<RoomTypeBatchResult> InitializeWorkProgressAsync(SessionReference ticket, long sid, long branch, long id,
+75:         string kind, InitializeProgressRequest input, CancellationToken ct)
+76:     {
+77:         if (id <= 0 || kind is not ("template" or "cleaning" or "task")) throw new ValidationException("Invalid progress initialization.");
+78:         var reason = ChecklistText(input.Reason, 500);
+79:         if (reason.Length < 10) throw new ValidationException("Initialization requires an explanatory reason.");
+80:         var definitions = kind == "cleaning" ? null : Definitions(input);
+81:         if (kind == "cleaning" && input.Items != null) throw new ValidationException("Cleaning items are copied from the room type; do not supply inspection or arbitrary items.");
+82:         return BatchAsync(ticket, sid, branch, async (actor, token) =>
+83:         {
+84:             if (!await ProgressSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+85:             if (kind == "template")
+86:             {
+87:                 if (!await db.BranchRoomTypes.AnyAsync(t => t.RoomTypeId == id && t.BranchId == branch && t.IsActive, token)) return new(RoomTypeBatchStatus.NotFound);
+88:                 if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_item_definitions WHERE room_type_id={id}").SingleAsync(token) != 0) return new(RoomTypeBatchStatus.Duplicate);
+89:                 for (var n = 0; n < definitions!.Count; n++)
+90:                     await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_item_definitions(room_type_id,label,is_required,sort_order) VALUES({id},{definitions[n].Label},{definitions[n].Required},{n})", token);
+91:             }
+92:             else if (kind == "cleaning")
+93:             {
+94:                 if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+95:                 var task = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(t => t.CleaningTaskId == id && t.Room.BranchId == branch, token);
+96:                 if (task == null) return new(RoomTypeBatchStatus.NotFound);
+97:                 if (task.Status != "IN_PROGRESS" || task.ActualStartAt == null || (await CleaningState(id, token)).State != "IN_PROGRESS") return new(RoomTypeBatchStatus.Inactive);
+98:                 if (await ProgressRevision(true, id, token) != null) return new(RoomTypeBatchStatus.Duplicate);
+99:                 var type = await db.Rooms.Where(r => r.RoomId == task.RoomId).Select(r => r.RoomTypeId).SingleAsync(token);
+100:                 if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_item_definitions WHERE room_type_id={type}").SingleAsync(token) == 0) return new(RoomTypeBatchStatus.InvalidReference);
+101:                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_progress_versions(cleaning_task_id) VALUES({id}); INSERT dbo.cleaning_task_items(cleaning_task_id,source_item_id,label,is_required,sort_order) SELECT {id},item_id,label,is_required,sort_order FROM dbo.cleaning_item_definitions WHERE room_type_id={type}", token);
+102:             }
+103:             else
+104:             {
+105:                 var task = await db.OperationalTasks.AsNoTracking().SingleOrDefaultAsync(t => t.TaskId == id && t.BranchId == branch, token);
+106:                 if (task == null) return new(RoomTypeBatchStatus.NotFound);
+107:                 if (task.Status != "IN_PROGRESS" || task.ActualStartAt == null) return new(RoomTypeBatchStatus.Inactive);
+108:                 if (await ProgressRevision(false, id, token) != null) return new(RoomTypeBatchStatus.Duplicate);
+109:                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({id},{"IN_PROGRESS"})", token);
+110:                 for (var n = 0; n < definitions!.Count; n++)
+111:                     await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_completion_criteria(task_id,label,is_required,sort_order) VALUES({id},{definitions[n].Label},{definitions[n].Required},{n})", token);
+112:             }
+113:             await BatchAuditAsync(actor, branch, kind == "template" ? "room_types" : kind == "cleaning" ? "cleaning_tasks" : "operational_tasks", id,
+114:                 new { progressModel = "NOT_INITIALIZED" }, new { operation = "INITIALIZE_PROGRESS", reason, definitions }, ["progressDefinitions"], token);
+115:             return new(RoomTypeBatchStatus.Success, new { id, kind, initialized = true });
+116:         }, ct, requireRoomTypeSchema: kind == "template",
+117:             permissionCode: kind == "template" ? "MASTER_DATA_MANAGE" : kind == "cleaning" ? "CLEANING_ASSIGN" : "TASK_MANAGE");
+118:     }
+119: 
+120:     public async Task<RoomTypeBatchResult> WorkProgressAsync(SessionReference ticket, long sid, long branch, long id, bool cleaning,
+121:         string? expected, SaveProgressRequest? input, string privateRoot, CancellationToken ct, long? attachmentId = null)
+122:     {
+123:         if (id <= 0 || attachmentId <= 0) throw new ValidationException("Invalid progress resource.");
+124:         if (input != null && (!WorkflowStrongTag(expected) || input.Percent is < 0 or > 100 || input.Items == null
+125:             || input.Items.Count > 100 || input.Items.Any(x => x == null) || input.Items.Select(x => x.Id).Distinct().Count() != input.Items.Count
+126:             || (input.Photos?.Count ?? 0) > 5)) throw new ValidationException("Invalid progress or rowversion.");
+127:         var note = input == null ? null : ChecklistText(input.Note, 4000, false);
+128:         var ownedFiles = new List<string>(); var committed = false;
+129:         try
+130:         {
+131:             var result = await BatchAsync(ticket, sid, branch, async (actor, token) =>
+132:             {
+133:                 if (!await ProgressSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+134:                 var exists = cleaning
+135:                     ? await db.CleaningTasks.AnyAsync(t => t.CleaningTaskId == id && t.Room.BranchId == branch, token)
+136:                     : await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.BranchId == branch, token);
+137:                 if (!exists) return new(RoomTypeBatchStatus.NotFound);
+138:                 if (!await ProgressOwned(cleaning, id, branch, actor, token)) return new(RoomTypeBatchStatus.Forbidden);
+139:                 var version = await ProgressRevision(cleaning, id, token);
+140:                 if (version == null) return new(RoomTypeBatchStatus.SchemaRequired);
+141:                 if (cleaning)
+142:                 {
+143:                     if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
+144:                     if ((await CleaningState(id, token)).State != "IN_PROGRESS"
+145:                         || !await db.CleaningTasks.AnyAsync(t => t.CleaningTaskId == id && t.Status == "IN_PROGRESS" && t.Room.IsActive, token)) return new(RoomTypeBatchStatus.Inactive);
+146:                 }
+147:                 else if (version.State is not ("IN_PROGRESS" or "PAUSED") || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "IN_PROGRESS", token))
+148:                     return new(RoomTypeBatchStatus.Inactive);
+149:                 if (input != null && expected != WorkflowTag(version.Revision)) return new(RoomTypeBatchStatus.Stale);
+150:                 var before = await ProgressDto(cleaning, id, branch, version.State, token);
+151:                 if (attachmentId != null)
+152:                 {
+153:                     var file = await HistoryFile(before.Evidence, attachmentId.Value, privateRoot, token);
+154:                     return file == null ? new(RoomTypeBatchStatus.NotFound) : new(RoomTypeBatchStatus.Success, file);
+155:                 }
+156:                 if (input == null) return new(RoomTypeBatchStatus.Success, before, WorkflowTag(version.Revision));
+157:                 foreach (var item in input.Items)
+158:                 {
+159:                     if (!before.Items.Any(x => x.Id == item.Id) || cleaning && (item.Done == null || item.Outcome != null)
+160:                         || !cleaning && (item.Done != null || item.Outcome is not ("PASS" or "FAIL"))) throw new ValidationException("Item does not belong to this task or result is invalid.");
+161:                     var itemNote = ChecklistText(item.Note, 1000, false);
+162:                     if (cleaning) await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_task_items SET is_done={item.Done},note={itemNote} WHERE item_id={item.Id} AND cleaning_task_id={id}", token);
+163:                     else await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_completion_criteria SET outcome={item.Outcome},note={itemNote} WHERE criterion_id={item.Id} AND task_id={id}", token);
+164:                 }
+165:                 var now = clock.GetUtcNow().UtcDateTime; long progressId;
+166:                 if (cleaning)
+167:                 {
+168:                     var log = new CleaningProgressLog { CleaningTaskId = id, ProgressPercent = input.Percent, Status = "IN_PROGRESS", Note = note, LoggedBy = actor, LoggedAt = now };
+169:                     db.Add(log); await db.SaveChangesAsync(token); progressId = log.ProgressId;
+170:                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_progress_versions SET cleaning_task_id=cleaning_task_id WHERE cleaning_task_id={id}", token);
+171:                 }
+172:                 else
+173:                 {
+174:                     var log = new OperationalTaskProgress { TaskId = id, ProgressPercent = input.Percent, OldStatus = "IN_PROGRESS", NewStatus = "IN_PROGRESS", Description = note, ReportedBy = actor, ReportedAt = now };
+175:                     db.Add(log); await db.SaveChangesAsync(token); progressId = log.ProgressId;
+176:                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.operational_tasks SET progress_percent={input.Percent},updated_at={now} WHERE task_id={id}; UPDATE dbo.task_progress_versions SET task_id=task_id WHERE task_id={id}", token);
+177:                 }
+178:                 db.ChangeTracker.Clear();
+179:                 foreach (var upload in input.Photos ?? [])
+180:                 {
+181:                     var attachment = await StoreFeatureEvidence(cleaning ? "CLEANING_TASK" : "TASK", id, actor, upload, privateRoot, ownedFiles, token);
+182:                     if (cleaning) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.progress_evidence_links(attachment_id,cleaning_progress_id) VALUES({attachment},{progressId})", token);
+183:                     else await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.progress_evidence_links(attachment_id,task_progress_id) VALUES({attachment},{progressId})", token);
+184:                 }
+185:                 var after = await ProgressDto(cleaning, id, branch, version.State, token);
+186:                 await BatchAuditAsync(actor, branch, cleaning ? "cleaning_tasks" : "operational_tasks", id, before, after, ["progress", "criteria", "notes", "evidence"], token);
+187:                 return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await ProgressRevision(cleaning, id, token))!.Revision));
+188:             }, ct, requireRoomTypeSchema: false, featurePermission: token => ProgressAccess(cleaning, id, branch, ticket.UserId, token));
+189:             committed = result.Status == RoomTypeBatchStatus.Success;
+190:             return result;
+191:         }
+192:         finally { if (!committed) foreach (var file in ownedFiles) File.Delete(file); }
+193:     }
+194: 
+195:     private async Task<WorkProgressDto> ProgressDto(bool cleaning, long id, long branch, string state, CancellationToken ct)
+196:     {
+197:         var items = cleaning
+198:             ? await db.Database.SqlQuery<StoredProgressItem>($"SELECT item_id AS Id,label AS Label,is_required AS Required,sort_order AS Sort,is_done AS Done,CAST(NULL AS varchar(4)) AS Outcome,note AS Note FROM dbo.cleaning_task_items WHERE cleaning_task_id={id} ORDER BY sort_order,item_id").ToArrayAsync(ct)
+199:             : await db.Database.SqlQuery<StoredProgressItem>($"SELECT criterion_id AS Id,label AS Label,is_required AS Required,sort_order AS Sort,CAST(NULL AS bit) AS Done,outcome AS Outcome,note AS Note FROM dbo.task_completion_criteria WHERE task_id={id} ORDER BY sort_order,criterion_id").ToArrayAsync(ct);
+200:         var timeline = cleaning
+201:             ? await db.CleaningProgressLogs.AsNoTracking().Where(p => p.CleaningTaskId == id).OrderByDescending(p => p.LoggedAt).ThenByDescending(p => p.ProgressId).Take(100)
+202:                 .Select(p => new HistoryProgressDto(p.ProgressId, p.ProgressPercent, p.Status, p.BlockerTypeId, p.Note, p.LoggedBy, p.LoggedAt)).ToArrayAsync(ct)
+203:             : await db.OperationalTaskProgresses.AsNoTracking().Where(p => p.TaskId == id).OrderByDescending(p => p.ReportedAt).ThenByDescending(p => p.ProgressId).Take(100)
+204:                 .Select(p => new HistoryProgressDto(p.ProgressId, p.ProgressPercent, p.NewStatus, null, p.Description, p.ReportedBy, p.ReportedAt)).ToArrayAsync(ct);
+205:         var attachmentIds = cleaning
+206:             ? await db.Database.SqlQuery<long>($"SELECT e.attachment_id AS [Value] FROM dbo.progress_evidence_links e JOIN dbo.cleaning_progress_logs p ON p.progress_id=e.cleaning_progress_id WHERE p.cleaning_task_id={id}").ToArrayAsync(ct)
+207:             : await db.Database.SqlQuery<long>($"SELECT e.attachment_id AS [Value] FROM dbo.progress_evidence_links e JOIN dbo.operational_task_progress p ON p.progress_id=e.task_progress_id WHERE p.task_id={id}").ToArrayAsync(ct);
+208:         var kind = cleaning ? "cleaning-tasks" : "operational-tasks";
+209:         var sourceType = cleaning ? "CLEANING_TASK" : "TASK";
+210:         var rows = await db.Attachments.AsNoTracking().Where(a => attachmentIds.Contains(a.AttachmentId) && a.DeletedAt == null
+211:             && a.EntityType == sourceType && a.EntityId == id).OrderByDescending(a => a.UploadedAt).Take(100).ToArrayAsync(ct);
+212:         var evidence = rows.Select(a => new HistoryEvidenceDto(a.AttachmentId, a.EntityType, a.EntityId, a.OriginalFileName ?? "evidence", a.MimeType, a.FileSizeBytes,
+213:             a.UploadedAt, $"/api/branches/{branch}/{kind}/{id}/progress/evidence/{a.AttachmentId}")).ToArray();
+214:         var percent = cleaning ? timeline.FirstOrDefault()?.Percent ?? 0 : await db.OperationalTasks.Where(t => t.TaskId == id).Select(t => t.ProgressPercent).SingleAsync(ct);
+215:         return new(id, branch, cleaning ? "cleaning" : "task", state, percent,
+216:             items.Select(i => new ProgressItemDto(i.Id, i.Label, i.Required, i.Sort, i.Done, i.Outcome, i.Note)).ToArray(), timeline, evidence);
+217:     }
+218: }
+
+## cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs
+Blob: 8aba8703a8e26808af57208cdd7439ceb43c099e
+1: using System.ComponentModel.DataAnnotations;
+2: using System.Data;
+3: using System.Globalization;
+4: using System.Security.Cryptography;
+5: using System.Text.Json;
+6: using HotelOps.Api.Data;
+7: using HotelOps.Api.DTOs.HotelStructure;
+8: using HotelOps.Api.Entities;
+9: using HotelOps.Api.Security.Authorization;
+10: using HotelOps.Api.Services.Authentication;
+11: using HotelOps.Api.Services.Users;
+12: using Microsoft.EntityFrameworkCore;
+13: 
+14: namespace HotelOps.Api.Services.HotelStructure;
+15: 
+16: public enum RoomTypeBatchStatus { Success, SessionInvalid, Forbidden, NotFound, Inactive, Stale, InvalidReference, Duplicate, SchemaRequired, Unavailable, DependenciesExist }
+17: public sealed record RoomTypeBatchResult(RoomTypeBatchStatus Status, object? Value = null, string? ETag = null);
+18: 
+19: public sealed partial class RoomTypeCreationService
+20: {
+21:     // Retains the UC017 SQL session/grant boundary and lock order for every batch operation.
+22:     private async Task<RoomTypeBatchResult> BatchAsync(SessionReference ticket, long sessionId, long? branchId,
+23:         Func<long, CancellationToken, Task<RoomTypeBatchResult>> operation, CancellationToken ct, bool allowScopedList = false,
+24:         IEnumerable<long>? additionalUsers = null, Func<CancellationToken, Task<bool>>? eligibility = null, bool requireRoomTypeSchema = true,
+25:         string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null)
+26:     {
+27:         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
+28:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+29:             || actor.IsRestricted || ticket.IsRestricted) return new(RoomTypeBatchStatus.SessionInvalid);
+30:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
+31:             || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
+32:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+33:         try
+34:         {
+35:             await new UserEligibilityLock(db).LockAsync((additionalUsers ?? []).Append(actor.UserId), ct);
+36:             if (await Gate() is { } initial) return new(initial);
+37:             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);
+38:             if (branchId is { } branch)
+39:             {
+40:                 var parent = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}")
+41:                     .AsNoTracking().SingleOrDefaultAsync(ct);
+42:                 if (parent == null) return new(RoomTypeBatchStatus.NotFound);
+43:                 if (!parent.IsActive) return new(RoomTypeBatchStatus.Inactive);
+44:             }
+45:             var acquired = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource={CatalogLock},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];").ToArrayAsync(ct);
+46:             if (acquired.Length != 1 || acquired[0] < 0) return new(RoomTypeBatchStatus.Unavailable);
+47:             if (requireRoomTypeSchema && await RoomTypeSchema.ReadAsync(db, ct) != RoomTypeContract.BranchV1) return new(RoomTypeBatchStatus.SchemaRequired);
+48:             var result = await operation(actor.UserId, ct);
+49:             if (result.Status is not (RoomTypeBatchStatus.Success or RoomTypeBatchStatus.DependenciesExist)) return result;
+50:             if (await Gate() is { } final) return new(final);
+51:             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);
+52:             if (result.Status == RoomTypeBatchStatus.DependenciesExist) return result;
+53:             await tx.CommitAsync(ct);
+54:             return result;
+55:         }
+56:         catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2)
+57:         { return new(RoomTypeBatchStatus.Unavailable); }
+58:         catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
+59:         { throw new OperationCanceledException("Hotel structure operation cancelled.", error, ct); }
+60:         finally { db.ChangeTracker.Clear(); }
+61: 
+62:         async Task<RoomTypeBatchStatus?> Gate()
+63:         {
+64:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+65:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return RoomTypeBatchStatus.SessionInvalid;
+66:             var access = featurePermission != null ? await featurePermission(ct) : branchId is { } branch
+67:                 ? await permissions.EvaluateBranchAsync(permissionCode, branch, ct)
+68:                 : await permissions.EvaluateGlobalAsync(permissionCode, ct);
+69:             ct.ThrowIfCancellationRequested();
+70:             if (access.IsGranted) return null;
+71:             if (access.Decision == PermissionDecision.Unavailable) return RoomTypeBatchStatus.Unavailable;
+72:             if (branchId == null && allowScopedList)
+73:                 foreach (var candidate in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(ct))
+74:                 {
+75:                     var scoped = await permissions.EvaluateBranchAsync(permissionCode, candidate, ct);
+76:                     if (scoped.Decision == PermissionDecision.Unavailable) return RoomTypeBatchStatus.Unavailable;
+77:                     if (scoped.IsGranted) return null;
+78:                 }
+79:             return RoomTypeBatchStatus.Forbidden;
+80:         }
+81:     }
+82: 
+83:     private static RoomTypeDetailsDto RoomTypeDto(RoomTypeBranchV1 row) => new(row.RoomTypeId, row.BranchId,
+84:         row.TypeCode, row.TypeName, row.Description, row.StandardCleaningMinutes,
+85:         row.DefaultChecklistId, row.StandardCapacity, row.IsActive);
+86: 
+87:     private async Task<string> RoomTypeTagAsync(RoomTypeDetailsDto value, CancellationToken ct)
+88:     {
+89:         var key = value.Id.ToString(CultureInfo.InvariantCulture);
+90:         var revision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "room_types" && x.EntityId == key)
+91:             .Select(x => (long?)x.AuditId).MaxAsync(ct) ?? 0;
+92:         var activeRooms = await db.Rooms.AsNoTracking().CountAsync(x => x.RoomTypeId == value.Id && x.IsActive
+93:             && (value.BranchId == null || x.BranchId == value.BranchId), ct);
+94:         return '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision, activeRooms }, Json))) + '"';
+95:     }
+96: 
+97:     public Task<RoomTypeBatchResult> ReadRoomTypeAsync(SessionReference ticket, long sessionId, long? branchId, long id, CancellationToken ct)
+98:         => EditRoomTypeAsync(ticket, sessionId, branchId, id, null, null, ct);
+99: 
+100:     public Task<RoomTypeBatchResult> UpdateRoomTypeAsync(SessionReference ticket, long sessionId, long branchId, long id,
+101:         string expected, UpdateRoomTypeRequest request, CancellationToken ct)
+102:     {
+103:         if (!HotelStructureUpdateService.IsStrongTag(expected)) throw new ValidationException("A single strong ETag is required.");
+104:         var name = request.Name?.Trim(); var description = request.Description?.Trim();
+105:         var code = request.Code?.Trim().ToUpperInvariant();
+106:         if (code != null && (code.Length is < 1 or > 30 || !char.IsAsciiLetterOrDigit(code[0])
+107:             || code.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '_' and not '-')))
+108:             throw new ValidationException("Invalid room type code.");
+109:         if (string.IsNullOrEmpty(name) || name.Length > 150 || name.Any(char.IsControl)
+110:             || description?.Length > 4000 || description?.Any(c => char.IsControl(c) && c is not '\r' and not '\n' and not '\t') == true
+111:             || request.StandardCleaningMinutes <= 0 || request.DefaultChecklistId <= 0) throw new ValidationException("Invalid room type fields.");
+112:         return EditRoomTypeAsync(ticket, sessionId, branchId, id, expected, request with { Name = name, Description = string.IsNullOrEmpty(description) ? null : description, Code = code }, ct);
+113:     }
+114: 
+115:     private Task<RoomTypeBatchResult> EditRoomTypeAsync(SessionReference ticket, long sessionId, long? branchId, long id,
+116:         string? expected, UpdateRoomTypeRequest? input, CancellationToken ct)
+117:     {
+118:         if (id <= 0) throw new ValidationException("Id must be positive.");
+119:         return BatchAsync(ticket, sessionId, branchId, async (actor, token) =>
+120:         {
+121:             if (branchId == null && !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token)).IsGranted)
+122:                 return new(RoomTypeBatchStatus.Forbidden);
+123:             var row = await db.BranchRoomTypes.AsNoTracking().SingleOrDefaultAsync(x => x.RoomTypeId == id && x.BranchId == branchId, token);
+124:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+125:             var before = RoomTypeDto(row); var tag = await RoomTypeTagAsync(before, token);
+126:             if (input == null) return new(RoomTypeBatchStatus.Success, new RoomTypeListItem(before,
+127:                 await db.Rooms.CountAsync(x => x.RoomTypeId == id && (branchId == null || x.BranchId == branchId) && x.IsActive, token), branchId != null && before.IsActive), tag);
+128:             if (!before.IsActive) return new(RoomTypeBatchStatus.Inactive);
+129:             if (!string.Equals(expected, tag, StringComparison.Ordinal)) return new(RoomTypeBatchStatus.Stale);
+130:             var now = clock.GetUtcNow().UtcDateTime;
+131:             if (!await ChecklistEligible(input.DefaultChecklistId, branchId!.Value, id, token)) return new(RoomTypeBatchStatus.InvalidReference);
+132:             var code = input.Code ?? before.Code;
+133:             if (await db.Database.SqlQuery<int>($"SELECT CONVERT(int,COUNT(*)) AS [Value] FROM dbo.room_types WHERE room_type_id<>{id} AND (branch_id={branchId} OR branch_id IS NULL) AND UPPER(LTRIM(RTRIM(type_code)))={code}").SingleAsync(token) != 0)
+134:                 return new(RoomTypeBatchStatus.Duplicate);
+135:             // Ownership and capacity are immutable. No Room or historical checklist FK is changed.
+136:             await db.Database.ExecuteSqlInterpolatedAsync($"/* UC018:Update */ UPDATE dbo.room_types SET type_code={code},type_name={input.Name},description={input.Description},standard_cleaning_minutes={input.StandardCleaningMinutes},default_checklist_id={input.DefaultChecklistId} WHERE room_type_id={id} AND branch_id={branchId}", token);
+137:             var after = before with { Code = code, Name = input.Name, Description = input.Description, StandardCleaningMinutes = input.StandardCleaningMinutes, DefaultChecklistId = input.DefaultChecklistId };
+138:             await BatchAuditAsync(actor, branchId!.Value, "room_types", id, before, after,
+139:                 code == before.Code ? ["name", "description", "standardCleaningMinutes", "defaultChecklistId"] : ["code", "name", "description", "standardCleaningMinutes", "defaultChecklistId"], token);
+140:             return new(RoomTypeBatchStatus.Success, after, await RoomTypeTagAsync(after, token));
+141:         }, ct);
+142:     }
+143: 
+144:     public Task<RoomTypeBatchResult> ListRoomTypesAsync(SessionReference ticket, long sessionId, long? branchId,
+145:         bool? active, string? search, int page, int pageSize, CancellationToken ct, string sort = "code", bool descending = false)
+146:     {
+147:         search = search?.Trim();
+148:         if (page < 1 || pageSize is < 1 or > 100 || page > int.MaxValue / pageSize || search?.Length > 150 || search?.Any(char.IsControl) == true
+149:             || sort is not ("code" or "name" or "status"))
+150:             throw new ValidationException("Invalid list filters or pagination.");
+151:         return BatchAsync(ticket, sessionId, branchId, async (_, token) =>
+152:         {
+153:             var rows = db.BranchRoomTypes.AsNoTracking();
+154:             var visible = new List<long>();
+155:             var global = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token);
+156:             if (global.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
+157:             if (branchId == null && !global.IsGranted)
+158:             {
+159:                 foreach (var candidate in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(token))
+160:                 {
+161:                     var access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", candidate, token);
+162:                     if (access.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
+163:                     if (access.IsGranted) visible.Add(candidate);
+164:                 }
+165:                 rows = rows.Where(x => x.BranchId != null && visible.Contains(x.BranchId.Value));
+166:             }
+167:             if (branchId != null) rows = rows.Where(x => x.BranchId == branchId);
+168:             if (active != null) rows = rows.Where(x => x.IsActive == active);
+169:             if (!string.IsNullOrEmpty(search)) rows = rows.Where(x => x.TypeCode.Contains(search) || x.TypeName.Contains(search));
+170:             var total = await rows.CountAsync(token);
+171:             var ordered = (sort, descending) switch
+172:             {
+173:                 ("name", false) => rows.OrderBy(x => x.TypeName), ("name", true) => rows.OrderByDescending(x => x.TypeName),
+174:                 ("status", false) => rows.OrderBy(x => x.IsActive), ("status", true) => rows.OrderByDescending(x => x.IsActive),
+175:                 (_, true) => rows.OrderByDescending(x => x.TypeCode), _ => rows.OrderBy(x => x.TypeCode)
+176:             };
+177:             var slice = await ordered.ThenBy(x => x.BranchId).ThenBy(x => x.RoomTypeId)
+178:                 .Skip((page - 1) * pageSize).Take(pageSize).TagWith("UC142:Page").ToArrayAsync(token);
+179:             var items = new List<RoomTypeListItem>();
+180:             foreach (var row in slice) items.Add(new(RoomTypeDto(row), await db.Rooms.CountAsync(x => x.RoomTypeId == row.RoomTypeId && x.IsActive
+181:                 && (row.BranchId == null || x.BranchId == row.BranchId), token), row.BranchId != null && row.IsActive));
+182:             foreach (var branch in visible)
+183:             {
+184:                 var access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branch, token);
+185:                 if (!access.IsGranted) return new(access.Decision == PermissionDecision.Unavailable ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Forbidden);
+186:             }
+187:             if (branchId == null && global.IsGranted && !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token)).IsGranted)
+188:                 return new(RoomTypeBatchStatus.Forbidden);
+189:             return new(RoomTypeBatchStatus.Success, new RoomTypePage(items, total, page, pageSize, branchId, active, search, sort, descending));
+190:         }, ct, allowScopedList: true);
+191:     }
+192: 
+193:     private async Task BatchAuditAsync(long actor, long branch, string entity, long id, object? before, object after, string[] fields, CancellationToken ct)
+194:     {
+195:         db.Add(new AuditLog { ActorUserId = actor, BranchId = branch, EntityType = entity, EntityId = id.ToString(CultureInfo.InvariantCulture),
+196:             Action = before == null ? "CREATE" : "UPDATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
+197:             OldValues = before == null ? JsonSerializer.Serialize(new { entity = (object?)null }, Json) : JsonSerializer.Serialize(before, Json),
+198:             NewValues = JsonSerializer.Serialize(after, Json), ChangedFields = JsonSerializer.Serialize(fields, Json) });
+199:         try { await db.SaveChangesAsync(ct); }
+200:         finally { db.ChangeTracker.Clear(); }
+201:     }
+202: }
+
+## cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs
+Blob: f2b771332a2cdb8942c809bfcd339c6d68df6550
+1: using System.ComponentModel.DataAnnotations;
+2: using HotelOps.Api.DTOs.Housekeeping;
+3: using HotelOps.Api.Security;
+4: using HotelOps.Api.Services.Authentication;
+5: using HotelOps.Api.Services.HotelStructure;
+6: using Microsoft.AspNetCore.Authorization;
+7: using Microsoft.AspNetCore.Mvc;
+8: 
+9: namespace HotelOps.Api.Controllers;
+10: 
+11: [ApiController]
+12: [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+14: [UserAccountActivationErrors]
+15: [RequestSizeLimit(72 * 1024 * 1024)]
+16: public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
+17: {
+18:     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+19:     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/execution")]
+20:     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct) => Inspect(branchId,id,"read",null,null,null,ct);
+21:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/start")]
+22:     public Task<IActionResult> Start(long branchId, long id, InspectionActionRequest input, CancellationToken ct) => Inspect(branchId,id,"start",null,null,input.Reason,ct);
+23:     [HttpPut("api/branches/{branchId:long}/inspections/{id:long}/results")]
+24:     public Task<IActionResult> Save(long branchId, long id, SaveInspectionRequest input, CancellationToken ct) => Inspect(branchId,id,"save",input,null,null,ct);
+25:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/finish")]
+26:     public Task<IActionResult> Finish(long branchId, long id, InspectionActionRequest input, CancellationToken ct) => Inspect(branchId,id,"finish",null,null,input.Reason,ct);
+27:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/defects")]
+28:     public Task<IActionResult> Defect(long branchId, long id, RecordInspectionDefectRequest input, CancellationToken ct) => Inspect(branchId,id,"defect",null,input,null,ct);
+29:     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign")]
+30:     public Task<IActionResult> AssignCleaning(long branchId, long id, AssignCleaningRequest input, CancellationToken ct)
+31:         => Execute((ticket,sid) => service.AssignCleaningAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true);
+32:     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections")]
+33:     public Task<IActionResult> AssignInspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
+34:         => Execute((ticket,sid) => service.AssignInspectionAsync(ticket,sid,branchId,id,input,ct),false,true);
+35:     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
+36:     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
+37:         => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true,true);
+38:     private Task<IActionResult> Inspect(long branch,long id,string action,SaveInspectionRequest? save,RecordInspectionDefectRequest? defect,string? reason,CancellationToken ct)
+39:         => Execute((ticket,sid) => service.ExecuteInspectionAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),action,save,defect,reason,Root,ct),action!="read");
+40:     private async Task<IActionResult> Execute(Func<SessionReference,long,Task<RoomTypeBatchResult>> action,bool conditional,bool created=false)
+41:     {
+42:         if(!Request.IsHttps)return Problem(statusCode:400,title:"HTTPS_REQUIRED");
+43:         if(!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid))return Problem(statusCode:401,title:"SESSION_INVALID");
+44:         if(conditional&&!Request.Headers.ContainsKey("If-Match"))return Problem(statusCode:428,title:"IF_MATCH_REQUIRED");
+45:         try
+46:         {
+47:             var result=await action(ticket!,sid);
+48:             if(result.Status==RoomTypeBatchStatus.Success){if(result.ETag!=null)Response.Headers.ETag=result.ETag;return StatusCode(created?201:200,result.Value);}
+49:             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
+50:                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
+51:         }
+52:         catch(ValidationException error){return Problem(statusCode:400,title:"VALIDATION_FAILED",detail:error.Message);}
+53:     }
+54: }
+
+## cf8fb020362f8f64192e7f2f14a10547cebe5b91:scripts/database/release/housekeeping/01_Housekeeping.sql
+Blob: 622b64f51b2767575575b56a4e9530225cd2534b
+1: SET XACT_ABORT ON;
+2: IF DB_NAME() NOT LIKE N'HotelOps[_]Canonical[_]%' OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.UserDirectory.Trial' AND CONVERT(nvarchar(128),value)=N'Task17')
+3:  THROW 51730,'Guarded disposable trial required.',1;
+4: IF COL_LENGTH(N'dbo.inspection_checklists',N'branch_id') IS NULL OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Checklists.V1')
+5:  THROW 51730,'Checklist V1 prerequisite required.',1;
+6: IF COL_LENGTH(N'dbo.cleaning_tasks',N'workflow_status') IS NOT NULL OR COL_LENGTH(N'dbo.room_inspections',N'workflow_status') IS NOT NULL
+7:  OR COL_LENGTH(N'dbo.cleaning_reworks',N'workflow_status') IS NOT NULL OR COL_LENGTH(N'dbo.inspection_defects',N'room_location') IS NOT NULL
+8:  OR OBJECT_ID(N'dbo.cleaning_rework_defects') IS NOT NULL OR OBJECT_ID(N'dbo.inspection_defect_attachments') IS NOT NULL OR OBJECT_ID(N'dbo.inspection_result_attachments') IS NOT NULL
+9:  THROW 51730,'Partial Housekeeping schema requires explicit recovery.',1;
+10: ALTER TABLE dbo.cleaning_tasks ADD workflow_status varchar(30) NULL,row_version rowversion NOT NULL;
+11: ALTER TABLE dbo.room_inspections ADD workflow_status varchar(30) NULL,due_at datetime2(7) NULL,row_version rowversion NOT NULL;
+12: ALTER TABLE dbo.cleaning_reworks ADD workflow_status varchar(30) NULL,due_at datetime2(7) NULL,row_version rowversion NOT NULL;
+13: ALTER TABLE dbo.inspection_defects ADD room_location nvarchar(250) NULL;
+14: GO
+15: ALTER TABLE dbo.cleaning_tasks WITH CHECK ADD CONSTRAINT CK_cleaning_workflow_v1 CHECK(workflow_status IS NULL OR
+16:  (workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED') AND status='PENDING') OR
+17:  (workflow_status IN('IN_PROGRESS','ON_HOLD','PENDING_INSPECTION','REWORK_REQUIRED') AND status='IN_PROGRESS') OR
+18:  (workflow_status='COMPLETED' AND status='COMPLETED') OR (workflow_status='CANCELLED' AND status='CANCELLED'));
+19: ALTER TABLE dbo.room_inspections WITH CHECK ADD CONSTRAINT CK_inspection_workflow_v1 CHECK(workflow_status IS NULL OR
+20:  (workflow_status='ASSIGNED' AND status='PENDING' AND result IS NULL) OR
+21:  (workflow_status IN('INSPECTING','PENDING_CONCLUSION') AND status='IN_PROGRESS' AND result IS NULL) OR
+22:  (workflow_status='PASSED' AND status='COMPLETED' AND result='PASS') OR
+23:  (workflow_status='FAILED' AND status='COMPLETED' AND result='FAIL') OR (workflow_status='CANCELLED' AND status='CANCELLED'));
+24: ALTER TABLE dbo.cleaning_reworks WITH CHECK ADD CONSTRAINT CK_rework_workflow_v1 CHECK(workflow_status IS NULL OR
+25:  (workflow_status='PENDING_ACCEPTANCE' AND status='PENDING') OR
+26:  (workflow_status IN('IN_PROGRESS','PENDING_REINSPECTION') AND status='IN_PROGRESS') OR
+27:  (workflow_status='COMPLETED' AND status='COMPLETED') OR (workflow_status='CANCELLED' AND status='CANCELLED'));
+28: CREATE TABLE dbo.cleaning_rework_defects(rework_id bigint NOT NULL,defect_id bigint NOT NULL,
+29:  CONSTRAINT PK_rework_defects_v1 PRIMARY KEY(rework_id,defect_id),
+30:  CONSTRAINT FK_rework_defects_rework_v1 FOREIGN KEY(rework_id) REFERENCES dbo.cleaning_reworks(rework_id),
+31:  CONSTRAINT FK_rework_defects_defect_v1 FOREIGN KEY(defect_id) REFERENCES dbo.inspection_defects(defect_id));
+32: CREATE INDEX IX_rework_defects_reverse_v1 ON dbo.cleaning_rework_defects(defect_id,rework_id);
+33: CREATE TABLE dbo.inspection_defect_attachments(defect_id bigint NOT NULL,attachment_id bigint NOT NULL,
+34:  CONSTRAINT PK_defect_attachments_v1 PRIMARY KEY(defect_id,attachment_id),
+35:  CONSTRAINT FK_defect_attachment_defect_v1 FOREIGN KEY(defect_id) REFERENCES dbo.inspection_defects(defect_id),
+36:  CONSTRAINT FK_defect_attachment_file_v1 FOREIGN KEY(attachment_id) REFERENCES dbo.attachments(attachment_id));
+37: CREATE TABLE dbo.inspection_result_attachments(result_id bigint NOT NULL,attachment_id bigint NOT NULL,
+38:  CONSTRAINT PK_result_attachments_v1 PRIMARY KEY(result_id,attachment_id),
+39:  CONSTRAINT FK_result_attachment_result_v1 FOREIGN KEY(result_id) REFERENCES dbo.inspection_results(result_id),
+40:  CONSTRAINT FK_result_attachment_file_v1 FOREIGN KEY(attachment_id) REFERENCES dbo.attachments(attachment_id));
+41: CREATE INDEX IX_results_version_lookup_v1 ON dbo.inspection_results(inspection_id,checklist_item_id);
+42: GO
+43: CREATE TRIGGER dbo.TR_hk_inspections_v1 ON dbo.room_inspections AFTER INSERT,UPDATE AS
+44: BEGIN
+45:  SET NOCOUNT ON;
+46:  IF EXISTS(SELECT 1 FROM inserted i JOIN deleted d ON d.inspection_id=i.inspection_id WHERE d.workflow_status IS NOT NULL AND
+47:   (i.workflow_status IS NULL OR i.room_id<>d.room_id OR ISNULL(i.cleaning_task_id,0)<>ISNULL(d.cleaning_task_id,0) OR i.version_id<>d.version_id))
+48:   THROW 51731,'Owned inspection source/version is immutable.',1;
+49:  IF EXISTS(SELECT 1 FROM inserted i LEFT JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=i.cleaning_task_id
+50:   WHERE i.workflow_status IS NOT NULL AND (t.cleaning_task_id IS NULL OR t.room_id<>i.room_id))
+51:   THROW 51731,'Inspection must reference its own cleaning cycle.',1;
+52:  IF EXISTS(SELECT 1 FROM inserted i WHERE i.workflow_status IS NOT NULL AND i.status IN('PENDING','IN_PROGRESS')
+53:   AND EXISTS(SELECT 1 FROM dbo.room_inspections other WITH(UPDLOCK,HOLDLOCK) WHERE other.cleaning_task_id=i.cleaning_task_id AND other.inspection_id<>i.inspection_id AND other.status IN('PENDING','IN_PROGRESS')))
+54:   THROW 51731,'Only one open inspection per cleaning cycle.',1;
+55: END
+56: GO
+57: CREATE TRIGGER dbo.TR_hk_results_v1 ON dbo.inspection_results AFTER INSERT,UPDATE,DELETE AS
+58: BEGIN
+59:  SET NOCOUNT ON;
+60:  IF EXISTS(SELECT 1 FROM (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a
+61:   JOIN dbo.room_inspections r WITH(UPDLOCK,HOLDLOCK) ON r.inspection_id=a.inspection_id WHERE r.workflow_status IS NOT NULL AND r.workflow_status<>'INSPECTING')
+62:   THROW 51731,'Results writable only while Inspecting.',1;
+63:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.room_inspections r ON r.inspection_id=i.inspection_id JOIN dbo.inspection_checklist_items c ON c.item_id=i.checklist_item_id
+64:   WHERE r.workflow_status IS NOT NULL AND (c.version_id<>r.version_id OR c.is_active=0 OR
+65:    EXISTS(SELECT 1 FROM dbo.inspection_results x WITH(UPDLOCK,HOLDLOCK) WHERE x.inspection_id=i.inspection_id AND x.checklist_item_id=i.checklist_item_id AND x.result_id<>i.result_id)))
+66:   THROW 51731,'Result must be unique and belong to assigned active criterion.',1;
+67:  UPDATE r SET summary_note=summary_note FROM dbo.room_inspections r JOIN
+68:   (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a ON a.inspection_id=r.inspection_id WHERE r.workflow_status IS NOT NULL;
+69: END
+70: GO
+71: CREATE TRIGGER dbo.TR_hk_defects_v1 ON dbo.inspection_defects AFTER INSERT,UPDATE,DELETE AS
+72: BEGIN
+73:  SET NOCOUNT ON;
+74:  IF EXISTS(SELECT 1 FROM (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a JOIN dbo.room_inspections r WITH(UPDLOCK,HOLDLOCK) ON r.inspection_id=a.inspection_id
+75:   WHERE r.workflow_status IS NOT NULL AND r.workflow_status NOT IN('INSPECTING','PENDING_CONCLUSION'))
+76:   THROW 51731,'Concluded inspection defects cannot change.',1;
+77:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.room_inspections r ON r.inspection_id=i.inspection_id
+78:   WHERE r.workflow_status IS NOT NULL AND (i.checklist_item_id IS NULL OR LEN(LTRIM(RTRIM(i.description)))=0
+79:    OR NOT EXISTS(SELECT 1 FROM dbo.inspection_results x JOIN dbo.inspection_checklist_items c ON c.item_id=x.checklist_item_id
+80:     WHERE x.inspection_id=r.inspection_id AND x.checklist_item_id=i.checklist_item_id AND x.outcome='FAIL' AND c.version_id=r.version_id)))
+81:   THROW 51731,'Defect requires a failed criterion from this inspection.',1;
+82:  UPDATE r SET summary_note=summary_note FROM dbo.room_inspections r JOIN
+83:   (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) a ON a.inspection_id=r.inspection_id WHERE r.workflow_status IS NOT NULL;
+84: END
+85: GO
+86: CREATE TRIGGER dbo.TR_hk_rework_links_v1 ON dbo.cleaning_rework_defects AFTER INSERT,UPDATE AS
+87: BEGIN
+88:  SET NOCOUNT ON;
+89:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.cleaning_reworks r ON r.rework_id=i.rework_id JOIN dbo.inspection_defects d ON d.defect_id=i.defect_id
+90:   JOIN dbo.room_inspections x ON x.inspection_id=r.inspection_id JOIN dbo.cleaning_tasks t ON t.cleaning_task_id=r.cleaning_task_id
+91:   WHERE d.inspection_id<>r.inspection_id OR x.room_id<>t.room_id OR x.cleaning_task_id<>t.cleaning_task_id)
+92:   THROW 51731,'Cross-cycle rework defect link refused.',1;
+93: END
+94: GO
+95: CREATE TRIGGER dbo.TR_hk_defect_files_v1 ON dbo.inspection_defect_attachments AFTER INSERT,UPDATE AS
+96: BEGIN
+97:  SET NOCOUNT ON;
+98:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.inspection_defects d ON d.defect_id=i.defect_id JOIN dbo.attachments a ON a.attachment_id=i.attachment_id
+99:   WHERE a.entity_type<>'INSPECTION' OR a.entity_id<>d.inspection_id OR a.deleted_at IS NOT NULL)
+100:   THROW 51731,'Attachment must belong to this inspection.',1;
+101: END
+102: GO
+103: CREATE TRIGGER dbo.TR_hk_used_criteria_v1 ON dbo.inspection_checklist_items AFTER INSERT,UPDATE,DELETE AS
+104: BEGIN
+105:  SET NOCOUNT ON;
+106:  IF EXISTS(SELECT 1 FROM (SELECT version_id FROM inserted UNION SELECT version_id FROM deleted) v
+107:   JOIN dbo.room_inspections r WITH(HOLDLOCK) ON r.version_id=v.version_id WHERE r.workflow_status IS NOT NULL)
+108:   THROW 51731,'Assigned Housekeeping checklist criteria are immutable, including legacy templates.',1;
+109: END
+110: GO
+111: CREATE TRIGGER dbo.TR_hk_used_version_v1 ON dbo.inspection_checklist_versions AFTER UPDATE,DELETE AS
+112: BEGIN
+113:  SET NOCOUNT ON;
+114:  IF EXISTS(SELECT 1 FROM deleted d LEFT JOIN inserted i ON i.version_id=d.version_id
+115:   WHERE EXISTS(SELECT 1 FROM dbo.room_inspections r WITH(HOLDLOCK) WHERE r.version_id=d.version_id AND r.workflow_status IS NOT NULL)
+116:   AND (i.version_id IS NULL OR i.version_no<>d.version_no OR i.checklist_id<>d.checklist_id
+117:    OR ISNULL(i.effective_at,'19000101')<>ISNULL(d.effective_at,'19000101') OR ISNULL(i.published_by,0)<>ISNULL(d.published_by,0)
+118:    OR i.status<>d.status AND NOT(d.status='PUBLISHED' AND i.status='RETIRED')))
+119:   THROW 51731,'Assigned version content is immutable except retirement.',1;
+120: END
+121: GO
+122: CREATE TRIGGER dbo.TR_hk_result_files_v1 ON dbo.inspection_result_attachments AFTER INSERT,UPDATE AS
+123: BEGIN
+124:  SET NOCOUNT ON;
+125:  IF EXISTS(SELECT 1 FROM inserted i JOIN dbo.inspection_results r ON r.result_id=i.result_id JOIN dbo.attachments a ON a.attachment_id=i.attachment_id
+126:   WHERE a.entity_type<>'INSPECTION' OR a.entity_id<>r.inspection_id OR a.deleted_at IS NOT NULL)
+127:   THROW 51731,'Attachment must belong to this inspection.',1;
+128: END

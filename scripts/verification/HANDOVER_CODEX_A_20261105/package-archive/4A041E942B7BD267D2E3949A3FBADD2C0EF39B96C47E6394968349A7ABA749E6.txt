@@ -1,0 +1,260 @@
+﻿SOURCE: src/HotelOps.Api/Data/HotelOpsDbContext.cs
+SHA256: FBA0FE330B5C32A7D66D6112C23A5E003FD9DEB49097630A47D2C42373276BBD
+Ranges: 531-575,1712-1790,2176-2305 (original source line numbers)
+  531:         modelBuilder.Entity<Branch>(entity =>
+  532:         {
+  533:             entity.HasKey(e => e.BranchId).HasName("PK__branches__E55E37DEE9AE3269");
+  534: 
+  535:             entity.ToTable("branches");
+  536: 
+  537:             entity.HasIndex(e => e.BranchCode, "UQ__branches__A9F83E3BF9DD6797").IsUnique();
+  538: 
+  539:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+  540:             entity.Property(e => e.Address).HasColumnName("address");
+  541:             entity.Property(e => e.BranchCode)
+  542:                 .HasMaxLength(30)
+  543:                 .IsUnicode(false)
+  544:                 .HasColumnName("branch_code");
+  545:             entity.Property(e => e.BranchName)
+  546:                 .HasMaxLength(200)
+  547:                 .HasColumnName("branch_name");
+  548:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+  549:             entity.Property(e => e.Email)
+  550:                 .HasMaxLength(150)
+  551:                 .IsUnicode(false)
+  552:                 .HasColumnName("email");
+  553:             entity.Property(e => e.IsActive)
+  554:                 .HasDefaultValue(true)
+  555:                 .HasColumnName("is_active");
+  556:             entity.Property(e => e.Phone)
+  557:                 .HasMaxLength(20)
+  558:                 .IsUnicode(false)
+  559:                 .HasColumnName("phone");
+  560:             entity.Property(e => e.Timezone)
+  561:                 .HasMaxLength(60)
+  562:                 .IsUnicode(false)
+  563:                 .HasDefaultValue("Asia/Ho_Chi_Minh")
+  564:                 .HasColumnName("timezone");
+  565:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+  566:         });
+  567: 
+  568:         modelBuilder.Entity<CleaningAssignment>(entity =>
+  569:         {
+  570:             entity.HasKey(e => e.AssignmentId).HasName("PK__cleaning__DA89181490CF02ED");
+  571: 
+  572:             entity.ToTable("cleaning_assignments");
+  573: 
+  574:             entity.HasIndex(e => new { e.CleaningTaskId, e.AssignedAt }, "cleaning_assignments_index_8");
+  575: 
+
+ 1712:         modelBuilder.Entity<Notification>(entity =>
+ 1713:         {
+ 1714:             entity.HasKey(e => e.NotificationId).HasName("PK__notifica__E059842F0A16E308");
+ 1715: 
+ 1716:             entity.ToTable("notifications");
+ 1717: 
+ 1718:             entity.Property(e => e.NotificationId).HasColumnName("notification_id");
+ 1719:             entity.Property(e => e.ActionUrl).HasColumnName("action_url");
+ 1720:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+ 1721:             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+ 1722:             entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+ 1723:             entity.Property(e => e.Message).HasColumnName("message");
+ 1724:             entity.Property(e => e.NotificationType)
+ 1725:                 .HasMaxLength(60)
+ 1726:                 .IsUnicode(false)
+ 1727:                 .HasColumnName("notification_type");
+ 1728:             entity.Property(e => e.Priority)
+ 1729:                 .HasMaxLength(20)
+ 1730:                 .IsUnicode(false)
+ 1731:                 .HasDefaultValue("NORMAL")
+ 1732:                 .HasColumnName("priority");
+ 1733:             entity.Property(e => e.SourceId).HasColumnName("source_id");
+ 1734:             entity.Property(e => e.SourceType)
+ 1735:                 .HasMaxLength(60)
+ 1736:                 .IsUnicode(false)
+ 1737:                 .HasColumnName("source_type");
+ 1738:             entity.Property(e => e.Title)
+ 1739:                 .HasMaxLength(200)
+ 1740:                 .HasColumnName("title");
+ 1741: 
+ 1742:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Notifications)
+ 1743:                 .HasForeignKey(d => d.CreatedBy)
+ 1744:                 .HasConstraintName("FK_notifications_created_by");
+ 1745:         });
+ 1746: 
+ 1747:         modelBuilder.Entity<NotificationRecipient>(entity =>
+ 1748:         {
+ 1749:             entity.HasKey(e => e.RecipientId).HasName("PK__notifica__FA0A4027B0E0EB85");
+ 1750: 
+ 1751:             entity.ToTable("notification_recipients");
+ 1752: 
+ 1753:             entity.HasIndex(e => new { e.NotificationId, e.UserId, e.DeliveryChannel }, "notification_recipients_index_42").IsUnique();
+ 1754: 
+ 1755:             entity.HasIndex(e => new { e.UserId, e.ReadAt }, "notification_recipients_index_43");
+ 1756: 
+ 1757:             entity.Property(e => e.RecipientId).HasColumnName("recipient_id");
+ 1758:             entity.Property(e => e.DeliveredAt).HasColumnName("delivered_at");
+ 1759:             entity.Property(e => e.DeliveryChannel)
+ 1760:                 .HasMaxLength(30)
+ 1761:                 .IsUnicode(false)
+ 1762:                 .HasDefaultValue("IN_APP")
+ 1763:                 .HasColumnName("delivery_channel");
+ 1764:             entity.Property(e => e.DeliveryStatus)
+ 1765:                 .HasMaxLength(30)
+ 1766:                 .IsUnicode(false)
+ 1767:                 .HasDefaultValue("PENDING")
+ 1768:                 .HasColumnName("delivery_status");
+ 1769:             entity.Property(e => e.DismissedAt).HasColumnName("dismissed_at");
+ 1770:             entity.Property(e => e.FailureReason).HasColumnName("failure_reason");
+ 1771:             entity.Property(e => e.NotificationId).HasColumnName("notification_id");
+ 1772:             entity.Property(e => e.ReadAt).HasColumnName("read_at");
+ 1773:             entity.Property(e => e.UserId).HasColumnName("user_id");
+ 1774: 
+ 1775:             entity.HasOne(d => d.Notification).WithMany(p => p.NotificationRecipients)
+ 1776:                 .HasForeignKey(d => d.NotificationId)
+ 1777:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 1778:                 .HasConstraintName("FK_notification_recipients_notification_id");
+ 1779: 
+ 1780:             entity.HasOne(d => d.User).WithMany(p => p.NotificationRecipients)
+ 1781:                 .HasForeignKey(d => d.UserId)
+ 1782:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 1783:                 .HasConstraintName("FK_notification_recipients_user_id");
+ 1784:         });
+ 1785: 
+ 1786:         modelBuilder.Entity<OperationalTask>(entity =>
+ 1787:         {
+ 1788:             entity.HasKey(e => e.TaskId).HasName("PK__operatio__0492148D3F873A8D");
+ 1789: 
+ 1790:             entity.ToTable("operational_tasks");
+
+ 2176:         modelBuilder.Entity<Room>(entity =>
+ 2177:         {
+ 2178:             entity.HasKey(e => e.RoomId).HasName("PK__rooms__19675A8A2A0F0C24");
+ 2179: 
+ 2180:             entity.ToTable("rooms");
+ 2181: 
+ 2182:             entity.HasIndex(e => new { e.BranchId, e.RoomNumber }, "rooms_index_2").IsUnique();
+ 2183: 
+ 2184:             entity.HasIndex(e => new { e.BranchId, e.OperationalStatus }, "rooms_index_3");
+ 2185: 
+ 2186:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+ 2187:             entity.Property(e => e.AreaId).HasColumnName("area_id");
+ 2188:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+ 2189:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+ 2190:             entity.Property(e => e.Description).HasColumnName("description");
+ 2191:             entity.Property(e => e.FloorId).HasColumnName("floor_id");
+ 2192:             entity.Property(e => e.IsActive)
+ 2193:                 .HasDefaultValue(true)
+ 2194:                 .HasColumnName("is_active");
+ 2195:             entity.Property(e => e.OperationalStatus)
+ 2196:                 .HasMaxLength(40)
+ 2197:                 .IsUnicode(false)
+ 2198:                 .HasDefaultValue("AVAILABLE")
+ 2199:                 .HasColumnName("operational_status");
+ 2200:             entity.Property(e => e.RoomNumber)
+ 2201:                 .HasMaxLength(30)
+ 2202:                 .IsUnicode(false)
+ 2203:                 .HasColumnName("room_number");
+ 2204:             entity.Property(e => e.RoomTypeId).HasColumnName("room_type_id");
+ 2205:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+ 2206: 
+ 2207:             entity.HasOne(d => d.Area).WithMany(p => p.Rooms)
+ 2208:                 .HasForeignKey(d => d.AreaId)
+ 2209:                 .HasConstraintName("FK_rooms_area_id");
+ 2210: 
+ 2211:             entity.HasOne(d => d.Branch).WithMany(p => p.Rooms)
+ 2212:                 .HasForeignKey(d => d.BranchId)
+ 2213:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 2214:                 .HasConstraintName("FK_rooms_branch_id");
+ 2215: 
+ 2216:             entity.HasOne(d => d.Floor).WithMany(p => p.Rooms)
+ 2217:                 .HasForeignKey(d => d.FloorId)
+ 2218:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 2219:                 .HasConstraintName("FK_rooms_floor_id");
+ 2220: 
+ 2221:             entity.HasOne(d => d.RoomType).WithMany(p => p.Rooms)
+ 2222:                 .HasForeignKey(d => d.RoomTypeId)
+ 2223:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 2224:                 .HasConstraintName("FK_rooms_room_type_id");
+ 2225:         });
+ 2226: 
+ 2227:         modelBuilder.Entity<RoomBlock>(entity =>
+ 2228:         {
+ 2229:             entity.HasKey(e => e.BlockId).HasName("PK__room_blo__A67E647D4FE07846");
+ 2230: 
+ 2231:             entity.ToTable("room_blocks");
+ 2232: 
+ 2233:             entity.Property(e => e.BlockId).HasColumnName("block_id");
+ 2234:             entity.Property(e => e.BlockedAt).HasColumnName("blocked_at");
+ 2235:             entity.Property(e => e.BlockedBy).HasColumnName("blocked_by");
+ 2236:             entity.Property(e => e.ExpectedReleaseAt).HasColumnName("expected_release_at");
+ 2237:             entity.Property(e => e.IncidentId).HasColumnName("incident_id");
+ 2238:             entity.Property(e => e.Reason).HasColumnName("reason");
+ 2239:             entity.Property(e => e.ReleaseNote).HasColumnName("release_note");
+ 2240:             entity.Property(e => e.ReleasedAt).HasColumnName("released_at");
+ 2241:             entity.Property(e => e.ReleasedBy).HasColumnName("released_by");
+ 2242:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+ 2243: 
+ 2244:             entity.HasOne(d => d.BlockedByNavigation).WithMany(p => p.RoomBlockBlockedByNavigations)
+ 2245:                 .HasForeignKey(d => d.BlockedBy)
+ 2246:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 2247:                 .HasConstraintName("FK_room_blocks_blocked_by");
+ 2248: 
+ 2249:             entity.HasOne(d => d.Incident).WithMany(p => p.RoomBlocks)
+ 2250:                 .HasForeignKey(d => d.IncidentId)
+ 2251:                 .HasConstraintName("FK_room_blocks_incident_id");
+ 2252: 
+ 2253:             entity.HasOne(d => d.ReleasedByNavigation).WithMany(p => p.RoomBlockReleasedByNavigations)
+ 2254:                 .HasForeignKey(d => d.ReleasedBy)
+ 2255:                 .HasConstraintName("FK_room_blocks_released_by");
+ 2256: 
+ 2257:             entity.HasOne(d => d.Room).WithMany(p => p.RoomBlocks)
+ 2258:                 .HasForeignKey(d => d.RoomId)
+ 2259:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 2260:                 .HasConstraintName("FK_room_blocks_room_id");
+ 2261:         });
+ 2262: 
+ 2263:         modelBuilder.Entity<RoomInspection>(entity =>
+ 2264:         {
+ 2265:             entity.HasKey(e => e.InspectionId).HasName("PK__room_ins__C3C4E743175BCB02");
+ 2266: 
+ 2267:             entity.ToTable("room_inspections");
+ 2268: 
+ 2269:             entity.HasIndex(e => e.InspectionNo, "UQ__room_ins__C3E020912494CB5B").IsUnique();
+ 2270: 
+ 2271:             entity.HasIndex(e => new { e.RoomId, e.InspectedAt }, "room_inspections_index_12");
+ 2272: 
+ 2273:             entity.Property(e => e.InspectionId).HasColumnName("inspection_id");
+ 2274:             entity.Property(e => e.CleaningTaskId).HasColumnName("cleaning_task_id");
+ 2275:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+ 2276:             entity.Property(e => e.InspectedAt).HasColumnName("inspected_at");
+ 2277:             entity.Property(e => e.InspectionNo)
+ 2278:                 .HasMaxLength(40)
+ 2279:                 .IsUnicode(false)
+ 2280:                 .HasColumnName("inspection_no");
+ 2281:             entity.Property(e => e.InspectorUserId).HasColumnName("inspector_user_id");
+ 2282:             entity.Property(e => e.Result)
+ 2283:                 .HasMaxLength(30)
+ 2284:                 .IsUnicode(false)
+ 2285:                 .HasColumnName("result");
+ 2286:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+ 2287:             entity.Property(e => e.ScheduledAt).HasColumnName("scheduled_at");
+ 2288:             entity.Property(e => e.Status)
+ 2289:                 .HasMaxLength(30)
+ 2290:                 .IsUnicode(false)
+ 2291:                 .HasDefaultValue("PENDING")
+ 2292:                 .HasColumnName("status");
+ 2293:             entity.Property(e => e.SummaryNote).HasColumnName("summary_note");
+ 2294:             entity.Property(e => e.VersionId).HasColumnName("version_id");
+ 2295: 
+ 2296:             entity.HasOne(d => d.CleaningTask).WithMany(p => p.RoomInspections)
+ 2297:                 .HasForeignKey(d => d.CleaningTaskId)
+ 2298:                 .HasConstraintName("FK_room_inspections_cleaning_task_id");
+ 2299: 
+ 2300:             entity.HasOne(d => d.InspectorUser).WithMany(p => p.RoomInspections)
+ 2301:                 .HasForeignKey(d => d.InspectorUserId)
+ 2302:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 2303:                 .HasConstraintName("FK_room_inspections_inspector_user_id");
+ 2304: 
+ 2305:             entity.HasOne(d => d.Room).WithMany(p => p.RoomInspections)
+

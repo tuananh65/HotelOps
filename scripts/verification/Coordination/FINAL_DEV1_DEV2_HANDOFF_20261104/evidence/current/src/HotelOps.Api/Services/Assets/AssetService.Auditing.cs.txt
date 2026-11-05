@@ -1,0 +1,18 @@
+5: namespace HotelOps.Api.Services.Assets;
+6: 
+7: public sealed partial class AssetService
+8: {
+9:     private static Dictionary<string, object?> Snapshot(Asset a) => new()
+10:     {
+14:         ["purchase_date"] = a.PurchaseDate, ["warranty_expiry_date"] = a.WarrantyExpiryDate,
+15:         ["acquisition_cost"] = a.AcquisitionCost, ["description"] = a.Description,
+16:         ["condition_status"] = a.ConditionStatus, ["lifecycle_status"] = a.LifecycleStatus,
+17:         ["current_room_id"] = a.CurrentRoomId, ["current_area_id"] = a.CurrentAreaId,
+18:         ["current_department_id"] = a.CurrentDepartmentId, ["custodian_user_id"] = a.CustodianUserId,
+19:         ["created_at"] = a.CreatedAt, ["updated_at"] = a.UpdatedAt
+33:         _dbContext.AuditLogs.Add(new AuditLog
+34:         {
+35:             BranchId = asset.BranchId, ActorUserId = actor, EntityType = entityType,
+36:             EntityId = id.ToString(CultureInfo.InvariantCulture),
+37:             Action = before is null ? "CREATE" : "UPDATE",
+38:             OldValues = before is null ? null : JsonSerializer.Serialize(before),

@@ -1,0 +1,45 @@
+using HotelOps.Api.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Data;
+
+public partial class HotelOpsDbContext
+{
+    public DbSet<RoomTypeBranchV1> BranchRoomTypes => Set<RoomTypeBranchV1>();
+
+    partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
+    {
+        // SQL triggers enforce scoped assignments after deployment. This also works
+        // before deployment and prevents SQL334 from EF's bare OUTPUT on rooms.
+        modelBuilder.Entity<Room>().ToTable("rooms", table => table.UseSqlOutputClause(false));
+        modelBuilder.Entity<RoomType>().ToTable("room_types", table => table.UseSqlOutputClause(false));
+        var legacy = modelBuilder.Entity<RoomType>();
+        legacy.Metadata.RemoveIndex(legacy.Metadata.FindIndex("UQ__room_typ__2CB4DBF5CD9B49E6")!);
+
+        modelBuilder.Entity<RoomTypeBranchV1>(entity =>
+        {
+            // SQL table mapped as a read-only view: legacy contexts do not select or
+            // INSERT new columns, and V1 consumers explicitly opt into this projection.
+            entity.ToView("room_types");
+            entity.HasKey(x => x.RoomTypeId).HasName("PK__room_typ__42395E848D05FB98");
+            entity.Property(x => x.RoomTypeId).HasColumnName("room_type_id");
+            entity.Property(x => x.TypeCode).HasColumnName("type_code").HasMaxLength(30).IsUnicode(false);
+            entity.Property(x => x.TypeName).HasColumnName("type_name").HasMaxLength(150);
+            entity.Property(x => x.Description).HasColumnName("description");
+            entity.Property(x => x.StandardCapacity).HasColumnName("standard_capacity");
+            entity.Property(x => x.IsActive).HasColumnName("is_active").HasDefaultValue(true);
+            entity.Property(x => x.BranchId).HasColumnName("branch_id");
+            entity.Property(x => x.StandardCleaningMinutes).HasColumnName("standard_cleaning_minutes");
+            entity.Property(x => x.DefaultChecklistId).HasColumnName("default_checklist_id");
+            entity.HasIndex(x => new { x.BranchId, x.TypeCode }, "UX_room_types_branch_code")
+                .IsUnique().HasFilter("[branch_id] IS NOT NULL");
+            entity.HasIndex(x => x.TypeCode, "UX_room_types_legacy_code")
+                .IsUnique().HasFilter("[branch_id] IS NULL");
+            entity.HasIndex(x => x.DefaultChecklistId, "IX_room_types_default_checklist_v1");
+            entity.HasOne(x => x.Branch).WithMany().HasForeignKey(x => x.BranchId)
+                .OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_room_types_branch_v1");
+            entity.HasOne(x => x.DefaultChecklist).WithMany().HasForeignKey(x => x.DefaultChecklistId)
+                .OnDelete(DeleteBehavior.ClientSetNull).HasConstraintName("FK_room_types_default_checklist_v1");
+        });
+    }
+}

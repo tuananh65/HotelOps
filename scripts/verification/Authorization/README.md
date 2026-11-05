@@ -1,5 +1,7 @@
 # Task04 — Permission Authorization infrastructure
 
+> Task 16 (03/11/2026): registration hiện cấu hình fallback yêu cầu HotelOps cookie authentication. `DefaultPolicy` không đổi; provider kế thừa default/fallback lookup. Chạy thêm `dotnet run --project scripts/verification/Authorization/Authorization.Verification.csproj -- --production-fallback` để kiểm tra fallback thật, public readiness/CSRF/OpenAPI và session/CSRF regressions. Kết quả, phân loại public endpoints và giới hạn nằm tại [FallbackAuthorization](../FallbackAuthorization/README.md). Chế độ không có flag vẫn kiểm tra caller override fallback có claim bổ sung.
+
 > Task08: live SQL dùng ConnectionStrings:AuthorizationReadOnly (User Secrets ID HotelOps.Authorization.Verification hoặc env), không fallback HotelOpsDb. Credential có write/DDL sẽ bị từ chối. Xem [setup hiện tại](../AuthorizationHardening/TEST_ENVIRONMENT_SETUP.md); các kết quả --live bên dưới là lịch sử cho tới khi có principal read-only hợp lệ.
 
 ## Production contracts

@@ -1,0 +1,24 @@
+4: namespace HotelOps.Api.Services.Authentication;
+5: 
+6: public interface IAuthenticationLoginService
+7: {
+8:     // Owns its transaction. Success is returned ONLY after commit; never retry automatically.
+9:     Task<LoginResult> LoginAsync(LoginRequest request, CancellationToken cancellationToken = default);
+10:     Task<CurrentSession?> GetSessionAsync(SessionReference reference, long sessionId, CancellationToken cancellationToken = default);
+11: }
+12: 
+13: public enum LoginStatus { InvalidCredentials, Locked, TemporaryExpired, Succeeded }
+14: 
+15: /// <summary>Service integration result, never an HTTP response DTO.</summary>
+16: public sealed class LoginResult(LoginStatus status, AuthUserDto? user = null,
+17:     CreatedSqlSession? createdSession = null, DateTime? lockedUntil = null)
+18: {
+19:     public LoginStatus Status { get; } = status;
+20:     public AuthUserDto? User { get; } = user;
+21:     [JsonIgnore] public CreatedSqlSession? CreatedSession { get; } = createdSession;
+22:     public DateTime? LockedUntil { get; } = lockedUntil;
+23:     public override string ToString() => "[Login result: authentication material redacted]";
+24: }
+25: 
+26: public sealed record CurrentSession(AuthUserDto User, SessionSnapshot Session);
+27: 

@@ -1,0 +1,30 @@
+5: /// This first adapter supports IN_PROGRESS execution scope, not start/resume transitions.
+6: /// </summary>
+7: public sealed class CleaningTaskResourceResolver(ICleaningTaskAccessReader reader, TimeProvider clock)
+8:     : IPermissionResourceResolver
+9: {
+10:     public const string ResourceType = "cleaning_task";
+11:     public const string PermissionCode = "CLEANING_EXECUTE";
+12: 
+13:     public async Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode, PermissionResource resource,
+14:         long currentUserId, CancellationToken cancellationToken)
+15:     {
+16:         cancellationToken.ThrowIfCancellationRequested();
+17:         if (resource is null || resource.ResourceId <= 0 || currentUserId <= 0
+18:             || resource.ResourceType != ResourceType || permissionCode != PermissionCode) return null;
+19: 
+20:         var task = await reader.ReadAsync(resource.ResourceId, cancellationToken);
+21:         if (task is null || task.BranchId <= 0 || !task.RoomActive || task.TaskStatus != "IN_PROGRESS") return null;
+22: 
+23:         var now = clock.GetUtcNow().UtcDateTime;
+24:         var assignments = task.Assignments.Where(a => a.Status == "ACTIVE"
+25:             && a.EndedAt is null && a.AssignedAt <= now).Take(2).ToArray();
+26:         // There is no unique-current-assignee constraint: ambiguous data fails closed.
+27:         if (assignments.Length != 1 || assignments[0].UserId != currentUserId) return null;
+28: 
+29:         // Being current assignee is intrinsic to this permission/resource pair, even for an ALL grant.
+30:         // Role/grant/branch isolation is still evaluated separately by PermissionService.
+31:         return new VerifiedPermissionResource(task.BranchId, HasOwnership: true);
+32:     }
+33: }
+34: 

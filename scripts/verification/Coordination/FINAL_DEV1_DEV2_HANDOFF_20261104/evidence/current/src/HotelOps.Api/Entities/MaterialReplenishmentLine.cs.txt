@@ -1,0 +1,46 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialReplenishmentLine
+7: {
+8:     public long ReplenishmentLineId { get; set; }
+9: 
+10:     public long ReplenishmentId { get; set; }
+11: 
+12:     public long WarehouseId { get; set; }
+13: 
+14:     public int LineNo { get; set; }
+15: 
+16:     public long ItemId { get; set; }
+17: 
+18:     public long BaseUomId { get; set; }
+19: 
+20:     public decimal RequestedBaseQty { get; set; }
+21: 
+22:     public decimal ReceivedBaseQty { get; set; }
+23: 
+24:     public string SourceType { get; set; } = null!;
+25: 
+26:     public long? SourceThresholdId { get; set; }
+27: 
+28:     public long? SourceMaterialRequestLineId { get; set; }
+29: 
+30:     public bool IsOpenCoverage { get; set; }
+31: 
+32:     public string? Note { get; set; }
+33: 
+34:     public virtual UnitsOfMeasure BaseUom { get; set; } = null!;
+35: 
+36:     public virtual InventoryItem Item { get; set; } = null!;
+37: 
+38:     public virtual MaterialReplenishment MaterialReplenishment { get; set; } = null!;
+39: 
+40:     public virtual ICollection<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; } = new List<MaterialReplenishmentReceiptLine>();
+41: 
+42:     public virtual MaterialRequestLine? SourceMaterialRequestLine { get; set; }
+43: 
+44:     public virtual StockThreshold? SourceThreshold { get; set; }
+45: }
+46: 

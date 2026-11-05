@@ -1,0 +1,30 @@
+﻿{
+    "recordedUtc":  "2026-11-04T16:51:39.8700536Z",
+    "refs":  [
+                 {
+                     "ref":  "origin/feature/DEV2-deactivation-writer-coordination-clean",
+                     "commit":  "01bceb80b8589bba81b2318b3e679021bc13f641",
+                     "isAncestorOfCurrentHead":  true,
+                     "meaning":  "Existing local remote-tracking ref; responsibility coordination is not proof of new Branch Active/Notification/PM contracts"
+                 },
+                 {
+                     "ref":  "origin/feature/DEV2-deactivation-writer-coordination",
+                     "commit":  "1a63e8e0a49f8482069eb64087412e570a57d65d",
+                     "isAncestorOfCurrentHead":  false,
+                     "meaning":  "Existing local remote-tracking ref; responsibility coordination is not proof of new Branch Active/Notification/PM contracts"
+                 },
+                 {
+                     "ref":  "origin/feature/DEV2-maintenance-returnwork-coordination",
+                     "commit":  "51df1c9dbf0f6dc7df65d93ecff2525a6b5b3b20",
+                     "isAncestorOfCurrentHead":  true,
+                     "meaning":  "Existing local remote-tracking ref; responsibility coordination is not proof of new Branch Active/Notification/PM contracts"
+                 }
+             ],
+    "remoteContacted":  false,
+    "noPublisherSourceFoundInInspectedProductionTrees":  true,
+    "draftBlob":  "dc5ceb10121f752351e56e4b7150277c96271e1c",
+    "draftBlobLocallyAvailable":  false,
+    "acceptedA01SourcePath":  "NOT_FOUND_IN_INSPECTED_WORKTREES_AND_LOCAL_REFS",
+    "externalDecisionOriginals":  "NOT_FOUND; current COORD-FINAL-01 explicitly authorizes business decisions",
+    "boundedSearch":  "src in five registered worktrees and paths in existing Git object refs; no fetch; no assertion about DEV2 external machine"
+}

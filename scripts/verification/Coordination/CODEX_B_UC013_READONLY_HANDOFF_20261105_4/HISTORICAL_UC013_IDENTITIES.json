@@ -1,0 +1,178 @@
+﻿[
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs",
+        "commit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "gitBlob":  "1130dd0acf655c7a96f21d6eb04b4869a8019858",
+        "existsInCurrentMain":  false,
+        "symbols":  [
+                        {
+                            "line":  17,
+                            "signatureLine":  "public sealed class BranchStructureService(HotelOpsDbContext db, ICurrentUserAccessor current,"
+                        },
+                        {
+                            "line":  20,
+                            "signatureLine":  "public async Task\u003cBranchStructureResult\u003e ReadAsync(SessionReference ticket, long branchId,"
+                        },
+                        {
+                            "line":  42,
+                            "signatureLine":  "// The user-approved ROOM_VIEW V1 path covers physical structure only."
+                        },
+                        {
+                            "line":  131,
+                            "signatureLine":  "async Task\u003c(PermissionEvaluation Decision, bool Management)\u003e Authorize()"
+                        },
+                        {
+                            "line":  133,
+                            "signatureLine":  "var global = await permissions.EvaluateGlobalAsync(\"MASTER_DATA_MANAGE\", ct);"
+                        },
+                        {
+                            "line":  135,
+                            "signatureLine":  "var scoped = await permissions.EvaluateBranchAsync(\"MASTER_DATA_MANAGE\", branchId, ct);"
+                        },
+                        {
+                            "line":  138,
+                            "signatureLine":  "return (await permissions.EvaluateBranchAsync(\"ROOM_VIEW\", branchId, ct), false);"
+                        }
+                    ],
+        "scope":  "IMMUTABLE_HISTORICAL_ONLY_NOT_RESTORED"
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/BranchStructureController.cs",
+        "commit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "gitBlob":  "7a1c9c8cb076b805633ea56bbf49c41ea473857a",
+        "existsInCurrentMain":  false,
+        "symbols":  [
+                        {
+                            "line":  14,
+                            "signatureLine":  "public sealed class BranchStructureController(BranchStructureService structures) : ControllerBase"
+                        },
+                        {
+                            "line":  17,
+                            "signatureLine":  "public async Task\u003cIActionResult\u003e Get([FromRoute, Range(1, long.MaxValue)] long branchId,"
+                        }
+                    ],
+        "scope":  "IMMUTABLE_HISTORICAL_ONLY_NOT_RESTORED"
+    },
+    {
+        "path":  "scripts/verification/HotelStructure/TASK64_UC013_IMPLEMENTATION.md",
+        "commit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "gitBlob":  "f0bc0b412cbfa8922ae8b8cf87cf13668f2fe6ee",
+        "existsInCurrentMain":  false,
+        "symbols":  [
+                        {
+                            "line":  17,
+                            "signatureLine":  "**Explicit developer decision, recorded ASSUMED_V1:** ROOM_VIEW independently permits **basic physical"
+                        },
+                        {
+                            "line":  19,
+                            "signatureLine":  "or administrative data. MASTER_DATA_MANAGE independently permits management viewing, including"
+                        },
+                        {
+                            "line":  22,
+                            "signatureLine":  "visibility to the physical scope the developer approved, rather than silently expanding ROOM_VIEW."
+                        },
+                        {
+                            "line":  26,
+                            "signatureLine":  "| Actor and authority | Protected cookie ticket + CurrentUserAccessor + initial/final SQL session checks. Existing PermissionService evaluates MASTER_DATA_MANAGE global/branch, then ROOM_VIEW branch if management is denied; unavailable authority never falls back to a weaker path. No role-name bypass |"
+                        },
+                        {
+                            "line":  118,
+                            "signatureLine":  "| HTTPS authorization | Anonymous401; no/ineffective/restricted grant403; actual Operations Manager ROOM_VIEW BRANCH/basic200, bound management200, independent room viewer200; cross-branch403; global management200. Role names never grant authority |"
+                        },
+                        {
+                            "line":  124,
+                            "signatureLine":  "| Time expiry | Assignment expires while page waits: report withheld403. Management expires with ROOM_VIEW surviving: current report withheld403; next request basic only, no description |"
+                        }
+                    ],
+        "scope":  "IMMUTABLE_HISTORICAL_ONLY_NOT_RESTORED"
+    },
+    {
+        "path":  "scripts/verification/HotelStructure/task64-accepted-final2.local.json",
+        "commit":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "gitBlob":  "8366ce11a466e96d0927e1464d6a795a409abff2",
+        "existsInCurrentMain":  false,
+        "symbols":  [
+                        {
+                            "line":  19,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: viewer (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  20,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: viewer: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  23,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: denied (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  24,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: denied: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  27,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: owner (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  28,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: owner: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  31,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: restricted (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  32,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: restricted: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  35,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: inactiveAssignment (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  36,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: inactiveAssignment: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  39,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: expiredAssignment (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  40,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: expiredAssignment: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  43,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: futureAssignment (expected 403, actual 403)\","
+                        },
+                        {
+                            "line":  44,
+                            "signatureLine":  "\"no effective MASTER_DATA_MANAGE: futureAssignment: no security/provider disclosure\","
+                        },
+                        {
+                            "line":  247,
+                            "signatureLine":  "\"UC013 ROOM_VIEW BRANCH cannot cross branches (403)\","
+                        },
+                        {
+                            "line":  260,
+                            "signatureLine":  "\"UC013 ROOM_VIEW exposes physical fields only, no administrative descriptions/departments\","
+                        },
+                        {
+                            "line":  281,
+                            "signatureLine":  "\"UC013 ROOM_VIEW inactive branch remains denied by existing evaluator (403)\","
+                        },
+                        {
+                            "line":  333,
+                            "signatureLine":  "\"UC013 ROOM_VIEW cannot read administrative department collection (403)\","
+                        },
+                        {
+                            "line":  334,
+                            "signatureLine":  "\"UC013 ROOM_VIEW cannot read administrative department details (403)\","
+                        },
+                        {
+                            "line":  366,
+                            "signatureLine":  "\"UC013 surviving ROOM_VIEW grants basic data only after management expiry\","
+                        }
+                    ],
+        "scope":  "IMMUTABLE_HISTORICAL_ONLY_NOT_RESTORED"
+    }
+]

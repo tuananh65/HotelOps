@@ -1,0 +1,12 @@
+1: namespace HotelOps.Api.Services.Inventory;
+2: 
+3: public sealed record InventoryIssueCapacity(long StockDocumentLineId, decimal IssuedBaseQty, decimal ConsumedBaseQty, decimal ReturnedBaseQty)
+4: {
+5:     public decimal RemainingBaseQty => IssuedBaseQty - ConsumedBaseQty - ReturnedBaseQty;
+6: }
+7: 
+8: // Same scoped DbContext/transaction as caller. Never begins/commits/rolls back.
+9: public interface IInventoryIssueCapacity
+10: {
+11:     Task AcquireCatalog(CancellationToken ct);
+12:     Task LockSourceDocuments(IReadOnlyCollection<long> lineIds, CancellationToken ct);

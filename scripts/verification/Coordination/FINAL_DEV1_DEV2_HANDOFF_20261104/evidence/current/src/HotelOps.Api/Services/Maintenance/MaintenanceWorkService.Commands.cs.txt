@@ -1,0 +1,127 @@
+6: namespace HotelOps.Api.Services.Maintenance;
+7: 
+8: public sealed partial class MaintenanceWorkService
+9: {
+10:     public Task<MaintenanceWorkDetailDto?> AssignWorkAsync(long id,
+11:         AssignMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
+12:         ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+13:         {
+14:             RequireState(work, "PENDING");
+15:             var end = request.PlannedEndAt ?? work.PlannedEndAt;
+16:             ValidatePlannedTimes(work.PlannedStartAt, end);
+17:             work.AssigneeId = request.AssigneeId;
+18:             if (request.Instruction is not null)
+19:                 work.Instruction = request.Instruction;
+20:             work.PlannedEndAt = end;
+21:             return Task.CompletedTask;
+22:         }, cancellationToken, prepareOwners: token =>
+23:             new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.AssigneeId, token));
+24: 
+25:     private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveAsync(long id,
+26:         MaintenanceActorRequest request, string? incidentNote,
+27:         Func<MaintenanceWork, Incident, DateTime, CancellationToken, Task> operation,
+28:         CancellationToken cancellationToken, Func<CancellationToken, Task>? prepareOwners = null,
+29:         bool restoreAssigneeResponsibility = false)
+30:     {
+31:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+32:         var discovered = await _dbContext.MaintenanceWorks.AsNoTracking()
+33:             .Where(work => work.MaintenanceWorkId == id)
+34:             .Select(work => new { work.MaintenanceWorkId, work.IncidentId, work.AssigneeId, work.Status })
+35:             .SingleOrDefaultAsync(cancellationToken);
+36:         if (discovered is null)
+37:             return null;
+39:             throw new ValidationException("This action requires a corrective work linked to an incident.");
+40: 
+41:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+42:         if (restoreAssigneeResponsibility)
+43:         {
+44:             if (discovered.AssigneeId is not long assigneeId)
+45:                 throw new ValidationException("Returning work requires a current assignee.");
+46:             await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext)
+47:                 .RequireEligibleAsync(assigneeId, cancellationToken);
+48:         }
+49:         if (prepareOwners is not null) await prepareOwners(cancellationToken);
+50:         // Responsibility User locks, when required, precede Incident -> MaintenanceWork.
+52:         var incident = await LockIncidentAsync(incidentId, cancellationToken);
+53:         var work = await _dbContext.MaintenanceWorks
+54:             .FromSqlInterpolated($"SELECT * FROM maintenance_works WITH (UPDLOCK, HOLDLOCK) WHERE maintenance_work_id = {id}")
+55:             .AsTracking().SingleOrDefaultAsync(cancellationToken);
+56:         if (work is null)
+57:             return null;
+61:         if (incident is null || work.IncidentId != incidentId)
+62:             throw new ValidationException("The corrective work relationship changed. Reload before retrying.");
+63:         if (restoreAssigneeResponsibility &&
+64:             (work.AssigneeId != discovered.AssigneeId || work.Status != discovered.Status))
+65:             throw new ValidationException("The maintenance assignee or state changed after discovery. Reload before retrying.");
+66:         RequireSynchronizedPair(work, incident);
+67:         await RequireUserAsync(request.ActorUserId, "ActorUserId", cancellationToken);
+68: 
+69:         var beforeWork = WorkSnapshot(work);
+70:         var beforeIncident = IncidentSnapshot(incident);
+71:         var previousStatus = incident.Status;
+72:         var now = DateTime.UtcNow;
+73:         await operation(work, incident, now, cancellationToken);
+74:         AddAudit("maintenance_works", id, incident.BranchId, request.ActorUserId,
+75:             now, beforeWork, WorkSnapshot(work));
+76:         if (incident.Status != previousStatus)
+77:         {
+78:             _dbContext.IncidentEvents.Add(new IncidentEvent
+79:             {
+80:                 IncidentId = incident.IncidentId,
+81:                 EventType = "STATUS_CHANGED",
+82:                 FromStatus = previousStatus,
+83:                 ToStatus = incident.Status,
+84:                 ActorId = request.ActorUserId,
+85:                 Note = incidentNote,
+86:                 OccurredAt = now
+87:             });
+88:             AddAudit("incidents", incident.IncidentId, incident.BranchId, request.ActorUserId,
+89:                 now, beforeIncident, IncidentSnapshot(incident));
+90:         }
+91: 
+92:         if (_dbContext.ChangeTracker.HasChanges())
+93:             await _dbContext.SaveChangesAsync(cancellationToken);
+94:         var result = await RequireDetailAsync(id, cancellationToken);
+95:         await transaction.CommitAsync(cancellationToken);
+96:         return result;
+97:     }
+98: 
+99:     private static void RequireSynchronizedPair(MaintenanceWork work, Incident incident)
+100:     {
+101:         var expected = work.Status switch
+102:         {
+103:             "PENDING" => "OPEN",
+104:             "IN_PROGRESS" or "ON_HOLD" => "IN_PROGRESS",
+108:             _ => null
+109:         };
+110:         if (expected is null || incident.Status != expected)
+111:             throw new ValidationException("Maintenance and Incident statuses are inconsistent. No automatic repair is performed.");
+112:     }
+113: 
+114:     private static void RequireState(MaintenanceWork work, params string[] allowed)
+115:     {
+116:         if (!allowed.Contains(work.Status))
+117:             throw new ValidationException("This action is not allowed in the current maintenance status.");
+118:     }
+119: 
+120:     private static void RequireAssignee(MaintenanceWork work, long actorId)
+121:     {
+122:         if (work.AssigneeId is null || work.AssigneeId != actorId)
+123:             throw new ValidationException("Only the current assignee can perform this action.");
+124:     }
+125: 
+126:     private Task<Incident?> LockIncidentAsync(long id, CancellationToken cancellationToken) =>
+127:         _dbContext.Incidents
+128:             .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
+129:             .AsTracking().SingleOrDefaultAsync(cancellationToken);
+130: 
+131:     private async Task RequireUserAsync(long id, string field, CancellationToken cancellationToken)
+132:     {
+133:         if (!await _dbContext.Users.AsNoTracking().AnyAsync(user => user.UserId == id, cancellationToken))
+134:             throw new ValidationException(field + " does not exist.");
+141:     }
+142: 
+143:     private async Task<MaintenanceWorkDetailDto> RequireDetailAsync(long id, CancellationToken cancellationToken) =>
+144:         await GetWorkAsync(id, cancellationToken)
+145:         ?? throw new InvalidOperationException("Maintenance work could not be read.");
+146: }

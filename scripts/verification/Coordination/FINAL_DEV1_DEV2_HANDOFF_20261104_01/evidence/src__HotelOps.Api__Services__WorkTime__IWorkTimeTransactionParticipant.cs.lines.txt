@@ -1,0 +1,28 @@
+﻿SOURCE: src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs
+SHA256: FF148586AE64FD9090B8E802D629435C1EAD486908FFCBDD3DD7BA24A2B6C2FB
+Ranges: 1-100 (original source line numbers)
+    1: namespace HotelOps.Api.Services.WorkTime;
+    2: 
+    3: // REVIEW PROPOSAL. Trusted backend calls only; never model-bind these records from HTTP.
+    4: public sealed record WorkTimeOperation(long ActorUserId, long OwnerUserId, long BranchId,
+    5:     string WorkItemKind, long WorkItemId);
+    6: public sealed record WorkTimeIntervalResult(long IntervalId, long WorkdayId, DateTime OpenedAtUtc,
+    7:     DateTime? ClosedAtUtc, byte[] RowVersion);
+    8: 
+    9: public interface IWorkTimeTransactionParticipant
+   10: {
+   11:     // Caller begins SAME scoped HotelOpsDbContext transaction before this call.
+   12:     // Must precede all location/feature locks. Locks actor/owners in ascending ID order;
+   13:     // reads fresh eligibility; action-specific eligibility/time checks follow under those locks.
+   14:     // Result/error codes and authorization responsibilities are specified in DEV2 contract.
+   15:     Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken);
+   16: 
+   17:     // Caller must hold time/user locks, then lock and re-read authoritative source/owner/branch,
+   18:     // authorize source action and validate transition BEFORE invoking these methods.
+   19:     // Methods recheck time invariants and require the user set locked by this participant.
+   20:     // No caller timestamps, implicit commit, independent connection, queue, or HTTP callback.
+   21:     Task<WorkTimeIntervalResult> OpenIntervalAsync(WorkTimeOperation operation, CancellationToken cancellationToken);
+   22:     Task<WorkTimeIntervalResult> CloseIntervalAsync(WorkTimeOperation operation, long intervalId,
+   23:         byte[] expectedRowVersion, CancellationToken cancellationToken);
+   24: }
+

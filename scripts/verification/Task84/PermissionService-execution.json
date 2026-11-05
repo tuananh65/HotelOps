@@ -1,0 +1,5 @@
+{
+    "runner":  "PermissionService",
+    "exitCode":  0,
+    "kind":  "FRESH_SOURCE_ISOLATED_REGRESSION_NOT_SQL_UC_ACCEPTANCE"
+}

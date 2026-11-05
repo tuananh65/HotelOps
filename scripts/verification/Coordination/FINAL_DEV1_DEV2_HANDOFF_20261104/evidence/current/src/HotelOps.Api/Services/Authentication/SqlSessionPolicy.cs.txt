@@ -1,0 +1,26 @@
+3: namespace HotelOps.Api.Services.Authentication;
+4: 
+5: public static class SqlSessionPolicy
+6: {
+7:     public static readonly TimeSpan NormalIdleTimeout = TimeSpan.FromMinutes(30);
+8:     public static readonly TimeSpan NormalAbsoluteLifetime = TimeSpan.FromHours(12);
+9:     public static readonly TimeSpan RestrictedLifetime = TimeSpan.FromMinutes(15);
+10: 
+11:     public static bool IsUserActive(User user) => user.DeletedAt is null && user.AccountStatus == "ACTIVE";
+12: 
+13:     public static DateTime AbsoluteDeadline(DateTime created, DateTime? temporaryExpiry)
+14:     {
+15:         var deadline = created.Add(temporaryExpiry.HasValue ? RestrictedLifetime : NormalAbsoluteLifetime);
+16:         // SQL datetime2 stores UTC ticks but materializes without DateTimeKind metadata.
+20:     }
+21: 
+22:     public static SessionSnapshot? Validate(User user, UserSession session, SessionReference ticket, DateTime utcNow)
+23:     {
+24:         if (utcNow.Kind != DateTimeKind.Utc) throw new ArgumentException("UTC time is required.");
+25:         var restricted = user.TemporaryPasswordExpiresAt.HasValue;
+37:     }
+38: 
+39:     public static (DateTime LastUsedAt, DateTime ExpiresAt) TouchWindow(UserSession session, SessionSnapshot valid, DateTime utcNow)
+40:     {
+41:         if (utcNow.Kind != DateTimeKind.Utc || utcNow >= valid.ExpiresAtUtc || utcNow >= valid.AbsoluteExpiresAtUtc
+42:             || session.RevokedAt.HasValue)

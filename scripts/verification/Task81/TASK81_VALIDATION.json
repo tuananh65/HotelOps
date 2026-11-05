@@ -1,0 +1,209 @@
+﻿{
+    "status":  "DONE — READINESS ONLY",
+    "uc138":  "NOT_IMPLEMENTED",
+    "uc139":  "BLOCKED_EXTERNAL",
+    "startedUtc":  "2026-11-04T00:32:35.4699250Z",
+    "finishedUtc":  "2026-11-04T00:53:45.8503862+00:00",
+    "elapsedSeconds":  1270.38,
+    "elapsedDisplay":  "00:21:10",
+    "gates":  {
+                  "C1-A":  "GO_FOR_REVIEW",
+                  "C1-B":  "NO_GO",
+                  "C1-D":  "GO_FOR_REVIEW",
+                  "C1-E":  "NO_GO",
+                  "C1-C":  "BLOCKED"
+              },
+    "commands":  [
+                     {
+                         "name":  "build",
+                         "exitCode":  0,
+                         "log":  "build.log",
+                         "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task81/artifacts/build -p:RestoreIgnoreFailedSources=true",
+                         "result":  "PASS",
+                         "warnings":  "2 NU1900",
+                         "cases":  null
+                     },
+                     {
+                         "name":  "overlap",
+                         "exitCode":  0,
+                         "log":  "overlap.log",
+                         "command":  "dotnet artifacts/overlap/bin/SqlOverlap/debug/SqlOverlap.dll overlap-receipt.json",
+                         "result":  "PASS",
+                         "cases":  81
+                     },
+                     {
+                         "name":  "sql-readiness",
+                         "exitCode":  0,
+                         "log":  "sql-readiness.log",
+                         "command":  "dotnet artifacts/readiness/bin/SqlReadiness/debug/SqlReadiness.dll sql-readiness-receipt.json",
+                         "result":  "PASS",
+                         "cases":  13
+                     },
+                     {
+                         "name":  "math",
+                         "exitCode":  0,
+                         "log":  "math.log",
+                         "command":  "dotnet run --project scripts/verification/Task77/WorkTime.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/math -p:RestoreIgnoreFailedSources=true ",
+                         "result":  "PASS",
+                         "cases":  422
+                     },
+                     {
+                         "name":  "authorization",
+                         "exitCode":  0,
+                         "log":  "authorization.log",
+                         "command":  "dotnet run --project scripts/verification/Authorization/Authorization.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/authorization -p:RestoreIgnoreFailedSources=true -- --production-fallback",
+                         "result":  "PASS",
+                         "cases":  93
+                     },
+                     {
+                         "name":  "permission",
+                         "exitCode":  0,
+                         "log":  "permission.log",
+                         "command":  "dotnet run --project scripts/verification/PermissionService/PermissionService.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/permission -p:RestoreIgnoreFailedSources=true ",
+                         "result":  "PASS",
+                         "cases":  43
+                     },
+                     {
+                         "name":  "resource",
+                         "exitCode":  0,
+                         "log":  "resource.log",
+                         "command":  "dotnet run --project scripts/verification/ResourceAuthorization/ResourceAuthorization.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/resource -p:RestoreIgnoreFailedSources=true ",
+                         "result":  "PASS",
+                         "cases":  49
+                     },
+                     {
+                         "name":  "current-user",
+                         "exitCode":  0,
+                         "log":  "current-user.log",
+                         "command":  "dotnet run --project scripts/verification/CurrentUserAccessor/CurrentUserAccessor.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/current-user -p:RestoreIgnoreFailedSources=true ",
+                         "result":  "PASS",
+                         "cases":  14
+                     },
+                     {
+                         "name":  "framework",
+                         "exitCode":  0,
+                         "log":  "framework.log",
+                         "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task81/artifacts/framework -p:RestoreIgnoreFailedSources=true",
+                         "result":  "NOT_AVAILABLE_NO_FRAMEWORK_CASES",
+                         "cases":  0
+                     },
+                     {
+                         "name":  "postflight-files",
+                         "exitCode":  0,
+                         "log":  "postflight-files.log",
+                         "command":  "dotnet artifacts/inventory-fast/bin/FilePostflight/debug/FilePostflight.dll FILE_HASHES.json POSTFLIGHT_FILES.json",
+                         "result":  "PASS",
+                         "cases":  21668
+                     }
+                 ],
+    "newSqlChecks":  {
+                         "overlap":  81,
+                         "readiness":  13
+                     },
+    "mathChecks":  422,
+    "authorizationChecks":  199,
+    "frameworkTests":  "NOT_AVAILABLE_0_CASES_EXIT_0",
+    "build":  "PASS_0_ERRORS_2_NU1900",
+    "sqlRunnerBuilds":  "PASS_0_ERRORS_4_NU1900_EACH",
+    "historicalTask80TestsNotCounted":  true,
+    "trial":  "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+    "targetGuard":  "EXACT_PREAPPROVED_TRIAL_PLUS_A1_MARKER_BEFORE_FIXTURES",
+    "fixtureRollback":  true,
+    "schemaRbacProductionChanges":  0,
+    "newPublicEndpoints":  0,
+    "dev2SourceChanges":  0,
+    "noProtectedDatabaseAccess":  true,
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "branch":  "feature/BE1-database-integration",
+    "upstream":  "origin/feature/BE1-database-integration",
+    "headIndexBranchUpstreamPreserved":  true,
+    "fourWorktreeRegistrationsAndHeadsPreserved":  true,
+    "preexistingGitStatusPreserved":  true,
+    "allExistingFilesChecked":  21668,
+    "outsideTask81MissingOrAdded":  0,
+    "changedByteOrLastWriteCount":  0,
+    "readErrors":  0,
+    "allNewWritesUnderTask81":  true,
+    "fullCaptureTimingCaveat":  "Full byte inventory completed after isolated Task81 builds/tests; initial Git identity/index/worktrees and Task80 protected hashes were separately checked before builds. Postflight proves byte/mtime preservation relative to full capture; no claim full prebuild byte snapshot existed.",
+    "rootGitMetadataExcludedFromFileHash":  true,
+    "diffCheck":  "PASS",
+    "unexecutedAcceptance":  [
+                                 "UC138 public HTTPS writer authorization",
+                                 "three-table rowversion migration/stale-update/replay/rollback",
+                                 "atomic concurrent overlap check+assignment writer",
+                                 "audit/outbox write fault rollback",
+                                 "durable readable inbox notification/retry"
+                             ],
+    "completedUCs":  26,
+    "totalUCs":  75,
+    "points":  60,
+    "totalPoints":  256,
+    "weightedPercent":  23.4375,
+    "pointsGained":  0,
+    "ledgerFilesUnchanged":  true,
+    "task82Started":  false,
+    "handoffSentExternally":  false,
+    "newFilesList":  "NEW_FILES.json",
+    "fileHashes":  [
+                       {
+                           "path":  "TASK81_UC138_C1_DECISION_PACKAGE.md",
+                           "sha256":  "A0E83A189956B933C64D453854BF26BF84A830CFE56D53A6CFF9D1F18407DBA7"
+                       },
+                       {
+                           "path":  "TASK81_DEV2_CONTRACT_REQUEST.md",
+                           "sha256":  "4F64DB21AFA672FF42684792BDB74B031A8D910C5B1D5E1657983371C37413E1"
+                       },
+                       {
+                           "path":  "TASK81_CHANGELOG.md",
+                           "sha256":  "514DB4E38FC161BFF7E2656F4FA144A655A6D4983F00C2B7BB309283C003C734"
+                       },
+                       {
+                           "path":  "SqlReadinessProbe.cs",
+                           "sha256":  "7930FAE5B8449B9F40FD97DE03A3EAF68FED3DA2C42FE96062A3E9EFB84C09A7"
+                       },
+                       {
+                           "path":  "FilePostflight.cs",
+                           "sha256":  "876C1219B9B942EE51A9645892D38013622D8B96D81D997E97EB5C62E0C28A1F"
+                       },
+                       {
+                           "path":  "SqlOverlap.csproj",
+                           "sha256":  "D09EAB7182528DE75E890FFBC15898E4F5F22FD3AC6B50B4E8063790A53562A9"
+                       },
+                       {
+                           "path":  "SqlReadiness.csproj",
+                           "sha256":  "8E234D01290C0DD3B7109ACABD57CAEA5E788F6391380D913EBAE2486A7F378F"
+                       },
+                       {
+                           "path":  "FilePostflight.csproj",
+                           "sha256":  "B031EFCDC5D754C55A491BE0A6B29FC925AD1674B1E88A2009CC87D5D87BEA74"
+                       },
+                       {
+                           "path":  "PREFLIGHT.json",
+                           "sha256":  "57CADEBA058E1F806EC2EFB03741841BEEC7CF88B1C96F4FE4F170B9FBCCCE93"
+                       },
+                       {
+                           "path":  "FILE_HASHES.json",
+                           "sha256":  "F42C7E8B78D163E7BCDC8604B916EBB26D6D170A34767546C0B523774DD2FC23"
+                       },
+                       {
+                           "path":  "POSTFLIGHT_FILES.json",
+                           "sha256":  "81A475464CFF50A9CC42A518632619D94367E074D40DE5E505482B9660CB3CA1"
+                       },
+                       {
+                           "path":  "FILE_NAME_DELTA.json",
+                           "sha256":  "CEFB7F6BC5DA9E942D2E5A247FF9039977AFF99DBF1531A0AF88F5AA6C870BC5"
+                       },
+                       {
+                           "path":  "NEW_FILES.json",
+                           "sha256":  "CF433A2C7A49B6CEEF466BA2C9FCE52C9AB2B00F8E5E18995B90BC4CFECD1A8D"
+                       },
+                       {
+                           "path":  "overlap-receipt.json",
+                           "sha256":  "FC24B415638401AA9291204E21EAC05096E206A1C9FADC5E1C9763677E09402B"
+                       },
+                       {
+                           "path":  "sql-readiness-receipt.json",
+                           "sha256":  "7C2BB703EC68F75B644D1E5246A7E8BFB6B82F77285E36DE0F2C920639C44255"
+                       }
+                   ]
+}

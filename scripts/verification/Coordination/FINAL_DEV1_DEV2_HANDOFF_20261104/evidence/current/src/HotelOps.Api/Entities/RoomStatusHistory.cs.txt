@@ -1,0 +1,30 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class RoomStatusHistory
+7: {
+8:     public long HistoryId { get; set; }
+9: 
+10:     public long RoomId { get; set; }
+11: 
+12:     public string? FromStatus { get; set; }
+13: 
+14:     public string ToStatus { get; set; } = null!;
+15: 
+16:     public string? TriggerType { get; set; }
+17: 
+18:     public long? TriggerId { get; set; }
+19: 
+20:     public long? ChangedBy { get; set; }
+21: 
+22:     public DateTime ChangedAt { get; set; }
+23: 
+24:     public string? Reason { get; set; }
+25: 
+26:     public virtual User? ChangedByNavigation { get; set; }
+27: 
+28:     public virtual Room Room { get; set; } = null!;
+29: }
+30: 

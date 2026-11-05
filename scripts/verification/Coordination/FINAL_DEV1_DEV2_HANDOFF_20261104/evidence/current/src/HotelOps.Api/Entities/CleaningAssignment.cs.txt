@@ -1,0 +1,30 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class CleaningAssignment
+7: {
+8:     public long AssignmentId { get; set; }
+9: 
+10:     public long CleaningTaskId { get; set; }
+11: 
+12:     public long AssigneeUserId { get; set; }
+13: 
+14:     public long AssignedBy { get; set; }
+15: 
+16:     public DateTime AssignedAt { get; set; }
+17: 
+18:     public DateTime? EndedAt { get; set; }
+19: 
+20:     public string AssignmentStatus { get; set; } = null!;
+21: 
+22:     public string? Reason { get; set; }
+23: 
+24:     public virtual User AssignedByNavigation { get; set; } = null!;
+25: 
+26:     public virtual User AssigneeUser { get; set; } = null!;
+27: 
+28:     public virtual CleaningTask CleaningTask { get; set; } = null!;
+29: }
+30: 

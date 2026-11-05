@@ -1,0 +1,93 @@
+10: 
+11: [ApiController]
+12: [Route("api/auth")]
+13: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+14: public sealed class AuthController(IAuthenticationLoginService authentication, IAuthenticationCredentialWorkflow credentials,
+15:     IAntiforgery antiforgery, TimeProvider clock) : ControllerBase
+16: {
+17:     [HttpPost("login")]
+18:     [AllowAnonymous]
+19:     public async Task<ActionResult<SessionDto>> Login([FromBody] LoginRequest request, CancellationToken cancellationToken)
+20:     {
+21:         if (User.Identity?.IsAuthenticated == true)
+22:             return Failure(409, "AUTHENTICATED_SESSION_EXISTS");
+23:         var result = await authentication.LoginAsync(request, cancellationToken);
+24:         if (result.Status != LoginStatus.Succeeded)
+25:             return result.Status switch
+26:             {
+27:                 LoginStatus.Locked => Failure(423, "ACCOUNT_LOCKED", result.LockedUntil),
+28:                 LoginStatus.TemporaryExpired => Failure(403, "TEMPORARY_PASSWORD_EXPIRED"),
+29:                 _ => Failure(401, "INVALID_CREDENTIALS")
+30:             };
+31:         var created = result.CreatedSession ?? throw new InvalidOperationException("Committed login has no session.");
+32:         var user = result.User ?? throw new InvalidOperationException("Committed login has no user.");
+33:         var ticket = HotelOpsCookieTicket.Create(created, clock);
+34:         await HttpContext.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
+35:         HttpContext.User = ticket.Principal;
+36:         return BuildSession(user, created.Session);
+37:     }
+38: 
+39:     [HttpGet("session")]
+40:     [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+41:     public async Task<ActionResult<SessionDto>> Session(CancellationToken cancellationToken)
+42:     {
+43:         if (!HotelOpsCookieTicket.TryRead(User, out var reference, out var sessionId))
+44:             return Failure(401, "SESSION_INVALID");
+47:     }
+48: 
+49:     [HttpPost("logout")]
+50:     [AllowAnonymous]
+51:     public async Task<IActionResult> Logout(CancellationToken cancellationToken)
+52:     {
+53:         var hasReference = HotelOpsCookieTicket.TryRead(User, out var reference, out _);
+54:         if (User.Identity?.IsAuthenticated == true && !hasReference) return Failure(401, "SESSION_INVALID");
+55:         await credentials.LogoutAsync(reference, cancellationToken);
+56:         // Never clear the cookie if revoke/commit failed or validity was indeterminate.
+57:         await HttpContext.SignOutAsync(HotelOpsCookieTicket.Scheme);
+58:         HttpContext.User = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity());
+59:         HttpContext.Items.Remove(typeof(SessionSnapshot));
+60:         Response.Headers.CacheControl = "no-store";
+61:         return NoContent();
+62:     }
+63: 
+64:     [HttpPost("change-password")]
+65:     [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
+66:     public async Task<ActionResult<SessionDto>> ChangePassword([FromBody] ChangePasswordRequest request, CancellationToken cancellationToken)
+67:     {
+68:         if (!HotelOpsCookieTicket.TryRead(User, out var reference, out var sessionId))
+69:             return Failure(401, "SESSION_INVALID");
+70:         var result = await credentials.ChangePasswordAsync(reference!, sessionId, request, cancellationToken);
+71:         if (result.Status != ChangePasswordStatus.Succeeded)
+72:             return result.Status switch
+73:             {
+74:                 ChangePasswordStatus.ValidationFailed => Failure(400, "VALIDATION_FAILED"),
+75:                 ChangePasswordStatus.PolicyViolation => Failure(400, "PASSWORD_POLICY_VIOLATION"),
+76:                 ChangePasswordStatus.CurrentPasswordInvalid => Failure(400, "CURRENT_PASSWORD_INVALID"),
+77:                 ChangePasswordStatus.SessionInvalid => Failure(401, "SESSION_INVALID"),
+78:                 ChangePasswordStatus.StateChanged => Failure(409, "AUTH_STATE_CHANGED"),
+79:                 _ => throw new InvalidOperationException("Unsupported password change result.")
+80:             };
+81:         var created = result.CreatedSession ?? throw new InvalidOperationException("Committed password change has no session.");
+82:         var user = result.User ?? throw new InvalidOperationException("Committed password change has no user.");
+83:         if (created.Session.IsRestricted) throw new InvalidOperationException("Password change returned a restricted session.");
+84:         var ticket = HotelOpsCookieTicket.Create(created, clock);
+85:         await HttpContext.SignInAsync(ticket.AuthenticationScheme, ticket.Principal, ticket.Properties);
+86:         HttpContext.User = ticket.Principal;
+87:         HttpContext.Items[typeof(SessionSnapshot)] = created.Session;
+88:         return BuildSession(user, created.Session);
+89:     }
+90: 
+91:     private SessionDto BuildSession(AuthUserDto user, SessionSnapshot session)
+92:         => new(user, session.ExpiresAtUtc, session.AbsoluteExpiresAtUtc, session.IsRestricted,
+93:             HotelOpsAntiforgery.Issue(HttpContext, antiforgery).CsrfToken);
+94: 
+95:     private ObjectResult Failure(int status, string code, DateTime? lockedUntil = null)
+96:     {
+97:         Response.Headers.CacheControl = "no-store";
+98:         var problem = new ProblemDetails { Status = status, Title = code, Type = "about:blank",
+99:             Extensions = { ["code"] = code, ["traceId"] = HttpContext.TraceIdentifier } };
+100:         if (lockedUntil.HasValue) problem.Extensions["parameters"] = new { lockedUntil };
+101:         return new ObjectResult(problem) { StatusCode = status, ContentTypes = { "application/problem+json" } };
+102:     }
+103: }
+104: 

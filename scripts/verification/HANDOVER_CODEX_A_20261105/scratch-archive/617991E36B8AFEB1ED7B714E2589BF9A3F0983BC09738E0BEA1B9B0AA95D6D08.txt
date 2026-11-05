@@ -1,0 +1,13 @@
+$ErrorActionPreference='Stop'
+$taskDb='HotelOps_Canonical_'+(Get-Date -Format 'yyyyMMdd_HHmmss')+'_'+[guid]::NewGuid().ToString('N').Substring(0,8)+'_Fresh'
+$taskDb | Set-Content -LiteralPath 'obj/task58-trial-name.local.txt'
+& './scripts/verification/UserDirectory/Prepare-Database.ps1' -Database $taskDb
+$taskConnection=New-Object System.Data.SqlClient.SqlConnection ('Data Source=REDACTED_LOCAL_SQL_HOST\SQLEXPRESS;Initial Catalog='+$taskDb+';Integrated Security=True;TrustServerCertificate=True;Connect Timeout=10;Application Name=HotelOps Task58 disposable prerequisite')
+try {
+    $taskConnection.Open()
+    $taskCommand=$taskConnection.CreateCommand()
+    $taskCommand.CommandTimeout=45
+    $taskCommand.CommandText=[IO.File]::ReadAllText((Join-Path (Get-Location).Path 'scripts/verification/UserProfileUpdate/rowversion-forward.sql'))
+    [void]$taskCommand.ExecuteNonQuery()
+    Write-Output ('PASS approved guarded rowversion patch: '+$taskDb)
+} finally { $taskConnection.Dispose() }

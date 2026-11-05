@@ -1,0 +1,595 @@
+{
+  "success": true,
+  "checks": 13,
+  "cases": [
+    "Explicit approved trial name and A1 marker verified before fixture work",
+    "Actual SQL lacks rowversion: shift_templates",
+    "EF has no concurrency token: shift_templates",
+    "Actual SQL lacks rowversion: work_shifts",
+    "EF has no concurrency token: work_shifts",
+    "Actual SQL lacks rowversion: shift_assignments",
+    "EF has no concurrency token: shift_assignments",
+    "A1 Workday concurrency token remains mapped",
+    "Actual trial catalog has SHIFT_MANAGE/BRANCH for DEPT_MANAGER (not a user/session authorization test)",
+    "Two real SQL sessions serialize on existing retained User lock (DMV proof)",
+    "Waiting User lock acquires after owner rollback",
+    "Existing SQL unique index rejects duplicate (shift,user); this is not cross-shift overlap prevention",
+    "All duplicate-test fixture rows rolled back"
+  ],
+  "trial": "HotelOps_Canonical_20261104_063549_81d4bc64_Fresh",
+  "columns": [
+    {
+      "table_name": "shift_assignments",
+      "column_name": "shift_assignment_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "shift_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "user_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "assignment_status",
+      "sql_type": "varchar",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "assigned_by",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "assigned_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "confirmed_at",
+      "sql_type": "datetime2",
+      "is_nullable": true
+    },
+    {
+      "table_name": "shift_assignments",
+      "column_name": "cancellation_reason",
+      "sql_type": "nvarchar",
+      "is_nullable": true
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "shift_template_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "branch_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "shift_code",
+      "sql_type": "varchar",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "shift_name",
+      "sql_type": "nvarchar",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "start_time",
+      "sql_type": "time",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "end_time",
+      "sql_type": "time",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "break_minutes",
+      "sql_type": "int",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "crosses_midnight",
+      "sql_type": "bit",
+      "is_nullable": false
+    },
+    {
+      "table_name": "shift_templates",
+      "column_name": "is_active",
+      "sql_type": "bit",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "interval_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "workday_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "user_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "branch_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "work_item_kind",
+      "sql_type": "varchar",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "work_item_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "opened_by",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "opened_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "closed_by",
+      "sql_type": "bigint",
+      "is_nullable": true
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "closed_at",
+      "sql_type": "datetime2",
+      "is_nullable": true
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "effective_started_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "effective_ended_at",
+      "sql_type": "datetime2",
+      "is_nullable": true
+    },
+    {
+      "table_name": "work_intervals",
+      "column_name": "row_version",
+      "sql_type": "timestamp",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "shift_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "branch_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "department_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "shift_template_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "shift_date",
+      "sql_type": "date",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "scheduled_start_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "scheduled_end_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "required_staff_count",
+      "sql_type": "int",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "status",
+      "sql_type": "varchar",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "note",
+      "sql_type": "nvarchar",
+      "is_nullable": true
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "created_by",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "work_shifts",
+      "column_name": "created_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "workday_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "user_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "branch_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "department_id",
+      "sql_type": "bigint",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "work_date",
+      "sql_type": "date",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "shift_assignment_id",
+      "sql_type": "bigint",
+      "is_nullable": true
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "is_unscheduled",
+      "sql_type": "bit",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "unscheduled_reason",
+      "sql_type": "nvarchar",
+      "is_nullable": true
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "status",
+      "sql_type": "varchar",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "started_at",
+      "sql_type": "datetime2",
+      "is_nullable": false
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "ended_at",
+      "sql_type": "datetime2",
+      "is_nullable": true
+    },
+    {
+      "table_name": "workdays",
+      "column_name": "row_version",
+      "sql_type": "timestamp",
+      "is_nullable": false
+    }
+  ],
+  "indexes": [
+    {
+      "table_name": "shift_assignments",
+      "index_name": "PK__shift_as__E418729ACE09BCA5",
+      "is_unique": true,
+      "column_name": "shift_assignment_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "shift_assignments",
+      "index_name": "shift_assignments_index_37",
+      "is_unique": true,
+      "column_name": "shift_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "shift_assignments",
+      "index_name": "shift_assignments_index_37",
+      "is_unique": true,
+      "column_name": "user_id",
+      "key_ordinal": 2
+    },
+    {
+      "table_name": "shift_templates",
+      "index_name": "PK__shift_te__4A2DE082C42F4A36",
+      "is_unique": true,
+      "column_name": "shift_template_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "shift_templates",
+      "index_name": "shift_templates_index_36",
+      "is_unique": true,
+      "column_name": "branch_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "shift_templates",
+      "index_name": "shift_templates_index_36",
+      "is_unique": true,
+      "column_name": "shift_code",
+      "key_ordinal": 2
+    },
+    {
+      "table_name": "work_shifts",
+      "index_name": "PK__work_shi__7B267220466D696B",
+      "is_unique": true,
+      "column_name": "shift_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "IX_workdays_user_date",
+      "is_unique": false,
+      "column_name": "user_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "IX_workdays_user_date",
+      "is_unique": false,
+      "column_name": "work_date",
+      "key_ordinal": 2
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "IX_workdays_user_date",
+      "is_unique": false,
+      "column_name": "workday_id",
+      "key_ordinal": 3
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "PK_workdays",
+      "is_unique": true,
+      "column_name": "workday_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "UQ_workdays_identity",
+      "is_unique": true,
+      "column_name": "workday_id",
+      "key_ordinal": 1
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "UQ_workdays_identity",
+      "is_unique": true,
+      "column_name": "user_id",
+      "key_ordinal": 2
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "UQ_workdays_identity",
+      "is_unique": true,
+      "column_name": "branch_id",
+      "key_ordinal": 3
+    },
+    {
+      "table_name": "workdays",
+      "index_name": "UX_workdays_one_working",
+      "is_unique": true,
+      "column_name": "user_id",
+      "key_ordinal": 1
+    }
+  ],
+  "foreignKeys": [
+    {
+      "name": "FK_shift_assignments_assigned_by",
+      "parent_table": "shift_assignments",
+      "referenced_table": "users",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_shift_assignments_shift_id",
+      "parent_table": "shift_assignments",
+      "referenced_table": "work_shifts",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_shift_assignments_user_id",
+      "parent_table": "shift_assignments",
+      "referenced_table": "users",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_shift_templates_branch_id",
+      "parent_table": "shift_templates",
+      "referenced_table": "branches",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_workdays_user",
+      "parent_table": "workdays",
+      "referenced_table": "users",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_work_shifts_branch_id",
+      "parent_table": "work_shifts",
+      "referenced_table": "branches",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_workdays_branch",
+      "parent_table": "workdays",
+      "referenced_table": "branches",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_work_shifts_created_by",
+      "parent_table": "work_shifts",
+      "referenced_table": "users",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_workdays_department",
+      "parent_table": "workdays",
+      "referenced_table": "departments",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_work_shifts_department_id",
+      "parent_table": "work_shifts",
+      "referenced_table": "departments",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_workdays_assignment",
+      "parent_table": "workdays",
+      "referenced_table": "shift_assignments",
+      "is_disabled": false,
+      "is_not_trusted": false
+    },
+    {
+      "name": "FK_work_shifts_shift_template_id",
+      "parent_table": "work_shifts",
+      "referenced_table": "shift_templates",
+      "is_disabled": false,
+      "is_not_trusted": false
+    }
+  ],
+  "grants": [
+    {
+      "role_code": "DEPT_MANAGER",
+      "permission_code": "SHIFT_MANAGE",
+      "data_scope": "BRANCH"
+    },
+    {
+      "role_code": "DEPT_MANAGER",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "BRANCH"
+    },
+    {
+      "role_code": "HK_STAFF",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "OWN"
+    },
+    {
+      "role_code": "HK_SUPERVISOR",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "BRANCH"
+    },
+    {
+      "role_code": "MAINTENANCE_LEAD",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "BRANCH"
+    },
+    {
+      "role_code": "MAINTENANCE_STAFF",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "OWN"
+    },
+    {
+      "role_code": "OPERATIONS_MANAGER",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "BRANCH"
+    },
+    {
+      "role_code": "RECEPTION",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "OWN"
+    },
+    {
+      "role_code": "STAFF",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "OWN"
+    },
+    {
+      "role_code": "STOREKEEPER",
+      "permission_code": "SHIFT_VIEW",
+      "data_scope": "OWN"
+    }
+  ],
+  "scope": "CURRENT_METADATA_DUPLICATE_INDEX_AND_USER_LOCK_FOUNDATION_NOT_UC138_WRITER_ACCEPTANCE",
+  "newDdl": false,
+  "fixtureRollback": true,
+  "finishedUtc": "2026-11-04T00:43:02.5177576+00:00"
+}

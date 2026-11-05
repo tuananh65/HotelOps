@@ -1,0 +1,37 @@
+$ErrorActionPreference='Stop'
+$backup=(Get-Content obj/task66-preflight-path.local.txt -Raw).Trim()
+$baseline=Get-Content (Join-Path $backup 'manifest.json') -Raw|ConvertFrom-Json
+$allowed=@('scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md','scripts/verification/HotelStructure/Program.cs','src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs','src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs')
+$changed=@();$unchanged=0;$backups=0
+foreach($entry in $baseline.Files){
+    $copy=Join-Path (Join-Path $backup 'files') $entry.Path
+    if(!(Test-Path -LiteralPath $copy) -or (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $entry.SHA256){throw ('Backup invalid: '+$entry.Path)}
+    $backups++
+    if(!(Test-Path -LiteralPath $entry.Path)){throw ('Protected file removed: '+$entry.Path)}
+    if((Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash -eq $entry.SHA256){$unchanged++}
+    elseif($allowed -contains $entry.Path){$changed+=$entry.Path}else{throw ('Unexpected edit: '+$entry.Path)}
+}
+if((git rev-parse HEAD) -ne $baseline.Head -or (git branch --show-current) -ne $baseline.Branch -or (git rev-parse --abbrev-ref '@{upstream}') -ne $baseline.Upstream -or (@(git ls-files --stage) -join "`n") -cne ($baseline.IndexEntries -join "`n") -or (@(git worktree list --porcelain) -join "`n") -cne ($baseline.Worktrees -join "`n")){throw 'Git metadata changed'}
+$new=@('src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs','src/HotelOps.Api/Services/HotelStructure/StructureDeactivationDependencies.cs','scripts/verification/HotelStructure/Task66StructureCases.cs','scripts/verification/HotelStructure/TASK66_UC016_IMPLEMENTATION.md')
+foreach($path in ($allowed+$new)){
+    $text=[IO.File]::ReadAllText((Join-Path (Get-Location) $path))
+    if($text -match '(?m)[\t ]+\r?$'){throw ('Trailing whitespace: '+$path)}
+    if($path.EndsWith('.md')){foreach($match in [regex]::Matches($text,'\]\(([^)]+)\)')){
+        $target=($match.Groups[1].Value -split '#')[0]
+        if($target -and $target -notmatch '^[a-z]+:' -and !(Test-Path -LiteralPath (Join-Path (Split-Path $path) $target))){throw ('Broken link: '+$target)}
+    }}
+}
+$accept=Get-Content scripts/verification/HotelStructure/task66-accepted.local.json -Raw|ConvertFrom-Json
+$regression=Get-Content scripts/verification/HotelStructure/task66-regression-recheck.local.json -Raw|ConvertFrom-Json
+$rooms=Get-Content scripts/verification/HotelStructure/task66-room-regression.local.json -Raw|ConvertFrom-Json
+if(!$accept.success -or $accept.structureDeactivationChecks -ne 94 -or $accept.checks -ne 96 -or !$regression.success -or $regression.checks -ne 589 -or $rooms.result -ne 'PASS'){throw 'Evidence mismatch'}
+$rows=@(Get-Content scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md -Encoding UTF8|Where-Object{$_ -match '^\| UC-\d{3} \|'})
+if($rows.Count -ne 75 -or ($rows|Where-Object{$_ -match '^\| UC-016 \|'} ) -notmatch '\| PARTIAL \|'){throw 'Progress mismatch'}
+$ErrorActionPreference='Continue'
+git diff --check > obj/task66-diff-check-final.local.log 2>&1
+$diffExit=$LASTEXITCODE
+$ErrorActionPreference='Stop'
+if($diffExit -ne 0){throw 'Diff check failed'}
+$result=@{Result='PASS';ValidatedUtc=[DateTimeOffset]::UtcNow.ToString('o');ProtectedFiles=$baseline.Files.Count;ValidBackups=$backups;Unchanged=$unchanged;IntendedEdits=$changed;NewDeliveryFiles=$new;Head=$baseline.Head;Branch=$baseline.Branch;IndexUnchanged=$true;WorktreesUnchanged=$true;UC016Checks=$accept.structureDeactivationChecks;UC016Mutation='BLOCKED';RegressionChecks=$regression.checks;UC023Checks=@($rooms.checks).Count;AuthChecks=174;VerifiedPoints=23;VerifiedUCs=9;DotnetTestExit=(Get-Content obj/task66-test-exit.local.txt -Raw).Trim();ResidualIssue='Earlier UC015 Area expiry provider -2; unchanged sequential recheck passed; cause unproven'}
+$result|ConvertTo-Json -Depth 5|Set-Content obj/task66-validation.local.json -Encoding UTF8
+$result|ConvertTo-Json -Depth 3

@@ -1,4 +1,5 @@
 using HotelOps.Api.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +17,7 @@ public class HealthController : ControllerBase
     }
 
     [HttpGet("database")]
+    [AllowAnonymous] // Public readiness contract; response contains no infrastructure details.
     public async Task<IActionResult> CheckDatabase(CancellationToken cancellationToken = default)
     {
         try

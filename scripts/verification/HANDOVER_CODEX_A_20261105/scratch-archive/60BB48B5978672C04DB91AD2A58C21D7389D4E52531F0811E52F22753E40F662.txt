@@ -1,0 +1,27 @@
+﻿{
+    "Success":  true,
+    "ProtectedFiles":  406,
+    "Unchanged":  398,
+    "IntendedEdits":  [
+                          "scripts/verification/UserDirectory/API_CONTRACT.md",
+                          "scripts/verification/UserDirectory/OUTSTANDING_ISSUES.md",
+                          "scripts/verification/UserDirectory/Program.cs",
+                          "scripts/verification/UserDirectory/UserDirectory.Verification.csproj",
+                          "src/HotelOps.Api/Controllers/UsersController.cs",
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+                          "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs"
+                      ],
+    "Missing":  [
+
+                ],
+    "UnexpectedChanges":  [
+
+                          ],
+    "BackupsVerified":  406,
+    "HeadUnchanged":  true,
+    "BranchUnchanged":  true,
+    "IndexUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "MeasuredElapsedMinutes":  14.8
+}

@@ -1,0 +1,83 @@
+using System.Data;
+using System.Data.Common;
+using HotelOps.Api.Data;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.Users;
+
+public enum UserDirectoryReadStatus { Success, SessionInvalid, Forbidden, AuthorizationUnavailable }
+public sealed record UserDirectoryReadResult<T>(UserDirectoryReadStatus Status, T? Value = default);
+
+/// <summary>Request read boundary for the existing global USER_VIEW list/detail contract.</summary>
+public sealed class UserDirectoryReadGuard(HotelOpsDbContext db, ICurrentUserAccessor current,
+    IPermissionService permissions, TimeProvider clock)
+{
+    // Query primitives remain independently testable. Only the HTTP read boundary retains
+    // SQL authority and a consistent count/page; all dependencies use the same scoped DB.
+    public Task<UserDirectoryReadResult<T>> RunAsync<T>(SessionReference ticket,
+        Func<Task<T>> read, CancellationToken ct) => RunAuthorizedAsync(ticket,
+            token => permissions.EvaluateGlobalAsync("USER_VIEW", token), read, ct);
+
+    internal async Task<UserDirectoryReadResult<T>> RunAuthorizedAsync<T>(SessionReference ticket,
+        Func<CancellationToken, Task<PermissionEvaluation>> authorize, Func<Task<T>> read, CancellationToken ct)
+    {
+        ArgumentNullException.ThrowIfNull(ticket);
+        ArgumentNullException.ThrowIfNull(read);
+        ct.ThrowIfCancellationRequested();
+        if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted || ticket.IsRestricted
+            || actor.UserId != ticket.UserId) return new(UserDirectoryReadStatus.SessionInvalid);
+        if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null
+            || db.ChangeTracker.Entries().Any() || System.Transactions.Transaction.Current != null)
+            throw new InvalidOperationException("User directory read requires a clean local SQL Server context.");
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        try
+        {
+            // Directory reads can touch every User, including target users not known
+            // before filtering. Retain the shared Users universe FIRST: acquiring new
+            // target User locks after Session/grant locks would invert writer ordering.
+            // Shared readers do not upgrade to the session service's User UPDLOCKs.
+            await db.Database.SqlQueryRaw<int>(
+                "SELECT TOP(1) 1 AS [Value] FROM dbo.users WITH (TABLOCK,HOLDLOCK)")
+                .TagWith("UC141:UserReadUniverse").ToArrayAsync(ct);
+            if (!await ValidAsync(ticket, actor, ct)) return new(UserDirectoryReadStatus.SessionInvalid);
+            var access = await authorize(ct);
+            if (!access.IsGranted) return Denied<T>(access);
+
+            // Users -> Session -> permission paths/feature projections. Existing policy
+            // supplies all ticket/hash/revocation/window checks; no copied expiry rules.
+            // No SaveChanges, session touch, catalog mutation or new grant.
+            var value = await read();
+            if (!await ValidAsync(ticket, actor, ct)) return new(UserDirectoryReadStatus.SessionInvalid);
+            access = await authorize(ct);
+            if (!access.IsGranted) return Denied<T>(access);
+            await tx.CommitAsync(ct);
+            return new(UserDirectoryReadStatus.Success, value);
+        }
+        catch (DbException error) when (ct.IsCancellationRequested)
+        {
+            throw new OperationCanceledException("User directory read cancelled.", error, ct);
+        }
+    }
+
+    private async Task<bool> ValidAsync(SessionReference ticket, CurrentUserInfo actor, CancellationToken ct)
+    {
+        try
+        {
+            var user = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == actor.UserId, ct);
+            var session = await db.UserSessions.AsNoTracking().SingleOrDefaultAsync(
+                x => x.SessionId == actor.SessionId && x.UserId == actor.UserId, ct);
+            return user != null && session != null
+                && SqlSessionPolicy.Validate(user, session, ticket, clock.GetUtcNow().UtcDateTime) is { IsRestricted: false };
+        }
+        catch (Exception error) when (!ct.IsCancellationRequested && SessionStoreUnavailableException.Matches(error))
+        {
+            throw new SessionStoreUnavailableException(error);
+        }
+    }
+
+    private static UserDirectoryReadResult<T> Denied<T>(PermissionEvaluation result) => new(
+        result.Decision == PermissionDecision.Unavailable
+            ? UserDirectoryReadStatus.AuthorizationUnavailable : UserDirectoryReadStatus.Forbidden);
+}

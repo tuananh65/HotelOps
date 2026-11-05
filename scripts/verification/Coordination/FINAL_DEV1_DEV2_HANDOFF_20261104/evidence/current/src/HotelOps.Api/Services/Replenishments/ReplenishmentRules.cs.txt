@@ -1,0 +1,74 @@
+16:     {
+17:         using var command = db.Database.GetDbConnection().CreateCommand();
+18:         command.Transaction = db.Database.CurrentTransaction?.GetDbTransaction() ?? throw new InvalidOperationException("Transaction required.");
+19:         command.CommandText = "DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000; SELECT @r;";
+20:         var p = command.CreateParameter(); p.ParameterName = "@resource"; p.Value = resource; command.Parameters.Add(p);
+21:         object? result;
+22:         try { result = await command.ExecuteScalarAsync(ct); }
+27:     {
+28:         await Gate(db, $"HotelOps:Replenishment:Owner:{id}", ct);
+29:         return await db.MaterialReplenishments.FromSqlInterpolated($"SELECT * FROM dbo.material_replenishments WITH (UPDLOCK,HOLDLOCK) WHERE replenishment_id={id}")
+30:             .Include(x => x.Warehouse).Include(x => x.MaterialReplenishmentLines).ThenInclude(x => x.MaterialReplenishmentReceiptLines).SingleOrDefaultAsync(ct);
+31:     }
+32:     internal static async Task Claims(HotelOpsDbContext db, IEnumerable<MaterialReplenishmentLine> lines, CancellationToken ct)
+45:         return value;
+46:     }
+47:     internal static async Task Actor(HotelOpsDbContext db, long actor, long branch, CancellationToken ct)
+48:     {
+49:         var u = await db.Users.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == actor, ct);
+50:         if (u is null || u.DeletedAt != null || u.AccountStatus != "ACTIVE" || u.EmploymentStatus != "ACTIVE") throw Invalid("An active business actor is required.");
+51:         if (u.PrimaryBranchId != branch && !await db.UserBranchAccesses.AnyAsync(x => x.UserId == actor && x.BranchId == branch && x.RevokedAt == null, ct)) throw Invalid("Business actor must be branch-related. This is not authorization.");
+52:     }
+53:     internal static object Snapshot(MaterialReplenishment r) => new
+54:     {
+55:         r.ReplenishmentId, r.ReplenishmentNo, r.WarehouseId, BranchId = r.Warehouse.BranchId, r.RequestedBy, r.SupplierName, r.ExpectedOn, r.Status,
+56:         r.ClosedAt, r.ClosedBy, r.CloseReason, r.CreatedAt, r.UpdatedAt,
+57:         Lines = r.MaterialReplenishmentLines.OrderBy(x => x.LineNo).Select(x => new { x.ReplenishmentLineId, x.LineNo, x.ItemId, x.BaseUomId, x.SourceType, x.SourceThresholdId,
+58:             x.SourceMaterialRequestLineId, x.RequestedBaseQty, GrossCreditedBaseQty = x.MaterialReplenishmentReceiptLines.Sum(l => l.CreditedBaseQty), NetReceivedBaseQty = x.ReceivedBaseQty, RemainingBaseQty = x.RequestedBaseQty - x.ReceivedBaseQty, x.IsOpenCoverage, x.Note }).ToArray()
+64:         var changed = a.RootElement.EnumerateObject().Where(x => !b.RootElement.TryGetProperty(x.Name, out var p) || p.GetRawText() != x.Value.GetRawText()).Select(x => x.Name).ToArray();
+65:         var occurredAt = DateTime.UtcNow;
+66:         db.AuditLogs.Add(new() { EntityType = "material_replenishments", EntityId = r.ReplenishmentId.ToString(CultureInfo.InvariantCulture), ActorUserId = actor, BranchId = r.Warehouse.BranchId,
+67:             Action = old is null ? "CREATE" : "UPDATE", OccurredAt = occurredAt, OldValues = prior, NewValues = JsonSerializer.Serialize(new { BusinessEvent = evt, ActorUserId = actor, OccurredAt = occurredAt, State = after, Extra = extra }), ChangedFields = JsonSerializer.Serialize(changed) });
+68:     }
+69:     internal static async Task<List<MaterialReplenishmentReceiptLine>> Links(HotelOpsDbContext db, long root, CancellationToken ct) =>
+70:         await db.MaterialReplenishmentReceiptLines.AsNoTracking().Include(x => x.StockDocumentLine).ThenInclude(x => x.Document)
+77:         var movements = await db.StockMovements.AsNoTracking().Where(x => x.DocumentLineId == line.LineId).ToListAsync(ct);
+78:         if (movements.Count != 1 || movements[0].WarehouseId != warehouse || movements[0].ItemId != item || movements[0].SignedBaseQty != line.BaseQty) throw Invalid("Receipt movement evidence is ambiguous.");
+79:         if (doc.Status == "POSTED")
+80:         {
+81:             if (await db.StockDocuments.AnyAsync(x => x.ReversalOfDocumentId == doc.DocumentId && x.Status == "POSTED", ct)) throw Invalid("Receipt reversal evidence conflicts with POSTED status.");
+82:         }
+83:         else if (doc.Status == "REVERSED")
+84:         {
+85:             var reversals = await db.StockDocuments.AsNoTracking().Where(x => x.ReversalOfDocumentId == doc.DocumentId && x.DocumentType == "REVERSAL" && x.Status == "POSTED").Select(x => x.DocumentId).ToListAsync(ct);
+86:             if (reversals.Count != 1) throw Invalid("Receipt reversal lineage is ambiguous.");
+87:             // Whole-document correction: verify offsets by warehouse/item, never infer line correlation by order.
+88:             var all = await db.StockMovements.AsNoTracking().Where(x => x.DocumentLine.DocumentId == doc.DocumentId || x.DocumentLine.DocumentId == reversals[0]).ToListAsync(ct);
+102:         foreach (var l in r.MaterialReplenishmentLines)
+103:         {
+104:             var net = links.Where(x => x.ReplenishmentLineId == l.ReplenishmentLineId && x.StockDocumentLine.Document.Status == "POSTED").Sum(x => x.CreditedBaseQty);
+105:             if (l.ReceivedBaseQty != net || l.IsOpenCoverage != (r.Status != "CLOSED" && net < l.RequestedBaseQty)) throw Invalid("Received cache/coverage does not reconcile.");
+106:         }
+107:         var status = DerivedStatus(r);
+108:         if (r.Status != "CLOSED" && status != r.Status) throw Invalid("Replenishment state does not reconcile.");
+109:     }
+110:     private static string DerivedStatus(MaterialReplenishment r) => r.MaterialReplenishmentLines.All(x => x.ReceivedBaseQty == x.RequestedBaseQty) ? "FULLY_RECEIVED"
+111:         : r.MaterialReplenishmentLines.Any(x => x.ReceivedBaseQty > 0) ? "PARTIALLY_RECEIVED" : "REQUESTED";
+112:     internal static async Task Refresh(HotelOpsDbContext db, MaterialReplenishment r, long? reversing, CancellationToken ct)
+113:     {
+115:         foreach (var l in r.MaterialReplenishmentLines)
+116:         {
+117:             l.ReceivedBaseQty = links.Where(x => x.ReplenishmentLineId == l.ReplenishmentLineId && x.StockDocumentLine.Document.Status == "POSTED" && x.StockDocumentLine.DocumentId != reversing).Sum(x => x.CreditedBaseQty);
+118:             if (l.ReceivedBaseQty > l.RequestedBaseQty) throw Invalid("Receipt exceeds remaining replenishment quantity.");
+119:             l.IsOpenCoverage = r.Status != "CLOSED" && l.ReceivedBaseQty < l.RequestedBaseQty;
+120:         }
+121:         if (r.Status != "CLOSED") r.Status = DerivedStatus(r);
+122:         r.UpdatedAt = DateTime.UtcNow;
+123:     }
+124:     internal static async Task NoConflictingClaims(HotelOpsDbContext db, IReadOnlyList<MaterialReplenishment> roots, CancellationToken ct)
+137:         foreach (var id in ids)
+138:         {
+139:             var r = (await Owner(db, id, ct))!; await Actor(db, actor, r.Warehouse.BranchId, ct); await Reconcile(db, r, ct);
+140:             roots.Add(r); before.Add(id, Snapshot(r));
+141:         }
+142:         await Claims(db, roots.SelectMany(x => x.MaterialReplenishmentLines), ct);

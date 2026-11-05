@@ -1,0 +1,189 @@
+﻿SOURCE: src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs
+SHA256: BA03B74EB8E1F317E07714C4C723CC2809EB394F39885DA61CB8C42B18CBCA86
+Ranges: 1-220 (original source line numbers)
+    1: using System.ComponentModel.DataAnnotations;
+    2: using System.Data;
+    3: using System.Globalization;
+    4: using System.Text.Json;
+    5: using HotelOps.Api.Data;
+    6: using HotelOps.Api.DTOs.HotelStructure;
+    7: using HotelOps.Api.Entities;
+    8: using HotelOps.Api.Security.Authorization;
+    9: using HotelOps.Api.Services.Authentication;
+   10: using HotelOps.Api.Services.Users;
+   11: using Microsoft.Data.SqlClient;
+   12: using Microsoft.EntityFrameworkCore;
+   13: using Microsoft.EntityFrameworkCore.Storage;
+   14: 
+   15: namespace HotelOps.Api.Services.HotelStructure;
+   16: 
+   17: public sealed record BranchAdministrationResult(int Status, object? Value = null, string? Code = null, string? ETag = null);
+   18: 
+   19: /// <summary>UC012 SQL-rowversion boundary. No branch deactivation until consumer coordination is proven.</summary>
+   20: public sealed class BranchAdministrationService(HotelOpsDbContext db, ICurrentUserAccessor current,
+   21:     IPermissionService permissions, ISqlSessionService sessions)
+   22: {
+   23:     public Task<BranchAdministrationResult> CreateAsync(SessionReference ticket, long sid, CreateBranchRequest input, CancellationToken ct)
+   24:     {
+   25:         ArgumentNullException.ThrowIfNull(input);
+   26:         var code = Text(input.Code, 30, true)!.ToUpperInvariant();
+   27:         if (!char.IsAsciiLetterOrDigit(code[0]) || code.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '_' and not '-'))
+   28:             throw new ValidationException("Invalid branch code.");
+   29:         var fields = Fields(input.Name, input.Address, input.Phone, input.Email);
+   30:         return Execute(ticket, sid, async actor =>
+   31:         {
+   32:             // Feature-only create serialization; never changes the shared RoomTypes lock protocol.
+   33:             await using var command = db.Database.GetDbConnection().CreateCommand();
+   34:             command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
+   35:             command.CommandText = "DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:Branches:Create:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r;";
+   36:             var acquired = Convert.ToInt32(await command.ExecuteScalarAsync(ct), CultureInfo.InvariantCulture);
+   37:             if (acquired < 0) return new(503, Code: "BRANCH_BUSY");
+   38:             if (await db.Branches.AsNoTracking().AnyAsync(x => x.BranchCode.Trim().ToUpper() == code, ct))
+   39:                 return new(409, Code: "DUPLICATE_BRANCH_CODE");
+   40:             var now = await Now(ct);
+   41:             var row = new Branch { BranchCode=code, BranchName=fields.Name, Address=fields.Address,
+   42:                 Phone=fields.Phone, Email=fields.Email, Timezone="Asia/Ho_Chi_Minh", IsActive=true, CreatedAt=now };
+   43:             db.Branches.Add(row);
+   44:             try { await db.SaveChangesAsync(ct); }
+   45:             catch (DbUpdateException e) when (Number(e) is 2601 or 2627) { return new(409, Code:"DUPLICATE_BRANCH_CODE"); }
+   46:             db.Entry(row).State = EntityState.Detached;
+   47:             var saved = await Row(row.BranchId, ct) ?? throw new InvalidOperationException("Created branch disappeared.");
+   48:             await Audit(actor, saved.Id, "CREATE", null, View(saved), ["code","name","address","phone","email","timezone","isActive"], now, ct);
+   49:             return Success(saved, 201);
+   50:         }, ct);
+   51:     }
+   52: 
+   53:     public Task<BranchAdministrationResult> ReadAsync(SessionReference ticket, long sid, long id, CancellationToken ct)
+   54:     {
+   55:         Id(id);
+   56:         return Execute(ticket, sid, async _ => await Row(id, ct) is { } row ? Success(row) : new(404, Code:"BRANCH_NOT_FOUND"), ct);
+   57:     }
+   58: 
+   59:     public Task<BranchAdministrationResult> UpdateAsync(SessionReference ticket, long sid, long id, byte[] expected,
+   60:         UpdateBranchRequest input, CancellationToken ct)
+   61:     {
+   62:         Id(id); Version(expected); ArgumentNullException.ThrowIfNull(input);
+   63:         var fields=Fields(input.Name,input.Address,input.Phone,input.Email);
+   64:         var reason=Text(input.Reason,500,true)!;
+   65:         if(reason.Length<10) throw new ValidationException("A reason of at least ten characters is required.");
+   66:         return Execute(ticket, sid, async actor =>
+   67:         {
+   68:             var before=await Row(id,ct);
+   69:             if(before is null)return new(404,Code:"BRANCH_NOT_FOUND");
+   70:             if(!before.Version.AsSpan().SequenceEqual(expected))return new(412,Code:"BRANCH_STALE");
+   71:             if(before.Name==fields.Name && before.Address==fields.Address && before.Phone==fields.Phone && before.Email==fields.Email)
+   72:                 return Success(before); // No-op leaves rowversion, UpdatedAt and audit untouched.
+   73:             var now=await Now(ct);
+   74:             var changed=await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.branches SET branch_name={fields.Name},address={fields.Address},phone={fields.Phone},email={fields.Email},updated_at={now} WHERE branch_id={id} AND row_version={expected}",ct);
+   75:             if(changed!=1)return new(412,Code:"BRANCH_STALE");
+   76:             var after=await Row(id,ct) ?? throw new InvalidOperationException("Updated branch disappeared.");
+   77:             var changedFields=new List<string>();
+   78:             if(before.Name!=after.Name)changedFields.Add("name");
+   79:             if(before.Address!=after.Address)changedFields.Add("address");
+   80:             if(before.Phone!=after.Phone)changedFields.Add("phone");
+   81:             if(before.Email!=after.Email)changedFields.Add("email");
+   82:             await Audit(actor,id,"UPDATE",View(before),new{reason,entity=View(after)},changedFields.ToArray(),now,ct);
+   83:             return Success(after);
+   84:         },ct);
+   85:     }
+   86: 
+   87:     public Task<BranchAdministrationResult> DependenciesAsync(SessionReference ticket,long sid,long id,CancellationToken ct)
+   88:     {
+   89:         Id(id);
+   90:         return Execute(ticket,sid,async _ => await Row(id,ct) is null ? new(404,Code:"BRANCH_NOT_FOUND")
+   91:             : new(200,await new BranchDeactivationDependencyReader(db).ReadAsync(id,ct)),ct);
+   92:     }
+   93: 
+   94:     public Task<BranchAdministrationResult> DeactivateAsync(SessionReference ticket,long sid,long id,byte[] expected,
+   95:         DeactivateStructureRequest input,CancellationToken ct)
+   96:     {
+   97:         Id(id);Version(expected);ArgumentNullException.ThrowIfNull(input);
+   98:         if(!input.Confirmation || Text(input.Reason,1000,true)!.Length<10)throw new ValidationException("Confirmation and reason are required.");
+   99:         return Execute(ticket,sid,async _ =>
+  100:         {
+  101:             var row=await Row(id,ct);
+  102:             if(row is null)return new(404,Code:"BRANCH_NOT_FOUND");
+  103:             if(!row.Version.AsSpan().SequenceEqual(expected))return new(412,Code:"BRANCH_STALE");
+  104:             if(!row.IsActive)return Success(row); // Already inactive: no mutation/audit.
+  105:             var facts=await new BranchDeactivationDependencyReader(db).ReadAsync(id,ct);
+  106:             return new(facts.HasConfirmedBlockers?409:503,facts,
+  107:                 facts.HasConfirmedBlockers?"BRANCH_DEPENDENCIES_EXIST":"DEACTIVATION_CONCURRENCY_BLOCKED");
+  108:         },ct);
+  109:     }
+  110: 
+  111:     private async Task<BranchAdministrationResult> Execute(SessionReference ticket,long sid,
+  112:         Func<long,Task<BranchAdministrationResult>> action,CancellationToken ct)
+  113:     {
+  114:         ArgumentNullException.ThrowIfNull(ticket);ct.ThrowIfCancellationRequested();
+  115:         if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
+  116:             return new(401,Code:"SESSION_INVALID");
+  117:         if(!db.Database.IsSqlServer()||db.Database.CurrentTransaction!=null||db.ChangeTracker.Entries().Any()||System.Transactions.Transaction.Current!=null)
+  118:             throw new InvalidOperationException("A clean scoped SQL context is required.");
+  119:         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+  120:         try
+  121:         {
+  122:             var locked=await new UserEligibilityLock(db).LockAsync([actor.UserId],ct);
+  123:             if(!locked.TryGetValue(actor.UserId,out var user)||user is null||user.DeletedAt!=null||user.AccountStatus!="ACTIVE"||user.EmploymentStatus!="ACTIVE")
+  124:                 return new(401,Code:"SESSION_INVALID");
+  125:             if(await Gate() is {} denied)return denied;
+  126:             if(!await BranchAdministrationSchema.ReadyAsync(db,ct))return new(503,Code:"BRANCH_ROWVERSION_SCHEMA_REQUIRED");
+  127:             var result=await action(actor.UserId);
+  128:             if(result.Status is >=200 and <300)
+  129:             {
+  130:                 if(await Gate() is {} revoked)return revoked;
+  131:                 await tx.CommitAsync(ct);
+  132:             }
+  133:             return result;
+  134:         }
+  135:         catch(Exception e) when(!ct.IsCancellationRequested && (e is SqlException or DbUpdateException))
+  136:         { return new(503,Code:Number(e)==1205?"BRANCH_DEADLOCK_ROLLED_BACK":"BRANCH_STORE_UNAVAILABLE"); }
+  137:         finally {db.ChangeTracker.Clear();}
+  138: 
+  139:         async Task<BranchAdministrationResult?> Gate()
+  140:         {
+  141:             var valid=await sessions.ValidateSessionAsync(ticket,ct);
+  142:             if(!valid.IsValid||valid.Session?.SessionId!=sid||valid.Session.UserId!=actor.UserId||valid.Session.IsRestricted)
+  143:                 return new(401,Code:"SESSION_INVALID");
+  144:             // Historical UC012 binding: effective GLOBAL MASTER_DATA_MANAGE, never a role-name bypass.
+  145:             var access=await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct);
+  146:             return access.IsGranted?null:new(access.Decision==PermissionDecision.Unavailable?503:403,Code:"BRANCH_FORBIDDEN");
+  147:         }
+  148:     }
+  149: 
+  150:     private Task<BranchRow?> Row(long id,CancellationToken ct)=>BranchRows().SingleOrDefaultAsync(x=>x.Id==id,ct);
+  151:     private IQueryable<BranchRow> BranchRows()=>db.Database.SqlQueryRaw<BranchRow>("""
+  152:         SELECT branch_id AS Id,branch_code AS Code,branch_name AS Name,address AS Address,phone AS Phone,
+  153:         email AS Email,timezone AS Timezone,is_active AS IsActive,CONVERT(varbinary(8),row_version) AS Version
+  154:         FROM dbo.branches WITH(UPDLOCK,HOLDLOCK)
+  155:         """);
+  156:     private Task<DateTime> Now(CancellationToken ct)=>db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct);
+  157:     private async Task Audit(long actor,long branch,string action,object? before,object after,string[] fields,DateTime now,CancellationToken ct)
+  158:     {
+  159:         var audit=new AuditLog{ActorUserId=actor,BranchId=branch,EntityType="branches",EntityId=branch.ToString(CultureInfo.InvariantCulture),Action=action,
+  160:             OccurredAt=now,OldValues=JsonSerializer.Serialize(before is null?new{entity=(object?)null}:before),NewValues=JsonSerializer.Serialize(after),ChangedFields=JsonSerializer.Serialize(fields)};
+  161:         db.AuditLogs.Add(audit);
+  162:         try { await db.SaveChangesAsync(ct); }
+  163:         finally { db.Entry(audit).State=EntityState.Detached; } // Final SQL-session recheck requires an untracked context.
+  164:     }
+  165:     private static EditableBranchDto View(BranchRow r)=>new(r.Id,r.Code,r.Name,r.Address,r.Phone,r.Email,r.Timezone,r.IsActive);
+  166:     private static BranchAdministrationResult Success(BranchRow r,int status=200)=>new(status,View(r),ETag:'"'+Convert.ToBase64String(r.Version)+'"');
+  167:     private static void Id(long id){if(id<=0)throw new ValidationException("Positive BranchId required.");}
+  168:     private static void Version(byte[] value){if(value is not {Length:8})throw new ValidationException("SQL rowversion must be eight bytes.");}
+  169:     private static string? Text(string? value,int max,bool required)
+  170:     {var text=value?.Trim();if(string.IsNullOrEmpty(text)){if(required)throw new ValidationException("Required field is empty.");return null;}
+  171:         if(text.Length>max||text.Any(char.IsControl))throw new ValidationException("Invalid branch field.");return text;}
+  172:     private static (string Name,string Address,string? Phone,string? Email) Fields(string? name,string? address,string? phone,string? email)
+  173:     {
+  174:         var n=Text(name,200,true)!;var a=Text(address,4000,true)!;var p=Text(phone,20,false);var e=Text(email,150,false);
+  175:         if(p?.Any(c=>!char.IsAsciiDigit(c)&&!"+()- .".Contains(c))==true || e!=null&&(!new EmailAddressAttribute().IsValid(e)||e.Any(c=>c>127)))
+  176:             throw new ValidationException("Invalid contact information.");return(n,a,p,e);
+  177:     }
+  178:     private static int? Number(Exception e){for(Exception? p=e;p!=null;p=p.InnerException)if(p is SqlException s)return s.Number;return null;}
+  179:     private sealed class BranchRow
+  180:     {
+  181:         public long Id{get;set;} public string Code{get;set;}="";public string Name{get;set;}="";
+  182:         public string? Address{get;set;}public string? Phone{get;set;}public string? Email{get;set;}public string? Timezone{get;set;}
+  183:         public bool IsActive{get;set;}public byte[] Version{get;set;}=[];
+  184:     }
+  185: }
+

@@ -1,0 +1,169 @@
+﻿SOURCE: src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs
+SHA256: DE513DD058EFD8E4C1401D6103175FA0D3F3C59B83888385FC26295A6F4C3B76
+Ranges: 1-165 (original source line numbers)
+    1: using System.ComponentModel.DataAnnotations;
+    2: using System.Data;
+    3: using HotelOps.Api.Data;
+    4: using HotelOps.Api.DTOs.Housekeeping;
+    5: using HotelOps.Api.Security.Authorization;
+    6: using HotelOps.Api.Services.Authentication;
+    7: using Microsoft.Data.SqlClient;
+    8: using Microsoft.EntityFrameworkCore;
+    9: 
+   10: namespace HotelOps.Api.Services.Housekeeping;
+   11: 
+   12: public enum CleaningMonitorStatus { Success, SessionInvalid, Forbidden, NotFound, Unavailable }
+   13: public sealed record CleaningMonitorResult(CleaningMonitorStatus Status, object? Value = null);
+   14: 
+   15: /// <summary>UC037 read subset. Does not cancel work, derive room lifecycle or write business/audit data.</summary>
+   16: public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAccessor current,
+   17:     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
+   18: {
+   19:     private const int TimelineLimit = 100;
+   20:     private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+   21: 
+   22:     public Task<CleaningMonitorResult> ListAsync(SessionReference ticket, long sessionId, long branchId,
+   23:         CleaningMonitorQuery input, CancellationToken ct)
+   24:     {
+   25:         var now = clock.GetUtcNow().UtcDateTime;
+   26:         var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
+   27:         var from = input.FromDate ?? today;
+   28:         var to = input.ToDate ?? from;
+   29:         var search = input.Search?.Trim();
+   30:         var status = input.Status?.Trim().ToUpperInvariant();
+   31:         var kind = input.Kind?.Trim().ToLowerInvariant();
+   32:         if (branchId <= 0 || input.FloorId <= 0 || input.AssigneeId <= 0 || input.PriorityId <= 0
+   33:             || input.Page < 1 || input.PageSize is < 1 or > 100 || input.Page > int.MaxValue / input.PageSize
+   34:             || from == DateOnly.MinValue || from > to || to.DayNumber - from.DayNumber > 366 || to == DateOnly.MaxValue
+   35:             || search?.Length > 150 || search?.Any(char.IsControl) == true
+   36:             || status?.Length > 40 || status?.Any(c => !(char.IsAsciiLetterOrDigit(c) || c == '_')) == true
+   37:             || kind is not (null or "" or "cleaning" or "rework"))
+   38:             throw new ValidationException("Invalid cleaning monitor filters.");
+   39:         var start = TimeZoneInfo.ConvertTimeToUtc(from.ToDateTime(TimeOnly.MinValue), HotelTimezone);
+   40:         var end = TimeZoneInfo.ConvertTimeToUtc(to.AddDays(1).ToDateTime(TimeOnly.MinValue), HotelTimezone);
+   41:         return ReadAsync(ticket, sessionId, branchId, async token =>
+   42:         {
+   43:             var rows = (await RowsAsync(branchId, now, token)).Where(x => x.OccurredAt >= start && x.OccurredAt < end);
+   44:             if (input.FloorId is { } floor) rows = rows.Where(x => x.FloorId == floor);
+   45:             if (input.AssigneeId is { } assignee) rows = rows.Where(x => x.AssigneeId == assignee);
+   46:             if (input.PriorityId is { } priority) rows = rows.Where(x => x.PriorityId == priority);
+   47:             if (!string.IsNullOrEmpty(status)) rows = rows.Where(x => x.RecordedStatus == status || x.WorkflowState == status);
+   48:             if (!string.IsNullOrEmpty(kind)) rows = rows.Where(x => x.Kind == kind);
+   49:             if (!string.IsNullOrEmpty(search)) rows = rows.Where(x => x.TaskNumber.Contains(search)
+   50:                 || x.RoomNumber.Contains(search) || (x.AssigneeName != null && x.AssigneeName.Contains(search))
+   51:                 || (x.Description != null && x.Description.Contains(search)));
+   52:             if (input.Overdue is true) rows = rows.Where(x => x.DueAt != null && x.DueAt < now
+   53:                 && (x.WorkflowState ?? x.RecordedStatus) != "COMPLETED" && (x.WorkflowState ?? x.RecordedStatus) != "CANCELLED");
+   54:             if (input.Overdue is false) rows = rows.Where(x => (x.WorkflowState ?? x.RecordedStatus) == "COMPLETED"
+   55:                 || (x.WorkflowState ?? x.RecordedStatus) == "CANCELLED" || (x.DueAt != null && x.DueAt >= now));
+   56:             var total = await rows.CountAsync(token);
+   57:             var page = await rows.OrderBy(x => x.DueAt == null).ThenBy(x => x.DueAt).ThenBy(x => x.Id).ThenBy(x => x.Kind)
+   58:                 .Skip((input.Page - 1) * input.PageSize).Take(input.PageSize).ToListAsync(token);
+   59:             return new(CleaningMonitorStatus.Success,
+   60:                 new CleaningMonitorPage(page.Select(x => Item(x, now)).ToArray(), total, input.Page, input.PageSize,
+   61:                     from, to, HotelTimezone.Id, now));
+   62:         }, ct);
+   63:     }
+   64: 
+   65:     public Task<CleaningMonitorResult> DetailAsync(SessionReference ticket, long sessionId, long branchId,
+   66:         string kind, long id, CancellationToken ct)
+   67:         => DetailAsync(ticket, sessionId, branchId, kind, id, new CleaningMonitorTimelineQuery(), ct);
+   68: 
+   69:     public Task<CleaningMonitorResult> DetailAsync(SessionReference ticket, long sessionId, long branchId,
+   70:         string kind, long id, CleaningMonitorTimelineQuery input, CancellationToken ct)
+   71:     {
+   72:         if (branchId <= 0 || id <= 0 || kind is not ("cleaning" or "rework"))
+   73:             throw new ValidationException("Invalid cleaning monitor identifier.");
+   74:         if (input.TimelinePage < 1 || input.TimelinePageSize is < 1 or > TimelineLimit
+   75:             || input.TimelinePage > int.MaxValue / input.TimelinePageSize)
+   76:             throw new ValidationException("Invalid cleaning monitor timeline pagination.");
+   77:         var skip = (input.TimelinePage - 1) * input.TimelinePageSize;
+   78:         var now = clock.GetUtcNow().UtcDateTime;
+   79:         return ReadAsync(ticket, sessionId, branchId, async token =>
+   80:         {
+   81:             var row = await (await RowsAsync(branchId, now, token)).SingleOrDefaultAsync(x => x.Kind == kind && x.Id == id, token);
+   82:             if (row is null) return new(CleaningMonitorStatus.NotFound);
+   83:             var assignments = db.CleaningAssignments.AsNoTracking().Where(x => x.CleaningTaskId == row.CleaningTaskId);
+   84:             var assignmentCount = await assignments.CountAsync(token);
+   85:             var assignmentRows = await assignments.OrderByDescending(x => x.AssignedAt).ThenByDescending(x => x.AssignmentId)
+   86:                 .Skip(skip).Take(input.TimelinePageSize).Select(x => new MonitorAssignment(x.AssignmentId, x.AssigneeUserId,
+   87:                     x.AssignmentStatus, x.AssignedAt, x.EndedAt, x.Reason)).ToListAsync(token);
+   88:             var progress = db.CleaningProgressLogs.AsNoTracking().Where(x => x.CleaningTaskId == row.CleaningTaskId);
+   89:             var progressCount = await progress.CountAsync(token);
+   90:             var progressRows = await progress.OrderByDescending(x => x.LoggedAt).ThenByDescending(x => x.ProgressId)
+   91:                 .Skip(skip).Take(input.TimelinePageSize).Select(x => new MonitorProgress(x.ProgressId, x.ProgressPercent, x.Status,
+   92:                     x.BlockerType == null ? null : x.BlockerType.ValueCode, x.Note, x.LoggedBy, x.LoggedAt)).ToListAsync(token);
+   93:             var taskKey = row.CleaningTaskId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+   94:             var itemKey = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+   95:             var audit = db.AuditLogs.AsNoTracking().Where(x => x.BranchId == branchId
+   96:                 && ((x.EntityType == "cleaning_tasks" && x.EntityId == taskKey)
+   97:                     || (kind == "rework" && x.EntityType == "cleaning_reworks" && x.EntityId == itemKey)));
+   98:             var auditCount = await audit.CountAsync(token);
+   99:             var auditRows = await audit.OrderByDescending(x => x.OccurredAt).ThenByDescending(x => x.AuditId)
+  100:                 .Skip(skip).Take(input.TimelinePageSize).Select(x => new MonitorAudit(x.AuditId, x.EntityType, x.Action,
+  101:                     x.ActorUserId, x.OccurredAt)).ToListAsync(token);
+  102:             return new(CleaningMonitorStatus.Success, new CleaningMonitorDetail(Item(row, now),
+  103:                 assignmentRows.Select(x => x with { AssignedAtUtc = Utc(x.AssignedAtUtc), EndedAtUtc = Utc(x.EndedAtUtc) }).ToArray(),
+  104:                 assignmentCount, progressRows.Select(x => x with { LoggedAtUtc = Utc(x.LoggedAtUtc) }).ToArray(),
+  105:                 progressCount, auditRows.Select(x => x with { OccurredAtUtc = Utc(x.OccurredAtUtc) }).ToArray(),
+  106:                 auditCount, input.TimelinePageSize, now, input.TimelinePage));
+  107:         }, ct);
+  108:     }
+  109: 
+  110:     private async Task<CleaningMonitorResult> ReadAsync(SessionReference ticket, long sessionId, long branchId,
+  111:         Func<CancellationToken, Task<CleaningMonitorResult>> read, CancellationToken ct)
+  112:     {
+  113:         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted || actor.UserId != ticket.UserId
+  114:             || actor.SessionId != sessionId || ticket.IsRestricted) return new(CleaningMonitorStatus.SessionInvalid);
+  115:         if (db.Database.CurrentTransaction is not null) throw new InvalidOperationException("Monitor owns its read transaction.");
+  116:         try
+  117:         {
+  118:             // Retain session/permission read locks through count, page and detail; no business mutations.
+  119:             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+  120:             if (await Gate() is { } denied) return new(denied);
+  121:             var result = await read(ct);
+  122:             if (await Gate() is { } changed) return new(changed);
+  123:             await tx.CommitAsync(ct);
+  124:             return result;
+  125:         }
+  126:         catch (SqlException error) when (!ct.IsCancellationRequested && error.Number is -2 or 1205 or 1222 or 207 or 208)
+  127:         { return new(CleaningMonitorStatus.Unavailable); }
+  128: 
+  129:         async Task<CleaningMonitorStatus?> Gate()
+  130:         {
+  131:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+  132:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted)
+  133:                 return CleaningMonitorStatus.SessionInvalid;
+  134:             // Supervisor monitor requires an actual branch/global view grant. OWN is not promoted to branch access.
+  135:             var access = await permissions.EvaluateBranchAsync("CLEANING_VIEW", branchId, ct);
+  136:             return access.IsGranted ? null : access.Decision == PermissionDecision.Unavailable
+  137:                 ? CleaningMonitorStatus.Unavailable : CleaningMonitorStatus.Forbidden;
+  138:         }
+  139:     }
+  140: 
+  141:     private async Task<IQueryable<MonitorRow>> RowsAsync(long branchId, DateTime now, CancellationToken ct)
+  142:     {
+  143:         // Read optional Task73 columns without changing generated entities or shared EF mappings.
+  144:         var cleaningWorkflow = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_tasks','workflow_status') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+  145:         var reworkWorkflow = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_reworks','workflow_status') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+  146:         var reworkDue = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_reworks','due_at') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+  147:         // Interpolated fragments are fixed identifiers selected only by metadata, never client text.
+  148:         var sql = $"""
+  149:             SELECT CAST('cleaning' AS nvarchar(10)) AS Kind, c.cleaning_task_id AS Id,
+  150:                 c.cleaning_task_id AS CleaningTaskId,c.task_no AS TaskNumber,r.room_id AS RoomId,r.room_number AS RoomNumber,
+  151:                 r.floor_id AS FloorId,f.floor_name AS FloorName,c.status AS RecordedStatus,
+  152:                 {(cleaningWorkflow == 1 ? "c.workflow_status" : "CAST(NULL AS nvarchar(40))")} AS WorkflowState,
+  153:                 c.priority_id AS PriorityId,p.value_code AS PriorityCode,a.assignee_user_id AS AssigneeId,u.full_name AS AssigneeName,
+  154:                 c.due_at AS DueAt,COALESCE(c.scheduled_start_at,c.created_at) AS OccurredAt,
+  155:                 g.progress_percent AS ProgressPercent,b.value_code AS BlockerCode,g.note AS BlockerNote,c.instruction AS Description
+  156:             FROM dbo.cleaning_tasks c JOIN dbo.rooms r ON r.room_id=c.room_id
+  157:             LEFT JOIN dbo.floors f ON f.floor_id=r.floor_id AND f.branch_id=r.branch_id
+  158:             LEFT JOIN dbo.reference_values p ON p.reference_id=c.priority_id
+  159:             OUTER APPLY(SELECT TOP(1) ca.assignee_user_id FROM dbo.cleaning_assignments ca
+  160:                 WHERE ca.cleaning_task_id=c.cleaning_task_id AND ca.assignment_status='ACTIVE' AND ca.ended_at IS NULL
+  161:                 AND ca.assigned_at<=@now ORDER BY ca.assigned_at DESC,ca.assignment_id DESC) a
+  162:             LEFT JOIN dbo.users u ON u.user_id=a.assignee_user_id
+  163:             OUTER APPLY(SELECT TOP(1) cl.progress_percent,cl.blocker_type_id,cl.note FROM dbo.cleaning_progress_logs cl
+  164:                 WHERE cl.cleaning_task_id=c.cleaning_task_id ORDER BY cl.logged_at DESC,cl.progress_id DESC) g
+  165:             LEFT JOIN dbo.reference_values b ON b.reference_id=g.blocker_type_id
+

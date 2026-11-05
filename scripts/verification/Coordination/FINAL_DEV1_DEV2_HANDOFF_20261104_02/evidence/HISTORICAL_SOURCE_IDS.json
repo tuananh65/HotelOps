@@ -1,0 +1,42 @@
+﻿[
+    {
+        "ref":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+        "blob":  "1b9f0d49b1a8d4a7435db421733c6472e6864b11",
+        "lineCount":  118,
+        "currentPathExists":  false,
+        "classification":  "HISTORICAL_ONLY_NOT_RUNTIME",
+        "rawGitBlobSha256":  "F12749C6C98D56962D801E0A797AF371CCCB7095377C581F7E102EED410668C8"
+    },
+    {
+        "ref":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+        "blob":  "f2b771332a2cdb8942c809bfcd339c6d68df6550",
+        "lineCount":  54,
+        "currentPathExists":  false,
+        "classification":  "HISTORICAL_ONLY_NOT_RUNTIME",
+        "rawGitBlobSha256":  "8A7140B224AD8717126BA83AA17E3E843272D3F74CA6B0031D06B35B53022F7F"
+    },
+    {
+        "ref":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+        "blob":  "87e1a7d6bbc5496d850253d7a84208de64326ac6",
+        "lineCount":  156,
+        "currentPathExists":  false,
+        "classification":  "HISTORICAL_ONLY_NOT_RUNTIME",
+        "rawGitBlobSha256":  "F279D50E8DEEAEE673FC31B9B911C43A9D4D6BFF84F4E0FC2E7D522C294E71A3"
+    },
+    {
+        "ref":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91:src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+        "blob":  "8aba8703a8e26808af57208cdd7439ceb43c099e",
+        "lineCount":  202,
+        "currentPathExists":  false,
+        "classification":  "HISTORICAL_ONLY_NOT_RUNTIME",
+        "rawGitBlobSha256":  "A97ABA36F24EDEB8E3AF6F1189D30C4FBBF03856BD5986D438E499301D1840D7"
+    },
+    {
+        "ref":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91:scripts/database/release/housekeeping/01_Housekeeping.sql",
+        "blob":  "622b64f51b2767575575b56a4e9530225cd2534b",
+        "lineCount":  128,
+        "currentPathExists":  false,
+        "classification":  "HISTORICAL_ONLY_NOT_RUNTIME",
+        "rawGitBlobSha256":  "4041A56F4C0AE061B4EF777BB9F834C53249F6A5E9F2C52253B88117B89024DA"
+    }
+]

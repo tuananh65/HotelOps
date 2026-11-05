@@ -1,6 +1,7 @@
 using System.Net;
 using System.Security.Claims;
 using System.Text.Json;
+using HotelOps.Api.Controllers;
 using HotelOps.Api.Data;
 using HotelOps.Api.Middleware;
 using HotelOps.Api.Security;
@@ -12,11 +13,15 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.Hosting.Server.Features;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 var ct = deadline.Token;
+var productionFallback = args.Contains("--production-fallback");
 var checks = 0;
 void Check(bool condition, string label)
 {
@@ -46,15 +51,26 @@ builder.Services.AddSingleton<TestSessions>();
 builder.Services.AddScoped<ICookieSessionValidator>(p => p.GetRequiredService<TestSessions>());
 builder.Services.AddScoped<ICookieSessionToucher>(p => p.GetRequiredService<TestSessions>());
 builder.Services.AddHotelOpsPermissionAuthorization();
+if (productionFallback)
+{
+    builder.Services.AddScoped<HotelOpsDbContext, ReadinessDatabase>();
+    builder.Services.AddControllers().AddApplicationPart(typeof(HealthController).Assembly)
+        .ConfigureApplicationPartManager(p => p.FeatureProviders.Add(new PublicControllersOnly()));
+    builder.Services.AddOpenApi();
+}
 builder.Services.Configure<AuthorizationOptions>(o =>
 {
     o.AddPolicy("ExternalClaim", p => p.RequireAuthenticatedUser().RequireClaim("external-confirmed"));
-    o.FallbackPolicy = new AuthorizationPolicyBuilder(HotelOpsCookieTicket.Scheme)
-        .RequireAuthenticatedUser().RequireClaim("fallback-confirmed").Build();
+    if (!productionFallback)
+        o.FallbackPolicy = new AuthorizationPolicyBuilder(HotelOpsCookieTicket.Scheme)
+            .RequireAuthenticatedUser().RequireClaim("fallback-confirmed").Build();
 });
 await using var app = builder.Build();
 app.UseMiddleware<AuthenticationExceptionMiddleware>();
 app.UseRouting();
+// Loopback test transport only: exercise Secure antiforgery cookies without a machine TLS certificate.
+// No forwarded header or production request-scheme handling is changed.
+if (productionFallback) app.Use((http, next) => { http.Request.Scheme = "https"; return next(http); });
 app.UseAuthentication();
 app.UseMiddleware<InvalidCookieMiddleware>();
 app.UseMiddleware<ApiCsrfMiddleware>();
@@ -96,6 +112,15 @@ app.MapGet("/api/default", () => Results.Ok()).RequireAuthorization();
 app.MapGet("/api/fallback", () => Results.Ok());
 app.MapGet("/api/missing-policy", () => Results.Ok()).RequireAuthorization("HotelOps.Permission:Global:DOES_NOT_EXIST");
 app.MapPost("/api/write", () => Results.Ok()).RequireAuthorization(branchPolicy);
+if (productionFallback)
+{
+    app.MapControllers(); // Actual HealthController and CsrfController; readiness database is a double.
+    if (app.Environment.IsDevelopment()) app.MapOpenApi().AllowAnonymous();
+    // Authentication workflow stubs isolate the anonymous/CSRF contract from SQL credential mutations.
+    app.MapPost("/api/auth/login", () => Results.NoContent()).AllowAnonymous();
+    app.MapPost("/api/auth/logout", () => Results.NoContent()).AllowAnonymous();
+    app.MapPost("/api/fallback-write", () => Results.NoContent());
+}
 await app.StartAsync(ct);
 try
 {
@@ -162,7 +187,8 @@ try
     await Expect("/api/multiple", 1, HttpStatusCode.Forbidden, "Permission success does not bypass second authorization requirement");
     await Expect("/api/external", 1, HttpStatusCode.Forbidden, "External named policy still enforced");
     await Expect("/api/default", 1, HttpStatusCode.OK, "Existing default authorization policy preserved");
-    await Expect("/api/fallback", 1, HttpStatusCode.Forbidden, "Existing fallback authorization policy preserved");
+    await Expect("/api/fallback", 1, productionFallback ? HttpStatusCode.OK : HttpStatusCode.Forbidden,
+        "Configured fallback authorization policy preserved");
     await Expect("/api/missing-policy", 1, HttpStatusCode.InternalServerError, "Unknown policy fails as endpoint configuration error, never permit-all", "INTERNAL_SERVER_ERROR");
     await Expect("/api/write", 1, HttpStatusCode.BadRequest, "CSRF middleware remains before authorization", "CSRF_VALIDATION_FAILED", HttpMethod.Post);
     catalog.Fail = true;
@@ -175,6 +201,81 @@ try
         Check(response.StatusCode == HttpStatusCode.Unauthorized, "Invalid protected cookie rejected: 401");
     }
     Check(sessions.Validations > 0 && sessions.Touches > 0, "Real cookie events and session-touch middleware use test session store");
+
+    if (productionFallback)
+    {
+        Check(options.FallbackPolicy is { } fallback
+            && fallback.AuthenticationSchemes.SequenceEqual([HotelOpsCookieTicket.Scheme])
+            && fallback.Requirements.Count == 1
+            && fallback.Requirements[0] is Microsoft.AspNetCore.Authorization.Infrastructure.DenyAnonymousAuthorizationRequirement,
+            "Production fallback requires only authenticated HotelOps cookie scheme");
+        Check(options.DefaultPolicy.AuthenticationSchemes.Count == 0
+            && options.DefaultPolicy.Requirements.Count == 1,
+            "DefaultPolicy remains framework default");
+        await Expect("/api/fallback", null, HttpStatusCode.Unauthorized, "No metadata anonymous: 401", "AUTHENTICATION_REQUIRED");
+        await Expect("/api/fallback", 4, HttpStatusCode.OK, "No permission needed to pass authentication-only fallback");
+        await Expect("/api/fallback", 10, HttpStatusCode.Forbidden, "Fallback does not bypass restricted session", "PASSWORD_CHANGE_REQUIRED");
+        await Expect("/api/auth/csrf", 10, HttpStatusCode.OK, "Restricted session retains CSRF bootstrap");
+        await Expect("/api/health/database", null, HttpStatusCode.OK, "Actual public readiness survives fallback");
+        await Expect("/openapi/v1.json", null, HttpStatusCode.OK, "Development OpenAPI remains public");
+        Check(typeof(HealthController).Assembly.GetType("HotelOps.Api.Controllers.WeatherForecastController") is null
+            && typeof(HealthController).Assembly.GetType("HotelOps.Api.WeatherForecast") is null,
+            "Unused WeatherForecast controller and model removed from API assembly");
+        await Expect("/api/default", null, HttpStatusCode.Unauthorized, "Explicit default still requires authentication");
+        foreach (var action in new[] { nameof(AuthController.Login), nameof(AuthController.Logout) })
+            Check(typeof(AuthController).GetMethod(action)!.IsDefined(typeof(AllowAnonymousAttribute), true),
+                "Production auth action retains AllowAnonymous: " + action);
+        await Cookie(12);
+        sessions.Revoked.Add(12);
+        await Expect("/api/fallback", 12, HttpStatusCode.Unauthorized, "Revoked session rejected at fallback", "SESSION_INVALID");
+        using (var request = new HttpRequestMessage(HttpMethod.Get, "/api/fallback"))
+        {
+            request.Headers.TryAddWithoutValidation("Cookie", HotelOpsCookieTicket.CookieName + "=invalid-test-cookie");
+            using var response = await client.SendAsync(request, ct);
+            Check(response.StatusCode == HttpStatusCode.Unauthorized, "Malformed cookie rejected on endpoint without metadata");
+        }
+
+        async Task<(string Token, string Cookie)> Csrf(string? authCookie)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "/api/auth/csrf");
+            if (authCookie is not null) request.Headers.TryAddWithoutValidation("Cookie", authCookie);
+            using var response = await client.SendAsync(request, ct);
+            Check(response.StatusCode == HttpStatusCode.OK, "Actual CSRF bootstrap survives fallback");
+            using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
+            var csrfCookie = response.Headers.GetValues("Set-Cookie")
+                .Single(h => h.StartsWith(HotelOpsAntiforgery.CookieName + "=", StringComparison.Ordinal)).Split(';')[0];
+            return (body.RootElement.GetProperty("csrfToken").GetString()!, csrfCookie);
+        }
+        async Task Post(string path, string? authCookie, (string Token, string Cookie)? csrf, HttpStatusCode status, string label)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Post, path);
+            var cookie = authCookie;
+            if (csrf is { } pair)
+            {
+                cookie = string.IsNullOrEmpty(cookie) ? pair.Cookie : cookie + "; " + pair.Cookie;
+                request.Headers.Add(HotelOpsAntiforgery.HeaderName, pair.Token);
+            }
+            if (cookie is not null) request.Headers.TryAddWithoutValidation("Cookie", cookie);
+            using var response = await client.SendAsync(request, ct);
+            Check(response.StatusCode == status && response.Headers.Location is null, label);
+        }
+        var anonymousCsrf = await Csrf(null);
+        foreach (var path in new[] { "/api/auth/login", "/api/auth/logout" })
+        {
+            await Post(path, null, null, HttpStatusCode.BadRequest, "Public auth stub still requires CSRF: " + path);
+            await Post(path, null, anonymousCsrf, HttpStatusCode.NoContent, "Public auth stub accepts valid anonymous CSRF: " + path);
+        }
+        await Post("/api/fallback-write", null, null, HttpStatusCode.BadRequest, "CSRF precedes fallback challenge on unsafe request");
+        await Post("/api/fallback-write", null, anonymousCsrf, HttpStatusCode.Unauthorized, "Valid CSRF cannot authenticate anonymous request");
+        var validCookie = await Cookie(4);
+        var authenticatedCsrf = await Csrf(validCookie);
+        await Post("/api/fallback-write", validCookie, authenticatedCsrf, HttpStatusCode.NoContent, "Valid session and bound CSRF pass fallback write gate");
+        await Post("/api/fallback-write", validCookie, anonymousCsrf, HttpStatusCode.BadRequest, "Anonymous token cannot be reused for authenticated session");
+        await Post("/api/write", validCookie, authenticatedCsrf, HttpStatusCode.Forbidden, "Valid CSRF and session do not bypass named permission policy");
+        await Cookie(14);
+        sessions.RevokeOnTouch.Add(14);
+        await Expect("/api/fallback", 14, HttpStatusCode.Unauthorized, "Revocation between validation and touch still fails closed", "SESSION_INVALID");
+    }
 
     // Imperative authorization uses the exact request principal and typed backend target.
     using (var scope = app.Services.CreateScope())
@@ -255,6 +356,8 @@ sealed class TestResourceResolver : IPermissionResourceResolver
 }
 sealed class TestSessions : ICookieSessionValidator, ICookieSessionToucher
 {
+    public HashSet<long> Revoked { get; } = [];
+    public HashSet<long> RevokeOnTouch { get; } = [];
     public Dictionary<long, SessionSnapshot> Snapshots { get; } = [];
     private readonly Dictionary<long, SessionReference> references = [];
     public int Validations { get; private set; }
@@ -272,7 +375,7 @@ sealed class TestSessions : ICookieSessionValidator, ICookieSessionToucher
     public Task<SessionValidationResult> ValidateAsync(SessionReference ticket, CancellationToken cancellationToken)
     {
         Validations++;
-        var valid = references.TryGetValue(ticket.UserId, out var expected)
+        var valid = !Revoked.Contains(ticket.UserId) && references.TryGetValue(ticket.UserId, out var expected)
             && expected.CreatedAtUtc == ticket.CreatedAtUtc && expected.IsRestricted == ticket.IsRestricted
             && expected.ExportCredentialForProtectedTicket() == ticket.ExportCredentialForProtectedTicket();
         return Task.FromResult(new SessionValidationResult(valid, valid ? Snapshots[ticket.UserId] : null));
@@ -280,6 +383,30 @@ sealed class TestSessions : ICookieSessionValidator, ICookieSessionToucher
     public Task<SessionValidationResult> TouchAsync(SessionReference ticket, CancellationToken cancellationToken)
     {
         Touches++;
+        if (RevokeOnTouch.Contains(ticket.UserId)) Revoked.Add(ticket.UserId);
         return ValidateAsync(ticket, cancellationToken);
+    }
+}
+
+sealed class PublicControllersOnly : IApplicationFeatureProvider<ControllerFeature>
+{
+    public void PopulateFeature(IEnumerable<ApplicationPart> parts, ControllerFeature feature)
+    {
+        foreach (var controller in feature.Controllers.ToArray())
+            if (controller.AsType() != typeof(HealthController) && controller.AsType() != typeof(CsrfController))
+                feature.Controllers.Remove(controller);
+    }
+}
+sealed class ReadinessDatabase : HotelOpsDbContext
+{
+    public ReadinessDatabase() : base(new DbContextOptionsBuilder<HotelOpsDbContext>().Options) { }
+    public override DatabaseFacade Database => new ReadinessFacade(this);
+}
+sealed class ReadinessFacade(DbContext db) : DatabaseFacade(db)
+{
+    public override Task<bool> CanConnectAsync(CancellationToken ct = default)
+    {
+        ct.ThrowIfCancellationRequested();
+        return Task.FromResult(true);
     }
 }

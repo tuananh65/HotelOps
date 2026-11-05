@@ -1,0 +1,103 @@
+﻿SOURCE: src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs
+SHA256: 1DB3B70BAD1BCA14DA3E1F5F5AEE14A2B2E634C5B26B77BBB672F19C75A716CA
+Ranges: 17-65,87-135 (original source line numbers)
+   17: public sealed class GlobalAdminSerialization(HotelOpsDbContext db, TimeProvider clock)
+   18: {
+   19:     public const string Resource = "HotelOps:GlobalAdminEligibility:v1";
+   20: 
+   21:     public async Task<GlobalAdminTransaction> AcquireAsync(int timeoutMilliseconds = 5000, CancellationToken ct = default)
+   22:     {
+   23:         ArgumentOutOfRangeException.ThrowIfLessThan(timeoutMilliseconds, 0);
+   24:         ArgumentOutOfRangeException.ThrowIfGreaterThan(timeoutMilliseconds, 30000);
+   25:         ct.ThrowIfCancellationRequested();
+   26:         if (!db.Database.IsSqlServer() || Transaction.Current is not null)
+   27:             throw new InvalidOperationException("A caller-owned local SQL Server transaction is required.");
+   28:         var transaction = db.Database.CurrentTransaction
+   29:             ?? throw new InvalidOperationException("A caller-owned transaction is required.");
+   30:         if (transaction.GetDbTransaction().IsolationLevel is not (System.Data.IsolationLevel.ReadCommitted
+   31:             or System.Data.IsolationLevel.RepeatableRead or System.Data.IsolationLevel.Serializable))
+   32:             throw new InvalidOperationException("Locking isolation is required.");
+   33:         if (db.ChangeTracker.Entries().Any())
+   34:             throw new InvalidOperationException("Acquire before tracked work and before any feature locks.");
+   35:         await using var command = db.Database.GetDbConnection().CreateCommand();
+   36:         command.Transaction = transaction.GetDbTransaction();
+   37:         command.CommandTimeout = 35;
+   38:         command.CommandText = "DECLARE @result int; EXEC @result=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=@timeout,@DbPrincipal='public'; SELECT @result;";
+   39:         command.Parameters.Add(new SqlParameter("@resource", SqlDbType.NVarChar, 255) { Value = Resource });
+   40:         command.Parameters.Add(new SqlParameter("@timeout", SqlDbType.Int) { Value = timeoutMilliseconds });
+   41:         object? scalar;
+   42:         try { scalar = await command.ExecuteScalarAsync(ct); }
+   43:         catch (SqlException error) when (ct.IsCancellationRequested)
+   44:         { throw new OperationCanceledException("Global administration lock acquisition was cancelled; roll back the caller transaction.", error, ct); }
+   45:         ct.ThrowIfCancellationRequested();
+   46:         if (scalar is not int result)
+   47:             throw new InvalidOperationException("SQL did not confirm serialization acquisition.");
+   48:         if (result < 0) throw new GlobalAdminLockException(result);
+   49:         return new GlobalAdminTransaction(db, transaction, clock);
+   50:     }
+   51: }
+   52: 
+   53: public sealed class GlobalAdminLockException(int result)
+   54:     : InvalidOperationException("Global administration serialization was not acquired; roll back the caller transaction.")
+   55: {
+   56:     public int Result { get; } = result;
+   57: }
+   58: 
+   59: /// <summary>No credential/session material is exposed. SQL eligibility is structural, not password knowledge.</summary>
+   60: public sealed class GlobalAdminSnapshot
+   61: {
+   62:     internal Guid Scope { get; }
+   63:     public DateTime EvaluatedAtUtc { get; }
+   64:     public IReadOnlyList<long> CapabilityCandidateUserIds { get; }
+   65:     public IReadOnlyList<long> DurableEligibleUserIds { get; }
+
+   87:     private readonly TimeProvider clock;
+   88:     private readonly Guid scope = Guid.NewGuid();
+   89:     internal GlobalAdminTransaction(HotelOpsDbContext db, IDbContextTransaction transaction, TimeProvider clock)
+   90:         => (this.db, this.transaction, this.clock) = (db, transaction, clock);
+   91: 
+   92:     /// <summary>
+   93:     /// Read under retained SQL locks: Users -> UserRoles -> Roles -> RolePermissions -> Permissions.
+   94:     /// Conservatively locks these tables/ranges, including the identifier namespace; not for routine reads.
+   95:     /// Finite lockout affects immediate login, not durable eligibility. Temporary credentials are excluded.
+   96:     /// Locks do not freeze time; report expiry separately. No existing mutation is implicitly protected.
+   97:     /// </summary>
+   98:     public async Task<GlobalAdminSnapshot> ReadSnapshotAsync(CancellationToken ct = default)
+   99:     {
+  100:         ct.ThrowIfCancellationRequested();
+  101:         if (db.Database.CurrentTransaction != transaction || Transaction.Current is not null)
+  102:             throw new InvalidOperationException("The original caller transaction must still be active.");
+  103:         if (db.ChangeTracker.Entries().Any())
+  104:             throw new InvalidOperationException("Read authoritative SQL state using a clean context.");
+  105:         await using var command = db.Database.GetDbConnection().CreateCommand();
+  106:         command.Transaction = transaction.GetDbTransaction();
+  107:         command.CommandText = "SELECT APPLOCK_MODE('public',@resource,'Transaction')";
+  108:         command.Parameters.Add(new SqlParameter("@resource", SqlDbType.NVarChar, 255) { Value = GlobalAdminSerialization.Resource });
+  109:         if (!string.Equals(await command.ExecuteScalarAsync(ct) as string, "Exclusive", StringComparison.Ordinal))
+  110:             throw new InvalidOperationException("The transaction serialization lock is required.");
+  111:         // Conservative stable universe, including missing/new identifier and grant rows. This foundation
+  112:         // intentionally trades concurrency for proof; integration/load/legacy lock-order review is separate.
+  113:         // Take the write lock up front. A retained table S lock followed by a User UPDLOCK
+  114:         // can deadlock with authentication holding U and waiting to promote it to X.
+  115:         var users = await db.Users.FromSqlRaw("SELECT * FROM dbo.users WITH (TABLOCKX,HOLDLOCK)").AsNoTracking().ToArrayAsync(ct);
+  116:         // Shared row/range locks remain compatible with Create's existing Role UPDLOCK.
+  117:         // Forcing catalog table S locks would conflict with its intent locks while it awaits User INSERT.
+  118:         _ = await db.UserRoles.FromSqlRaw("SELECT * FROM dbo.user_roles WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);
+  119:         _ = await db.Roles.FromSqlRaw("SELECT * FROM dbo.roles WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);
+  120:         _ = await db.RolePermissions.FromSqlRaw("SELECT * FROM dbo.role_permissions WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);
+  121:         _ = await db.Permissions.FromSqlRaw("SELECT * FROM dbo.permissions WITH (ROWLOCK,HOLDLOCK)").AsNoTracking().ToListAsync(ct);
+  122:         var now = clock.GetUtcNow().UtcDateTime;
+  123:         // Same SQL account/assignment/time predicates as the existing permission data source.
+  124:         // Scope/code comparisons remain ordinal in .NET, as in PermissionService.
+  125:         var paths = await (from assignment in db.UserRoles.AsNoTracking()
+  126:             join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
+  127:             where assignment.User.AccountStatus == "ACTIVE" && assignment.User.DeletedAt == null
+  128:                 && assignment.IsActive && assignment.Role.IsActive && assignment.BranchId == null
+  129:                 && assignment.AssignedAt <= now && (assignment.ExpiresAt == null || assignment.ExpiresAt > now)
+  130:                 && (grant.Permission.PermissionCode == "USER_MANAGE" || grant.Permission.PermissionCode == "ROLE_MANAGE")
+  131:             select new { assignment.UserId, grant.DataScope, grant.Permission.PermissionCode, assignment.ExpiresAt }).ToListAsync(ct);
+  132:         var ids = paths.Where(p => p.DataScope == "ALL").GroupBy(p => p.UserId)
+  133:             .Where(g => g.Any(p => p.PermissionCode == "USER_MANAGE") && g.Any(p => p.PermissionCode == "ROLE_MANAGE"))
+  134:             .Select(g => g.Key).Order().ToArray();
+  135:         var durable = new List<long>(); var immediate = new List<long>(); var horizons = new List<DateTime?>();
+

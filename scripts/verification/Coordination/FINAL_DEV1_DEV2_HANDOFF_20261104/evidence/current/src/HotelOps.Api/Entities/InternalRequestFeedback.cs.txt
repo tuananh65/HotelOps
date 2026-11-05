@@ -1,0 +1,26 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class InternalRequestFeedback
+7: {
+8:     public long FeedbackId { get; set; }
+9: 
+10:     public long InternalRequestId { get; set; }
+11: 
+12:     public int Rating { get; set; }
+13: 
+14:     public string? Comment { get; set; }
+15: 
+16:     public bool? IsSatisfied { get; set; }
+17: 
+18:     public long SubmittedBy { get; set; }
+19: 
+20:     public DateTime SubmittedAt { get; set; }
+21: 
+22:     public virtual InternalRequest InternalRequest { get; set; } = null!;
+23: 
+24:     public virtual User SubmittedByNavigation { get; set; } = null!;
+25: }
+26: 

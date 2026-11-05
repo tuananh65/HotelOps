@@ -1,0 +1,67 @@
+{
+    "framework":  "xUnit 2.9.3 / Microsoft.NET.Test.Sdk 17.14.1 / VSTest",
+    "coverage":  [
+                     {
+                         "value":  [
+                                       {
+                                           "Name":  "Auth",
+                                           "Count":  20
+                                       },
+                                       {
+                                           "Name":  "UC037",
+                                           "Count":  22
+                                       },
+                                       {
+                                           "Name":  "UC038",
+                                           "Count":  15
+                                       },
+                                       {
+                                           "Name":  "UC012",
+                                           "Count":  22
+                                       },
+                                       {
+                                           "Name":  "UC142",
+                                           "Count":  10
+                                       },
+                                       {
+                                           "Name":  "Shared controllers",
+                                           "Count":  2
+                                       }
+                                   ],
+                         "Count":  6
+                     }
+                 ],
+    "final":  {
+                  "passed":  91,
+                  "exitCode":  0,
+                  "failed":  0,
+                  "total":  91,
+                  "skipped":  0,
+                  "sqlExecuted":  false,
+                  "httpServerExecuted":  false
+              },
+    "project":  "tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj",
+    "sqlCases":  [
+                     "Revoked/expired session and inactive employment",
+                     "UC012 duplicate code normalization and concurrent create",
+                     "UC012 stale rowversion and concurrent update",
+                     "UC012 transaction/audit rollback",
+                     "UC037 branch isolation/order/pagination/empty results",
+                     "UC038 scope/DTO mapping/order/pagination/empty results",
+                     "UC142 active/search/sort/pagination/DTO/empty results"
+                 ],
+    "executionHistory":  {
+                             "final":  "91 passed, 0 failed, 0 skipped",
+                             "initialCompile":  "CS7036: test fixture omitted controller constructor dependencies; corrected",
+                             "firstRun":  {
+                                              "total":  91,
+                                              "trx":  "results/task87.trx",
+                                              "reason":  "xUnit InlineData int could not bind nullable long; test data corrected",
+                                              "failed":  8,
+                                              "passed":  83
+                                          }
+                         },
+    "sqlGate":  "NOT_RUN_SQL_GATE",
+    "trx":  "results-final/task87.trx",
+    "task":  87
+}

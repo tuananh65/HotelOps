@@ -1,0 +1,932 @@
+[
+  {
+    "file": "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+    "line": 13,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+    "line": 14,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+    "line": 18,
+    "text": "    [HttpPost(\"{userId}/reset-credential\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+    "line": 10,
+    "text": "[Route(\"api/auth/reauthenticate\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+    "line": 11,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+    "line": 15,
+    "text": "    [HttpPost]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 9,
+    "text": "[Route(\"api/assets\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 12,
+    "text": "    [HttpPost(\"{assetId:long}/handovers\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 28,
+    "text": "    [HttpGet(\"{assetId:long}/handovers\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 44,
+    "text": "    [HttpGet(\"/api/asset-handovers/{handoverId:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 60,
+    "text": "    [HttpPost(\"/api/asset-handovers/{handoverId:long}/accept\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 76,
+    "text": "    [HttpPost(\"/api/asset-handovers/{handoverId:long}/reject\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 92,
+    "text": "    [HttpPost(\"{assetId:long}/retire\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 108,
+    "text": "    [HttpGet(\"{assetId:long}/maintenance-history\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 124,
+    "text": "    [HttpGet(\"statistics/by-location\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 138,
+    "text": "    [HttpGet]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 153,
+    "text": "    [HttpGet(\"{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 169,
+    "text": "    [HttpGet(\"/api/asset-types\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 184,
+    "text": "    [HttpGet(\"{id:long}/condition-history\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 200,
+    "text": "    [HttpGet(\"{id:long}/location-history\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 216,
+    "text": "    [HttpPost]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 231,
+    "text": "    [HttpPut(\"{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 247,
+    "text": "    [HttpPost(\"{id:long}/location\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 263,
+    "text": "    [HttpPost(\"{id:long}/location-transfers\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "line": 279,
+    "text": "    [HttpPost(\"{id:long}/condition\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 12,
+    "text": "[Route(\"api/auth\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 17,
+    "text": "    [HttpPost(\"login\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 39,
+    "text": "    [HttpGet(\"session\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 40,
+    "text": "    [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 49,
+    "text": "    [HttpPost(\"logout\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 64,
+    "text": "    [HttpPost(\"change-password\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "line": 65,
+    "text": "    [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "line": 11,
+    "text": "[Authorize(AuthenticationSchemes=HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "line": 17,
+    "text": "    [HttpPost(\"api/branches\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "line": 19,
+    "text": "    [HttpGet(\"api/branches/{id:long}/edit\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "line": 21,
+    "text": "    [HttpPut(\"api/branches/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "line": 23,
+    "text": "    [HttpGet(\"api/branches/{id:long}/deactivation-dependencies\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "line": 25,
+    "text": "    [HttpPost(\"api/branches/{id:long}/deactivate\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "line": 11,
+    "text": "[Route(\"api/branches/{branchId:long}/cleaning-monitor\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "line": 12,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "line": 16,
+    "text": "    [HttpGet]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "line": 20,
+    "text": "    [HttpGet(\"{kind}/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/CsrfController.cs",
+    "line": 9,
+    "text": "[Route(\"api/auth/csrf\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/CsrfController.cs",
+    "line": 12,
+    "text": "    [HttpGet]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/HealthController.cs",
+    "line": 9,
+    "text": "[Route(\"api/health\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/HealthController.cs",
+    "line": 19,
+    "text": "    [HttpGet(\"database\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "line": 9,
+    "text": "[Route(\"api/incidents\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "line": 19,
+    "text": "    [HttpPatch(\"{id:long}/status\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "line": 40,
+    "text": "    [HttpPatch(\"{id:long}/triage\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "line": 61,
+    "text": "    [HttpPost]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "line": 77,
+    "text": "    [HttpGet]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "line": 93,
+    "text": "    [HttpGet(\"{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 12,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 13,
+    "text": "[Route(\"api/inventory\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 22,
+    "text": "            if (!await access.Authorize(ControllerContext.ActionDescriptor.ActionName, RouteData.Values, input, HttpContext.RequestAborted)) return NotFound();"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 34,
+    "text": "    [HttpGet(\"items\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 36,
+    "text": "    [HttpGet(\"items/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 38,
+    "text": "    [HttpPost(\"items\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 40,
+    "text": "    [HttpPut(\"items/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 42,
+    "text": "    [HttpGet(\"item-categories\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 44,
+    "text": "    [HttpGet(\"units\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 46,
+    "text": "    [HttpGet(\"units/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 48,
+    "text": "    [HttpPost(\"units\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 50,
+    "text": "    [HttpPut(\"units/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 52,
+    "text": "    [HttpGet(\"items/{id:long}/conversions\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 54,
+    "text": "    [HttpGet(\"items/{id:long}/conversions/{conversionId:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 56,
+    "text": "    [HttpPost(\"items/{id:long}/conversions\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 58,
+    "text": "    [HttpPut(\"items/{id:long}/conversions/{conversionId:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 60,
+    "text": "    [HttpGet(\"warehouses\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 62,
+    "text": "    [HttpGet(\"warehouses/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 64,
+    "text": "    [HttpPost(\"warehouses\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 66,
+    "text": "    [HttpPut(\"warehouses/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 68,
+    "text": "    [HttpGet(\"warehouses/{warehouseId:long}/thresholds\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 70,
+    "text": "    [HttpPut(\"warehouses/{warehouseId:long}/items/{itemId:long}/threshold\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 72,
+    "text": "    [HttpGet(\"stock\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 74,
+    "text": "    [HttpGet(\"low-stock\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 76,
+    "text": "    [HttpGet(\"warehouses/{warehouseId:long}/items/{itemId:long}/stock\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 78,
+    "text": "    [HttpGet(\"movements\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 80,
+    "text": "    [HttpGet(\"warehouses/{warehouseId:long}/items/{itemId:long}/ledger\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 82,
+    "text": "    [HttpGet(\"documents\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 84,
+    "text": "    [HttpGet(\"documents/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 86,
+    "text": "    [HttpGet(\"documents/{id:long}/history\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 88,
+    "text": "    [HttpPost(\"documents/{id:long}/cancel\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 90,
+    "text": "    [HttpPost(\"documents/{id:long}/reverse\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 92,
+    "text": "    [HttpPost(\"receipts\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 94,
+    "text": "    [HttpPut(\"receipts/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 96,
+    "text": "    [HttpPost(\"receipts/{id:long}/post\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 98,
+    "text": "    [HttpPost(\"returns\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 100,
+    "text": "    [HttpPut(\"returns/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 102,
+    "text": "    [HttpPost(\"returns/{id:long}/post\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 104,
+    "text": "    [HttpPost(\"transfers\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 106,
+    "text": "    [HttpPut(\"transfers/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 108,
+    "text": "    [HttpPost(\"transfers/{id:long}/dispatch\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 110,
+    "text": "    [HttpPost(\"transfers/{id:long}/receipts\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 112,
+    "text": "    [HttpPost(\"adjustments\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 114,
+    "text": "    [HttpPost(\"adjustments/{id:long}/post\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 116,
+    "text": "    [HttpPost(\"reversals/{id:long}/post\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 118,
+    "text": "    [HttpGet(\"stocktakes\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 120,
+    "text": "    [HttpGet(\"stocktakes/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 122,
+    "text": "    [HttpPost(\"stocktakes\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 124,
+    "text": "    [HttpPut(\"stocktakes/{id:long}/counts\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 126,
+    "text": "    [HttpPost(\"stocktakes/{id:long}/submit\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 128,
+    "text": "    [HttpPost(\"stocktakes/{id:long}/reconcile\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 130,
+    "text": "    [HttpPost(\"stocktakes/{id:long}/approve-adjustment\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 132,
+    "text": "    [HttpPost(\"stocktakes/{id:long}/return\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "line": 134,
+    "text": "    [HttpPost(\"stocktakes/{id:long}/cancel\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 9,
+    "text": "[Route(\"api/maintenance-works\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 19,
+    "text": "    [HttpPost(\"/api/incidents/{incidentId:long}/maintenance-works\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 36,
+    "text": "    [HttpPatch(\"{id:long}/assignment\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 53,
+    "text": "    [HttpPost(\"{id:long}/start\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 70,
+    "text": "    [HttpPost(\"{id:long}/hold\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 87,
+    "text": "    [HttpPost(\"{id:long}/resume\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 104,
+    "text": "    [HttpPost(\"{id:long}/logs\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 121,
+    "text": "    [HttpPost(\"{id:long}/submit-result\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 138,
+    "text": "    [HttpPost(\"{id:long}/verify\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 155,
+    "text": "    [HttpPost(\"{id:long}/return\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 172,
+    "text": "    [HttpPost(\"{id:long}/cancel\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 189,
+    "text": "    [HttpGet(\"{id:long}/material-availability\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 200,
+    "text": "    [HttpGet]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "line": 214,
+    "text": "    [HttpGet(\"{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 9,
+    "text": "[Route(\"api/material-requests\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 17,
+    "text": "    [HttpGet] public Task<IActionResult> List([FromQuery] MaterialPage page, CancellationToken ct) => Execute(() => service.List(page, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 18,
+    "text": "    [HttpGet(\"{id:long}\")] public Task<IActionResult> Get(long id, CancellationToken ct) => Execute(() => service.Get(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 19,
+    "text": "    [HttpGet(\"{id:long}/history\")] public Task<IActionResult> History(long id, CancellationToken ct) => Execute(() => service.History(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 20,
+    "text": "    [HttpGet(\"{id:long}/availability\")] public Task<IActionResult> Availability(long id, CancellationToken ct) => Execute(() => service.Availability(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 21,
+    "text": "    [HttpGet(\"{id:long}/fulfillments\")] public Task<IActionResult> Fulfillments(long id, CancellationToken ct) => Execute(() => service.Fulfillments(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 22,
+    "text": "    [HttpGet(\"{id:long}/fulfillments/{fulfillmentId:long}\")] public Task<IActionResult> Fulfillment(long id, long fulfillmentId, CancellationToken ct) => Execute(() => service.Fulfillment(id, fulfillmentId, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 23,
+    "text": "    [HttpPost] public Task<IActionResult> Create(MaterialRequestWrite input, CancellationToken ct) => Execute(() => service.Save(null, input, ct), x => $\"/api/material-requests/{x!.RequestId}\");"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 24,
+    "text": "    [HttpPut(\"{id:long}\")] public Task<IActionResult> Edit(long id, MaterialRequestWrite input, CancellationToken ct) => Execute(() => service.Save(id, input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 25,
+    "text": "    [HttpPost(\"{id:long}/submit\")] public Task<IActionResult> Submit(long id, MaterialCommand input, CancellationToken ct) => Execute(() => service.Command(id, \"submit\", input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 26,
+    "text": "    [HttpPost(\"{id:long}/request-information\")] public Task<IActionResult> Information(long id, MaterialCommand input, CancellationToken ct) => Execute(() => service.Command(id, \"request-information\", input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 27,
+    "text": "    [HttpPost(\"{id:long}/approve\")] public Task<IActionResult> Approve(long id, MaterialApproval input, CancellationToken ct) => Execute(() => service.Command(id, \"approve\", new(input.ActorUserId, input.ExpectedRowVersion, input.Reason), ct, input));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 28,
+    "text": "    [HttpPost(\"{id:long}/reject\")] public Task<IActionResult> Reject(long id, MaterialCommand input, CancellationToken ct) => Execute(() => service.Command(id, \"reject\", input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 29,
+    "text": "    [HttpPost(\"{id:long}/cancel\")] public Task<IActionResult> Cancel(long id, MaterialCommand input, CancellationToken ct) => Execute(() => service.Command(id, \"cancel\", input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 30,
+    "text": "    [HttpPost(\"{id:long}/close-remainder\")] public Task<IActionResult> Close(long id, MaterialCommand input, CancellationToken ct) => Execute(() => service.Command(id, \"close-remainder\", input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "line": 31,
+    "text": "    [HttpPost(\"{id:long}/fulfillments\")] public Task<IActionResult> Issue(long id, MaterialIssue input, CancellationToken ct) => Execute(() => service.Issue(id, input, ct), x => $\"/api/material-requests/{id}/fulfillments/{x!.FulfillmentId}\");"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 9,
+    "text": "[Route(\"api/replenishments\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 17,
+    "text": "    [HttpGet] public Task<IActionResult> List([FromQuery] ReplenishmentPage page, CancellationToken ct) => Execute(() => service.List(page, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 18,
+    "text": "    [HttpGet(\"{id:long}\")] public Task<IActionResult> Get(long id, CancellationToken ct) => Execute(() => service.Get(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 19,
+    "text": "    [HttpGet(\"{id:long}/history\")] public Task<IActionResult> History(long id, CancellationToken ct) => Execute(() => service.History(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 20,
+    "text": "    [HttpGet(\"{id:long}/receipts\")] public Task<IActionResult> Receipts(long id, CancellationToken ct) => Execute(() => service.Receipts(id, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 21,
+    "text": "    [HttpPost] public Task<IActionResult> Create(ReplenishmentCreate input, CancellationToken ct) => Execute(() => service.Create(input, ct), x => $\"/api/replenishments/{x.ReplenishmentId}\");"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 22,
+    "text": "    [HttpPost(\"{id:long}/close\")] public Task<IActionResult> Close(long id, ReplenishmentClose input, CancellationToken ct) => Execute(() => service.Close(id, input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 23,
+    "text": "    [HttpPost(\"{id:long}/receipts/link\")] public Task<IActionResult> Link(long id, ReplenishmentLink input, CancellationToken ct) => Execute(() => service.Receive(id, input, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 24,
+    "text": "    [HttpPost(\"{id:long}/receipts/post\")] public Task<IActionResult> Post(long id, ReplenishmentPost input, CancellationToken ct) => Execute(() => service.Receive(id, new(input.ActorUserId, input.ExpectedRowVersion, input.Lines), ct, input));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 25,
+    "text": "    [HttpGet(\"/api/replenishment-shortages/low-stock\")] public Task<IActionResult> Low([FromQuery] ReplenishmentPage page, CancellationToken ct) => Execute(() => service.LowStock(page, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "line": 26,
+    "text": "    [HttpGet(\"/api/replenishment-shortages/material-requests\")] public Task<IActionResult> Material([FromQuery] ReplenishmentPage page, CancellationToken ct) => Execute(() => service.MaterialShortages(page, ct));"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "line": 10,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "line": 15,
+    "text": "    [HttpGet(\"api/room-types\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "line": 21,
+    "text": "    [HttpGet(\"api/room-types/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "line": 12,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "line": 19,
+    "text": "    [HttpGet(\"api/rooms/{roomId:long}/turnover-history\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "line": 23,
+    "text": "    [HttpGet(\"api/rooms/{roomId:long}/turnover-history/{id:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "line": 27,
+    "text": "    [HttpGet(\"api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+    "line": 13,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+    "line": 14,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+    "line": 19,
+    "text": "    [HttpPatch(\"{userId}/activate\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "line": 11,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "line": 12,
+    "text": "[Authorize(Policy = \"HotelOps.Permission:Global:USER_MANAGE\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "line": 13,
+    "text": "[Authorize(Policy = \"HotelOps.Permission:Global:ROLE_MANAGE\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "line": 17,
+    "text": "    [HttpPost]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+    "line": 12,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+    "line": 13,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+    "line": 18,
+    "text": "    [HttpPost(\"{userId}/branches\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserProfileController.cs",
+    "line": 11,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserProfileController.cs",
+    "line": 12,
+    "text": "[Authorize]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserProfileController.cs",
+    "line": 16,
+    "text": "    [HttpGet(\"{userId}/profile\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserProfileController.cs",
+    "line": 20,
+    "text": "    [HttpPatch(\"{userId}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+    "line": 12,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+    "line": 13,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+    "line": 18,
+    "text": "    [HttpPost(\"{userId}/roles\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "line": 11,
+    "text": "[Route(\"api/users\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "line": 12,
+    "text": "[Authorize(Policy = PermissionPolicy.Prefix + \"Global:USER_VIEW\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "line": 16,
+    "text": "    [HttpGet(\"{userId}\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "line": 26,
+    "text": "    [HttpGet]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "line": 10,
+    "text": "[Route(\"api/branches/{branchId:long}/workdays\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "line": 11,
+    "text": "[Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "line": 15,
+    "text": "    [HttpGet(\"current\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "line": 19,
+    "text": "    [HttpGet(\"own-shifts\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "line": 23,
+    "text": "    [HttpPost]"
+  },
+  {
+    "file": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "line": 27,
+    "text": "    [HttpPost(\"{workdayId:long}/end\")]"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/Inventory/InventoryAccess.cs",
+    "line": 61,
+    "text": "    public async Task<bool> Authorize(string action, RouteValueDictionary route, object? input, CancellationToken ct)"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 34,
+    "text": "            var allowed = await Authorize(\"ATTENDANCE_RECORD\", new(\"shift_assignment\", assignmentId), ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 55,
+    "text": "            var allowed = await Authorize(\"ATTENDANCE_RECORD\", new(\"workday\", workdayId), ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 107,
+    "text": "            var denied = await Authorize(permission, new(\"workday_self_branch\", branchId), ct);"
+  },
+  {
+    "file": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "line": 131,
+    "text": "    private async Task<WorkdayResult?> Authorize(string permission, PermissionResource resource, CancellationToken ct)"
+  }
+]

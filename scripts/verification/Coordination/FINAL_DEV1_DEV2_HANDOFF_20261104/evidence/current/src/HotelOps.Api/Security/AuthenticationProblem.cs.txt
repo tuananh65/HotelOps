@@ -1,0 +1,15 @@
+3: namespace HotelOps.Api.Security;
+4: 
+5: public static class AuthenticationProblem
+6: {
+7:     public static Task WriteAsync(HttpContext context, int status, string code)
+8:     {
+9:         context.Response.StatusCode = status;
+10:         context.Response.Headers.Remove("Location");
+11:         context.Response.Headers.CacheControl = "no-store";
+12:         return context.Response.WriteAsJsonAsync(new ProblemDetails
+13:         {
+14:             Type = "about:blank", Status = status,
+15:             Title = status switch { 400 => "Request validation failed", 401 => "Authentication required", 403 => "Access denied",
+16:                 503 => "Authentication service unavailable", _ => "Internal server error" },
+17:             Extensions = { ["code"] = code, ["traceId"] = context.TraceIdentifier }

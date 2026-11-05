@@ -1,0 +1,6 @@
+7: internal static class RoomTypeDirectorySchema
+8: {
+9:     public static async Task<int> ReadAsync(HotelOpsDbContext db, CancellationToken ct)
+10:     {
+11:         var state=await db.Database.SqlQueryRaw<int>("""
+12:             SELECT CASE WHEN

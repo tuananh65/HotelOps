@@ -1,0 +1,4 @@
+﻿{
+    "command":  "dotnet artifacts/inventory-fast/bin/FilePostflight/debug/FilePostflight.dll FILE_HASHES.json POSTFLIGHT_FILES.json",
+    "exitCode":  0
+}

@@ -1,0 +1,92 @@
+$ErrorActionPreference = 'Stop'
+$repoRoot = (Get-Location).Path
+$backupPath = Join-Path $repoRoot 'obj/task57-backup-20261030-005157'
+$before = Get-Content -LiteralPath (Join-Path $backupPath 'manifest.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+$docBase = 'scripts/verification/UserAccountDeactivation/'
+$changedDocs = @('UC006_V1_CONTRACT_MATRIX.md','GATE_RESOLUTION_MATRIX.md','REMAINING_BLOCKERS.md','VERIFICATION_RESULTS.md')
+$newDocs = @('UC006_V1_DEPLOYMENT_SCOPE.md','UC006_DEFERRED_WORKFLOWS.md')
+$allowedChanges = @($changedDocs | ForEach-Object { $docBase + $_ })
+$allDocs = @($changedDocs + $newDocs | ForEach-Object { $docBase + $_ })
+$issues = [System.Collections.Generic.List[string]]::new()
+$preservedChanges = [System.Collections.Generic.List[string]]::new()
+foreach ($entry in $before.Files) {
+    if (!(Test-Path -LiteralPath $entry.Path -PathType Leaf)) { $issues.Add('Missing original: '+$entry.Path); continue }
+    if ((Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash -ne $entry.SHA256) {
+        if ($allowedChanges -contains $entry.Path) { $preservedChanges.Add($entry.Path) }
+        else { $issues.Add('Unexpected changed original: '+$entry.Path) }
+    }
+}
+if ($preservedChanges.Count -ne 4) { $issues.Add('Expected precisely four edited preexisting documents.') }
+if ((git rev-parse HEAD) -ne $before.Head) { $issues.Add('HEAD changed') }
+if ((git branch --show-current) -ne $before.Branch) { $issues.Add('Branch changed') }
+if ((git rev-parse --abbrev-ref '@{upstream}') -ne $before.Upstream) { $issues.Add('Upstream changed') }
+if (@(Compare-Object @($before.IndexEntries) @(git ls-files --stage)).Count -ne 0) { $issues.Add('Index entries changed') }
+if (@(Compare-Object @($before.Worktrees) @(git worktree list --porcelain)).Count -ne 0) { $issues.Add('Worktrees changed') }
+$currentPaths = @(git -c core.quotepath=false ls-files --modified --others --exclude-standard | Sort-Object -Unique)
+$beforePaths = @($before.Files | ForEach-Object Path)
+$addedPaths = @($currentPaths | Where-Object { $beforePaths -notcontains $_ })
+foreach ($path in $addedPaths) { if (@($newDocs | ForEach-Object { $docBase+$_ }) -notcontains $path) { $issues.Add('Unexpected addition: '+$path) } }
+if ($addedPaths.Count -ne 2) { $issues.Add('Expected precisely two new scope documents') }
+$linkCount=0
+foreach ($doc in $allDocs) {
+    $content = [IO.File]::ReadAllText((Join-Path $repoRoot $doc))
+    if ($content -match '(?m)[ \t]+\r?$') { $issues.Add('Trailing whitespace: '+$doc) }
+    if ($content -match '(?m)^(<<<<<<< |=======\s*$|>>>>>>> )') { $issues.Add('Conflict marker: '+$doc) }
+    foreach ($match in [regex]::Matches($content, '\[[^\]\r\n]+\]\(([^\)\r\n]+)\)')) {
+        $target = $match.Groups[1].Value.Trim('<','>')
+        if ($target -match '^https?://' -or $target.StartsWith('#')) { continue }
+        $target = ($target -split '#',2)[0]
+        $resolved = [IO.Path]::GetFullPath((Join-Path (Split-Path (Join-Path $repoRoot $doc)) $target))
+        if (!(Test-Path -LiteralPath $resolved)) { $issues.Add('Broken link: '+$doc+' => '+$target) }
+        $linkCount++
+    }
+}
+$scope = [IO.File]::ReadAllText((Join-Path $repoRoot ($docBase+$newDocs[0])))
+$deferred = [IO.File]::ReadAllText((Join-Path $repoRoot ($docBase+$newDocs[1])))
+$contract = [IO.File]::ReadAllText((Join-Path $repoRoot ($docBase+$changedDocs[0])))
+$writerRows = [regex]::Matches($scope,'(?m)^\| E0[1-8] ').Count
+$deferredRows = [regex]::Matches($deferred,'(?m)^\| F(?:0[1-9]|10) ').Count
+if($writerRows -ne 8 -or $deferredRows -ne 10) { $issues.Add('Writer/deferred inventory coverage count mismatch') }
+foreach($classification in @('IMPLEMENTED_AND_REACHABLE','IMPLEMENTED_BUT_NOT_REGISTERED','SPECIFIED_BUT_NOT_IMPLEMENTED','EXTERNAL_OR_DEPLOYMENT_UNKNOWN')) {
+    if(!$scope.Contains($classification)) { $issues.Add('Missing source classification: '+$classification) }
+}
+foreach($gate in @('INTERNAL_REQUEST_CONTRACT','LINE_MANAGER_CONTRACT','OPERATIONAL_TASK_CONTRACT','SHIFT_CONTRACT','WORKDAY_CONTRACT','UNSCHEDULED_WORKDAY_MODEL','MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL','DEV1_WRITER_COORDINATION','DEV2_INTEGRATED_SQL_ACCEPTANCE','GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE')) {
+    $matrix = [IO.File]::ReadAllText((Join-Path $repoRoot ($docBase+'GATE_RESOLUTION_MATRIX.md')))
+    if(!$matrix.Contains($gate)) { $issues.Add('Missing retained gate: '+$gate) }
+}
+if($contract -notmatch '(?m)^\| D05 .*APPROVED V1 POLICY Task57') { $issues.Add('D05 decision register not approved') }
+if($contract -match 'apply D03/D05 sau approval|required-before-deact hay') { $issues.Add('Obsolete unapproved D05 wording') }
+$program = [IO.File]::ReadAllText((Join-Path $repoRoot 'src/HotelOps.Api/Program.cs'))
+if($program -match 'AddScoped.*Deactivation|AddSingleton.*Deactivation|AddTransient.*Deactivation') { $issues.Add('Deactivate DI registered') }
+$controllers = @(rg --files src/HotelOps.Api/Controllers -g '*.cs')
+if($controllers.Count -ne 18) { $issues.Add('Unexpected controller count; inventory needs review') }
+$productionControllers = ($controllers | ForEach-Object { [IO.File]::ReadAllText((Join-Path $repoRoot $_)) }) -join "`n"
+if($productionControllers -match '\[Http(?:Post|Put|Patch|Delete)\([^\r\n]*(?:deactivate|deactivation)') { $issues.Add('Deactivate HTTP route registered') }
+$ErrorActionPreference = 'Continue'
+$diffOutput = @(git diff --check 2>&1 | ForEach-Object { $_.ToString() })
+$diffCode = $LASTEXITCODE
+$ErrorActionPreference = 'Stop'
+if($diffCode -ne 0) { $issues.Add('git diff --check failed') }
+# Git --check does not include untracked Markdown: check each against an owned empty file.
+$emptyFile = Join-Path $repoRoot 'obj/task57-empty.txt'
+[IO.File]::WriteAllText($emptyFile,'')
+foreach($doc in $newDocs) {
+    $ErrorActionPreference = 'Continue'
+    $null = git -c core.safecrlf=false diff --no-index --check -- $emptyFile (Join-Path $repoRoot ($docBase+$doc)) 2>&1
+    if($LASTEXITCODE -gt 1) { $issues.Add('Untracked Markdown diff check failed: '+$doc) }
+    $ErrorActionPreference = 'Stop'
+}
+$result=[ordered]@{
+    Task='57'; Result=$(if($issues.Count -eq 0){'PASS'}else{'FAIL'}); Head=$before.Head;
+    PreexistingModifiedUntrackedFiles=$before.Files.Count; IntendedEditedDocuments=@($preservedChanges);
+    NewDocuments=$addedPaths; MissingOrUnexpectedChanges=@($issues); IndexUnchanged=(@(Compare-Object @($before.IndexEntries) @(git ls-files --stage)).Count -eq 0);
+    WorktreesUnchanged=(@(Compare-Object @($before.Worktrees) @(git worktree list --porcelain)).Count -eq 0);
+    LocalLinksChecked=$linkCount; SourceControllerCount=$controllers.Count; WriterFamilies=$writerRows; DeferredGroups=$deferredRows;
+    D05='APPROVED V1 POLICY; no model/writer bypass'; FormalApprovalsNotInferred=@('D01','D02','D03','D04','D06','D07');
+    RuntimeSourceChanged=$false; SQLConnectionsOpened=0; Build='NOT RUN - documentation only'; Tests='NOT RUN - documentation only';
+    GitDiffCheckExitCode=$diffCode; GitDiffCheckOutput=$diffOutput; ReleaseGates='Three PENDING; unchanged'; UC006='BLOCKED; no HTTP/DI registration';
+    ToolingCorrections=@('Initial local validator failed to parse a UTF8 non-ASCII regex on Windows PowerShell; replaced regex with ASCII.', 'Initial diff capture treated native Git LF/CRLF warning as terminating error; capture now preserves warning and checks actual exit code.', 'Preflight write-tree could not acquire index.lock; no index write occurred. Read-only index entries used instead.')
+}
+$result | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath (Join-Path $repoRoot 'obj/task57-document-validation.local.json') -Encoding UTF8
+$result | ConvertTo-Json -Depth 6
+if($issues.Count -gt 0) { exit 1 }

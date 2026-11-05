@@ -1,0 +1,66 @@
+5: namespace HotelOps.Api.Services.Maintenance;
+6: 
+7: public sealed partial class MaintenanceWorkService
+8: {
+9:     public async Task<MaintenancePagedResponse> GetWorksAsync(MaintenanceQueryRequest request, CancellationToken cancellationToken)
+10:     {
+11:         if (request.Page <= 0)
+12:             throw new ValidationException("Page must be greater than zero.");
+16:         if (offset > int.MaxValue)
+17:             throw new ValidationException("Pagination offset exceeds the supported range.");
+18:         var status = request.Status?.Trim().ToUpperInvariant();
+19:         if (!string.IsNullOrEmpty(status) && !IsWorkStatus(status))
+20:             throw new ValidationException("Unknown maintenance status.");
+21: 
+22:         var query = _dbContext.MaintenanceWorks.AsNoTracking();
+23:         if (request.IncidentId is long incidentId)
+24:             query = query.Where(work => work.IncidentId == incidentId);
+25:         if (request.AssigneeId is long assigneeId)
+26:             query = query.Where(work => work.AssigneeId == assigneeId);
+27:         if (request.DepartmentId is long departmentId)
+28:             query = query.Where(work => work.DepartmentId == departmentId);
+29:         if (request.PriorityId is long priorityId)
+30:             query = query.Where(work => work.PriorityId == priorityId);
+31:         if (!string.IsNullOrEmpty(status))
+32:             query = query.Where(work => work.Status == status);
+33: 
+34:         var totalCount = await query.CountAsync(cancellationToken);
+35:         var items = await query.OrderByDescending(work => work.CreatedAt)
+41:                 WorkNo = work.WorkNo,
+42:                 IncidentId = work.IncidentId,
+43:                 AssigneeId = work.AssigneeId,
+44:                 DepartmentId = work.DepartmentId,
+45:                 Title = work.Title,
+46:                 PriorityId = work.PriorityId,
+47:                 Status = work.Status,
+48:                 PlannedStartAt = work.PlannedStartAt,
+49:                 PlannedEndAt = work.PlannedEndAt,
+50:                 ActualStartAt = work.ActualStartAt,
+66:     }
+67: 
+68:     public async Task<MaintenanceWorkDetailDto?> GetWorkAsync(long id, CancellationToken cancellationToken)
+69:     {
+70:         var result = await _dbContext.MaintenanceWorks.AsNoTracking()
+71:             .Where(work => work.MaintenanceWorkId == id)
+75:                 WorkNo = work.WorkNo,
+76:                 IncidentId = work.IncidentId,
+77:                 AssigneeId = work.AssigneeId,
+78:                 DepartmentId = work.DepartmentId,
+79:                 Title = work.Title,
+80:                 PriorityId = work.PriorityId,
+81:                 Status = work.Status,
+82:                 PlannedStartAt = work.PlannedStartAt,
+83:                 PlannedEndAt = work.PlannedEndAt,
+84:                 ActualStartAt = work.ActualStartAt,
+99:                         SpentMinutes = log.SpentMinutes,
+100:                         MaterialIssueId = log.MaterialIssueId,
+101:                         Status = log.Status,
+102:                         LoggedBy = log.LoggedBy,
+103:                         LoggedAt = log.LoggedAt,
+104:                     }).ToList()
+113:     }
+114: 
+115:     private static bool IsWorkStatus(string status) =>
+116:         status is "PENDING" or "IN_PROGRESS" or "ON_HOLD" or "COMPLETED" or "CLOSED" or "CANCELLED";
+117: }
+118: 

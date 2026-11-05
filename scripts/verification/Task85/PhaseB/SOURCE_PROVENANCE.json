@@ -1,0 +1,42 @@
+﻿[
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+        "blob":  "40d355b13d349557f33100e469825d2bf8ead851"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs",
+        "blob":  "43cc5d21eb46bd523fabd0123d3f82c3aa2e138d"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+        "blob":  "149d0b1e3ab00d1acdfa9abb2d2bc296939126b2"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+        "blob":  "8aba8703a8e26808af57208cdd7439ceb43c099e"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Data/RoomTypeSchema.cs",
+        "blob":  "c9855ea1f4426957ad669563623feceec0609e34"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Data/ChecklistSchema.cs",
+        "blob":  "8ba2d5525b24782edf9b4bc758a68d3c2779196c"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "src/HotelOps.Api/Data/HousekeepingSchema.cs",
+        "blob":  "93cbedf3334efaa61c92098639a1174288abf30e"
+    },
+    {
+        "snapshot":  "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+        "path":  "scripts/verification/HotelStructure/task72-history-final.local.json",
+        "blob":  "0aed59ba96fd514f89ec252245f942a2dfa538c5"
+    }
+]

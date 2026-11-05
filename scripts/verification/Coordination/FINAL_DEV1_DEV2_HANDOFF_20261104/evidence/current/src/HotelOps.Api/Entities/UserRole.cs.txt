@@ -1,0 +1,32 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class UserRole
+7: {
+8:     public long UserRoleId { get; set; }
+9: 
+10:     public long UserId { get; set; }
+11: 
+12:     public long RoleId { get; set; }
+13: 
+14:     public long? BranchId { get; set; }
+15: 
+16:     public long? AssignedBy { get; set; }
+17: 
+18:     public DateTime AssignedAt { get; set; }
+19: 
+20:     public DateTime? ExpiresAt { get; set; }
+21: 
+22:     public bool IsActive { get; set; }
+23: 
+24:     public virtual User? AssignedByNavigation { get; set; }
+25: 
+26:     public virtual Branch? Branch { get; set; }
+27: 
+28:     public virtual Role Role { get; set; } = null!;
+29: 
+30:     public virtual User User { get; set; } = null!;
+31: }
+32: 

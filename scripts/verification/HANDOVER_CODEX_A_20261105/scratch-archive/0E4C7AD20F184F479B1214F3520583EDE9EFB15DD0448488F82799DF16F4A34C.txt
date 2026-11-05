@@ -1,0 +1,247 @@
+using System.Data.Common;
+using System.Reflection;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Users;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Users;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Extensions.Options;
+
+internal static class ReadinessSqlSuite
+{
+    private sealed record Review(IReadOnlyList<string> Blockers, IReadOnlyList<string> Unresolved, IReadOnlyList<string> Unsupported);
+    internal static async Task RunAsync(string connection, string database, string receipt,
+        Action<bool, string> check, CancellationToken ct, string? baselineReceipt = null, IReadOnlyList<string>? gateCases = null,
+        bool verifyReturnWork = false)
+    {
+        HotelOpsDbContext Open(params IInterceptor[] hooks) => new(new DbContextOptionsBuilder<HotelOpsDbContext>()
+            .UseSqlServer(connection).AddInterceptors(hooks).Options);
+        await using var setup = Open();
+        var role = await setup.Roles.AsNoTracking().Where(r => r.IsActive
+            && r.RolePermissions.Any(p => p.Permission.PermissionCode == "USER_MANAGE" && p.DataScope == "ALL")
+            && r.RolePermissions.Any(p => p.Permission.PermissionCode == "ROLE_MANAGE" && p.DataScope == "ALL"))
+            .Select(r => r.RoleId).FirstAsync(ct);
+        var department = await setup.Departments.AsNoTracking().Where(d => d.IsActive && d.Branch.IsActive)
+            .OrderBy(d => d.DepartmentId).FirstAsync(ct);
+        var now = DateTime.UtcNow; var prefix = "T53_" + Guid.NewGuid().ToString("N")[..10];
+        var passwords = new PasswordCredentialService(Options.Create(new PasswordHasherOptions
+        { CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3, IterationCount = PasswordCredentialService.BaselineIterationCount }));
+        User Person(string suffix)
+        {
+            var user = new User { EmployeeCode = prefix + suffix, Username = prefix + suffix,
+                Email = prefix + suffix + "@example.invalid", FullName = "Owned Task53 readiness fixture", CreatedAt = now,
+                AccountStatus = "ACTIVE", EmploymentStatus = "ACTIVE", PrimaryBranchId = department.BranchId,
+                DepartmentId = department.DepartmentId };
+            user.PasswordHash = passwords.HashPassword(user, SessionCredential.Generate());
+            return user;
+        }
+        var actor = Person("a"); var target = Person("t");
+        setup.AddRange(actor, target); await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+        Review? review = null; AccountDeactivationResult? outcome = null; var predicateChecks = 0;
+        ReturnWorkSqlSuite.Evidence? returnWorkEvidence = null;
+        try
+        {
+            foreach (var user in new[] { actor, target })
+            {
+                setup.Add(new UserRole { UserId = user.UserId, RoleId = role, IsActive = true, AssignedAt = now });
+                setup.Add(new UserBranchAccess { UserId = user.UserId, BranchId = department.BranchId,
+                    GrantedAt = now, AccessLevel = "STANDARD", IsPrimary = true });
+            }
+            var raw = SessionCredential.Generate();
+            var session = new UserSession { UserId = actor.UserId, SessionKeyHash = SessionCredential.Hash(raw),
+                CreatedAt = now, LastUsedAt = now, ExpiresAt = now.AddMinutes(30) };
+            setup.Add(session);
+            for (var i = 0; i < 2; i++) setup.Add(new UserSession { UserId = target.UserId,
+                SessionKeyHash = SessionCredential.Hash(SessionCredential.Generate()), CreatedAt = now,
+                LastUsedAt = now, ExpiresAt = now.AddMinutes(30) });
+            await setup.SaveChangesAsync(ct); setup.ChangeTracker.Clear();
+            var ticket = SessionReference.FromProtectedTicket(actor.UserId, raw, false, now);
+            UserAccountDeactivationService Service(HotelOpsDbContext db)
+            {
+                var identity = new Identity(actor.UserId, session.SessionId); var data = new EfPermissionDataSource(db);
+                return new(db, new(new(db, identity, new PermissionService(identity, data,
+                        new UnresolvedPermissionResourceResolver(), TimeProvider.System), data, TimeProvider.System)), identity,
+                    new SqlSessionService(db, new SessionRevocationService(db), TimeProvider.System), TimeProvider.System);
+            }
+            async Task<string> State() => JsonSerializer.Serialize(new
+            {
+                user = await setup.Users.AsNoTracking().SingleAsync(u => u.UserId == target.UserId, ct),
+                sessions = await setup.UserSessions.AsNoTracking().Where(s => s.UserId == target.UserId).OrderBy(s => s.SessionId).ToArrayAsync(ct),
+                roles = await setup.UserRoles.AsNoTracking().Where(r => r.UserId == target.UserId).OrderBy(r => r.UserRoleId).ToArrayAsync(ct),
+                memberships = await setup.UserBranchAccesses.AsNoTracking().Where(r => r.UserId == target.UserId).OrderBy(r => r.AccessId).ToArrayAsync(ct),
+                audits = await setup.AuditLogs.AsNoTracking().CountAsync(a => a.EntityType == "users" && a.EntityId == target.UserId.ToString(), ct)
+            }); // Never emit this in-memory comparison: it contains credentials/session hashes.
+            await using (var db = Open())
+            {
+                await using var tx = await db.Database.BeginTransactionAsync(ct);
+                var guard = await new GlobalAdminSerialization(db, TimeProvider.System).AcquireAsync(ct: ct);
+                var snapshot = await guard.ReadSnapshotAsync(ct);
+                check(snapshot.DurableEligibleUserIds.Contains(target.UserId)
+                    && snapshot.DurableEligibleUserIds.Contains(actor.UserId), "SQL confirms durable target admin and a distinct durable admin remaining");
+                var sessions = new SqlSessionService(db, new SessionRevocationService(db), TimeProvider.System);
+                check((await sessions.ValidateSessionAsync(ticket, ct)).Session?.SessionId == session.SessionId,
+                    "prepared actor has a valid unrestricted SQL-backed session");
+                var identity = new Identity(actor.UserId, session.SessionId);
+                check((await new PermissionService(identity, new EfPermissionDataSource(db),
+                    new UnresolvedPermissionResourceResolver(), TimeProvider.System).EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted,
+                    "prepared actor has real SQL USER_MANAGE ALL without catalog changes");
+                review = await Read(db, target.UserId, integrated: true, ct);
+                check(review.Blockers.Count == 0 && review.Unresolved.Count > 0,
+                    "target has no known blockers but concrete model/coordination gates remain unresolved");
+                check(review.Unsupported.Contains("UNSCHEDULED_WORKDAY_MODEL")
+                    && review.Unsupported.Contains("MANDATORY_HANDOVER_ACKNOWLEDGMENT_MODEL"),
+                    "unsupported Workday and acknowledgment models are explicit and never treated as no responsibility");
+                await tx.RollbackAsync(ct);
+            }
+            var references = await ReferenceCounts(setup, target.UserId, ct);
+            check(references.Values.All(n => n == 0), "prepared target has zero references in every existing modeled responsibility table");
+            var before = await State();
+            await using (var db = Open())
+                outcome = await Service(db).DeactivateAsync(ticket, session.SessionId, target.UserId, target.RowVersion,
+                    new("Task53 actual successful-deactivation readiness attempt"), ct);
+            check(outcome.Status == AccountDeactivationStatus.ResponsibilitiesUnresolved && outcome.Version is null,
+                "actual internal service attempt is BLOCKED specifically by unresolved responsibility evaluation");
+            check(await State() == before, "blocked success attempt preserves ACTIVE status version two sessions credentials roles memberships and audit");
+            // Test the newly executable V1 evidence, then roll back every business fixture.
+            await using (var db = Open())
+            {
+                await using var tx = await db.Database.BeginTransactionAsync(ct);
+                await new UserEligibilityLock(db).LockAsync([actor.UserId, target.UserId], ct);
+                var task = new OperationalTask { TaskCode = prefix, Title = "Task53 V1 predicate", BranchId = department.BranchId,
+                    DepartmentId = department.DepartmentId, Status = "TODO", CreatedBy = target.UserId, CreatedAt = now };
+                var type = new InternalRequestType { TypeCode = prefix, TypeName = "Task53 owned type", IsActive = true };
+                db.AddRange(task, type); await db.SaveChangesAsync(ct);
+                var request = new InternalRequest { RequestNo = prefix, BranchId = department.BranchId,
+                    RequestTypeId = type.RequestTypeId, RequesterId = target.UserId, Subject = "V1 predicate", Description = "Owned fixture",
+                    Status = "IN_PROGRESS", CreatedAt = now };
+                db.Add(request); await db.SaveChangesAsync(ct);
+                var assignment = new OperationalTaskAssignment { TaskId = task.TaskId, AssigneeId = target.UserId,
+                    AssignedBy = actor.UserId, AssignedAt = now, AssignmentStatus = "ACTIVE" };
+                var requestAssignment = new InternalRequestAssignment { InternalRequestId = request.InternalRequestId,
+                    AssigneeId = target.UserId, AssignedBy = actor.UserId, AssignedAt = now, Status = "ACTIVE" };
+                db.AddRange(assignment, requestAssignment); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+                void Predicate(bool ok, string label) { check(ok, label); predicateChecks++; }
+                foreach (var status in new[] { "TODO", "IN_PROGRESS", "BLOCKED" })
+                {
+                    await db.OperationalTasks.Where(t => t.TaskId == task.TaskId).ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, status), ct);
+                    var result = await Read(db, target.UserId, integrated: false, ct);
+                    Predicate(result.Blockers.Contains("OPERATIONAL_TASK_ASSIGNEE") && result.Blockers.Contains("INTERNAL_REQUEST_ASSIGNEE"),
+                        "SQL current explicit assignees block: Operational " + status + " and Internal Request IN_PROGRESS");
+                }
+                foreach (var status in new[] { "COMPLETED", "REASSIGNED", "CANCELLED" })
+                {
+                    await db.OperationalTaskAssignments.Where(a => a.AssignmentId == assignment.AssignmentId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.AssignmentStatus, status).SetProperty(a => a.EndedAt, now.AddMinutes(1)), ct);
+                    await db.InternalRequestAssignments.Where(a => a.AssignmentId == requestAssignment.AssignmentId)
+                        .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, status).SetProperty(a => a.EndedAt, now.AddMinutes(1)), ct);
+                    var result = await Read(db, target.UserId, integrated: false, ct);
+                    Predicate(!result.Blockers.Contains("OPERATIONAL_TASK_ASSIGNEE") && !result.Blockers.Contains("INTERNAL_REQUEST_ASSIGNEE")
+                        && result.Unresolved.Contains("WORKDAY_CONTRACT"), "SQL ended assignment history does not block or clear missing contracts: " + status);
+                }
+                await db.OperationalTaskAssignments.Where(a => a.AssignmentId == assignment.AssignmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.AssignmentStatus, "ACTIVE"), ct);
+                await db.InternalRequestAssignments.Where(a => a.AssignmentId == requestAssignment.AssignmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, "ACTIVE"), ct);
+                var inconsistent = await Read(db, target.UserId, integrated: false, ct);
+                Predicate(inconsistent.Unresolved.Contains("OPERATIONAL_TASK_DATA_INCONSISTENCY")
+                    && inconsistent.Unresolved.Contains("INTERNAL_REQUEST_DATA_INCONSISTENCY"), "SQL ACTIVE plus ended marker fails closed in both modules");
+                await db.OperationalTaskAssignments.Where(a => a.AssignmentId == assignment.AssignmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.EndedAt, (DateTime?)null), ct);
+                await db.InternalRequestAssignments.Where(a => a.AssignmentId == requestAssignment.AssignmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.EndedAt, (DateTime?)null), ct);
+                await db.OperationalTasks.Where(t => t.TaskId == task.TaskId).ExecuteUpdateAsync(s => s.SetProperty(t => t.Status, "COMPLETED"), ct);
+                await db.InternalRequests.Where(r => r.InternalRequestId == request.InternalRequestId).ExecuteUpdateAsync(s => s.SetProperty(r => r.Status, "COMPLETED"), ct);
+                var ambiguous = await Read(db, target.UserId, integrated: false, ct);
+                Predicate(ambiguous.Unresolved.Contains("OPERATIONAL_TASK_TERMINAL_MAPPING")
+                    && ambiguous.Unresolved.Contains("INTERNAL_REQUEST_NEXT_ACTION_MAPPING"), "SQL ambiguous COMPLETED parents do not release current responsibility");
+                await db.OperationalTaskAssignments.Where(a => a.AssignmentId == assignment.AssignmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.AssigneeId, actor.UserId), ct);
+                await db.InternalRequestAssignments.Where(a => a.AssignmentId == requestAssignment.AssignmentId)
+                    .ExecuteUpdateAsync(s => s.SetProperty(a => a.AssigneeId, actor.UserId), ct);
+                var attribution = await Read(db, target.UserId, integrated: false, ct);
+                Predicate(!attribution.Blockers.Contains("OPERATIONAL_TASK_ASSIGNEE") && !attribution.Blockers.Contains("INTERNAL_REQUEST_ASSIGNEE")
+                    && attribution.Unresolved.Contains("INTERNAL_REQUEST_CONTRACT"), "SQL creator/requester attribution is not invented assignee ownership or acknowledgment");
+                await tx.RollbackAsync(ct);
+            }
+            check((await ReferenceCounts(setup, target.UserId, ct)).Values.All(n => n == 0), "SQL rollback removes all new business predicate fixtures");
+            await using (var db = Open(new FailOperationalRead()))
+            {
+                var failed = false;
+                try { await Service(db).DeactivateAsync(ticket, session.SessionId, target.UserId, target.RowVersion, new("Task53 query failure rollback"), ct); }
+                catch (OperationalQueryFailure) { failed = true; }
+                check(failed && db.Database.CurrentTransaction is null, "new operational predicate query failure propagates and releases deactivation transaction");
+            }
+            check(await State() == before, "query fault and predicate fixtures preserve target aggregate and audit");
+            if (verifyReturnWork)
+            {
+                returnWorkEvidence = await ReturnWorkSqlSuite.RunAsync(connection, actor.UserId, target.UserId,
+                    department.BranchId, (db, token) => Service(db).DeactivateAsync(ticket, session.SessionId,
+                        target.UserId, target.RowVersion, new("Task55A actual ReturnWork integration attempt"), token), check, ct);
+                check(await State() == before, "ReturnWork integration cases preserve real Deactivate target account version credentials sessions roles memberships and audit");
+            }
+        }
+        finally
+        {
+            var ids = new[] { actor.UserId, target.UserId };
+            await setup.UserSessions.Where(s => ids.Contains(s.UserId)).ExecuteDeleteAsync(CancellationToken.None);
+            await setup.UserRoles.Where(r => ids.Contains(r.UserId)).ExecuteDeleteAsync(CancellationToken.None);
+            await setup.UserBranchAccesses.Where(r => ids.Contains(r.UserId)).ExecuteDeleteAsync(CancellationToken.None);
+            await setup.Users.Where(u => ids.Contains(u.UserId) && u.Username.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
+        }
+        using var baseline = baselineReceipt is null ? null : JsonDocument.Parse(await File.ReadAllTextAsync(baselineReceipt, ct));
+        await File.WriteAllTextAsync(receipt, JsonSerializer.Serialize(new { database, predicateChecks, gateCases, returnWorkEvidence,
+            before = baseline?.RootElement.Clone(),
+            after = new { Blockers = review!.Blockers, Unresolved = review.Unresolved, Unsupported = review.Unsupported },
+            successPath = "BLOCKED", serviceStatus = outcome!.Status.ToString(), review!.Blockers, review.Unresolved, review.Unsupported,
+            eligibleOtherAdministratorVerified = true, zeroModeledResponsibilityReferencesVerified = true,
+            missingModelTreatedAsClear = false, targetUnchanged = true, endpointEnabled = false,
+            lastAdminPoststate = "BLOCKED", deactivationRevocationAndAuditRollback = "BLOCKED", writerRacesCertified = false },
+            new JsonSerializerOptions { WriteIndented = true }), ct);
+    }
+
+    private static async Task<Review> Read(HotelOpsDbContext db, long targetId, bool integrated, CancellationToken ct)
+    {
+        var type = typeof(UserAccountDeactivationService).Assembly.GetType("HotelOps.Api.Services.Users."
+            + (integrated ? "IntegratedDeactivationResponsibilityQueries" : "ApprovedDev1ResponsibilityQueries"), true)!;
+        var pending = (Task)type.GetMethod("ReadAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+            .Invoke(Activator.CreateInstance(type, db), [targetId, ct])!;
+        await pending;
+        var result = pending.GetType().GetProperty("Result")!.GetValue(pending)!;
+        return new((IReadOnlyList<string>)result.GetType().GetProperty("Blockers")!.GetValue(result)!,
+            (IReadOnlyList<string>)result.GetType().GetProperty("Unresolved")!.GetValue(result)!,
+            (IReadOnlyList<string>)result.GetType().GetProperty("Unsupported")!.GetValue(result)!);
+    }
+    private static async Task<Dictionary<string, int>> ReferenceCounts(HotelOpsDbContext db, long id, CancellationToken ct) => new()
+    {
+        ["cleaning"] = await db.CleaningAssignments.AsNoTracking().CountAsync(x => x.AssigneeUserId == id, ct),
+        ["rework"] = await db.CleaningReworks.AsNoTracking().CountAsync(x => x.AssigneeUserId == id, ct),
+        ["inspection"] = await db.RoomInspections.AsNoTracking().CountAsync(x => x.InspectorUserId == id, ct),
+        ["defect"] = await db.InspectionDefects.AsNoTracking().CountAsync(x => x.AssignedTo == id, ct),
+        ["tasks"] = await db.OperationalTaskAssignments.AsNoTracking().CountAsync(x => x.AssigneeId == id, ct),
+        ["requests"] = await db.InternalRequestAssignments.AsNoTracking().CountAsync(x => x.AssigneeId == id, ct),
+        ["shift"] = await db.ShiftAssignments.AsNoTracking().CountAsync(x => x.UserId == id, ct),
+        ["departmentManager"] = await db.Departments.AsNoTracking().CountAsync(x => x.ManagerUserId == id, ct),
+        ["lineManager"] = await db.Users.AsNoTracking().CountAsync(x => x.ManagerUserId == id, ct),
+        ["maintenance"] = await db.MaintenanceWorks.AsNoTracking().CountAsync(x => x.AssigneeId == id, ct),
+        ["warehouse"] = await db.Warehouses.AsNoTracking().CountAsync(x => x.ManagerUserId == id, ct),
+        ["asset"] = await db.Assets.AsNoTracking().CountAsync(x => x.CustodianUserId == id, ct),
+        ["assetReceiver"] = await db.AssetHandovers.AsNoTracking().CountAsync(x => x.ToUserId == id, ct),
+        ["materialRequester"] = await db.MaterialRequests.AsNoTracking().CountAsync(x => x.RequesterId == id, ct),
+        ["materialApprover"] = await db.MaterialRequestApprovalCycles.AsNoTracking().CountAsync(x => x.AssignedApproverId == id, ct)
+    };
+    private sealed class OperationalQueryFailure : Exception;
+    private sealed class FailOperationalRead : DbCommandInterceptor
+    {
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command,
+            CommandEventData eventData, InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (command.CommandText.Contains("operational_task_assignments", StringComparison.OrdinalIgnoreCase)) throw new OperationalQueryFailure();
+            return ValueTask.FromResult(result);
+        }
+    }
+}

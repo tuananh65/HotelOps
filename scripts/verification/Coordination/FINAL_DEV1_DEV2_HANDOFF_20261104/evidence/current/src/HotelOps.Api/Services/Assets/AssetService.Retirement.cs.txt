@@ -1,0 +1,40 @@
+5: namespace HotelOps.Api.Services.Assets;
+6: 
+7: public sealed partial class AssetService
+8: {
+9:     public async Task<AssetDetailDto?> RetireAssetAsync(long assetId, RetireAssetRequest request, CancellationToken cancellationToken)
+10:     {
+11:         var reason = Required(request.Reason, "Reason", minimum: 10);
+12:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+13:         var asset = await LockAssetAsync(assetId, cancellationToken);
+14:         if (asset is null) return null;
+15:         await RequireActorAsync(request.ActorUserId, cancellationToken);
+16:         if (asset.LifecycleStatus == "RETIRED")
+17:         {
+18:             var unchanged = await RequireDetailAsync(assetId, cancellationToken);
+19:             await transaction.CommitAsync(cancellationToken);
+20:             return unchanged;
+21:         }
+22:         RequireOperational(asset);
+23:         // Incident create takes this same Asset lock before writing. Handover
+24:         // submit also locks Asset first, so neither can cross this decision.
+25:         if (await _dbContext.Incidents.AsNoTracking().AnyAsync(i => i.AssetId == assetId &&
+26:             (i.Status == "OPEN" || i.Status == "IN_PROGRESS" || i.Status == "RESOLVED"), cancellationToken) ||
+27:             await _dbContext.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.Incident != null && w.Incident.AssetId == assetId &&
+28:             (w.Status == "PENDING" || w.Status == "IN_PROGRESS" || w.Status == "ON_HOLD" || w.Status == "COMPLETED"), cancellationToken) ||
+29:             await _dbContext.PreventiveMaintenanceSchedules.AsNoTracking().AnyAsync(s => s.AssetId == assetId && s.IsActive, cancellationToken) ||
+30:             await _dbContext.PreventiveMaintenanceRuns.AsNoTracking().AnyAsync(r => r.Schedule.AssetId == assetId && r.PerformedAt == null, cancellationToken) ||
+31:             await _dbContext.AssetHandovers.AsNoTracking().AnyAsync(h => h.AssetId == assetId && h.HandoverStatus == "PENDING", cancellationToken))
+32:             throw new ValidationException("Asset has a blocking Incident, maintenance work, preventive schedule/run or pending handover.");
+33:         var before = Snapshot(asset);
+34:         var now = DateTime.UtcNow;
+35:         asset.LifecycleStatus = "RETIRED";
+36:         asset.UpdatedAt = now;
+37:         await _dbContext.SaveChangesAsync(cancellationToken);
+38:         Audit("assets", assetId, asset, request.ActorUserId, now, before, Snapshot(asset), reason);
+39:         await _dbContext.SaveChangesAsync(cancellationToken);
+40:         var result = await RequireDetailAsync(assetId, cancellationToken);
+41:         await transaction.CommitAsync(cancellationToken);
+42:         return result;
+43:     }
+44: }

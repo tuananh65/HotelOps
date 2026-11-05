@@ -1,0 +1,207 @@
+10: namespace HotelOps.Api.Services.WorkTime;
+11: 
+12: public sealed class WorkTimeContractException(string code) : Exception(code)
+13: {
+14:     public string Code { get; } = code;
+15: }
+16: 
+17: /// <summary>
+20: /// Workday HTTP permissions, unscheduled notifications and Pause All are not implemented here.
+21: /// </summary>
+22: public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IWorkTimeTransactionParticipant
+23: {
+24:     private Guid? lockedTransaction;
+25:     private long[] lockedIds = [];
+26:     private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+27: 
+28:     public Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken) => RunAsync(async () =>
+29:     {
+30:         ArgumentNullException.ThrowIfNull(actorAndOwnerIds);
+31:         var tx = Transaction();
+43:             await db.Database.ExecuteSqlInterpolatedAsync($"""
+44:                 DECLARE @result int;
+45:                 EXEC @result=sys.sp_getapplock @Resource={resource}, @LockMode='Exclusive',
+46:                     @LockOwner='Transaction', @LockTimeout=15000;
+47:                 IF @result<0 THROW 51776,'Time serialization lock unavailable.',1;
+48:                 """, cancellationToken);
+55:     });
+56: 
+57:     // Scheduled foundation primitive. No public endpoint or implicit attendance->Workday mapping.
+58:     public Task<Workday> StartScheduledWorkdayAsync(long actorUserId, long branchId, long shiftAssignmentId,
+59:         CancellationToken ct) => RunAsync(async () =>
+60:     {
+61:         RequireLocks(actorUserId);
+62:         if (branchId <= 0 || shiftAssignmentId <= 0) throw Failure("TIME_STATE_CONFLICT");
+63:         var now = await NowAsync(ct);
+64:         await EligibleAsync(actorUserId, branchId, now, ct);
+66:         if (await Open(actorUserId).AnyAsync(ct)) throw Failure("TIME_STATE_CONFLICT");
+67:         var assignment = await db.ShiftAssignments.FromSqlInterpolated(
+68:             $"SELECT * FROM dbo.shift_assignments WITH(UPDLOCK,HOLDLOCK) WHERE shift_assignment_id={shiftAssignmentId}")
+69:             .AsNoTracking().SingleOrDefaultAsync(ct);
+70:         // ASSIGNED is the actual legacy schema default, not an invented SRS status.
+71:         if (assignment is null || assignment.UserId != actorUserId || assignment.AssignmentStatus != "ASSIGNED"
+72:             || assignment.AssignedAt > now) throw Failure("TIME_SCOPE_DENIED");
+73:         var shift = await db.WorkShifts.FromSqlInterpolated(
+74:             $"SELECT * FROM dbo.work_shifts WITH(UPDLOCK,HOLDLOCK) WHERE shift_id={assignment.ShiftId}")
+75:             .AsNoTracking().SingleOrDefaultAsync(ct);
+76:         var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
+77:         if (shift is null || shift.BranchId != branchId || shift.Status != "PLANNED" || shift.ShiftDate != today
+78:             || shift.ScheduledEndAt < shift.ScheduledStartAt) throw Failure("TIME_STATE_CONFLICT");
+79:         if (!await db.ShiftTemplates.FromSqlInterpolated(
+80:                 $"SELECT * FROM dbo.shift_templates WITH(HOLDLOCK) WHERE shift_template_id={shift.ShiftTemplateId}")
+81:                 .AsNoTracking().AnyAsync(x => x.ShiftTemplateId == shift.ShiftTemplateId
+82:                 && x.BranchId == branchId && x.IsActive, ct)
+83:             || !await db.Departments.FromSqlInterpolated(
+84:                 $"SELECT * FROM dbo.departments WITH(HOLDLOCK) WHERE department_id={shift.DepartmentId}")
+85:                 .AsNoTracking().AnyAsync(x => x.DepartmentId == shift.DepartmentId
+86:                 && x.BranchId == branchId && x.IsActive, ct)) throw Failure("TIME_SCOPE_DENIED");
+87:         now = await NowAsync(ct);
+88:         var day = new Workday { UserId = actorUserId, BranchId = branchId, DepartmentId = shift.DepartmentId,
+89:             WorkDate = shift.ShiftDate, ShiftAssignmentId = shiftAssignmentId, IsUnscheduled = false,
+90:             Status = "WORKING", StartedAt = now };
+91:         db.Workdays.Add(day);
+92:         await db.SaveChangesAsync(ct);
+93:         Audit(branchId, actorUserId, "workdays", day.WorkdayId, "CREATE", null,
+94:             new { day.UserId, day.Status, day.ShiftAssignmentId, day.StartedAt }, now);
+95:         await db.SaveChangesAsync(ct);
+96:         return day;
+97:     });
+98: 
+99:     public Task<Workday> EndWorkdayAsync(long actorUserId, long branchId, long workdayId,
+100:         byte[] expectedRowVersion, CancellationToken ct) => RunAsync(async () =>
+101:     {
+102:         RequireLocks(actorUserId);
+103:         RequireVersion(expectedRowVersion);
+104:         var now = await NowAsync(ct);
+105:         await EligibleAsync(actorUserId, branchId, now, ct);
+106:         var day = await Working(actorUserId).SingleOrDefaultAsync(ct);
+112:                 && (x.ClosedAt > now || x.EffectiveEndedAt > now), ct)) throw Failure("TIME_STATE_CONFLICT");
+113:         // ExecuteUpdate avoids a stale tracked entity surviving a User-lock wait.
+114:         var affected = await db.Workdays.Where(x => x.WorkdayId == workdayId && x.Status == "WORKING"
+115:                 && x.RowVersion == expectedRowVersion)
+116:             .ExecuteUpdateAsync(s => s.SetProperty(x => x.Status, "ENDED").SetProperty(x => x.EndedAt, now), ct);
+117:         if (affected != 1) throw Failure("TIME_STALE");
+118:         Audit(branchId, actorUserId, "workdays", day.WorkdayId, "UPDATE", new { day.Status, day.EndedAt },
+119:             new { Status = "ENDED", EndedAt = now }, now);
+120:         await db.SaveChangesAsync(ct);
+121:         return await db.Workdays.AsNoTracking().SingleAsync(x => x.WorkdayId == workdayId, ct);
+122:     });
+123: 
+124:     public Task<WorkTimeIntervalResult> OpenIntervalAsync(WorkTimeOperation operation, CancellationToken cancellationToken)
+125:         => RunAsync(async () =>
+126:     {
+127:         RequireOperation(operation);
+128:         if (operation.ActorUserId != operation.OwnerUserId) throw Failure("TIME_SCOPE_DENIED");
+129:         var now = await NowAsync(cancellationToken);
+130:         await EligibleAsync(operation.OwnerUserId, operation.BranchId, now, cancellationToken);
+131:         var day = await Working(operation.OwnerUserId).SingleOrDefaultAsync(cancellationToken);
+140:         var interval = new WorkInterval { WorkdayId = day.WorkdayId, UserId = operation.OwnerUserId,
+141:             BranchId = operation.BranchId, WorkItemKind = operation.WorkItemKind, WorkItemId = operation.WorkItemId,
+142:             OpenedBy = operation.ActorUserId, OpenedAt = now, EffectiveStartedAt = now };
+143:         db.WorkIntervals.Add(interval);
+144:         await db.SaveChangesAsync(cancellationToken);
+145:         Audit(operation.BranchId, operation.ActorUserId, "work_intervals", interval.IntervalId, "CREATE", null,
+146:             new { interval.WorkdayId, interval.UserId, interval.WorkItemKind, interval.WorkItemId, interval.OpenedAt }, now);
+147:         await db.SaveChangesAsync(cancellationToken);
+148:         return Result(interval);
+149:     });
+150: 
+151:     public Task<WorkTimeIntervalResult> CloseIntervalAsync(WorkTimeOperation operation, long intervalId,
+152:         byte[] expectedRowVersion, CancellationToken cancellationToken) => RunAsync(async () =>
+153:     {
+154:         RequireOperation(operation);
+155:         RequireVersion(expectedRowVersion);
+156:         var now = await NowAsync(cancellationToken);
+157:         await EligibleAsync(operation.ActorUserId, operation.BranchId, now, cancellationToken);
+158:         var day = await Working(operation.OwnerUserId).SingleOrDefaultAsync(cancellationToken);
+159:         var interval = await Open(operation.OwnerUserId).SingleOrDefaultAsync(cancellationToken);
+160:         if (day is null || interval is null || interval.IntervalId != intervalId || interval.WorkdayId != day.WorkdayId
+168:         var affected = await db.WorkIntervals.Where(x => x.IntervalId == intervalId && x.ClosedAt == null
+169:                 && x.RowVersion == expectedRowVersion)
+170:             .ExecuteUpdateAsync(s => s.SetProperty(x => x.ClosedAt, now).SetProperty(x => x.ClosedBy, operation.ActorUserId)
+171:                 .SetProperty(x => x.EffectiveEndedAt, now), cancellationToken);
+172:         if (affected != 1) throw Failure("TIME_STALE");
+173:         Audit(operation.BranchId, operation.ActorUserId, "work_intervals", intervalId, "UPDATE",
+174:             new { interval.ClosedAt, interval.EffectiveEndedAt }, new { ClosedAt = now, ClosedBy = operation.ActorUserId }, now);
+175:         await db.SaveChangesAsync(cancellationToken);
+176:         return Result(await db.WorkIntervals.AsNoTracking().SingleAsync(x => x.IntervalId == intervalId, cancellationToken));
+177:     });
+178: 
+179:     private IQueryable<Workday> Working(long userId) => db.Workdays.FromSqlInterpolated(
+180:         $"SELECT * FROM dbo.workdays WITH(UPDLOCK,HOLDLOCK) WHERE user_id={userId} AND status='WORKING'").AsNoTracking();
+181:     private IQueryable<WorkInterval> Open(long userId) => db.WorkIntervals.FromSqlInterpolated(
+182:         $"SELECT * FROM dbo.work_intervals WITH(UPDLOCK,HOLDLOCK) WHERE user_id={userId} AND closed_at IS NULL").AsNoTracking();
+183:     private Guid Transaction()
+184:     {
+185:         var transaction = db.Database.CurrentTransaction ?? throw Failure("TIME_TRANSACTION_REQUIRED");
+186:         if (transaction.GetDbTransaction().IsolationLevel != IsolationLevel.ReadCommitted
+187:             && transaction.GetDbTransaction().IsolationLevel != IsolationLevel.Serializable)
+188:             throw Failure("TIME_TRANSACTION_REQUIRED");
+189:         return transaction.TransactionId;
+190:     }
+191:     private void RequireLocks(params long[] ids)
+192:     {
+193:         if (lockedTransaction != Transaction() || ids.Any(x => !lockedIds.Contains(x))) throw Failure("TIME_LOCK_SET_REQUIRED");
+194:     }
+195:     private void RequireOperation(WorkTimeOperation op)
+196:     {
+197:         ArgumentNullException.ThrowIfNull(op);
+198:         RequireLocks(op.ActorUserId, op.OwnerUserId);
+199:         if (op.BranchId <= 0 || op.WorkItemId <= 0) throw Failure("TIME_STATE_CONFLICT");
+200:         // DEV2 must confirm PM current occurrence identity/assignee before a PM adapter is enabled.
+201:         if (op.WorkItemKind is not ("CLEANING" or "REWORK" or "TASK")) throw Failure("TIME_SOURCE_UNRESOLVED");
+202:     }
+203:     private async Task EligibleAsync(long userId, long branchId, DateTime now, CancellationToken ct)
+204:     {
+205:         var user = await db.Users.AsNoTracking().Where(x => x.UserId == userId)
+206:             .Select(x => new { x.DeletedAt, x.AccountStatus, x.EmploymentStatus }).SingleOrDefaultAsync(ct);
+207:         if (user is null || user.DeletedAt is not null || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE")
+208:             throw Failure("TIME_ACTOR_INVALID");
+209:         if (!await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(HOLDLOCK) WHERE branch_id={branchId}")
+210:                 .AsNoTracking().AnyAsync(x => x.IsActive, ct)
+211:             || !await db.UserBranchAccesses.FromSqlInterpolated(
+212:                 $"SELECT * FROM dbo.user_branch_access WITH(HOLDLOCK) WHERE user_id={userId} AND branch_id={branchId}")
+213:                 .AsNoTracking().AnyAsync(x => x.UserId == userId && x.BranchId == branchId
+214:                 && x.GrantedAt <= now && x.RevokedAt == null, ct)) throw Failure("TIME_SCOPE_DENIED");
+215:     }
+216:     private async Task SourceAsync(WorkTimeOperation op, DateTime now, CancellationToken ct)
+217:     {
+218:         // Additional authoritative consistency checks. Caller still owns source locks/permission/transition.
+219:         bool valid;
+220:         if (op.WorkItemKind == "CLEANING")
+221:             valid = await db.CleaningTasks.AsNoTracking().AnyAsync(x => x.CleaningTaskId == op.WorkItemId
+222:                 && x.Status == "IN_PROGRESS" && x.Room.BranchId == op.BranchId && x.Room.IsActive
+223:                 && x.CleaningAssignments.Count(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now) == 1
+224:                 && x.CleaningAssignments.Any(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null
+225:                     && a.AssignedAt <= now && a.AssigneeUserId == op.OwnerUserId), ct);
+226:         else if (op.WorkItemKind == "REWORK")
+227:             valid = await db.CleaningReworks.AsNoTracking().AnyAsync(x => x.ReworkId == op.WorkItemId
+228:                 && x.Status == "IN_PROGRESS" && x.CompletedAt == null && x.AssigneeUserId == op.OwnerUserId
+229:                 && x.CleaningTask.Room.BranchId == op.BranchId && x.CleaningTask.Room.IsActive
+230:                 && x.Inspection.RoomId == x.CleaningTask.RoomId && x.Inspection.CleaningTaskId == x.CleaningTaskId, ct);
+231:         else
+232:             valid = await db.OperationalTasks.AsNoTracking().AnyAsync(x => x.TaskId == op.WorkItemId && x.BranchId == op.BranchId
+233:                 && x.Status == "IN_PROGRESS" && x.Department.BranchId == op.BranchId && x.Department.IsActive
+234:                 && x.OperationalTaskAssignments.Count(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now) == 1
+235:                 && x.OperationalTaskAssignments.Any(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null
+236:                     && a.AssignedAt <= now && a.AssigneeId == op.OwnerUserId), ct);
+237:         if (!valid) throw Failure("TIME_SCOPE_DENIED");
+238:     }
+239:     private async Task<DateTime> NowAsync(CancellationToken ct) => DateTime.SpecifyKind(
+240:         await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct), DateTimeKind.Utc);
+241:     private void Audit(long branch, long actor, string entity, long id, string action, object? before, object after, DateTime now)
+242:         => db.AuditLogs.Add(new AuditLog { BranchId = branch, ActorUserId = actor, EntityType = entity,
+243:             EntityId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Action = action, OccurredAt = now,
+244:             OldValues = before is null ? null : JsonSerializer.Serialize(before), NewValues = JsonSerializer.Serialize(after) });
+245:     private static WorkTimeIntervalResult Result(WorkInterval row)
+246:         => new(row.IntervalId, row.WorkdayId, DateTime.SpecifyKind(row.OpenedAt, DateTimeKind.Utc),
+247:             row.ClosedAt is { } end ? DateTime.SpecifyKind(end, DateTimeKind.Utc) : null, row.RowVersion.ToArray());
+248:     private static void RequireVersion(byte[] version)
+249:     {
+250:         if (version is not { Length: 8 }) throw Failure("TIME_STALE");
+251:     }
+252:     private static WorkTimeContractException Failure(string code) => new(code);
+253:     private static async Task<T> RunAsync<T>(Func<Task<T>> action)
+254:     {
+255:         try { return await action(); }
+256:         catch (Exception e) when (MapSql(e) is not null) { throw MapSql(e)!; }

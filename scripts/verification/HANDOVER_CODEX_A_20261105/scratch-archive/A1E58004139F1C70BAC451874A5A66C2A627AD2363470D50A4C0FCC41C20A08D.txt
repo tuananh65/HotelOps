@@ -1,0 +1,47 @@
+$ErrorActionPreference='Stop'
+$root=(Get-Location).Path
+$path=Join-Path $root 'scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md'
+$text=[IO.File]::ReadAllText($path,[Text.Encoding]::UTF8)
+$rows=Get-Content obj/task59-uc-inventory.local.json -Raw -Encoding UTF8|ConvertFrom-Json
+$scope=Get-Content docs/requirements/srs_sections/01_overall_requirements.md -Raw -Encoding UTF8
+$expected=@([regex]::Matches($scope,'(?m)^\| UC-(\d{3})\s*\|[^|]+\|\s*(FE-[^|]+)\|')|Where-Object {
+    $features=$_.Groups[2].Value
+    $features -match 'FE-(01|02|03|04|05|11|12|13)(\D|$)' -and [int]$_.Groups[1].Value -notin @(63,64)
+}|ForEach-Object {[int]$_.Groups[1].Value}|Sort-Object -Unique)
+$actual=@($rows.Id|Sort-Object -Unique)
+if($expected.Count-ne75 -or (Compare-Object $expected $actual)){throw 'UC coverage mismatch'}
+if(($rows|Measure-Object Weight -Sum).Sum-ne256 -or ($rows|Measure-Object Hours -Sum).Sum-ne790){throw 'Metrics mismatch'}
+$days=@([regex]::Matches($text,'(?m)^\| D(\d{2}) / ([0-9-]+) \| (.*?) \| (\d+) \| (\d+) \| (\d+) \| (\d+) \|'))
+if($days.Count-ne21){throw 'Expected 21 days'}
+$totals=@(0,0,0,0)
+foreach($d in $days){$sum=0;for($i=0;$i-lt4;$i++){$n=[int]$d.Groups[$i+4].Value;$totals[$i]+=$n;$sum+=$n};if($sum-ne6){throw 'Daily budget mismatch'}}
+if(($totals-join',')-ne'70,24,14,18'){throw 'Budget mismatch'}
+$planned=@(23,11,141,14,12,13,15,16,17,19,24,25,20,21)
+$gain=($rows|Where-Object Id -in $planned|Measure-Object Weight -Sum).Sum
+if($gain-ne31 -or ($rows|Where-Object Id -in $planned|Measure-Object Hours -Sum).Sum-ne92){throw 'Backlog mismatch'}
+$links=@([regex]::Matches($text,'\[[^\]]+\]\(([^)]+)\)'))
+foreach($l in $links){$target=$l.Groups[1].Value;if($target-notmatch'^(https?:|#)'){if(-not(Test-Path -LiteralPath (Join-Path (Split-Path $path) $target))){throw "Missing link $target"}}}
+if($text-match'(?m)[ \t]+$' -or -not $text.EndsWith("`n")){throw 'Whitespace mismatch'}
+$manifest=Get-Content obj/task59-preflight-20261030-015036/manifest.json -Raw -Encoding UTF8|ConvertFrom-Json
+$changed=@()
+foreach($f in $manifest.Files){if(-not(Test-Path -LiteralPath $f.Path) -or (Get-FileHash -LiteralPath $f.Path -Algorithm SHA256).Hash-ne$f.SHA256){$changed+=$f.Path}}
+if($changed.Count){throw "Preexisting changed: $($changed -join ', ')"}
+$index=@(git ls-files --stage)
+$trees=@(git worktree list --porcelain)
+if(Compare-Object $manifest.IndexEntries $index){throw 'Index changed'}
+if(Compare-Object $manifest.Worktrees $trees){throw 'Worktrees changed'}
+if((git rev-parse HEAD)-ne$manifest.Head -or (git branch --show-current)-ne$manifest.Branch){throw 'HEAD/branch changed'}
+$current=@(git status --porcelain=v1 --untracked-files=all|ForEach-Object{$_.Substring(3).Replace('\','/')})
+$expectedPaths=@($manifest.Files.Path|ForEach-Object{$_.Replace('\','/')})+@('scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+if(Compare-Object $expectedPaths $current){throw 'Unexpected file changes'}
+$prior=$ErrorActionPreference
+$ErrorActionPreference='Continue'
+$diff=@(& git diff --check 2>&1|ForEach-Object{"$_"})
+$diffExit=$LASTEXITCODE
+$cached=@(& git diff --cached --check 2>&1|ForEach-Object{"$_"})
+$cachedExit=$LASTEXITCODE
+$ErrorActionPreference=$prior
+if($diffExit-ne0 -or $cachedExit-ne0){throw 'Diff check failed'}
+$result=[ordered]@{Result='PASS';ExclusiveUcs=$actual.Count;SharedUcs=2;Points=256;VerifiedPoints=12;RemainingUcHours=790;FullScopeHours=814;ScheduledNewUcs=$planned.Count;ScheduledNewPoints=$gain;DailyRows=$days.Count;Budget=@{Implementation=$totals[0];Testing=$totals[1];Integration=$totals[2];Buffer=$totals[3]};ExistingFilesPreserved=$manifest.Files.Count;LocalLinks=$links.Count;IndexUnchanged=$true;WorktreesUnchanged=$true;OnlyNewDeliverable='scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md';DiffCheckExit=$diffExit;CachedDiffCheckExit=$cachedExit;DiffMessages=$diff;RuntimeTests='NOT RUN - docs-only';ProductionSqlAccess='NONE'}
+$result|ConvertTo-Json -Depth 6|Set-Content obj/task59-validation.local.json -Encoding UTF8
+$result|ConvertTo-Json -Depth 6

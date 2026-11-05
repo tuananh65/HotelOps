@@ -1,0 +1,3172 @@
+﻿[
+    {
+        "path":  "src/HotelOps.Api/Data/StartupSchemaValidator.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Data\\StartupSchemaValidator.cs",
+        "sha256":  "004EEC850C7A5312D425031D474E58ECBC4482C3E487C525FE4E7FDF2C50D9D7",
+        "headBlob":  "833244f5c5f4e29fb82e9c202551a4c6d3e4acb8",
+        "indexBlob":  "833244f5c5f4e29fb82e9c202551a4c6d3e4acb8",
+        "workingTreeRawBlob":  "833244f5c5f4e29fb82e9c202551a4c6d3e4acb8",
+        "gitStatus":  "  ",
+        "lineCount":  61
+    },
+    {
+        "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Data\\HotelOpsDbContext.WorkTime.cs",
+        "sha256":  "66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "85a191221ce6d7655a8066ae9d8c3b0683798bc2",
+        "gitStatus":  "??",
+        "lineCount":  91
+    },
+    {
+        "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Data\\HotelOpsDbContext.cs",
+        "sha256":  "FBA0FE330B5C32A7D66D6112C23A5E003FD9DEB49097630A47D2C42373276BBD",
+        "headBlob":  "c1fff62a1fbf44bab05c5bb0b1326347d2d82b88",
+        "indexBlob":  "c1fff62a1fbf44bab05c5bb0b1326347d2d82b88",
+        "workingTreeRawBlob":  "0546c7c76e9b2f4db8e7a4232afac1fb914d785f",
+        "gitStatus":  " M",
+        "lineCount":  3616
+    },
+    {
+        "path":  "src/HotelOps.Api/Middleware/SessionTouchMiddleware.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\SessionTouchMiddleware.cs",
+        "sha256":  "7725377121F8FC4473DCF512DA874F98309E1979CD03D323AF1086FB2EE6A474",
+        "headBlob":  "956c33f68f34e40e0ec5d311ee3b85806cdc0606",
+        "indexBlob":  "956c33f68f34e40e0ec5d311ee3b85806cdc0606",
+        "workingTreeRawBlob":  "2e0c297e2f41f1dcc9a6c9cb139f76f7b8a53cb9",
+        "gitStatus":  "  ",
+        "lineCount":  36
+    },
+    {
+        "path":  "src/HotelOps.Api/Middleware/AuthenticationExceptionMiddleware.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\AuthenticationExceptionMiddleware.cs",
+        "sha256":  "6B3B26F09B9BFB2D12EA9D819518F00B0FED4B543F094A56A5B043FE8EB297F6",
+        "headBlob":  "3834504abc995ee9c8ac5d45452ceee41d086786",
+        "indexBlob":  "3834504abc995ee9c8ac5d45452ceee41d086786",
+        "workingTreeRawBlob":  "d2b877e6eb514039bd8a25bcaf62645aa8539de6",
+        "gitStatus":  "  ",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Middleware/RestrictedSessionMiddleware.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\RestrictedSessionMiddleware.cs",
+        "sha256":  "AE601ABEB503E3DD9811CE494EB06149CDEF36939104C1C25085C00FEAFA413C",
+        "headBlob":  "ddde4011c4757de1553b5355860896803b5276d6",
+        "indexBlob":  "ddde4011c4757de1553b5355860896803b5276d6",
+        "workingTreeRawBlob":  "b69343f985c6951dd4073b3b8a022342409e44d1",
+        "gitStatus":  "  ",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Middleware/ApiCsrfMiddleware.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\ApiCsrfMiddleware.cs",
+        "sha256":  "406670DFB35AADF4263E7B6C54048B65203919B0110A4E498F229667AC465834",
+        "headBlob":  "a291793f76356a80e253ef32b6156b698151df22",
+        "indexBlob":  "a291793f76356a80e253ef32b6156b698151df22",
+        "workingTreeRawBlob":  "6971a09927afa935018508781f2e6ebe7bb2db56",
+        "gitStatus":  "  ",
+        "lineCount":  26
+    },
+    {
+        "path":  "src/HotelOps.Api/Middleware/InvalidCookieMiddleware.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Middleware\\InvalidCookieMiddleware.cs",
+        "sha256":  "C497C24E8C0D3A9E456CE8FB0EF237AF3FEE25F6A5C7FBF9CC2E794B6AA60AB7",
+        "headBlob":  "14a712def2a285972632ccdc33e0b287dc8bb245",
+        "indexBlob":  "14a712def2a285972632ccdc33e0b287dc8bb245",
+        "workingTreeRawBlob":  "d172567bfa34d99e1fd4d18ebf7867598b395af4",
+        "gitStatus":  "  ",
+        "lineCount":  16
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\AdminCredentialResetController.cs",
+        "sha256":  "2E57D56D19C5D22D98FF1A6AEA000C602D70969AC73F7CC67AA9E14494294BAC",
+        "headBlob":  "8ad5045a546332ee4a8a0ab01e93da1109536695",
+        "indexBlob":  "8ad5045a546332ee4a8a0ab01e93da1109536695",
+        "workingTreeRawBlob":  "8ad5045a546332ee4a8a0ab01e93da1109536695",
+        "gitStatus":  "  ",
+        "lineCount":  54
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\WorkdaysController.cs",
+        "sha256":  "F44F58524D65E6262A428D1F7B158C2B6D723AA3308123C0CB155624A1E29DD4",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "ce026e4dd434fd0838164d45e537d0824059995a",
+        "gitStatus":  "??",
+        "lineCount":  56
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/UsersController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\UsersController.cs",
+        "sha256":  "560F72FE026CC488437530D2728A1F8CEA4AEF89F9683C23198A6812E19D90E1",
+        "headBlob":  "1a9d19b3e9f50833cfefadcf0447794fd4e6c8d9",
+        "indexBlob":  "1a9d19b3e9f50833cfefadcf0447794fd4e6c8d9",
+        "workingTreeRawBlob":  "7c98c56b52c0940774d447e7266a2bcf06f9c990",
+        "gitStatus":  "  ",
+        "lineCount":  40
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\UserRoleAssignmentController.cs",
+        "sha256":  "9D40BFECD8BDBECF49EDF4860F654643B982DBC279EAD996492455FB897709A7",
+        "headBlob":  "c238a0b07d565cf5db424444212204a0420e402d",
+        "indexBlob":  "c238a0b07d565cf5db424444212204a0420e402d",
+        "workingTreeRawBlob":  "c238a0b07d565cf5db424444212204a0420e402d",
+        "gitStatus":  "  ",
+        "lineCount":  49
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/UserProfileController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\UserProfileController.cs",
+        "sha256":  "95F8AD4F3C0891CC5BE45C32BAFF931DF2D13A7FE046AD7BED60EBA22BFA6AC2",
+        "headBlob":  "a6567caf5fa306d61f4a8b05448105f13e4b89f4",
+        "indexBlob":  "a6567caf5fa306d61f4a8b05448105f13e4b89f4",
+        "workingTreeRawBlob":  "a6567caf5fa306d61f4a8b05448105f13e4b89f4",
+        "gitStatus":  "  ",
+        "lineCount":  53
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\UserBranchAssignmentController.cs",
+        "sha256":  "8F216148E141ACED82133EFA0391CCD3D233F6D5066314810098ED44C0D57633",
+        "headBlob":  "cf8c51421f8bb9f1e24d832ade5f43960ff6ece2",
+        "indexBlob":  "cf8c51421f8bb9f1e24d832ade5f43960ff6ece2",
+        "workingTreeRawBlob":  "cf8c51421f8bb9f1e24d832ade5f43960ff6ece2",
+        "gitStatus":  "  ",
+        "lineCount":  49
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\UserAccountCreationController.cs",
+        "sha256":  "1FAE978F596587EFA8DE99B9DE916C3676958540C384E9DD658ED49466CE08A8",
+        "headBlob":  "e1cf2c9316ed98964dd41a271383bc84177eb6b2",
+        "indexBlob":  "e1cf2c9316ed98964dd41a271383bc84177eb6b2",
+        "workingTreeRawBlob":  "e1cf2c9316ed98964dd41a271383bc84177eb6b2",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\UserAccountActivationController.cs",
+        "sha256":  "8AEAE6B1B15D3B18BD3D73246D5EA8B00B63B95693B97F0ECE34A1DC499D1AA8",
+        "headBlob":  "749593353e3830a43d7f7d088325b9c0f38b7fa6",
+        "indexBlob":  "749593353e3830a43d7f7d088325b9c0f38b7fa6",
+        "workingTreeRawBlob":  "749593353e3830a43d7f7d088325b9c0f38b7fa6",
+        "gitStatus":  "  ",
+        "lineCount":  66
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\TurnoverHistoryController.cs",
+        "sha256":  "4D340AC260E7195A6F2A4A9CD3974FF0DF3F6D6EF67771DA57F5C726DF8AE6AC",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "240e6dfa35f3d6d3f037b8fdca6f5b6d1d187502",
+        "gitStatus":  "??",
+        "lineCount":  56
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\RoomTypeDirectoryController.cs",
+        "sha256":  "0102E5F301A52DDE085C9C8D3D645809BBDDBCEF4F115CBEB394F7DF948AE746",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "8a3421d43993bad79cd296d9b95b92d87c089a5b",
+        "gitStatus":  "??",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\ReplenishmentsController.cs",
+        "sha256":  "52162896162A9BE3EF034E6A2662D617F1E404966ABB6E0DC6A07C7AB3731416",
+        "headBlob":  "2ffebb641abac478b6002bd83caf39f6ae6dd6c6",
+        "indexBlob":  "2ffebb641abac478b6002bd83caf39f6ae6dd6c6",
+        "workingTreeRawBlob":  "898e109bf78756950c612b4867e4482417e0501f",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\MaterialRequestsController.cs",
+        "sha256":  "0A6799DAA9C3B84AC214A5EB16F35147FA32D3F8531C5172FFCD528F7872705D",
+        "headBlob":  "e7fb475fa2c2c37593d33037d4adcd67f9d3d640",
+        "indexBlob":  "e7fb475fa2c2c37593d33037d4adcd67f9d3d640",
+        "workingTreeRawBlob":  "ec11bf82746c080461cd7ea07c6bb97d89224ae7",
+        "gitStatus":  "  ",
+        "lineCount":  32
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\MaintenanceWorksController.cs",
+        "sha256":  "F1392A994987B890129A6C97E2EFD501C73F0DD85BE65E8BD99261F252191D34",
+        "headBlob":  "9b24521a2988587dc62c4cc697202814433665ac",
+        "indexBlob":  "9b24521a2988587dc62c4cc697202814433665ac",
+        "workingTreeRawBlob":  "a2398a72a27e4ad79cde6055f1c1526c554521b4",
+        "gitStatus":  "  ",
+        "lineCount":  226
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/InventoryController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\InventoryController.cs",
+        "sha256":  "8ACF5AD9C2DEC77EDD0419F172BDB632E5D11D2C96168E281FFDFFEDB149A63A",
+        "headBlob":  "272478491959b7b542f7ba97d4c46a4f99d9cd2b",
+        "indexBlob":  "272478491959b7b542f7ba97d4c46a4f99d9cd2b",
+        "workingTreeRawBlob":  "7e8b69ead8a798dfcac1dea47689c48c596af037",
+        "gitStatus":  "  ",
+        "lineCount":  136
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/IncidentsController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\IncidentsController.cs",
+        "sha256":  "CC59C101A762BFB516F1CC3CDD4CEF2C5B8BAA785AC03B2D260F24C5D8168A77",
+        "headBlob":  "2395e401d86e3f59a59d7bce0400e9aa3c1f3560",
+        "indexBlob":  "2395e401d86e3f59a59d7bce0400e9aa3c1f3560",
+        "workingTreeRawBlob":  "f16dde49353aa4d951636df08a6afabe664dd4bb",
+        "gitStatus":  "  ",
+        "lineCount":  104
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/HealthController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\HealthController.cs",
+        "sha256":  "ECF1F6827B1281ECA08D6D6A0B8EB5E6012E855E2D1847284ACF165D33EC03F9",
+        "headBlob":  "19d7ed1edcb2fda33d16f2a290a28c72c82d25df",
+        "indexBlob":  "19d7ed1edcb2fda33d16f2a290a28c72c82d25df",
+        "workingTreeRawBlob":  "2891e26f4447636d3af418da49ffa3569c3702d5",
+        "gitStatus":  " M",
+        "lineCount":  35
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/CsrfController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\CsrfController.cs",
+        "sha256":  "B04324EB3189EACA22B3499F47F5F4DEF3946956BE74C6BC35D36F64D4E6FEDE",
+        "headBlob":  "0630f09568260b9ba0cf027ce3cd694935b497e5",
+        "indexBlob":  "0630f09568260b9ba0cf027ce3cd694935b497e5",
+        "workingTreeRawBlob":  "d1b16c511efb5a62157e4216fba65c83fa038dca",
+        "gitStatus":  "  ",
+        "lineCount":  15
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\CleaningMonitorController.cs",
+        "sha256":  "D4275C18F07FC242981D5AAED3890D723CF8B6E633E3BF2D21E84E445A05E382",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "ad4e384e70a7f00dfb940064c3691bd846f10535",
+        "gitStatus":  "??",
+        "lineCount":  42
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\BranchAdministrationController.cs",
+        "sha256":  "68B225C20C740B5CB26EB2764C594FFDB8C1C64DB8C72B14FA29FC68DB142586",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "59c921e3f0ad6dc8a8684333de59d3b1984f1a65",
+        "gitStatus":  "??",
+        "lineCount":  50
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/AuthController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\AuthController.cs",
+        "sha256":  "A2F110F3EB581723A5BB635032F86C197A1BF13426F517DFDAC8AC4856C568A6",
+        "headBlob":  "dd29f77633d78aaee5e16af321c8d5264255f2a0",
+        "indexBlob":  "dd29f77633d78aaee5e16af321c8d5264255f2a0",
+        "workingTreeRawBlob":  "f17ddfe9677f15a6bb280be968f8cddfeceac786",
+        "gitStatus":  "  ",
+        "lineCount":  103
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/AssetsController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\AssetsController.cs",
+        "sha256":  "A0AAB5ED90461217B8949AC8D65CC5DDC335263CF7EE9B4030DD4F9B3C4424E9",
+        "headBlob":  "20ce7dacb18a97ce5faadf8d94684bb09d5821e4",
+        "indexBlob":  "20ce7dacb18a97ce5faadf8d94684bb09d5821e4",
+        "workingTreeRawBlob":  "4aa0a1356be1c3dacac63dd79ab4db0113aca155",
+        "gitStatus":  "  ",
+        "lineCount":  295
+    },
+    {
+        "path":  "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Controllers\\AdminReauthenticationController.cs",
+        "sha256":  "2751D2A6AC958BD143FC41CC2930EED3A7453A6B7AF5EB4CC56B2E0571BAEB3B",
+        "headBlob":  "718f86a9e91ec80c95be90ebff678ae90795f858",
+        "indexBlob":  "718f86a9e91ec80c95be90ebff678ae90795f858",
+        "workingTreeRawBlob":  "718f86a9e91ec80c95be90ebff678ae90795f858",
+        "gitStatus":  "  ",
+        "lineCount":  40
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Housekeeping\\CleaningMonitorService.cs",
+        "sha256":  "DE513DD058EFD8E4C1401D6103175FA0D3F3C59B83888385FC26295A6F4C3B76",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "52598584307496ddc512cc0e148e8d85e6cbc998",
+        "gitStatus":  "??",
+        "lineCount":  218
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\WorkIntervalMath.cs",
+        "sha256":  "48EEDE10891487142C552B7764FC84BCF035F8D780EA28F95F127629A11CA839",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "e9402540f80073fd2d6ae5d5cebb299acfe576f3",
+        "gitStatus":  "??",
+        "lineCount":  68
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\WorkdayService.cs",
+        "sha256":  "3EF0E458FCE07660C5B07A330CA9FC9B59560B64824DD614FA201D4E4DD1A0F2",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "0e8df24f9e1255bb6f4c761c8659100ec8e8f308",
+        "gitStatus":  "??",
+        "lineCount":  147
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/WorkdayPermissionResourceResolver.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\WorkdayPermissionResourceResolver.cs",
+        "sha256":  "CF96C5A7D998DD66E41E8C6E5FBB83836974FDF63745059418052AB3A9C49DA6",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "c672416829ccd208ab7eddecfdc1b53e87c1a5db",
+        "gitStatus":  "??",
+        "lineCount":  48
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\SqlWorkTimeTransactionParticipant.cs",
+        "sha256":  "9341FA79ED19A327C792AD666490759A54FBE2F549A0BFB33B859808A93F75AD",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "00727a65ed2ef1fd7c5bd6b86fe7d1c5c10e7732",
+        "gitStatus":  "??",
+        "lineCount":  268
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\ShiftAssignmentConflictReader.cs",
+        "sha256":  "E681F6B007F0172A80EAE517C30737F2B1030211F029B82554E4A19F3898CAF5",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "9a24e32157dae73485141aed8056722045fc442f",
+        "gitStatus":  "??",
+        "lineCount":  44
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\OwnWorkdaySnapshotReader.cs",
+        "sha256":  "975EB7BB337BB2DD919412C79478EE54D9C7E9C2F3F181CAF57C380D318A99D7",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "27e7ccf402f1db09beebcc57af711b582cb6455a",
+        "gitStatus":  "??",
+        "lineCount":  60
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\WorkTime\\IWorkTimeTransactionParticipant.cs",
+        "sha256":  "FF148586AE64FD9090B8E802D629435C1EAD486908FFCBDD3DD7BA24A2B6C2FB",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "7f02696530fa587454f81dfaf3a4e4467a2bdf16",
+        "gitStatus":  "??",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Workflow.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Workflow.cs",
+        "sha256":  "F8BD864228DBD907FD8D2CA46A33304E943FF95AF783B94846617429A221E76C",
+        "headBlob":  "781e463620fa58bc58001873a2e97395001b8ed5",
+        "indexBlob":  "781e463620fa58bc58001873a2e97395001b8ed5",
+        "workingTreeRawBlob":  "e2ea4b8528805ae4f08f4768b76001e7ea43dce1",
+        "gitStatus":  "  ",
+        "lineCount":  93
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Queries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Queries.cs",
+        "sha256":  "7AB112FFDB2A1667C68344C335D7F676CDB997CEAFA78747B8B0C8806A379284",
+        "headBlob":  "8ea12b23896e63e6931356c019bb2b7158e6a476",
+        "indexBlob":  "8ea12b23896e63e6931356c019bb2b7158e6a476",
+        "workingTreeRawBlob":  "64f39eb007fb53bb3a8558ca46011daca978537f",
+        "gitStatus":  "  ",
+        "lineCount":  117
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Materials.cs",
+        "sha256":  "8FB61A55F22DC9B03DC04AF0CF615F84F044652D9F0DF78EBBB5EAE1AE9DE520",
+        "headBlob":  "c2361f7b025820973402f00df635ecc9408e00fa",
+        "indexBlob":  "c2361f7b025820973402f00df635ecc9408e00fa",
+        "workingTreeRawBlob":  "d77a6c3311aced430378d86ddf75254b5310af81",
+        "gitStatus":  "  ",
+        "lineCount":  142
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Logs.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Logs.cs",
+        "sha256":  "776D2DFC4C6A5EA351628D73668F3F129E3B7DED3978DF78D141041D9FF19A53",
+        "headBlob":  "b65f810af28a45cff31f2c40ba8c99048b044bef",
+        "indexBlob":  "b65f810af28a45cff31f2c40ba8c99048b044bef",
+        "workingTreeRawBlob":  "43fd317c0e47acbbef33b1a6b299c0ccea38d4fe",
+        "gitStatus":  "  ",
+        "lineCount":  104
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.cs",
+        "sha256":  "E7F03DAE8BDB2E9F7CAA465FB713A14454E5262131158AAA4E193AE1D23F57F4",
+        "headBlob":  "cafe70b1245e232b00a9e76b9c460648f55e40f5",
+        "indexBlob":  "cafe70b1245e232b00a9e76b9c460648f55e40f5",
+        "workingTreeRawBlob":  "4c547aa25858a34f58c70e8fd8e2081e1ef1daaa",
+        "gitStatus":  "  ",
+        "lineCount":  16
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Create.cs",
+        "sha256":  "D39FC632B3DAE39E0728D844584E5935AE76E7A574895DFE583825375288E66B",
+        "headBlob":  "000e7de2995aedc68618855b98b52c544a8bd521",
+        "indexBlob":  "000e7de2995aedc68618855b98b52c544a8bd521",
+        "workingTreeRawBlob":  "5ef5b404a5c9a078dcc8a85dad847b9fb8257cc5",
+        "gitStatus":  "  ",
+        "lineCount":  82
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Commands.cs",
+        "sha256":  "DA33AE6257992473CC60B854B0025B0BE22C92665C5848CBE8D0E686000B76D4",
+        "headBlob":  "f9d886359aa002cd02d0c1abaf288545d678f13d",
+        "indexBlob":  "f9d886359aa002cd02d0c1abaf288545d678f13d",
+        "workingTreeRawBlob":  "18d19190745a360488e9c204cffebd7fe73b245f",
+        "gitStatus":  "  ",
+        "lineCount":  146
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Auditing.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\MaintenanceWorkService.Auditing.cs",
+        "sha256":  "7555C8F7CB3DEC35B3279F3BDC7E36347A4A0922CD4C17ADC7F1B87EBCBCF31A",
+        "headBlob":  "82cb8ac0a1030eef03fd54eb75323aa3084ef359",
+        "indexBlob":  "82cb8ac0a1030eef03fd54eb75323aa3084ef359",
+        "workingTreeRawBlob":  "d6d878d08bfc760b43266bb3b777bcd5609177c8",
+        "gitStatus":  "  ",
+        "lineCount":  60
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Maintenance/IMaintenanceWorkService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Maintenance\\IMaintenanceWorkService.cs",
+        "sha256":  "ADCE72D9CE5D0C67280D7C65E1F305FB4DE8CF390B434AE4CDF9433E3C2B7C6F",
+        "headBlob":  "18f2ab971158cb150a16ff6ac5db67106441ed66",
+        "indexBlob":  "18f2ab971158cb150a16ff6ac5db67106441ed66",
+        "workingTreeRawBlob":  "685a3280156fb72b523cec2761c40b3fd78ff582",
+        "gitStatus":  "  ",
+        "lineCount":  20
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistoryService.cs",
+        "sha256":  "8FBF5E3207FA549EA2F695EB0921DA4F2853C45F5D9B7042034D1265B8914696",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "0467a64c936a8dad12de60cae8272d680e01bfb9",
+        "gitStatus":  "??",
+        "lineCount":  193
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistorySchema.cs",
+        "sha256":  "D8E1020BB210364E64041029C65076BA9EA6910A772356D2C7E27AF38A518EE4",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "ebab78320763c88d088fd0fec79ad7719e570420",
+        "gitStatus":  "??",
+        "lineCount":  47
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistoryFiles.cs",
+        "sha256":  "95B3EAFC0D8ADD7DD9C29EBB2D6714CCAA670FB388D40093F548F2FFF25DD4FD",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "82e65bd99a77ead8e6fe121c4d7f303a30888e2f",
+        "gitStatus":  "??",
+        "lineCount":  41
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistoryBoundary.cs",
+        "sha256":  "80D6B7A06562B46A4F06AC418DDB522F7D29AA51AB22A36197D66C793FB9AD37",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "f9b9eb61cd6ce8236332f38072d88581ec75bcf8",
+        "gitStatus":  "??",
+        "lineCount":  80
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\RoomTypeDirectoryService.cs",
+        "sha256":  "21649003343219A8BBA9B333B79C7AE5151C51AD4F2CC74D08BDF18A9B027E19",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "77a0d70927f979cfab37985a5684d92f0b2f2054",
+        "gitStatus":  "??",
+        "lineCount":  188
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\RoomTypeDirectorySchema.cs",
+        "sha256":  "22675D6639366F703543BB921392B093720383ADBAA8D64BEF0EDC12EDFF4A81",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "e9763cc2b7b15c3e8703ac8276715765c182082c",
+        "gitStatus":  "??",
+        "lineCount":  30
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\HotelStructureCreationService.cs",
+        "sha256":  "589351F318E03A575B1A7F763CDC4744DD76D1CD222D0D5988EC0203E4D69F75",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "70314996403a09b1cd4e9efac84dab7d570c7e15",
+        "gitStatus":  "??",
+        "lineCount":  157
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\BranchDeactivationDependencyReader.cs",
+        "sha256":  "2BFA288A2B5157CA3C2ABAACAD62D341D7E88CBC50791E1C3B9A09627B9EF3C2",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "e6cdbe5d3274d0da59208f101f4aafa8f80f6236",
+        "gitStatus":  "??",
+        "lineCount":  68
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\BranchAdministrationService.cs",
+        "sha256":  "BA03B74EB8E1F317E07714C4C723CC2809EB394F39885DA61CB8C42B18CBCA86",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "38c014177b07e43d7e1b6da029601c727df1b829",
+        "gitStatus":  "??",
+        "lineCount":  185
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationSchema.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\HotelStructure\\BranchAdministrationSchema.cs",
+        "sha256":  "E429B893ADA3ECD5A5B8EFBC2D9A3DE0FE3F18F4E7DB3336B9767263CBACD8FE",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "5b8a50a1e93a683288e10cbc7598361831b8da61",
+        "gitStatus":  "??",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Attachment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Attachment.cs",
+        "sha256":  "281A9C0849125F86D5BA3122379D5627B0ED02C0ED81CD72872BF1D3FA44628B",
+        "headBlob":  "c2720be9f223900664c8840f453200c5c28d600a",
+        "indexBlob":  "c2720be9f223900664c8840f453200c5c28d600a",
+        "workingTreeRawBlob":  "46a64369c98007503e82f35409ddaf8d88a02d5b",
+        "gitStatus":  "  ",
+        "lineCount":  35
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/AssetConditionHistory.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetConditionHistory.cs",
+        "sha256":  "1E008913F8E920B545C61F9E9D0AB1CA72E21F035EB9A7CA6233E27EE442E833",
+        "headBlob":  "588f8a78a6e76d7bf7382a176b04d38a8f832475",
+        "indexBlob":  "588f8a78a6e76d7bf7382a176b04d38a8f832475",
+        "workingTreeRawBlob":  "c16e937be21eb58320c430517d17545ff2c907e5",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/AssetType.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetType.cs",
+        "sha256":  "7E9080B670815BF88B4390A9238F5734AC36AB8D872ED3810EBBCEE91CF8C7C9",
+        "headBlob":  "481ebc7953196174447f128b9c1ef6da668578c1",
+        "indexBlob":  "481ebc7953196174447f128b9c1ef6da668578c1",
+        "workingTreeRawBlob":  "51fc5b8da2c5f65614809d40f24df0f3ad84a1e7",
+        "gitStatus":  "  ",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Asset.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Asset.cs",
+        "sha256":  "E31EE14A6264E35064782C73F058CB4C043BA941B87AD55FD600C9C7FFFB4247",
+        "headBlob":  "d36d013131d5fb7387220a11207008b925c49592",
+        "indexBlob":  "d36d013131d5fb7387220a11207008b925c49592",
+        "workingTreeRawBlob":  "119a46dd2af3846d7b25c625a32c01708bc2d1d8",
+        "gitStatus":  "  ",
+        "lineCount":  69
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Area.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Area.cs",
+        "sha256":  "9245F211D25E6EB3867FF1BB6D58ACA50F06EB7D5ADCA2AF945D6E35B004E602",
+        "headBlob":  "58d49d0ffd5f78bb199b9cb743214ac88ecdb0e2",
+        "indexBlob":  "58d49d0ffd5f78bb199b9cb743214ac88ecdb0e2",
+        "workingTreeRawBlob":  "8c6a0e8553c531ec0a98792e91aff4e804172eb0",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/AssetHandover.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetHandover.cs",
+        "sha256":  "52CDDC26E905B7E346E011D793B032A42F929E00D69036B788909FB786CDDD89",
+        "headBlob":  "eca56a651da2a73434b785d830bf59e985929311",
+        "indexBlob":  "eca56a651da2a73434b785d830bf59e985929311",
+        "workingTreeRawBlob":  "bdff09e8afec5ecd0668f3c0df3020d69dd53cc3",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/CleaningTask.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningTask.cs",
+        "sha256":  "7D62D0E91F277B57CEFEF15B91E4F602F21ED3D16F4FD99480D4E171DFEFDF94",
+        "headBlob":  "94e959652af3e38d88f2a1d6678b42af1514afd3",
+        "indexBlob":  "94e959652af3e38d88f2a1d6678b42af1514afd3",
+        "workingTreeRawBlob":  "6eeffc8d6c2dc7cc6207d17cc5dfdd58a630950f",
+        "gitStatus":  "  ",
+        "lineCount":  53
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/AssetLocationHistory.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AssetLocationHistory.cs",
+        "sha256":  "BFD571FD6972BCEC5A2C5ECD2265151FCE562544DED8BB92C53C27BC2DF7706F",
+        "headBlob":  "babab025cd3f9b8a376cf5a75f8ff9dd7524da81",
+        "indexBlob":  "babab025cd3f9b8a376cf5a75f8ff9dd7524da81",
+        "workingTreeRawBlob":  "196494056334a02f7a9fd705e613a50f58c65ded",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/CleaningRework.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningRework.cs",
+        "sha256":  "7CA65722909366305C4243EDAF691595F36A303398722AE0B6688A5CCCF9802E",
+        "headBlob":  "b4647829067c0d99921de358faf3b2d8419a92d9",
+        "indexBlob":  "b4647829067c0d99921de358faf3b2d8419a92d9",
+        "workingTreeRawBlob":  "7c63aca487e6e03f7b49d64ba8d35c3072a90212",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/CleaningProgressLog.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningProgressLog.cs",
+        "sha256":  "7189E7C99C985455C24C35303B655600650D51A8752C954656197DB84652E8FD",
+        "headBlob":  "9ce263e0d6027b4c5b4b6ccdc4cf41c594dfbdb9",
+        "indexBlob":  "9ce263e0d6027b4c5b4b6ccdc4cf41c594dfbdb9",
+        "workingTreeRawBlob":  "76058193ee838f0ac93164f40054f398a3b79c85",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/CleaningAssignment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\CleaningAssignment.cs",
+        "sha256":  "38581C3E0ECBFE35297D74D7F6EB4A12319252D0C0D7E6246E2D9F3D75CBDC90",
+        "headBlob":  "1d3c5788dfbfc21dca5714e0b968d735fafebb71",
+        "indexBlob":  "1d3c5788dfbfc21dca5714e0b968d735fafebb71",
+        "workingTreeRawBlob":  "fd8599abdc12164681d55b6cff421f0ace872a62",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Branch.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Branch.cs",
+        "sha256":  "ACF4962ACDEA8D59DF8285617270663FC56B2C5D0E52AB58DA81A826C132BAD3",
+        "headBlob":  "4df95b11ff661bc530cee019580620f8a1113638",
+        "indexBlob":  "4df95b11ff661bc530cee019580620f8a1113638",
+        "workingTreeRawBlob":  "afdd52bfee553152efd645a8b7ee99d6c1ada42c",
+        "gitStatus":  "  ",
+        "lineCount":  61
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/AuditLog.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\AuditLog.cs",
+        "sha256":  "9CB4E239E19CCC0CA88707B8D3C59D6208082ED12C672A1E68FB2188613CE7A8",
+        "headBlob":  "e6a2e227a7a1b8b8b633454d469776ecb5ba046a",
+        "indexBlob":  "e6a2e227a7a1b8b8b633454d469776ecb5ba046a",
+        "workingTreeRawBlob":  "ae40c28fc92119b03d2274be7a7113cfd42c6185",
+        "gitStatus":  "  ",
+        "lineCount":  37
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Incident.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Incident.cs",
+        "sha256":  "AFD7F929D6370DE684C726D360005ECC780B3CA77D3533E0395E78F4A5979CBC",
+        "headBlob":  "0b2b58c6bd0f83928778a8679e437580fa3f6d1b",
+        "indexBlob":  "0b2b58c6bd0f83928778a8679e437580fa3f6d1b",
+        "workingTreeRawBlob":  "a501eec55b319319a3c2c501850f42dd2ab4abce",
+        "gitStatus":  "  ",
+        "lineCount":  67
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Floor.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Floor.cs",
+        "sha256":  "3286B41C3248C93D137F13204E3F56F405959B4C4ECE18E44356E47D64C856A7",
+        "headBlob":  "471dcda91a90423a030d228a70e0e88ebe4da1e7",
+        "indexBlob":  "471dcda91a90423a030d228a70e0e88ebe4da1e7",
+        "workingTreeRawBlob":  "4e6b7d1f17ce56c05e47039f7e5dcdce544c2b73",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Department.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Department.cs",
+        "sha256":  "B5824D9D7DB9D5183A32EB2DA292CC705B6C93C20D63F040416392EFD2AE3A49",
+        "headBlob":  "8c91b9ce834217193f46110f2ff11dfec73c8d86",
+        "indexBlob":  "8c91b9ce834217193f46110f2ff11dfec73c8d86",
+        "workingTreeRawBlob":  "26dbde69725fdc54681932fd26fe647cb4416045",
+        "gitStatus":  "  ",
+        "lineCount":  53
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InspectionChecklist.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionChecklist.cs",
+        "sha256":  "3E35A847F6BD95E81B3F82C74E9592E11179E5A678B9A925BFC6813AC02EC3B3",
+        "headBlob":  "3caeed3d2a7a5d3eefb07f70d408e1e6d9e920b3",
+        "indexBlob":  "3caeed3d2a7a5d3eefb07f70d408e1e6d9e920b3",
+        "workingTreeRawBlob":  "91b819c0d08caa95fe70dcfff0cd33c8a5291ee1",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/IncidentEvent.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\IncidentEvent.cs",
+        "sha256":  "328450BC6A93571F754D877CA9DFFBE8AB6A9FE28172B0D60E4D8EC277D6D90A",
+        "headBlob":  "4237dfb59a5f144ebfbfda7cf661b55c99490c5d",
+        "indexBlob":  "4237dfb59a5f144ebfbfda7cf661b55c99490c5d",
+        "workingTreeRawBlob":  "d144fd3b986edce03bcf9934f1a6a729b943b024",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InspectionChecklistItem.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionChecklistItem.cs",
+        "sha256":  "1851D1FDBF27DFAAF59DE844BE78EF11E5F7A4ECD4217C2171B6A97FED943DE5",
+        "headBlob":  "4203d9337c5622627edba9febb0a0e17d752251f",
+        "indexBlob":  "4203d9337c5622627edba9febb0a0e17d752251f",
+        "workingTreeRawBlob":  "a587a56f5ab035c59a939fd38ec4eabe8cf510af",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.Stocktakes.cs",
+        "sha256":  "B7B66255BEF6C715F617039252530DF5E7ADB2A92A8E56A6AF86A464D2EA21FF",
+        "headBlob":  "b6aefbe3e0f86f21f3dbd3aa379de000c3e344a0",
+        "indexBlob":  "b6aefbe3e0f86f21f3dbd3aa379de000c3e344a0",
+        "workingTreeRawBlob":  "08d57a05df6ed1b5fc569c441edcd7effc8b6a68",
+        "gitStatus":  "  ",
+        "lineCount":  97
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.ReceiptIntegration.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.ReceiptIntegration.cs",
+        "sha256":  "C0C11EC3CFE606350E6421345C8729CDA8E004140208313BA8C6D0B919AA999F",
+        "headBlob":  "65abe153fbe8f06a0adeb71887489727b4184301",
+        "indexBlob":  "65abe153fbe8f06a0adeb71887489727b4184301",
+        "workingTreeRawBlob":  "9761f856db56c2174dadeff758b33ada1d205732",
+        "gitStatus":  "  ",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.ReadScope.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.ReadScope.cs",
+        "sha256":  "6033738681E001692571674FC2160BCA31AE3A7B527F287FD802BAF84CD10F6A",
+        "headBlob":  "9dc9ccd2c3c2545c0e0c83d620c17a57f09fc538",
+        "indexBlob":  "9dc9ccd2c3c2545c0e0c83d620c17a57f09fc538",
+        "workingTreeRawBlob":  "f5a19297c1af416918c428efad1f666d65edec94",
+        "gitStatus":  "  ",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.Queries.cs",
+        "sha256":  "E4ACDF87BB02F329FC06079BE5E6FDD267949FCA65C2B525ED7D2AF85EDB694B",
+        "headBlob":  "1dc661b23ab26afeed51f95220d1df1f26d9005f",
+        "indexBlob":  "1dc661b23ab26afeed51f95220d1df1f26d9005f",
+        "workingTreeRawBlob":  "4eeac26e5f2d8cf443e44cd10e57867e7d58d978",
+        "gitStatus":  "  ",
+        "lineCount":  141
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.Masters.cs",
+        "sha256":  "BBCEC08905FE2B3B4745B835431C098D6F02284DD0A0E255C4218876205E95F7",
+        "headBlob":  "ea54cf850a31ab8359763706c465489145eec254",
+        "indexBlob":  "ea54cf850a31ab8359763706c465489145eec254",
+        "workingTreeRawBlob":  "0b9c7edcd1b6d8bda760b4a983ab02380f0d7489",
+        "gitStatus":  "  ",
+        "lineCount":  119
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.Issues.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.Issues.cs",
+        "sha256":  "3DCDF7960E38BD3E4AA1DA598200650936E7E5FF952F204FBDEBB3DE23C194B2",
+        "headBlob":  "8b589639f11480bbacdc54ebf807390bcf4c3d0f",
+        "indexBlob":  "8b589639f11480bbacdc54ebf807390bcf4c3d0f",
+        "workingTreeRawBlob":  "9259df1dd09a689cfeded86fbb6f4a3a4803a3d6",
+        "gitStatus":  "  ",
+        "lineCount":  46
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.IssueCapacity.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.IssueCapacity.cs",
+        "sha256":  "60D3BF83DBC02B2F7DF2E0ED9ECF378362291A551D87ADED0E2CB69C2D99ECCB",
+        "headBlob":  "3fc48fdb18eee2554c56e9810b6b5e4ed4d4ceb4",
+        "indexBlob":  "3fc48fdb18eee2554c56e9810b6b5e4ed4d4ceb4",
+        "workingTreeRawBlob":  "2bfa8735d10506b0957710792768cd65654beb61",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.Documents.cs",
+        "sha256":  "67A17D28DA8CF33ABE270EAE43988269ECD9155B2A07FBF0D21A9C39A35119B2",
+        "headBlob":  "835955afdd5d13b3c8c4fc6daddb4d0b7686aae0",
+        "indexBlob":  "835955afdd5d13b3c8c4fc6daddb4d0b7686aae0",
+        "workingTreeRawBlob":  "95d63d3a2b301aed284343465cd85ae8aa882ef1",
+        "gitStatus":  "  ",
+        "lineCount":  257
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.cs",
+        "sha256":  "8D74F714682CA980B93F5A1F48F3AB2BE4B45D4FF83E47627E9E5DA5BB61FEA9",
+        "headBlob":  "e98f16ec8f7297b47db68cc9a88617dc9fe8ba6e",
+        "indexBlob":  "e98f16ec8f7297b47db68cc9a88617dc9fe8ba6e",
+        "workingTreeRawBlob":  "bda960ae0c066baa466d1310f27c49939d08bb14",
+        "gitStatus":  "  ",
+        "lineCount":  203
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryService.Adjustments.cs",
+        "sha256":  "816C029745501E5D395BCDA1DC7FFFA82034560FCA1F94BC68EBB301A18B3B69",
+        "headBlob":  "2c7a03131cfdf7196bb32380635ae3d5bb00ff90",
+        "indexBlob":  "2c7a03131cfdf7196bb32380635ae3d5bb00ff90",
+        "workingTreeRawBlob":  "c8a544da72062f7600d45b1b09d4221d171bc94b",
+        "gitStatus":  "  ",
+        "lineCount":  199
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/InventoryAccess.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\InventoryAccess.cs",
+        "sha256":  "78E229141AF16A1257BBC1035C4592464446A752A2A2B6838B609F3275E64AC3",
+        "headBlob":  "2d428b2cdc7d6d9a90e3a0850bfb980c0a9c218a",
+        "indexBlob":  "2d428b2cdc7d6d9a90e3a0850bfb980c0a9c218a",
+        "workingTreeRawBlob":  "b85945b61a75c90d9440a95cb44b1b395dbd385b",
+        "gitStatus":  "  ",
+        "lineCount":  120
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/IInventoryReceiptPosting.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\IInventoryReceiptPosting.cs",
+        "sha256":  "B926A65FBA85CC03DC01D1F9DC6E1D7C391668EDA06AB3F0BF54B5FD15845516",
+        "headBlob":  "7026f8bcb95cc5c624c3a5e0c314acf4b3e331d0",
+        "indexBlob":  "7026f8bcb95cc5c624c3a5e0c314acf4b3e331d0",
+        "workingTreeRawBlob":  "b8786eda0462dd94f24972cda75a1348cdecc6b4",
+        "gitStatus":  "  ",
+        "lineCount":  18
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/IInventoryIssuePosting.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\IInventoryIssuePosting.cs",
+        "sha256":  "40D69E1375E74BFE292C9FE2803A296CEF03A5FAB09A90762879C57B80DA24BA",
+        "headBlob":  "964095bf2013aa88c011563019fa9bd570a38ffd",
+        "indexBlob":  "964095bf2013aa88c011563019fa9bd570a38ffd",
+        "workingTreeRawBlob":  "6e05fe46d11d97cac42f5db106b28d89b1e5c0f8",
+        "gitStatus":  "  ",
+        "lineCount":  21
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Inventory/IInventoryIssueCapacity.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Inventory\\IInventoryIssueCapacity.cs",
+        "sha256":  "2F744C3867888EC5F7AF6C6B7ABE4070FA2774B5FF597D04ABC7E5ABC87F20D6",
+        "headBlob":  "b8e6a9ac18be2b819b31578358cee16b922e7c6c",
+        "indexBlob":  "b8e6a9ac18be2b819b31578358cee16b922e7c6c",
+        "workingTreeRawBlob":  "33c2ea8f47c7a161ef9465afe6cdd7b182eaefb2",
+        "gitStatus":  "  ",
+        "lineCount":  16
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\TemporaryCredentialService.cs",
+        "sha256":  "F39CE310A4B91D2BAE53597DA90C8CDD44BDCEA0E0379EEC49D77E9893F76B2E",
+        "headBlob":  "7f2db93caaac6a6bd5d14e0a4c88e94a03eecc3e",
+        "indexBlob":  "7f2db93caaac6a6bd5d14e0a4c88e94a03eecc3e",
+        "workingTreeRawBlob":  "d914c57738ff79cd12dc91c9b709071382b96c9f",
+        "gitStatus":  "  ",
+        "lineCount":  210
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/WorkTime/WorkdayRequests.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\WorkTime\\WorkdayRequests.cs",
+        "sha256":  "2C92793379C314EDEC0013ADF198EF2ABF81CA9583180A17CBCCEA6233410534",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "3180a39d6ef5817c6cf57a96430eb899832cd2d0",
+        "gitStatus":  "??",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Incidents/IIncidentService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Incidents\\IIncidentService.cs",
+        "sha256":  "01DF2C035DF1EC0A89A6C1D08CBDB5C15CC1852FB323362BA6989B58EE7FFC0D",
+        "headBlob":  "303be22a3f38666f1bc92de69265b3b460599c14",
+        "indexBlob":  "303be22a3f38666f1bc92de69265b3b460599c14",
+        "workingTreeRawBlob":  "a285395d3c600f8995577878216ab78191590736",
+        "gitStatus":  "  ",
+        "lineCount":  12
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/AdminCredentialResetWorkflow.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\AdminCredentialResetWorkflow.cs",
+        "sha256":  "FE6FA0E22396CC8FF859BBE882D438B39FC402FE0FB5FFD259912D5208A513C1",
+        "headBlob":  "08c09dc7a6217b09187f1a29fdf0aeaf4b76ecd7",
+        "indexBlob":  "08c09dc7a6217b09187f1a29fdf0aeaf4b76ecd7",
+        "workingTreeRawBlob":  "08c09dc7a6217b09187f1a29fdf0aeaf4b76ecd7",
+        "gitStatus":  "  ",
+        "lineCount":  28
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SqlSessionService.cs",
+        "sha256":  "7227F5D33CB9A1981F4A4708C1884E6DAA1CD3966249931FCC5C9DF69DF49325",
+        "headBlob":  "8c8d6e6ea03ca3a22212ed8015d0b0f127bf0997",
+        "indexBlob":  "8c8d6e6ea03ca3a22212ed8015d0b0f127bf0997",
+        "workingTreeRawBlob":  "0b9109e9d320d36a7d9f1810f0424572f4e072cb",
+        "gitStatus":  "  ",
+        "lineCount":  127
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SqlSessionPolicy.cs",
+        "sha256":  "0DD66B9B6A9B5E19C2A930B184563BD68E06E838271583372A0EA6B33C023E31",
+        "headBlob":  "bfe5abcb1f2b8724b86a05c90aa77f3e4c1b56c3",
+        "indexBlob":  "bfe5abcb1f2b8724b86a05c90aa77f3e4c1b56c3",
+        "workingTreeRawBlob":  "caba59ebe0873948a0630c430da44dc39a6a8be3",
+        "gitStatus":  " M",
+        "lineCount":  50
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/SessionStoreUnavailableException.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SessionStoreUnavailableException.cs",
+        "sha256":  "A592EF384C8A17308E0FAB641363992407DE591E8FAC828178C0AD814637C9F2",
+        "headBlob":  "34d106432744eebfc1faff95138a5a23b38b77be",
+        "indexBlob":  "34d106432744eebfc1faff95138a5a23b38b77be",
+        "workingTreeRawBlob":  "00b50be5514d4ce382e894bfa0d6f848b9ffae36",
+        "gitStatus":  "  ",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SessionRevocationService.cs",
+        "sha256":  "F528086F260EE2A77736EAA3D04F3A6038EEF436C0BCF211BE8BD415C4995D76",
+        "headBlob":  "ea06b224a1439bd39e52ac41aa448eaeba3c7077",
+        "indexBlob":  "ea06b224a1439bd39e52ac41aa448eaeba3c7077",
+        "workingTreeRawBlob":  "dd07d06c8a59f2ca2bc7a0d96cf2d2780e4a585c",
+        "gitStatus":  "  ",
+        "lineCount":  38
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/SessionCredential.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\SessionCredential.cs",
+        "sha256":  "EE587FC2B470C7ABD2269A5AFC6B5B39022179B6BA1647FC303BDEEE89B8C083",
+        "headBlob":  "afc4cabcceee278ab723f00a47f11a2cfe4f0dde",
+        "indexBlob":  "afc4cabcceee278ab723f00a47f11a2cfe4f0dde",
+        "workingTreeRawBlob":  "9bccb3a78ce950e6afce3a934cebaf46bb4779c4",
+        "gitStatus":  "  ",
+        "lineCount":  33
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/ReauthenticationProofStore.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ReauthenticationProofStore.cs",
+        "sha256":  "3037A28D7E87886540EA40E873062D6D82C1AA1FE621CCC3BD650A1C25F83ACF",
+        "headBlob":  "0f9b2bf6a87e0c30fad1653e478d84b51b87a927",
+        "indexBlob":  "0f9b2bf6a87e0c30fad1653e478d84b51b87a927",
+        "workingTreeRawBlob":  "0f9b2bf6a87e0c30fad1653e478d84b51b87a927",
+        "gitStatus":  "  ",
+        "lineCount":  50
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/PasswordCredentialService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\PasswordCredentialService.cs",
+        "sha256":  "50FACBBFDE270EB1D0479EB4E6447EF9DB44446B6E465FA5F8225B841B608333",
+        "headBlob":  "842883e6e232242c01fc7fabab98522f632bdb0e",
+        "indexBlob":  "842883e6e232242c01fc7fabab98522f632bdb0e",
+        "workingTreeRawBlob":  "021a2b8cca402f91ef7654eb372bfbb89e967eec",
+        "gitStatus":  "  ",
+        "lineCount":  70
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/PasswordChangePolicy.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\PasswordChangePolicy.cs",
+        "sha256":  "F279DC8129DAF92DDDD77717BA99E55E2C5C521E1192D58B2D246C51739CED32",
+        "headBlob":  "6faaf4d193db2033b6e78ef446802037eff19d8b",
+        "indexBlob":  "6faaf4d193db2033b6e78ef446802037eff19d8b",
+        "workingTreeRawBlob":  "8e09949dad4873fba2457c0f32c1bc86c5298767",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/ITemporaryCredentialService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ITemporaryCredentialService.cs",
+        "sha256":  "B8156D2020745F414C9A75F3704934D1949887194242FBF98F02F0129BDF9E7C",
+        "headBlob":  "89af97f9a4564e3fa5bf16a6ed431216b0a2ed42",
+        "indexBlob":  "89af97f9a4564e3fa5bf16a6ed431216b0a2ed42",
+        "workingTreeRawBlob":  "784d5de5f3b33ebd64af7dca473fad6f23ea489b",
+        "gitStatus":  "  ",
+        "lineCount":  75
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/ISqlSessionService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ISqlSessionService.cs",
+        "sha256":  "26141AAD4BD3A1060B799483CCF207BA53FD882F13E0656601A100ED65D88F96",
+        "headBlob":  "b09c7e785fd621daa046c13befb1fbb79885ab04",
+        "indexBlob":  "b09c7e785fd621daa046c13befb1fbb79885ab04",
+        "workingTreeRawBlob":  "efa22bf17dc6870611b360c36891043dc9104b34",
+        "gitStatus":  "  ",
+        "lineCount":  57
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/IPasswordCredentialService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IPasswordCredentialService.cs",
+        "sha256":  "2392436B1F22D1169036638EE680CB0DABC70B92DBA2113C860261F4434824B6",
+        "headBlob":  "edc4744bbe7b253ca341b27090dec61af7d13671",
+        "indexBlob":  "edc4744bbe7b253ca341b27090dec61af7d13671",
+        "workingTreeRawBlob":  "35912a06cde224ba03b94289967728d754f7b5e9",
+        "gitStatus":  "  ",
+        "lineCount":  16
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/IInitialCredentialTransactionParticipant.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IInitialCredentialTransactionParticipant.cs",
+        "sha256":  "364AD5BDE5DB751D70DDD6657CBA042F0EEBE00FB72F12A3F7F6196837B6D4DC",
+        "headBlob":  "f6721d4582b545954f4a90e58b3eb2366edc7826",
+        "indexBlob":  "f6721d4582b545954f4a90e58b3eb2366edc7826",
+        "workingTreeRawBlob":  "f6721d4582b545954f4a90e58b3eb2366edc7826",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/ICredentialLockoutService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\ICredentialLockoutService.cs",
+        "sha256":  "BD936F15A91C22B7D228259879C4DC0B84DAAC6B00B2EAA9536C1D634ACCE3B9",
+        "headBlob":  "5d4e6c34f3e4565f7cfeda8f0365cb9cb99d1444",
+        "indexBlob":  "5d4e6c34f3e4565f7cfeda8f0365cb9cb99d1444",
+        "workingTreeRawBlob":  "1f31f395bd9ec37a098233af3058e813df30e92c",
+        "gitStatus":  "  ",
+        "lineCount":  46
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/IConditionalCredentialResetService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IConditionalCredentialResetService.cs",
+        "sha256":  "EEB3516A8D0A627339BC3C94638FF6235C61679FAEFE6AED213740BBF364B544",
+        "headBlob":  "d2e898a0dcc6ae3e2988a3a86e1f07eb058cb372",
+        "indexBlob":  "d2e898a0dcc6ae3e2988a3a86e1f07eb058cb372",
+        "workingTreeRawBlob":  "d2e898a0dcc6ae3e2988a3a86e1f07eb058cb372",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/IAuthenticationLoginService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IAuthenticationLoginService.cs",
+        "sha256":  "28C16D7ED96DFE317E66BEA7210C34982C92D80FE60F16CC3417FCCCEF300296",
+        "headBlob":  "73b0743eca30f362244e1e78d739403da5acc901",
+        "indexBlob":  "73b0743eca30f362244e1e78d739403da5acc901",
+        "workingTreeRawBlob":  "375e5ae667aff5cd385487b8c8a72de220b06ec8",
+        "gitStatus":  "  ",
+        "lineCount":  26
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/IAuthenticationCredentialWorkflow.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\IAuthenticationCredentialWorkflow.cs",
+        "sha256":  "259FAE556D2B26A08AD18ED362528C7D0CF454A155FDDD44A71B3AE71A000747",
+        "headBlob":  "bfe49472b562d427eb52f61d49bb784e0fe6bd7f",
+        "indexBlob":  "bfe49472b562d427eb52f61d49bb784e0fe6bd7f",
+        "workingTreeRawBlob":  "6fb3d5bdf1a8f08af06e5d98f518150d95925031",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\CredentialLockoutService.cs",
+        "sha256":  "254AD1F0AB84AB692F03C980128668DB3E54FE21C828215A1FC204D3E4F4DBEF",
+        "headBlob":  "ccb3861983198fb6cabb2b2439eb8d46a8e3adb2",
+        "indexBlob":  "ccb3861983198fb6cabb2b2439eb8d46a8e3adb2",
+        "workingTreeRawBlob":  "4b719dc5e58d38ff6e3577d31886da5c8b1f722d",
+        "gitStatus":  "  ",
+        "lineCount":  133
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/CredentialLockoutPolicy.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\CredentialLockoutPolicy.cs",
+        "sha256":  "5DF5D1A9211D0DB9996C81DF74B81D829824BD45AD641B1D5CF766025D5B5633",
+        "headBlob":  "9ccfbbdd3a8739861fba419be7fe5a1093f3c696",
+        "indexBlob":  "9ccfbbdd3a8739861fba419be7fe5a1093f3c696",
+        "workingTreeRawBlob":  "02cdee85b2866e64b9f40467766bd8d0d2aa9078",
+        "gitStatus":  "  ",
+        "lineCount":  43
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AuthenticationLoginService.cs",
+        "sha256":  "BB5AE6606957B1AF94006EA75F7AC50D46AC7D57C2B48756C139764B27EF87A9",
+        "headBlob":  "cafb86d6afc525edbd1e5c73d91e2c56e924135d",
+        "indexBlob":  "cafb86d6afc525edbd1e5c73d91e2c56e924135d",
+        "workingTreeRawBlob":  "3c47017819b2d874bd4d1570509043b19cc756e2",
+        "gitStatus":  "  ",
+        "lineCount":  103
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AuthenticationCredentialWorkflow.cs",
+        "sha256":  "028A58068D1CA373A5890D09E7D37C28EA17453351F806DB114A33689FDFCAF5",
+        "headBlob":  "752bd4a35c6f310334780e982289a90ac766f3d1",
+        "indexBlob":  "752bd4a35c6f310334780e982289a90ac766f3d1",
+        "workingTreeRawBlob":  "22bd844c37e31c08b6663531f7f268b744f2cb16",
+        "gitStatus":  "  ",
+        "lineCount":  115
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/AuthenticationAudit.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AuthenticationAudit.cs",
+        "sha256":  "9FCFFDF69B2BF1096BA426728D6F7117EDA25190DF187E50EB108C08CC7D2C1E",
+        "headBlob":  "2a0fea1f23e27bd14a8104e4e77777da94ddf6d7",
+        "indexBlob":  "2a0fea1f23e27bd14a8104e4e77777da94ddf6d7",
+        "workingTreeRawBlob":  "0b52a9c20e05e546beb976dc6b6ec3a1e8e1e42c",
+        "gitStatus":  "  ",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Authentication\\AdminReauthenticationService.cs",
+        "sha256":  "1CF8D42471B402610F1C1BDD9057B5CE0B88AF2D33E261C6A9205B9F3F29EAA2",
+        "headBlob":  "4d78f35ddb32a943b33a79dedbe96acc3fa1110e",
+        "indexBlob":  "4d78f35ddb32a943b33a79dedbe96acc3fa1110e",
+        "workingTreeRawBlob":  "4d78f35ddb32a943b33a79dedbe96acc3fa1110e",
+        "gitStatus":  "  ",
+        "lineCount":  63
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialReplenishmentReceiptLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialReplenishmentReceiptLine.cs",
+        "sha256":  "5B092502B92DC4F47F77B6B762F5788FBE25B8E5A2BFA2811006F45F59BE809E",
+        "headBlob":  "0148274c353bfbd65eb3c012c92491205c566f35",
+        "indexBlob":  "0148274c353bfbd65eb3c012c92491205c566f35",
+        "workingTreeRawBlob":  "b02045a18636443bf377acfee93a1bbdf3da2541",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialReplenishmentLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialReplenishmentLine.cs",
+        "sha256":  "6BB3D6C14E491F4A9040C5D56A99038C08C828C4F56A40CBDAF01D3BE1319AAC",
+        "headBlob":  "6b15f699bc16b37a4c77f5f1948395e5e1917350",
+        "indexBlob":  "6b15f699bc16b37a4c77f5f1948395e5e1917350",
+        "workingTreeRawBlob":  "a943b0b3cb354bf0d14fe84b691c31bb291e44a4",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialReplenishment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialReplenishment.cs",
+        "sha256":  "078A38549FA36F24DDC2B9B06BB1EEB0BB4A6B1A63124023177288C9AE3CBC4C",
+        "headBlob":  "bdbc65620c6a113f9df7c6323ec76e87920eb287",
+        "indexBlob":  "bdbc65620c6a113f9df7c6323ec76e87920eb287",
+        "workingTreeRawBlob":  "d1d61b16f8a03fb3bbe0ea9f094e1834a0947e18",
+        "gitStatus":  "  ",
+        "lineCount":  41
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialFulfillmentLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialFulfillmentLine.cs",
+        "sha256":  "C77C7A35A671C42E75182DD8679C1BA4AE39EFE7D8260CE369038B36B8A819B7",
+        "headBlob":  "abc6d3856c68927f205e26ecce495c5d6c875b3a",
+        "indexBlob":  "abc6d3856c68927f205e26ecce495c5d6c875b3a",
+        "workingTreeRawBlob":  "6af715c87ef08a96d459a7ed538e6a95a33db68c",
+        "gitStatus":  "  ",
+        "lineCount":  35
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialFulfillment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialFulfillment.cs",
+        "sha256":  "40A573D6E437559A6FE7C2BFA6FE979403686CC312C65F8C1ED9E3E9AF06F2B7",
+        "headBlob":  "de4650033055cd2a9f1cb5414a897d452791e4ad",
+        "indexBlob":  "de4650033055cd2a9f1cb5414a897d452791e4ad",
+        "workingTreeRawBlob":  "94845587bf717c3dca92b3c5babbed741abd2e41",
+        "gitStatus":  "  ",
+        "lineCount":  43
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaintenanceWorkLog.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaintenanceWorkLog.cs",
+        "sha256":  "60F438170FAB59781E52FBA32511EB077C70876FB47093321AF9207AE9D170E8",
+        "headBlob":  "a62db7c3059b26cd6d0e4ea92fc544a8ca5b0c2f",
+        "indexBlob":  "a62db7c3059b26cd6d0e4ea92fc544a8ca5b0c2f",
+        "workingTreeRawBlob":  "b608bf92c591946d88b8668f09a6e485e3f4c2e6",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaintenanceWork.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaintenanceWork.cs",
+        "sha256":  "88656F48168E7E7A9D8EBE5E9D2FD6B777786CDAF748319BF275524CA80E2828",
+        "headBlob":  "8a5e0656036dba3446c515a94d0fccb2bcb964df",
+        "indexBlob":  "8a5e0656036dba3446c515a94d0fccb2bcb964df",
+        "workingTreeRawBlob":  "273b6998d229021e68bbc836dec7e0648701a298",
+        "gitStatus":  "  ",
+        "lineCount":  61
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaintenanceMaterialUsage.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaintenanceMaterialUsage.cs",
+        "sha256":  "6DC4F5C93C12D145A16A3BD76F9858A90A1C515EF44276D145BDD1D395C6300A",
+        "headBlob":  "05900accd5f706dfd3bcb9a047e47c38a5a711ce",
+        "indexBlob":  "05900accd5f706dfd3bcb9a047e47c38a5a711ce",
+        "workingTreeRawBlob":  "1ea7d5abf414c8c9145137b7a8335b7e20a7c6c0",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/ItemCategory.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ItemCategory.cs",
+        "sha256":  "509ED136A1FC4DCFEEDCA35A205565AAC8F8F46E4DAE01EB1D8EE9800A09CD4D",
+        "headBlob":  "5ac4d7d06049f51320b87e2ee9d89bfcd19f50c4",
+        "indexBlob":  "5ac4d7d06049f51320b87e2ee9d89bfcd19f50c4",
+        "workingTreeRawBlob":  "fae5bb8791fa8a8790e14e51befa1a9f433041a2",
+        "gitStatus":  "  ",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InventoryItem.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InventoryItem.cs",
+        "sha256":  "72467BC26A3B5CC5A25C449BB55BC0F0669902B15325AE15C1E961C77EED98EA",
+        "headBlob":  "61278b37f738efecd4ff1ad77c81a01ff6d2c6bb",
+        "indexBlob":  "61278b37f738efecd4ff1ad77c81a01ff6d2c6bb",
+        "workingTreeRawBlob":  "e19a5ab46156ecbc76e851b9e9ed41ce7557e4b2",
+        "gitStatus":  "  ",
+        "lineCount":  55
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InternalRequestType.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestType.cs",
+        "sha256":  "4E32C84FADDA236422B5251542C88F8522450136DF4CB79939D17BEBEEA1D0F0",
+        "headBlob":  "850471e04d9bfc940c8fc28049aac73a13d35ee0",
+        "indexBlob":  "850471e04d9bfc940c8fc28049aac73a13d35ee0",
+        "workingTreeRawBlob":  "bea5714345b9c7d4bfa33336ca242cf8e72bb1a6",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InternalRequestFeedback.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestFeedback.cs",
+        "sha256":  "11789438BA8629C87CA0BE1AFBA1BE14E08D9A3EECC768F0C9859BE25D910BBA",
+        "headBlob":  "b8e9483e8df87a9d045c24f9ded20a8c19bec3ff",
+        "indexBlob":  "b8e9483e8df87a9d045c24f9ded20a8c19bec3ff",
+        "workingTreeRawBlob":  "ebe727d80210a7686d44a7fa167859591a69f070",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InternalRequestEvent.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestEvent.cs",
+        "sha256":  "40F10470076AB65C4256DB05FEA7D4243A8CA83F1E96A39DAE5FE9EC24E135AE",
+        "headBlob":  "2e9acba7f8d0fc844e31c8e24f76259239162f36",
+        "indexBlob":  "2e9acba7f8d0fc844e31c8e24f76259239162f36",
+        "workingTreeRawBlob":  "f6b35505d0d2a7961cc2b681509f2421743cf308",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InternalRequestAssignment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequestAssignment.cs",
+        "sha256":  "1EDF1A01E8B8A0E2EF6ACFD16F8AD4AED814B4B22AF9C026E4CC4421A517B7B6",
+        "headBlob":  "03a92ffc54a36d9ee7ec07d3acbe7726849c53d6",
+        "indexBlob":  "03a92ffc54a36d9ee7ec07d3acbe7726849c53d6",
+        "workingTreeRawBlob":  "497ad0bc35085a9a259b3a29e6059359e1213c15",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InternalRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InternalRequest.cs",
+        "sha256":  "B25AC2E5CB3F9C87E4AD091A5DB58FA5D40011A587DA0F2A81729359746E7C6A",
+        "headBlob":  "df4c669a12eedcd4d5b79ff481ba8790852e23cf",
+        "indexBlob":  "df4c669a12eedcd4d5b79ff481ba8790852e23cf",
+        "workingTreeRawBlob":  "8edbb07ae7cdd16e17f13d49b0e36cfa4705abdf",
+        "gitStatus":  "  ",
+        "lineCount":  75
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InspectionResult.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionResult.cs",
+        "sha256":  "E1C6B11C478FA2D229C5E83CBD2EA89BAC13BE86F95BD5B6312B52EAA5BE8027",
+        "headBlob":  "abf3b385989913026e13ee2f4230735e9136d205",
+        "indexBlob":  "abf3b385989913026e13ee2f4230735e9136d205",
+        "workingTreeRawBlob":  "8351365648947590318d698b4c2ed85ce5822961",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InspectionDefect.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionDefect.cs",
+        "sha256":  "84ABC5A781DD4008AC1A0129FED0E6D4ED2E1FC3A3DF2E1C444B1C74959E5297",
+        "headBlob":  "3300eb0309a70d4c05851501e99c661c2cb2f58a",
+        "indexBlob":  "3300eb0309a70d4c05851501e99c661c2cb2f58a",
+        "workingTreeRawBlob":  "6d60f4f7b8faa78925c9b3f81522b48b71c5d4fa",
+        "gitStatus":  "  ",
+        "lineCount":  35
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/InspectionChecklistVersion.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\InspectionChecklistVersion.cs",
+        "sha256":  "9B17653E5DC3241D505BCDEAC4DED2D5D8ABFB010CFDF788D28CFA11A2944BA0",
+        "headBlob":  "5285b7c23fa295a5ecca29dd0f46c2d005b784d4",
+        "indexBlob":  "5285b7c23fa295a5ecca29dd0f46c2d005b784d4",
+        "workingTreeRawBlob":  "0878e520f2a8a6433c8e71c2a38562be8dfb0042",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/NotificationRecipient.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\NotificationRecipient.cs",
+        "sha256":  "EF26A77EDA1225C019CBE8659663F555D9E7EF2E0C93B330F7DC1E352812B344",
+        "headBlob":  "fdc7e5b10eafd53f34a20847bd8ba20a4e572fba",
+        "indexBlob":  "fdc7e5b10eafd53f34a20847bd8ba20a4e572fba",
+        "workingTreeRawBlob":  "df8a3147e61fb0494004768a12baab773944b0a0",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Notification.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Notification.cs",
+        "sha256":  "01271CC573CA39F65EA2B9A7620080DF7ECCD9C97F195F42E4F26D8D6A1A30FA",
+        "headBlob":  "7fa1b475b9078b7776b9b2ca1083bc74bf6c386b",
+        "indexBlob":  "7fa1b475b9078b7776b9b2ca1083bc74bf6c386b",
+        "workingTreeRawBlob":  "423e20538dd29f5ae9920e1a0925bc8d8247802a",
+        "gitStatus":  "  ",
+        "lineCount":  33
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialRequestLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequestLine.cs",
+        "sha256":  "2DD00B1DB8C87D666033F5F240AF79B3A6A035E7671F588DDCA97707C1117B92",
+        "headBlob":  "5e4570ea3064e947e27a7e26e85390e77bcc3750",
+        "indexBlob":  "5e4570ea3064e947e27a7e26e85390e77bcc3750",
+        "workingTreeRawBlob":  "c5389e69af2aa27bd22dfd5133763808ee001921",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialRequestApprovalLineSnapshot.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequestApprovalLineSnapshot.cs",
+        "sha256":  "DA007D3650F5567CD8727392BC532F1AAE893974EA481C16F77FF6D6D3BD121A",
+        "headBlob":  "01056cc4af693e28227b364bc65eb75fe555b955",
+        "indexBlob":  "01056cc4af693e28227b364bc65eb75fe555b955",
+        "workingTreeRawBlob":  "44094d4fcab13421769840aeb8b21c5838236ec6",
+        "gitStatus":  "  ",
+        "lineCount":  33
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialRequestApprovalCycle.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequestApprovalCycle.cs",
+        "sha256":  "78EAA8EB4E51D81A1EA59873171A1329F29276546101283C853691F5D288AD65",
+        "headBlob":  "2b7784d6467daaea5753d13da7e27c15153ca71d",
+        "indexBlob":  "2b7784d6467daaea5753d13da7e27c15153ca71d",
+        "workingTreeRawBlob":  "350a8c607079015a7a745df90b7b66757d349611",
+        "gitStatus":  "  ",
+        "lineCount":  33
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialRequestApproval.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequestApproval.cs",
+        "sha256":  "0D992EEADFF59D45D19E062F3F5B44FB3340E0F77748CD372914715EA6B3186E",
+        "headBlob":  "de967945e7ef09924105558f8d537b926f9f6a93",
+        "indexBlob":  "de967945e7ef09924105558f8d537b926f9f6a93",
+        "workingTreeRawBlob":  "8bd27feac21dd6d79b93d65008a399287632ae0b",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/MaterialRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\MaterialRequest.cs",
+        "sha256":  "3D64F4081EE7C05CA878C91F0FC1C30BC82F745A49CA1B1E65AA669F928C9141",
+        "headBlob":  "fad6d91916971c2855cea40ec5a0a19d316ff11d",
+        "indexBlob":  "fad6d91916971c2855cea40ec5a0a19d316ff11d",
+        "workingTreeRawBlob":  "3d444434f3e2cda54d4dad7cbcdb2a31c1d7d48c",
+        "gitStatus":  "  ",
+        "lineCount":  77
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/OperationalTaskDependency.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTaskDependency.cs",
+        "sha256":  "F6F35BFEC469F69AB3FDD48E6597B3423FC410B17EE87A1B533F441F894A0E2C",
+        "headBlob":  "9eaaac0454b3c69b191221c88e83a1178e0190cb",
+        "indexBlob":  "9eaaac0454b3c69b191221c88e83a1178e0190cb",
+        "workingTreeRawBlob":  "aa5326636343c14928f97e1793a1d8581abe4e9f",
+        "gitStatus":  "  ",
+        "lineCount":  21
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/OperationalTaskAssignment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTaskAssignment.cs",
+        "sha256":  "11A7E892301D9F75A8B8749B3EC088EEEFF07986AA46AB0AD9FC4D6DE1BF6ABF",
+        "headBlob":  "9635a087e341cc668f042746d32d5826399c4b05",
+        "indexBlob":  "9635a087e341cc668f042746d32d5826399c4b05",
+        "workingTreeRawBlob":  "87c3f681cc011bb9df76617009e1d4954d685e1c",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/OperationalTask.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTask.cs",
+        "sha256":  "5305C402FE9F317B6B429D8B1231C20113860141A860677F47993F538E9C9F23",
+        "headBlob":  "1057c89fe1c3365f529fb23bae075e270e8864c2",
+        "indexBlob":  "1057c89fe1c3365f529fb23bae075e270e8864c2",
+        "workingTreeRawBlob":  "34631a78ea3c6a5c44ab760e7d0237acf22165e3",
+        "gitStatus":  "  ",
+        "lineCount":  79
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Permission.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Permission.cs",
+        "sha256":  "44C0917F354241482479ABF65B0A4FA0154BB9C60485C2DC9C4E7AAA915290BA",
+        "headBlob":  "d72a333e79021759d555292f30b3c23631abef73",
+        "indexBlob":  "d72a333e79021759d555292f30b3c23631abef73",
+        "workingTreeRawBlob":  "b20d07f2cf6a09a98f2502be4ef32c7a354caca7",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/OperationalTaskProgress.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\OperationalTaskProgress.cs",
+        "sha256":  "BF1FE5D4B430C990DF9B33B2B1C2A5F02213BB0A35D94BD6D2A2645DA97A9CDA",
+        "headBlob":  "92621bfdb3ae9a34db3830984e576674d6f61b16",
+        "indexBlob":  "92621bfdb3ae9a34db3830984e576674d6f61b16",
+        "workingTreeRawBlob":  "24895df8978f3b2d3cf9ef86b13a9d462feba78c",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/PreventiveMaintenanceRun.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\PreventiveMaintenanceRun.cs",
+        "sha256":  "43F4D112EAAC765775AA9FF49A513FC2E6A17895851DE75563DCB87761F8360D",
+        "headBlob":  "780da2970cb5843c40c1b74437173587455b04a2",
+        "indexBlob":  "780da2970cb5843c40c1b74437173587455b04a2",
+        "workingTreeRawBlob":  "ada94ac873efaade169423cfe80b4174c0fa1dd0",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Incidents\\IncidentService.cs",
+        "sha256":  "0C253D51B644101B4D3E4DF6DD0652AE91588EFD3BABFB5B230897CB5F6D056C",
+        "headBlob":  "d493fbd10c9ad3ca893ba7957a880e0230de9ddd",
+        "indexBlob":  "d493fbd10c9ad3ca893ba7957a880e0230de9ddd",
+        "workingTreeRawBlob":  "56dca05fcbf1eccc25159103b22bdc1b7433de64",
+        "gitStatus":  "  ",
+        "lineCount":  466
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockReturnLineDetail.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockReturnLineDetail.cs",
+        "sha256":  "5D315C0FADE84370B612160FC9B4C13B143B697E72A3960D851DFD65E423E0C6",
+        "headBlob":  "869989c12bc3fa4c6738eb6d933785b0a0065771",
+        "indexBlob":  "869989c12bc3fa4c6738eb6d933785b0a0065771",
+        "workingTreeRawBlob":  "a2d984203fae335a7020a9409439b9e087511990",
+        "gitStatus":  "  ",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockReceiptLineDetail.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockReceiptLineDetail.cs",
+        "sha256":  "2041D817A4897A1868AA3A6CCBF57F12C395DBC18A85A85AF427D3333F441015",
+        "headBlob":  "0fa0febdec56d67d88b52359f714fda4ec7a9ca5",
+        "indexBlob":  "0fa0febdec56d67d88b52359f714fda4ec7a9ca5",
+        "workingTreeRawBlob":  "896e59ce86d98a546b1262fbec10422d3864f1e5",
+        "gitStatus":  "  ",
+        "lineCount":  17
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockMovement.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockMovement.cs",
+        "sha256":  "E12A3ACB5B6EF3858CB6D7C534801EBBD06B399D0B15F00D6CCBF8BD9C3412FB",
+        "headBlob":  "2bc3d69a14ceefe4e9bf2221eb649152acae0c94",
+        "indexBlob":  "2bc3d69a14ceefe4e9bf2221eb649152acae0c94",
+        "workingTreeRawBlob":  "e0c761276db976182465825ead1d6c30bf669cce",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockDocumentLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockDocumentLine.cs",
+        "sha256":  "7096FB7B33248BAFC13DBAE531C6FE5439D32EDB89F6A9D730C7C92E8AC20AD0",
+        "headBlob":  "e3325e448d0a35a95f3e7f16d9b96c2b288a75fc",
+        "indexBlob":  "e3325e448d0a35a95f3e7f16d9b96c2b288a75fc",
+        "workingTreeRawBlob":  "6670953ac9876adfb342b2c298009ff97e5669fc",
+        "gitStatus":  "  ",
+        "lineCount":  51
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockDocument.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockDocument.cs",
+        "sha256":  "2544239342CA591131DFB54AC4063E20EB2FCA2C068FF71698A47BC3D47184C1",
+        "headBlob":  "6c570f3393021695976e595f54db13a50dc409f2",
+        "indexBlob":  "6c570f3393021695976e595f54db13a50dc409f2",
+        "workingTreeRawBlob":  "e59e813e37d3fb2f25f50539495f746290381d01",
+        "gitStatus":  "  ",
+        "lineCount":  71
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/ShiftTemplate.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ShiftTemplate.cs",
+        "sha256":  "4A1F1DEB0EB616A2F66327CF09EF05430C0A5924596583C4A5323D7171E3B3BC",
+        "headBlob":  "e15f40ea7f047a4624a57076b8dbd71ff4bde8f7",
+        "indexBlob":  "e15f40ea7f047a4624a57076b8dbd71ff4bde8f7",
+        "workingTreeRawBlob":  "e339598a6484c7b8d7e1017418b27d4e0b05ca8a",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/ShiftAttendance.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ShiftAttendance.cs",
+        "sha256":  "277A19CF689720FF98F1B9E2D5AB12506189A59DE047A3ECD4EE5BC216BC484C",
+        "headBlob":  "711237de63312985a9b5d5fd317086df00998a19",
+        "indexBlob":  "711237de63312985a9b5d5fd317086df00998a19",
+        "workingTreeRawBlob":  "bba7615a2bf629d9a256fe1064590f0ab3580962",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/ShiftAssignment.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ShiftAssignment.cs",
+        "sha256":  "EFB664B2CDEFCAAD8298D1B67F2127B778C615FF02FFE2742E611E28911A9B58",
+        "headBlob":  "d65e7d2ee4d46eb5bc509d261547148d77d8d468",
+        "indexBlob":  "d65e7d2ee4d46eb5bc509d261547148d77d8d468",
+        "workingTreeRawBlob":  "13676bd822835d23062fedf927db6acabe03984d",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/RoomType.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomType.cs",
+        "sha256":  "76F62FD391985F0291B7BAB38F599BF23BBEA2152C8D76B39EDC231F329A7D70",
+        "headBlob":  "b313668cfd5b733856b074605368ae0275eda979",
+        "indexBlob":  "b313668cfd5b733856b074605368ae0275eda979",
+        "workingTreeRawBlob":  "f7df29a62715f9e0754f3d5a4111a9a7a5d30931",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/RoomStatusHistory.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomStatusHistory.cs",
+        "sha256":  "7A82EB18CB2D0CE47D9075CC53661B4B8E8CECE4E11639274FBA586FAADA94A6",
+        "headBlob":  "d1929eb7408bbecaedadae2806a3dae0388d9e81",
+        "indexBlob":  "d1929eb7408bbecaedadae2806a3dae0388d9e81",
+        "workingTreeRawBlob":  "3808a4f4a7e036eee72e7dd27d4fb9a81869912b",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/RoomInspection.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomInspection.cs",
+        "sha256":  "5AE5C94EC3A544024D09831AD559E82DE0E8A7E4807EEC78A07D69C47D33B0D0",
+        "headBlob":  "4448c24c1b1b2443f62f5f9b39aa311a59eee6b8",
+        "indexBlob":  "4448c24c1b1b2443f62f5f9b39aa311a59eee6b8",
+        "workingTreeRawBlob":  "5911dc1d4070ac5ed941a911c76ca3a069be4338",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/RoomBlock.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RoomBlock.cs",
+        "sha256":  "7A62F2DBF728E2DB7D6962EE0346DD69075D318C18F822F2B22467E0B9C4E7C6",
+        "headBlob":  "c60080ff9e88d690e3189a3f51fc6db04385db3c",
+        "indexBlob":  "c60080ff9e88d690e3189a3f51fc6db04385db3c",
+        "workingTreeRawBlob":  "73f166fdf65c87c4a0696af94c54702d63fda663",
+        "gitStatus":  "  ",
+        "lineCount":  35
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Room.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Room.cs",
+        "sha256":  "3C4BAF71F2070E837892C170FCC9953CB4FEBBB890E0CDE746A3AC14EBCDA5F0",
+        "headBlob":  "feec9fa3ed1ed822eade951cd45db8d1acbfaee3",
+        "indexBlob":  "feec9fa3ed1ed822eade951cd45db8d1acbfaee3",
+        "workingTreeRawBlob":  "467daefccb7413590d59512cc6bc9f18c31c81a0",
+        "gitStatus":  "  ",
+        "lineCount":  57
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/RolePermission.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\RolePermission.cs",
+        "sha256":  "DBA207B1C86C1B2DA741D8D30C75F5469129A5D7FE0E75B80CCFD813A894811D",
+        "headBlob":  "fc4b04d1e377b1f5b5b031ce5d6c1fe029c80e78",
+        "indexBlob":  "fc4b04d1e377b1f5b5b031ce5d6c1fe029c80e78",
+        "workingTreeRawBlob":  "50b072bee5b4afb41831ca86d466c59435abc5ef",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Role.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Role.cs",
+        "sha256":  "02BCF587DD619AA35C042C87F52B87C38D7E52ED9468750BD61691009B002D7A",
+        "headBlob":  "ac12ddde93971ceb176c49c82691e49a2b936d87",
+        "indexBlob":  "ac12ddde93971ceb176c49c82691e49a2b936d87",
+        "workingTreeRawBlob":  "94f092eb37d71666330a28cc1c20517539836ea2",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/ReferenceValue.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\ReferenceValue.cs",
+        "sha256":  "130A34653744F8060ABF4A76F41373C218EB7D07FF5A7890043E61E171751BF3",
+        "headBlob":  "16ac34a1888bdb6b45ac5bcddfb96bca0a014582",
+        "indexBlob":  "16ac34a1888bdb6b45ac5bcddfb96bca0a014582",
+        "workingTreeRawBlob":  "12815ef3c4d0a06afebae6937b5e4b422ab327fd",
+        "gitStatus":  "  ",
+        "lineCount":  43
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/UomConversion.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UomConversion.cs",
+        "sha256":  "06E0BB436448D2C53FEAF102920410BE10551A5A1E1DA582542174B351FA69F9",
+        "headBlob":  "59812c98b82cc43a3c9162b5d1de4a76b04d47f3",
+        "indexBlob":  "59812c98b82cc43a3c9162b5d1de4a76b04d47f3",
+        "workingTreeRawBlob":  "cdada2f922d71ec5905e4166a1517d37b47b85bb",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/UnitsOfMeasure.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UnitsOfMeasure.cs",
+        "sha256":  "ABE955A82151DCF95F783E9828D6A62593E7CF8D4BD8AF90BC1E7FF41525C797",
+        "headBlob":  "6e42df55e1f2be0dfebc39373d7aa25aae440ef1",
+        "indexBlob":  "6e42df55e1f2be0dfebc39373d7aa25aae440ef1",
+        "workingTreeRawBlob":  "a8cbc8539c4c3cac1653b92680ffed1907e61e38",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\TimeCorrectionRequest.cs",
+        "sha256":  "95A627D304B5D921997FD38F3ADC0EE176DB1EA29E3A4AB6719064B31ED3C6E3",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "376d57d461db96a8b52eed83819219b34e8f7e0c",
+        "gitStatus":  "??",
+        "lineCount":  22
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/SystemSetting.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\SystemSetting.cs",
+        "sha256":  "1711D80646813B53B77B90EB9B4535794883393C868B060057616CEFBDD97EC7",
+        "headBlob":  "44f289b7df737a89790e9166aef269e076868a08",
+        "indexBlob":  "44f289b7df737a89790e9166aef269e076868a08",
+        "workingTreeRawBlob":  "3b84b89d61ab886032e054e5453c9b3698735630",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockTransferReceiptLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockTransferReceiptLine.cs",
+        "sha256":  "14FF87BE8D236DEDA1A50A55DEB6ABF6F3D2276A7F252E66B5B3F4C1344747EF",
+        "headBlob":  "b2bc93a66667e0b2da569166033c25909b666c39",
+        "indexBlob":  "b2bc93a66667e0b2da569166033c25909b666c39",
+        "workingTreeRawBlob":  "3545263a99402a65922d097cdd814f67d350fe48",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/PreventiveMaintenanceSchedule.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\PreventiveMaintenanceSchedule.cs",
+        "sha256":  "41C30CD82D54A2E5FF14E62458B5753D76C50A38EE6FCBBFD4529896E0E602C0",
+        "headBlob":  "5087011f4ba344dabf42312e4fedba96fe14efb8",
+        "indexBlob":  "5087011f4ba344dabf42312e4fedba96fe14efb8",
+        "workingTreeRawBlob":  "882b81168f68a7c80f5d3ae3f6ee1d6d6e6d67f8",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockTransferReceipt.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockTransferReceipt.cs",
+        "sha256":  "FD3C28EB79FE5D945FFAF2F30E82B8843A59D51E39B27962CFFCF714A0531F0E",
+        "headBlob":  "a0b1ecaccee929d41d8de523b115bd61955ab4e5",
+        "indexBlob":  "a0b1ecaccee929d41d8de523b115bd61955ab4e5",
+        "workingTreeRawBlob":  "c886ca6bf512c870397bc1f503092d635220a418",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StockThreshold.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StockThreshold.cs",
+        "sha256":  "93A1C71DEA844A8A2921FE73A9D6D1BFBB4AE14F343F79BC38915541F9A3D64A",
+        "headBlob":  "5ac696a9854c5827c6d62441fd0a4df9ce3446aa",
+        "indexBlob":  "5ac696a9854c5827c6d62441fd0a4df9ce3446aa",
+        "workingTreeRawBlob":  "995b3d1b2bbcea32e85d1ba9516aa216668205be",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/StocktakeLine.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\StocktakeLine.cs",
+        "sha256":  "28DD4B0ED62418722EE735618079467F1A08C8DA9FB93F0AE62FDB3CF846F35D",
+        "headBlob":  "b61fba2b8681dcddf2c71b6f0d801888c0b37942",
+        "indexBlob":  "b61fba2b8681dcddf2c71b6f0d801888c0b37942",
+        "workingTreeRawBlob":  "4e9238fa9e06de6f4e3ea44defeeddf845e19a03",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Stocktake.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Stocktake.cs",
+        "sha256":  "98A51DFD9CB16EF342E933A15EE78CA5C3AD65C192627EF606E9410902564D39",
+        "headBlob":  "1e23d9f68fc8c8390f7789e5848fed52cb3d5b2f",
+        "indexBlob":  "1e23d9f68fc8c8390f7789e5848fed52cb3d5b2f",
+        "workingTreeRawBlob":  "60e510bda44e5fd56b02f06f5d74848f35524206",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/UserSession.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UserSession.cs",
+        "sha256":  "7036A7E1EA1040182404B46A8F54D779B1E9660A1E1E4422758CB9A97BA6933A",
+        "headBlob":  "4ce8ee979e24e45e3868a5d6e8e7ce9408454b61",
+        "indexBlob":  "4ce8ee979e24e45e3868a5d6e8e7ce9408454b61",
+        "workingTreeRawBlob":  "0bbbca83e48575a5f50fac9c4c4842d5fbce2d73",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/UserRole.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UserRole.cs",
+        "sha256":  "E704DD41F2DF6C1CA8A355977FB637A5D2B727480E7D1DDE5ACD0C4C4CB227D5",
+        "headBlob":  "67cf97c2d1241c36a4b34833b2ba1dcf80562e2b",
+        "indexBlob":  "67cf97c2d1241c36a4b34833b2ba1dcf80562e2b",
+        "workingTreeRawBlob":  "9d597a90c19c0c48cb9a4dd085c801eebcaae936",
+        "gitStatus":  "  ",
+        "lineCount":  31
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/UserBranchAccess.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\UserBranchAccess.cs",
+        "sha256":  "4401EED69716AB0B134E4B9E2CD2ABDEC06D098B76EE51E7444DE260E182810B",
+        "headBlob":  "f61196674e2a54bfbf5c205abb84da07b8d419da",
+        "indexBlob":  "f61196674e2a54bfbf5c205abb84da07b8d419da",
+        "workingTreeRawBlob":  "111ba5365019c606bbf5b6a03ecd1bbad87f69a4",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/User.ProfileConcurrency.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\User.ProfileConcurrency.cs",
+        "sha256":  "9B8085809B5B999D79051235F0A455C659D51242148D65BFAE1733CD54961411",
+        "headBlob":  "5d3821b10862829dbcf99b2db21acc9c28fa1b87",
+        "indexBlob":  "5d3821b10862829dbcf99b2db21acc9c28fa1b87",
+        "workingTreeRawBlob":  "5d3821b10862829dbcf99b2db21acc9c28fa1b87",
+        "gitStatus":  "  ",
+        "lineCount":  6
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/User.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\User.cs",
+        "sha256":  "C7FBC76FCD23095D7267AF249846B8E47DA66C04628DF530D5AF45B34AD940E5",
+        "headBlob":  "c370dccd7e55d85edc93d1cb5ba1105cb9b69cc6",
+        "indexBlob":  "c370dccd7e55d85edc93d1cb5ba1105cb9b69cc6",
+        "workingTreeRawBlob":  "c7ec2bd2ea5382ce65eabf4701ee648dbe408c4f",
+        "gitStatus":  "  ",
+        "lineCount":  195
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Warehouse.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Warehouse.cs",
+        "sha256":  "B6ED2DA300858BBD6B0C133EC38AD5AF672679E2133D13E2238E2AB0259CEC31",
+        "headBlob":  "a3a232d4d28588d48a6ae4ed28a01a9d9798c833",
+        "indexBlob":  "a3a232d4d28588d48a6ae4ed28a01a9d9798c833",
+        "workingTreeRawBlob":  "419f12a268665f4986f8e43f571dbd547fdc5a58",
+        "gitStatus":  "  ",
+        "lineCount":  49
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/Workday.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\Workday.cs",
+        "sha256":  "E4BF214DCDA01A5032D91DDF579C2635B1E01E5CC07D99C5261F649185284EEF",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "9952630f8e977f6f66772c0c83d1bde95d233903",
+        "gitStatus":  "??",
+        "lineCount":  18
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/WorkCategory.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\WorkCategory.cs",
+        "sha256":  "EE2EF8B935A0419BD5266EEFFBF723B8F20BEA48B381B26A7664F3422371BB6A",
+        "headBlob":  "7e014983ba59e4763fb397769161616e5a66f8c2",
+        "indexBlob":  "7e014983ba59e4763fb397769161616e5a66f8c2",
+        "workingTreeRawBlob":  "935bbda03dd4ee325f1eca6a087e1473b702e6db",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/WorkInterval.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\WorkInterval.cs",
+        "sha256":  "48F3CB02DED43DF0B67404E04DD5BF3450325AC7DE82DA951E16400BEE653573",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "3fc02a48552c1cd2f3e0232901b13655315a7d70",
+        "gitStatus":  "??",
+        "lineCount":  18
+    },
+    {
+        "path":  "src/HotelOps.Api/Entities/WorkShift.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Entities\\WorkShift.cs",
+        "sha256":  "48051783270DE1FED36ABCD2B8DAAEEFFBDF053AC7C7AA92A8256F26135BBF20",
+        "headBlob":  "de01cf2706221e4242324842e469c31f999322a6",
+        "indexBlob":  "de01cf2706221e4242324842e469c31f999322a6",
+        "workingTreeRawBlob":  "3855ac03085e0ae6910ab8fd28065d5a66354d62",
+        "gitStatus":  "  ",
+        "lineCount":  41
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/CreateEmployeeAccountRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\CreateEmployeeAccountRequest.cs",
+        "sha256":  "ED01151909F538242C14CAE757A4EBE8C2B85B2A4B01206A810D0AFD67E77148",
+        "headBlob":  "6f51cc29848f0d91a7dcadce5d523cac421e7238",
+        "indexBlob":  "6f51cc29848f0d91a7dcadce5d523cac421e7238",
+        "workingTreeRawBlob":  "6f51cc29848f0d91a7dcadce5d523cac421e7238",
+        "gitStatus":  "  ",
+        "lineCount":  52
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/AssignUserRoleRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\AssignUserRoleRequest.cs",
+        "sha256":  "299312E9ABC56E98ADB9616DB098B32591B1F16FAA95A7AC00E02A5BD8D5A47B",
+        "headBlob":  "b11a2e0735f08feb6d6ebc6d85e1663dad7d8a77",
+        "indexBlob":  "b11a2e0735f08feb6d6ebc6d85e1663dad7d8a77",
+        "workingTreeRawBlob":  "b11a2e0735f08feb6d6ebc6d85e1663dad7d8a77",
+        "gitStatus":  "  ",
+        "lineCount":  32
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/AddUserBranchRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\AddUserBranchRequest.cs",
+        "sha256":  "D1E1B323DF1A6F3C9E0C8F9F0BA1C9F305178AEBF7DEEF0A1AB6795383077E5D",
+        "headBlob":  "d301b0a3650cb53cd1f7b602a4e7da4f07f05d10",
+        "indexBlob":  "d301b0a3650cb53cd1f7b602a4e7da4f07f05d10",
+        "workingTreeRawBlob":  "d301b0a3650cb53cd1f7b602a4e7da4f07f05d10",
+        "gitStatus":  "  ",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/Program.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Program.cs",
+        "sha256":  "586299FB650342F7389BAECD615DD29ACC94352857021FC4391554FF9372A505",
+        "headBlob":  "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+        "indexBlob":  "a67c1ba5df48e4114ae40794ed1c78a672bc8f54",
+        "workingTreeRawBlob":  "ece1f08d2a55624e76594e06c3157a30a3d904dd",
+        "gitStatus":  " M",
+        "lineCount":  112
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/UserAccountDetailDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\UserAccountDetailDto.cs",
+        "sha256":  "EE8371F6A8F63C2F0970E146F92FFFF2B9D12EB8DF4FF5C35AC4291D5F870A48",
+        "headBlob":  "56e441655b795a487d6a1615230d821c2f4e5622",
+        "indexBlob":  "56e441655b795a487d6a1615230d821c2f4e5622",
+        "workingTreeRawBlob":  "56e441655b795a487d6a1615230d821c2f4e5622",
+        "gitStatus":  "  ",
+        "lineCount":  5
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/UserAccountActivationRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\UserAccountActivationRequest.cs",
+        "sha256":  "25CBE8AFFEC6F14744CB409A9DFE4C64F7FA97FAFE15EDBF406BA6E7FC1AAA2E",
+        "headBlob":  "f2a9d6e0daa9c0314e82bc1fce9beb6446107e4e",
+        "indexBlob":  "f2a9d6e0daa9c0314e82bc1fce9beb6446107e4e",
+        "workingTreeRawBlob":  "f2a9d6e0daa9c0314e82bc1fce9beb6446107e4e",
+        "gitStatus":  "  ",
+        "lineCount":  21
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/UserAccountStatusChange.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\UserAccountStatusChange.cs",
+        "sha256":  "10C98DA2AA6A2E2BC3EA30B7B2C9959F582EB5922CFC9AA00AD07BEC79E7EA68",
+        "headBlob":  "7eaec5e9aac78f82552c501785cb47cfef468ab9",
+        "indexBlob":  "7eaec5e9aac78f82552c501785cb47cfef468ab9",
+        "workingTreeRawBlob":  "7eaec5e9aac78f82552c501785cb47cfef468ab9",
+        "gitStatus":  "  ",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/UserDirectoryContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\UserDirectoryContracts.cs",
+        "sha256":  "581F49B99DB88E7AD80EC228C1CDF7ECF7DA19DCB753E8EBF3456CB30D3B5BA6",
+        "headBlob":  "7280b96923adb94339ad2ce0aa6c4b0c70cf57ce",
+        "indexBlob":  "7280b96923adb94339ad2ce0aa6c4b0c70cf57ce",
+        "workingTreeRawBlob":  "7280b96923adb94339ad2ce0aa6c4b0c70cf57ce",
+        "gitStatus":  "  ",
+        "lineCount":  46
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Users/UserProfileContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Users\\UserProfileContracts.cs",
+        "sha256":  "AF55E0BEBA96B629AFCDEA2D7D99C9408FF501E110B301E870988A075AE37EA0",
+        "headBlob":  "98a0d9cc71c30c37ed760f47e7bd1f1843515784",
+        "indexBlob":  "98a0d9cc71c30c37ed760f47e7bd1f1843515784",
+        "workingTreeRawBlob":  "98a0d9cc71c30c37ed760f47e7bd1f1843515784",
+        "gitStatus":  "  ",
+        "lineCount":  47
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\ApprovedDev1ResponsibilityQueries.cs",
+        "sha256":  "407E07AA7D9379AE53F32B13C5AF3F93B5CF0D49AFFC26CCBF46550CFE4E5927",
+        "headBlob":  "84af91813f7a4e7fceb8760108d082e3a0f90eaa",
+        "indexBlob":  "84af91813f7a4e7fceb8760108d082e3a0f90eaa",
+        "workingTreeRawBlob":  "939278c2ad3258ca9e8122ffbde94a9802cde347",
+        "gitStatus":  "  ",
+        "lineCount":  98
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\GlobalAdminSerialization.cs",
+        "sha256":  "1DB3B70BAD1BCA14DA3E1F5F5AEE14A2B2E634C5B26B77BBB672F19C75A716CA",
+        "headBlob":  "a74409e45d4e7fe8f62e93bad342726aac136ba6",
+        "indexBlob":  "a74409e45d4e7fe8f62e93bad342726aac136ba6",
+        "workingTreeRawBlob":  "0408a4a4dc6ccf5c339351b67f02a68ed0f8dceb",
+        "gitStatus":  "  ",
+        "lineCount":  176
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Rooms\\RoomDirectoryContracts.cs",
+        "sha256":  "F24A577CEE3E5130C9417613263F5BF294ED4AC852D2FC0D329D9A50EDCC843B",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "1cfa93754076750b5d7d82a70e66218068669abe",
+        "gitStatus":  "??",
+        "lineCount":  66
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/Dev1DeactivationPredicates.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\Dev1DeactivationPredicates.cs",
+        "sha256":  "02AD51F6C1139B13441FAAF4427A8D48BC289E3DD2DA5CCF6BFA01733405DBF2",
+        "headBlob":  "b6eb92a2156eb3cbd1377503bb7e081c758885b6",
+        "indexBlob":  "b6eb92a2156eb3cbd1377503bb7e081c758885b6",
+        "workingTreeRawBlob":  "b6eb92a2156eb3cbd1377503bb7e081c758885b6",
+        "gitStatus":  "  ",
+        "lineCount":  36
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Replenishments\\ReplenishmentService.Queries.cs",
+        "sha256":  "BF27E5F1D7EF5838D93A0682B14C1431C0A4C42A34B4576E7D89F725039F6F9A",
+        "headBlob":  "d123bbb28bb1782583b655ef9ef1661265c8d571",
+        "indexBlob":  "d123bbb28bb1782583b655ef9ef1661265c8d571",
+        "workingTreeRawBlob":  "7df3af626477e03d6006ca28e752f2b713105327",
+        "gitStatus":  "  ",
+        "lineCount":  102
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Replenishments\\ReplenishmentService.cs",
+        "sha256":  "9F7505FBF8793809CB2A1828CF9AA1E565834C53BD15804790844FE500B21ECA",
+        "headBlob":  "b743fbde97568ccc6979925130bc5e5abcda3304",
+        "indexBlob":  "b743fbde97568ccc6979925130bc5e5abcda3304",
+        "workingTreeRawBlob":  "613bfb4dbcfd5ca44788e99a0e945b2678c66c3a",
+        "gitStatus":  "  ",
+        "lineCount":  153
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Replenishments\\ReplenishmentRules.cs",
+        "sha256":  "96ED23A0A33CCEDAB4D845D09E8821207E5FD4F525EE3BA305AD05D363F1D4C6",
+        "headBlob":  "6859bb6e57e64d4f4211f539bdae1f323e1cd255",
+        "indexBlob":  "6859bb6e57e64d4f4211f539bdae1f323e1cd255",
+        "workingTreeRawBlob":  "9256b1f3b255ff69485dde0184920ddc006a0fb2",
+        "gitStatus":  "  ",
+        "lineCount":  147
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/IAssetService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\IAssetService.cs",
+        "sha256":  "B6CEEDDFFC60313D4994CDC18E859095EAACA284C4FFDA888527ECF6C522CF18",
+        "headBlob":  "4a34f139429863a18df2628ccd8d96d204a7779f",
+        "indexBlob":  "4a34f139429863a18df2628ccd8d96d204a7779f",
+        "workingTreeRawBlob":  "9278e46b02f3c3fb78ee6caa13ca6e8a33171c48",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Validation.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Validation.cs",
+        "sha256":  "326C4AA1AC08A7CFB5107156381B38047D8DE09594BFC120A1EE7C0A56DB3826",
+        "headBlob":  "42974d26ad2ba6365616395dfe525aea16d9894f",
+        "indexBlob":  "42974d26ad2ba6365616395dfe525aea16d9894f",
+        "workingTreeRawBlob":  "4129c6e5dd774b9d7bec59bd68162db84595e922",
+        "gitStatus":  "  ",
+        "lineCount":  101
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Update.cs",
+        "sha256":  "EB72E153C6A861E2F4FA33315E820A7AA29ECCF8BBB115B7FF050BBDCEA4B547",
+        "headBlob":  "7f78fab4475646528a370d1bf118e2c532937ba9",
+        "indexBlob":  "7f78fab4475646528a370d1bf118e2c532937ba9",
+        "workingTreeRawBlob":  "7a7ab6a9050ec975a349a3652bc68f8ad36c5dce",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Statistics.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Statistics.cs",
+        "sha256":  "7D9CAFD29F24BE27096643B1E5D0197A1DF270B8064715292A2683866985E165",
+        "headBlob":  "71555c27d0adf78eb84939c330d6cee34d776fd4",
+        "indexBlob":  "71555c27d0adf78eb84939c330d6cee34d776fd4",
+        "workingTreeRawBlob":  "066202c12e63f09081c0646f43c2227624265aa6",
+        "gitStatus":  "  ",
+        "lineCount":  47
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Retirement.cs",
+        "sha256":  "B5009620193264F7EA3538A5FE9C6028F3A228433144E005E7065A4047A9438D",
+        "headBlob":  "a78d1a3b217649027c342a8b26e937a99ce93813",
+        "indexBlob":  "a78d1a3b217649027c342a8b26e937a99ce93813",
+        "workingTreeRawBlob":  "570eafaee103e756cd2ef70153a51e85ef8fcfca",
+        "gitStatus":  "  ",
+        "lineCount":  44
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Queries.cs",
+        "sha256":  "E7EACE46133036EA3BFD5DB923262100368E646E7CE428C0E46EDCE6E095A4B1",
+        "headBlob":  "cfdfc6c4dd048d5445e34e48705e88ad55635b6c",
+        "indexBlob":  "cfdfc6c4dd048d5445e34e48705e88ad55635b6c",
+        "workingTreeRawBlob":  "b70d0bf4d4ce157de0b0b63b1828d83ab9ee0800",
+        "gitStatus":  "  ",
+        "lineCount":  106
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.MaintenanceHistory.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.MaintenanceHistory.cs",
+        "sha256":  "80C7FC996DF23160890D205566320DA3D44D437430FA83B8F9CC2C6F81ADC951",
+        "headBlob":  "2a4e0d1568eb8018350994ef6028e33d896893bf",
+        "indexBlob":  "2a4e0d1568eb8018350994ef6028e33d896893bf",
+        "workingTreeRawBlob":  "2cd7b4e5cfaee34a47a27d3f780421baf525324b",
+        "gitStatus":  "  ",
+        "lineCount":  54
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Location.cs",
+        "sha256":  "2F5EA0A4F8A812FECD5307F0F52CB783BE5905F385221458BB015FE538A091CD",
+        "headBlob":  "4097ec6129719f4e85969d4323fc37aeb285021a",
+        "indexBlob":  "4097ec6129719f4e85969d4323fc37aeb285021a",
+        "workingTreeRawBlob":  "80253fa1292f8f3fd1d9ff8b7c9216ce5fd81fde",
+        "gitStatus":  "  ",
+        "lineCount":  86
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Handover.cs",
+        "sha256":  "A7FA20795775B9CCC98CFE9B3FDB9CEAEA831248DCA4AE826C0559ADA2653CFC",
+        "headBlob":  "58732761c03544b584a81624112ebb3985638391",
+        "indexBlob":  "58732761c03544b584a81624112ebb3985638391",
+        "workingTreeRawBlob":  "23622a3c122b3b6be72ad2565c196f53af4cba08",
+        "gitStatus":  "  ",
+        "lineCount":  164
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.cs",
+        "sha256":  "5374473A531F4CA220B94BA4F41EECA1B77CC716B4F40825C1DBDE98CA07B0B7",
+        "headBlob":  "fb22e2bdb1969470427761ea8525d99711ac0ced",
+        "indexBlob":  "fb22e2bdb1969470427761ea8525d99711ac0ced",
+        "workingTreeRawBlob":  "189148dc19a15de4c0a10f40c1fd7bc62879b543",
+        "gitStatus":  "  ",
+        "lineCount":  20
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Create.cs",
+        "sha256":  "C2FA7B3970C0F3B6CE7CBD9B9F9452617444552A2683E58A01E1C9C4A6410E44",
+        "headBlob":  "9c60e92fe30d299f7dc973b7920a53275e43ded9",
+        "indexBlob":  "9c60e92fe30d299f7dc973b7920a53275e43ded9",
+        "workingTreeRawBlob":  "59beacc76eeab5c61697a3e7fd5095db19eee5bc",
+        "gitStatus":  "  ",
+        "lineCount":  42
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Condition.cs",
+        "sha256":  "32E25E483F19ED08911E6C316746D2F06BDA226F8A6DC97A4C26BD0382582B35",
+        "headBlob":  "f42c899821b4efc5843b957cf96ff911f00871ed",
+        "indexBlob":  "f42c899821b4efc5843b957cf96ff911f00871ed",
+        "workingTreeRawBlob":  "b1417633af2c4c1fb9c020328928f044984f7d82",
+        "gitStatus":  "  ",
+        "lineCount":  54
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Assets/AssetService.Auditing.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Assets\\AssetService.Auditing.cs",
+        "sha256":  "C25918AEDEAA5E2C1B0DF62B5770F377DF4D8CB15668AC267D02DCE5D6BB38AF",
+        "headBlob":  "0e28ded65e1be694150d4490bfd4feeffb4bbe5d",
+        "indexBlob":  "0e28ded65e1be694150d4490bfd4feeffb4bbe5d",
+        "workingTreeRawBlob":  "70ea717c9d7f1dd7b88ffcc2520ec8a8fc29fe79",
+        "gitStatus":  "  ",
+        "lineCount":  44
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/Batch2Dtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\Batch2Dtos.cs",
+        "sha256":  "90E156A57DB9447CFEE4CB2D7DDD3EBFB4088D120D5B055AB309E918A570EC24",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "8633f699453ded30854bc2fab38072bad5851410",
+        "gitStatus":  "??",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchMaintenanceDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\BranchMaintenanceDtos.cs",
+        "sha256":  "DF390CFCBC4AF57CFBC6558FBC94833E9522AAED58912D19328995888F759DBE",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "095441814e0a03d51a736b4031d52598ec3a8bfd",
+        "gitStatus":  "??",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\MaterialRequests\\MaterialRequestService.Queries.cs",
+        "sha256":  "A01C86FD115003232FD3868FDF657231F455E7A470213D49422CBDE434293B08",
+        "headBlob":  "3377a4ed8bf44bfa3d8c2e5e130a7e01c0f69022",
+        "indexBlob":  "3377a4ed8bf44bfa3d8c2e5e130a7e01c0f69022",
+        "workingTreeRawBlob":  "21346b0e8b9d6391de69483be4798aef2d589a1f",
+        "gitStatus":  "  ",
+        "lineCount":  76
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\MaterialRequests\\MaterialRequestService.cs",
+        "sha256":  "FCF92BDE294A304C81EFE914E29C98E814F1CB351AD67CDB0E913E5543A4AD80",
+        "headBlob":  "cf3e8a7f0b174576003400c2848297eeec94cf58",
+        "indexBlob":  "cf3e8a7f0b174576003400c2848297eeec94cf58",
+        "workingTreeRawBlob":  "1963ef9afc97267651bd2f51b5da1e3e27be075f",
+        "gitStatus":  "  ",
+        "lineCount":  172
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\MaterialRequests\\MaterialRequestService.Commands.cs",
+        "sha256":  "C6C2EF26DBED92FAB2343638164AF2FEA4C51D4808CF82C1E8E6E0E2449A3232",
+        "headBlob":  "6cf44a5cbdfa4917761fcab6277505ecadf9faa5",
+        "indexBlob":  "6cf44a5cbdfa4917761fcab6277505ecadf9faa5",
+        "workingTreeRawBlob":  "e7c9fa30f4434e07d36b21148116c3538172cf3a",
+        "gitStatus":  "  ",
+        "lineCount":  214
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetActorRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetActorRequest.cs",
+        "sha256":  "0AD030AF8C00CD4A5F770EEA83267917372379312E8D3DAD0B1588D0CA6AA7A2",
+        "headBlob":  "bd06285d9d75a2b46081bb5cbdfc1562b2f33ac9",
+        "indexBlob":  "bd06285d9d75a2b46081bb5cbdfc1562b2f33ac9",
+        "workingTreeRawBlob":  "21a54a3541cc602a52e52f8be9c58977d17d7858",
+        "gitStatus":  "  ",
+        "lineCount":  8
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AcceptAssetHandoverRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AcceptAssetHandoverRequest.cs",
+        "sha256":  "272F545DB58F99397B8C3CABA6DB76038DC0240B22F565012921BA99A92B7754",
+        "headBlob":  "65627bbaf8021677019fec364071d35429b145a3",
+        "indexBlob":  "65627bbaf8021677019fec364071d35429b145a3",
+        "workingTreeRawBlob":  "f705330e08f05b25f2047a03c0117811760ed79e",
+        "gitStatus":  "  ",
+        "lineCount":  3
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetConditionHistoryDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetConditionHistoryDto.cs",
+        "sha256":  "0392FFAC8060BA07C895B5A062E1B6F05757E36449E46A4601D6FD0617D7A5A9",
+        "headBlob":  "201ccfb10e4ff2a067287e612a2734006f7b4b24",
+        "indexBlob":  "201ccfb10e4ff2a067287e612a2734006f7b4b24",
+        "workingTreeRawBlob":  "dce50b6b2404ab9893290bba3587f5e91f9b7818",
+        "gitStatus":  "  ",
+        "lineCount":  13
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\CreateRoomTypeDtos.cs",
+        "sha256":  "9CF3E56DC8C7CF24F989437649F477E32CBB73DEEB996B039C6D9DADCDE6D3F2",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "6085f7d53e33e45f6f0b5c3f64df7605e309dba4",
+        "gitStatus":  "??",
+        "lineCount":  17
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\ChecklistDtos.cs",
+        "sha256":  "D2299755F18923BF64BCF8D782C63DF37B71492D0443A250B49B712494F72B63",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "b0e9c96e06c3b0d71acbc4ab62aa1481a0af5897",
+        "gitStatus":  "??",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\BranchStructureDtos.cs",
+        "sha256":  "781C5C8A2BB0BC7CA41D31CFD6608A475610DED7E8C2F2BE702167AADC56B5C5",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "5ffe8bcf632116541397ed1076e5097b629547ee",
+        "gitStatus":  "??",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/CreateStructureDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\CreateStructureDtos.cs",
+        "sha256":  "06109B9C88907F7223983BF73C88F30602D1101BB25C4C5B41E19BA9F2C14A81",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "caa8a8d693d46cfd9438b66b07e7c042345a6f5a",
+        "gitStatus":  "??",
+        "lineCount":  17
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Authentication/AuthenticationDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Authentication\\AuthenticationDtos.cs",
+        "sha256":  "AF1E6FFA553C33F654CB7A3A9FD1999B2C91ECBA89A8B8FF4CD1886BA4D07A10",
+        "headBlob":  "b3dc7c4e41e3fc2439dda2243d36e77bd59ff3a2",
+        "indexBlob":  "b3dc7c4e41e3fc2439dda2243d36e77bd59ff3a2",
+        "workingTreeRawBlob":  "ddb3a866e0000ecb5806d6a7340704710732e5cf",
+        "gitStatus":  "  ",
+        "lineCount":  36
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\DeactivateStructureRequest.cs",
+        "sha256":  "F2FD75477A474C1ECCD4C66881AB95FCDBDBBDBB444532135E84D423EA1F3C71",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "38cde9dbe0b8a068886926e3b94ed1b3a1b5651b",
+        "gitStatus":  "??",
+        "lineCount":  11
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\OperationalHistoryDtos.cs",
+        "sha256":  "8B7C43315D861B0F89A9701FBDE12ECFE8357BAF149550B1A7909B019BCC8F8B",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "c0648a68711ac57aa51a65c9ae62876817d13e4f",
+        "gitStatus":  "??",
+        "lineCount":  29
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/AuthenticationApiBehavior.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\AuthenticationApiBehavior.cs",
+        "sha256":  "9355E7BE71443D33D093B3276CB5A22A03B138011F3B04AB2BD230F28821CC09",
+        "headBlob":  "b2de702a839260780a6753fab3cf713eb67d7c80",
+        "indexBlob":  "b2de702a839260780a6753fab3cf713eb67d7c80",
+        "workingTreeRawBlob":  "c9f743eecf46a4ffc0e06b39de47a77780e7c9e8",
+        "gitStatus":  "  ",
+        "lineCount":  26
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/AuthenticationProblem.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\AuthenticationProblem.cs",
+        "sha256":  "DA2BC3838B8F6A6FC45A1148F3CB09CB7107994F113DDAC4014045F1E8A43007",
+        "headBlob":  "e9c9f54832423ca7aacf410dc6e3fbab9621bf4c",
+        "indexBlob":  "e9c9f54832423ca7aacf410dc6e3fbab9621bf4c",
+        "workingTreeRawBlob":  "629bf25bef625b3c9d4594684d4dd03ebcb7bdf0",
+        "gitStatus":  "  ",
+        "lineCount":  20
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\RoomTypeBatchDtos.cs",
+        "sha256":  "B066D3E9994F9C7CFF210EF06B3A6C5BA140B9EA36525252500AA71343BAF345",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "71b9ccacca446cceecd0b063d71f8f8dd3c2c6db",
+        "gitStatus":  "??",
+        "lineCount":  30
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Housekeeping\\CleaningMonitorDtos.cs",
+        "sha256":  "5DB908A0986905CB9A44C2588FEDBA8978EA262B5913F214881B4905953FE89F",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "0c7786dd3adba799d771523c0d6cde4f97150a03",
+        "gitStatus":  "??",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Housekeeping\\HousekeepingPlanningDtos.cs",
+        "sha256":  "1833A60EF2EF0806808F6C4483C47AA16F5BFD68680CFE542A232AF48E0850F0",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "b0bd6484baf901198931fd2bd81a4fce5d17469c",
+        "gitStatus":  "??",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetDetailDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetDetailDto.cs",
+        "sha256":  "07ED70D9FA1315EF20E0284086842DDEEC50F873B08D8D35519DA92A1BABD7A2",
+        "headBlob":  "3a7d51bb2e89addcc343147ce4d5e3fd4ffecedf",
+        "indexBlob":  "3a7d51bb2e89addcc343147ce4d5e3fd4ffecedf",
+        "workingTreeRawBlob":  "586d812265af604f87cf8c3878f87c9b9a112086",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\HotelStructure\\UpdateStructureDtos.cs",
+        "sha256":  "BBD85733B8958FA6778F8E6AE237074E78F3CB056A6974A0A8E7DCAC307F9D64",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "3ccae45c0b537291277b51041079c260f14d4b8b",
+        "gitStatus":  "??",
+        "lineCount":  15
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Housekeeping\\InspectionWorkflowDtos.cs",
+        "sha256":  "F53FBCDE62E3934719E3A87B9D078681A2BB9D05F3981547C3682F57C68B1EC4",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "acc03d1d7d1b6109af7d745e9f7717b9a7f49901",
+        "gitStatus":  "??",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Housekeeping/ProgressDtos.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Housekeeping\\ProgressDtos.cs",
+        "sha256":  "2BE2241E23BDC56B590E45D4D911717959B55F57BB42A7BF1B11B07940036BC8",
+        "headBlob":  null,
+        "indexBlob":  null,
+        "workingTreeRawBlob":  "d01774e5ff17b220a11253ec1f471aee140d8046",
+        "gitStatus":  "??",
+        "lineCount":  16
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetLocationStatisticsResponse.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetLocationStatisticsResponse.cs",
+        "sha256":  "656F441C770F4065B13813929D397B67D05527FA8EAD3FC1DCC499057C160A58",
+        "headBlob":  "b5664803df2dea41a32e8a9a383502a49af33230",
+        "indexBlob":  "b5664803df2dea41a32e8a9a383502a49af33230",
+        "workingTreeRawBlob":  "8b91d20fc719d2824b08de0b0612e60ac675484b",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetLocationHistoryDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetLocationHistoryDto.cs",
+        "sha256":  "5C5D2B0213C562929B0E9E6B9427A503AAC02CE0C2F1AD2673EF20E6F754D9BD",
+        "headBlob":  "d48f02ee4cbf647472a41f925940a72f1a920810",
+        "indexBlob":  "d48f02ee4cbf647472a41f925940a72f1a920810",
+        "workingTreeRawBlob":  "579c684ddf6e097927d565514050d20706cc1c61",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetListDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetListDto.cs",
+        "sha256":  "EB739B3D16B495947A05CB2ADC520D34E94BFDE073B2C3E4937895AF71D8A10A",
+        "headBlob":  "1cdad5c8cfaed0fcccea2d975f2c31ec2712a93c",
+        "indexBlob":  "1cdad5c8cfaed0fcccea2d975f2c31ec2712a93c",
+        "workingTreeRawBlob":  "986cd78184b21e1870228021c8da05a9c1f328e2",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetHandoverDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetHandoverDto.cs",
+        "sha256":  "6ACFF260BF07B14AB7DF8F4B5C53EEE3194D81B3951E11657869DB1E4C385D99",
+        "headBlob":  "49a94330a2967982bfc36b7e3e77442f0c9537f1",
+        "indexBlob":  "49a94330a2967982bfc36b7e3e77442f0c9537f1",
+        "workingTreeRawBlob":  "95463722ad5da30a2b246bcd7dd40e3f99875fee",
+        "gitStatus":  "  ",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetPagedResponse.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetPagedResponse.cs",
+        "sha256":  "F85F80F5CA7F7FE115826147AD7212DF175A72C71C359673FB011DE789B57255",
+        "headBlob":  "dc2025845295acdbdb9984ed0616f77b9a90902a",
+        "indexBlob":  "dc2025845295acdbdb9984ed0616f77b9a90902a",
+        "workingTreeRawBlob":  "e7f21d5d40ae58fa7e94be34c5991fbfc4886899",
+        "gitStatus":  "  ",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetMasterRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetMasterRequest.cs",
+        "sha256":  "6683C0D2F3856E7AB8D998336BD109251EE9F96D8A3A94547EBCCCD14B4D640F",
+        "headBlob":  "0fd32f8e53d5bc31c488ef23d628ba6c1d5315e1",
+        "indexBlob":  "0fd32f8e53d5bc31c488ef23d628ba6c1d5315e1",
+        "workingTreeRawBlob":  "7cd5e22f089738ac40d7a6192de02c6dbf371c51",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetMaintenanceHistoryRequest.cs",
+        "sha256":  "14EB14E15C8F1D81AF4E4E48A2963378E4ECA6D4DE177DBD1B018BCDFE5D0318",
+        "headBlob":  "92058108d702b6388339a7d8146bf996fc1762cb",
+        "indexBlob":  "92058108d702b6388339a7d8146bf996fc1762cb",
+        "workingTreeRawBlob":  "7d742181473b3c08e2acd6c8d394edb28713a019",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetMaintenanceHistoryDto.cs",
+        "sha256":  "6161E94F1ADB834AB9E0298999C3E57BAE2CE489737AB32BE703A831D3E4A325",
+        "headBlob":  "9c4eb7f368bd4ee7599238aece34c44d8cc4c638",
+        "indexBlob":  "9c4eb7f368bd4ee7599238aece34c44d8cc4c638",
+        "workingTreeRawBlob":  "d8ccf9ab340f6c60239c0a1d37e5b04e0fee9d1a",
+        "gitStatus":  "  ",
+        "lineCount":  19
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetQueryRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetQueryRequest.cs",
+        "sha256":  "83348384D393DCDD3EABA57302FE08D1F4C058BE3D7F12F31976F2A2AFAA0D4B",
+        "headBlob":  "e5ebb45809dc7825c73bd89d3792d3ea4e67d20b",
+        "indexBlob":  "e5ebb45809dc7825c73bd89d3792d3ea4e67d20b",
+        "workingTreeRawBlob":  "08a6490eebeb93a1deb053436dea8f39e530ea63",
+        "gitStatus":  "  ",
+        "lineCount":  13
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetPageRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetPageRequest.cs",
+        "sha256":  "D9129750953E5931D875A8080750ACA1FC957CD5888322B14931BA006E343DEB",
+        "headBlob":  "ba048fa4817bde1cf007515961afee58ed995cdf",
+        "indexBlob":  "ba048fa4817bde1cf007515961afee58ed995cdf",
+        "workingTreeRawBlob":  "9a21cdd0f639e78655267bcf7b30e873b0759a10",
+        "gitStatus":  "  ",
+        "lineCount":  7
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Inventory/InventoryContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Inventory\\InventoryContracts.cs",
+        "sha256":  "C90008A5B9DBD093ABD86F007D25DEDE3949E9BDFC7B2F4C8E53AC643E11EE43",
+        "headBlob":  "88c5386abb0b25cb36a54ec7b9d37e651ec2ae83",
+        "indexBlob":  "88c5386abb0b25cb36a54ec7b9d37e651ec2ae83",
+        "workingTreeRawBlob":  "a18090a5c658feeb99c66866c6d176e040083b4c",
+        "gitStatus":  "  ",
+        "lineCount":  71
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetStatisticsRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetStatisticsRequest.cs",
+        "sha256":  "FC7CA13E231575FB78DF1DC8CE2E66179692D0EB7046734D8912C189ADA1E64A",
+        "headBlob":  "1ff1c64d3912d8db2d1be2cec53edbf1027c7066",
+        "indexBlob":  "1ff1c64d3912d8db2d1be2cec53edbf1027c7066",
+        "workingTreeRawBlob":  "cd9357ab6816c15d5ea5479b55b17172ecf27379",
+        "gitStatus":  "  ",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/IncidentEventDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\IncidentEventDto.cs",
+        "sha256":  "C7C9EA054CEAACA89066E9566869053DBBA36021F41D2977A1256074C9B6207B",
+        "headBlob":  "9ae58208ede1e3b9f08034c472ed2ab4c0f2c4a7",
+        "indexBlob":  "9ae58208ede1e3b9f08034c472ed2ab4c0f2c4a7",
+        "workingTreeRawBlob":  "55447d80a4e9a595c50d0bc4b645ccb043c56c25",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/IncidentDetailDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\IncidentDetailDto.cs",
+        "sha256":  "08B8AFE022C056EBC5E227B3952EF0FF432925E6C59555E8CE92B405B5817D19",
+        "headBlob":  "94cce02de8abd2fe45f66412bf3abaf9df617cba",
+        "indexBlob":  "94cce02de8abd2fe45f66412bf3abaf9df617cba",
+        "workingTreeRawBlob":  "8d2bb2af40ba2019046c1c50f8e93f7ec717c4e4",
+        "gitStatus":  "  ",
+        "lineCount":  30
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/CreateIncidentRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\CreateIncidentRequest.cs",
+        "sha256":  "1501153628B09893E3606FECE3CF9A3914C720F60AC85EFE41F18CC82B2DEA4E",
+        "headBlob":  "05935bb6acc27822c2fa4691679b6d52a0d44717",
+        "indexBlob":  "05935bb6acc27822c2fa4691679b6d52a0d44717",
+        "workingTreeRawBlob":  "862eb893e261f55703a08d321584a2942505835a",
+        "gitStatus":  "  ",
+        "lineCount":  25
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/ChangeIncidentStatusRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\ChangeIncidentStatusRequest.cs",
+        "sha256":  "32FAFDCCF31D0E32D0858011EADF0506F72B3F4BE61A4D9C709EEB3A3E7E76F2",
+        "headBlob":  "057f7e3c265a2c488b449ac3f93b0a9922884eb1",
+        "indexBlob":  "057f7e3c265a2c488b449ac3f93b0a9922884eb1",
+        "workingTreeRawBlob":  "4a9b6f3ad7f4bd9c7139e0b2d02be478276c844c",
+        "gitStatus":  "  ",
+        "lineCount":  15
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/CreateAssetRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\CreateAssetRequest.cs",
+        "sha256":  "5C02A22F5AE730B05916A8AF1F554E1C3480497BDE8B6AA52AB2332F9B37E422",
+        "headBlob":  "6f76c0869357d93979a442b3b4a836bfdaf8c16c",
+        "indexBlob":  "6f76c0869357d93979a442b3b4a836bfdaf8c16c",
+        "workingTreeRawBlob":  "aa7f354b4796cfe4c54f974ca1ff089c30c3e88a",
+        "gitStatus":  "  ",
+        "lineCount":  7
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/CreateAssetHandoverRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\CreateAssetHandoverRequest.cs",
+        "sha256":  "9C4F7FF2E365F74C8D324C6CDA107537A229B41695B4DE353C6AE564FBB3CD20",
+        "headBlob":  "dc1a925d1258f3b6514a23326cdf45edd1168739",
+        "indexBlob":  "dc1a925d1258f3b6514a23326cdf45edd1168739",
+        "workingTreeRawBlob":  "075031613e227e9f6fbb21dd637877703329c3f3",
+        "gitStatus":  "  ",
+        "lineCount":  8
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/ChangeAssetConditionRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\ChangeAssetConditionRequest.cs",
+        "sha256":  "A05CC1A40BF3A203BDB124559A987AE8DF230A6C8D62E781E7AD94D4DC3BF762",
+        "headBlob":  "7e447f5ecb2e6383ef750e9b42f94dcc874afa2b",
+        "indexBlob":  "7e447f5ecb2e6383ef750e9b42f94dcc874afa2b",
+        "workingTreeRawBlob":  "af95670f552b285cc39a06bfc1d8cf6648031514",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/RejectAssetHandoverRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\RejectAssetHandoverRequest.cs",
+        "sha256":  "765F8119DC14E0560BA9DF9651FF899C569829BDCB23074F25BB2A16944A760F",
+        "headBlob":  "6645ee58940eb49e53d8195f42d055d2735d40ab",
+        "indexBlob":  "6645ee58940eb49e53d8195f42d055d2735d40ab",
+        "workingTreeRawBlob":  "6953eb6f698e4f87af31871efc5fd89efa933728",
+        "gitStatus":  "  ",
+        "lineCount":  6
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssignAssetLocationRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssignAssetLocationRequest.cs",
+        "sha256":  "C499C658090B8B7CE82B47AB822155B9DC9FE78C841E719AA7DA851DD48E3914",
+        "headBlob":  "3a8326b654c5360264c741de098635ed7c8c22f7",
+        "indexBlob":  "3a8326b654c5360264c741de098635ed7c8c22f7",
+        "workingTreeRawBlob":  "61039103d1d1eb69db1d57253e6bec30287ae1ba",
+        "gitStatus":  "  ",
+        "lineCount":  8
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/RetireAssetRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\RetireAssetRequest.cs",
+        "sha256":  "59DA79A416724893DF559E82BA35A64269DEAA7C0418C3D7C743650B0E57E550",
+        "headBlob":  "c0d4ea469eb9c823e58b0731c138d2ca7fde771e",
+        "indexBlob":  "c0d4ea469eb9c823e58b0731c138d2ca7fde771e",
+        "workingTreeRawBlob":  "e93c130235d8155ae1acfb0714d0e03598c29bfd",
+        "gitStatus":  "  ",
+        "lineCount":  6
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/AssetTypeLookupDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\AssetTypeLookupDto.cs",
+        "sha256":  "87D96D0BE0B3442427520E973FF45198993C348A4EF373C1BA26D2C37AC88F29",
+        "headBlob":  "cdb79860ab957a7c9aed0cbd3e60e7cebc0a7355",
+        "indexBlob":  "cdb79860ab957a7c9aed0cbd3e60e7cebc0a7355",
+        "workingTreeRawBlob":  "05bbe6b0aa58d22672b318f50ee42ee3d4cbb44e",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/TransferAssetLocationRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\TransferAssetLocationRequest.cs",
+        "sha256":  "E765D93CCC9179B230CAF071E3774DEEDF9B8D7DDCF41EF26D0F2CF590D8FED8",
+        "headBlob":  "f748095f15490429d6ea6acf80d4ddcfb4234f59",
+        "indexBlob":  "f748095f15490429d6ea6acf80d4ddcfb4234f59",
+        "workingTreeRawBlob":  "ff784ae6a7f309aa223b6398a956bf655e2dac36",
+        "gitStatus":  "  ",
+        "lineCount":  11
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/IncidentPagedResponse.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\IncidentPagedResponse.cs",
+        "sha256":  "D1E4E8C61078927BDB3FC1595C50E65AAA09B07C2487E78DD033A40759C82E2C",
+        "headBlob":  "a21c7dca15dde21a3305a62172c3eb9a28880ab9",
+        "indexBlob":  "a21c7dca15dde21a3305a62172c3eb9a28880ab9",
+        "workingTreeRawBlob":  "5a012226b95a981cea3120674cf6f604116da449",
+        "gitStatus":  "  ",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/IncidentListDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\IncidentListDto.cs",
+        "sha256":  "77FCB6F4D4449E3C1226B6E93F24FF84AF57B7B819A44B85362B512E0500D5AB",
+        "headBlob":  "f9cb30e83ed87f56988591e2db07b16b7216b803",
+        "indexBlob":  "f9cb30e83ed87f56988591e2db07b16b7216b803",
+        "workingTreeRawBlob":  "edf9acff08792f916e5d4fa40569cddb79198233",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Replenishments/ReplenishmentContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Replenishments\\ReplenishmentContracts.cs",
+        "sha256":  "9EF8BC66303567D1C20134CCADBB527635B31CB6661293DF77545D9D6F991120",
+        "headBlob":  "71dda1dde0586fd32f3ed005a12b4ff34068e07a",
+        "indexBlob":  "71dda1dde0586fd32f3ed005a12b4ff34068e07a",
+        "workingTreeRawBlob":  "ccadbd3d324d061b3519eb2e0c29e2cf3b19dfbc",
+        "gitStatus":  "  ",
+        "lineCount":  50
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/IncidentQueryRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\IncidentQueryRequest.cs",
+        "sha256":  "772974491ED7FCE6734CA69A4F9CD949D87CA031C3C714807160D3CA08B62FB6",
+        "headBlob":  "1f0fd12f70019aaaecbf550f753c7589b108a081",
+        "indexBlob":  "1f0fd12f70019aaaecbf550f753c7589b108a081",
+        "workingTreeRawBlob":  "0e5269725c9eade6be5cb52b2349e37cbc8d8733",
+        "gitStatus":  "  ",
+        "lineCount":  13
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Assets/UpdateAssetRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Assets\\UpdateAssetRequest.cs",
+        "sha256":  "DAD12B2E39B9FC9FE229C8CDF813E7AE8AF72080972BAC1D95B4CC3D302323C5",
+        "headBlob":  "8bb7019d596c2c0322611ae01d340095bc087a30",
+        "indexBlob":  "8bb7019d596c2c0322611ae01d340095bc087a30",
+        "workingTreeRawBlob":  "1ba2022e56542aa1abb6195b76d35a915366111e",
+        "gitStatus":  "  ",
+        "lineCount":  5
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/MaterialRequests/MaterialRequestContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\MaterialRequests\\MaterialRequestContracts.cs",
+        "sha256":  "55EDED9B96F0136A93D3065CD69A79C202B16C3FC95B1DDD5CDCCAAB00C987A3",
+        "headBlob":  "0928bcde02e26d47f07eabd18ae5b65812f23d74",
+        "indexBlob":  "0928bcde02e26d47f07eabd18ae5b65812f23d74",
+        "workingTreeRawBlob":  "551de7e4985ffa921e522c0491e5a3a94bef5a33",
+        "gitStatus":  "  ",
+        "lineCount":  51
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Incidents/TriageIncidentRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Incidents\\TriageIncidentRequest.cs",
+        "sha256":  "5B8FDF36EF489A4C9F31F94ED25A77769CC9ED4C4209FBCEAF66334BB76CE275",
+        "headBlob":  "3b48de27e8d288c9ade23ca7a1fcaf3d9e044a02",
+        "indexBlob":  "3b48de27e8d288c9ade23ca7a1fcaf3d9e044a02",
+        "workingTreeRawBlob":  "5a8a5fcf6b2fa8ac4445051a139e59adf77d4bf2",
+        "gitStatus":  "  ",
+        "lineCount":  16
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserBranchAssignmentAccess.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserBranchAssignmentAccess.cs",
+        "sha256":  "F49BF56284AC1042E543ECCAFEC0E2887231A244D5FFFDBEE35746E2452A618D",
+        "headBlob":  "e5eab3e35453dfe0dd2c6856eec5b296c57a6f28",
+        "indexBlob":  "e5eab3e35453dfe0dd2c6856eec5b296c57a6f28",
+        "workingTreeRawBlob":  "e5eab3e35453dfe0dd2c6856eec5b296c57a6f28",
+        "gitStatus":  "  ",
+        "lineCount":  39
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserAccountStatusAccess.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserAccountStatusAccess.cs",
+        "sha256":  "BFDCE0FC75581A0302C3B18C8378D5A46981F1671228C69485B6F0E070D4E067",
+        "headBlob":  "d7c251c8fb0fc0f226732904398aace0888c5c6e",
+        "indexBlob":  "d7c251c8fb0fc0f226732904398aace0888c5c6e",
+        "workingTreeRawBlob":  "d7c251c8fb0fc0f226732904398aace0888c5c6e",
+        "gitStatus":  "  ",
+        "lineCount":  15
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserAccountCreationService.cs",
+        "sha256":  "18E0A812C7723F21EA85F1B9FB4D159D3A2DFFBD7A1D5B891FF0D36282DC1894",
+        "headBlob":  "206b80c12fea6c59c92736f442676561cf7fdd45",
+        "indexBlob":  "206b80c12fea6c59c92736f442676561cf7fdd45",
+        "workingTreeRawBlob":  "b11b99989b054a7e31ab2177139102fdd6405845",
+        "gitStatus":  "  ",
+        "lineCount":  119
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserAccountActivationService.cs",
+        "sha256":  "ABF83FC95ABFAB3D1B1CA1F17141D03E77DD8F8BB22DAEA19704E9C90E6EAAA5",
+        "headBlob":  "2e6e82f4727bd2f98bba0d3fa18ae37fcbc6efa2",
+        "indexBlob":  "2e6e82f4727bd2f98bba0d3fa18ae37fcbc6efa2",
+        "workingTreeRawBlob":  "2e6e82f4727bd2f98bba0d3fa18ae37fcbc6efa2",
+        "gitStatus":  "  ",
+        "lineCount":  76
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/IUserDirectoryService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\IUserDirectoryService.cs",
+        "sha256":  "A41E1E47F0C5997C0B7F602D027ACA499816897132ACCC197953FC8495F805F6",
+        "headBlob":  "8a64f5ddcdeb523f97da430941c164db02cd6182",
+        "indexBlob":  "8a64f5ddcdeb523f97da430941c164db02cd6182",
+        "workingTreeRawBlob":  "8a64f5ddcdeb523f97da430941c164db02cd6182",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserDirectoryQueries.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserDirectoryQueries.cs",
+        "sha256":  "E50A8DFB11D916A989EE81981796DB30FBA6E66088808BEC53D1CF9449A59845",
+        "headBlob":  "5c859cc916f42ccc233968a59199f903d7a528a5",
+        "indexBlob":  "5c859cc916f42ccc233968a59199f903d7a528a5",
+        "workingTreeRawBlob":  "5c859cc916f42ccc233968a59199f903d7a528a5",
+        "gitStatus":  "  ",
+        "lineCount":  46
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserCredentialResetAccess.cs",
+        "sha256":  "EEA7F632416B63B161F86AF33546A68021FF6CD3EC01CC8538D75C1D533FE231",
+        "headBlob":  "bf88dbcf7ad8376a19ecb779bf96000bccdb215e",
+        "indexBlob":  "bf88dbcf7ad8376a19ecb779bf96000bccdb215e",
+        "workingTreeRawBlob":  "bf88dbcf7ad8376a19ecb779bf96000bccdb215e",
+        "gitStatus":  "  ",
+        "lineCount":  61
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserBranchAssignmentService.cs",
+        "sha256":  "82B3E9D45B60B4E89F9983521395B80D502612908A58A97BD806C8383AB4DB1A",
+        "headBlob":  "e6dc5ad4bf9fbec5036a9f1e2fde915e3adcba35",
+        "indexBlob":  "e6dc5ad4bf9fbec5036a9f1e2fde915e3adcba35",
+        "workingTreeRawBlob":  "e6dc5ad4bf9fbec5036a9f1e2fde915e3adcba35",
+        "gitStatus":  "  ",
+        "lineCount":  92
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserDirectoryService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserDirectoryService.cs",
+        "sha256":  "07E321DAE324629E7B95957330F3B42F33FFA544CB915E435D347765535C33A6",
+        "headBlob":  "78a28766723b65484c5c81fc6fcdccb8320fe39d",
+        "indexBlob":  "78a28766723b65484c5c81fc6fcdccb8320fe39d",
+        "workingTreeRawBlob":  "78a28766723b65484c5c81fc6fcdccb8320fe39d",
+        "gitStatus":  "  ",
+        "lineCount":  44
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserEligibilityLock.cs",
+        "sha256":  "F1EE64F3B6713DC18568F4C095AD94000CCFA47F146982A609E20F75EA27A5A6",
+        "headBlob":  "aef6738cf6e387738a0058fd3ff9ef88b39c9e1e",
+        "indexBlob":  "aef6738cf6e387738a0058fd3ff9ef88b39c9e1e",
+        "workingTreeRawBlob":  "f2d7d992b6ff0162bd8b056d4a3490c9427d6ee6",
+        "gitStatus":  "  ",
+        "lineCount":  40
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/HoldMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\HoldMaintenanceWorkRequest.cs",
+        "sha256":  "D6A879410FC44650A3B85ACF8C2E8D123E5AEFD50652A519FF6E7F2AB9635B43",
+        "headBlob":  "dcdfcc599623d8a6370bfd10c79175340a6bde92",
+        "indexBlob":  "dcdfcc599623d8a6370bfd10c79175340a6bde92",
+        "workingTreeRawBlob":  "0cf2e3a467c2c07a70fde54a512b5743dd95ae94",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\CookieSessionValidator.cs",
+        "sha256":  "AEC5944219D4B0A3A867805833C2B974828C5F4C3DFD59EDEDC5E8E357EE1A19",
+        "headBlob":  "98e2dfd28a065141ec4a6ddcd073bc27da3d924b",
+        "indexBlob":  "98e2dfd28a065141ec4a6ddcd073bc27da3d924b",
+        "workingTreeRawBlob":  "441328553c7523f135c7e089dd328610bf0d72dd",
+        "gitStatus":  "  ",
+        "lineCount":  47
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\CreateMaintenanceWorkRequest.cs",
+        "sha256":  "7165FC0400557EBD5D2D5719E0C892DAC46323DA96D7DF06BD81805BBD98FB2F",
+        "headBlob":  "ee13ef2bf15d55727f2a9f55108b0d6e083d065a",
+        "indexBlob":  "ee13ef2bf15d55727f2a9f55108b0d6e083d065a",
+        "workingTreeRawBlob":  "79bf2a22504e90aba2855c8ae69b1874c4e787cc",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/SessionAntiforgeryAdditionalDataProvider.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\SessionAntiforgeryAdditionalDataProvider.cs",
+        "sha256":  "E6A12291DDA66D77638C6A96FA843BE9D741076A1B8F80B508686C2285609064",
+        "headBlob":  "e8ad874bb6e20d1e23a4fcea507ebf8ba2939490",
+        "indexBlob":  "e8ad874bb6e20d1e23a4fcea507ebf8ba2939490",
+        "workingTreeRawBlob":  "442fe5fa0f91b02b98633b89f59fc42f2a20c774",
+        "gitStatus":  "  ",
+        "lineCount":  26
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkLogRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\CreateMaintenanceWorkLogRequest.cs",
+        "sha256":  "73A8A2920EF6493C86C78B73D3A58E76BB3BEDC9E9DA5D7A9290EB0602286137",
+        "headBlob":  "97022047d5d857aae0823b5a4c6d0fc7af780b20",
+        "indexBlob":  "97022047d5d857aae0823b5a4c6d0fc7af780b20",
+        "workingTreeRawBlob":  "909d42b3c3c004923e6d51fc5f498ae373ade2c3",
+        "gitStatus":  "  ",
+        "lineCount":  12
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/CookieRequestRules.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\CookieRequestRules.cs",
+        "sha256":  "6A46E413B860A81F582D74705A0EDDEABD1359E2D3D36F015647E4F238D15272",
+        "headBlob":  "f5f0a2127e0cf872aeee9dd421158dd3a6c45152",
+        "indexBlob":  "f5f0a2127e0cf872aeee9dd421158dd3a6c45152",
+        "workingTreeRawBlob":  "86efd50feab107fd60cb036887c5cb0427e48844",
+        "gitStatus":  "  ",
+        "lineCount":  27
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/HotelOpsCookieTicket.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsCookieTicket.cs",
+        "sha256":  "9C6F7DCD0070B0724A5D85601CDE4DE2CF095C320BFCCCFD55404AAB57162865",
+        "headBlob":  "77aa22ca35f5e0e65ce13656218661a0832f8e09",
+        "indexBlob":  "77aa22ca35f5e0e65ce13656218661a0832f8e09",
+        "workingTreeRawBlob":  "a0bddee15581f596e7d327474883d715830ecf2c",
+        "gitStatus":  "  ",
+        "lineCount":  72
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/CancelMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\CancelMaintenanceWorkRequest.cs",
+        "sha256":  "78E511D1C2B7D813861F0617F5ABC08466820737D9D37CD5185E4ABAA489760C",
+        "headBlob":  "2de1be536916b0db44f202d9eef0da3ac9e34ca3",
+        "indexBlob":  "2de1be536916b0db44f202d9eef0da3ac9e34ca3",
+        "workingTreeRawBlob":  "2cb1c3970ae15f56df8ab4628b3513b241c27f43",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/AssignMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\AssignMaintenanceWorkRequest.cs",
+        "sha256":  "8ED201B5A71D1A754203D8F4B8FD865B42B699F741FF3242471A4F28DFD56C76",
+        "headBlob":  "c5636ea81cceee7e1fa19e83cd630255398bb276",
+        "indexBlob":  "c5636ea81cceee7e1fa19e83cd630255398bb276",
+        "workingTreeRawBlob":  "198121ca474a71b56335345dc8af6235f6ca2781",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsCookieInfrastructure.cs",
+        "sha256":  "5D3CC0EF99442ADFA2211A5311898F52E5610F1B01B2097F30F8B49EE3504E00",
+        "headBlob":  "3d9545dc0c8c1bf02403ec4658755be53dcf457c",
+        "indexBlob":  "3d9545dc0c8c1bf02403ec4658755be53dcf457c",
+        "workingTreeRawBlob":  "9dbf265121977392129010a257a05538988f2e49",
+        "gitStatus":  " M",
+        "lineCount":  54
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/HotelOpsCookieEvents.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsCookieEvents.cs",
+        "sha256":  "A94C35AB8B80B267689CE863498BEB9C3DF5616C3239BF7BE8A4306D0C26E5D3",
+        "headBlob":  "74367fb5f134b69ae38a4741d557b3bc9aa989fd",
+        "indexBlob":  "74367fb5f134b69ae38a4741d557b3bc9aa989fd",
+        "workingTreeRawBlob":  "dfa9245cd4d28a0a82473cdb52934415b5634ffb",
+        "gitStatus":  "  ",
+        "lineCount":  38
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserProfileAccess.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserProfileAccess.cs",
+        "sha256":  "9FB2EB08088F7397F7FAA920C854C4022592D5C8C3D7E2DB62145D11B6F3E974",
+        "headBlob":  "7a06aad07a1120978dd24971641308793a21aef7",
+        "indexBlob":  "7a06aad07a1120978dd24971641308793a21aef7",
+        "workingTreeRawBlob":  "7a06aad07a1120978dd24971641308793a21aef7",
+        "gitStatus":  "  ",
+        "lineCount":  56
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/HotelOpsAntiforgery.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\HotelOpsAntiforgery.cs",
+        "sha256":  "2F98E415EF1804CDCDF9EFA3E508449A29CC2056FA076D16028D96BB144CA337",
+        "headBlob":  "a72743afd1defc28291b605df399cae4b08b0196",
+        "indexBlob":  "a72743afd1defc28291b605df399cae4b08b0196",
+        "workingTreeRawBlob":  "b5cd8e54ffeb54b0a199a5ab0cd0100be6ac6889",
+        "gitStatus":  "  ",
+        "lineCount":  44
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserProfileService.cs",
+        "sha256":  "44BFF2E854241990BD5BA83EC3CFE396E59CDAE16F600CCF06924BA7C96EC41C",
+        "headBlob":  "2dd66f754b0da693801591bc70692d20ce44f7af",
+        "indexBlob":  "2dd66f754b0da693801591bc70692d20ce44f7af",
+        "workingTreeRawBlob":  "25a0c6b6ee6923bcc4dcd42a6e2650aa420fa86e",
+        "gitStatus":  "  ",
+        "lineCount":  106
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenanceQueryRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenanceQueryRequest.cs",
+        "sha256":  "8FA14E5F4834C0B797397C67028194CBE710CB9D3815032EBF2DBD57E2DF556D",
+        "headBlob":  "7c1fb64eb9cd2562e400f753ea5c728bc181c2b5",
+        "indexBlob":  "7c1fb64eb9cd2562e400f753ea5c728bc181c2b5",
+        "workingTreeRawBlob":  "14e361eddf2c5a8c6cd6a9aadb2eb6a62a6af402",
+        "gitStatus":  "  ",
+        "lineCount":  12
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenancePagedResponse.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenancePagedResponse.cs",
+        "sha256":  "E4C9E95AC0EBCD368D4AD6F854E60D2344505FC30B22F40B0CA7A148A84760A9",
+        "headBlob":  "79f7b1cccfcdf72df65151c0fc2b9dc0002d2422",
+        "indexBlob":  "79f7b1cccfcdf72df65151c0fc2b9dc0002d2422",
+        "workingTreeRawBlob":  "09434a89c651b22e4d1e7abf37a198b8d2ce1bf7",
+        "gitStatus":  "  ",
+        "lineCount":  10
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenanceMaterialUsageContracts.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenanceMaterialUsageContracts.cs",
+        "sha256":  "F98F6DCDFE2BDC206C6F05FFFE97731C51272127ED8A939D666176FC75E4A548",
+        "headBlob":  "e1f7192343bce50a37745c58cf6d548d36ecd59b",
+        "indexBlob":  "e1f7192343bce50a37745c58cf6d548d36ecd59b",
+        "workingTreeRawBlob":  "bcde30a720669af0e88341b74687f46db2344b58",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenanceActorRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenanceActorRequest.cs",
+        "sha256":  "E66CD0A6A59FCEFD543566845CC2E104EACDA81C2B0EA5C90F656CFCF1416F54",
+        "headBlob":  "e97f70142b99755f27b05ebe434a977ff3c38d2b",
+        "indexBlob":  "e97f70142b99755f27b05ebe434a977ff3c38d2b",
+        "workingTreeRawBlob":  "74f843d05bfb749254df9b834d9ee40e1fa218e1",
+        "gitStatus":  "  ",
+        "lineCount":  8
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkLogDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenanceWorkLogDto.cs",
+        "sha256":  "02DDBF0204A190D744CF7E5DDB212D9A5F67B485D0CC086B909871F11B93B177",
+        "headBlob":  "e6b2269bb55900ebb55c54941c8158e6db3a653d",
+        "indexBlob":  "e6b2269bb55900ebb55c54941c8158e6db3a653d",
+        "workingTreeRawBlob":  "01256704f3a93b073600012862e87d700ca6ad8b",
+        "gitStatus":  "  ",
+        "lineCount":  14
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkListDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenanceWorkListDto.cs",
+        "sha256":  "33B209C56B1CB97035A0B9031922522DB5F20C3C8FC2616FB187AF0D66E18E79",
+        "headBlob":  "8d9d4ae43ed0f9bcca7cf7ad8312df3590634c13",
+        "indexBlob":  "8d9d4ae43ed0f9bcca7cf7ad8312df3590634c13",
+        "workingTreeRawBlob":  "26d53e16916ef2574b59fb7516e5845a7a79af2c",
+        "gitStatus":  "  ",
+        "lineCount":  21
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkDetailDto.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\MaintenanceWorkDetailDto.cs",
+        "sha256":  "4C7EB8012A9344E3D91EEACD8E35678F72034FBD6F3B71B6D205B3A7F6AC7257",
+        "headBlob":  "1411de739ffb597560179b61148c1337d95d0e5f",
+        "indexBlob":  "1411de739ffb597560179b61148c1337d95d0e5f",
+        "workingTreeRawBlob":  "08074593acff2b2d01097d9c07d1c0372406e70c",
+        "gitStatus":  "  ",
+        "lineCount":  24
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/ReturnMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\ReturnMaintenanceWorkRequest.cs",
+        "sha256":  "0231ADCC6573B26AC298E806EE0C64B00CF7E060C1BABC852269EE0ACE2622A0",
+        "headBlob":  "030b419b4328be7c490a57e99ca172e70fb64c78",
+        "indexBlob":  "030b419b4328be7c490a57e99ca172e70fb64c78",
+        "workingTreeRawBlob":  "0f0630ca1fb409ab7c7260bb980881b438fdf055",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserRoleAssignmentService.cs",
+        "sha256":  "A0D067D01386B7D5AE3A97EA9FC2B09EB24FE704AF54BF830980FEF3D46D44C2",
+        "headBlob":  "a2fb39bde5ac23cfef888309b3ed3d934f5a7a55",
+        "indexBlob":  "a2fb39bde5ac23cfef888309b3ed3d934f5a7a55",
+        "workingTreeRawBlob":  "a2fb39bde5ac23cfef888309b3ed3d934f5a7a55",
+        "gitStatus":  "  ",
+        "lineCount":  116
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/ResumeMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\ResumeMaintenanceWorkRequest.cs",
+        "sha256":  "25DD351D97B4E483865CA6EC399DC721D4FBAC2A34178D28FD86F26FB2B8FEE0",
+        "headBlob":  "af5457b39f4889310468e7568f573e73cc9eff76",
+        "indexBlob":  "af5457b39f4889310468e7568f573e73cc9eff76",
+        "workingTreeRawBlob":  "a4939e32d4042a4b85784566a00622d7409b0677",
+        "gitStatus":  "  ",
+        "lineCount":  8
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/StartMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\StartMaintenanceWorkRequest.cs",
+        "sha256":  "59C9AE3C52A403FCC7B2D1D013132A9777CBFD68DEBDEB4AB019ECAED77B4224",
+        "headBlob":  "7b1637742e379ee4d098c89cd8a665cce00b989d",
+        "indexBlob":  "7b1637742e379ee4d098c89cd8a665cce00b989d",
+        "workingTreeRawBlob":  "8ebd6acbc30964de12f4a87d1930f34bdf0bdb31",
+        "gitStatus":  "  ",
+        "lineCount":  5
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Users/UserRoleDelegationPolicy.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Services\\Users\\UserRoleDelegationPolicy.cs",
+        "sha256":  "0A21A2F32F51E0D9CDBFF13A445FCEB0DE515E069E550CD084627E5848D7736D",
+        "headBlob":  "6bc9b1844bed66929392a07fb849ab310ac1af62",
+        "indexBlob":  "6bc9b1844bed66929392a07fb849ab310ac1af62",
+        "workingTreeRawBlob":  "dfc42969b42d9521d9fb5c5c59d39ff1b262bd8c",
+        "gitStatus":  "  ",
+        "lineCount":  26
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/VerifyMaintenanceWorkRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\VerifyMaintenanceWorkRequest.cs",
+        "sha256":  "22FFB9A71C4E9EF78F2AA20D00A7F87940F7A8FB4C7857B199E06F6CC9CF57A6",
+        "headBlob":  "5b902ebf53c190da64129b10bf949e335ebab375",
+        "indexBlob":  "5b902ebf53c190da64129b10bf949e335ebab375",
+        "workingTreeRawBlob":  "6580a8ab1ca223320c0c57ba256567e7113426b2",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/DTOs/Maintenance/SubmitMaintenanceResultRequest.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\DTOs\\Maintenance\\SubmitMaintenanceResultRequest.cs",
+        "sha256":  "030C195E56C879789C72F34EB722FADD402D63C33AA8E9266A81A6D6B0BDF0C4",
+        "headBlob":  "c1f83fd06de7783b4adb5dc2bb81bf2b5dc1de62",
+        "indexBlob":  "c1f83fd06de7783b4adb5dc2bb81bf2b5dc1de62",
+        "workingTreeRawBlob":  "ccd4c391e7399a18f5daff8997645f8870260df8",
+        "gitStatus":  "  ",
+        "lineCount":  9
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/Resources/CleaningTaskResourceResolver.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\Resources\\CleaningTaskResourceResolver.cs",
+        "sha256":  "D401BBDF7C0348BE9AF123DF3E2AC53A24E045DA9A2F85D4E93EE80141CEE2B8",
+        "headBlob":  "0ff880fe1a057b49a403a4fdedde3d21140c3b30",
+        "indexBlob":  "0ff880fe1a057b49a403a4fdedde3d21140c3b30",
+        "workingTreeRawBlob":  "e4bacb8d7745682566360bd994b3a6c53d778a52",
+        "gitStatus":  "  ",
+        "lineCount":  33
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/Resources/CleaningTaskAccessReader.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\Resources\\CleaningTaskAccessReader.cs",
+        "sha256":  "ABCF50A94257EE6C262D2E01725DDA75D6055666545A1061543FD09269ED4DDF",
+        "headBlob":  "c8f64b697fc9c98e71563425ad098165836542ef",
+        "indexBlob":  "c8f64b697fc9c98e71563425ad098165836542ef",
+        "workingTreeRawBlob":  "07523fc3666b5cc495a7ca08f640a1e9de14236c",
+        "gitStatus":  "  ",
+        "lineCount":  30
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\PermissionService.cs",
+        "sha256":  "DC5AE7D22C7E31D466BAE4E78154A549D1CB64319E661926755C7508111E4796",
+        "headBlob":  "7b3cb261f55203e6c1263d3857f7a69f1584d3f5",
+        "indexBlob":  "7b3cb261f55203e6c1263d3857f7a69f1584d3f5",
+        "workingTreeRawBlob":  "82113e4ceff87951ba8947165a277fc19f1234b8",
+        "gitStatus":  "  ",
+        "lineCount":  93
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/PermissionRequirement.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\PermissionRequirement.cs",
+        "sha256":  "DCCF3B7AA63DB0E605CF7B87A045F1AD7E1FD0B9ADCA2EDC049BEE5D2C3D89F7",
+        "headBlob":  "e9c8a21e98913a304ba724f56309f4203b91d93b",
+        "indexBlob":  "e9c8a21e98913a304ba724f56309f4203b91d93b",
+        "workingTreeRawBlob":  "422755893d78102ee390433214b1aad54068e084",
+        "gitStatus":  "  ",
+        "lineCount":  37
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/PermissionPolicyProvider.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\PermissionPolicyProvider.cs",
+        "sha256":  "E43A6B9B45F704BF6522E8B64CEF6688C4765F1B21C8920DA2B7853E44E0AB8F",
+        "headBlob":  "b4663dabfc19b10bc8bad1ecb8c9157b8769a0aa",
+        "indexBlob":  "b4663dabfc19b10bc8bad1ecb8c9157b8769a0aa",
+        "workingTreeRawBlob":  "e927cf735eca510cfe47925125f3b95b15223a2b",
+        "gitStatus":  "  ",
+        "lineCount":  50
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/PermissionDataSource.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\PermissionDataSource.cs",
+        "sha256":  "EA42F6C7F1F44453CB3316BD04CB8BF25D397CBDBDDEA5F83B1FDF69D89CD4F8",
+        "headBlob":  "90ba74be3434b7009d3df92ed17c2316a77b9999",
+        "indexBlob":  "90ba74be3434b7009d3df92ed17c2316a77b9999",
+        "workingTreeRawBlob":  "a61f14849a64aa914f9a5c74ff0e1d559090be41",
+        "gitStatus":  "  ",
+        "lineCount":  41
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\PermissionAuthorizationRegistration.cs",
+        "sha256":  "566D6B984EC2E12C7532C0DCCA19338C9976CD697F3AB13B2B9532D2BED5E8B1",
+        "headBlob":  "3649a9dfee741e4fe82c25434e712d1aab49cc2d",
+        "indexBlob":  "3649a9dfee741e4fe82c25434e712d1aab49cc2d",
+        "workingTreeRawBlob":  "b743dfffa35e13367eb50b95aa4bea6bdd2db6b8",
+        "gitStatus":  " M",
+        "lineCount":  23
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationHandler.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\PermissionAuthorizationHandler.cs",
+        "sha256":  "B5226C9A39995E6CA24CDEE92011524796514340EFF6D7540FA15D7C7D620377",
+        "headBlob":  "48184f4a30bd74f1182aa50dc4369f09557280b8",
+        "indexBlob":  "48184f4a30bd74f1182aa50dc4369f09557280b8",
+        "workingTreeRawBlob":  "04d7b1f8cb6c3643292d166043860e66712b9270",
+        "gitStatus":  "  ",
+        "lineCount":  49
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/IPermissionService.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\IPermissionService.cs",
+        "sha256":  "5ACEE41F8CA7D4333543BD5629B35FCCA3F5FBB6D1A7A994D6CB2050C4F970B5",
+        "headBlob":  "faf5388b25710c3d1e1af2e2c6c966268b70a940",
+        "indexBlob":  "faf5388b25710c3d1e1af2e2c6c966268b70a940",
+        "workingTreeRawBlob":  "f7168679ceee925cbb18b179bf0632eb549c3a64",
+        "gitStatus":  "  ",
+        "lineCount":  45
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/ICurrentUserAccessor.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\ICurrentUserAccessor.cs",
+        "sha256":  "2F1EEA71C338F5A9F982C445F4D23CF3F618AE80D25BC62158E9DA4C412C9627",
+        "headBlob":  "0223bebee6903206f54b9d92628da3990d61a220",
+        "indexBlob":  "0223bebee6903206f54b9d92628da3990d61a220",
+        "workingTreeRawBlob":  "7bba392e0381ab24ac24e3253d001b9ae1155609",
+        "gitStatus":  "  ",
+        "lineCount":  8
+    },
+    {
+        "path":  "src/HotelOps.Api/Security/Authorization/CurrentUserAccessor.cs",
+        "absolutePath":  "D:\\SEP490\\Projects\\HotelOps\\src\\HotelOps.Api\\Security\\Authorization\\CurrentUserAccessor.cs",
+        "sha256":  "8C272556558A9AA55FFC682733242368AFD5C261B55EC8B6D86A43D692649FA0",
+        "headBlob":  "4fe09fd503b55378f456efe275bd995b940efaf5",
+        "indexBlob":  "4fe09fd503b55378f456efe275bd995b940efaf5",
+        "workingTreeRawBlob":  "60c840ec42163b79c30c8fe72215be7c44ab564d",
+        "gitStatus":  "  ",
+        "lineCount":  26
+    }
+]

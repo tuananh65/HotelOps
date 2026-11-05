@@ -1,0 +1,34 @@
+11: [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+12: [UserAccountActivationErrors]
+13: public sealed class RoomTypeDirectoryController(RoomTypeDirectoryService service) : ControllerBase
+14: {
+15:     [HttpGet("api/room-types")]
+16:     public Task<IActionResult> List([FromQuery] long? branchId, [FromQuery] bool? isActive, [FromQuery] string? search,
+17:         CancellationToken ct, [FromQuery] int page = 1, [FromQuery] int pageSize = 20,
+18:         [FromQuery] string sort = "code", [FromQuery] bool descending = false)
+19:         => Execute((ticket, sid) => service.ListAsync(ticket, sid, branchId, isActive, search, page, pageSize, sort, descending, ct));
+20: 
+21:     [HttpGet("api/room-types/{id:long}")]
+22:     public Task<IActionResult> Detail(long id, [FromQuery] long? branchId, CancellationToken ct)
+23:         => Execute((ticket, sid) => service.DetailAsync(ticket, sid, branchId, id, ct));
+24: 
+25:     private async Task<IActionResult> Execute(Func<Services.Authentication.SessionReference, long, Task<RoomTypeDirectoryResult>> action)
+26:     {
+27:         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
+28:         if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out var sid)) return Problem(statusCode: 401, title: "SESSION_INVALID");
+29:         try
+30:         {
+31:             var result = await action(ticket!, sid);
+32:             if (result.Status == RoomTypeDirectoryStatus.Success)
+33:             {
+34:                 if (result.ETag != null) Response.Headers.ETag = result.ETag;
+35:                 return Ok(result.Value);
+36:             }
+37:             return Problem(statusCode: result.Status switch
+38:             {
+39:                 RoomTypeDirectoryStatus.SessionInvalid => 401, RoomTypeDirectoryStatus.Forbidden => 403,
+40:                 RoomTypeDirectoryStatus.NotFound => 404, RoomTypeDirectoryStatus.Inactive => 409, _ => 503
+41:             }, title: result.Status.ToString().ToUpperInvariant());
+42:         }
+43:         catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
+44:     }

@@ -1,0 +1,20 @@
+﻿{
+    "checkedUtc":  "2026-11-04T06:41:46.9243013Z",
+    "headUnchanged":  true,
+    "branchUnchanged":  true,
+    "indexUnchanged":  true,
+    "worktreesUnchanged":  true,
+    "existingGitStatusUnchanged":  true,
+    "unexpectedNewPaths":  [
+
+                           ],
+    "newProductionFiles":  [
+                               "src\\HotelOps.Api\\Controllers\\TurnoverHistoryController.cs",
+                               "src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistoryService.cs",
+                               "src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistoryBoundary.cs",
+                               "src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistoryFiles.cs",
+                               "src\\HotelOps.Api\\Services\\HotelStructure\\TurnoverHistorySchema.cs"
+                           ],
+    "approvedExistingSourceChange":  "src/HotelOps.Api/Program.cs",
+    "elapsedSeconds":  1165.52
+}

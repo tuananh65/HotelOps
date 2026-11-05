@@ -1,0 +1,2729 @@
+6: namespace HotelOps.Api.Data;
+7: 
+8: public partial class HotelOpsDbContext : DbContext
+9: {
+10:     public HotelOpsDbContext(DbContextOptions<HotelOpsDbContext> options)
+11:         : base(options)
+12:     {
+13:     }
+14: 
+15:     public virtual DbSet<Area> Areas { get; set; }
+16: 
+17:     public virtual DbSet<Asset> Assets { get; set; }
+18: 
+19:     public virtual DbSet<AssetConditionHistory> AssetConditionHistories { get; set; }
+20: 
+21:     public virtual DbSet<AssetHandover> AssetHandovers { get; set; }
+22: 
+23:     public virtual DbSet<AssetLocationHistory> AssetLocationHistories { get; set; }
+24: 
+25:     public virtual DbSet<AssetType> AssetTypes { get; set; }
+26: 
+27:     public virtual DbSet<Attachment> Attachments { get; set; }
+28: 
+29:     public virtual DbSet<AuditLog> AuditLogs { get; set; }
+30: 
+31:     public virtual DbSet<Branch> Branches { get; set; }
+32: 
+33:     public virtual DbSet<CleaningAssignment> CleaningAssignments { get; set; }
+34: 
+35:     public virtual DbSet<CleaningProgressLog> CleaningProgressLogs { get; set; }
+36: 
+37:     public virtual DbSet<CleaningRework> CleaningReworks { get; set; }
+38: 
+39:     public virtual DbSet<CleaningTask> CleaningTasks { get; set; }
+40: 
+41:     public virtual DbSet<Department> Departments { get; set; }
+42: 
+43:     public virtual DbSet<Floor> Floors { get; set; }
+44: 
+45:     public virtual DbSet<Incident> Incidents { get; set; }
+46: 
+47:     public virtual DbSet<IncidentEvent> IncidentEvents { get; set; }
+48: 
+49:     public virtual DbSet<InspectionChecklist> InspectionChecklists { get; set; }
+50: 
+51:     public virtual DbSet<InspectionChecklistItem> InspectionChecklistItems { get; set; }
+52: 
+53:     public virtual DbSet<InspectionChecklistVersion> InspectionChecklistVersions { get; set; }
+54: 
+55:     public virtual DbSet<InspectionDefect> InspectionDefects { get; set; }
+56: 
+57:     public virtual DbSet<InspectionResult> InspectionResults { get; set; }
+58: 
+59:     public virtual DbSet<InternalRequest> InternalRequests { get; set; }
+60: 
+61:     public virtual DbSet<InternalRequestAssignment> InternalRequestAssignments { get; set; }
+62: 
+63:     public virtual DbSet<InternalRequestEvent> InternalRequestEvents { get; set; }
+64: 
+65:     public virtual DbSet<InternalRequestFeedback> InternalRequestFeedbacks { get; set; }
+66: 
+67:     public virtual DbSet<InternalRequestType> InternalRequestTypes { get; set; }
+68: 
+69:     public virtual DbSet<InventoryItem> InventoryItems { get; set; }
+70: 
+71:     public virtual DbSet<ItemCategory> ItemCategories { get; set; }
+72: 
+73:     public virtual DbSet<MaintenanceWork> MaintenanceWorks { get; set; }
+74: 
+75:     public virtual DbSet<MaintenanceWorkLog> MaintenanceWorkLogs { get; set; }
+76: 
+77:     public virtual DbSet<MaterialFulfillment> MaterialFulfillments { get; set; }
+78: 
+79:     public virtual DbSet<MaterialFulfillmentLine> MaterialFulfillmentLines { get; set; }
+80: 
+81:     public virtual DbSet<MaterialRequest> MaterialRequests { get; set; }
+82: 
+83:     public virtual DbSet<MaterialRequestApproval> MaterialRequestApprovals { get; set; }
+84: 
+85:     public virtual DbSet<MaterialRequestLine> MaterialRequestLines { get; set; }
+86: 
+87:     public virtual DbSet<Notification> Notifications { get; set; }
+88: 
+89:     public virtual DbSet<NotificationRecipient> NotificationRecipients { get; set; }
+90: 
+91:     public virtual DbSet<OperationalTask> OperationalTasks { get; set; }
+92: 
+93:     public virtual DbSet<OperationalTaskAssignment> OperationalTaskAssignments { get; set; }
+94: 
+95:     public virtual DbSet<OperationalTaskDependency> OperationalTaskDependencies { get; set; }
+96: 
+97:     public virtual DbSet<OperationalTaskProgress> OperationalTaskProgresses { get; set; }
+98: 
+99:     public virtual DbSet<Permission> Permissions { get; set; }
+100: 
+101:     public virtual DbSet<PreventiveMaintenanceRun> PreventiveMaintenanceRuns { get; set; }
+102: 
+103:     public virtual DbSet<PreventiveMaintenanceSchedule> PreventiveMaintenanceSchedules { get; set; }
+104: 
+105:     public virtual DbSet<ReferenceValue> ReferenceValues { get; set; }
+106: 
+107:     public virtual DbSet<Role> Roles { get; set; }
+108: 
+109:     public virtual DbSet<RolePermission> RolePermissions { get; set; }
+110: 
+111:     public virtual DbSet<Room> Rooms { get; set; }
+112: 
+113:     public virtual DbSet<RoomBlock> RoomBlocks { get; set; }
+114: 
+115:     public virtual DbSet<RoomInspection> RoomInspections { get; set; }
+116: 
+117:     public virtual DbSet<RoomStatusHistory> RoomStatusHistories { get; set; }
+118: 
+119:     public virtual DbSet<RoomType> RoomTypes { get; set; }
+120: 
+121:     public virtual DbSet<ShiftAssignment> ShiftAssignments { get; set; }
+122: 
+123:     public virtual DbSet<ShiftAttendance> ShiftAttendances { get; set; }
+124: 
+125:     public virtual DbSet<ShiftTemplate> ShiftTemplates { get; set; }
+126: 
+127:     public virtual DbSet<StockDocument> StockDocuments { get; set; }
+128: 
+129:     public virtual DbSet<StockDocumentLine> StockDocumentLines { get; set; }
+130: 
+131:     public virtual DbSet<StockMovement> StockMovements { get; set; }
+132: 
+133:     public virtual DbSet<StockThreshold> StockThresholds { get; set; }
+134: 
+135:     public virtual DbSet<Stocktake> Stocktakes { get; set; }
+136: 
+137:     public virtual DbSet<StocktakeLine> StocktakeLines { get; set; }
+138: 
+139:     public virtual DbSet<SystemSetting> SystemSettings { get; set; }
+140: 
+141:     public virtual DbSet<UnitsOfMeasure> UnitsOfMeasures { get; set; }
+142: 
+143:     public virtual DbSet<UomConversion> UomConversions { get; set; }
+144: 
+145:     public virtual DbSet<User> Users { get; set; }
+146: 
+147:     public virtual DbSet<UserBranchAccess> UserBranchAccesses { get; set; }
+148: 
+149:     public virtual DbSet<UserRole> UserRoles { get; set; }
+150: 
+151:     public virtual DbSet<UserSession> UserSessions { get; set; }
+152: 
+153:     public virtual DbSet<Warehouse> Warehouses { get; set; }
+154: 
+155:     public virtual DbSet<WorkCategory> WorkCategories { get; set; }
+156: 
+157:     public virtual DbSet<WorkShift> WorkShifts { get; set; }
+158: 
+159:     public virtual DbSet<StockTransferReceipt> StockTransferReceipts { get; set; }
+160: 
+161:     public virtual DbSet<StockTransferReceiptLine> StockTransferReceiptLines { get; set; }
+162: 
+163:     public virtual DbSet<StockReceiptLineDetail> StockReceiptLineDetails { get; set; }
+164: 
+165:     public virtual DbSet<StockReturnLineDetail> StockReturnLineDetails { get; set; }
+166: 
+167:     public virtual DbSet<MaterialRequestApprovalCycle> MaterialRequestApprovalCycles { get; set; }
+168: 
+169:     public virtual DbSet<MaterialRequestApprovalLineSnapshot> MaterialRequestApprovalLineSnapshots { get; set; }
+170: 
+171:     public virtual DbSet<MaterialReplenishment> MaterialReplenishments { get; set; }
+172: 
+173:     public virtual DbSet<MaterialReplenishmentLine> MaterialReplenishmentLines { get; set; }
+174: 
+175:     public virtual DbSet<MaterialReplenishmentReceiptLine> MaterialReplenishmentReceiptLines { get; set; }
+176: 
+177:     public virtual DbSet<MaintenanceMaterialUsage> MaintenanceMaterialUsages { get; set; }
+178: 
+179:     protected override void OnModelCreating(ModelBuilder modelBuilder)
+180:     {
+183:             entity.HasKey(e => e.AreaId).HasName("PK__areas__985D6D6B56C7E2CB");
+184: 
+185:             entity.ToTable("areas");
+186: 
+187:             entity.HasIndex(e => new { e.BranchId, e.AreaCode }, "areas_index_1").IsUnique();
+188: 
+189:             entity.Property(e => e.AreaId).HasColumnName("area_id");
+190:             entity.Property(e => e.AreaCode)
+198:             entity.Property(e => e.Description).HasColumnName("description");
+199:             entity.Property(e => e.FloorId).HasColumnName("floor_id");
+200:             entity.Property(e => e.IsActive)
+201:                 .HasDefaultValue(true)
+202:                 .HasColumnName("is_active");
+203: 
+204:             entity.HasOne(d => d.Branch).WithMany(p => p.Areas)
+205:                 .HasForeignKey(d => d.BranchId)
+206:                 .OnDelete(DeleteBehavior.ClientSetNull)
+207:                 .HasConstraintName("FK_areas_branch_id");
+208: 
+209:             entity.HasOne(d => d.Floor).WithMany(p => p.Areas)
+210:                 .HasForeignKey(d => d.FloorId)
+211:                 .HasConstraintName("FK_areas_floor_id");
+212:         });
+213: 
+216:             entity.HasKey(e => e.AssetId).HasName("PK__assets__D28B561D387209AB");
+217: 
+218:             entity.ToTable("assets");
+219: 
+220:             entity.HasIndex(e => e.AssetCode, "UQ__assets__89F020EB7838CE06").IsUnique();
+221: 
+222:             entity.HasIndex(e => new { e.BranchId, e.LifecycleStatus }, "assets_index_17");
+223: 
+224:             entity.HasIndex(e => e.SerialNumber, "assets_index_18");
+225: 
+226:             entity.Property(e => e.AssetId).HasColumnName("asset_id");
+227:             entity.Property(e => e.AcquisitionCost)
+240:                 .HasMaxLength(100)
+241:                 .HasColumnName("brand");
+242:             entity.Property(e => e.ConditionStatus)
+243:                 .HasMaxLength(40)
+244:                 .IsUnicode(false)
+245:                 .HasDefaultValue("GOOD")
+246:                 .HasColumnName("condition_status");
+247:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+248:             entity.Property(e => e.CurrentAreaId).HasColumnName("current_area_id");
+251:             entity.Property(e => e.CustodianUserId).HasColumnName("custodian_user_id");
+252:             entity.Property(e => e.Description).HasColumnName("description");
+253:             entity.Property(e => e.LifecycleStatus)
+254:                 .HasMaxLength(40)
+255:                 .IsUnicode(false)
+256:                 .HasDefaultValue("IN_USE")
+257:                 .HasColumnName("lifecycle_status");
+258:             entity.Property(e => e.Model)
+259:                 .HasMaxLength(100)
+267:             entity.Property(e => e.WarrantyExpiryDate).HasColumnName("warranty_expiry_date");
+268: 
+269:             entity.HasOne(d => d.AssetType).WithMany(p => p.Assets)
+270:                 .HasForeignKey(d => d.AssetTypeId)
+271:                 .OnDelete(DeleteBehavior.ClientSetNull)
+272:                 .HasConstraintName("FK_assets_asset_type_id");
+273: 
+274:             entity.HasOne(d => d.Branch).WithMany(p => p.Assets)
+275:                 .HasForeignKey(d => d.BranchId)
+276:                 .OnDelete(DeleteBehavior.ClientSetNull)
+277:                 .HasConstraintName("FK_assets_branch_id");
+278: 
+279:             entity.HasOne(d => d.CurrentArea).WithMany(p => p.Assets)
+280:                 .HasForeignKey(d => d.CurrentAreaId)
+281:                 .HasConstraintName("FK_assets_current_area_id");
+282: 
+283:             entity.HasOne(d => d.CurrentDepartment).WithMany(p => p.Assets)
+284:                 .HasForeignKey(d => d.CurrentDepartmentId)
+285:                 .HasConstraintName("FK_assets_current_department_id");
+286: 
+287:             entity.HasOne(d => d.CurrentRoom).WithMany(p => p.Assets)
+288:                 .HasForeignKey(d => d.CurrentRoomId)
+289:                 .HasConstraintName("FK_assets_current_room_id");
+290: 
+291:             entity.HasOne(d => d.CustodianUser).WithMany(p => p.Assets)
+292:                 .HasForeignKey(d => d.CustodianUserId)
+293:                 .HasConstraintName("FK_assets_custodian_user_id");
+294:         });
+295: 
+298:             entity.HasKey(e => e.ConditionHistoryId).HasName("PK__asset_co__323B4C70CB901C05");
+299: 
+300:             entity.ToTable("asset_condition_history");
+301: 
+302:             entity.Property(e => e.ConditionHistoryId).HasColumnName("condition_history_id");
+303:             entity.Property(e => e.AssetId).HasColumnName("asset_id");
+315:             entity.Property(e => e.RelatedIncidentId).HasColumnName("related_incident_id");
+316: 
+317:             entity.HasOne(d => d.Asset).WithMany(p => p.AssetConditionHistories)
+318:                 .HasForeignKey(d => d.AssetId)
+319:                 .OnDelete(DeleteBehavior.ClientSetNull)
+320:                 .HasConstraintName("FK_asset_condition_history_asset_id");
+321: 
+322:             entity.HasOne(d => d.ChangedByNavigation).WithMany(p => p.AssetConditionHistories)
+323:                 .HasForeignKey(d => d.ChangedBy)
+324:                 .OnDelete(DeleteBehavior.ClientSetNull)
+325:                 .HasConstraintName("FK_asset_condition_history_changed_by");
+326: 
+327:             entity.HasOne(d => d.RelatedIncident).WithMany(p => p.AssetConditionHistories)
+328:                 .HasForeignKey(d => d.RelatedIncidentId)
+329:                 .HasConstraintName("FK_asset_condition_history_related_incident_id");
+330:         });
+331: 
+334:             entity.HasKey(e => e.HandoverId).HasName("PK__asset_ha__67DDAEB220E57CA7");
+335: 
+336:             entity.ToTable("asset_handovers");
+337: 
+338:             entity.HasIndex(e => e.HandoverNo, "UQ__asset_ha__67DDC72F6A589925").IsUnique();
+339: 
+340:             entity.Property(e => e.HandoverId).HasColumnName("handover_id");
+341:             entity.Property(e => e.AcceptedAt).HasColumnName("accepted_at");
+351:                 .IsUnicode(false)
+352:                 .HasColumnName("handover_no");
+353:             entity.Property(e => e.HandoverStatus)
+354:                 .HasMaxLength(30)
+355:                 .IsUnicode(false)
+356:                 .HasDefaultValue("PENDING")
+357:                 .HasColumnName("handover_status");
+358:             entity.Property(e => e.ToDepartmentId).HasColumnName("to_department_id");
+359:             entity.Property(e => e.ToUserId).HasColumnName("to_user_id");
+360: 
+361:             entity.HasOne(d => d.Asset).WithMany(p => p.AssetHandovers)
+362:                 .HasForeignKey(d => d.AssetId)
+363:                 .OnDelete(DeleteBehavior.ClientSetNull)
+364:                 .HasConstraintName("FK_asset_handovers_asset_id");
+365: 
+366:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.AssetHandoverCreatedByNavigations)
+367:                 .HasForeignKey(d => d.CreatedBy)
+368:                 .OnDelete(DeleteBehavior.ClientSetNull)
+369:                 .HasConstraintName("FK_asset_handovers_created_by");
+370: 
+371:             entity.HasOne(d => d.FromDepartment).WithMany(p => p.AssetHandoverFromDepartments)
+372:                 .HasForeignKey(d => d.FromDepartmentId)
+373:                 .HasConstraintName("FK_asset_handovers_from_department_id");
+374: 
+375:             entity.HasOne(d => d.FromUser).WithMany(p => p.AssetHandoverFromUsers)
+376:                 .HasForeignKey(d => d.FromUserId)
+377:                 .HasConstraintName("FK_asset_handovers_from_user_id");
+378: 
+379:             entity.HasOne(d => d.ToDepartment).WithMany(p => p.AssetHandoverToDepartments)
+380:                 .HasForeignKey(d => d.ToDepartmentId)
+381:                 .HasConstraintName("FK_asset_handovers_to_department_id");
+382: 
+383:             entity.HasOne(d => d.ToUser).WithMany(p => p.AssetHandoverToUsers)
+384:                 .HasForeignKey(d => d.ToUserId)
+385:                 .HasConstraintName("FK_asset_handovers_to_user_id");
+386:         });
+387: 
+390:             entity.HasKey(e => e.LocationHistoryId).HasName("PK__asset_lo__BAC098A6C895733A");
+391: 
+392:             entity.ToTable("asset_location_history");
+393: 
+394:             entity.Property(e => e.LocationHistoryId).HasColumnName("location_history_id");
+395:             entity.Property(e => e.AssetId).HasColumnName("asset_id");
+408:                 .HasColumnName("to_location_type");
+409: 
+410:             entity.HasOne(d => d.Asset).WithMany(p => p.AssetLocationHistories)
+411:                 .HasForeignKey(d => d.AssetId)
+412:                 .OnDelete(DeleteBehavior.ClientSetNull)
+413:                 .HasConstraintName("FK_asset_location_history_asset_id");
+414: 
+415:             entity.HasOne(d => d.MovedByNavigation).WithMany(p => p.AssetLocationHistories)
+416:                 .HasForeignKey(d => d.MovedBy)
+417:                 .OnDelete(DeleteBehavior.ClientSetNull)
+418:                 .HasConstraintName("FK_asset_location_history_moved_by");
+419:         });
+423:             entity.HasKey(e => e.AssetTypeId).HasName("PK__asset_ty__95A1E2BC28853AF7");
+424: 
+425:             entity.ToTable("asset_types");
+426: 
+427:             entity.HasIndex(e => e.TypeCode, "UQ__asset_ty__2CB4DBF5DAD316F6").IsUnique();
+428: 
+429:             entity.Property(e => e.AssetTypeId).HasColumnName("asset_type_id");
+430:             entity.Property(e => e.Description).HasColumnName("description");
+431:             entity.Property(e => e.IsActive)
+432:                 .HasDefaultValue(true)
+433:                 .HasColumnName("is_active");
+434:             entity.Property(e => e.TypeCode)
+435:                 .HasMaxLength(40)
+445:             entity.HasKey(e => e.AttachmentId).HasName("PK__attachme__B74DF4E293C29C82");
+446: 
+447:             entity.ToTable("attachments");
+448: 
+449:             entity.HasIndex(e => new { e.EntityType, e.EntityId }, "attachments_index_44");
+450: 
+451:             entity.Property(e => e.AttachmentId).HasColumnName("attachment_id");
+452:             entity.Property(e => e.DeletedAt).HasColumnName("deleted_at");
+475:             entity.Property(e => e.UploadedBy).HasColumnName("uploaded_by");
+476: 
+477:             entity.HasOne(d => d.UploadedByNavigation).WithMany(p => p.Attachments)
+478:                 .HasForeignKey(d => d.UploadedBy)
+479:                 .OnDelete(DeleteBehavior.ClientSetNull)
+480:                 .HasConstraintName("FK_attachments_uploaded_by");
+481:         });
+485:             entity.HasKey(e => e.AuditId).HasName("PK__audit_lo__5AF33E333EAC675C");
+486: 
+487:             entity.ToTable("audit_logs");
+488: 
+489:             entity.HasIndex(e => new { e.EntityType, e.EntityId, e.OccurredAt }, "audit_logs_index_45");
+490: 
+491:             entity.HasIndex(e => new { e.ActorUserId, e.OccurredAt }, "audit_logs_index_46");
+492: 
+493:             entity.Property(e => e.AuditId).HasColumnName("audit_id");
+494:             entity.Property(e => e.Action)
+496:                 .IsUnicode(false)
+497:                 .HasColumnName("action");
+498:             entity.Property(e => e.ActorUserId).HasColumnName("actor_user_id");
+499:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+500:             entity.Property(e => e.ChangedFields).HasColumnName("changed_fields");
+501:             entity.Property(e => e.EntityId)
+520:             entity.Property(e => e.UserAgent).HasColumnName("user_agent");
+521: 
+522:             entity.HasOne(d => d.ActorUser).WithMany(p => p.AuditLogs)
+523:                 .HasForeignKey(d => d.ActorUserId)
+524:                 .HasConstraintName("FK_audit_logs_actor_user_id");
+525: 
+526:             entity.HasOne(d => d.Branch).WithMany(p => p.AuditLogs)
+527:                 .HasForeignKey(d => d.BranchId)
+528:                 .HasConstraintName("FK_audit_logs_branch_id");
+529:         });
+530: 
+533:             entity.HasKey(e => e.BranchId).HasName("PK__branches__E55E37DEE9AE3269");
+534: 
+535:             entity.ToTable("branches");
+536: 
+537:             entity.HasIndex(e => e.BranchCode, "UQ__branches__A9F83E3BF9DD6797").IsUnique();
+538: 
+539:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+540:             entity.Property(e => e.Address).HasColumnName("address");
+551:                 .IsUnicode(false)
+552:                 .HasColumnName("email");
+553:             entity.Property(e => e.IsActive)
+554:                 .HasDefaultValue(true)
+555:                 .HasColumnName("is_active");
+556:             entity.Property(e => e.Phone)
+557:                 .HasMaxLength(20)
+561:                 .HasMaxLength(60)
+562:                 .IsUnicode(false)
+563:                 .HasDefaultValue("Asia/Ho_Chi_Minh")
+564:                 .HasColumnName("timezone");
+565:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+566:         });
+570:             entity.HasKey(e => e.AssignmentId).HasName("PK__cleaning__DA89181490CF02ED");
+571: 
+572:             entity.ToTable("cleaning_assignments");
+573: 
+574:             entity.HasIndex(e => new { e.CleaningTaskId, e.AssignedAt }, "cleaning_assignments_index_8");
+575: 
+576:             entity.HasIndex(e => new { e.AssigneeUserId, e.AssignmentStatus }, "cleaning_assignments_index_9");
+577: 
+578:             entity.Property(e => e.AssignmentId).HasColumnName("assignment_id");
+579:             entity.Property(e => e.AssignedAt).HasColumnName("assigned_at");
+580:             entity.Property(e => e.AssignedBy).HasColumnName("assigned_by");
+581:             entity.Property(e => e.AssigneeUserId).HasColumnName("assignee_user_id");
+582:             entity.Property(e => e.AssignmentStatus)
+583:                 .HasMaxLength(30)
+584:                 .IsUnicode(false)
+585:                 .HasDefaultValue("ACTIVE")
+586:                 .HasColumnName("assignment_status");
+587:             entity.Property(e => e.CleaningTaskId).HasColumnName("cleaning_task_id");
+588:             entity.Property(e => e.EndedAt).HasColumnName("ended_at");
+589:             entity.Property(e => e.Reason).HasColumnName("reason");
+590: 
+591:             entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.CleaningAssignmentAssignedByNavigations)
+592:                 .HasForeignKey(d => d.AssignedBy)
+593:                 .OnDelete(DeleteBehavior.ClientSetNull)
+594:                 .HasConstraintName("FK_cleaning_assignments_assigned_by");
+595: 
+596:             entity.HasOne(d => d.AssigneeUser).WithMany(p => p.CleaningAssignmentAssigneeUsers)
+597:                 .HasForeignKey(d => d.AssigneeUserId)
+598:                 .OnDelete(DeleteBehavior.ClientSetNull)
+599:                 .HasConstraintName("FK_cleaning_assignments_assignee_user_id");
+600: 
+601:             entity.HasOne(d => d.CleaningTask).WithMany(p => p.CleaningAssignments)
+602:                 .HasForeignKey(d => d.CleaningTaskId)
+603:                 .OnDelete(DeleteBehavior.ClientSetNull)
+604:                 .HasConstraintName("FK_cleaning_assignments_cleaning_task_id");
+605:         });
+609:             entity.HasKey(e => e.ProgressId).HasName("PK__cleaning__49B3D8C18015562F");
+610: 
+611:             entity.ToTable("cleaning_progress_logs");
+612: 
+613:             entity.Property(e => e.ProgressId).HasColumnName("progress_id");
+614:             entity.Property(e => e.BlockerTypeId).HasColumnName("blocker_type_id");
+618:             entity.Property(e => e.Note).HasColumnName("note");
+619:             entity.Property(e => e.ProgressPercent).HasColumnName("progress_percent");
+620:             entity.Property(e => e.Status)
+621:                 .HasMaxLength(30)
+622:                 .IsUnicode(false)
+623:                 .HasColumnName("status");
+624: 
+625:             entity.HasOne(d => d.BlockerType).WithMany(p => p.CleaningProgressLogs)
+626:                 .HasForeignKey(d => d.BlockerTypeId)
+627:                 .HasConstraintName("FK_cleaning_progress_logs_blocker_type_id");
+628: 
+629:             entity.HasOne(d => d.CleaningTask).WithMany(p => p.CleaningProgressLogs)
+630:                 .HasForeignKey(d => d.CleaningTaskId)
+631:                 .OnDelete(DeleteBehavior.ClientSetNull)
+632:                 .HasConstraintName("FK_cleaning_progress_logs_cleaning_task_id");
+633: 
+634:             entity.HasOne(d => d.LoggedByNavigation).WithMany(p => p.CleaningProgressLogs)
+635:                 .HasForeignKey(d => d.LoggedBy)
+636:                 .OnDelete(DeleteBehavior.ClientSetNull)
+637:                 .HasConstraintName("FK_cleaning_progress_logs_logged_by");
+638:         });
+642:             entity.HasKey(e => e.ReworkId).HasName("PK__cleaning__E97779ADA0ACCDC3");
+643: 
+644:             entity.ToTable("cleaning_reworks");
+645: 
+646:             entity.Property(e => e.ReworkId).HasColumnName("rework_id");
+647:             entity.Property(e => e.AssigneeUserId).HasColumnName("assignee_user_id");
+648:             entity.Property(e => e.CleaningTaskId).HasColumnName("cleaning_task_id");
+649:             entity.Property(e => e.CompletedAt).HasColumnName("completed_at");
+650:             entity.Property(e => e.InspectionId).HasColumnName("inspection_id");
+652:             entity.Property(e => e.Reason).HasColumnName("reason");
+653:             entity.Property(e => e.RequestedAt).HasColumnName("requested_at");
+654:             entity.Property(e => e.Status)
+655:                 .HasMaxLength(30)
+656:                 .IsUnicode(false)
+657:                 .HasDefaultValue("PENDING")
+658:                 .HasColumnName("status");
+659: 
+660:             entity.HasOne(d => d.AssigneeUser).WithMany(p => p.CleaningReworks)
+661:                 .HasForeignKey(d => d.AssigneeUserId)
+662:                 .HasConstraintName("FK_cleaning_reworks_assignee_user_id");
+663: 
+664:             entity.HasOne(d => d.CleaningTask).WithMany(p => p.CleaningReworks)
+665:                 .HasForeignKey(d => d.CleaningTaskId)
+666:                 .OnDelete(DeleteBehavior.ClientSetNull)
+667:                 .HasConstraintName("FK_cleaning_reworks_cleaning_task_id");
+668: 
+669:             entity.HasOne(d => d.Inspection).WithMany(p => p.CleaningReworks)
+670:                 .HasForeignKey(d => d.InspectionId)
+671:                 .OnDelete(DeleteBehavior.ClientSetNull)
+672:                 .HasConstraintName("FK_cleaning_reworks_inspection_id");
+673:         });
+677:             entity.HasKey(e => e.CleaningTaskId).HasName("PK__cleaning__F39385631C58DB4E");
+678: 
+679:             entity.ToTable("cleaning_tasks");
+680: 
+681:             entity.HasIndex(e => e.TaskNo, "UQ__cleaning__04924C1399B9F5DA").IsUnique();
+682: 
+683:             entity.HasIndex(e => new { e.RoomId, e.Status }, "cleaning_tasks_index_6");
+684: 
+685:             entity.HasIndex(e => e.DueAt, "cleaning_tasks_index_7");
+686: 
+687:             entity.Property(e => e.CleaningTaskId).HasColumnName("cleaning_task_id");
+688:             entity.Property(e => e.ActualEndAt).HasColumnName("actual_end_at");
+697:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+698:             entity.Property(e => e.ScheduledStartAt).HasColumnName("scheduled_start_at");
+699:             entity.Property(e => e.Status)
+700:                 .HasMaxLength(40)
+701:                 .IsUnicode(false)
+702:                 .HasDefaultValue("PENDING")
+703:                 .HasColumnName("status");
+704:             entity.Property(e => e.TaskNo)
+705:                 .HasMaxLength(40)
+708:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+709: 
+710:             entity.HasOne(d => d.CleaningType).WithMany(p => p.CleaningTaskCleaningTypes)
+711:                 .HasForeignKey(d => d.CleaningTypeId)
+712:                 .OnDelete(DeleteBehavior.ClientSetNull)
+713:                 .HasConstraintName("FK_cleaning_tasks_cleaning_type_id");
+714: 
+715:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.CleaningTasks)
+716:                 .HasForeignKey(d => d.CreatedBy)
+717:                 .OnDelete(DeleteBehavior.ClientSetNull)
+718:                 .HasConstraintName("FK_cleaning_tasks_created_by");
+719: 
+720:             entity.HasOne(d => d.Priority).WithMany(p => p.CleaningTaskPriorities)
+721:                 .HasForeignKey(d => d.PriorityId)
+722:                 .HasConstraintName("FK_cleaning_tasks_priority_id");
+723: 
+724:             entity.HasOne(d => d.Room).WithMany(p => p.CleaningTasks)
+725:                 .HasForeignKey(d => d.RoomId)
+726:                 .OnDelete(DeleteBehavior.ClientSetNull)
+727:                 .HasConstraintName("FK_cleaning_tasks_room_id");
+728:         });
+732:             entity.HasKey(e => e.DepartmentId).HasName("PK__departme__C22324222C79F96D");
+733: 
+734:             entity.ToTable("departments");
+735: 
+736:             entity.HasIndex(e => new { e.BranchId, e.DepartmentCode }, "departments_index_4").IsUnique();
+737: 
+738:             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+739:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+745:                 .HasMaxLength(150)
+746:                 .HasColumnName("department_name");
+747:             entity.Property(e => e.IsActive)
+748:                 .HasDefaultValue(true)
+749:                 .HasColumnName("is_active");
+750:             entity.Property(e => e.ManagerUserId).HasColumnName("manager_user_id");
+751:             entity.Property(e => e.ScopeDescription).HasColumnName("scope_description");
+752: 
+753:             entity.HasOne(d => d.Branch).WithMany(p => p.Departments)
+754:                 .HasForeignKey(d => d.BranchId)
+755:                 .OnDelete(DeleteBehavior.ClientSetNull)
+756:                 .HasConstraintName("FK_departments_branch_id");
+757: 
+758:             entity.HasOne(d => d.ManagerUser).WithMany(p => p.Departments)
+759:                 .HasForeignKey(d => d.ManagerUserId)
+760:                 .HasConstraintName("FK_departments_manager_user_id");
+761:         });
+762: 
+765:             entity.HasKey(e => e.FloorId).HasName("PK__floors__76040CCC6D1AD281");
+766: 
+767:             entity.ToTable("floors");
+768: 
+769:             entity.HasIndex(e => new { e.BranchId, e.FloorCode }, "floors_index_0").IsUnique();
+770: 
+771:             entity.Property(e => e.FloorId).HasColumnName("floor_id");
+772:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+780:                 .HasColumnName("floor_name");
+781:             entity.Property(e => e.FloorNumber).HasColumnName("floor_number");
+782:             entity.Property(e => e.IsActive)
+783:                 .HasDefaultValue(true)
+784:                 .HasColumnName("is_active");
+785: 
+786:             entity.HasOne(d => d.Branch).WithMany(p => p.Floors)
+787:                 .HasForeignKey(d => d.BranchId)
+788:                 .OnDelete(DeleteBehavior.ClientSetNull)
+789:                 .HasConstraintName("FK_floors_branch_id");
+790:         });
+794:             entity.HasKey(e => e.IncidentId).HasName("PK__incident__E6C40DA303F8965B");
+795: 
+796:             entity.ToTable("incidents");
+797: 
+798:             entity.HasIndex(e => e.IncidentNo, "UQ__incident__E6C4CAB931AE8E72").IsUnique();
+799: 
+800:             entity.HasIndex(e => new { e.BranchId, e.Status }, "incidents_index_14");
+801: 
+802:             entity.HasIndex(e => new { e.RoomId, e.ReportedAt }, "incidents_index_15");
+803: 
+804:             entity.Property(e => e.IncidentId).HasColumnName("incident_id");
+805:             entity.Property(e => e.AreaId).HasColumnName("area_id");
+823:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+824:             entity.Property(e => e.SeverityId).HasColumnName("severity_id");
+825:             entity.Property(e => e.Status)
+826:                 .HasMaxLength(40)
+827:                 .IsUnicode(false)
+828:                 .HasDefaultValue("OPEN")
+829:                 .HasColumnName("status");
+830: 
+831:             entity.HasOne(d => d.Area).WithMany(p => p.Incidents)
+832:                 .HasForeignKey(d => d.AreaId)
+833:                 .HasConstraintName("FK_incidents_area_id");
+834: 
+835:             entity.HasOne(d => d.Asset).WithMany(p => p.Incidents)
+836:                 .HasForeignKey(d => d.AssetId)
+837:                 .HasConstraintName("FK_incidents_asset_id");
+838: 
+839:             entity.HasOne(d => d.Branch).WithMany(p => p.Incidents)
+840:                 .HasForeignKey(d => d.BranchId)
+841:                 .OnDelete(DeleteBehavior.ClientSetNull)
+842:                 .HasConstraintName("FK_incidents_branch_id");
+843: 
+844:             entity.HasOne(d => d.Priority).WithMany(p => p.IncidentPriorities)
+845:                 .HasForeignKey(d => d.PriorityId)
+846:                 .HasConstraintName("FK_incidents_priority_id");
+847: 
+848:             entity.HasOne(d => d.ReportedByNavigation).WithMany(p => p.Incidents)
+849:                 .HasForeignKey(d => d.ReportedBy)
+850:                 .OnDelete(DeleteBehavior.ClientSetNull)
+851:                 .HasConstraintName("FK_incidents_reported_by");
+852: 
+853:             entity.HasOne(d => d.Room).WithMany(p => p.Incidents)
+854:                 .HasForeignKey(d => d.RoomId)
+855:                 .HasConstraintName("FK_incidents_room_id");
+856: 
+857:             entity.HasOne(d => d.Severity).WithMany(p => p.IncidentSeverities)
+858:                 .HasForeignKey(d => d.SeverityId)
+859:                 .HasConstraintName("FK_incidents_severity_id");
+860:         });
+861: 
+864:             entity.HasKey(e => e.EventId).HasName("PK__incident__2370F7271C2FD394");
+865: 
+866:             entity.ToTable("incident_events");
+867: 
+868:             entity.Property(e => e.EventId).HasColumnName("event_id");
+869:             entity.Property(e => e.ActorId).HasColumnName("actor_id");
+870:             entity.Property(e => e.EventType)
+871:                 .HasMaxLength(50)
+872:                 .IsUnicode(false)
+873:                 .HasColumnName("event_type");
+874:             entity.Property(e => e.FromStatus)
+875:                 .HasMaxLength(40)
+876:                 .IsUnicode(false)
+877:                 .HasColumnName("from_status");
+879:             entity.Property(e => e.Note).HasColumnName("note");
+880:             entity.Property(e => e.OccurredAt).HasColumnName("occurred_at");
+881:             entity.Property(e => e.ToStatus)
+882:                 .HasMaxLength(40)
+883:                 .IsUnicode(false)
+884:                 .HasColumnName("to_status");
+885: 
+886:             entity.HasOne(d => d.Actor).WithMany(p => p.IncidentEvents)
+887:                 .HasForeignKey(d => d.ActorId)
+888:                 .OnDelete(DeleteBehavior.ClientSetNull)
+889:                 .HasConstraintName("FK_incident_events_actor_id");
+890: 
+891:             entity.HasOne(d => d.Incident).WithMany(p => p.IncidentEvents)
+892:                 .HasForeignKey(d => d.IncidentId)
+893:                 .OnDelete(DeleteBehavior.ClientSetNull)
+894:                 .HasConstraintName("FK_incident_events_incident_id");
+895:         });
+899:             entity.HasKey(e => e.ChecklistId).HasName("PK__inspecti__23C471C51E5CCF3E");
+900: 
+901:             entity.ToTable("inspection_checklists");
+902: 
+903:             entity.HasIndex(e => e.ChecklistCode, "UQ__inspecti__9D02AD0D94E8AC49").IsUnique();
+904: 
+905:             entity.Property(e => e.ChecklistId).HasColumnName("checklist_id");
+906:             entity.Property(e => e.ChecklistCode)
+914:             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+915:             entity.Property(e => e.Description).HasColumnName("description");
+916:             entity.Property(e => e.IsActive)
+917:                 .HasDefaultValue(true)
+918:                 .HasColumnName("is_active");
+919:             entity.Property(e => e.RoomTypeId).HasColumnName("room_type_id");
+920: 
+921:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.InspectionChecklists)
+922:                 .HasForeignKey(d => d.CreatedBy)
+923:                 .HasConstraintName("FK_inspection_checklists_created_by");
+924: 
+925:             entity.HasOne(d => d.RoomType).WithMany(p => p.InspectionChecklists)
+926:                 .HasForeignKey(d => d.RoomTypeId)
+927:                 .HasConstraintName("FK_inspection_checklists_room_type_id");
+928:         });
+929: 
+932:             entity.HasKey(e => e.ItemId).HasName("PK__inspecti__52020FDD7BA0BD49");
+933: 
+934:             entity.ToTable("inspection_checklist_items");
+935: 
+936:             entity.Property(e => e.ItemId).HasColumnName("item_id");
+937:             entity.Property(e => e.Criterion)
+939:                 .HasColumnName("criterion");
+940:             entity.Property(e => e.Description).HasColumnName("description");
+941:             entity.Property(e => e.IsActive)
+942:                 .HasDefaultValue(true)
+943:                 .HasColumnName("is_active");
+944:             entity.Property(e => e.IsRequired)
+945:                 .HasDefaultValue(true)
+946:                 .HasColumnName("is_required");
+947:             entity.Property(e => e.PassCondition).HasColumnName("pass_condition");
+948:             entity.Property(e => e.SortOrder).HasColumnName("sort_order");
+949:             entity.Property(e => e.VersionId).HasColumnName("version_id");
+950: 
+951:             entity.HasOne(d => d.Version).WithMany(p => p.InspectionChecklistItems)
+952:                 .HasForeignKey(d => d.VersionId)
+953:                 .OnDelete(DeleteBehavior.ClientSetNull)
+954:                 .HasConstraintName("FK_inspection_checklist_items_version_id");
+955:         });
+959:             entity.HasKey(e => e.VersionId).HasName("PK__inspecti__07A58869B7892627");
+960: 
+961:             entity.ToTable("inspection_checklist_versions");
+962: 
+963:             entity.HasIndex(e => new { e.ChecklistId, e.VersionNo }, "inspection_checklist_versions_index_11").IsUnique();
+964: 
+965:             entity.Property(e => e.VersionId).HasColumnName("version_id");
+966:             entity.Property(e => e.ChecklistId).HasColumnName("checklist_id");
+967:             entity.Property(e => e.EffectiveAt).HasColumnName("effective_at");
+968:             entity.Property(e => e.PublishedBy).HasColumnName("published_by");
+969:             entity.Property(e => e.Status)
+970:                 .HasMaxLength(30)
+971:                 .IsUnicode(false)
+972:                 .HasDefaultValue("DRAFT")
+973:                 .HasColumnName("status");
+974:             entity.Property(e => e.VersionNo).HasColumnName("version_no");
+975: 
+976:             entity.HasOne(d => d.Checklist).WithMany(p => p.InspectionChecklistVersions)
+977:                 .HasForeignKey(d => d.ChecklistId)
+978:                 .OnDelete(DeleteBehavior.ClientSetNull)
+979:                 .HasConstraintName("FK_inspection_checklist_versions_checklist_id");
+980: 
+981:             entity.HasOne(d => d.PublishedByNavigation).WithMany(p => p.InspectionChecklistVersions)
+982:                 .HasForeignKey(d => d.PublishedBy)
+983:                 .HasConstraintName("FK_inspection_checklist_versions_published_by");
+984:         });
+985: 
+988:             entity.HasKey(e => e.DefectId).HasName("PK__inspecti__A64C624BCA677D9F");
+989: 
+990:             entity.ToTable("inspection_defects");
+991: 
+992:             entity.Property(e => e.DefectId).HasColumnName("defect_id");
+993:             entity.Property(e => e.AssignedTo).HasColumnName("assigned_to");
+999:             entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+1000:             entity.Property(e => e.SeverityId).HasColumnName("severity_id");
+1001:             entity.Property(e => e.Status)
+1002:                 .HasMaxLength(30)
+1003:                 .IsUnicode(false)
+1004:                 .HasDefaultValue("OPEN")
+1005:                 .HasColumnName("status");
+1006: 
+1007:             entity.HasOne(d => d.AssignedToNavigation).WithMany(p => p.InspectionDefects)
+1008:                 .HasForeignKey(d => d.AssignedTo)
+1009:                 .HasConstraintName("FK_inspection_defects_assigned_to");
+1010: 
+1011:             entity.HasOne(d => d.ChecklistItem).WithMany(p => p.InspectionDefects)
+1012:                 .HasForeignKey(d => d.ChecklistItemId)
+1013:                 .HasConstraintName("FK_inspection_defects_checklist_item_id");
+1014: 
+1015:             entity.HasOne(d => d.Inspection).WithMany(p => p.InspectionDefects)
+1016:                 .HasForeignKey(d => d.InspectionId)
+1017:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1018:                 .HasConstraintName("FK_inspection_defects_inspection_id");
+1019: 
+1020:             entity.HasOne(d => d.Severity).WithMany(p => p.InspectionDefects)
+1021:                 .HasForeignKey(d => d.SeverityId)
+1022:                 .HasConstraintName("FK_inspection_defects_severity_id");
+1023:         });
+1024: 
+1025:         modelBuilder.Entity<InspectionResult>(entity =>
+1026:         {
+1027:             entity.HasKey(e => e.ResultId).HasName("PK__inspecti__AFB3C3163662A858");
+1028: 
+1029:             entity.ToTable("inspection_results");
+1030: 
+1031:             entity.HasIndex(e => new { e.InspectionId, e.ChecklistItemId }, "inspection_results_index_13").IsUnique();
+1032: 
+1033:             entity.Property(e => e.ResultId).HasColumnName("result_id");
+1034:             entity.Property(e => e.ChecklistItemId).HasColumnName("checklist_item_id");
+1035:             entity.Property(e => e.InspectedAt).HasColumnName("inspected_at");
+1036:             entity.Property(e => e.InspectionId).HasColumnName("inspection_id");
+1041:                 .HasColumnName("outcome");
+1042: 
+1043:             entity.HasOne(d => d.ChecklistItem).WithMany(p => p.InspectionResults)
+1044:                 .HasForeignKey(d => d.ChecklistItemId)
+1045:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1046:                 .HasConstraintName("FK_inspection_results_checklist_item_id");
+1047: 
+1048:             entity.HasOne(d => d.Inspection).WithMany(p => p.InspectionResults)
+1049:                 .HasForeignKey(d => d.InspectionId)
+1050:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1051:                 .HasConstraintName("FK_inspection_results_inspection_id");
+1052:         });
+1056:             entity.HasKey(e => e.InternalRequestId).HasName("PK__internal__90426592DE26A97D");
+1057: 
+1058:             entity.ToTable("internal_requests");
+1059: 
+1060:             entity.HasIndex(e => e.RequestNo, "UQ__internal__18D3F2FD6C64CCEB").IsUnique();
+1061: 
+1062:             entity.HasIndex(e => new { e.BranchId, e.Status }, "internal_requests_index_30");
+1063: 
+1064:             entity.HasIndex(e => new { e.ReceivingDepartmentId, e.DueAt }, "internal_requests_index_31");
+1065: 
+1066:             entity.Property(e => e.InternalRequestId).HasColumnName("internal_request_id");
+1067:             entity.Property(e => e.AreaId).HasColumnName("area_id");
+1083:             entity.Property(e => e.RequesterDepartmentId).HasColumnName("requester_department_id");
+1084:             entity.Property(e => e.RequesterId).HasColumnName("requester_id");
+1085:             entity.Property(e => e.RequiredAt).HasColumnName("required_at");
+1086:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+1087:             entity.Property(e => e.Status)
+1088:                 .HasMaxLength(40)
+1089:                 .IsUnicode(false)
+1090:                 .HasDefaultValue("DRAFT")
+1091:                 .HasColumnName("status");
+1092:             entity.Property(e => e.Subject)
+1093:                 .HasMaxLength(200)
+1096:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+1097: 
+1098:             entity.HasOne(d => d.Area).WithMany(p => p.InternalRequests)
+1099:                 .HasForeignKey(d => d.AreaId)
+1100:                 .HasConstraintName("FK_internal_requests_area_id");
+1101: 
+1102:             entity.HasOne(d => d.Branch).WithMany(p => p.InternalRequests)
+1103:                 .HasForeignKey(d => d.BranchId)
+1104:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1105:                 .HasConstraintName("FK_internal_requests_branch_id");
+1106: 
+1107:             entity.HasOne(d => d.Priority).WithMany(p => p.InternalRequests)
+1108:                 .HasForeignKey(d => d.PriorityId)
+1109:                 .HasConstraintName("FK_internal_requests_priority_id");
+1110: 
+1111:             entity.HasOne(d => d.ReceivingDepartment).WithMany(p => p.InternalRequestReceivingDepartments)
+1112:                 .HasForeignKey(d => d.ReceivingDepartmentId)
+1113:                 .HasConstraintName("FK_internal_requests_receiving_department_id");
+1114: 
+1115:             entity.HasOne(d => d.RelatedIncident).WithMany(p => p.InternalRequests)
+1116:                 .HasForeignKey(d => d.RelatedIncidentId)
+1117:                 .HasConstraintName("FK_internal_requests_related_incident_id");
+1118: 
+1119:             entity.HasOne(d => d.RequestType).WithMany(p => p.InternalRequests)
+1120:                 .HasForeignKey(d => d.RequestTypeId)
+1121:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1122:                 .HasConstraintName("FK_internal_requests_request_type_id");
+1123: 
+1124:             entity.HasOne(d => d.RequesterDepartment).WithMany(p => p.InternalRequestRequesterDepartments)
+1125:                 .HasForeignKey(d => d.RequesterDepartmentId)
+1126:                 .HasConstraintName("FK_internal_requests_requester_department_id");
+1127: 
+1128:             entity.HasOne(d => d.Requester).WithMany(p => p.InternalRequests)
+1129:                 .HasForeignKey(d => d.RequesterId)
+1130:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1131:                 .HasConstraintName("FK_internal_requests_requester_id");
+1132: 
+1133:             entity.HasOne(d => d.Room).WithMany(p => p.InternalRequests)
+1134:                 .HasForeignKey(d => d.RoomId)
+1135:                 .HasConstraintName("FK_internal_requests_room_id");
+1136:         });
+1137: 
+1140:             entity.HasKey(e => e.AssignmentId).HasName("PK__internal__DA8918148588E79A");
+1141: 
+1142:             entity.ToTable("internal_request_assignments");
+1143: 
+1144:             entity.Property(e => e.AssignmentId).HasColumnName("assignment_id");
+1145:             entity.Property(e => e.AssignedAt).HasColumnName("assigned_at");
+1146:             entity.Property(e => e.AssignedBy).HasColumnName("assigned_by");
+1147:             entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
+1148:             entity.Property(e => e.AssignmentNote).HasColumnName("assignment_note");
+1149:             entity.Property(e => e.EndedAt).HasColumnName("ended_at");
+1150:             entity.Property(e => e.InternalRequestId).HasColumnName("internal_request_id");
+1151:             entity.Property(e => e.Status)
+1152:                 .HasMaxLength(30)
+1153:                 .IsUnicode(false)
+1154:                 .HasDefaultValue("ACTIVE")
+1155:                 .HasColumnName("status");
+1156: 
+1157:             entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.InternalRequestAssignmentAssignedByNavigations)
+1158:                 .HasForeignKey(d => d.AssignedBy)
+1159:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1160:                 .HasConstraintName("FK_internal_request_assignments_assigned_by");
+1161: 
+1162:             entity.HasOne(d => d.Assignee).WithMany(p => p.InternalRequestAssignmentAssignees)
+1163:                 .HasForeignKey(d => d.AssigneeId)
+1164:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1165:                 .HasConstraintName("FK_internal_request_assignments_assignee_id");
+1166: 
+1167:             entity.HasOne(d => d.InternalRequest).WithMany(p => p.InternalRequestAssignments)
+1168:                 .HasForeignKey(d => d.InternalRequestId)
+1169:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1170:                 .HasConstraintName("FK_internal_request_assignments_internal_request_id");
+1171:         });
+1175:             entity.HasKey(e => e.EventId).HasName("PK__internal__2370F727D3FBF309");
+1176: 
+1177:             entity.ToTable("internal_request_events");
+1178: 
+1179:             entity.HasIndex(e => new { e.InternalRequestId, e.OccurredAt }, "internal_request_events_index_32");
+1180: 
+1181:             entity.Property(e => e.EventId).HasColumnName("event_id");
+1182:             entity.Property(e => e.ActorId).HasColumnName("actor_id");
+1183:             entity.Property(e => e.EventNote).HasColumnName("event_note");
+1184:             entity.Property(e => e.EventType)
+1185:                 .HasMaxLength(50)
+1187:                 .HasColumnName("event_type");
+1188:             entity.Property(e => e.InternalRequestId).HasColumnName("internal_request_id");
+1189:             entity.Property(e => e.NewStatus)
+1190:                 .HasMaxLength(40)
+1191:                 .IsUnicode(false)
+1192:                 .HasColumnName("new_status");
+1193:             entity.Property(e => e.OccurredAt).HasColumnName("occurred_at");
+1194:             entity.Property(e => e.OldStatus)
+1195:                 .HasMaxLength(40)
+1196:                 .IsUnicode(false)
+1197:                 .HasColumnName("old_status");
+1198: 
+1199:             entity.HasOne(d => d.Actor).WithMany(p => p.InternalRequestEvents)
+1200:                 .HasForeignKey(d => d.ActorId)
+1201:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1202:                 .HasConstraintName("FK_internal_request_events_actor_id");
+1203: 
+1204:             entity.HasOne(d => d.InternalRequest).WithMany(p => p.InternalRequestEvents)
+1205:                 .HasForeignKey(d => d.InternalRequestId)
+1206:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1207:                 .HasConstraintName("FK_internal_request_events_internal_request_id");
+1208:         });
+1212:             entity.HasKey(e => e.FeedbackId).HasName("PK__internal__7A6B2B8C2BE718BE");
+1213: 
+1214:             entity.ToTable("internal_request_feedback");
+1215: 
+1216:             entity.HasIndex(e => e.InternalRequestId, "UQ__internal__904265932A5DB880").IsUnique();
+1217: 
+1218:             entity.Property(e => e.FeedbackId).HasColumnName("feedback_id");
+1219:             entity.Property(e => e.Comment).HasColumnName("comment");
+1224:             entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
+1225: 
+1226:             entity.HasOne(d => d.InternalRequest).WithOne(p => p.InternalRequestFeedback)
+1227:                 .HasForeignKey<InternalRequestFeedback>(d => d.InternalRequestId)
+1228:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1229:                 .HasConstraintName("FK_internal_request_feedback_internal_request_id");
+1230: 
+1231:             entity.HasOne(d => d.SubmittedByNavigation).WithMany(p => p.InternalRequestFeedbacks)
+1232:                 .HasForeignKey(d => d.SubmittedBy)
+1233:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1234:                 .HasConstraintName("FK_internal_request_feedback_submitted_by");
+1235:         });
+1239:             entity.HasKey(e => e.RequestTypeId).HasName("PK__internal__C24DD950755EBFD6");
+1240: 
+1241:             entity.ToTable("internal_request_types");
+1242: 
+1243:             entity.HasIndex(e => e.TypeCode, "UQ__internal__2CB4DBF53EDB381B").IsUnique();
+1244: 
+1245:             entity.Property(e => e.RequestTypeId).HasColumnName("request_type_id");
+1246:             entity.Property(e => e.DefaultDepartmentId).HasColumnName("default_department_id");
+1247:             entity.Property(e => e.DefaultPriorityId).HasColumnName("default_priority_id");
+1248:             entity.Property(e => e.Description).HasColumnName("description");
+1249:             entity.Property(e => e.IsActive)
+1250:                 .HasDefaultValue(true)
+1251:                 .HasColumnName("is_active");
+1252:             entity.Property(e => e.SlaMinutes).HasColumnName("sla_minutes");
+1253:             entity.Property(e => e.TypeCode)
+1259:                 .HasColumnName("type_name");
+1260: 
+1261:             entity.HasOne(d => d.DefaultDepartment).WithMany(p => p.InternalRequestTypes)
+1262:                 .HasForeignKey(d => d.DefaultDepartmentId)
+1263:                 .HasConstraintName("FK_internal_request_types_default_department_id");
+1264: 
+1265:             entity.HasOne(d => d.DefaultPriority).WithMany(p => p.InternalRequestTypes)
+1266:                 .HasForeignKey(d => d.DefaultPriorityId)
+1267:                 .HasConstraintName("FK_internal_request_types_default_priority_id");
+1268:         });
+1269: 
+1277:                 .HasColumnName("row_version");
+1278: 
+1279:             entity.ToTable("inventory_items");
+1280: 
+1281:             entity.HasIndex(e => e.ItemCode, "UQ__inventor__4A67201E314B119B").IsUnique();
+1282: 
+1283:             entity.Property(e => e.ItemId).HasColumnName("item_id");
+1284:             entity.Property(e => e.BaseUomId).HasColumnName("base_uom_id");
+1286:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+1287:             entity.Property(e => e.Description).HasColumnName("description");
+1288:             entity.Property(e => e.IsActive)
+1289:                 .HasDefaultValue(true)
+1290:                 .HasColumnName("is_active");
+1291:             entity.Property(e => e.IsConsumable)
+1292:                 .HasDefaultValue(true)
+1293:                 .HasColumnName("is_consumable");
+1294:             entity.Property(e => e.ItemCode)
+1295:                 .HasMaxLength(50)
+1302:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+1303: 
+1304:             entity.HasOne(d => d.BaseUom).WithMany(p => p.InventoryItems)
+1305:                 .HasForeignKey(d => d.BaseUomId)
+1306:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1307:                 .HasConstraintName("FK_inventory_items_base_uom_id");
+1308: 
+1309:             entity.HasOne(d => d.Category).WithMany(p => p.InventoryItems)
+1310:                 .HasForeignKey(d => d.CategoryId)
+1311:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1312:                 .HasConstraintName("FK_inventory_items_category_id");
+1313:         });
+1317:             entity.HasKey(e => e.ItemCategoryId).HasName("PK__item_cat__34A91ACABB9080B1");
+1318: 
+1319:             entity.ToTable("item_categories");
+1320: 
+1321:             entity.HasIndex(e => e.CategoryCode, "UQ__item_cat__BC9D1E7CF1786C61").IsUnique();
+1322: 
+1323:             entity.Property(e => e.ItemCategoryId).HasColumnName("item_category_id");
+1324:             entity.Property(e => e.CategoryCode)
+1330:                 .HasColumnName("category_name");
+1331:             entity.Property(e => e.Description).HasColumnName("description");
+1332:             entity.Property(e => e.IsActive)
+1333:                 .HasDefaultValue(true)
+1334:                 .HasColumnName("is_active");
+1335:         });
+1336: 
+1339:             entity.HasKey(e => e.MaintenanceWorkId).HasName("PK__maintena__84CE6E3DB00E3DB9");
+1340: 
+1341:             entity.ToTable("maintenance_works");
+1342: 
+1343:             entity.HasIndex(e => e.WorkNo, "UQ__maintena__110E7BE92B5AEEB7").IsUnique();
+1344: 
+1345:             entity.Property(e => e.MaintenanceWorkId).HasColumnName("maintenance_work_id");
+1346:             entity.Property(e => e.ActualStartAt).HasColumnName("actual_start_at");
+1347:             entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
+1348:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+1349:             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+1350:             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+1358:             entity.Property(e => e.ReviewedAt).HasColumnName("reviewed_at");
+1359:             entity.Property(e => e.ReviewedBy).HasColumnName("reviewed_by");
+1360:             entity.Property(e => e.Status)
+1361:                 .HasMaxLength(40)
+1362:                 .IsUnicode(false)
+1363:                 .HasDefaultValue("PENDING")
+1364:                 .HasColumnName("status");
+1365:             entity.Property(e => e.Title)
+1366:                 .HasMaxLength(200)
+1371:                 .HasColumnName("work_no");
+1372: 
+1373:             entity.HasOne(d => d.Assignee).WithMany(p => p.MaintenanceWorkAssignees)
+1374:                 .HasForeignKey(d => d.AssigneeId)
+1375:                 .HasConstraintName("FK_maintenance_works_assignee_id");
+1376: 
+1377:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.MaintenanceWorkCreatedByNavigations)
+1378:                 .HasForeignKey(d => d.CreatedBy)
+1379:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1380:                 .HasConstraintName("FK_maintenance_works_created_by");
+1381: 
+1382:             entity.HasOne(d => d.Department).WithMany(p => p.MaintenanceWorks)
+1383:                 .HasForeignKey(d => d.DepartmentId)
+1384:                 .HasConstraintName("FK_maintenance_works_department_id");
+1385: 
+1386:             entity.HasOne(d => d.Incident).WithMany(p => p.MaintenanceWorks)
+1387:                 .HasForeignKey(d => d.IncidentId)
+1388:                 .HasConstraintName("FK_maintenance_works_incident_id");
+1389: 
+1390:             entity.HasOne(d => d.Priority).WithMany(p => p.MaintenanceWorks)
+1391:                 .HasForeignKey(d => d.PriorityId)
+1392:                 .HasConstraintName("FK_maintenance_works_priority_id");
+1393: 
+1394:             entity.HasOne(d => d.ReviewedByNavigation).WithMany(p => p.MaintenanceWorkReviewedByNavigations)
+1395:                 .HasForeignKey(d => d.ReviewedBy)
+1396:                 .HasConstraintName("FK_maintenance_works_reviewed_by");
+1397:         });
+1398: 
+1401:             entity.HasKey(e => e.LogId).HasName("PK__maintena__9E2397E041AC2DA9");
+1402: 
+1403:             entity.ToTable("maintenance_work_logs");
+1404: 
+1405:             entity.HasIndex(e => new { e.LogId, e.MaintenanceWorkId }, "UQ_maintenance_logs_work").IsUnique();
+1406: 
+1407:             entity.Property(e => e.LogId).HasColumnName("log_id");
+1408:             entity.Property(e => e.LoggedAt).HasColumnName("logged_at");
+1411:             entity.Property(e => e.MaterialIssueId).HasColumnName("material_issue_id");
+1412:             entity.Property(e => e.SpentMinutes).HasColumnName("spent_minutes");
+1413:             entity.Property(e => e.Status)
+1414:                 .HasMaxLength(30)
+1415:                 .IsUnicode(false)
+1416:                 .HasColumnName("status");
+1417:             entity.Property(e => e.WorkNote).HasColumnName("work_note");
+1418: 
+1419:             entity.HasOne(d => d.LoggedByNavigation).WithMany(p => p.MaintenanceWorkLogs)
+1420:                 .HasForeignKey(d => d.LoggedBy)
+1421:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1422:                 .HasConstraintName("FK_maintenance_work_logs_logged_by");
+1423: 
+1424:             entity.HasOne(d => d.MaintenanceWork).WithMany(p => p.MaintenanceWorkLogs)
+1425:                 .HasForeignKey(d => d.MaintenanceWorkId)
+1426:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1427:                 .HasConstraintName("FK_maintenance_work_logs_maintenance_work_id");
+1428: 
+1429:             entity.HasOne(d => d.MaterialIssue).WithMany(p => p.MaintenanceWorkLogs)
+1430:                 .HasForeignKey(d => d.MaterialIssueId)
+1431:                 .HasConstraintName("FK_maintenance_work_logs_material_issue_id");
+1432:         });
+1433: 
+1436:             entity.HasKey(e => e.FulfillmentId).HasName("PK__material__34E680DBD40CE9AA");
+1437: 
+1438:             entity.ToTable("material_fulfillments");
+1439: 
+1440:             entity.HasIndex(e => new { e.RequestId, e.FulfillmentId }, "IX_mr_fulfillments_request");
+1441: 
+1442:             entity.HasIndex(e => e.FulfillmentNo, "UQ__material__34E7AD3928AC09D5").IsUnique();
+1443: 
+1444:             entity.HasIndex(e => e.StockDocumentId, "UX_mr_fulfillment_document")
+1445:                 .IsUnique()
+1446:                 .HasFilter("([stock_document_id] IS NOT NULL)");
+1447: 
+1458:             entity.Property(e => e.ReceivedBy).HasColumnName("received_by");
+1459:             entity.Property(e => e.RequestId).HasColumnName("request_id");
+1460:             entity.Property(e => e.Status)
+1461:                 .HasMaxLength(30)
+1462:                 .IsUnicode(false)
+1463:                 .HasDefaultValue("PREPARING")
+1464:                 .HasColumnName("status");
+1465:             entity.Property(e => e.StockDocumentId).HasColumnName("stock_document_id");
+1466:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+1467: 
+1468:             entity.HasOne(d => d.FulfilledByNavigation).WithMany(p => p.MaterialFulfillmentFulfilledByNavigations)
+1469:                 .HasForeignKey(d => d.FulfilledBy)
+1470:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1471:                 .HasConstraintName("FK_material_fulfillments_fulfilled_by");
+1472: 
+1473:             entity.HasOne(d => d.ReceivedByNavigation).WithMany(p => p.MaterialFulfillmentReceivedByNavigations)
+1474:                 .HasForeignKey(d => d.ReceivedBy)
+1475:                 .HasConstraintName("FK_material_fulfillments_received_by");
+1476: 
+1477:             entity.HasOne(d => d.Request).WithMany(p => p.MaterialFulfillments)
+1478:                 .HasForeignKey(d => d.RequestId)
+1479:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1480:                 .HasConstraintName("FK_material_fulfillments_request_id");
+1481: 
+1482:             entity.HasOne(d => d.StockDocument).WithOne(p => p.MaterialFulfillment)
+1483:                 .HasForeignKey<MaterialFulfillment>(d => d.StockDocumentId)
+1484:                 .HasConstraintName("FK_material_fulfillments_stock_document_id");
+1485: 
+1486:             entity.HasOne(d => d.Warehouse).WithMany(p => p.MaterialFulfillments)
+1487:                 .HasForeignKey(d => d.WarehouseId)
+1488:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1489:                 .HasConstraintName("FK_material_fulfillments_warehouse_id");
+1490:         });
+1494:             entity.HasKey(e => e.FulfillmentLineId).HasName("PK__material__891A96CDE399BA24");
+1495: 
+1496:             entity.ToTable("material_fulfillment_lines");
+1497: 
+1498:             entity.HasIndex(e => e.RequestLineId, "IX_mr_fulfillment_request_line");
+1499: 
+1500:             entity.HasIndex(e => e.StockDocumentLineId, "UX_mr_fulfillment_issue_line")
+1501:                 .IsUnique()
+1502:                 .HasFilter("([stock_document_line_id] IS NOT NULL)");
+1503: 
+1504:             entity.HasIndex(e => new { e.FulfillmentId, e.RequestLineId }, "material_fulfillment_lines_index_29").IsUnique();
+1505: 
+1506:             entity.Property(e => e.FulfillmentLineId).HasColumnName("fulfillment_line_id");
+1507:             entity.Property(e => e.FulfillmentId).HasColumnName("fulfillment_id");
+1518:             entity.Property(e => e.UomId).HasColumnName("uom_id");
+1519: 
+1520:             entity.HasOne(d => d.Fulfillment).WithMany(p => p.MaterialFulfillmentLines)
+1521:                 .HasForeignKey(d => d.FulfillmentId)
+1522:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1523:                 .HasConstraintName("FK_material_fulfillment_lines_fulfillment_id");
+1524: 
+1525:             entity.HasOne(d => d.Item).WithMany(p => p.MaterialFulfillmentLines)
+1526:                 .HasForeignKey(d => d.ItemId)
+1527:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1528:                 .HasConstraintName("FK_material_fulfillment_lines_item_id");
+1529: 
+1530:             entity.HasOne(d => d.RequestLine).WithMany(p => p.MaterialFulfillmentLines)
+1531:                 .HasForeignKey(d => d.RequestLineId)
+1532:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1533:                 .HasConstraintName("FK_material_fulfillment_lines_request_line_id");
+1534: 
+1535:             entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.MaterialFulfillmentLine)
+1536:                 .HasForeignKey<MaterialFulfillmentLine>(d => d.StockDocumentLineId)
+1537:                 .HasConstraintName("FK_mr_fulfillment_issue_line");
+1538: 
+1539:             entity.HasOne(d => d.Uom).WithMany(p => p.MaterialFulfillmentLines)
+1540:                 .HasForeignKey(d => d.UomId)
+1541:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1542:                 .HasConstraintName("FK_material_fulfillment_lines_uom_id");
+1543:         });
+1547:             entity.HasKey(e => e.RequestId).HasName("PK__material__18D3B90F59856EC9");
+1548: 
+1549:             entity.ToTable("material_requests");
+1550: 
+1551:             entity.HasIndex(e => e.RequestNo, "UQ__material__18D3F2FDBAF5D1E8").IsUnique();
+1552: 
+1553:             entity.HasIndex(e => new { e.BranchId, e.DepartmentId, e.Status }, "material_requests_index_27");
+1554: 
+1555:             entity.Property(e => e.RequestId).HasColumnName("request_id");
+1556:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+1578:                 .HasColumnName("row_version");
+1579:             entity.Property(e => e.SourceWarehouseId).HasColumnName("source_warehouse_id");
+1580:             entity.Property(e => e.Status)
+1581:                 .HasMaxLength(40)
+1582:                 .IsUnicode(false)
+1583:                 .HasDefaultValue("DRAFT")
+1584:                 .HasColumnName("status");
+1585:             entity.Property(e => e.SubmittedAt).HasColumnName("submitted_at");
+1586:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+1587: 
+1588:             entity.HasOne(d => d.Branch).WithMany(p => p.MaterialRequests)
+1589:                 .HasForeignKey(d => d.BranchId)
+1590:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1591:                 .HasConstraintName("FK_material_requests_branch_id");
+1592: 
+1593:             entity.HasOne(d => d.Department).WithMany(p => p.MaterialRequests)
+1594:                 .HasForeignKey(d => d.DepartmentId)
+1595:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1596:                 .HasConstraintName("FK_material_requests_department_id");
+1597: 
+1598:             entity.HasOne(d => d.Incident).WithMany(p => p.MaterialRequests)
+1599:                 .HasForeignKey(d => d.IncidentId)
+1600:                 .HasConstraintName("FK_material_requests_incident");
+1601: 
+1602:             entity.HasOne(d => d.Priority).WithMany(p => p.MaterialRequests)
+1603:                 .HasForeignKey(d => d.PriorityId)
+1604:                 .HasConstraintName("FK_material_requests_priority_id");
+1605: 
+1606:             entity.HasOne(d => d.ReceivingArea).WithMany(p => p.MaterialRequests)
+1607:                 .HasForeignKey(d => d.ReceivingAreaId)
+1608:                 .HasConstraintName("FK_material_requests_receiving_area");
+1609: 
+1610:             entity.HasOne(d => d.ReceivingRoom).WithMany(p => p.MaterialRequests)
+1611:                 .HasForeignKey(d => d.ReceivingRoomId)
+1612:                 .HasConstraintName("FK_material_requests_receiving_room");
+1613: 
+1614:             entity.HasOne(d => d.RemainderClosedByNavigation).WithMany(p => p.MaterialRequestRemainderClosedByNavigations)
+1615:                 .HasForeignKey(d => d.RemainderClosedBy)
+1616:                 .HasConstraintName("FK_material_requests_remainder_closed_by");
+1617: 
+1618:             entity.HasOne(d => d.Requester).WithMany(p => p.MaterialRequests)
+1619:                 .HasForeignKey(d => d.RequesterId)
+1620:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1621:                 .HasConstraintName("FK_material_requests_requester_id");
+1622: 
+1623:             entity.HasOne(d => d.SourceWarehouse).WithMany(p => p.MaterialRequests)
+1624:                 .HasForeignKey(d => d.SourceWarehouseId)
+1625:                 .HasConstraintName("FK_material_requests_source_warehouse_id");
+1626:         });
+1627: 
+1630:             entity.HasKey(e => e.ApprovalId).HasName("PK__material__C94AE61AFF645BA6");
+1631: 
+1632:             entity.ToTable("material_request_approvals");
+1633: 
+1634:             entity.HasIndex(e => new { e.RequestId, e.DecidedAt, e.ApprovalId }, "IX_mr_approval_timeline");
+1635: 
+1636:             entity.HasIndex(e => e.ApprovalCycleId, "UX_mr_decision_cycle")
+1637:                 .IsUnique()
+1638:                 .HasFilter("([approval_cycle_id] IS NOT NULL)");
+1639: 
+1641:             entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+1642:             entity.Property(e => e.ApprovalLevel)
+1643:                 .HasDefaultValue(1)
+1644:                 .HasColumnName("approval_level");
+1645:             entity.Property(e => e.ApproverId).HasColumnName("approver_id");
+1646:             entity.Property(e => e.DecidedAt).HasColumnName("decided_at");
+1652:             entity.Property(e => e.RequestId).HasColumnName("request_id");
+1653: 
+1654:             entity.HasOne(d => d.ApprovalCycle).WithOne(p => p.MaterialRequestApproval)
+1655:                 .HasForeignKey<MaterialRequestApproval>(d => d.ApprovalCycleId)
+1656:                 .HasConstraintName("FK_mr_approvals_cycle");
+1657: 
+1658:             entity.HasOne(d => d.Approver).WithMany(p => p.MaterialRequestApprovals)
+1659:                 .HasForeignKey(d => d.ApproverId)
+1660:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1661:                 .HasConstraintName("FK_material_request_approvals_approver_id");
+1662: 
+1663:             entity.HasOne(d => d.Request).WithMany(p => p.MaterialRequestApprovals)
+1664:                 .HasForeignKey(d => d.RequestId)
+1665:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1666:                 .HasConstraintName("FK_material_request_approvals_request_id");
+1667:         });
+1671:             entity.HasKey(e => e.LineId).HasName("PK__material__F5AE5F62052870C2");
+1672: 
+1673:             entity.ToTable("material_request_lines");
+1674: 
+1675:             entity.HasIndex(e => new { e.RequestId, e.LineNo }, "material_request_lines_index_28").IsUnique();
+1676: 
+1677:             entity.Property(e => e.LineId).HasColumnName("line_id");
+1678:             entity.Property(e => e.ApprovedQty)
+1682:                 .HasColumnType("decimal(18, 3)")
+1683:                 .HasColumnName("fulfilled_qty");
+1684:             entity.Property(e => e.IsActive)
+1685:                 .HasDefaultValue(true, "DF_material_request_lines_active")
+1686:                 .HasColumnName("is_active");
+1687:             entity.Property(e => e.ItemId).HasColumnName("item_id");
+1688:             entity.Property(e => e.LineNo).HasColumnName("line_no");
+1694:             entity.Property(e => e.UomId).HasColumnName("uom_id");
+1695: 
+1696:             entity.HasOne(d => d.Item).WithMany(p => p.MaterialRequestLines)
+1697:                 .HasForeignKey(d => d.ItemId)
+1698:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1699:                 .HasConstraintName("FK_material_request_lines_item_id");
+1700: 
+1701:             entity.HasOne(d => d.Request).WithMany(p => p.MaterialRequestLines)
+1702:                 .HasForeignKey(d => d.RequestId)
+1703:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1704:                 .HasConstraintName("FK_material_request_lines_request_id");
+1705: 
+1706:             entity.HasOne(d => d.Uom).WithMany(p => p.MaterialRequestLines)
+1707:                 .HasForeignKey(d => d.UomId)
+1708:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1709:                 .HasConstraintName("FK_material_request_lines_uom_id");
+1710:         });
+1714:             entity.HasKey(e => e.NotificationId).HasName("PK__notifica__E059842F0A16E308");
+1715: 
+1716:             entity.ToTable("notifications");
+1717: 
+1718:             entity.Property(e => e.NotificationId).HasColumnName("notification_id");
+1719:             entity.Property(e => e.ActionUrl).HasColumnName("action_url");
+1729:                 .HasMaxLength(20)
+1730:                 .IsUnicode(false)
+1731:                 .HasDefaultValue("NORMAL")
+1732:                 .HasColumnName("priority");
+1733:             entity.Property(e => e.SourceId).HasColumnName("source_id");
+1734:             entity.Property(e => e.SourceType)
+1740:                 .HasColumnName("title");
+1741: 
+1742:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Notifications)
+1743:                 .HasForeignKey(d => d.CreatedBy)
+1744:                 .HasConstraintName("FK_notifications_created_by");
+1745:         });
+1746: 
+1749:             entity.HasKey(e => e.RecipientId).HasName("PK__notifica__FA0A4027B0E0EB85");
+1750: 
+1751:             entity.ToTable("notification_recipients");
+1752: 
+1753:             entity.HasIndex(e => new { e.NotificationId, e.UserId, e.DeliveryChannel }, "notification_recipients_index_42").IsUnique();
+1754: 
+1755:             entity.HasIndex(e => new { e.UserId, e.ReadAt }, "notification_recipients_index_43");
+1756: 
+1757:             entity.Property(e => e.RecipientId).HasColumnName("recipient_id");
+1758:             entity.Property(e => e.DeliveredAt).HasColumnName("delivered_at");
+1760:                 .HasMaxLength(30)
+1761:                 .IsUnicode(false)
+1762:                 .HasDefaultValue("IN_APP")
+1763:                 .HasColumnName("delivery_channel");
+1764:             entity.Property(e => e.DeliveryStatus)
+1765:                 .HasMaxLength(30)
+1766:                 .IsUnicode(false)
+1767:                 .HasDefaultValue("PENDING")
+1768:                 .HasColumnName("delivery_status");
+1769:             entity.Property(e => e.DismissedAt).HasColumnName("dismissed_at");
+1770:             entity.Property(e => e.FailureReason).HasColumnName("failure_reason");
+1773:             entity.Property(e => e.UserId).HasColumnName("user_id");
+1774: 
+1775:             entity.HasOne(d => d.Notification).WithMany(p => p.NotificationRecipients)
+1776:                 .HasForeignKey(d => d.NotificationId)
+1777:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1778:                 .HasConstraintName("FK_notification_recipients_notification_id");
+1779: 
+1780:             entity.HasOne(d => d.User).WithMany(p => p.NotificationRecipients)
+1781:                 .HasForeignKey(d => d.UserId)
+1782:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1783:                 .HasConstraintName("FK_notification_recipients_user_id");
+1784:         });
+1788:             entity.HasKey(e => e.TaskId).HasName("PK__operatio__0492148D3F873A8D");
+1789: 
+1790:             entity.ToTable("operational_tasks");
+1791: 
+1792:             entity.HasIndex(e => e.TaskCode, "UQ__operatio__4ED291560B90DEA7").IsUnique();
+1793: 
+1794:             entity.HasIndex(e => new { e.BranchId, e.DepartmentId, e.Status }, "operational_tasks_index_33");
+1795: 
+1796:             entity.HasIndex(e => e.DueAt, "operational_tasks_index_34");
+1797: 
+1798:             entity.Property(e => e.TaskId).HasColumnName("task_id");
+1799:             entity.Property(e => e.ActualStartAt).HasColumnName("actual_start_at");
+1818:                 .IsUnicode(false)
+1819:                 .HasColumnName("source_type");
+1820:             entity.Property(e => e.Status)
+1821:                 .HasMaxLength(40)
+1822:                 .IsUnicode(false)
+1823:                 .HasDefaultValue("TODO")
+1824:                 .HasColumnName("status");
+1825:             entity.Property(e => e.TaskCode)
+1826:                 .HasMaxLength(50)
+1832:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+1833: 
+1834:             entity.HasOne(d => d.Area).WithMany(p => p.OperationalTasks)
+1835:                 .HasForeignKey(d => d.AreaId)
+1836:                 .HasConstraintName("FK_operational_tasks_area_id");
+1837: 
+1838:             entity.HasOne(d => d.Branch).WithMany(p => p.OperationalTasks)
+1839:                 .HasForeignKey(d => d.BranchId)
+1840:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1841:                 .HasConstraintName("FK_operational_tasks_branch_id");
+1842: 
+1843:             entity.HasOne(d => d.Category).WithMany(p => p.OperationalTasks)
+1844:                 .HasForeignKey(d => d.CategoryId)
+1845:                 .HasConstraintName("FK_operational_tasks_category_id");
+1846: 
+1847:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.OperationalTasks)
+1848:                 .HasForeignKey(d => d.CreatedBy)
+1849:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1850:                 .HasConstraintName("FK_operational_tasks_created_by");
+1851: 
+1852:             entity.HasOne(d => d.Department).WithMany(p => p.OperationalTasks)
+1853:                 .HasForeignKey(d => d.DepartmentId)
+1854:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1855:                 .HasConstraintName("FK_operational_tasks_department_id");
+1856: 
+1857:             entity.HasOne(d => d.ParentTask).WithMany(p => p.InverseParentTask)
+1858:                 .HasForeignKey(d => d.ParentTaskId)
+1859:                 .HasConstraintName("FK_operational_tasks_parent_task_id");
+1860: 
+1861:             entity.HasOne(d => d.Priority).WithMany(p => p.OperationalTasks)
+1862:                 .HasForeignKey(d => d.PriorityId)
+1863:                 .HasConstraintName("FK_operational_tasks_priority_id");
+1864: 
+1865:             entity.HasOne(d => d.Room).WithMany(p => p.OperationalTasks)
+1866:                 .HasForeignKey(d => d.RoomId)
+1867:                 .HasConstraintName("FK_operational_tasks_room_id");
+1868:         });
+1869: 
+1872:             entity.HasKey(e => e.AssignmentId).HasName("PK__operatio__DA8918144DFA48E6");
+1873: 
+1874:             entity.ToTable("operational_task_assignments");
+1875: 
+1876:             entity.Property(e => e.AssignmentId).HasColumnName("assignment_id");
+1877:             entity.Property(e => e.AssignedAt).HasColumnName("assigned_at");
+1878:             entity.Property(e => e.AssignedBy).HasColumnName("assigned_by");
+1879:             entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
+1880:             entity.Property(e => e.AssignmentStatus)
+1881:                 .HasMaxLength(30)
+1882:                 .IsUnicode(false)
+1883:                 .HasDefaultValue("ACTIVE")
+1884:                 .HasColumnName("assignment_status");
+1885:             entity.Property(e => e.EndedAt).HasColumnName("ended_at");
+1886:             entity.Property(e => e.Note).HasColumnName("note");
+1887:             entity.Property(e => e.TaskId).HasColumnName("task_id");
+1888: 
+1889:             entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.OperationalTaskAssignmentAssignedByNavigations)
+1890:                 .HasForeignKey(d => d.AssignedBy)
+1891:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1892:                 .HasConstraintName("FK_operational_task_assignments_assigned_by");
+1893: 
+1894:             entity.HasOne(d => d.Assignee).WithMany(p => p.OperationalTaskAssignmentAssignees)
+1895:                 .HasForeignKey(d => d.AssigneeId)
+1896:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1897:                 .HasConstraintName("FK_operational_task_assignments_assignee_id");
+1898: 
+1899:             entity.HasOne(d => d.Task).WithMany(p => p.OperationalTaskAssignments)
+1900:                 .HasForeignKey(d => d.TaskId)
+1901:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1902:                 .HasConstraintName("FK_operational_task_assignments_task_id");
+1903:         });
+1907:             entity.HasKey(e => e.DependencyId).HasName("PK__operatio__952A18724FE8B43C");
+1908: 
+1909:             entity.ToTable("operational_task_dependencies");
+1910: 
+1911:             entity.HasIndex(e => new { e.PredecessorTaskId, e.SuccessorTaskId }, "operational_task_dependencies_index_35").IsUnique();
+1912: 
+1913:             entity.Property(e => e.DependencyId).HasColumnName("dependency_id");
+1914:             entity.Property(e => e.DependencyType)
+1915:                 .HasMaxLength(30)
+1916:                 .IsUnicode(false)
+1917:                 .HasDefaultValue("FINISH_TO_START")
+1918:                 .HasColumnName("dependency_type");
+1919:             entity.Property(e => e.LagMinutes)
+1920:                 .HasDefaultValue(0)
+1921:                 .HasColumnName("lag_minutes");
+1922:             entity.Property(e => e.PredecessorTaskId).HasColumnName("predecessor_task_id");
+1923:             entity.Property(e => e.SuccessorTaskId).HasColumnName("successor_task_id");
+1924: 
+1925:             entity.HasOne(d => d.PredecessorTask).WithMany(p => p.OperationalTaskDependencyPredecessorTasks)
+1926:                 .HasForeignKey(d => d.PredecessorTaskId)
+1927:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1928:                 .HasConstraintName("FK_operational_task_dependencies_predecessor_task_id");
+1929: 
+1930:             entity.HasOne(d => d.SuccessorTask).WithMany(p => p.OperationalTaskDependencySuccessorTasks)
+1931:                 .HasForeignKey(d => d.SuccessorTaskId)
+1932:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1933:                 .HasConstraintName("FK_operational_task_dependencies_successor_task_id");
+1934:         });
+1938:             entity.HasKey(e => e.ProgressId).HasName("PK__operatio__49B3D8C1F8378F9A");
+1939: 
+1940:             entity.ToTable("operational_task_progress");
+1941: 
+1942:             entity.Property(e => e.ProgressId).HasColumnName("progress_id");
+1943:             entity.Property(e => e.BlockerReason).HasColumnName("blocker_reason");
+1944:             entity.Property(e => e.Description).HasColumnName("description");
+1945:             entity.Property(e => e.NewStatus)
+1946:                 .HasMaxLength(40)
+1947:                 .IsUnicode(false)
+1948:                 .HasColumnName("new_status");
+1949:             entity.Property(e => e.OldStatus)
+1950:                 .HasMaxLength(40)
+1951:                 .IsUnicode(false)
+1952:                 .HasColumnName("old_status");
+1956:             entity.Property(e => e.TaskId).HasColumnName("task_id");
+1957: 
+1958:             entity.HasOne(d => d.ReportedByNavigation).WithMany(p => p.OperationalTaskProgresses)
+1959:                 .HasForeignKey(d => d.ReportedBy)
+1960:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1961:                 .HasConstraintName("FK_operational_task_progress_reported_by");
+1962: 
+1963:             entity.HasOne(d => d.Task).WithMany(p => p.OperationalTaskProgresses)
+1964:                 .HasForeignKey(d => d.TaskId)
+1965:                 .OnDelete(DeleteBehavior.ClientSetNull)
+1966:                 .HasConstraintName("FK_operational_task_progress_task_id");
+1967:         });
+1968: 
+1969:         modelBuilder.Entity<Permission>(entity =>
+1970:         {
+1971:             entity.HasKey(e => e.PermissionId).HasName("PK__permissi__E5331AFA6BFD8720");
+1972: 
+1973:             entity.ToTable("permissions");
+1974: 
+1975:             entity.HasIndex(e => e.PermissionCode, "UQ__permissi__A98A808E2C8B304E").IsUnique();
+1976: 
+1977:             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
+1978:             entity.Property(e => e.ActionCode)
+1979:                 .HasMaxLength(40)
+1980:                 .IsUnicode(false)
+1985:                 .IsUnicode(false)
+1986:                 .HasColumnName("module_code");
+1987:             entity.Property(e => e.PermissionCode)
+1988:                 .HasMaxLength(100)
+1989:                 .IsUnicode(false)
+1990:                 .HasColumnName("permission_code");
+1991:             entity.Property(e => e.PermissionName)
+1992:                 .HasMaxLength(150)
+1993:                 .HasColumnName("permission_name");
+1994:             entity.Property(e => e.ResourceCode)
+2002:             entity.HasKey(e => e.RunId).HasName("PK__preventi__7D3D901BB789D833");
+2003: 
+2004:             entity.ToTable("preventive_maintenance_runs");
+2005: 
+2006:             entity.HasIndex(e => new { e.ScheduleId, e.PlannedAt }, "preventive_maintenance_runs_index_16").IsUnique();
+2007: 
+2008:             entity.Property(e => e.RunId).HasColumnName("run_id");
+2009:             entity.Property(e => e.MaintenanceWorkId).HasColumnName("maintenance_work_id");
+2013:             entity.Property(e => e.PerformedBy).HasColumnName("performed_by");
+2014:             entity.Property(e => e.PlannedAt).HasColumnName("planned_at");
+2015:             entity.Property(e => e.Result)
+2016:                 .HasMaxLength(30)
+2017:                 .IsUnicode(false)
+2018:                 .HasColumnName("result");
+2019:             entity.Property(e => e.ScheduleId).HasColumnName("schedule_id");
+2020: 
+2021:             entity.HasOne(d => d.MaintenanceWork).WithMany(p => p.PreventiveMaintenanceRuns)
+2022:                 .HasForeignKey(d => d.MaintenanceWorkId)
+2023:                 .HasConstraintName("FK_preventive_maintenance_runs_maintenance_work_id");
+2024: 
+2025:             entity.HasOne(d => d.PerformedByNavigation).WithMany(p => p.PreventiveMaintenanceRuns)
+2026:                 .HasForeignKey(d => d.PerformedBy)
+2027:                 .HasConstraintName("FK_preventive_maintenance_runs_performed_by");
+2028: 
+2029:             entity.HasOne(d => d.Schedule).WithMany(p => p.PreventiveMaintenanceRuns)
+2030:                 .HasForeignKey(d => d.ScheduleId)
+2031:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2032:                 .HasConstraintName("FK_preventive_maintenance_runs_schedule_id");
+2033:         });
+2037:             entity.HasKey(e => e.ScheduleId).HasName("PK__preventi__C46A8A6F61C85A0D");
+2038: 
+2039:             entity.ToTable("preventive_maintenance_schedules");
+2040: 
+2041:             entity.HasIndex(e => e.ScheduleCode, "UQ__preventi__C0670CCF84E8AF87").IsUnique();
+2042: 
+2043:             entity.Property(e => e.ScheduleId).HasColumnName("schedule_id");
+2044:             entity.Property(e => e.AreaId).HasColumnName("area_id");
+2051:                 .HasColumnName("frequency");
+2052:             entity.Property(e => e.FrequencyInterval)
+2053:                 .HasDefaultValue(1)
+2054:                 .HasColumnName("frequency_interval");
+2055:             entity.Property(e => e.Instruction).HasColumnName("instruction");
+2056:             entity.Property(e => e.IsActive)
+2057:                 .HasDefaultValue(true)
+2058:                 .HasColumnName("is_active");
+2059:             entity.Property(e => e.LastPerformedAt).HasColumnName("last_performed_at");
+2060:             entity.Property(e => e.NextDueAt).HasColumnName("next_due_at");
+2065:                 .HasColumnName("schedule_code");
+2066: 
+2067:             entity.HasOne(d => d.Area).WithMany(p => p.PreventiveMaintenanceSchedules)
+2068:                 .HasForeignKey(d => d.AreaId)
+2069:                 .HasConstraintName("FK_preventive_maintenance_schedules_area_id");
+2070: 
+2071:             entity.HasOne(d => d.Asset).WithMany(p => p.PreventiveMaintenanceSchedules)
+2072:                 .HasForeignKey(d => d.AssetId)
+2073:                 .HasConstraintName("FK_preventive_maintenance_schedules_asset_id");
+2074: 
+2075:             entity.HasOne(d => d.AssignedDepartment).WithMany(p => p.PreventiveMaintenanceSchedules)
+2076:                 .HasForeignKey(d => d.AssignedDepartmentId)
+2077:                 .HasConstraintName("FK_preventive_maintenance_schedules_assigned_department_id");
+2078: 
+2079:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.PreventiveMaintenanceSchedules)
+2080:                 .HasForeignKey(d => d.CreatedBy)
+2081:                 .HasConstraintName("FK_preventive_maintenance_schedules_created_by");
+2082: 
+2083:             entity.HasOne(d => d.Room).WithMany(p => p.PreventiveMaintenanceSchedules)
+2084:                 .HasForeignKey(d => d.RoomId)
+2085:                 .HasConstraintName("FK_preventive_maintenance_schedules_room_id");
+2086:         });
+2087: 
+2090:             entity.HasKey(e => e.ReferenceId).HasName("PK__referenc__8E860B28090EF0D1");
+2091: 
+2092:             entity.ToTable("reference_values");
+2093: 
+2094:             entity.HasIndex(e => new { e.GroupCode, e.ValueCode }, "reference_values_index_5").IsUnique();
+2095: 
+2096:             entity.Property(e => e.ReferenceId).HasColumnName("reference_id");
+2097:             entity.Property(e => e.Description).HasColumnName("description");
+2103:                 .IsUnicode(false)
+2104:                 .HasColumnName("group_code");
+2105:             entity.Property(e => e.IsActive)
+2106:                 .HasDefaultValue(true)
+2107:                 .HasColumnName("is_active");
+2108:             entity.Property(e => e.SortOrder)
+2109:                 .HasDefaultValue(0)
+2110:                 .HasColumnName("sort_order");
+2111:             entity.Property(e => e.ValueCode)
+2112:                 .HasMaxLength(60)
+2119:             entity.HasKey(e => e.RoleId).HasName("PK__roles__760965CC49349513");
+2120: 
+2121:             entity.ToTable("roles");
+2122: 
+2123:             entity.HasIndex(e => e.RoleCode, "UQ__roles__BAE630754150AC14").IsUnique();
+2124: 
+2125:             entity.Property(e => e.RoleId).HasColumnName("role_id");
+2126:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+2127:             entity.Property(e => e.Description).HasColumnName("description");
+2128:             entity.Property(e => e.IsActive)
+2129:                 .HasDefaultValue(true)
+2130:                 .HasColumnName("is_active");
+2131:             entity.Property(e => e.IsSystemRole).HasColumnName("is_system_role");
+2132:             entity.Property(e => e.RoleCode)
+2139:         });
+2140: 
+2141:         modelBuilder.Entity<RolePermission>(entity =>
+2142:         {
+2143:             entity.HasKey(e => e.RolePermissionId).HasName("PK__role_per__B1E85A10C926A139");
+2144: 
+2145:             entity.ToTable("role_permissions");
+2146: 
+2147:             entity.HasIndex(e => new { e.RoleId, e.PermissionId }, "role_permissions_index_40").IsUnique();
+2148: 
+2149:             entity.Property(e => e.RolePermissionId).HasColumnName("role_permission_id");
+2150:             entity.Property(e => e.DataScope)
+2151:                 .IsRequired()
+2152:                 .HasMaxLength(20)
+2153:                 .IsUnicode(false)
+2154:                 .HasDefaultValueSql("('BRANCH')")
+2155:                 .HasColumnName("data_scope");
+2156:             entity.Property(e => e.GrantedAt).HasColumnName("granted_at");
+2157:             entity.Property(e => e.GrantedBy).HasColumnName("granted_by");
+2158:             entity.Property(e => e.PermissionId).HasColumnName("permission_id");
+2159:             entity.Property(e => e.RoleId).HasColumnName("role_id");
+2160: 
+2161:             entity.HasOne(d => d.GrantedByNavigation).WithMany(p => p.RolePermissions)
+2162:                 .HasForeignKey(d => d.GrantedBy)
+2163:                 .HasConstraintName("FK_role_permissions_granted_by");
+2164: 
+2165:             entity.HasOne(d => d.Permission).WithMany(p => p.RolePermissions)
+2166:                 .HasForeignKey(d => d.PermissionId)
+2167:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2168:                 .HasConstraintName("FK_role_permissions_permission_id");
+2169: 
+2170:             entity.HasOne(d => d.Role).WithMany(p => p.RolePermissions)
+2171:                 .HasForeignKey(d => d.RoleId)
+2172:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2173:                 .HasConstraintName("FK_role_permissions_role_id");
+2174:         });
+2178:             entity.HasKey(e => e.RoomId).HasName("PK__rooms__19675A8A2A0F0C24");
+2179: 
+2180:             entity.ToTable("rooms");
+2181: 
+2182:             entity.HasIndex(e => new { e.BranchId, e.RoomNumber }, "rooms_index_2").IsUnique();
+2183: 
+2184:             entity.HasIndex(e => new { e.BranchId, e.OperationalStatus }, "rooms_index_3");
+2185: 
+2186:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+2187:             entity.Property(e => e.AreaId).HasColumnName("area_id");
+2190:             entity.Property(e => e.Description).HasColumnName("description");
+2191:             entity.Property(e => e.FloorId).HasColumnName("floor_id");
+2192:             entity.Property(e => e.IsActive)
+2193:                 .HasDefaultValue(true)
+2194:                 .HasColumnName("is_active");
+2195:             entity.Property(e => e.OperationalStatus)
+2196:                 .HasMaxLength(40)
+2197:                 .IsUnicode(false)
+2198:                 .HasDefaultValue("AVAILABLE")
+2199:                 .HasColumnName("operational_status");
+2200:             entity.Property(e => e.RoomNumber)
+2201:                 .HasMaxLength(30)
+2205:             entity.Property(e => e.UpdatedAt).HasColumnName("updated_at");
+2206: 
+2207:             entity.HasOne(d => d.Area).WithMany(p => p.Rooms)
+2208:                 .HasForeignKey(d => d.AreaId)
+2209:                 .HasConstraintName("FK_rooms_area_id");
+2210: 
+2211:             entity.HasOne(d => d.Branch).WithMany(p => p.Rooms)
+2212:                 .HasForeignKey(d => d.BranchId)
+2213:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2214:                 .HasConstraintName("FK_rooms_branch_id");
+2215: 
+2216:             entity.HasOne(d => d.Floor).WithMany(p => p.Rooms)
+2217:                 .HasForeignKey(d => d.FloorId)
+2218:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2219:                 .HasConstraintName("FK_rooms_floor_id");
+2220: 
+2221:             entity.HasOne(d => d.RoomType).WithMany(p => p.Rooms)
+2222:                 .HasForeignKey(d => d.RoomTypeId)
+2223:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2224:                 .HasConstraintName("FK_rooms_room_type_id");
+2225:         });
+2229:             entity.HasKey(e => e.BlockId).HasName("PK__room_blo__A67E647D4FE07846");
+2230: 
+2231:             entity.ToTable("room_blocks");
+2232: 
+2233:             entity.Property(e => e.BlockId).HasColumnName("block_id");
+2234:             entity.Property(e => e.BlockedAt).HasColumnName("blocked_at");
+2235:             entity.Property(e => e.BlockedBy).HasColumnName("blocked_by");
+2236:             entity.Property(e => e.ExpectedReleaseAt).HasColumnName("expected_release_at");
+2237:             entity.Property(e => e.IncidentId).HasColumnName("incident_id");
+2238:             entity.Property(e => e.Reason).HasColumnName("reason");
+2239:             entity.Property(e => e.ReleaseNote).HasColumnName("release_note");
+2240:             entity.Property(e => e.ReleasedAt).HasColumnName("released_at");
+2241:             entity.Property(e => e.ReleasedBy).HasColumnName("released_by");
+2242:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+2243: 
+2244:             entity.HasOne(d => d.BlockedByNavigation).WithMany(p => p.RoomBlockBlockedByNavigations)
+2245:                 .HasForeignKey(d => d.BlockedBy)
+2246:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2247:                 .HasConstraintName("FK_room_blocks_blocked_by");
+2248: 
+2249:             entity.HasOne(d => d.Incident).WithMany(p => p.RoomBlocks)
+2250:                 .HasForeignKey(d => d.IncidentId)
+2251:                 .HasConstraintName("FK_room_blocks_incident_id");
+2252: 
+2253:             entity.HasOne(d => d.ReleasedByNavigation).WithMany(p => p.RoomBlockReleasedByNavigations)
+2254:                 .HasForeignKey(d => d.ReleasedBy)
+2255:                 .HasConstraintName("FK_room_blocks_released_by");
+2256: 
+2257:             entity.HasOne(d => d.Room).WithMany(p => p.RoomBlocks)
+2258:                 .HasForeignKey(d => d.RoomId)
+2259:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2260:                 .HasConstraintName("FK_room_blocks_room_id");
+2261:         });
+2265:             entity.HasKey(e => e.InspectionId).HasName("PK__room_ins__C3C4E743175BCB02");
+2266: 
+2267:             entity.ToTable("room_inspections");
+2268: 
+2269:             entity.HasIndex(e => e.InspectionNo, "UQ__room_ins__C3E020912494CB5B").IsUnique();
+2270: 
+2271:             entity.HasIndex(e => new { e.RoomId, e.InspectedAt }, "room_inspections_index_12");
+2272: 
+2273:             entity.Property(e => e.InspectionId).HasColumnName("inspection_id");
+2274:             entity.Property(e => e.CleaningTaskId).HasColumnName("cleaning_task_id");
+2279:                 .IsUnicode(false)
+2280:                 .HasColumnName("inspection_no");
+2281:             entity.Property(e => e.InspectorUserId).HasColumnName("inspector_user_id");
+2282:             entity.Property(e => e.Result)
+2283:                 .HasMaxLength(30)
+2284:                 .IsUnicode(false)
+2285:                 .HasColumnName("result");
+2286:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+2287:             entity.Property(e => e.ScheduledAt).HasColumnName("scheduled_at");
+2288:             entity.Property(e => e.Status)
+2289:                 .HasMaxLength(30)
+2290:                 .IsUnicode(false)
+2291:                 .HasDefaultValue("PENDING")
+2292:                 .HasColumnName("status");
+2293:             entity.Property(e => e.SummaryNote).HasColumnName("summary_note");
+2294:             entity.Property(e => e.VersionId).HasColumnName("version_id");
+2295: 
+2296:             entity.HasOne(d => d.CleaningTask).WithMany(p => p.RoomInspections)
+2297:                 .HasForeignKey(d => d.CleaningTaskId)
+2298:                 .HasConstraintName("FK_room_inspections_cleaning_task_id");
+2299: 
+2300:             entity.HasOne(d => d.InspectorUser).WithMany(p => p.RoomInspections)
+2301:                 .HasForeignKey(d => d.InspectorUserId)
+2302:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2303:                 .HasConstraintName("FK_room_inspections_inspector_user_id");
+2304: 
+2305:             entity.HasOne(d => d.Room).WithMany(p => p.RoomInspections)
+2306:                 .HasForeignKey(d => d.RoomId)
+2307:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2308:                 .HasConstraintName("FK_room_inspections_room_id");
+2309: 
+2310:             entity.HasOne(d => d.Version).WithMany(p => p.RoomInspections)
+2311:                 .HasForeignKey(d => d.VersionId)
+2312:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2313:                 .HasConstraintName("FK_room_inspections_version_id");
+2314:         });
+2315: 
+2316:         modelBuilder.Entity<RoomStatusHistory>(entity =>
+2317:         {
+2318:             entity.HasKey(e => e.HistoryId).HasName("PK__room_sta__096AA2E9A21225A5");
+2319: 
+2320:             entity.ToTable("room_status_history");
+2321: 
+2322:             entity.HasIndex(e => new { e.RoomId, e.ChangedAt }, "room_status_history_index_10");
+2323: 
+2324:             entity.Property(e => e.HistoryId).HasColumnName("history_id");
+2325:             entity.Property(e => e.ChangedAt).HasColumnName("changed_at");
+2326:             entity.Property(e => e.ChangedBy).HasColumnName("changed_by");
+2327:             entity.Property(e => e.FromStatus)
+2328:                 .HasMaxLength(40)
+2329:                 .IsUnicode(false)
+2330:                 .HasColumnName("from_status");
+2331:             entity.Property(e => e.Reason).HasColumnName("reason");
+2332:             entity.Property(e => e.RoomId).HasColumnName("room_id");
+2333:             entity.Property(e => e.ToStatus)
+2334:                 .HasMaxLength(40)
+2335:                 .IsUnicode(false)
+2336:                 .HasColumnName("to_status");
+2341:                 .HasColumnName("trigger_type");
+2342: 
+2343:             entity.HasOne(d => d.ChangedByNavigation).WithMany(p => p.RoomStatusHistories)
+2344:                 .HasForeignKey(d => d.ChangedBy)
+2345:                 .HasConstraintName("FK_room_status_history_changed_by");
+2346: 
+2347:             entity.HasOne(d => d.Room).WithMany(p => p.RoomStatusHistories)
+2348:                 .HasForeignKey(d => d.RoomId)
+2349:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2350:                 .HasConstraintName("FK_room_status_history_room_id");
+2351:         });
+2355:             entity.HasKey(e => e.RoomTypeId).HasName("PK__room_typ__42395E848D05FB98");
+2356: 
+2357:             entity.ToTable("room_types");
+2358: 
+2359:             entity.HasIndex(e => e.TypeCode, "UQ__room_typ__2CB4DBF5CD9B49E6").IsUnique();
+2360: 
+2361:             entity.Property(e => e.RoomTypeId).HasColumnName("room_type_id");
+2362:             entity.Property(e => e.Description).HasColumnName("description");
+2363:             entity.Property(e => e.IsActive)
+2364:                 .HasDefaultValue(true)
+2365:                 .HasColumnName("is_active");
+2366:             entity.Property(e => e.StandardCapacity).HasColumnName("standard_capacity");
+2367:             entity.Property(e => e.TypeCode)
+2378:             entity.HasKey(e => e.ShiftAssignmentId).HasName("PK__shift_as__E418729A7EAF8801");
+2379: 
+2380:             entity.ToTable("shift_assignments");
+2381: 
+2382:             entity.HasIndex(e => new { e.ShiftId, e.UserId }, "shift_assignments_index_37").IsUnique();
+2383: 
+2384:             entity.Property(e => e.ShiftAssignmentId).HasColumnName("shift_assignment_id");
+2385:             entity.Property(e => e.AssignedAt).HasColumnName("assigned_at");
+2386:             entity.Property(e => e.AssignedBy).HasColumnName("assigned_by");
+2387:             entity.Property(e => e.AssignmentStatus)
+2388:                 .HasMaxLength(30)
+2389:                 .IsUnicode(false)
+2390:                 .HasDefaultValue("ASSIGNED")
+2391:                 .HasColumnName("assignment_status");
+2392:             entity.Property(e => e.CancellationReason).HasColumnName("cancellation_reason");
+2393:             entity.Property(e => e.ConfirmedAt).HasColumnName("confirmed_at");
+2395:             entity.Property(e => e.UserId).HasColumnName("user_id");
+2396: 
+2397:             entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.ShiftAssignmentAssignedByNavigations)
+2398:                 .HasForeignKey(d => d.AssignedBy)
+2399:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2400:                 .HasConstraintName("FK_shift_assignments_assigned_by");
+2401: 
+2402:             entity.HasOne(d => d.Shift).WithMany(p => p.ShiftAssignments)
+2403:                 .HasForeignKey(d => d.ShiftId)
+2404:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2405:                 .HasConstraintName("FK_shift_assignments_shift_id");
+2406: 
+2407:             entity.HasOne(d => d.User).WithMany(p => p.ShiftAssignmentUsers)
+2408:                 .HasForeignKey(d => d.UserId)
+2409:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2410:                 .HasConstraintName("FK_shift_assignments_user_id");
+2411:         });
+2415:             entity.HasKey(e => e.AttendanceId).HasName("PK__shift_at__20D6A96870E9AB63");
+2416: 
+2417:             entity.ToTable("shift_attendance");
+2418: 
+2419:             entity.HasIndex(e => e.ShiftAssignmentId, "UQ__shift_at__E418729B0FB1931B").IsUnique();
+2420: 
+2421:             entity.Property(e => e.AttendanceId).HasColumnName("attendance_id");
+2422:             entity.Property(e => e.ActualCheckInAt).HasColumnName("actual_check_in_at");
+2423:             entity.Property(e => e.ActualCheckOutAt).HasColumnName("actual_check_out_at");
+2424:             entity.Property(e => e.AttendanceStatus)
+2425:                 .HasMaxLength(30)
+2426:                 .IsUnicode(false)
+2427:                 .HasDefaultValue("NOT_STARTED")
+2428:                 .HasColumnName("attendance_status");
+2429:             entity.Property(e => e.LateMinutes)
+2430:                 .HasDefaultValue(0)
+2431:                 .HasColumnName("late_minutes");
+2432:             entity.Property(e => e.Note).HasColumnName("note");
+2433:             entity.Property(e => e.OvertimeMinutes)
+2434:                 .HasDefaultValue(0)
+2435:                 .HasColumnName("overtime_minutes");
+2436:             entity.Property(e => e.ShiftAssignmentId).HasColumnName("shift_assignment_id");
+2437:             entity.Property(e => e.VerifiedAt).HasColumnName("verified_at");
+2438:             entity.Property(e => e.VerifiedBy).HasColumnName("verified_by");
+2439: 
+2440:             entity.HasOne(d => d.ShiftAssignment).WithOne(p => p.ShiftAttendance)
+2441:                 .HasForeignKey<ShiftAttendance>(d => d.ShiftAssignmentId)
+2442:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2443:                 .HasConstraintName("FK_shift_attendance_shift_assignment_id");
+2444: 
+2445:             entity.HasOne(d => d.VerifiedByNavigation).WithMany(p => p.ShiftAttendances)
+2446:                 .HasForeignKey(d => d.VerifiedBy)
+2447:                 .HasConstraintName("FK_shift_attendance_verified_by");
+2448:         });
+2449: 
+2452:             entity.HasKey(e => e.ShiftTemplateId).HasName("PK__shift_te__4A2DE082B43B11AE");
+2453: 
+2454:             entity.ToTable("shift_templates");
+2455: 
+2456:             entity.HasIndex(e => new { e.BranchId, e.ShiftCode }, "shift_templates_index_36").IsUnique();
+2457: 
+2458:             entity.Property(e => e.ShiftTemplateId).HasColumnName("shift_template_id");
+2459:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+2461:             entity.Property(e => e.CrossesMidnight).HasColumnName("crosses_midnight");
+2462:             entity.Property(e => e.EndTime).HasColumnName("end_time");
+2463:             entity.Property(e => e.IsActive)
+2464:                 .HasDefaultValue(true)
+2465:                 .HasColumnName("is_active");
+2466:             entity.Property(e => e.ShiftCode)
+2467:                 .HasMaxLength(30)
+2473:             entity.Property(e => e.StartTime).HasColumnName("start_time");
+2474: 
+2475:             entity.HasOne(d => d.Branch).WithMany(p => p.ShiftTemplates)
+2476:                 .HasForeignKey(d => d.BranchId)
+2477:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2478:                 .HasConstraintName("FK_shift_templates_branch_id");
+2479:         });
+2488:                 .HasColumnName("row_version");
+2489: 
+2490:             entity.ToTable("stock_documents");
+2491: 
+2492:             entity.HasIndex(e => e.DocumentNo, "UQ__stock_do__967931BE36726CCA").IsUnique();
+2493: 
+2494:             entity.HasIndex(e => new { e.DocumentType, e.Status }, "stock_documents_index_22");
+2495: 
+2496:             entity.HasIndex(e => e.DocumentDate, "stock_documents_index_23");
+2497: 
+2498:             entity.Property(e => e.DocumentId).HasColumnName("document_id");
+2499:             entity.Property(e => e.ApprovedAt).HasColumnName("approved_at");
+2523:             entity.Property(e => e.ReversalOfDocumentId).HasColumnName("reversal_of_document_id");
+2524:             entity.Property(e => e.SourceWarehouseId).HasColumnName("source_warehouse_id");
+2525:             entity.Property(e => e.Status)
+2526:                 .HasMaxLength(30)
+2527:                 .IsUnicode(false)
+2528:                 .HasDefaultValue("DRAFT")
+2529:                 .HasColumnName("status");
+2530: 
+2531:             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.StockDocumentApprovedByNavigations)
+2532:                 .HasForeignKey(d => d.ApprovedBy)
+2533:                 .HasConstraintName("FK_stock_documents_approved_by");
+2534: 
+2535:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StockDocumentCreatedByNavigations)
+2536:                 .HasForeignKey(d => d.CreatedBy)
+2537:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2538:                 .HasConstraintName("FK_stock_documents_created_by");
+2539: 
+2540:             entity.HasOne(d => d.DestinationWarehouse).WithMany(p => p.StockDocumentDestinationWarehouses)
+2541:                 .HasForeignKey(d => d.DestinationWarehouseId)
+2542:                 .HasConstraintName("FK_stock_documents_destination_warehouse_id");
+2543: 
+2544:             entity.HasOne(d => d.PostedByNavigation).WithMany(p => p.StockDocumentPostedByNavigations)
+2545:                 .HasForeignKey(d => d.PostedBy)
+2546:                 .HasConstraintName("FK_stock_documents_posted_by");
+2547: 
+2548:             entity.HasOne(d => d.ReversalOfDocument).WithMany(p => p.InverseReversalOfDocument)
+2549:                 .HasForeignKey(d => d.ReversalOfDocumentId)
+2550:                 .HasConstraintName("FK_stock_documents_reversal_of_document_id");
+2551: 
+2552:             entity.HasOne(d => d.SourceWarehouse).WithMany(p => p.StockDocumentSourceWarehouses)
+2553:                 .HasForeignKey(d => d.SourceWarehouseId)
+2554:                 .HasConstraintName("FK_stock_documents_source_warehouse_id");
+2555:         });
+2556: 
+2559:             entity.HasKey(e => e.LineId).HasName("PK__stock_do__F5AE5F62162FCEDA");
+2560: 
+2561:             entity.ToTable("stock_document_lines");
+2562: 
+2563:             entity.HasIndex(e => new { e.DocumentId, e.LineNo }, "stock_document_lines_index_24").IsUnique();
+2564: 
+2565:             entity.Property(e => e.LineId).HasColumnName("line_id");
+2566:             entity.Property(e => e.ActualQty)
+2571:                 .HasColumnName("base_qty");
+2572:             entity.Property(e => e.ConversionFactor)
+2573:                 .HasDefaultValue(1m)
+2574:                 .HasColumnType("decimal(18, 6)")
+2575:                 .HasColumnName("conversion_factor");
+2576:             entity.Property(e => e.DocumentId).HasColumnName("document_id");
+2586:             entity.Property(e => e.UomId).HasColumnName("uom_id");
+2587: 
+2588:             entity.HasOne(d => d.Document).WithMany(p => p.StockDocumentLines)
+2589:                 .HasForeignKey(d => d.DocumentId)
+2590:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2591:                 .HasConstraintName("FK_stock_document_lines_document_id");
+2592: 
+2593:             entity.HasOne(d => d.Item).WithMany(p => p.StockDocumentLines)
+2594:                 .HasForeignKey(d => d.ItemId)
+2595:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2596:                 .HasConstraintName("FK_stock_document_lines_item_id");
+2597: 
+2598:             entity.HasOne(d => d.Uom).WithMany(p => p.StockDocumentLines)
+2599:                 .HasForeignKey(d => d.UomId)
+2600:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2601:                 .HasConstraintName("FK_stock_document_lines_uom_id");
+2602:         });
+2606:             entity.HasKey(e => e.MovementId).HasName("PK__stock_mo__AB1D102219A07711");
+2607: 
+2608:             entity.ToTable("stock_movements");
+2609: 
+2610:             entity.HasIndex(e => new { e.WarehouseId, e.ItemId, e.OccurredAt }, "stock_movements_index_25");
+2611: 
+2612:             entity.Property(e => e.MovementId).HasColumnName("movement_id");
+2613:             entity.Property(e => e.CreatedBy).HasColumnName("created_by");
+2623:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+2624: 
+2625:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.StockMovements)
+2626:                 .HasForeignKey(d => d.CreatedBy)
+2627:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2628:                 .HasConstraintName("FK_stock_movements_created_by");
+2629: 
+2630:             entity.HasOne(d => d.DocumentLine).WithMany(p => p.StockMovements)
+2631:                 .HasForeignKey(d => d.DocumentLineId)
+2632:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2633:                 .HasConstraintName("FK_stock_movements_document_line_id");
+2634: 
+2635:             entity.HasOne(d => d.Item).WithMany(p => p.StockMovements)
+2636:                 .HasForeignKey(d => d.ItemId)
+2637:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2638:                 .HasConstraintName("FK_stock_movements_item_id");
+2639: 
+2640:             entity.HasOne(d => d.Warehouse).WithMany(p => p.StockMovements)
+2641:                 .HasForeignKey(d => d.WarehouseId)
+2642:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2643:                 .HasConstraintName("FK_stock_movements_warehouse_id");
+2644:         });
+2653:                 .HasColumnName("row_version");
+2654: 
+2655:             entity.ToTable("stock_thresholds");
+2656: 
+2657:             entity.HasIndex(e => new { e.WarehouseId, e.ItemId }, "stock_thresholds_index_21").IsUnique();
+2658: 
+2659:             entity.Property(e => e.ThresholdId).HasColumnName("threshold_id");
+2660:             entity.Property(e => e.AlertEnabled)
+2661:                 .HasDefaultValue(true)
+2662:                 .HasColumnName("alert_enabled");
+2663:             entity.Property(e => e.ItemId).HasColumnName("item_id");
+2664:             entity.Property(e => e.MaximumQty)
+2674:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+2675: 
+2676:             entity.HasOne(d => d.Item).WithMany(p => p.StockThresholds)
+2677:                 .HasForeignKey(d => d.ItemId)
+2678:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2679:                 .HasConstraintName("FK_stock_thresholds_item_id");
+2680: 
+2681:             entity.HasOne(d => d.Warehouse).WithMany(p => p.StockThresholds)
+2682:                 .HasForeignKey(d => d.WarehouseId)
+2683:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2684:                 .HasConstraintName("FK_stock_thresholds_warehouse_id");
+2685:         });
+2694:                 .HasColumnName("row_version");
+2695: 
+2696:             entity.ToTable("stocktakes");
+2697: 
+2698:             entity.HasIndex(e => e.StocktakeNo, "UQ__stocktak__9882A83F9B36B25E").IsUnique();
+2699: 
+2700:             entity.Property(e => e.StocktakeId).HasColumnName("stocktake_id");
+2701:             entity.Property(e => e.AdjustmentDocumentId).HasColumnName("adjustment_document_id");
+2708:             entity.Property(e => e.SnapshotAt).HasColumnName("snapshot_at");
+2709:             entity.Property(e => e.StartedAt).HasColumnName("started_at");
+2710:             entity.Property(e => e.Status)
+2711:                 .HasMaxLength(30)
+2712:                 .IsUnicode(false)
+2713:                 .HasDefaultValue("DRAFT")
+2714:                 .HasColumnName("status");
+2715:             entity.Property(e => e.StocktakeNo)
+2716:                 .HasMaxLength(50)
+2719:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+2720: 
+2721:             entity.HasOne(d => d.AdjustmentDocument).WithMany(p => p.Stocktakes)
+2722:                 .HasForeignKey(d => d.AdjustmentDocumentId)
+2723:                 .HasConstraintName("FK_stocktakes_adjustment_document_id");
+2724: 
+2725:             entity.HasOne(d => d.ApprovedByNavigation).WithMany(p => p.StocktakeApprovedByNavigations)
+2726:                 .HasForeignKey(d => d.ApprovedBy)
+2727:                 .HasConstraintName("FK_stocktakes_approved_by");
+2728: 
+2729:             entity.HasOne(d => d.CountedByNavigation).WithMany(p => p.StocktakeCountedByNavigations)
+2730:                 .HasForeignKey(d => d.CountedBy)
+2731:                 .HasConstraintName("FK_stocktakes_counted_by");
+2732: 
+2733:             entity.HasOne(d => d.Warehouse).WithMany(p => p.Stocktakes)
+2734:                 .HasForeignKey(d => d.WarehouseId)
+2735:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2736:                 .HasConstraintName("FK_stocktakes_warehouse_id");
+2737:         });
+2741:             entity.HasKey(e => e.StocktakeLineId).HasName("PK__stocktak__65202FD583442BD4");
+2742: 
+2743:             entity.ToTable("stocktake_lines");
+2744: 
+2745:             entity.HasIndex(e => new { e.StocktakeId, e.ItemId }, "stocktake_lines_index_26").IsUnique();
+2746: 
+2747:             entity.Property(e => e.StocktakeLineId).HasColumnName("stocktake_line_id");
+2748:             entity.Property(e => e.CountedAt).HasColumnName("counted_at");
+2761:                 .HasColumnName("variance_qty");
+2762: 
+2763:             entity.HasOne(d => d.CountedByNavigation).WithMany(p => p.StocktakeLines)
+2764:                 .HasForeignKey(d => d.CountedBy)
+2765:                 .HasConstraintName("FK_stocktake_lines_counted_by");
+2766: 
+2767:             entity.HasOne(d => d.Item).WithMany(p => p.StocktakeLines)
+2768:                 .HasForeignKey(d => d.ItemId)
+2769:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2770:                 .HasConstraintName("FK_stocktake_lines_item_id");
+2771: 
+2772:             entity.HasOne(d => d.Stocktake).WithMany(p => p.StocktakeLines)
+2773:                 .HasForeignKey(d => d.StocktakeId)
+2774:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2775:                 .HasConstraintName("FK_stocktake_lines_stocktake_id");
+2776:         });
+2780:             entity.HasKey(e => e.SettingId).HasName("PK__system_s__256E1E32A0E730E4");
+2781: 
+2782:             entity.ToTable("system_settings");
+2783: 
+2784:             entity.HasIndex(e => new { e.BranchId, e.SettingGroup, e.SettingKey }, "system_settings_index_47").IsUnique();
+2785: 
+2786:             entity.Property(e => e.SettingId).HasColumnName("setting_id");
+2787:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+2789:                 .HasMaxLength(30)
+2790:                 .IsUnicode(false)
+2791:                 .HasDefaultValue("STRING")
+2792:                 .HasColumnName("data_type");
+2793:             entity.Property(e => e.Description).HasColumnName("description");
+2794:             entity.Property(e => e.IsSensitive).HasColumnName("is_sensitive");
+2805:             entity.Property(e => e.UpdatedBy).HasColumnName("updated_by");
+2806: 
+2807:             entity.HasOne(d => d.Branch).WithMany(p => p.SystemSettings)
+2808:                 .HasForeignKey(d => d.BranchId)
+2809:                 .HasConstraintName("FK_system_settings_branch_id");
+2810: 
+2811:             entity.HasOne(d => d.UpdatedByNavigation).WithMany(p => p.SystemSettings)
+2812:                 .HasForeignKey(d => d.UpdatedBy)
+2813:                 .HasConstraintName("FK_system_settings_updated_by");
+2814:         });
+2815: 
+2823:                 .HasColumnName("row_version");
+2824: 
+2825:             entity.ToTable("units_of_measure");
+2826: 
+2827:             entity.HasIndex(e => e.UomCode, "UQ__units_of__31E2176B7AC6F419").IsUnique();
+2828: 
+2829:             entity.Property(e => e.UomId).HasColumnName("uom_id");
+2830:             entity.Property(e => e.Description).HasColumnName("description");
+2831:             entity.Property(e => e.IsActive)
+2832:                 .HasDefaultValue(true)
+2833:                 .HasColumnName("is_active");
+2834:             entity.Property(e => e.UomCode)
+2835:                 .HasMaxLength(30)
+2850:                 .HasColumnName("row_version");
+2851: 
+2852:             entity.ToTable("uom_conversions");
+2853: 
+2854:             entity.HasIndex(e => new { e.ItemId, e.FromUomId, e.ToUomId }, "uom_conversions_index_20").IsUnique();
+2855: 
+2856:             entity.Property(e => e.ConversionId).HasColumnName("conversion_id");
+2857:             entity.Property(e => e.ConversionFactor)
+2859:                 .HasColumnName("conversion_factor");
+2860:             entity.Property(e => e.FromUomId).HasColumnName("from_uom_id");
+2861:             entity.Property(e => e.IsActive)
+2862:                 .HasDefaultValue(true)
+2863:                 .HasColumnName("is_active");
+2864:             entity.Property(e => e.ItemId).HasColumnName("item_id");
+2865:             entity.Property(e => e.ToUomId).HasColumnName("to_uom_id");
+2866: 
+2867:             entity.HasOne(d => d.FromUom).WithMany(p => p.UomConversionFromUoms)
+2868:                 .HasForeignKey(d => d.FromUomId)
+2869:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2870:                 .HasConstraintName("FK_uom_conversions_from_uom_id");
+2871: 
+2872:             entity.HasOne(d => d.Item).WithMany(p => p.UomConversions)
+2873:                 .HasForeignKey(d => d.ItemId)
+2874:                 .HasConstraintName("FK_uom_conversions_item_id");
+2875: 
+2876:             entity.HasOne(d => d.ToUom).WithMany(p => p.UomConversionToUoms)
+2877:                 .HasForeignKey(d => d.ToUomId)
+2878:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2879:                 .HasConstraintName("FK_uom_conversions_to_uom_id");
+2880:         });
+2886: 
+2887:             // Schema B preparation: verify against SQL after applying the authentication schema update.
+2888:             entity.ToTable("users", table =>
+2889:                 table.HasCheckConstraint("CK_users_failed_login_count", "[failed_login_count] >= 0"));
+2890: 
+2891:             entity.HasIndex(e => e.Email, "UQ__users__AB6E61641B43B5D5").IsUnique();
+2892: 
+2893:             entity.HasIndex(e => e.EmployeeCode, "UQ__users__B0AA73458F47F1B4").IsUnique();
+2894: 
+2895:             entity.HasIndex(e => e.Username, "UQ__users__F3DBC57220477F7A").IsUnique();
+2896: 
+2897:             entity.HasIndex(e => new { e.PrimaryBranchId, e.DepartmentId }, "users_index_38");
+2898: 
+2899:             entity.Property(e => e.UserId).HasColumnName("user_id");
+2900:             entity.Property(e => e.AccountStatus)
+2901:                 .HasMaxLength(30)
+2902:                 .IsUnicode(false)
+2903:                 .HasDefaultValue("ACTIVE")
+2904:                 .HasColumnName("account_status");
+2905:             entity.Property(e => e.AvatarUrl).HasColumnName("avatar_url");
+2906:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+2915:                 .IsUnicode(false)
+2916:                 .HasColumnName("employee_code");
+2917:             entity.Property(e => e.EmploymentStatus)
+2918:                 .HasMaxLength(30)
+2919:                 .IsUnicode(false)
+2920:                 .HasDefaultValue("ACTIVE")
+2921:                 .HasColumnName("employment_status");
+2922:             entity.Property(e => e.FailedLoginCount)
+2923:                 .HasColumnType("int")
+2924:                 .HasDefaultValue(0, "DF_users_failed_login_count")
+2925:                 .HasColumnName("failed_login_count");
+2926:             entity.Property(e => e.FullName)
+2927:                 .HasMaxLength(200)
+2950:                 .HasColumnName("username");
+2951: 
+2952:             entity.HasOne(d => d.Department).WithMany(p => p.Users)
+2953:                 .HasForeignKey(d => d.DepartmentId)
+2954:                 .HasConstraintName("FK_users_department_id");
+2955: 
+2956:             entity.HasOne(d => d.ManagerUser).WithMany(p => p.InverseManagerUser)
+2957:                 .HasForeignKey(d => d.ManagerUserId)
+2958:                 .HasConstraintName("FK_users_manager_user_id");
+2959: 
+2960:             entity.HasOne(d => d.PrimaryBranch).WithMany(p => p.Users)
+2961:                 .HasForeignKey(d => d.PrimaryBranchId)
+2962:                 .HasConstraintName("FK_users_primary_branch_id");
+2963:         });
+2964: 
+2967:             entity.HasKey(e => e.AccessId).HasName("PK__user_bra__10FA1E20F44C43BC");
+2968: 
+2969:             entity.ToTable("user_branch_access");
+2970: 
+2971:             entity.HasIndex(e => new { e.UserId, e.BranchId }, "user_branch_access_index_41").IsUnique();
+2972: 
+2973:             entity.Property(e => e.AccessId).HasColumnName("access_id");
+2974:             entity.Property(e => e.AccessLevel)
+2975:                 .HasMaxLength(30)
+2976:                 .IsUnicode(false)
+2977:                 .HasDefaultValue("STANDARD")
+2978:                 .HasColumnName("access_level");
+2979:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+2980:             entity.Property(e => e.GrantedAt).HasColumnName("granted_at");
+2984:             entity.Property(e => e.UserId).HasColumnName("user_id");
+2985: 
+2986:             entity.HasOne(d => d.Branch).WithMany(p => p.UserBranchAccesses)
+2987:                 .HasForeignKey(d => d.BranchId)
+2988:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2989:                 .HasConstraintName("FK_user_branch_access_branch_id");
+2990: 
+2991:             entity.HasOne(d => d.GrantedByNavigation).WithMany(p => p.UserBranchAccessGrantedByNavigations)
+2992:                 .HasForeignKey(d => d.GrantedBy)
+2993:                 .HasConstraintName("FK_user_branch_access_granted_by");
+2994: 
+2995:             entity.HasOne(d => d.User).WithMany(p => p.UserBranchAccessUsers)
+2996:                 .HasForeignKey(d => d.UserId)
+2997:                 .OnDelete(DeleteBehavior.ClientSetNull)
+2998:                 .HasConstraintName("FK_user_branch_access_user_id");
+2999:         });
+3003:             entity.HasKey(e => e.UserRoleId).HasName("PK__user_rol__B8D9ABA2A37D4098");
+3004: 
+3005:             entity.ToTable("user_roles");
+3006: 
+3007:             entity.HasIndex(e => new { e.UserId, e.RoleId, e.BranchId }, "user_roles_index_39").IsUnique();
+3008: 
+3009:             entity.Property(e => e.UserRoleId).HasColumnName("user_role_id");
+3010:             entity.Property(e => e.AssignedAt).HasColumnName("assigned_at");
+3012:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+3013:             entity.Property(e => e.ExpiresAt).HasColumnName("expires_at");
+3014:             entity.Property(e => e.IsActive)
+3015:                 .HasDefaultValue(true)
+3016:                 .HasColumnName("is_active");
+3017:             entity.Property(e => e.RoleId).HasColumnName("role_id");
+3018:             entity.Property(e => e.UserId).HasColumnName("user_id");
+3019: 
+3020:             entity.HasOne(d => d.AssignedByNavigation).WithMany(p => p.UserRoleAssignedByNavigations)
+3021:                 .HasForeignKey(d => d.AssignedBy)
+3022:                 .HasConstraintName("FK_user_roles_assigned_by");
+3023: 
+3024:             entity.HasOne(d => d.Branch).WithMany(p => p.UserRoles)
+3025:                 .HasForeignKey(d => d.BranchId)
+3026:                 .HasConstraintName("FK_user_roles_branch_id");
+3027: 
+3028:             entity.HasOne(d => d.Role).WithMany(p => p.UserRoles)
+3029:                 .HasForeignKey(d => d.RoleId)
+3030:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3031:                 .HasConstraintName("FK_user_roles_role_id");
+3032: 
+3033:             entity.HasOne(d => d.User).WithMany(p => p.UserRoleUsers)
+3034:                 .HasForeignKey(d => d.UserId)
+3035:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3036:                 .HasConstraintName("FK_user_roles_user_id");
+3037:         });
+3041:             entity.HasKey(e => e.SessionId).HasName("PK__user_ses__69B13FDCB96F3735");
+3042: 
+3043:             entity.ToTable("user_sessions");
+3044: 
+3045:             // Keep the actual development SQL constraint name; column rename does not rename it.
+3046:             entity.HasIndex(e => e.SessionKeyHash, "UQ__user_ses__63546C90989E9852").IsUnique();
+3047: 
+3048:             entity.Property(e => e.SessionId).HasColumnName("session_id");
+3049:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+3056:             entity.Property(e => e.LastUsedAt).HasColumnName("last_used_at");
+3057:             entity.Property(e => e.SessionKeyHash)
+3058:                 .IsRequired()
+3059:                 .HasMaxLength(255)
+3060:                 .IsUnicode(false)
+3061:                 .HasColumnName("session_key_hash");
+3064:             entity.Property(e => e.UserId).HasColumnName("user_id");
+3065: 
+3066:             entity.HasOne(d => d.User).WithMany(p => p.UserSessions)
+3067:                 .HasForeignKey(d => d.UserId)
+3068:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3069:                 .HasConstraintName("FK_user_sessions_user_id");
+3070:         });
+3079:                 .HasColumnName("row_version");
+3080: 
+3081:             entity.ToTable("warehouses");
+3082: 
+3083:             entity.HasIndex(e => new { e.BranchId, e.WarehouseCode }, "warehouses_index_19").IsUnique();
+3084: 
+3085:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+3086:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+3087:             entity.Property(e => e.CreatedAt).HasColumnName("created_at");
+3088:             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+3089:             entity.Property(e => e.IsActive)
+3090:                 .HasDefaultValue(true)
+3091:                 .HasColumnName("is_active");
+3092:             entity.Property(e => e.LocationDescription).HasColumnName("location_description");
+3093:             entity.Property(e => e.ManagerUserId).HasColumnName("manager_user_id");
+3100:                 .HasColumnName("warehouse_name");
+3101: 
+3102:             entity.HasOne(d => d.Branch).WithMany(p => p.Warehouses)
+3103:                 .HasForeignKey(d => d.BranchId)
+3104:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3105:                 .HasConstraintName("FK_warehouses_branch_id");
+3106: 
+3107:             entity.HasOne(d => d.Department).WithMany(p => p.Warehouses)
+3108:                 .HasForeignKey(d => d.DepartmentId)
+3109:                 .HasConstraintName("FK_warehouses_department_id");
+3110: 
+3111:             entity.HasOne(d => d.ManagerUser).WithMany(p => p.Warehouses)
+3112:                 .HasForeignKey(d => d.ManagerUserId)
+3113:                 .HasConstraintName("FK_warehouses_manager_user_id");
+3114:         });
+3115: 
+3118:             entity.HasKey(e => e.CategoryId).HasName("PK__work_cat__D54EE9B4ED346103");
+3119: 
+3120:             entity.ToTable("work_categories");
+3121: 
+3122:             entity.HasIndex(e => e.CategoryCode, "UQ__work_cat__BC9D1E7C9BA35E22").IsUnique();
+3123: 
+3124:             entity.Property(e => e.CategoryId).HasColumnName("category_id");
+3125:             entity.Property(e => e.CategoryCode)
+3132:             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+3133:             entity.Property(e => e.Description).HasColumnName("description");
+3134:             entity.Property(e => e.IsActive)
+3135:                 .HasDefaultValue(true)
+3136:                 .HasColumnName("is_active");
+3137: 
+3138:             entity.HasOne(d => d.Department).WithMany(p => p.WorkCategories)
+3139:                 .HasForeignKey(d => d.DepartmentId)
+3140:                 .HasConstraintName("FK_work_categories_department_id");
+3141:         });
+3142: 
+3145:             entity.HasKey(e => e.ShiftId).HasName("PK__work_shi__7B267220C8C2BEE1");
+3146: 
+3147:             entity.ToTable("work_shifts");
+3148: 
+3149:             entity.Property(e => e.ShiftId).HasColumnName("shift_id");
+3150:             entity.Property(e => e.BranchId).HasColumnName("branch_id");
+3153:             entity.Property(e => e.DepartmentId).HasColumnName("department_id");
+3154:             entity.Property(e => e.Note).HasColumnName("note");
+3155:             entity.Property(e => e.RequiredStaffCount)
+3156:                 .HasDefaultValue(1)
+3157:                 .HasColumnName("required_staff_count");
+3158:             entity.Property(e => e.ScheduledEndAt).HasColumnName("scheduled_end_at");
+3159:             entity.Property(e => e.ScheduledStartAt).HasColumnName("scheduled_start_at");
+3160:             entity.Property(e => e.ShiftDate).HasColumnName("shift_date");
+3161:             entity.Property(e => e.ShiftTemplateId).HasColumnName("shift_template_id");
+3162:             entity.Property(e => e.Status)
+3163:                 .HasMaxLength(30)
+3164:                 .IsUnicode(false)
+3165:                 .HasDefaultValue("PLANNED")
+3166:                 .HasColumnName("status");
+3167: 
+3168:             entity.HasOne(d => d.Branch).WithMany(p => p.WorkShifts)
+3169:                 .HasForeignKey(d => d.BranchId)
+3170:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3171:                 .HasConstraintName("FK_work_shifts_branch_id");
+3172: 
+3173:             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.WorkShifts)
+3174:                 .HasForeignKey(d => d.CreatedBy)
+3175:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3176:                 .HasConstraintName("FK_work_shifts_created_by");
+3177: 
+3178:             entity.HasOne(d => d.Department).WithMany(p => p.WorkShifts)
+3179:                 .HasForeignKey(d => d.DepartmentId)
+3180:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3181:                 .HasConstraintName("FK_work_shifts_department_id");
+3182: 
+3183:             entity.HasOne(d => d.ShiftTemplate).WithMany(p => p.WorkShifts)
+3184:                 .HasForeignKey(d => d.ShiftTemplateId)
+3185:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3186:                 .HasConstraintName("FK_work_shifts_shift_template_id");
+3187:         });
+3191:             entity.HasKey(e => e.TransferReceiptId);
+3192: 
+3193:             entity.ToTable("stock_transfer_receipts");
+3194: 
+3195:             entity.HasIndex(e => new { e.TransferDocumentId, e.TransferReceiptId }, "IX_stock_transfer_receipts_document");
+3196: 
+3197:             entity.HasIndex(e => e.ReceivedBy, "IX_stock_transfer_receipts_received_by");
+3198: 
+3199:             entity.Property(e => e.TransferReceiptId).HasColumnName("transfer_receipt_id");
+3200:             entity.Property(e => e.Note).HasColumnName("note");
+3203:             entity.Property(e => e.TransferDocumentId).HasColumnName("transfer_document_id");
+3204: 
+3205:             entity.HasOne(d => d.ReceivedByNavigation).WithMany(p => p.StockTransferReceipts)
+3206:                 .HasForeignKey(d => d.ReceivedBy)
+3207:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3208:                 .HasConstraintName("FK_stock_transfer_receipts_user");
+3209: 
+3210:             entity.HasOne(d => d.TransferDocument).WithMany(p => p.StockTransferReceipts)
+3211:                 .HasForeignKey(d => d.TransferDocumentId)
+3212:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3213:                 .HasConstraintName("FK_stock_transfer_receipts_document");
+3214:         });
+3218:             entity.HasKey(e => e.TransferReceiptLineId);
+3219: 
+3220:             entity.ToTable("stock_transfer_receipt_lines");
+3221: 
+3222:             entity.HasIndex(e => e.TransferReceiptId, "IX_stock_transfer_receipt_lines_receipt");
+3223: 
+3224:             entity.HasIndex(e => e.TransferLineId, "IX_stock_transfer_receipt_lines_transfer_line");
+3225: 
+3226:             entity.Property(e => e.TransferReceiptLineId).HasColumnName("transfer_receipt_line_id");
+3227:             entity.Property(e => e.DamagedQty)
+3238:             entity.Property(e => e.TransferReceiptId).HasColumnName("transfer_receipt_id");
+3239: 
+3240:             entity.HasOne(d => d.TransferLine).WithMany(p => p.StockTransferReceiptLines)
+3241:                 .HasForeignKey(d => d.TransferLineId)
+3242:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3243:                 .HasConstraintName("FK_stock_transfer_receipt_lines_line");
+3244: 
+3245:             entity.HasOne(d => d.TransferReceipt).WithMany(p => p.StockTransferReceiptLines)
+3246:                 .HasForeignKey(d => d.TransferReceiptId)
+3247:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3248:                 .HasConstraintName("FK_stock_transfer_receipt_lines_receipt");
+3249:         });
+3253:             entity.HasKey(e => e.StockDocumentLineId);
+3254: 
+3255:             entity.ToTable("stock_receipt_line_details");
+3256: 
+3257:             entity.Property(e => e.StockDocumentLineId)
+3258:                 .ValueGeneratedNever()
+3266:                 .HasColumnName("rejected_qty");
+3267: 
+3268:             entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.StockReceiptLineDetail)
+3269:                 .HasForeignKey<StockReceiptLineDetail>(d => d.StockDocumentLineId)
+3270:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3271:                 .HasConstraintName("FK_stock_receipt_line_details_line");
+3272:         });
+3276:             entity.HasKey(e => e.StockDocumentLineId);
+3277: 
+3278:             entity.ToTable("stock_return_line_details");
+3279: 
+3280:             entity.HasIndex(e => e.OriginalIssueLineId, "IX_stock_return_line_details_original");
+3281: 
+3282:             entity.Property(e => e.StockDocumentLineId)
+3283:                 .ValueGeneratedNever()
+3289:             entity.Property(e => e.OriginalIssueLineId).HasColumnName("original_issue_line_id");
+3290: 
+3291:             entity.HasOne(d => d.OriginalIssueLine).WithMany(p => p.StockReturnLineDetailOriginalIssueLines)
+3292:                 .HasForeignKey(d => d.OriginalIssueLineId)
+3293:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3294:                 .HasConstraintName("FK_stock_return_line_details_original");
+3295: 
+3296:             entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.StockReturnLineDetailStockDocumentLine)
+3297:                 .HasForeignKey<StockReturnLineDetail>(d => d.StockDocumentLineId)
+3298:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3299:                 .HasConstraintName("FK_stock_return_line_details_line");
+3300:         });
+3304:             entity.HasKey(e => e.ApprovalCycleId).HasName("PK__material__FBD97943D0FA7855");
+3305: 
+3306:             entity.ToTable("material_request_approval_cycles");
+3307: 
+3308:             entity.HasIndex(e => new { e.RequestId, e.RevisionNo }, "UQ_mr_cycles_revision").IsUnique();
+3309: 
+3310:             entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+3311:             entity.Property(e => e.AssignedApproverId).HasColumnName("assigned_approver_id");
+3313:             entity.Property(e => e.ResolvedAt).HasColumnName("resolved_at");
+3314:             entity.Property(e => e.RevisionNo).HasColumnName("revision_no");
+3315:             entity.Property(e => e.Status)
+3316:                 .HasMaxLength(30)
+3317:                 .IsUnicode(false)
+3318:                 .HasColumnName("status");
+3320:             entity.Property(e => e.SubmittedBy).HasColumnName("submitted_by");
+3321: 
+3322:             entity.HasOne(d => d.AssignedApprover).WithMany(p => p.MaterialRequestApprovalCycleAssignedApprovers)
+3323:                 .HasForeignKey(d => d.AssignedApproverId)
+3324:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3325:                 .HasConstraintName("FK_mr_cycles_approver");
+3326: 
+3327:             entity.HasOne(d => d.Request).WithMany(p => p.MaterialRequestApprovalCycles)
+3328:                 .HasForeignKey(d => d.RequestId)
+3329:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3330:                 .HasConstraintName("FK_mr_cycles_request");
+3331: 
+3332:             entity.HasOne(d => d.SubmittedByNavigation).WithMany(p => p.MaterialRequestApprovalCycleSubmittedByNavigations)
+3333:                 .HasForeignKey(d => d.SubmittedBy)
+3334:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3335:                 .HasConstraintName("FK_mr_cycles_submitter");
+3336:         });
+3340:             entity.HasKey(e => e.SnapshotId).HasName("PK__material__C27CFBF76273C8DC");
+3341: 
+3342:             entity.ToTable("material_request_approval_line_snapshots");
+3343: 
+3344:             entity.HasIndex(e => new { e.ApprovalCycleId, e.RequestLineId }, "UQ_mr_snapshots_line").IsUnique();
+3345: 
+3346:             entity.Property(e => e.SnapshotId).HasColumnName("snapshot_id");
+3347:             entity.Property(e => e.ApprovalCycleId).HasColumnName("approval_cycle_id");
+3358:             entity.Property(e => e.UomId).HasColumnName("uom_id");
+3359: 
+3360:             entity.HasOne(d => d.ApprovalCycle).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+3361:                 .HasForeignKey(d => d.ApprovalCycleId)
+3362:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3363:                 .HasConstraintName("FK_mr_snapshots_cycle");
+3364: 
+3365:             entity.HasOne(d => d.Item).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+3366:                 .HasForeignKey(d => d.ItemId)
+3367:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3368:                 .HasConstraintName("FK_mr_snapshots_item");
+3369: 
+3370:             entity.HasOne(d => d.RequestLine).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+3371:                 .HasForeignKey(d => d.RequestLineId)
+3372:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3373:                 .HasConstraintName("FK_mr_snapshots_line");
+3374: 
+3375:             entity.HasOne(d => d.Uom).WithMany(p => p.MaterialRequestApprovalLineSnapshots)
+3376:                 .HasForeignKey(d => d.UomId)
+3377:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3378:                 .HasConstraintName("FK_mr_snapshots_uom");
+3379:         });
+3383:             entity.HasKey(e => e.ReplenishmentId);
+3384: 
+3385:             entity.ToTable("material_replenishments");
+3386: 
+3387:             entity.HasIndex(e => e.ClosedBy, "IX_material_replenishments_closed_by");
+3388: 
+3389:             entity.HasIndex(e => e.RequestedBy, "IX_material_replenishments_requested_by");
+3390: 
+3391:             entity.HasIndex(e => new { e.WarehouseId, e.Status, e.ExpectedOn, e.ReplenishmentId }, "IX_replenishments_tracking");
+3392: 
+3393:             entity.HasIndex(e => e.ReplenishmentNo, "UQ_replenishment_no").IsUnique();
+3394: 
+3395:             entity.HasIndex(e => new { e.ReplenishmentId, e.WarehouseId }, "UQ_replenishments_warehouse").IsUnique();
+3396: 
+3397:             entity.Property(e => e.ReplenishmentId).HasColumnName("replenishment_id");
+3398:             entity.Property(e => e.CloseReason).HasColumnName("close_reason");
+3410:                 .IsConcurrencyToken()
+3411:                 .HasColumnName("row_version");
+3412:             entity.Property(e => e.Status)
+3413:                 .HasMaxLength(30)
+3414:                 .IsUnicode(false)
+3415:                 .HasColumnName("status");
+3420:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+3421: 
+3422:             entity.HasOne(d => d.ClosedByNavigation).WithMany(p => p.MaterialReplenishmentClosedByNavigations)
+3423:                 .HasForeignKey(d => d.ClosedBy)
+3424:                 .HasConstraintName("FK_replenishments_closer");
+3425: 
+3426:             entity.HasOne(d => d.RequestedByNavigation).WithMany(p => p.MaterialReplenishmentRequestedByNavigations)
+3427:                 .HasForeignKey(d => d.RequestedBy)
+3428:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3429:                 .HasConstraintName("FK_replenishments_requester");
+3430: 
+3431:             entity.HasOne(d => d.Warehouse).WithMany(p => p.MaterialReplenishments)
+3432:                 .HasForeignKey(d => d.WarehouseId)
+3433:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3434:                 .HasConstraintName("FK_replenishments_warehouse");
+3435:         });
+3439:             entity.HasKey(e => e.ReplenishmentLineId);
+3440: 
+3441:             entity.ToTable("material_replenishment_lines");
+3442: 
+3443:             entity.HasIndex(e => e.BaseUomId, "IX_material_replenishment_lines_base_uom_id");
+3444: 
+3445:             entity.HasIndex(e => e.ItemId, "IX_material_replenishment_lines_item_id");
+3446: 
+3447:             entity.HasIndex(e => new { e.ReplenishmentId, e.WarehouseId }, "IX_material_replenishment_lines_replenishment_id_warehouse_id");
+3448: 
+3449:             entity.HasIndex(e => e.SourceMaterialRequestLineId, "IX_replenishment_lines_request_line");
+3450: 
+3451:             entity.HasIndex(e => e.SourceThresholdId, "IX_replenishment_lines_threshold");
+3452: 
+3453:             entity.HasIndex(e => new { e.ReplenishmentId, e.LineNo }, "UQ_replenishment_lines_number").IsUnique();
+3454: 
+3455:             entity.HasIndex(e => new { e.WarehouseId, e.ItemId }, "UX_replenishment_active_coverage")
+3456:                 .IsUnique()
+3457:                 .HasFilter("([is_open_coverage]=(1))");
+3458: 
+3478:             entity.Property(e => e.WarehouseId).HasColumnName("warehouse_id");
+3479: 
+3480:             entity.HasOne(d => d.BaseUom).WithMany(p => p.MaterialReplenishmentLines)
+3481:                 .HasForeignKey(d => d.BaseUomId)
+3482:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3483:                 .HasConstraintName("FK_replenishment_lines_uom");
+3484: 
+3485:             entity.HasOne(d => d.Item).WithMany(p => p.MaterialReplenishmentLines)
+3486:                 .HasForeignKey(d => d.ItemId)
+3487:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3488:                 .HasConstraintName("FK_replenishment_lines_item");
+3489: 
+3490:             entity.HasOne(d => d.SourceMaterialRequestLine).WithMany(p => p.MaterialReplenishmentLines)
+3491:                 .HasForeignKey(d => d.SourceMaterialRequestLineId)
+3492:                 .HasConstraintName("FK_replenishment_lines_request_line");
+3493: 
+3494:             entity.HasOne(d => d.SourceThreshold).WithMany(p => p.MaterialReplenishmentLines)
+3495:                 .HasForeignKey(d => d.SourceThresholdId)
+3496:                 .HasConstraintName("FK_replenishment_lines_threshold");
+3497: 
+3498:             entity.HasOne(d => d.MaterialReplenishment).WithMany(p => p.MaterialReplenishmentLines)
+3499:                 .HasPrincipalKey(p => new { p.ReplenishmentId, p.WarehouseId })
+3500:                 .HasForeignKey(d => new { d.ReplenishmentId, d.WarehouseId })
+3501:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3502:                 .HasConstraintName("FK_replenishment_lines_owner");
+3503:         });
+3507:             entity.HasKey(e => e.ReplenishmentReceiptLineId);
+3508: 
+3509:             entity.ToTable("material_replenishment_receipt_lines");
+3510: 
+3511:             entity.HasIndex(e => e.LinkedBy, "IX_material_replenishment_receipt_lines_linked_by");
+3512: 
+3513:             entity.HasIndex(e => e.ReplenishmentLineId, "IX_replenishment_receipts_owner");
+3514: 
+3515:             entity.HasIndex(e => e.StockDocumentLineId, "UQ_replenishment_receipt_stock_line").IsUnique();
+3516: 
+3517:             entity.Property(e => e.ReplenishmentReceiptLineId).HasColumnName("replenishment_receipt_line_id");
+3518:             entity.Property(e => e.CreditedBaseQty)
+3524:             entity.Property(e => e.StockDocumentLineId).HasColumnName("stock_document_line_id");
+3525: 
+3526:             entity.HasOne(d => d.LinkedByNavigation).WithMany(p => p.MaterialReplenishmentReceiptLines)
+3527:                 .HasForeignKey(d => d.LinkedBy)
+3528:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3529:                 .HasConstraintName("FK_replenishment_receipts_actor");
+3530: 
+3531:             entity.HasOne(d => d.ReplenishmentLine).WithMany(p => p.MaterialReplenishmentReceiptLines)
+3532:                 .HasForeignKey(d => d.ReplenishmentLineId)
+3533:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3534:                 .HasConstraintName("FK_replenishment_receipts_owner");
+3535: 
+3536:             entity.HasOne(d => d.StockDocumentLine).WithOne(p => p.MaterialReplenishmentReceiptLine)
+3537:                 .HasForeignKey<MaterialReplenishmentReceiptLine>(d => d.StockDocumentLineId)
+3538:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3539:                 .HasConstraintName("FK_replenishment_receipts_stock_line");
+3540:         });
+3544:             entity.HasKey(e => e.UsageId);
+3545: 
+3546:             entity.ToTable("maintenance_material_usages");
+3547: 
+3548:             entity.HasIndex(e => e.BaseUomId, "IX_material_usages_base_uom");
+3549: 
+3550:             entity.HasIndex(e => new { e.StockDocumentLineId, e.UsageId }, "IX_material_usages_issue_capacity");
+3551: 
+3552:             entity.HasIndex(e => e.ItemId, "IX_material_usages_item");
+3553: 
+3554:             entity.HasIndex(e => new { e.MaintenanceWorkLogId, e.MaintenanceWorkId }, "IX_material_usages_log_work");
+3555: 
+3556:             entity.HasIndex(e => e.UomId, "IX_material_usages_uom");
+3557: 
+3558:             entity.HasIndex(e => new { e.MaintenanceWorkId, e.UsageId }, "IX_material_usages_work_history");
+3559: 
+3560:             entity.HasIndex(e => new { e.MaintenanceWorkLogId, e.StockDocumentLineId }, "UQ_material_usages_log_issue").IsUnique();
+3561: 
+3562:             entity.Property(e => e.UsageId).HasColumnName("usage_id");
+3563:             entity.Property(e => e.BaseUomId).HasColumnName("base_uom_id");
+3577:                 .HasColumnName("used_qty");
+3578: 
+3579:             entity.HasOne(d => d.BaseUom).WithMany(p => p.MaintenanceMaterialUsageBaseUoms)
+3580:                 .HasForeignKey(d => d.BaseUomId)
+3581:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3582:                 .HasConstraintName("FK_material_usages_base_uom");
+3583: 
+3584:             entity.HasOne(d => d.Item).WithMany(p => p.MaintenanceMaterialUsages)
+3585:                 .HasForeignKey(d => d.ItemId)
+3586:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3587:                 .HasConstraintName("FK_material_usages_item");
+3588: 
+3589:             entity.HasOne(d => d.MaintenanceWork).WithMany(p => p.MaintenanceMaterialUsages)
+3590:                 .HasForeignKey(d => d.MaintenanceWorkId)
+3591:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3592:                 .HasConstraintName("FK_material_usages_work");
+3593: 
+3594:             entity.HasOne(d => d.StockDocumentLine).WithMany(p => p.MaintenanceMaterialUsages)
+3595:                 .HasForeignKey(d => d.StockDocumentLineId)
+3596:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3597:                 .HasConstraintName("FK_material_usages_issue_line");
+3598: 
+3599:             entity.HasOne(d => d.Uom).WithMany(p => p.MaintenanceMaterialUsageUoms)
+3600:                 .HasForeignKey(d => d.UomId)
+3601:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3602:                 .HasConstraintName("FK_material_usages_uom");
+3603: 
+3604:             entity.HasOne(d => d.MaintenanceWorkLog).WithMany(p => p.MaintenanceMaterialUsages)
+3605:                 .HasPrincipalKey(p => new { p.LogId, p.MaintenanceWorkId })
+3606:                 .HasForeignKey(d => new { d.MaintenanceWorkLogId, d.MaintenanceWorkId })
+3607:                 .OnDelete(DeleteBehavior.ClientSetNull)
+3608:                 .HasConstraintName("FK_material_usages_log_work");
+3609:         });

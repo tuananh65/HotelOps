@@ -1,0 +1,34 @@
+    var route=$"/api/rooms/{room}/turnover-history?branchId={a}";
+    var list=(await Expect(supervisor,route,200,"field-oracle list"))!.Value;
+    var cycleDto=list.GetProperty("items").EnumerateArray().Single(x=>x.GetProperty("id").GetInt64()==cycle.CleaningTaskId);
+    var typeName=await db.ReferenceValues.Where(x=>x.ReferenceId==cycle.CleaningTypeId).Select(x=>x.DisplayName).SingleAsync(ct);
+    Check(cycleDto.GetProperty("cleaningType").GetString()==typeName,"cleaning type equals authoritative SQL reference display name");
+    Check(cycleDto.GetProperty("start").GetDateTime().Ticks==cycle.ActualStartAt!.Value.Ticks
+        && cycleDto.GetProperty("end").GetDateTime().Ticks==cycle.ActualEndAt!.Value.Ticks,"start/end exact SQL timestamp ticks");
+    var assignees=await db.CleaningAssignments.Where(x=>x.CleaningTaskId==cycle.CleaningTaskId).OrderBy(x=>x.AssignedAt).ThenBy(x=>x.AssignmentId).Select(x=>x.AssigneeUserId).ToArrayAsync(ct);
+    Check(cycleDto.GetProperty("assignees").EnumerateArray().Select(x=>x.GetProperty("userId").GetInt64()).SequenceEqual(assignees),"historical assignee identities/order match persisted assignment rows");
+    Check(cycleDto.GetProperty("cancellationReason").ValueKind==JsonValueKind.Null,"no cancellation reason invented for uncancelled cycle");
+    var body=(await Expect(supervisor,$"/api/rooms/{room}/turnover-history/{cycle.CleaningTaskId}?branchId={a}",200,"field-oracle detail"))!.Value;
+    Check(body.GetProperty("inspections").EnumerateArray().All(x=>x.GetProperty("inspection").GetProperty("versionId").GetInt64()==version.VersionId
+        && x.GetProperty("inspection").GetProperty("versionNumber").GetInt32()==version.VersionNo),"stored checklist version identity and number");
+    var inspections=await db.RoomInspections.Where(x=>x.CleaningTaskId==cycle.CleaningTaskId && x.RoomId==room).Select(x=>new{x.InspectionId,x.Result}).ToArrayAsync(ct);
+    Check(body.GetProperty("inspections").EnumerateArray().All(x=>inspections.Any(i=>i.InspectionId==x.GetProperty("inspection").GetProperty("id").GetInt64()
+        && i.Result==x.GetProperty("inspection").GetProperty("result").GetString())),"inspection identities and PASS/FAIL values match exact stored cycle");
+    var rework=await db.CleaningReworks.AsNoTracking().SingleAsync(x=>x.CleaningTaskId==cycle.CleaningTaskId,ct);
+    var reworkDto=body.GetProperty("reworks")[0];
+    Check(reworkDto.GetProperty("id").GetInt64()==rework.ReworkId && reworkDto.GetProperty("reason").GetString()==rework.Reason
+        && reworkDto.GetProperty("assigneeId").GetInt64()==rework.AssigneeUserId
+        && reworkDto.GetProperty("completedAt").GetDateTime().Ticks==rework.CompletedAt!.Value.Ticks,"rework identity/reason/assignee/completed timestamp match SQL, no completer inferred");
+    var evidence=body.GetProperty("evidence").EnumerateArray().Single(x=>x.GetProperty("id").GetInt64()==attachment.AttachmentId);
+    Check(evidence.GetProperty("name").GetString()==attachment.OriginalFileName && evidence.GetProperty("mimeType").GetString()==attachment.MimeType
+        && evidence.GetProperty("bytes").GetInt64()==attachment.FileSizeBytes
+        && evidence.GetProperty("entityId").GetInt64()==cycle.CleaningTaskId,"authorized attachment metadata equals actual private source row");
+    var empty=(await Expect(supervisor,route+"&page=100",200,"empty page beyond total"))!.Value;
+    Check(empty.GetProperty("items").GetArrayLength()==0 && empty.GetProperty("total").GetInt32()==2,"out-of-range page preserves total without invented cycles");
+    await Expect(supervisor,$"/api/rooms/{room}/turnover-history/0?branchId={a}",400,"invalid cycle ID real HTTP validation");
+    await Expect(supervisor,route+"&roomId="+foreignRoom,400,"conflicting route/filter room rejected");
+    Check(catalogBefore==await Fingerprint("roles","permissions","role_permissions","branches","departments","reference_values"),"oracle uses unchanged RBAC/reference catalog");
+    await File.WriteAllTextAsync(args[1],JsonSerializer.Serialize(new {success=true,database=args[0],checks=cases.Count,cases,
+        kind="ADDITIONAL_CURRENT_SOURCE_AUTHENTICATED_HTTPS_SQL_FIELD_ORACLES_NO_PRODUCTION_CHANGES"},new JsonSerializerOptions{WriteIndented=true}),ct);
+    Console.WriteLine($"PASS {cases.Count} HTTPS/SQL field-oracle checks");
+}

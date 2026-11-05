@@ -1,0 +1,19 @@
+3: namespace HotelOps.Api.Services.Inventory;
+4: 
+5: public record InventoryIssueLine(long RequestLineId, long ItemId, long UomId, decimal Quantity);
+6: public record InventoryIssueRequest(long ActorUserId, long FulfillmentId, long WarehouseId,
+7:     DateOnly DocumentDate, IReadOnlyList<InventoryIssueLine> Lines);
+8: public record InventoryIssueCorrelation(long RequestLineId, long StockDocumentLineId);
+9: public record InventoryIssueResult(long DocumentId, IReadOnlyList<InventoryIssueCorrelation> Lines);
+10: 
+11: /// <summary>
+12: /// FE-09 must authorize/validate fulfillment, begin a transaction on the SAME scoped
+14: /// update fulfillment totals/linkage and commit atomically. This primitive never commits.
+15: /// The caller must roll back and discard tracked state after any failure.
+16: /// ActorUserId is supplied by the trusted calling business service, never model-bound from an Inventory HTTP request.
+17: /// </summary>
+18: public interface IInventoryIssuePosting
+19: {
+20:     Task<InventoryIssueResult> PostIssue(InventoryIssueRequest request, CancellationToken cancellationToken);
+21: }
+22: 

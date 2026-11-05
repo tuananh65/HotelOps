@@ -1,0 +1,48 @@
+$ErrorActionPreference='Stop'
+$backup=(Get-Content obj/task68-preflight-path.local.txt -Raw).Trim()
+$before=Get-Content (Join-Path $backup 'manifest.json') -Raw|ConvertFrom-Json
+$allowed=@('src/HotelOps.Api/Program.cs','src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs','src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs','scripts/verification/HotelStructure/Program.cs','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$new=@('src/HotelOps.Api/Controllers/RoomTypesController.cs','src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs','src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs','src/HotelOps.Api/Data/RoomTypeSchema.cs','scripts/database/release/candidates/Task68_UC017.forward.sql','scripts/database/release/candidates/Task68_UC017.rollback.sql','scripts/verification/HotelStructure/Task68RoomTypeCases.cs','scripts/verification/HotelStructure/Task68RoomTypeFaults.cs','scripts/verification/HotelStructure/TASK68_UC017_IMPLEMENTATION.md')
+$changed=@();$unchanged=0;$backups=0
+foreach($entry in $before.Files){
+    $copy=Join-Path (Join-Path $backup 'files') $entry.Path
+    if(!(Test-Path -LiteralPath $copy) -or (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $entry.SHA256){throw ('Invalid backup: '+$entry.Path)}
+    $backups++
+    if(!(Test-Path -LiteralPath $entry.Path)){throw ('Removed original: '+$entry.Path)}
+    if((Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash -eq $entry.SHA256){$unchanged++}
+    elseif($allowed -contains $entry.Path){$changed+=$entry.Path}else{throw ('Unexpected edit: '+$entry.Path)}
+}
+if((git rev-parse HEAD) -ne $before.Head -or (git branch --show-current) -ne $before.Branch -or (git rev-parse --abbrev-ref '@{upstream}') -ne $before.Upstream -or (@(git ls-files --stage) -join "`n") -cne ($before.IndexEntries -join "`n") -or (@(git worktree list --porcelain) -join "`n") -cne ($before.Worktrees -join "`n")){throw 'Git metadata changed'}
+foreach($path in ($allowed+$new)){
+    $text=[IO.File]::ReadAllText((Join-Path (Get-Location) $path))
+    if($text -match '(?m)[\t ]+\r?$'){throw ('Trailing whitespace: '+$path)}
+    if($path.EndsWith('.md')){foreach($match in [regex]::Matches($text,'\]\(([^)]+)\)')){
+        $target=($match.Groups[1].Value -split '#')[0]
+        if($target -and $target -notmatch '^[a-z]+:' -and !(Test-Path -LiteralPath (Join-Path (Split-Path $path) $target))){throw ('Broken link: '+$path+' -> '+$target)}
+    }}
+}
+$plan='scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md'
+$rows=@(Get-Content $plan -Encoding UTF8|Where-Object{$_ -match '^\| UC-\d{3} \|'})
+$complete=@($rows|Where-Object{($_ -split '\|')[4].Trim().StartsWith('COMPLETE_VERIFIED')})
+$points=($complete|ForEach-Object{[int](($_ -split '\|')[5].Trim())}|Measure-Object -Sum).Sum
+if($rows.Count -ne 75 -or $complete.Count -ne 10 -or $points -ne 25 -or ($rows|Where-Object{$_ -match '^\| UC-017 \|'}) -notmatch '\| PARTIAL \|'){throw 'Progress mismatch'}
+$oldPlan=Get-Content (Join-Path (Join-Path $backup 'files') $plan) -Encoding UTF8
+foreach($id in @('UC-006','UC-016','UC-023')){
+    $old=@($oldPlan|Where-Object{$_ -match ('^\| '+$id+' \|')});$now=@($rows|Where-Object{$_ -match ('^\| '+$id+' \|')})
+    if(($old -join "`n") -cne ($now -join "`n")){throw ('Unrelated UC row changed: '+$id)}
+}
+$accepted=Get-Content scripts/verification/HotelStructure/task68-accepted.local.json -Raw|ConvertFrom-Json
+$legacy=Get-Content scripts/verification/HotelStructure/task68-legacy-read.local.json -Raw|ConvertFrom-Json
+$rooms=Get-Content scripts/verification/HotelStructure/task68-scoped-rooms.local.json -Raw|ConvertFrom-Json
+$structure=Get-Content scripts/verification/HotelStructure/task68-scoped-structure.local.json -Raw|ConvertFrom-Json
+if(!$accepted.success -or $accepted.roomTypeChecks -ne 130 -or $accepted.checks -ne 132 -or @($accepted.roomTypeWaits).Count -ne 10 -or @($accepted.roomTypeFaults).Count -ne 7 -or $legacy.result -ne 'PASS' -or @($legacy.checks).Count -ne 117 -or !$rooms.success -or $rooms.roomHttpChecks -ne 227 -or !$structure.success -or $structure.checks -ne 589){throw 'Receipt mismatch'}
+if((Get-Content obj/task68-build-verified.local.log -Raw) -notmatch 'Build succeeded' -or (Get-Content obj/task68-test-exit.local.txt -Raw).Trim() -ne '0'){throw 'Build/test command failed'}
+$ErrorActionPreference='Continue'
+git diff --check > obj/task68-diff-check-final.local.log 2>&1
+$diff=$LASTEXITCODE
+$ErrorActionPreference='Stop'
+if($diff -ne 0){throw 'Diff check failed'}
+$hashes=@($new|ForEach-Object{@{Path=$_;SHA256=(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash}})
+$result=@{Result='PASS';ValidatedUtc=[DateTimeOffset]::UtcNow.ToString('o');Head=$before.Head;Branch=$before.Branch;ProtectedFiles=$before.Files.Count;ValidBackups=$backups;Unchanged=$unchanged;IntendedEdits=$changed;NewFiles=$hashes;IndexUnchanged=$true;WorktreesUnchanged=$true;UC006UC016UC023RowsUnchanged=$true;UC017Classification='PARTIAL; candidate not integrated/deployed';UC017Checks=$accepted.roomTypeChecks;UC017TotalChecks=$accepted.checks;UC017Waits=@($accepted.roomTypeWaits).Count;UC017Faults=@($accepted.roomTypeFaults).Count;LegacySqlChecks=@($legacy.checks).Count;MigratedRoomChecks=$rooms.roomHttpChecks;MigratedStructureChecks=$structure.checks;AuthChecks=174;VerifiedUCs=$complete.Count;VerifiedPoints=$points;VerifiedPercentage=[Math]::Round($points/256*100,2);Build='PASS; NU1900 remains';DotnetTest='Exit0; no test project; console suites executed';DiffCheck='PASS';CanonicalSchemaGeneratedEntitiesAndDev2='Unchanged by protected-file verification'}
+$result|ConvertTo-Json -Depth 6|Set-Content obj/task68-validation.local.json -Encoding UTF8
+[pscustomobject]$result|Select-Object Result,ProtectedFiles,ValidBackups,Unchanged,IntendedEdits,UC017Checks,UC017Waits,UC017Faults,UC017Classification,VerifiedPoints,VerifiedUCs|ConvertTo-Json -Depth 3

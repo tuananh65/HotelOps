@@ -1,0 +1,54 @@
+var floorA = new Floor {BranchId=a,FloorCode="T85B_A",FloorName="Turnover A",IsActive=true};
+var floorB = new Floor {BranchId=b,FloorCode="T85B_B",FloorName="Turnover B",IsActive=true};
+var roomType = new RoomType {TypeCode="T85B_TYPE",TypeName="History type",IsActive=true,StandardCapacity=2};
+db.AddRange(floorA,floorB,roomType); await db.SaveChangesAsync(ct);
+async Task<long> InsertRoom(long branch,long floor,string number)
+{
+    await using var cmd=db.Database.GetDbConnection().CreateCommand();
+    // Room V1 trigger disallows direct OUTPUT without INTO. Read the inserted identity in this batch.
+    cmd.CommandText="INSERT dbo.rooms(branch_id,floor_id,room_type_id,room_number,operational_status,is_active) VALUES(@branch,@floor,@type,@number,'DIRTY',1); SELECT CONVERT(bigint,SCOPE_IDENTITY());";
+    cmd.Parameters.Add(new SqlParameter("@branch",branch));cmd.Parameters.Add(new SqlParameter("@floor",floor));
+    cmd.Parameters.Add(new SqlParameter("@type",roomType.RoomTypeId));cmd.Parameters.Add(new SqlParameter("@number",number));
+    return Convert.ToInt64(await cmd.ExecuteScalarAsync(ct));
+}
+var room=await InsertRoom(a,floorA.FloorId,"T85B_ROOM");
+var emptyRoom=await InsertRoom(a,floorA.FloorId,"T85B_EMPTY");
+var foreignRoom=await InsertRoom(b,floorB.FloorId,"T85B_FOREIGN");
+var template=new InspectionChecklist {ChecklistCode="T85B_HISTORY",ChecklistName="Historical checklist",RoomTypeId=roomType.RoomTypeId,IsActive=true,CreatedBy=users["admin"].UserId,CreatedAt=now};
+var version=new InspectionChecklistVersion {Checklist=template,VersionNo=1,Status="PUBLISHED",EffectiveAt=now.AddDays(-5)};
+var item=new InspectionChecklistItem {Version=version,Criterion="Historical criterion",IsRequired=true,IsActive=false,SortOrder=1,PassCondition="No dust"};
+var unanswered=new InspectionChecklistItem {Version=version,Criterion="Unanswered criterion",IsRequired=false,IsActive=true,SortOrder=2};
+db.AddRange(item,unanswered);await db.SaveChangesAsync(ct);
+var cleaningType=await db.ReferenceValues.Where(v=>v.GroupCode=="CLEANING_TYPE").Select(v=>v.ReferenceId).FirstAsync(ct);
+var at=now.AddDays(-1);
+CleaningTask Cycle(long roomId,string no,string status)=>new() {RoomId=roomId,TaskNo=no,CleaningTypeId=cleaningType,Status=status,CreatedAt=at,CreatedBy=users["admin"].UserId};
+var cycle=Cycle(room,"T85B_CYCLE","COMPLETED");cycle.ActualStartAt=at;cycle.ActualEndAt=at.AddHours(2);
+var cancelled=Cycle(room,"T85B_CANCELLED","CANCELLED");
+var foreignCycle=Cycle(foreignRoom,"T85B_FOREIGN","COMPLETED");
+db.AddRange(cycle,cancelled,foreignCycle);await db.SaveChangesAsync(ct);
+RoomInspection Inspection(long sourceRoom,CleaningTask source,string no,string result,DateTime when)=>new() {
+    RoomId=sourceRoom,CleaningTaskId=source.CleaningTaskId,InspectionNo=no,VersionId=version.VersionId,
+    InspectorUserId=users["supervisor"].UserId,Status="COMPLETED",Result=result,CreatedAt=when,InspectedAt=when,SummaryNote="Historical summary"};
+var failed=Inspection(room,cycle,"T85B_FAIL","FAIL",at.AddHours(1));
+var passed=Inspection(room,cycle,"T85B_PASS","PASS",at.AddHours(2));
+var foreignInspection=Inspection(foreignRoom,foreignCycle,"T85B_FOREIGN","FAIL",at.AddHours(1));
+var corrupt=Inspection(foreignRoom,cycle,"T85B_CORRUPT_LINK","FAIL",at.AddHours(3));
+db.AddRange(failed,passed,foreignInspection,corrupt);await db.SaveChangesAsync(ct);
+db.AddRange(new InspectionDefect {InspectionId=failed.InspectionId,ChecklistItemId=item.ItemId,Description="Dust",Status="OPEN"},
+    new InspectionResult {InspectionId=failed.InspectionId,ChecklistItemId=item.ItemId,Outcome="FAIL",Note="Historical failure",InspectedAt=at},
+    new CleaningAssignment {CleaningTaskId=cycle.CleaningTaskId,AssigneeUserId=users["own"].UserId,AssignedBy=users["admin"].UserId,AssignedAt=at.AddHours(-1),EndedAt=at.AddHours(1),AssignmentStatus="REASSIGNED",Reason="Shift ended"},
+    new CleaningAssignment {CleaningTaskId=cycle.CleaningTaskId,AssigneeUserId=users["admin"].UserId,AssignedBy=users["admin"].UserId,AssignedAt=at.AddHours(1),AssignmentStatus="COMPLETED"},
+    new CleaningProgressLog {CleaningTaskId=cycle.CleaningTaskId,ProgressPercent=25,Status="BLOCKED",Note="Missing supplies",LoggedBy=users["own"].UserId,LoggedAt=at},
+    new CleaningProgressLog {CleaningTaskId=cycle.CleaningTaskId,ProgressPercent=100,Status="COMPLETED",LoggedBy=users["admin"].UserId,LoggedAt=at.AddHours(1)},
+    new CleaningRework {CleaningTaskId=cycle.CleaningTaskId,InspectionId=failed.InspectionId,AssigneeUserId=users["own"].UserId,Reason="Remove dust",Status="COMPLETED",RequestedAt=at.AddHours(1),CompletedAt=at.AddHours(2)},
+    new AuditLog {BranchId=a,ActorUserId=users["admin"].UserId,EntityType="cleaning_tasks",EntityId=cancelled.CleaningTaskId.ToString(),Action="CANCEL",OccurredAt=at,NewValues="{\"reason\":\"Room not checked out\"}"});
+await db.SaveChangesAsync(ct);
+var evidenceRoot=Path.Combine(root,"scripts/verification/Task85/PhaseB/private-evidence");
+if(Directory.Exists(evidenceRoot))throw new Exception("Unused evidence directory required");
+Directory.CreateDirectory(evidenceRoot);
+var pdf=Encoding.ASCII.GetBytes("%PDF-1.7\nTask85B historical evidence\n%%EOF");
+await File.WriteAllBytesAsync(Path.Combine(evidenceRoot,"history.pdf"),pdf,ct);
+Attachment Evidence(long source,string key,DateTime? deleted=null)=>new() {EntityType="CLEANING_TASK",EntityId=source,FileName="history.pdf",OriginalFileName="history.pdf",StorageKey=key,FileUrl="https://private.invalid/should-not-leak",MimeType="application/pdf",FileSizeBytes=pdf.Length,UploadedAt=at,UploadedBy=users["admin"].UserId,DeletedAt=deleted};
+var attachment=Evidence(cycle.CleaningTaskId,"history.pdf");var unrelated=Evidence(foreignCycle.CleaningTaskId,"history.pdf");
+var deleted=Evidence(cycle.CleaningTaskId,"history.pdf",at);var traversal=Evidence(cycle.CleaningTaskId,"../history.pdf");
+db.AddRange(attachment,unrelated,deleted,traversal);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();

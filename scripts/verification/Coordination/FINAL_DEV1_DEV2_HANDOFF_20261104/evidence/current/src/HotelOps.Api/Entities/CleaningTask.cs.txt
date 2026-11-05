@@ -1,0 +1,54 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class CleaningTask
+7: {
+8:     public long CleaningTaskId { get; set; }
+9: 
+10:     public string TaskNo { get; set; } = null!;
+11: 
+12:     public long RoomId { get; set; }
+13: 
+14:     public long CleaningTypeId { get; set; }
+15: 
+16:     public long? PriorityId { get; set; }
+17: 
+18:     public string? Instruction { get; set; }
+19: 
+20:     public DateTime? ScheduledStartAt { get; set; }
+21: 
+22:     public DateTime? DueAt { get; set; }
+23: 
+24:     public DateTime? ActualStartAt { get; set; }
+25: 
+26:     public DateTime? ActualEndAt { get; set; }
+27: 
+28:     public string Status { get; set; } = null!;
+29: 
+30:     public string? CompletionNote { get; set; }
+31: 
+32:     public long CreatedBy { get; set; }
+33: 
+34:     public DateTime CreatedAt { get; set; }
+35: 
+36:     public DateTime? UpdatedAt { get; set; }
+37: 
+38:     public virtual ICollection<CleaningAssignment> CleaningAssignments { get; set; } = new List<CleaningAssignment>();
+39: 
+40:     public virtual ICollection<CleaningProgressLog> CleaningProgressLogs { get; set; } = new List<CleaningProgressLog>();
+41: 
+42:     public virtual ICollection<CleaningRework> CleaningReworks { get; set; } = new List<CleaningRework>();
+43: 
+44:     public virtual ReferenceValue CleaningType { get; set; } = null!;
+45: 
+46:     public virtual User CreatedByNavigation { get; set; } = null!;
+47: 
+48:     public virtual ReferenceValue? Priority { get; set; }
+49: 
+50:     public virtual Room Room { get; set; } = null!;
+51: 
+52:     public virtual ICollection<RoomInspection> RoomInspections { get; set; } = new List<RoomInspection>();
+53: }
+54: 

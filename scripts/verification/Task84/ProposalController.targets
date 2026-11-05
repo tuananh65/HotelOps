@@ -1,0 +1,6 @@
+<Project>
+  <!-- Validation-only compile inclusion. Not imported by production builds or runtime. -->
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'HotelOps.Api'">
+    <Compile Include="$(MSBuildThisFileDirectory)RoomTypeDirectoryController.cs.proposal" />
+  </ItemGroup>
+</Project>

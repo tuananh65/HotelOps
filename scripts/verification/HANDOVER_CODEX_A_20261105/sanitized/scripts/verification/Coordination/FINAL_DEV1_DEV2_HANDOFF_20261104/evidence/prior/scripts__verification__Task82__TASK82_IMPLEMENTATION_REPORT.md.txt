@@ -1,0 +1,89 @@
+# Task82 — UC037 timeline implementation
+
+**Production read enhancement implemented and HTTPS/SQL verified; full UC037 PARTIAL.**
+Mục tiêu ít nhất một UC hoàn tất **NOT ACHIEVED**. Không coi pagination là một UC mới.
+
+## Chức năng thực tế
+
+Endpoint hiện hữu `GET /api/branches/{branchId}/cleaning-monitor/{kind}/{id}` hỗ trợ
+`timelinePage` và `timelinePageSize`. Supervisor truy cập được lịch sử cũ hơn latest100,
+độc lập cho assignment/progress/audit, có totals và effective page/size.
+Default1/100 giữ payload cũ và thêm `timelinePage`. Page sai/overflow400; page vượt lịch sử
+trả200 với arrays rỗng và full totals. SQL count/ordered Skip/Take trong SERIALIZABLE read
+transaction hiện hữu. Service overload cũ được giữ. Không thay query list hoặc route cũ.
+
+Chỉ sửa ba DEV1 source files:
+- `src/HotelOps.Api/Controllers/CleaningMonitorController.cs`: bind timeline query DTO.
+- `src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs`: query và page metadata.
+- `src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs`: validation, SQL paging,
+  giữ authorization/session gates trước/sau đọc và authoritative room/inspection lineage.
+
+Không shared schema/DI/RBAC/DEV2 edits. Không phục hồi baseline hoặc bật deactivation gates.
+
+## Verification đã thực thi
+
+| Kiểm tra | Kết quả / giới hạn |
+|---|---|
+| API solution build, isolated artifacts | PASS,0 errors,2 NU1900 warning entries |
+| HTTPS harness build | PASS,0 errors,4 NU1900 entries |
+| Real production HTTPS/SQL | **167 checks PASS**, gồm regression UC037 và pagination mới; không phải167 test-framework cases |
+| Service boundaries | **14 PASS**, isolated no-identity double/null SQL dependencies; không SQL/HTTPS/framework |
+| Authorization/Permission/CurrentUser/Resource | **93+43+14+49=199 PASS**, isolated doubles/loopback; không live SQL regression |
+| `dotnet test HotelOps.slnx` | exit0,0 framework cases; **NOT AVAILABLE**, không ghi test PASS |
+| `git diff --check` | PASS; không đủ tự kiểm tra ba source untracked, đã review riêng |
+
+NuGet vulnerability feed không truy cập được; NU1900 không chứng minh package scan an toàn.
+Không có build errors hoặc test failures trong các suite thực thi thành công.
+
+## SQL trial và acceptance
+
+Target duy nhất: `HotelOps_Canonical_20261104_010556_0c10a82d_Fresh`,
+instance `REDACTED_LOCAL_SQL_HOST\SQLEXPRESS`. Script kiểm đúng instance và chưa tồn tại trước tạo;
+harness kiểm instance/DB_NAME/Task17 marker/empty personnel-business trước fixtures.
+Chỉ script `UserDirectory/Prepare-Database.ps1`, prerequisite `UserProfileUpdate/rowversion-forward.sql`
+hiện hữu và fixtures trên trial mới được chạy. Không sửa các source SQL.
+Đọc master chỉ để xác minh instance/tên chưa tồn tại và tạo đúng target; không mở DB nghiệp vụ khác.
+Trial được giữ nguyên sau test, không drop/reset/delete dữ liệu để làm sạch kết quả.
+
+Thực chứng: production Program HTTPS/certificate pinning,6 identities và real cookie/CSRF/SQL
+sessions; branch grant success, OWN/missing grant/foreign branch/restricted denied; admin không bypass;
+foreign source404, invalid queries400; membership/role/session revocation được áp dụng.
+105 history fixtures mới cộng1 record cũ của chính lần chạy =106 mỗi collection; default100,
+page2 sáu rows không trùng, đúng authoritative SQL timestamp/ID order; custom size, empty page,
+rework parent history và full totals PASS. Business/audit fingerprints không đổi qua các GET.
+SQL competing writer rollback và DMV-confirmed HTTPS read wait PASS; không rò uncommitted state.
+
+Canonical catalog chỉ có CLEANING_VIEW BRANCH/OWN, không ALL. Positive ALL live acceptance
+**NOT RUN**; không tạo grant ALL để làm test. Isolated permission regression vẫn kiểm core scopes.
+Read-only enhancement không có business writer/audit mutation; write-audit-fault rollback **N/A**.
+Cancel mutation/audit/notification/room lifecycle acceptance **NOT RUN**, không giả delivery.
+Optional Task73 schema vẫn **NOT VERIFIED**; không thêm workflow columns để tăng coverage.
+Không cam kết history snapshot cố định giữa hai HTTP requests khi writer commit history mới.
+
+## Các lỗi/chặn trước acceptance, giữ minh bạch
+
+Sandbox trial setup không kết nối được do SSPI. Lần escalation đầu bị automatic approval review
+từ chối vì cần phê duyệt tạo DB cụ thể Task82. Không chạy workaround. Sau khi user phê duyệt
+đúng một trial và fixtures, chạy lại chính script với tên đã ghi; setup và acceptance PASS.
+Một patch attempt đầu không khớp context DTO nên không áp dụng; sửa context rồi apply tối thiểu.
+Fixture draft dùng ENDED đã được sửa thành COMPLETED theo SQL CHECK trước build/run, không chạy
+SQL với trạng thái tự tạo. Python executable không truy cập được; không cần Python để verification.
+
+## Nghiệm thu và bước kế tiếp
+
+Read/timeline subset implemented,built,tested trên trial. **UC037 vẫn PARTIAL**, earned0.
+SRS §4.10 Cancel phải atomically kiểm Pending Assignment/Assigned, reason, recalculate room from
+latest noncancelled cycle, audit, notify assignee với retry semantics. Contract/source chưa đủ,
+không thể hoàn tất bằng read improvement. UC012/004 không phải fallback đầy đủ trong scope hiện tại.
+Đề xuất tiếp tục đúng UC037 sau khi có approved room lifecycle/writer coordination và actual DEV2
+publisher/replay implementation/evidence; không mở thêm UC138 writer hay audit rộng để cộng điểm.
+Không cần sửa ledger chính; xem TASK82_DEV1_PROGRESS.md và TASK82_VALIDATION.json.
+
+## Chạy lại
+
+Build API và harness với `--artifacts-path scripts/verification/Task82/artifacts/build` và
+`.../artifacts/https`; dùng đúng command trong validation JSON. Harness nhận database trial mới
+được duyệt và receipt chưa tồn tại; trial đã chạy sẽ bị empty-personnel guard từ chối.
+Không tự tạo thêm trial từ báo cáo này. Boundary/security suites không cần SQL và dùng output mới.
+
+Additional limitations: assignment/reassignment action links are not fabricated while their production writers remain unrecovered/unintegrated. The old inventory-fast DLL rejected names mode; an in-memory HashSet comparison then executed successfully (0 missing, 0 added outside Task82). Failed context patches did not modify files and are not validation PASS results.

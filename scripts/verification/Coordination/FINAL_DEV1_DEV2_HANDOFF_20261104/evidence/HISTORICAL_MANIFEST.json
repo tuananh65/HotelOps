@@ -1,0 +1,37 @@
+[
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "snapshot": "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "exit": 0,
+    "blob": "1b9f0d49b1a8d4a7435db421733c6472e6864b11",
+    "current_exists": false
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+    "snapshot": "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "exit": 0,
+    "blob": "87e1a7d6bbc5496d850253d7a84208de64326ac6",
+    "current_exists": false
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+    "snapshot": "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "exit": 0,
+    "blob": "8aba8703a8e26808af57208cdd7439ceb43c099e",
+    "current_exists": false
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+    "snapshot": "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "exit": 0,
+    "blob": "f2b771332a2cdb8942c809bfcd339c6d68df6550",
+    "current_exists": false
+  },
+  {
+    "path": "scripts/database/release/housekeeping/01_Housekeeping.sql",
+    "snapshot": "cf8fb020362f8f64192e7f2f14a10547cebe5b91",
+    "exit": 0,
+    "blob": "622b64f51b2767575575b56a4e9530225cd2534b",
+    "current_exists": false
+  }
+]

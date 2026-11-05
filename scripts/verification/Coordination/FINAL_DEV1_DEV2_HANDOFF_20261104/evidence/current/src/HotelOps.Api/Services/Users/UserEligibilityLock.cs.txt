@@ -1,0 +1,32 @@
+6: 
+7: // Bound to the caller's scoped DbContext; never owns or commits a transaction.
+8: public sealed class UserEligibilityLock(HotelOpsDbContext db)
+9: {
+10:     public sealed record LockedUser(long UserId, DateTime? DeletedAt, string AccountStatus, string EmploymentStatus);
+11: 
+12:     public async Task<IReadOnlyDictionary<long, LockedUser?>> LockAsync(IEnumerable<long> userIds, CancellationToken ct)
+13:     {
+14:         if (db.Database.CurrentTransaction is null)
+15:             throw new InvalidOperationException("Responsibility User locks require an existing caller transaction.");
+16:         var ids = userIds.Distinct().Order().ToArray();
+17:         if (ids.Any(id => id <= 0)) throw new ValidationException("Responsibility UserId must be positive.");
+22:             // rather than a stale User already attached to this DbContext.
+23:             result[id] = await db.Users.FromSqlInterpolated(
+24:                 $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {id}")
+25:                 .AsNoTracking().Select(u => new LockedUser(u.UserId, u.DeletedAt, u.AccountStatus, u.EmploymentStatus))
+26:                 .SingleOrDefaultAsync(ct);
+27:         }
+28:         return result;
+29:     }
+30: 
+31:     public static void RequireEligible(long userId, IReadOnlyDictionary<long, LockedUser?> locked)
+32:     {
+33:         if (!locked.TryGetValue(userId, out var user) || user is null || user.DeletedAt is not null
+34:             || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE")
+35:             throw new ValidationException("Future responsibility requires an existing, nondeleted, account-active and employment-active User.");
+36:     }
+37: 
+38:     public async Task RequireEligibleAsync(long userId, CancellationToken ct) =>
+39:         RequireEligible(userId, await LockAsync([userId], ct));
+40: }
+41: 

@@ -1,0 +1,90 @@
+﻿{
+    "UC013Waits":  11,
+    "DiffCheck":  "PASS",
+    "ProtectedFiles":  428,
+    "Upstream":  "origin/feature/BE1-database-integration",
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "Branch":  "feature/BE1-database-integration",
+    "ValidBackups":  428,
+    "WorktreesUnchanged":  true,
+    "ElapsedMinutes":  27.7,
+    "NewDeliveryWhitespaceAndLinks":  "PASS",
+    "AuthFoundationChecks":  174,
+    "Build":  "PASS; NU1900 vulnerability feed warnings",
+    "Result":  "PASS",
+    "UC013Checks":  159,
+    "ValidatedAtUtc":  "2026-10-30T00:40:47.6691482+00:00",
+    "VerifiedPoints":  21,
+    "UC014Checks":  215,
+    "DotnetTest":  "Exit0; no discovered tests",
+    "DeliveryHashes":  [
+                           {
+                               "SHA256":  "E49D945AD4BDDCD5705D36D21B2462CB12F6A1F8BB41DC32FDDDBEF95C4DE487",
+                               "Path":  "src/HotelOps.Api/Controllers/BranchStructureController.cs"
+                           },
+                           {
+                               "SHA256":  "781C5C8A2BB0BC7CA41D31CFD6608A475610DED7E8C2F2BE702167AADC56B5C5",
+                               "Path":  "src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs"
+                           },
+                           {
+                               "SHA256":  "0466E98360B6109A3555ADB380F43728E98D157614AF56FDC35DABA53C359A8A",
+                               "Path":  "src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs"
+                           },
+                           {
+                               "SHA256":  "612052EF720AF4DEC141B77910F9858FA30452BC69475D1BAEA274D476EA1ABF",
+                               "Path":  "scripts/verification/HotelStructure/Task64StructureCases.cs"
+                           },
+                           {
+                               "SHA256":  "4A05C64DC677F6C00273F643F9702B15A22FB142931AC4CE7306614100755D67",
+                               "Path":  "scripts/verification/HotelStructure/Task64StructureConcurrency.cs"
+                           },
+                           {
+                               "SHA256":  "FC29D593B5453C643AEED32D71086BD4FDC9C95E7A6ED64D01FAC41247B71883",
+                               "Path":  "scripts/verification/HotelStructure/TASK64_UC013_IMPLEMENTATION.md"
+                           },
+                           {
+                               "SHA256":  "BBA5883E5CD0E72CBF9B5DD9C634600D697B771AA896B727079DDF73DA26CB06",
+                               "Path":  "src/HotelOps.Api/Program.cs"
+                           },
+                           {
+                               "SHA256":  "85A5620FD409FABA68C7ED6F00075D6153978C28CE0DA933108B136F5A87EFDB",
+                               "Path":  "scripts/verification/HotelStructure/Program.cs"
+                           },
+                           {
+                               "SHA256":  "BA51D77247231C95A16C6F008A6431B04C0A3560892F76BFBF20A216CB36B0AE",
+                               "Path":  "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md"
+                           }
+                       ],
+    "FullScopePoints":  256,
+    "IndexUnchanged":  true,
+    "UC014Waits":  23,
+    "IntendedEdits":  [
+                          "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md",
+                          "scripts/verification/HotelStructure/Program.cs",
+                          "src/HotelOps.Api/Program.cs"
+                      ],
+    "UCCategories":  [
+                         {
+                             "Count":  7,
+                             "Status":  "COMPLETE_VERIFIED"
+                         },
+                         {
+                             "Count":  5,
+                             "Status":  "PARTIAL"
+                         },
+                         {
+                             "Count":  20,
+                             "Status":  "BLOCKED_EXTERNAL"
+                         },
+                         {
+                             "Count":  42,
+                             "Status":  "NOT_IMPLEMENTED"
+                         },
+                         {
+                             "Count":  1,
+                             "Status":  "COMPLETE_VERIFIED_V1"
+                         }
+                     ],
+    "UC023Checks":  117,
+    "Unchanged":  425
+}

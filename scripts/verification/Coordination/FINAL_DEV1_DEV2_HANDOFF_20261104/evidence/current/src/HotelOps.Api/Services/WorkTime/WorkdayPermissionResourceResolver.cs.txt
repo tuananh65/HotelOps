@@ -1,0 +1,18 @@
+6: 
+7: /// <summary>Approved B1.1 own-only bindings. Existing cleaning semantics are delegated unchanged.</summary>
+8: public sealed class WorkdayPermissionResourceResolver(HotelOpsDbContext db,
+9:     CleaningTaskResourceResolver cleaning) : IPermissionResourceResolver
+10: {
+11:     public async Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode,
+12:         PermissionResource resource, long currentUserId, CancellationToken cancellationToken)
+13:     {
+14:         cancellationToken.ThrowIfCancellationRequested();
+15:         if (resource is null) return null;
+39:         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct);
+40:         if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == currentUserId
+41:                 && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null, ct)
+42:             || !await db.UserBranchAccesses.AsNoTracking().AnyAsync(a => a.UserId == currentUserId
+43:                 && a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive, ct))
+44:             return null;
+45:         // An adapter refusal happens BEFORE grant scope evaluation, including BRANCH/ALL paths.
+46:         return new(branch.Value, HasOwnership: true);

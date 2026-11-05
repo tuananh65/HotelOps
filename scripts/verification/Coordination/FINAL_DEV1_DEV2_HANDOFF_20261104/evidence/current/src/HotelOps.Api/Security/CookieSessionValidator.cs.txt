@@ -1,0 +1,41 @@
+6: namespace HotelOps.Api.Security;
+7: 
+8: public interface ICookieSessionValidator
+9: {
+10:     Task<SessionValidationResult> ValidateAsync(SessionReference ticket, CancellationToken cancellationToken);
+11: }
+12: 
+13: public interface ICookieSessionToucher
+14: {
+15:     Task<SessionValidationResult> TouchAsync(SessionReference ticket, CancellationToken cancellationToken);
+16: }
+17: 
+18: public sealed class CookieSessionValidator(HotelOpsDbContext db, ISqlSessionService sessions)
+19:     : ICookieSessionValidator, ICookieSessionToucher
+20: {
+21:     public Task<SessionValidationResult> ValidateAsync(SessionReference ticket, CancellationToken cancellationToken)
+22:         => ExecuteAsync(ticket, false, cancellationToken);
+23: 
+24:     public Task<SessionValidationResult> TouchAsync(SessionReference ticket, CancellationToken cancellationToken)
+25:         => ExecuteAsync(ticket, true, cancellationToken);
+26: 
+27:     private async Task<SessionValidationResult> ExecuteAsync(SessionReference ticket, bool touch, CancellationToken cancellationToken)
+28:     {
+29:         if (db.Database.CurrentTransaction != null || System.Transactions.Transaction.Current != null)
+30:             throw new InvalidOperationException("Cookie validation must precede business transactions.");
+31:         try
+32:         {
+33:             await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, cancellationToken);
+34:             var result = touch
+35:                 ? await sessions.TouchSessionAsync(ticket, cancellationToken)
+36:                 : await sessions.ValidateSessionAsync(ticket, cancellationToken);
+37:             await transaction.CommitAsync(cancellationToken);
+38:             return result;
+39:         }
+40:         catch (Exception e) when (!cancellationToken.IsCancellationRequested
+41:             && e is not SessionStoreUnavailableException && SessionStoreUnavailableException.Matches(e))
+42:         {
+43:             // Includes connection/BeginTransaction failures outside SqlSessionService.
+44:             throw new SessionStoreUnavailableException(e);
+45:         }
+46:     }

@@ -1,0 +1,183 @@
+{
+    "status":  "UC038_RESTORED_AND_REVERIFIED_ON_APPROVED_DISPOSABLE_TRIAL",
+    "startedUtc":  "2026-11-04T06:22:21.4001925Z",
+    "recordedUtc":  "2026-11-04T07:23:08.9036239Z",
+    "elapsedSeconds":  3647.5,
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "branch":  "feature/BE1-database-integration",
+    "baselineFiles":  29420,
+    "captureFinishedUtc":  "2026-11-04T06:23:58.6098573+00:00",
+    "captureBeforeBuildAndFirstProductionWrite":  true,
+    "approvedSharedChange":  "Program.di.patch one scoped TurnoverHistoryService registration",
+    "approvalReceipt":  "DI_APPROVAL_APPLIED.json",
+    "productionSourceFiles":  [
+                                  {
+                                      "path":  "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+                                      "sha256":  "4D340AC260E7195A6F2A4A9CD3974FF0DF3F6D6EF67771DA57F5C726DF8AE6AC"
+                                  },
+                                  {
+                                      "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+                                      "sha256":  "8FBF5E3207FA549EA2F695EB0921DA4F2853C45F5D9B7042034D1265B8914696"
+                                  },
+                                  {
+                                      "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+                                      "sha256":  "80D6B7A06562B46A4F06AC418DDB522F7D29AA51AB22A36197D66C793FB9AD37"
+                                  },
+                                  {
+                                      "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs",
+                                      "sha256":  "95B3EAFC0D8ADD7DD9C29EBB2D6714CCAA670FB388D40093F548F2FFF25DD4FD"
+                                  },
+                                  {
+                                      "path":  "src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs",
+                                      "sha256":  "D8E1020BB210364E64041029C65076BA9EA6910A772356D2C7E27AF38A518EE4"
+                                  },
+                                  {
+                                      "path":  "src/HotelOps.Api/Program.cs",
+                                      "sha256":  "C0A52A73C6BB27DF4E356A6259AD45C8788630376873AB6BC289640733EAEEDA"
+                                  }
+                              ],
+    "protectedTask82Task84PhaseAFilesChecked":  5516,
+    "protectedMismatches":  [
+
+                            ],
+    "productionBuild":  {
+                            "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task85/PhaseB/artifacts/integrated -p:RestoreIgnoreFailedSources=true",
+                            "exitCode":  0,
+                            "result":  "PASS",
+                            "errors":  0,
+                            "warnings":  2,
+                            "warningCodes":  [
+                                                 "NU1900"
+                                             ],
+                            "log":  "build-integrated.log"
+                        },
+    "di":  {
+               "result":  "PASS",
+               "checks":  26,
+               "receipt":  "di-integrated-receipt.json",
+               "scope":  "Manual graph + input/controller boundaries + real EF SQL translation, no SQL connection, not production startup"
+           },
+    "security":  {
+                     "result":  "PASS",
+                     "checks":  199,
+                     "breakdown":  {
+                                       "ResourceAuthorization":  49,
+                                       "Authorization":  93,
+                                       "PermissionService":  43,
+                                       "CurrentUser":  14
+                                   },
+                     "source":  "Fresh integrated source; postdi-*.log",
+                     "scope":  "Isolated collaborators, not live SQL session acceptance"
+                 },
+    "regression":  {
+                       "UC037":  {
+                                     "result":  "PASS_COMPONENT_ONLY",
+                                     "checks":  14,
+                                     "receipt":  "postdi-timeline-receipt.json",
+                                     "live":  "PASS_REAL_HTTPS_PAGE2_LIMIT1_TOTALS_AND_SLICED_ARRAYS"
+                                 },
+                       "UC142":  {
+                                     "result":  "PASS_COMPONENT_ONLY",
+                                     "checks":  19,
+                                     "receipt":  "postdi-roomtype-receipt.json",
+                                     "live":  "PASS_REAL_HTTPS_SQL_LIST_DETAIL"
+                                 },
+                       "FE04FE05Live":  "PASS_UC038_HISTORY_INSPECTIONS_DEFECTS_REWORK_ATTACHMENTS"
+                   },
+    "httpsHarness":  {
+                         "build":  "PASS",
+                         "exitCode":  0,
+                         "warnings":  4,
+                         "log":  "https-resume3-build.log",
+                         "executed":  true,
+                         "source":  "HttpsResume3Program.cs",
+                         "supplement":  "FieldOracleProgram.cs / field-oracle-build.log"
+                     },
+    "framework":  {
+                      "exitCode":  0,
+                      "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task85/PhaseB/artifacts/integrated --no-restore",
+                      "result":  "NO_CASES_NOT_AVAILABLE",
+                      "log":  "framework-integrated.log"
+                  },
+    "productionStartup":  "PASS_ACTUAL_PROGRAM_PINNED_HTTPS_SQL_SCHEMA_GATE",
+    "httpsSql":  {
+                     "result":  "PASS",
+                     "mainChecks":  146,
+                     "mainReceipt":  "https-sql-accepted-receipt.json",
+                     "mainExitCode":  0,
+                     "fieldOracleChecks":  26,
+                     "fieldOracleReceipt":  "field-oracle-receipt.json",
+                     "fieldOracleExitCode":  0,
+                     "scope":  "Assertions include repeated response/privacy checks; not172 independent workflows. No failed-run counts added.",
+                     "operationalAllPositive":  "NOT_APPLICABLE_ZERO_ALL_GRANTS_FOR_CLEANING_VIEW_INSPECTION_VIEW",
+                     "optionalChecklistHousekeepingV1Extensions":  "NOT_RUN_ABSENT_IN_APPROVED_TRIAL",
+                     "readRollback":  "PASS_DMV_CONFIRMED_WAIT_AND_UNCOMMITTED_DATA_NOT_EXPOSED",
+                     "businessAuditFingerprints":  "UNCHANGED_DURING_READS_AND_ROLLBACK"
+                 },
+    "sql":  {
+                "protectedDatabaseAccess":  false,
+                "existingTrialResets":  0,
+                "requestedNewTrial":  "HotelOps_Canonical_20261104_133500_c03885b1_Fresh",
+                "created":  1,
+                "requestedInstance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+                "approval":  "USER_APPROVED_EXACT_NEW_TRIAL_AND_UC038_FIXTURES",
+                "connectionScope":  "Master metadata/create approved new trial; schema/fixtures/API verification only exact new target; no protected/existing trial access",
+                "retainedMetadata":  "RETAINED_TRIAL.json"
+            },
+    "progress":  {
+                     "pointsGained":  0,
+                     "ledgerChanged":  false,
+                     "weightedPercent":  23.4375,
+                     "points":  60,
+                     "totalUCs":  75,
+                     "UC038":  "HISTORICALLY_ACCEPTED_WEIGHT2_CURRENT_RESTORED_AND_REVERIFIED_NO_NEW_POINTS",
+                     "totalPoints":  256,
+                     "completeUCs":  26,
+                     "newUCs":  0
+                 },
+    "gitPostflight":  "GIT_POSTFLIGHT.json",
+    "fullFilePostflight":  {
+                               "checkedFiles":  29420,
+                               "changes":  [
+
+                                           ],
+                               "readErrors":  [
+
+                                              ],
+                               "finishedUtc":  "2026-11-04T06:50:42.8621202+00:00"
+                           },
+    "diffCheck":  {
+                      "result":  "PASS",
+                      "exitCode":  0
+                  },
+    "failuresRetained":  [
+                             "Sandbox SQL SSPI failure before connection; approved execution outside sandbox succeeded",
+                             "di-boundary.log CS0117 unused proposal enum mapping",
+                             "di-boundary-final.log harness IWebHostEnvironment missing",
+                             "https-sql.log 38 checks then incorrect SYS_ADMIN200 expectation; actual403 correct",
+                             "https-sql-resume.log 29 checks then unpersisted harness grants; SaveChanges fixed",
+                             "https-sql-final.log 119 checks then incorrect timelinePage-object assertion; real DTO integer",
+                             "Auxiliary PowerShell generation and missing-source draft build failures retained where logged; no SQL resets or source workarounds"
+                         ],
+    "elapsedDisplay":  "01:00:47",
+    "finalPreservation":  {
+                              "finishedUtc":  "2026-11-04T07:20:10.4586471Z",
+                              "headUnchanged":  true,
+                              "branchUnchanged":  true,
+                              "indexUnchanged":  true,
+                              "worktreesUnchanged":  true,
+                              "existingGitStatusUnchanged":  true,
+                              "fullFileScan":  "FINAL_POSTFLIGHT_FILES.json:29420 files/0 changes/0 errors, expected approved Program only",
+                              "finalFocusedFiles":  453,
+                              "finalFocusedDifferences":  [
+
+                                                          ],
+                              "productionSourceMatchesBuiltSource":  true,
+                              "sourceDifferences":  [
+
+                                                    ],
+                              "diffCheckExit":  0,
+                              "apiAssembly":  "scripts/verification/Task85/PhaseB/artifacts/integrated/bin/HotelOps.Api/debug/HotelOps.Api.dll",
+                              "apiAssemblySha256":  "739AD6F501471C1117807CFD04F0623A28F5ED6B13C1D79322C39364E1F5925D"
+                          }
+}

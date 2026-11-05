@@ -1,0 +1,35 @@
+5: namespace HotelOps.Api.Services.WorkTime;
+6: 
+7: public sealed record OwnOpenWorkInterval(long IntervalId, string WorkItemKind, long WorkItemId,
+8:     DateTimeOffset OpenedAtUtc, string RowVersion);
+9: 
+10: public sealed record OwnWorkingDaySnapshot(long WorkdayId, long BranchId, long DepartmentId,
+11:     DateOnly WorkDate, long? ShiftAssignmentId, bool IsUnscheduled, DateTimeOffset StartedAtUtc,
+12:     string RowVersion, OwnOpenWorkInterval? OpenInterval);
+13: 
+14: /// <summary>
+15: /// Read-only presentation query, not a permission boundary or a transition precondition.
+16: /// The eventual API service must authorize its approved UC139 binding and revalidate the
+17: /// SQL session before returning this result. No route or DI activation is included here.
+18: /// Actor identity comes only from the authenticated request context, never request DTOs.
+19: /// Writes must independently re-read state under the A1 transaction/locking protocol.
+20: /// </summary>
+21: public sealed class OwnWorkdaySnapshotReader(HotelOpsDbContext db, ICurrentUserAccessor current)
+22: {
+23:     public async Task<OwnWorkingDaySnapshot?> ReadAsync(long branchId, CancellationToken ct)
+24:     {
+25:         ct.ThrowIfCancellationRequested();
+26:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId <= 0 || actor.SessionId <= 0)
+31:         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct);
+32:         if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == actor.UserId
+33:                 && u.DeletedAt == null && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE", ct))
+34:             throw new WorkTimeContractException("TIME_ACTOR_INVALID");
+35:         if (!await db.UserBranchAccesses.AsNoTracking().AnyAsync(a => a.UserId == actor.UserId
+36:                 && a.BranchId == branchId && a.GrantedAt <= now && a.RevokedAt == null && a.Branch.IsActive, ct))
+37:             throw new WorkTimeContractException("TIME_SCOPE_DENIED");
+38: 
+39:         var days = await db.Workdays.AsNoTracking().Where(d => d.UserId == actor.UserId
+40:                 && d.BranchId == branchId && d.Status == "WORKING")
+41:             .Select(d => new { d.WorkdayId, d.BranchId, d.DepartmentId, d.WorkDate,
+42:                 d.ShiftAssignmentId, d.IsUnscheduled, d.StartedAt, d.RowVersion })
+43:             .Take(2).ToArrayAsync(ct);

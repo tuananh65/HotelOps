@@ -1,0 +1,50 @@
+using System.ComponentModel.DataAnnotations;
+
+namespace HotelOps.Api.DTOs.Rooms;
+
+// Internal read contract. This does not approve an HTTP route or room lifecycle mapping.
+public sealed class RoomDirectoryQuery : IValidatableObject
+{
+    [Range(1, long.MaxValue)]
+    public long BranchId { get; init; }
+
+    [Range(1, long.MaxValue)]
+    public long? FloorId { get; init; }
+
+    [Range(1, long.MaxValue)]
+    public long? AreaId { get; init; }
+
+    [Range(1, long.MaxValue)]
+    public long? RoomTypeId { get; init; }
+
+    [StringLength(200)]
+    public string? Search { get; init; }
+
+    public string? OperationalStatusCode { get; init; }
+    public bool? IsActive { get; init; }
+
+    [Range(1, int.MaxValue)]
+    public int Page { get; init; } = 1;
+
+    [Range(1, 100)]
+    public int PageSize { get; init; } = 20;
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        // Exact stored codes from CK_rooms_operational_status, not display/lifecycle states.
+        if (OperationalStatusCode is not null && OperationalStatusCode is not
+            ("AVAILABLE" or "OCCUPIED" or "DIRTY" or "CLEANING" or "INSPECTION" or "READY" or "OUT_OF_SERVICE"))
+            yield return new ValidationResult("Unknown stored room status code.", [nameof(OperationalStatusCode)]);
+        if (Page > 0 && PageSize > 0 && (long)(Page - 1) * PageSize > int.MaxValue)
+            yield return new ValidationResult("The requested page offset is too large.", [nameof(Page)]);
+    }
+}
+
+public sealed record RoomDirectoryFloorDto(long Id, string Code, string Name, int? Number);
+public sealed record RoomDirectoryAreaDto(long Id, string Code, string Name);
+public sealed record RoomDirectoryTypeDto(long Id, string Code, string Name);
+public sealed record RoomDirectoryItemDto(long Id, long BranchId, string RoomNumber,
+    RoomDirectoryFloorDto Floor, RoomDirectoryAreaDto? Area, RoomDirectoryTypeDto RoomType,
+    string OperationalStatusCode, bool IsActive);
+public sealed record RoomDirectoryResponse(IReadOnlyList<RoomDirectoryItemDto> Items,
+    int Page, int PageSize, long TotalCount);

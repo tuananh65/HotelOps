@@ -1,0 +1,11 @@
+4: 
+5: /// <summary>Reads request-local authenticated identity; does not grant permissions.</summary>
+6: public sealed class CurrentUserAccessor(IHttpContextAccessor httpContextAccessor) : ICurrentUserAccessor
+7: {
+8:     public bool TryGetCurrentUser(out CurrentUserInfo user)
+9:     {
+10:         user = default;
+11:         var context = httpContextAccessor.HttpContext;
+12:         if (context is null
+13:             || !HotelOpsCookieTicket.TryRead(context.User, out var reference, out var sessionId)
+14:             || reference is null

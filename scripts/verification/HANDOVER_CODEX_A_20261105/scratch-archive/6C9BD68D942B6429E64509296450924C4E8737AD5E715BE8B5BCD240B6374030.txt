@@ -1,0 +1,377 @@
+using System.ComponentModel.DataAnnotations;
+using System.Data.Common;
+using System.Reflection;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Maintenance;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Services.Inventory;
+using HotelOps.Api.Services.Maintenance;
+using HotelOps.Api.Services.Users;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+
+// Runs only after Program's disposable database + startup-schema guards. No clear evaluator.
+internal static class ReturnWorkSqlSuite
+{
+    internal sealed record SqlWait(string Case, int Waiter, int Owner, string WaitType, DateTime ObservedUtc);
+    internal sealed record Evidence(IReadOnlyList<string> Cases, IReadOnlyList<SqlWait> Waits,
+        string StandaloneRace, string IntegratedWriterFirst, string IntegratedDeactivateFirstDenial,
+        string FullDeactivateFirstSuccess, string FullUc006Acceptance);
+    private sealed record Pair(long Work, long Incident);
+
+    internal static async Task<Evidence> RunAsync(string connection, long actor, long target, long branch,
+        Func<HotelOpsDbContext, CancellationToken, Task<AccountDeactivationResult>> deactivate,
+        Action<bool, string> report, CancellationToken ct)
+    {
+        var cases = new List<string>(); var waits = new List<SqlWait>(); var pairs = new List<Pair>();
+        void Check(bool ok, string label) { report(ok, label); cases.Add(label); }
+        HotelOpsDbContext Open(params IInterceptor[] hooks) => new(new DbContextOptionsBuilder<HotelOpsDbContext>()
+            .UseSqlServer(connection).AddInterceptors(hooks).Options);
+        await using var observer = Open();
+        async Task<string> ExistingData() => JsonSerializer.Serialize(new
+        {
+            works = await observer.MaintenanceWorks.AsNoTracking().OrderBy(x => x.MaintenanceWorkId).ToArrayAsync(ct),
+            incidents = await observer.Incidents.AsNoTracking().OrderBy(x => x.IncidentId).ToArrayAsync(ct),
+            logs = await observer.MaintenanceWorkLogs.AsNoTracking().OrderBy(x => x.LogId).ToArrayAsync(ct),
+            events = await observer.IncidentEvents.AsNoTracking().OrderBy(x => x.EventId).ToArrayAsync(ct),
+            audits = await observer.AuditLogs.AsNoTracking().OrderBy(x => x.AuditId).ToArrayAsync(ct),
+            roles = await observer.Roles.AsNoTracking().OrderBy(x => x.RoleId).ToArrayAsync(ct),
+            permissions = await observer.Permissions.AsNoTracking().OrderBy(x => x.PermissionId).ToArrayAsync(ct),
+            grants = await observer.RolePermissions.AsNoTracking().OrderBy(x => x.RoleId).ThenBy(x => x.PermissionId).ToArrayAsync(ct)
+        }); // Compare only in memory, never emit payloads.
+        var existingBefore = await ExistingData();
+        var prefix = "T55A_" + Guid.NewGuid().ToString("N")[..10]; var now = DateTime.UtcNow;
+        var standalone = new User { Username = prefix, EmployeeCode = prefix, Email = prefix + "@example.invalid",
+            FullName = "Owned standalone ReturnWork eligibility fixture", AccountStatus = "ACTIVE", EmploymentStatus = "ACTIVE", CreatedAt = now };
+        observer.Add(standalone); await observer.SaveChangesAsync(ct); observer.ChangeTracker.Clear();
+        async Task<Pair> NewPair(long assignee)
+        {
+            var code = prefix + "_" + pairs.Count;
+            var incident = new Incident { IncidentNo = code, BranchId = branch, IncidentTitle = code,
+                Description = code, ReportedBy = actor, DiscoveredAt = now, ReportedAt = now, Status = "RESOLVED", ResolvedAt = now };
+            observer.Add(incident); await observer.SaveChangesAsync(ct); observer.ChangeTracker.Clear();
+            var work = new MaintenanceWork { WorkNo = code, Title = code, IncidentId = incident.IncidentId,
+                AssigneeId = assignee, CreatedBy = actor, CreatedAt = now, ActualStartAt = now.AddMinutes(-1),
+                Status = "COMPLETED", ResolvedAt = now, ResolutionNote = "Owned completed fixture" };
+            observer.Add(work); await observer.SaveChangesAsync(ct); observer.ChangeTracker.Clear();
+            var pair = new Pair(work.MaintenanceWorkId, incident.IncidentId); pairs.Add(pair); return pair;
+        }
+        async Task Clean(Pair pair)
+        {
+            await using var cleanup = Open(); await using var tx = await cleanup.Database.BeginTransactionAsync(CancellationToken.None);
+            await cleanup.AuditLogs.Where(a => a.EntityType == "maintenance_works" && a.EntityId == pair.Work.ToString()
+                || a.EntityType == "incidents" && a.EntityId == pair.Incident.ToString()).ExecuteDeleteAsync(CancellationToken.None);
+            await cleanup.MaintenanceWorkLogs.Where(x => x.MaintenanceWorkId == pair.Work).ExecuteDeleteAsync(CancellationToken.None);
+            await cleanup.IncidentEvents.Where(x => x.IncidentId == pair.Incident).ExecuteDeleteAsync(CancellationToken.None);
+            await cleanup.MaintenanceWorks.Where(x => x.MaintenanceWorkId == pair.Work && x.WorkNo.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
+            await cleanup.Incidents.Where(x => x.IncidentId == pair.Incident && x.IncidentNo.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
+            await tx.CommitAsync(CancellationToken.None);
+        }
+        async Task<string> Snapshot(Pair p) => JsonSerializer.Serialize(new
+        {
+            work = await observer.MaintenanceWorks.AsNoTracking().SingleAsync(x => x.MaintenanceWorkId == p.Work, ct),
+            incident = await observer.Incidents.AsNoTracking().SingleAsync(x => x.IncidentId == p.Incident, ct),
+            logs = await observer.MaintenanceWorkLogs.AsNoTracking().Where(x => x.MaintenanceWorkId == p.Work).OrderBy(x => x.LogId).ToArrayAsync(ct),
+            events = await observer.IncidentEvents.AsNoTracking().Where(x => x.IncidentId == p.Incident).OrderBy(x => x.EventId).ToArrayAsync(ct),
+            audits = await observer.AuditLogs.AsNoTracking().Where(x => x.EntityType == "maintenance_works" && x.EntityId == p.Work.ToString()
+                || x.EntityType == "incidents" && x.EntityId == p.Incident.ToString()).OrderBy(x => x.AuditId).ToArrayAsync(ct)
+        }); // In-memory comparison only; never print entity/session/credential payloads.
+        Task<HotelOps.Api.DTOs.Maintenance.MaintenanceWorkDetailDto?> Return(HotelOpsDbContext db, Pair p, CancellationToken token) =>
+            new MaintenanceWorkService(db, new InventoryService(db)).ReturnWorkAsync(p.Work,
+                new ReturnMaintenanceWorkRequest { ActorUserId = actor, Reason = "Task55A verified return for rework" }, token);
+        async Task<int> Spid(HotelOpsDbContext db)
+        {
+            await db.Database.OpenConnectionAsync(ct);
+            return await db.Database.SqlQueryRaw<int>("SELECT CONVERT(int,@@SPID) AS [Value]").SingleAsync(ct);
+        }
+        async Task Wait(string label, int waiter, int owner, Task task)
+        {
+            for (var i = 0; i < 150 && !task.IsCompleted; i++)
+            {
+                var kind = await observer.Database.SqlQuery<string>($"SELECT wait_type AS [Value] FROM sys.dm_exec_requests WHERE session_id={waiter} AND blocking_session_id={owner} AND wait_type LIKE 'LCK_M_%'").SingleOrDefaultAsync(ct);
+                if (kind is not null) { waits.Add(new(label, waiter, owner, kind, DateTime.UtcNow)); return; }
+                await Task.Delay(50, ct);
+            }
+            if (task.IsFaulted) await task;
+            throw new InvalidOperationException("No actual SQL lock wait observed: " + label);
+        }
+        async Task Reject(Task task, string message)
+        {
+            try { await task; }
+            catch (ValidationException e) when (e.Message.Contains(message, StringComparison.Ordinal)) { return; }
+            throw new InvalidOperationException("Expected actual ReturnWork rejection: " + message);
+        }
+        try
+        {
+            // Actual Return commits; actual Deactivate waits in its canonical Users snapshot.
+            var first = await NewPair(target); var trace = new LockTrace(); var commit = new CommitBarrier();
+            await using (var writer = Open(trace, commit))
+            await using (var contender = Open())
+            {
+                var owner = await Spid(writer); var waiter = await Spid(contender);
+                _ = await writer.MaintenanceWorks.Include(x => x.Incident).SingleAsync(x => x.MaintenanceWorkId == first.Work, ct);
+                using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var returning = Return(writer, first, cancellation.Token); Task<AccountDeactivationResult>? pending = null;
+                try
+                {
+                    await commit.Entered.Task.WaitAsync(TimeSpan.FromSeconds(15), ct);
+                    Check(trace.Order.SequenceEqual(new[] { "User", "Incident", "Work" }), "ReturnWork actual lock order is retained User -> Incident -> MaintenanceWork");
+                    pending = deactivate(contender, cancellation.Token);
+                    await Wait("ReturnWork-first actual Deactivate", waiter, owner, pending);
+                    Check(!pending.IsCompleted, "actual Deactivate waits for ReturnWork retained User lock");
+                    commit.Release.TrySetResult();
+                    var result = await returning; var denied = await pending;
+                    Check(commit.Committed && result is { Status: "IN_PROGRESS" } && result.AssigneeId == target,
+                        "ReturnWork-first performs a real commit retaining the eligible assignee");
+                    Check(denied.Status == AccountDeactivationStatus.ResponsibilitiesUnresolved && denied.Version is null,
+                        "actual Deactivate after ReturnWork commit denies on remaining unresolved gates");
+                    await using var reviewDb = Open(); await using var reviewTx = await reviewDb.Database.BeginTransactionAsync(ct);
+                    await new UserEligibilityLock(reviewDb).LockAsync([target], ct);
+                    var type = typeof(UserAccountDeactivationService).Assembly.GetType("HotelOps.Api.Services.Users.IntegratedDeactivationResponsibilityQueries", true)!;
+                    var reading = (Task)type.GetMethod("ReadAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
+                        .Invoke(Activator.CreateInstance(type, reviewDb), [target, ct])!;
+                    await reading; var review = reading.GetType().GetProperty("Result")!.GetValue(reading)!;
+                    Check(((IReadOnlyList<string>)review.GetType().GetProperty("Blockers")!.GetValue(review)!).Contains("MAINTENANCE_ASSIGNEE"),
+                        "concrete integrated review sees committed MAINTENANCE_ASSIGNEE while retaining User lock");
+                    var unresolved = (IReadOnlyList<string>)review.GetType().GetProperty("Unresolved")!.GetValue(review)!;
+                    Check(!unresolved.Contains("MAINTENANCE_RETURN_WRITER_COORDINATION")
+                        && unresolved.Contains("DEV2_INTEGRATED_SQL_ACCEPTANCE") && unresolved.Contains("GLOBAL_USERS_FEATURE_LOCK_ORDER_ACCEPTANCE"),
+                        "verified ReturnWork missing-writer gate is closed while full DEV2 and global lock-order safety gates remain");
+                    await reviewTx.RollbackAsync(ct);
+                    var work = await observer.MaintenanceWorks.AsNoTracking().SingleAsync(x => x.MaintenanceWorkId == first.Work, ct);
+                    var incident = await observer.Incidents.AsNoTracking().SingleAsync(x => x.IncidentId == first.Incident, ct);
+                    Check(work.Status == "IN_PROGRESS" && work.ResolvedAt == null && work.ResolutionNote == null && work.ReviewedAt == null
+                        && work.ReviewedBy == null && incident.Status == "IN_PROGRESS" && incident.ResolvedAt == null
+                        && await observer.MaintenanceWorkLogs.CountAsync(x => x.MaintenanceWorkId == first.Work, ct) == 1
+                        && await observer.IncidentEvents.CountAsync(x => x.IncidentId == first.Incident, ct) == 1
+                        && await observer.AuditLogs.CountAsync(x => x.EntityType == "maintenance_works" && x.EntityId == first.Work.ToString()
+                            || x.EntityType == "incidents" && x.EntityId == first.Incident.ToString(), ct) == 2,
+                        "ReturnWork commit atomically updates pair and adds one log one event and both audits");
+                }
+                finally { commit.Release.TrySetResult(); cancellation.Cancel(); await Drain(returning); if (pending != null) await Drain(pending); }
+            }
+            await Clean(first);
+
+            // Actual Deactivate owns Users, but denies unresolved contracts rather than committing INACTIVE.
+            var second = await NewPair(target); var userBarrier = new UsersBarrier();
+            await using (var deactivator = Open(userBarrier))
+            await using (var writer = Open(trace = new LockTrace()))
+            {
+                var owner = await Spid(deactivator); var waiter = await Spid(writer);
+                using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var pending = deactivate(deactivator, cancellation.Token); Task<HotelOps.Api.DTOs.Maintenance.MaintenanceWorkDetailDto?>? returning = null;
+                try
+                {
+                    await userBarrier.Entered.Task.WaitAsync(TimeSpan.FromSeconds(15), ct);
+                    returning = Return(writer, second, cancellation.Token);
+                    await Wait("Actual Deactivate-first denial", waiter, owner, returning);
+                    Check(trace.Order.SequenceEqual(new[] { "User" }), "ReturnWork waits on actual Deactivate Users lock before either feature lock");
+                    userBarrier.Release.TrySetResult();
+                    Check((await pending).Status == AccountDeactivationStatus.ResponsibilitiesUnresolved,
+                        "actual Deactivate-first rolls back at business gates; this is not successful deactivation");
+                    Check((await returning)?.Status == "IN_PROGRESS", "ReturnWork proceeds after actual Deactivate denial releases retained User lock");
+                }
+                finally { userBarrier.Release.TrySetResult(); cancellation.Cancel(); await Drain(pending); if (returning != null) await Drain(returning); }
+            }
+            await Clean(second);
+
+            // Standalone protocol test ONLY: commit INACTIVE on a separate owned User, never pretend this is Deactivate.
+            var standalonePair = await NewPair(standalone.UserId); var baseline = await Snapshot(standalonePair);
+            await using (var holder = Open())
+            await using (var writer = Open(trace = new LockTrace()))
+            {
+                var owner = await Spid(holder); var waiter = await Spid(writer);
+                _ = await writer.Users.SingleAsync(x => x.UserId == standalone.UserId, ct);
+                _ = await writer.MaintenanceWorks.Include(x => x.Incident).SingleAsync(x => x.MaintenanceWorkId == standalonePair.Work, ct);
+                await using var tx = await holder.Database.BeginTransactionAsync(ct);
+                await new UserEligibilityLock(holder).LockAsync([standalone.UserId], ct);
+                await holder.Users.Where(x => x.UserId == standalone.UserId).ExecuteUpdateAsync(s => s.SetProperty(x => x.AccountStatus, "INACTIVE"), ct);
+                using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var returning = Return(writer, standalonePair, cancellation.Token);
+                try
+                {
+                    await Wait("Standalone INACTIVE-first eligibility", waiter, owner, returning);
+                    await tx.CommitAsync(ct); await Reject(returning, "Future responsibility requires");
+                    Check(trace.Order.SequenceEqual(new[] { "User" }) && writer.Database.CurrentTransaction == null,
+                        "standalone INACTIVE-first rejects stale tracked ACTIVE User before feature locks and releases transaction");
+                }
+                finally { cancellation.Cancel(); await Drain(returning); }
+            }
+            Check(await Snapshot(standalonePair) == baseline, "standalone eligibility rejection leaves completed pair and all history unchanged");
+
+            foreach (var change in new[] { "assignee", "state", "linkage", "incident" })
+            {
+                var pair = await NewPair(target); var before = await Snapshot(pair); var drift = new StaleSql(pair.Work, pair.Incident, actor, change);
+                await using var writer = Open(drift);
+                _ = await writer.MaintenanceWorks.Include(x => x.Incident).SingleAsync(x => x.MaintenanceWorkId == pair.Work, ct);
+                await Reject(Return(writer, pair, ct), change switch { "assignee" or "state" => "changed after discovery", "linkage" => "relationship changed", _ => "inconsistent" });
+                Check(drift.Applied && writer.Database.CurrentTransaction == null && await Snapshot(pair) == before,
+                    "authoritative reread rejects stale " + change + " and rolls back SQL fixture drift without partial writes");
+            }
+            foreach (var cancel in new[] { true, false })
+            {
+                var pair = await NewPair(target); var before = await Snapshot(pair);
+                await using var holder = Open(); await using var writer = Open(trace = new LockTrace());
+                var owner = await Spid(holder); var waiter = await Spid(writer);
+                await using var tx = await holder.Database.BeginTransactionAsync(ct);
+                await new UserEligibilityLock(holder).LockAsync([target], ct);
+                if (!cancel) await writer.Database.ExecuteSqlRawAsync("SET LOCK_TIMEOUT 1800", ct);
+                using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var returning = Return(writer, pair, cancellation.Token); var rejected = false;
+                try
+                {
+                    await Wait(cancel ? "Return cancellation" : "Return lock timeout", waiter, owner, returning);
+                    if (cancel) cancellation.Cancel();
+                    try { await returning; }
+                    catch (OperationCanceledException) when (cancel && cancellation.IsCancellationRequested) { rejected = true; }
+                    catch (Exception e) when (!cancel && SqlNumber(e, 1222)) { rejected = true; }
+                }
+                finally { cancellation.Cancel(); await tx.RollbackAsync(CancellationToken.None); await Drain(returning); }
+                Check(rejected && trace.Order.SequenceEqual(new[] { "User" }) && writer.Database.CurrentTransaction == null
+                    && await Snapshot(pair) == before, cancel ? "Return cancellation rolls back and releases actual User wait without partial writes"
+                    : "Return bounded SQL lock timeout1222 rolls back without partial writes");
+            }
+            // Verify rollback AFTER the real SaveChanges flush, including already persisted audits.
+            var rollbackPair = await NewPair(target); var rollbackBefore = await Snapshot(rollbackPair); var failingCommit = new FailCommit(rollbackPair.Work, rollbackPair.Incident);
+            await using (var writer = Open(failingCommit))
+            {
+                var failed = false;
+                try { await Return(writer, rollbackPair, ct); } catch (CommitFault) { failed = true; }
+                Check(failed && failingCommit.FlushedHistoryObserved && writer.Database.CurrentTransaction == null
+                    && await Snapshot(rollbackPair) == rollbackBefore, "Return failure after real business and audit flush atomically rolls back pair log event and both audits");
+            }
+            // Deliberately force a test-only cycle after flush: this is fault recovery, not canonical lock-order acceptance.
+            var deadlockPair = await NewPair(target); var deadlockBefore = await Snapshot(deadlockPair);
+            var deadlock = new DeadlockCommit(standalone.UserId);
+            await using (var writer = Open(deadlock))
+            await using (var holder = Open())
+            {
+                var waiter = await Spid(holder); var owner = await Spid(writer);
+                await holder.Database.ExecuteSqlRawAsync("SET DEADLOCK_PRIORITY HIGH", ct);
+                await writer.Database.ExecuteSqlRawAsync("SET DEADLOCK_PRIORITY LOW", ct);
+                await using var tx = await holder.Database.BeginTransactionAsync(ct);
+                await new UserEligibilityLock(holder).LockAsync([standalone.UserId], ct);
+                using var cancellation = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                var returning = Return(writer, deadlockPair, cancellation.Token); Task? waiting = null;
+                try
+                {
+                    await deadlock.Entered.Task.WaitAsync(TimeSpan.FromSeconds(15), ct);
+                    waiting = new UserEligibilityLock(holder).LockAsync([target], cancellation.Token);
+                    await Wait("Injected post-flush deadlock", waiter, owner, waiting);
+                    deadlock.Release.TrySetResult(); var victim = false;
+                    try { await returning; } catch (Exception e) when (SqlNumber(e, 1205)) { victim = true; }
+                    await waiting;
+                    Check(victim && writer.Database.CurrentTransaction == null, "Return actual SQL deadlock1205 propagates and releases its owned transaction");
+                }
+                finally { deadlock.Release.TrySetResult(); cancellation.Cancel(); await tx.RollbackAsync(CancellationToken.None); await Drain(returning); if (waiting != null) await Drain(waiting); }
+            }
+            Check(await Snapshot(deadlockPair) == deadlockBefore, "post-flush SQL deadlock rolls back all Return business and audit writes");
+            await using (var retry = Open())
+                Check((await Return(retry, deadlockPair, ct))?.Status == "IN_PROGRESS", "explicit fresh Return retry rereads eligibility and commits exactly once after deadlock");
+        }
+        finally
+        {
+            foreach (var pair in pairs) await Clean(pair);
+            await observer.Users.Where(x => x.UserId == standalone.UserId && x.Username == prefix).ExecuteDeleteAsync(CancellationToken.None);
+        }
+        Check(!await observer.MaintenanceWorks.AnyAsync(x => x.WorkNo.StartsWith(prefix), ct)
+            && !await observer.Incidents.AnyAsync(x => x.IncidentNo.StartsWith(prefix), ct)
+            && !await observer.Users.AnyAsync(x => x.UserId == standalone.UserId, ct)
+            && await ExistingData() == existingBefore, "all owned ReturnWork SQL fixtures cleaned; shared catalog and existing business data unchanged");
+        return new(cases, waits, "PASS", "PASS (blocking and concrete review; public result unresolved)",
+            "PASS (denial/release only)", "BLOCKED", "BLOCKED");
+    }
+
+    private static bool SqlNumber(Exception e, int number)
+    { for (Exception? current = e; current != null; current = current.InnerException) if (current is SqlException sql && sql.Number == number) return true; return false; }
+    private static async Task Drain(Task task) { try { await task; } catch { /* Preserve primary failure while settling owned workers. */ } }
+    private sealed class LockTrace : DbCommandInterceptor
+    {
+        internal List<string> Order { get; } = [];
+        public override ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (command.CommandText.Contains("UPDLOCK", StringComparison.OrdinalIgnoreCase))
+                Order.Add(command.CommandText.Contains("dbo.users", StringComparison.OrdinalIgnoreCase) ? "User"
+                    : command.CommandText.Contains("FROM incidents", StringComparison.OrdinalIgnoreCase) ? "Incident" : "Work");
+            return ValueTask.FromResult(result);
+        }
+    }
+    private sealed class CommitBarrier : DbTransactionInterceptor
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal bool Committed { get; private set; }
+        public override async ValueTask<InterceptionResult> TransactionCommittingAsync(DbTransaction transaction, TransactionEventData eventData,
+            InterceptionResult result, CancellationToken cancellationToken = default)
+        { Entered.TrySetResult(); await Release.Task.WaitAsync(cancellationToken); return result; }
+        public override Task TransactionCommittedAsync(DbTransaction transaction, TransactionEndEventData eventData, CancellationToken cancellationToken = default)
+        { Committed = true; return Task.CompletedTask; }
+    }
+    private sealed class UsersBarrier : DbCommandInterceptor
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public override async ValueTask<DbDataReader> ReaderExecutedAsync(DbCommand command, CommandExecutedEventData eventData,
+            DbDataReader result, CancellationToken cancellationToken = default)
+        {
+            if (command.CommandText.Contains("TABLOCKX", StringComparison.OrdinalIgnoreCase))
+            { Entered.TrySetResult(); await Release.Task.WaitAsync(cancellationToken); }
+            return result;
+        }
+    }
+    private sealed class StaleSql(long work, long incident, long other, string change) : DbCommandInterceptor
+    {
+        internal bool Applied { get; private set; }
+        public override async ValueTask<InterceptionResult<DbDataReader>> ReaderExecutingAsync(DbCommand command, CommandEventData eventData,
+            InterceptionResult<DbDataReader> result, CancellationToken cancellationToken = default)
+        {
+            if (!Applied && command.CommandText.Contains("FROM incidents WITH (UPDLOCK", StringComparison.OrdinalIgnoreCase))
+            {
+                Applied = true; await using var injection = command.Connection!.CreateCommand(); injection.Transaction = command.Transaction;
+                injection.CommandText = change switch
+                {
+                    "assignee" => "UPDATE dbo.maintenance_works SET assignee_id=@other WHERE maintenance_work_id=@work",
+                    "state" => "UPDATE dbo.maintenance_works SET status='CLOSED' WHERE maintenance_work_id=@work",
+                    "linkage" => "UPDATE dbo.maintenance_works SET incident_id=NULL WHERE maintenance_work_id=@work",
+                    _ => "UPDATE dbo.incidents SET status='IN_PROGRESS' WHERE incident_id=@incident"
+                };
+                foreach (var (name, value) in new[] { ("@work", work), ("@incident", incident), ("@other", other) })
+                { var p = injection.CreateParameter(); p.ParameterName = name; p.Value = value; injection.Parameters.Add(p); }
+                await injection.ExecuteNonQueryAsync(cancellationToken);
+            }
+            return result;
+        }
+    }
+    private sealed class CommitFault : Exception;
+    private sealed class FailCommit(long work, long incident) : DbTransactionInterceptor
+    {
+        internal bool FlushedHistoryObserved { get; private set; }
+        public override async ValueTask<InterceptionResult> TransactionCommittingAsync(DbTransaction transaction, TransactionEventData eventData,
+            InterceptionResult result, CancellationToken cancellationToken = default)
+        {
+            await using var cmd = transaction.Connection!.CreateCommand(); cmd.Transaction = transaction;
+            cmd.CommandText = "SELECT CASE WHEN (SELECT COUNT(*) FROM dbo.audit_logs WHERE (entity_type='maintenance_works' AND entity_id=CONVERT(varchar(30),@work)) OR (entity_type='incidents' AND entity_id=CONVERT(varchar(30),@incident)))=2 AND (SELECT COUNT(*) FROM dbo.maintenance_work_logs WHERE maintenance_work_id=@work)=1 AND (SELECT COUNT(*) FROM dbo.incident_events WHERE incident_id=@incident)=1 THEN 1 ELSE 0 END";
+            foreach (var (name, value) in new[] { ("@work", work), ("@incident", incident) })
+            { var p = cmd.CreateParameter(); p.ParameterName = name; p.Value = value; cmd.Parameters.Add(p); }
+            FlushedHistoryObserved = Convert.ToInt32(await cmd.ExecuteScalarAsync(cancellationToken)) == 1;
+            throw new CommitFault();
+        }
+    }
+    private sealed class DeadlockCommit(long sentinel) : DbTransactionInterceptor
+    {
+        internal TaskCompletionSource Entered { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        internal TaskCompletionSource Release { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        public override async ValueTask<InterceptionResult> TransactionCommittingAsync(DbTransaction transaction, TransactionEventData eventData,
+            InterceptionResult result, CancellationToken cancellationToken = default)
+        {
+            Entered.TrySetResult(); await Release.Task.WaitAsync(cancellationToken);
+            await using var cmd = transaction.Connection!.CreateCommand(); cmd.Transaction = transaction;
+            cmd.CommandText = "SELECT user_id FROM dbo.users WITH (UPDLOCK,HOLDLOCK) WHERE user_id=@sentinel";
+            var p = cmd.CreateParameter(); p.ParameterName = "@sentinel"; p.Value = sentinel; cmd.Parameters.Add(p);
+            await cmd.ExecuteScalarAsync(cancellationToken); return result;
+        }
+    }
+}

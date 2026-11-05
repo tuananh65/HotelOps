@@ -1,0 +1,5 @@
+<Project>
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'HotelOps.Api'">
+    <Compile Include="$(MSBuildThisFileDirectory)TurnoverHistoryController.cs.proposal" />
+  </ItemGroup>
+</Project>

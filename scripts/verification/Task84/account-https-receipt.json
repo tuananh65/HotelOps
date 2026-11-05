@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "checks": 6,
+  "cases": [
+    "actual production API startup and prerequisite schema gate",
+    "actual CSRF bootstrap account",
+    "actual credential login and SQL session account",
+    "fresh fixture account authorized before deactivation",
+    "valid read preserves business/audit/catalog",
+    "inactive account invalidates actual SQL session"
+  ],
+  "database": "HotelOps_Canonical_20261104_044211_7a6d6e19_Fresh",
+  "kind": "SUPPLEMENTAL_REAL_HTTPS_SQL_ACCOUNT_ELIGIBILITY",
+  "fixturesAdded": 1,
+  "preexistingTask84FixtureRowsChanged": 0
+}

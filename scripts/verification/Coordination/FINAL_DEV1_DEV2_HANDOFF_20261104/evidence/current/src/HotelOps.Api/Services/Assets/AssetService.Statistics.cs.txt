@@ -1,0 +1,34 @@
+4: namespace HotelOps.Api.Services.Assets;
+5: 
+6: public sealed partial class AssetService
+7: {
+8:     public async Task<AssetLocationStatisticsResponse> GetStatisticsAsync(AssetStatisticsRequest request, CancellationToken cancellationToken)
+9:     {
+10:         var snapshotAt = DateTime.UtcNow;
+11:         var query = _dbContext.Assets.AsNoTracking();
+13:         if (request.AssetTypeId is long type) query = query.Where(a => a.AssetTypeId == type);
+14:         if (request.DepartmentId is long department) query = query.Where(a => a.CurrentDepartmentId == department);
+15:         var condition = OptionalNote(request.ConditionStatus)?.ToUpperInvariant();
+16:         var lifecycle = OptionalNote(request.LifecycleStatus)?.ToUpperInvariant();
+17:         if (condition is not null) query = query.Where(a => a.ConditionStatus == condition);
+18:         if (lifecycle is not null) query = query.Where(a => a.LifecycleStatus == lifecycle);
+19:         // One aggregate statement over CURRENT assets. No history joins or double counts.
+20:         var groups = await query.GroupBy(a => new
+21:         {
+26:             DisplayName = a.CurrentRoomId != null && a.CurrentAreaId != null ? null :
+27:                 a.CurrentRoom != null ? a.CurrentRoom.RoomNumber : a.CurrentArea != null ? a.CurrentArea.AreaName : null,
+28:             a.LifecycleStatus
+29:         }).Select(g => new { g.Key.BranchId, g.Key.LocationType, g.Key.LocationId,
+30:             g.Key.DisplayName, g.Key.LifecycleStatus, Count = g.Count() }).ToListAsync(cancellationToken);
+31:         return new AssetLocationStatisticsResponse
+32:         {
+33:             SnapshotAt = snapshotAt,
+38:                     BranchId = g.Key.BranchId, LocationType = g.Key.LocationType, LocationId = g.Key.LocationId,
+39:                     DisplayName = g.Key.DisplayName, TotalCount = g.Sum(x => x.Count),
+40:                     OperationalCount = g.Where(x => x.LifecycleStatus is "IN_USE" or "UNDER_REPAIR").Sum(x => x.Count),
+41:                     RetiredCount = g.Where(x => x.LifecycleStatus == "RETIRED").Sum(x => x.Count),
+42:                     LifecycleCounts = g.OrderBy(x => x.LifecycleStatus, StringComparer.Ordinal)
+43:                         .Select(x => new AssetLifecycleCountDto { LifecycleStatus = x.LifecycleStatus, Count = x.Count }).ToList()
+44:                 }).ToList()
+45:         };
+46:     }

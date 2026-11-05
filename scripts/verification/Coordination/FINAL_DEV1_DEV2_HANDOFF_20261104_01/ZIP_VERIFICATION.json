@@ -1,0 +1,14 @@
+﻿{
+    "recordedUtc":  "2026-11-04T17:06:35.8460952Z",
+    "archive":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_01\\DEV1_DEV2_FINAL_HANDOFF.zip",
+    "sha256":  "D775428DD8249ECFE84A6E7C7CB71FADCDF8DCB013F5ADAAF54FA5E8C525A656",
+    "bytes":  236622,
+    "entries":  88,
+    "manifestContentHashesVerified":  87,
+    "entryHashFailures":  [
+
+                          ],
+    "pass":  true,
+    "sourceSnapshotConsistent":  true,
+    "note":  "Manifest excludes its own hash; no recursive ZIP hash. This verification file stays outside the ZIP."
+}

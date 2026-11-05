@@ -1,0 +1,15 @@
+param([Parameter(Mandatory=$true)][string]$Role)
+$ErrorActionPreference='Stop'
+& obj/task65-prepare-trial.ps1 -Role $Role
+$trial=(Get-Content ('obj/task65-trial-'+$Role+'.local.txt') -Raw).Trim()
+if($trial -notmatch '^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$'){throw 'Trial name rejected'}
+$connection=New-Object System.Data.SqlClient.SqlConnection "Data Source=localhost\SQLEXPRESS;Initial Catalog=$trial;Integrated Security=True;TrustServerCertificate=True;Connect Timeout=5"
+try{
+    $connection.OpenAsync().GetAwaiter().GetResult()
+    $command=$connection.CreateCommand();$command.CommandTimeout=30
+    $command.CommandText='SELECT CONVERT(nvarchar(128),@@SERVERNAME)'
+    if($command.ExecuteScalarAsync().GetAwaiter().GetResult() -cne 'REDACTED_LOCAL_SQL_HOST\SQLEXPRESS'){throw 'Wrong SQL instance'}
+    $command.CommandText=[IO.File]::ReadAllText((Join-Path (Get-Location) 'scripts/database/release/candidates/Task68_UC017.forward.sql'))
+    [void]$command.ExecuteNonQueryAsync().GetAwaiter().GetResult()
+    Write-Output ('PASS: Task68 candidate applied only to disposable trial '+$trial)
+}finally{$connection.Dispose()}

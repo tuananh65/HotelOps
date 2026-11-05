@@ -1,0 +1,33 @@
+﻿{
+    "status":  "REVIEW_ONLY_NO_IMPLEMENTATION",
+    "success":  true,
+    "startedUtc":  "2026-11-03T06:55:18.6291412+00:00",
+    "finishedUtc":  "2026-11-03T07:03:33.9652041+00:00",
+    "reviewElapsedSeconds":  495.3360629,
+    "implementationAcceptanceElapsed":  null,
+    "preservedBaselinePaths":  665,
+    "unexpectedChanges":  [
+
+                          ],
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "worktreesUnchanged":  true,
+    "diffCheckExit":  0,
+    "newDocumentWhitespaceFailures":  [
+
+                                      ],
+    "ledgerRows":  75,
+    "completedUCs":  26,
+    "verifiedPoints":  60,
+    "weightedPercent":  23.4375,
+    "build":  "NOT RUN - review documents only",
+    "tests":  "NOT RUN",
+    "https":  "NOT RUN",
+    "sql":  "NOT RUN",
+    "newReviewFiles":  [
+                           "README.md",
+                           "BASELINE_RESTORE_MANIFEST.json",
+                           "UC_LEDGER_RECONCILED.json",
+                           "REVIEW_VALIDATION.json"
+                       ]
+}

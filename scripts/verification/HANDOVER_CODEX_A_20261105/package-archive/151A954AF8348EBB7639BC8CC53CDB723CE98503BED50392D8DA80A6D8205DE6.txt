@@ -1,0 +1,63 @@
+﻿SOURCE: src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs
+SHA256: 21649003343219A8BBA9B333B79C7AE5151C51AD4F2CC74D08BDF18A9B027E19
+Ranges: 95-153 (original source line numbers)
+   95:             if (row == null) return new(RoomTypeDirectoryStatus.NotFound);
+   96:             var value = Details(row);
+   97:             var key = id.ToString(CultureInfo.InvariantCulture);
+   98:             var revision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "room_types" && x.EntityId == key)
+   99:                 .Select(x => (long?)x.AuditId).MaxAsync(token) ?? 0;
+  100:             var activeRooms = await ActiveRoomsAsync(id, row.BranchId, token);
+  101:             var tag = '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision, activeRooms }, Json))) + '"';
+  102:             return new(RoomTypeDirectoryStatus.Success, new RoomTypeListItem(value, activeRooms, branchId != null && value.IsActive), tag);
+  103:         }, ct, allowScopedList: false);
+  104:     }
+  105: 
+  106:     private async Task<RoomTypeDirectoryResult> ReadAsync(SessionReference ticket, long sessionId, long? branchId,
+  107:         Func<CancellationToken, Task<RoomTypeDirectoryResult>> read, CancellationToken ct, bool allowScopedList = true)
+  108:     {
+  109:         ArgumentNullException.ThrowIfNull(ticket);
+  110:         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
+  111:         ct.ThrowIfCancellationRequested();
+  112:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+  113:             || actor.IsRestricted || ticket.IsRestricted) return new(RoomTypeDirectoryStatus.SessionInvalid);
+  114:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
+  115:             || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
+  116:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+  117:         try
+  118:         {
+  119:             var locked = await new UserEligibilityLock(db).LockAsync([actor.UserId], ct);
+  120:             if (!locked.TryGetValue(actor.UserId, out var user) || user is null || user.DeletedAt != null
+  121:                 || user.AccountStatus != "ACTIVE" || user.EmploymentStatus != "ACTIVE") return new(RoomTypeDirectoryStatus.SessionInvalid);
+  122:             if (await Gate() is { } denied) return new(denied);
+  123:             if (branchId is { } branch)
+  124:             {
+  125:                 var parent = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}")
+  126:                     .AsNoTracking().SingleOrDefaultAsync(ct);
+  127:                 if (parent == null) return new(RoomTypeDirectoryStatus.NotFound);
+  128:                 if (!parent.IsActive) return new(RoomTypeDirectoryStatus.Inactive);
+  129:             }
+  130:             var locks = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=N'HotelOps:RoomTypes:v1',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];").ToArrayAsync(ct);
+  131:             if (locks.Length != 1 || locks[0] < 0) return new(RoomTypeDirectoryStatus.Unavailable);
+  132:             if (await RoomTypeDirectorySchema.ReadAsync(db, ct) != 1) return new(RoomTypeDirectoryStatus.SchemaRequired);
+  133:             var result = await read(ct);
+  134:             if (result.Status != RoomTypeDirectoryStatus.Success) return result;
+  135:             if (await Gate() is { } final) return new(final);
+  136:             await tx.CommitAsync(ct);
+  137:             return result;
+  138:         }
+  139:         catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2 or 207 or 208)
+  140:         { return new(RoomTypeDirectoryStatus.Unavailable); }
+  141:         catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
+  142:         { throw new OperationCanceledException("Room type directory cancelled.", error, ct); }
+  143: 
+  144:         async Task<RoomTypeDirectoryStatus?> Gate()
+  145:         {
+  146:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+  147:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return RoomTypeDirectoryStatus.SessionInvalid;
+  148:             var access = branchId is { } branch ? await permissions.EvaluateBranchAsync(Permission, branch, ct)
+  149:                 : await permissions.EvaluateGlobalAsync(Permission, ct);
+  150:             ct.ThrowIfCancellationRequested();
+  151:             if (access.IsGranted) return null;
+  152:             if (access.Decision == PermissionDecision.Unavailable) return RoomTypeDirectoryStatus.Unavailable;
+  153:             if (branchId == null && allowScopedList)
+

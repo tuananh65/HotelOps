@@ -1,0 +1,37 @@
+﻿{
+    "Task":  "56",
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "ChecksummedOriginals":  363,
+    "ChangedOriginals":  [
+                             "scripts/verification/UserAccountDeactivation/GATE_RESOLUTION_MATRIX.md",
+                             "scripts/verification/UserAccountDeactivation/REMAINING_BLOCKERS.md",
+                             "scripts/verification/UserAccountDeactivation/VERIFICATION_RESULTS.md"
+                         ],
+    "MissingOriginals":  [
+
+                         ],
+    "UnexpectedChanges":  [
+
+                          ],
+    "IndexUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "OriginalWordUnchanged":  true,
+    "LocalEvidenceLinks":  24,
+    "BrokenLinks":  [
+
+                    ],
+    "WorkflowRows":  7,
+    "MissingWorkflows":  [
+
+                         ],
+    "WriterRows":  18,
+    "DecisionRows":  7,
+    "AcceptanceCases":  12,
+    "DiffCheckPassed":  true,
+    "RuntimeChange":  false,
+    "NewGateAdded":  false,
+    "Build":  "NOT RUN - documentation only",
+    "Tests":  "NOT RUN - historical evidence reviewed",
+    "Sql":  "NOT RUN",
+    "Verdict":  "PARTIAL"
+}

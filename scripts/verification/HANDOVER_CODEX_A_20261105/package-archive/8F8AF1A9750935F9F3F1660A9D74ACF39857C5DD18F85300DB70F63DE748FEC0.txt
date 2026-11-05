@@ -1,0 +1,456 @@
+﻿{
+    "task":  "COORD-FINAL-01",
+    "snapshotStatus":  "DONE_CONSOLIDATED_HANDOFF_NOT_RUNTIME_ACCEPTANCE",
+    "worktree":  "D:\\SEP490\\Projects\\HotelOps",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "branch":  "feature/BE1-database-integration",
+    "programSha256":  "586299FB650342F7389BAECD615DD29ACC94352857021FC4391554FF9372A505",
+    "sourceIdentityManifest":  "evidence/CURRENT_SOURCE_IDS.json",
+    "historicalIdentityManifest":  "evidence/HISTORICAL_SOURCE_IDS.json",
+    "files":  [
+                  {
+                      "path":  "DEV1_SHARED_CONTRACT_FINAL_DECISIONS.md",
+                      "sha256":  "A1208AB121CCF013A929A9C24222F6E2CF7D36B2359EEE783DAFDB808B9EB7CB",
+                      "bytes":  7902
+                  },
+                  {
+                      "path":  "DEV1_CURRENT_SOURCE_EVIDENCE_MANIFEST.md",
+                      "sha256":  "C310BF3A60EA90B549E5A4CD5937DB865B36538730F200EE5B43482BE36DBF0E",
+                      "bytes":  10418
+                  },
+                  {
+                      "path":  "DEV1_NOTIFICATION_INTEGRATION_CONTRACT.md",
+                      "sha256":  "01BBEDE91DE8DF2AFF6F37F35191F320A1A5BF5FCFAC7D36F4C0964290BB0F6B",
+                      "bytes":  12617
+                  },
+                  {
+                      "path":  "DEV1_ROOM_WORKDAY_SHARED_CONTRACT.md",
+                      "sha256":  "772CAE6A1BE5ED440A0EFC49AD1AF18EF54B5118C47B47353184B44E14BCE0EC",
+                      "bytes":  14938
+                  },
+                  {
+                      "path":  "DEV1_GLOBAL_LOCK_AND_AUTHORITY_MATRIX.md",
+                      "sha256":  "C1941A8A65D1DCC96A9F0EE299D002D62AFB0985856EC09ECA9EFCD180A39EC6",
+                      "bytes":  11710
+                  },
+                  {
+                      "path":  "DEV1_SHARED_APPROVAL_AND_ACCEPTANCE_MATRIX.md",
+                      "sha256":  "475EA1D2F93C92195C1639B57C79B26FB11DC1FD5B03176D315140A456454826",
+                      "bytes":  10431
+                  },
+                  {
+                      "path":  "evidence/CURRENT_COMMIT_PATHWAYS.txt",
+                      "sha256":  "B9335DD7D98997F09602A246529FB66119045DBA00AF92DD742F55CED8291DC5",
+                      "bytes":  38373
+                  },
+                  {
+                      "path":  "evidence/CURRENT_SOURCE_IDS.json",
+                      "sha256":  "D278443BA49D8431932003DF685C050BBF3F1FDAEFEABCC0C107F21107A61EDD",
+                      "bytes":  176403
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Controllers__InventoryController.cs.lines.txt",
+                      "sha256":  "EADAF3D6483BEB893B032B4596E3C029134F967A92B54727DC187E325A8332AE",
+                      "bytes":  2744
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Controllers__MaintenanceWorksController.cs.lines.txt",
+                      "sha256":  "19BF16219A1BE0038039DC4D07179251D8B1B2CBB1B735B96B20120269B7CE9B",
+                      "bytes":  1606
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Controllers__MaterialRequestsController.cs.lines.txt",
+                      "sha256":  "6783CEA7B2D8AED394C906FAB80B1AD2286474C9B8CAD9B122ABD13B4CC20FF6",
+                      "bytes":  3923
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Controllers__ReplenishmentsController.cs.lines.txt",
+                      "sha256":  "FB8841081555AD6F2C3491570A118607F24EC789F6D79CD4D1546BD4DC2DA542",
+                      "bytes":  2856
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Data__HotelOpsDbContext.cs.lines.txt",
+                      "sha256":  "04E4306BDEB83D9F9CF5743A00B2CD471A901D123D4149B3831084036F8572DD",
+                      "bytes":  497
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Data__HotelOpsDbContext.WorkTime.cs.lines.txt",
+                      "sha256":  "D31F453C6899E20FD894D9EF850EF6F87C1C31836876A974BA23A11A7DECC20C",
+                      "bytes":  8565
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Entities__PreventiveMaintenanceRun.cs.lines.txt",
+                      "sha256":  "8C5C0539907CD5CF3826977D3986312239C286F892038E8CAB5EFA479F10C725",
+                      "bytes":  1121
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Entities__PreventiveMaintenanceSchedule.cs.lines.txt",
+                      "sha256":  "22C2A2EE88594D39BBB0D16427605DF1742F0896D3133C21547DE5B6E6E204B4",
+                      "bytes":  1633
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Services__Assets__AssetService.Validation.cs.lines.txt",
+                      "sha256":  "B6FA01CD68E1121C079C818AD30CAD3003F782B2307C8041D19BBF8A43F9705A",
+                      "bytes":  1200
+                  },
+                  {
+                      "path":  "evidence/EXTRA__src__HotelOps.Api__Services__Users__UserRoleAssignmentService.cs.lines.txt",
+                      "sha256":  "10EB1510E909BEC5775802E99DF054290A8385AFF00C2753A2534F68BA38FE7D",
+                      "bytes":  2173
+                  },
+                  {
+                      "path":  "evidence/HISTORICAL_SOURCE_IDS.json",
+                      "sha256":  "10AB8EC74754122F77C2C04E8B9302A391DDE5F4AA917109764E6DD3090C8F80",
+                      "bytes":  2135
+                  },
+                  {
+                      "path":  "evidence/HISTORICAL__scripts__database__release__housekeeping__01_Housekeeping.sql.lines.txt",
+                      "sha256":  "A481F623D2F12284F39E6A059156CE6E4F6C0DCE41B04BB312728EDD23D81B46",
+                      "bytes":  11549
+                  },
+                  {
+                      "path":  "evidence/HISTORICAL__src__HotelOps.Api__Controllers__HousekeepingWorkflowController.cs.lines.txt",
+                      "sha256":  "09D611AD6050E657FBB7B338FC4558706A9C86012D0741873FB15C7182331B2B",
+                      "bytes":  5233
+                  },
+                  {
+                      "path":  "evidence/HISTORICAL__src__HotelOps.Api__Services__HotelStructure__RoomTypeBatchService.cs.lines.txt",
+                      "sha256":  "161BA6664A12700366C4841074D33090AD3CFE9F0D40D44657BA315C74F57CFC",
+                      "bytes":  17259
+                  },
+                  {
+                      "path":  "evidence/HISTORICAL__src__HotelOps.Api__Services__Housekeeping__HousekeepingAssignmentsService.cs.lines.txt",
+                      "sha256":  "35A476FF2FC5EB37295567C4E35CB0B54200AEE25BAE0EB6CAF91284E50FE3EE",
+                      "bytes":  13779
+                  },
+                  {
+                      "path":  "evidence/HISTORICAL__src__HotelOps.Api__Services__Housekeeping__InspectionExecutionService.cs.lines.txt",
+                      "sha256":  "859E7C5902C6EF166E715E5AC0E0BB99BB453F1ABD6FBA2CA4974859BE2249AE",
+                      "bytes":  15469
+                  },
+                  {
+                      "path":  "evidence/PROGRAM_HEAD_TO_INDEX.diff",
+                      "sha256":  "6B3C7003496E66DE7850E5159E16B2BD462CEDA7F844FC8FE312EFACFF9C2B2B",
+                      "bytes":  13
+                  },
+                  {
+                      "path":  "evidence/PROGRAM_HEAD_TO_WORKTREE.diff",
+                      "sha256":  "676AD67284B873AAEDCE5A062130A2E9DDCD355B89978D5311531EF0B6403D81",
+                      "bytes":  2606
+                  },
+                  {
+                      "path":  "evidence/PROGRAM_IDENTITY.json",
+                      "sha256":  "1F8451CC36BAD3FF71EC0711ADF77205E2727EDDFA38F2323EE9685642C6B469",
+                      "bytes":  933
+                  },
+                  {
+                      "path":  "evidence/PROGRAM_INDEX_TO_WORKTREE.diff",
+                      "sha256":  "676AD67284B873AAEDCE5A062130A2E9DDCD355B89978D5311531EF0B6403D81",
+                      "bytes":  2606
+                  },
+                  {
+                      "path":  "evidence/RECEIPT_SUMMARIES.json",
+                      "sha256":  "6A43C927074FD26A5B74582631C2D743E1856424A2A7D69B0EE37E5283004373",
+                      "bytes":  10385
+                  },
+                  {
+                      "path":  "evidence/RECEIPT__Task79__auth-expiry-after.local.json",
+                      "sha256":  "BD4789D8B1012FCA31BA87908F5E3EB171E8CFDC8D856AC73704084DC5EF125E",
+                      "bytes":  2519
+                  },
+                  {
+                      "path":  "evidence/RECEIPT__Task79__boundaries-final.local.json",
+                      "sha256":  "C93A0CB796D12565AF42F35487976D3CC0F82580C6236C86AA45B25AC2D3C475",
+                      "bytes":  4546
+                  },
+                  {
+                      "path":  "evidence/RECEIPT__Task79__user-sql-regression.local.json",
+                      "sha256":  "F454D026027F91E8160C00C3E84E877A51210D6F1FEA1D33E29D1D3628AAEE15",
+                      "bytes":  1967
+                  },
+                  {
+                      "path":  "evidence/RECEIPT__Task86__HTTPS_RESUME2_RECEIPT.json",
+                      "sha256":  "5359324B018D12EFE8C139F83E78BD9189ACBCC3BB4379CB4076FB47E761FC25",
+                      "bytes":  3326
+                  },
+                  {
+                      "path":  "evidence/RECEIPT__Task86__HTTPS_RESUME_RECEIPT.json",
+                      "sha256":  "DC949D10846F2922B8A600A90CE2320CECCE43C1C03F1198D47A3A24C90AB782",
+                      "bytes":  2486
+                  },
+                  {
+                      "path":  "evidence/RECEIPT__Task86__HTTPS_SQL_RECEIPT.json",
+                      "sha256":  "6142EC75EC2382CF73A0344FA07BB697FF424F64D597267152A9647727D27A16",
+                      "bytes":  4961
+                  },
+                  {
+                      "path":  "evidence/REF_EVIDENCE.json",
+                      "sha256":  "81D9DE0AA3DE0011A93B4EA795E9A19DE50AE85981631009FA3369472E814535",
+                      "bytes":  1908
+                  },
+                  {
+                      "path":  "evidence/REQUEST_PROVENANCE.json",
+                      "sha256":  "FE7DC18FF34732E30BA1E7302CE3C50A07194DB0CDC2EADE27C567041CEF4933",
+                      "bytes":  388
+                  },
+                  {
+                      "path":  "evidence/scripts__database__release__01_HotelOps_Full_Schema.sql.lines.txt",
+                      "sha256":  "BAAD95C29EEE719A5511AC1BD6D893E747C025141D96A94F579BE26917F3250A",
+                      "bytes":  14878
+                  },
+                  {
+                      "path":  "evidence/scripts__verification__Task77__proposal__01_WorkTime.forward.sql.lines.txt",
+                      "sha256":  "79981E783593FA764C067A87EF30A098BEA76D831F4AAE3F07C8330C8D4BF93F",
+                      "bytes":  8594
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Controllers__CleaningMonitorController.cs.lines.txt",
+                      "sha256":  "A15D4046353729ADA8620635A2AC31EB7E1251DC893033B9EDFFA8610687A26B",
+                      "bytes":  2645
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Controllers__IncidentsController.cs.lines.txt",
+                      "sha256":  "6887F3EB4E6D8D03DC2C01AD5B2F63C4CB2B41C961393F99E1444732F8F54C6A",
+                      "bytes":  4445
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Controllers__WorkdaysController.cs.lines.txt",
+                      "sha256":  "32AB75A6083E5E48E8016ED2537B1A27527FA207BF7D4200C34AB215EA3C76A9",
+                      "bytes":  3427
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Data__HotelOpsDbContext.cs.lines.txt",
+                      "sha256":  "4A041E942B7BD267D2E3949A3FBADD2C0EF39B96C47E6394968349A7ABA749E6",
+                      "bytes":  14222
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__CleaningProgressLog.cs.lines.txt",
+                      "sha256":  "DA9FAED0BDCABF838FB179430587A406152C31AE1775AF36DEF57E7BF7C0DC50",
+                      "bytes":  1083
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__CleaningRework.cs.lines.txt",
+                      "sha256":  "ED402813DB540FB819B54A3E460459DFA7DE4B01A2C6021340CDFA785E0BB7FA",
+                      "bytes":  1147
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__CleaningTask.cs.lines.txt",
+                      "sha256":  "BB9912AA4AE4394FB488803D35E69CB6B078B8F406AF992C82DDF7F43513A3B0",
+                      "bytes":  2120
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__Notification.cs.lines.txt",
+                      "sha256":  "F7306B57DB708F58707F5C8B99C0A4EE535805818E6603F702914E98FDDB36A8",
+                      "bytes":  1266
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__NotificationRecipient.cs.lines.txt",
+                      "sha256":  "CB3EE882DC076FD200CE30CA61D3C8A2D17D3BC4FA11CFF571DED28DD846C77B",
+                      "bytes":  1097
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__Room.cs.lines.txt",
+                      "sha256":  "E6CFF6A8E74A905785873D9656AD7289561582697C31226AD318AE60887A9544",
+                      "bytes":  2521
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__RoomBlock.cs.lines.txt",
+                      "sha256":  "E0AD26676CC76361DB6FE39DDF651588F974B3A62D71E45FB683B9136C3ECA64",
+                      "bytes":  1250
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__RoomInspection.cs.lines.txt",
+                      "sha256":  "158728EDFB161A6CF692AB3117011149A286F809D9F1CB75BD7C8FD5A42E10E8",
+                      "bytes":  1799
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__RoomStatusHistory.cs.lines.txt",
+                      "sha256":  "35335210DB6C7FF75A4BCAEE529BA0FDD40CAEA2F64A7DF19F634F6EF33C5DCD",
+                      "bytes":  1042
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Entities__WorkInterval.cs.lines.txt",
+                      "sha256":  "2D0AEEA2B9FE656CB8D85F6D6CBA95FBAA5FD13922C42827923C01C6CA4CE0D5",
+                      "bytes":  967
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Program.cs.lines.txt",
+                      "sha256":  "6E9A8311117A3A90B98D01CB2877ADE15918EF4014FA0B4F1BE8EDB391A328C4",
+                      "bytes":  7696
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Security__Authorization__CurrentUserAccessor.cs.lines.txt",
+                      "sha256":  "7423CABC7BB7C6032523C104AAF4F353A1E679F0F62BAA923D2171EC131D7047",
+                      "bytes":  1533
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Security__Authorization__PermissionAuthorizationRegistration.cs.lines.txt",
+                      "sha256":  "6721FE223285380DCB298A85DDD3D8D4179B6E23A05BCA779C59D71E521AB5B3",
+                      "bytes":  1514
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Security__Authorization__PermissionDataSource.cs.lines.txt",
+                      "sha256":  "FA2E720C16B36CAF139A66E5AEE60062936466ABD88B55A12C3DE8879F378FA2",
+                      "bytes":  2968
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Security__Authorization__PermissionService.cs.lines.txt",
+                      "sha256":  "53DEBD89AB94A08C4FC3ABE732CBE0B757BC1FCD99A52A5E3A407E7795D6337F",
+                      "bytes":  5990
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Assets__AssetService.Location.cs.lines.txt",
+                      "sha256":  "01C7A5F0E13AA734935F25E746DF337143DE7D71962B0712AC5732610501D23F",
+                      "bytes":  5685
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Authentication__SqlSessionService.cs.lines.txt",
+                      "sha256":  "CBFCF8393EB5E8B55486ADC02BB5FF475A4E497C42669ED4CFFFFDEF73BD2E75",
+                      "bytes":  9450
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__HotelStructure__BranchAdministrationService.cs.lines.txt",
+                      "sha256":  "A00D2A040B1E5394CB2BC7EBE8317D902F5B58937DBFDBD88028485E5F9129BF",
+                      "bytes":  14226
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__HotelStructure__BranchDeactivationDependencyReader.cs.lines.txt",
+                      "sha256":  "2430AFF3563CCA282489AE01B4E5D5C6F5A746D8813ED9E298DCD667D1F43869",
+                      "bytes":  6390
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__HotelStructure__HotelStructureCreationService.cs.lines.txt",
+                      "sha256":  "2B84245A0AE09F043E26B7C566DCA2EFC9900FC4B7A09405E1307E8D872F28B3",
+                      "bytes":  6762
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__HotelStructure__RoomTypeDirectoryService.cs.lines.txt",
+                      "sha256":  "151A954AF8348EBB7639BC8CC53CDB723CE98503BED50392D8DA80A6D8205DE6",
+                      "bytes":  5242
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__HotelStructure__TurnoverHistoryBoundary.cs.lines.txt",
+                      "sha256":  "F6DD92627D8F467C843972614931448D14E386481668A9CB2B99F172F28A0EC0",
+                      "bytes":  5347
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Housekeeping__CleaningMonitorService.cs.lines.txt",
+                      "sha256":  "4C7D1D4535F7F759C40EF244A56E6420862CA401D0C456A4BC8E5031A3E37869",
+                      "bytes":  14203
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Incidents__IncidentService.cs.lines.txt",
+                      "sha256":  "DE193D3139779F2AE380B05F8F5782F1E1F9A112981C54BD9B48282EB5E5B359",
+                      "bytes":  10707
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Inventory__InventoryService.cs.lines.txt",
+                      "sha256":  "5FB3AD27EDC776ED3C60D8888CF981C4E8BAB580EE76F039E8082AD5355A4BAB",
+                      "bytes":  5183
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Inventory__InventoryService.Documents.cs.lines.txt",
+                      "sha256":  "3A4607BF8A421253F600B50C8971EA00CA863C13A15EF1CC47E1ADB9775B09AD",
+                      "bytes":  12281
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Inventory__InventoryService.Masters.cs.lines.txt",
+                      "sha256":  "0CB96CA9ED92C30A10229615F0B20AB583888BADF6DC9213EA38153A35C57D3A",
+                      "bytes":  4701
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Inventory__InventoryService.ReceiptIntegration.cs.lines.txt",
+                      "sha256":  "A5A3517C569E07D1586E50279D055FCC89801E3868BDD5209D1DB0D8B84ECF79",
+                      "bytes":  1905
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Maintenance__MaintenanceWorkService.Commands.cs.lines.txt",
+                      "sha256":  "0636313BAA3F005269A1483C7EB932FC7326250A02E5F9BD8DD65692DDBCE2E4",
+                      "bytes":  8846
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Maintenance__MaintenanceWorkService.Create.cs.lines.txt",
+                      "sha256":  "CCD7DD7068072D6BB8B9DF87EB9924840C1BA26F026521D159F74AC0C1869155",
+                      "bytes":  5386
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Maintenance__MaintenanceWorkService.Workflow.cs.lines.txt",
+                      "sha256":  "CEDCAD8803CDEFADE2A9800017CE9F3A97146B0AC91069D9F83A21F50F532E68",
+                      "bytes":  5017
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__MaterialRequests__MaterialRequestService.Commands.cs.lines.txt",
+                      "sha256":  "E8A733AC8F136FD9EF1B1E520F67F2064A55F34603BE9F5BC263CAB86C85A816",
+                      "bytes":  12562
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__MaterialRequests__MaterialRequestService.cs.lines.txt",
+                      "sha256":  "7B21774A4804C6A3542A0DBB7E815FA5CB265E41D193C684C3994FC9C54FEB43",
+                      "bytes":  15164
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Replenishments__ReplenishmentService.cs.lines.txt",
+                      "sha256":  "782CA931020934CB652E8B5D3384C35886881D4B5845856E370825AF6AF23F9C",
+                      "bytes":  12385
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Users__Dev1DeactivationPredicates.cs.lines.txt",
+                      "sha256":  "E4C52450B6E93DCE0636467A8A9EF5A3522382BCC4F636D41217095D374380C7",
+                      "bytes":  2437
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Users__GlobalAdminSerialization.cs.lines.txt",
+                      "sha256":  "06352F443BE6C44EF5958298BCAD4D8DF9CA28847F51FB8945BCE1399862AFB6",
+                      "bytes":  8500
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Users__UserAccountActivationService.cs.lines.txt",
+                      "sha256":  "88D26176E79776CBF6EFC9EEAA9549BC6D626C9451EFCA03ADF4E42E91E84EC2",
+                      "bytes":  4502
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__Users__UserEligibilityLock.cs.lines.txt",
+                      "sha256":  "21A3A254930A695CDA155EBA2A942F82BFB9E2F81A8F59D6D669C1F0D33D238C",
+                      "bytes":  2579
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__WorkTime__IWorkTimeTransactionParticipant.cs.lines.txt",
+                      "sha256":  "F14EF194BD4BB21B6D3743A95070AA869EF4CF5E2FF5CCBAAF9EDB839897352A",
+                      "bytes":  1991
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__WorkTime__OwnWorkdaySnapshotReader.cs.lines.txt",
+                      "sha256":  "7F8A9B4B99E0E739DDAB15BBB0977400DC32E01539D71AF2674909852DE9426C",
+                      "bytes":  4425
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__WorkTime__SqlWorkTimeTransactionParticipant.cs.lines.txt",
+                      "sha256":  "2CBCD067A83CEEE2EC6B38464D84FD2BBDCFE3F7504C4265CD47AB03E343FA45",
+                      "bytes":  20270
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__WorkTime__WorkdayPermissionResourceResolver.cs.lines.txt",
+                      "sha256":  "D10CFB35944967EDD0C1665969454B8A5102E9062BA64C729144132A239D66E7",
+                      "bytes":  3348
+                  },
+                  {
+                      "path":  "evidence/src__HotelOps.Api__Services__WorkTime__WorkdayService.cs.lines.txt",
+                      "sha256":  "6F53E69A55707664F181CE5850BFD034ED0D5EE6F2D36D941470FEEEFFC32078",
+                      "bytes":  10380
+                  },
+                  {
+                      "path":  "HANDOFF_VALIDATION.json",
+                      "sha256":  "E422A133D5984557A889205653AE30F368ACE856AF5AD03A5FC5E84CE84A45BB",
+                      "bytes":  130858
+                  }
+              ],
+    "manifestSelfHashOmitted":  true,
+    "excluded":  [
+                     "All production source outside curated numbered excerpts",
+                     "Secrets/User Secrets/appsettings values/cookies/passwords/private keys",
+                     "Build outputs, binaries, repository .git",
+                     "Capture/validation helper executables and preflight full inventory",
+                     "Existing unsuffixed handoff output"
+                 ],
+    "packagePurpose":  "SOURCE_EVIDENCE_AND_CONTRACTS_ONLY; NOT_APPROVAL_TO_APPLY_SHARED_DIFFS_OR_RUNTIME_ACCEPTANCE"
+}

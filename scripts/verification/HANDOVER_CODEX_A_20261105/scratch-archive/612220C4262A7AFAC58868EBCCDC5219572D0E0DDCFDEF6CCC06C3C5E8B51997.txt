@@ -1,0 +1,69 @@
+$ErrorActionPreference='Stop'
+$backup=(Get-Content obj/task69-preflight-path.local.txt -Raw).Trim()
+$before=Get-Content (Join-Path $backup 'manifest.json') -Raw|ConvertFrom-Json
+$allowed=@('docs/database/DATABASE_FIRST_REGENERATION.md','scripts/database/release/README.md','scripts/database/release/canonical/Run-Canonical.ps1','scripts/verification/HotelStructure/Program.cs','scripts/verification/HotelStructure/Task68RoomTypeCases.cs','src/HotelOps.Api/Data/RoomTypeSchema.cs','src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs','src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs','scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md')
+$new=@('src/HotelOps.Api/Entities/RoomTypeBranchV1.cs','src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs','scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql','scripts/database/release/uc017/06_UC017_Verify.sql','scripts/database/release/uc017/07_UC017_Rollback.sql','scripts/database/release/uc017/Run-Uc017.ps1','scripts/verification/HotelStructure/Task69DeploymentCases.cs','scripts/verification/HotelStructure/TASK69_UC017_DEPLOYMENT_ACCEPTANCE.md')
+$changed=@();$unchanged=0
+foreach($entry in $before.Files){
+ $copy=Join-Path (Join-Path $backup 'files') $entry.Path
+ if(!(Test-Path -LiteralPath $copy) -or (Get-FileHash -LiteralPath $copy -Algorithm SHA256).Hash -ne $entry.SHA256){throw ('Invalid backup '+$entry.Path)}
+ if(!(Test-Path -LiteralPath $entry.Path)){throw ('Original removed '+$entry.Path)}
+ if((Get-FileHash -LiteralPath $entry.Path -Algorithm SHA256).Hash -eq $entry.SHA256){$unchanged++}
+ elseif($allowed -contains $entry.Path){$changed+=$entry.Path}else{throw ('Unexpected original edit '+$entry.Path)}
+}
+if((git rev-parse HEAD) -ne $before.Head -or (git branch --show-current) -ne $before.Branch -or (git rev-parse --abbrev-ref '@{upstream}') -ne $before.Upstream -or (@(git ls-files --stage) -join ([char]10)) -cne ($before.IndexEntries -join ([char]10)) -or (@(git worktree list --porcelain) -join ([char]10)) -cne ($before.Worktrees -join ([char]10))){throw 'Git metadata changed'}
+$originalPaths=@($before.Files|ForEach-Object{$_.Path})
+$ErrorActionPreference='Continue'
+$trackedNow=@(git diff --name-only 2> obj/task69-diff-name-warnings.local.log)
+$trackedExit=$LASTEXITCODE
+$ErrorActionPreference='Stop'
+if($trackedExit -ne 0){throw 'Git diff inspection failed'}
+$newTrackedChanges=@($trackedNow | Where-Object {$_ -notin $originalPaths})
+foreach($path in $newTrackedChanges){if($path -notin $allowed){throw ('Unexpected clean tracked edit '+$path)}}
+foreach($path in ($allowed+$new)){
+ $content=[IO.File]::ReadAllText((Join-Path (Get-Location) $path))
+ if($content -match '(?m)[\t ]+\r?$' -or $content -match 'PENDING_FINAL_'){throw ('Unfinished/whitespace '+$path)}
+ if($path.EndsWith('.md')){foreach($match in [regex]::Matches($content,'\]\(([^)]+)\)')){
+  $target=($match.Groups[1].Value -split '#')[0]
+  if($target -and $target -notmatch '^[a-z]+:' -and !(Test-Path -LiteralPath (Join-Path (Split-Path $path) $target))){throw ('Broken link '+$path+' -> '+$target)}
+ }}
+ if($path.EndsWith('.ps1')){$tokens=$null;$errors=$null;[void][System.Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) $path),[ref]$tokens,[ref]$errors);if($errors.Count){throw ('PowerShell syntax '+$path)}}
+}
+$plan='scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md'
+$rows=@(Get-Content $plan -Encoding UTF8|Where-Object{$_ -match '^\| UC-\d{3} \|'})
+$complete=@($rows|Where-Object{($_ -split '\|')[4].Trim().StartsWith('COMPLETE_VERIFIED')})
+$points=($complete|ForEach-Object{[int](($_ -split '\|')[5].Trim())}|Measure-Object -Sum).Sum
+if($rows.Count -ne 75 -or $complete.Count -ne 11 -or $points -ne 27 -or ($rows|Where-Object{$_ -match '^\| UC-017 \|'}) -notmatch '\| COMPLETE_VERIFIED_V1 \|'){throw 'Progress mismatch'}
+$oldPlan=Get-Content (Join-Path (Join-Path $backup 'files') $plan) -Encoding UTF8
+foreach($id in @('UC-006','UC-016','UC-023')){
+ if((@($oldPlan|Where-Object{$_ -match ('^\| '+$id+' \|')}) -join ([char]10)) -cne (@($rows|Where-Object{$_ -match ('^\| '+$id+' \|')}) -join ([char]10))){throw ('Unrelated UC row changed '+$id)}
+}
+$uc=Get-Content scripts/verification/HotelStructure/task69-accepted.local.json -Raw|ConvertFrom-Json
+$legacy=Get-Content scripts/verification/HotelStructure/task69-legacy-read.local.json -Raw|ConvertFrom-Json
+$rooms=Get-Content scripts/verification/HotelStructure/task69-scoped-rooms.local.json -Raw|ConvertFrom-Json
+$structure=Get-Content scripts/verification/HotelStructure/task69-scoped-structure.local.json -Raw|ConvertFrom-Json
+if(!$uc.success -or $uc.checks -ne 165 -or $uc.roomTypeChecks -ne 163 -or @($uc.roomTypeWaits).Count -ne 10 -or @($uc.roomTypeFaults).Count -ne 7 -or @($uc.deploymentReceipts).Count -ne 12){throw 'UC017 evidence mismatch'}
+if($legacy.result -ne 'PASS' -or @($legacy.checks).Count -ne 117 -or !$rooms.success -or $rooms.roomHttpChecks -ne 227 -or !$structure.success -or $structure.structureReadChecks -ne 159 -or $structure.structureUpdateChecks -ne 215){throw 'Regression evidence mismatch'}
+$canonicalRun=(Get-Content obj/task69-canonical-accepted-run.local.txt -Raw).Trim()
+$canonical=Get-Content ('scripts/verification/CanonicalDatabase/evidence/'+$canonicalRun+'.json') -Raw|ConvertFrom-Json
+if(!$canonical.success -or $canonical.schemaComparison -ne 'PASS' -or @($canonical.targets).Count -ne 3 -or @($canonical.targets|Where-Object{$_.checkdb -ne 'PASS' -or $_.checkconstraints -ne 'PASS'}).Count){throw 'Canonical deployment failed'}
+foreach($name in @('Fresh','Upgrade','AuthUpgrade')){
+ $receipt=Get-Content ('scripts/verification/CanonicalDatabase/evidence/'+$canonicalRun+'_'+$name+'-uc017.json') -Raw|ConvertFrom-Json
+ if(!$receipt.success -or $receipt.stateAfter -ne 'BranchV1'){throw ('Canonical module failed '+$name)}
+}
+foreach($path in $uc.deploymentReceipts){
+ $receipt=Get-Content -LiteralPath $path -Raw|ConvertFrom-Json
+ foreach($source in @('05_UC017_Branch_RoomTypes.sql','06_UC017_Verify.sql','07_UC017_Rollback.sql','Run-Uc017.ps1')){
+  if((Get-FileHash -LiteralPath ('scripts/database/release/uc017/'+$source) -Algorithm SHA256).Hash -ne $receipt.sourceHashes.$source){throw ('Package changed after acceptance '+$source)}
+ }
+}
+foreach($suite in @('PermissionService','Authorization','ResourceAuthorization','AuthorizationHardening')){if((Get-Content ('obj/task69-auth-final-'+$suite+'.local.log') -Raw) -notmatch 'PASS: (43|61|49|21) '){throw ('Missing auth suite '+$suite)}}
+if((Get-Content obj/task69-build-verified.local.log -Raw) -notmatch 'Build succeeded' -or (Get-Content obj/task69-test-exit.local.txt -Raw).Trim() -ne '0'){throw 'Build/test command failed'}
+$ErrorActionPreference='Continue'
+git diff --check > obj/task69-diff-check-final.local.log 2>&1
+$diff=$LASTEXITCODE
+$ErrorActionPreference='Stop'
+if($diff -ne 0){throw 'Diff check failed'}
+$result=@{Result='PASS';ValidatedUtc=[DateTimeOffset]::UtcNow.ToString('o');Head=$before.Head;Branch=$before.Branch;ProtectedFiles=$before.Files.Count;ValidBackups=$before.Files.Count;Unchanged=$unchanged;IntendedPreexistingEdits=$changed;IntendedCleanTrackedEdits=$newTrackedChanges;NewFiles=@($new|ForEach-Object{@{Path=$_;SHA256=(Get-FileHash -LiteralPath $_ -Algorithm SHA256).Hash}});IndexUnchanged=$true;WorktreesUnchanged=$true;UC006UC016UC023RowsUnchanged=$true;UC017Classification='COMPLETE_VERIFIED_V1; disposable deployment acceptance; no production deployment';UC017Checks=$uc.roomTypeChecks;UC017TotalChecks=$uc.checks;UC017Waits=@($uc.roomTypeWaits).Count;UC017Faults=@($uc.roomTypeFaults).Count;DeploymentInvocations=@($uc.deploymentReceipts).Count;CanonicalRun=$canonicalRun;CanonicalTargets=3;LegacySqlChecks=@($legacy.checks).Count;MigratedRoomChecks=$rooms.roomHttpChecks;MigratedStructureChecks=$structure.checks;AuthChecks=174;VerifiedUCs=$complete.Count;VerifiedPoints=$points;VerifiedPercentage=[Math]::Round($points/256*100,2);Build='PASS; two NU1900 warnings';DotnetTest='Exit0; no test project; console suites executed';DiffCheck='PASS'}
+$result|ConvertTo-Json -Depth 7|Set-Content obj/task69-validation.local.json -Encoding UTF8
+[pscustomobject]$result|Select-Object Result,ProtectedFiles,ValidBackups,Unchanged,IntendedPreexistingEdits,IntendedCleanTrackedEdits,UC017TotalChecks,CanonicalTargets,MigratedStructureChecks,VerifiedUCs,VerifiedPoints,VerifiedPercentage|ConvertTo-Json -Depth 4

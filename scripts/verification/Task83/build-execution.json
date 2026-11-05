@@ -1,0 +1,5 @@
+{
+    "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task83/artifacts/build -p:RestoreIgnoreFailedSources=true",
+    "exitCode":  0,
+    "kind":  "CURRENT_BASELINE_BUILD_NOT_UC142_OR_UC038_ACCEPTANCE"
+}

@@ -1,0 +1,17 @@
+5: 
+6: /// <summary>Bind tokens to the session as well as the framework's user identity.</summary>
+7: public sealed class SessionAntiforgeryAdditionalDataProvider : IAntiforgeryAdditionalDataProvider
+8: {
+9:     public string GetAdditionalData(HttpContext context)
+10:         => GetBinding(context) ?? throw new InvalidOperationException("Unsupported authentication identity for antiforgery.");
+11: 
+12:     public bool ValidateAdditionalData(HttpContext context, string additionalData)
+13:     {
+14:         var expected = GetBinding(context);
+15:         return expected is not null && string.Equals(expected, additionalData, StringComparison.Ordinal);
+16:     }
+17: 
+18:     private static string? GetBinding(HttpContext context)
+19:     {
+20:         if (context.User.Identity?.IsAuthenticated != true) return "v1:anonymous";
+21:         if (!HotelOpsCookieTicket.TryRead(context.User, out var reference, out var sessionId)) return null;

@@ -1,0 +1,231 @@
+﻿SOURCE: scripts/database/release/01_HotelOps_Full_Schema.sql
+SHA256: EEEF125A5F6595327A6BCDA99EB9E6A8555B46A0929345F84B9B4141BB3CF4D0
+Ranges: 889-940,1168-1208,1928-1943,1997-2005,2247-2255,3318-3358,3375-3402,3439-3462 (original source line numbers)
+  889: /****** Object:  Table [dbo].[notification_recipients]    Script Date: 10/21/2026 2:27:27 AM ******/
+  890: SET ANSI_NULLS ON
+  891: GO
+  892: SET QUOTED_IDENTIFIER ON
+  893: GO
+  894: CREATE TABLE [dbo].[notification_recipients](
+  895: 	[recipient_id] [bigint] IDENTITY(1,1) NOT NULL,
+  896: 	[notification_id] [bigint] NOT NULL,
+  897: 	[user_id] [bigint] NOT NULL,
+  898: 	[delivery_channel] [varchar](30) NOT NULL,
+  899: 	[delivery_status] [varchar](30) NOT NULL,
+  900: 	[delivered_at] [datetime2](7) NULL,
+  901: 	[read_at] [datetime2](7) NULL,
+  902: 	[dismissed_at] [datetime2](7) NULL,
+  903: 	[failure_reason] [nvarchar](max) NULL,
+  904: PRIMARY KEY CLUSTERED
+  905: (
+  906: 	[recipient_id] ASC
+  907: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+  908: ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+  909: GO
+  910: /****** Object:  Table [dbo].[notifications]    Script Date: 10/21/2026 2:27:27 AM ******/
+  911: SET ANSI_NULLS ON
+  912: GO
+  913: SET QUOTED_IDENTIFIER ON
+  914: GO
+  915: CREATE TABLE [dbo].[notifications](
+  916: 	[notification_id] [bigint] IDENTITY(1,1) NOT NULL,
+  917: 	[notification_type] [varchar](60) NOT NULL,
+  918: 	[title] [nvarchar](200) NOT NULL,
+  919: 	[message] [nvarchar](max) NOT NULL,
+  920: 	[priority] [varchar](20) NOT NULL,
+  921: 	[source_type] [varchar](60) NULL,
+  922: 	[source_id] [bigint] NULL,
+  923: 	[action_url] [nvarchar](max) NULL,
+  924: 	[created_by] [bigint] NULL,
+  925: 	[created_at] [datetime2](7) NOT NULL,
+  926: 	[expires_at] [datetime2](7) NULL,
+  927: PRIMARY KEY CLUSTERED
+  928: (
+  929: 	[notification_id] ASC
+  930: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+  931: ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+  932: GO
+  933: /****** Object:  Table [dbo].[operational_task_assignments]    Script Date: 10/21/2026 2:27:27 AM ******/
+  934: SET ANSI_NULLS ON
+  935: GO
+  936: SET QUOTED_IDENTIFIER ON
+  937: GO
+  938: CREATE TABLE [dbo].[operational_task_assignments](
+  939: 	[assignment_id] [bigint] IDENTITY(1,1) NOT NULL,
+  940: 	[task_id] [bigint] NOT NULL,
+
+ 1168: CREATE TABLE [dbo].[room_blocks](
+ 1169: 	[block_id] [bigint] IDENTITY(1,1) NOT NULL,
+ 1170: 	[room_id] [bigint] NOT NULL,
+ 1171: 	[incident_id] [bigint] NULL,
+ 1172: 	[reason] [nvarchar](max) NOT NULL,
+ 1173: 	[blocked_at] [datetime2](7) NOT NULL,
+ 1174: 	[blocked_by] [bigint] NOT NULL,
+ 1175: 	[expected_release_at] [datetime2](7) NULL,
+ 1176: 	[released_at] [datetime2](7) NULL,
+ 1177: 	[released_by] [bigint] NULL,
+ 1178: 	[release_note] [nvarchar](max) NULL,
+ 1179: PRIMARY KEY CLUSTERED
+ 1180: (
+ 1181: 	[block_id] ASC
+ 1182: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+ 1183: ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+ 1184: GO
+ 1185: /****** Object:  Table [dbo].[room_inspections]    Script Date: 10/21/2026 2:27:27 AM ******/
+ 1186: SET ANSI_NULLS ON
+ 1187: GO
+ 1188: SET QUOTED_IDENTIFIER ON
+ 1189: GO
+ 1190: CREATE TABLE [dbo].[room_inspections](
+ 1191: 	[inspection_id] [bigint] IDENTITY(1,1) NOT NULL,
+ 1192: 	[inspection_no] [varchar](40) NOT NULL,
+ 1193: 	[room_id] [bigint] NOT NULL,
+ 1194: 	[cleaning_task_id] [bigint] NULL,
+ 1195: 	[version_id] [bigint] NOT NULL,
+ 1196: 	[inspector_user_id] [bigint] NOT NULL,
+ 1197: 	[status] [varchar](30) NOT NULL,
+ 1198: 	[result] [varchar](30) NULL,
+ 1199: 	[scheduled_at] [datetime2](7) NULL,
+ 1200: 	[inspected_at] [datetime2](7) NULL,
+ 1201: 	[summary_note] [nvarchar](max) NULL,
+ 1202: 	[created_at] [datetime2](7) NOT NULL,
+ 1203: PRIMARY KEY CLUSTERED
+ 1204: (
+ 1205: 	[inspection_id] ASC
+ 1206: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY],
+ 1207: UNIQUE NONCLUSTERED
+ 1208: (
+
+ 1928: /****** Object:  Index [notification_recipients_index_42]    Script Date: 10/21/2026 2:27:27 AM ******/
+ 1929: CREATE UNIQUE NONCLUSTERED INDEX [notification_recipients_index_42] ON [dbo].[notification_recipients]
+ 1930: (
+ 1931: 	[notification_id] ASC,
+ 1932: 	[user_id] ASC,
+ 1933: 	[delivery_channel] ASC
+ 1934: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+ 1935: GO
+ 1936: /****** Object:  Index [notification_recipients_index_43]    Script Date: 10/21/2026 2:27:27 AM ******/
+ 1937: CREATE NONCLUSTERED INDEX [notification_recipients_index_43] ON [dbo].[notification_recipients]
+ 1938: (
+ 1939: 	[user_id] ASC,
+ 1940: 	[read_at] ASC
+ 1941: )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+ 1942: GO
+ 1943: /****** Object:  Index [UX_operational_task_assignments_active]    Script Date: 10/21/2026 2:27:27 AM ******/
+
+ 1997: /****** Object:  Index [UX_room_blocks_active]    Script Date: 10/21/2026 2:27:27 AM ******/
+ 1998: CREATE UNIQUE NONCLUSTERED INDEX [UX_room_blocks_active] ON [dbo].[room_blocks]
+ 1999: (
+ 2000: 	[room_id] ASC
+ 2001: )
+ 2002: WHERE ([released_at] IS NULL)
+ 2003: WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, DROP_EXISTING = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+ 2004: GO
+ 2005: /****** Object:  Index [room_inspections_index_12]    Script Date: 10/21/2026 2:27:27 AM ******/
+
+ 2247: GO
+ 2248: ALTER TABLE [dbo].[room_types] ADD  DEFAULT ((1)) FOR [is_active]
+ 2249: GO
+ 2250: ALTER TABLE [dbo].[rooms] ADD  CONSTRAINT [DF_rooms_operational_status]  DEFAULT ('DIRTY') FOR [operational_status]
+ 2251: GO
+ 2252: ALTER TABLE [dbo].[rooms] ADD  DEFAULT ((1)) FOR [is_active]
+ 2253: GO
+ 2254: ALTER TABLE [dbo].[shift_assignments] ADD  DEFAULT ('ASSIGNED') FOR [assignment_status]
+ 2255: GO
+
+ 3318: GO
+ 3319: ALTER TABLE [dbo].[audit_logs]  WITH CHECK ADD  CONSTRAINT [CK_audit_logs_action] CHECK  (([action]='LOGOUT' OR [action]='LOGIN' OR [action]='CANCEL' OR [action]='REJECT' OR [action]='APPROVE' OR [action]='DELETE' OR [action]='UPDATE' OR [action]='CREATE'))
+ 3320: GO
+ 3321: ALTER TABLE [dbo].[audit_logs] CHECK CONSTRAINT [CK_audit_logs_action]
+ 3322: GO
+ 3323: ALTER TABLE [dbo].[audit_logs]  WITH CHECK ADD  CONSTRAINT [CK_audit_logs_changed_fields] CHECK  (([changed_fields] IS NULL OR isjson([changed_fields])=(1)))
+ 3324: GO
+ 3325: ALTER TABLE [dbo].[audit_logs] CHECK CONSTRAINT [CK_audit_logs_changed_fields]
+ 3326: GO
+ 3327: ALTER TABLE [dbo].[audit_logs]  WITH CHECK ADD  CONSTRAINT [CK_audit_logs_new_values] CHECK  (([new_values] IS NULL OR isjson([new_values])=(1)))
+ 3328: GO
+ 3329: ALTER TABLE [dbo].[audit_logs] CHECK CONSTRAINT [CK_audit_logs_new_values]
+ 3330: GO
+ 3331: ALTER TABLE [dbo].[audit_logs]  WITH CHECK ADD  CONSTRAINT [CK_audit_logs_old_values] CHECK  (([old_values] IS NULL OR isjson([old_values])=(1)))
+ 3332: GO
+ 3333: ALTER TABLE [dbo].[audit_logs] CHECK CONSTRAINT [CK_audit_logs_old_values]
+ 3334: GO
+ 3335: ALTER TABLE [dbo].[cleaning_assignments]  WITH CHECK ADD  CONSTRAINT [CK_cleaning_assignments_status] CHECK  (([assignment_status]='CANCELLED' OR [assignment_status]='REASSIGNED' OR [assignment_status]='COMPLETED' OR [assignment_status]='ACTIVE'))
+ 3336: GO
+ 3337: ALTER TABLE [dbo].[cleaning_assignments] CHECK CONSTRAINT [CK_cleaning_assignments_status]
+ 3338: GO
+ 3339: ALTER TABLE [dbo].[cleaning_progress_logs]  WITH CHECK ADD  CONSTRAINT [CK_cleaning_progress_logs_percent] CHECK  (([progress_percent]>=(0) AND [progress_percent]<=(100)))
+ 3340: GO
+ 3341: ALTER TABLE [dbo].[cleaning_progress_logs] CHECK CONSTRAINT [CK_cleaning_progress_logs_percent]
+ 3342: GO
+ 3343: ALTER TABLE [dbo].[cleaning_progress_logs]  WITH CHECK ADD  CONSTRAINT [CK_cleaning_progress_logs_status] CHECK  (([status] IS NULL OR ([status]='COMPLETED' OR [status]='BLOCKED' OR [status]='IN_PROGRESS')))
+ 3344: GO
+ 3345: ALTER TABLE [dbo].[cleaning_progress_logs] CHECK CONSTRAINT [CK_cleaning_progress_logs_status]
+ 3346: GO
+ 3347: ALTER TABLE [dbo].[cleaning_reworks]  WITH CHECK ADD  CONSTRAINT [CK_cleaning_reworks_status] CHECK  (([status]='CANCELLED' OR [status]='COMPLETED' OR [status]='IN_PROGRESS' OR [status]='PENDING'))
+ 3348: GO
+ 3349: ALTER TABLE [dbo].[cleaning_reworks] CHECK CONSTRAINT [CK_cleaning_reworks_status]
+ 3350: GO
+ 3351: ALTER TABLE [dbo].[cleaning_tasks]  WITH CHECK ADD  CONSTRAINT [CK_cleaning_tasks_status] CHECK  (([status]='CANCELLED' OR [status]='COMPLETED' OR [status]='IN_PROGRESS' OR [status]='PENDING'))
+ 3352: GO
+ 3353: ALTER TABLE [dbo].[cleaning_tasks] CHECK CONSTRAINT [CK_cleaning_tasks_status]
+ 3354: GO
+ 3355: ALTER TABLE [dbo].[incident_events]  WITH CHECK ADD  CONSTRAINT [CK_incident_events_to_status] CHECK  (([to_status] IS NULL OR ([to_status]='CANCELLED' OR [to_status]='CLOSED' OR [to_status]='RESOLVED' OR [to_status]='IN_PROGRESS' OR [to_status]='OPEN')))
+ 3356: GO
+ 3357: ALTER TABLE [dbo].[incident_events] CHECK CONSTRAINT [CK_incident_events_to_status]
+ 3358: GO
+
+ 3375: ALTER TABLE [dbo].[internal_request_feedback]  WITH CHECK ADD  CONSTRAINT [CK_internal_request_feedback_rating] CHECK  (([rating]>=(1) AND [rating]<=(5)))
+ 3376: GO
+ 3377: ALTER TABLE [dbo].[internal_request_feedback] CHECK CONSTRAINT [CK_internal_request_feedback_rating]
+ 3378: GO
+ 3379: ALTER TABLE [dbo].[internal_requests]  WITH CHECK ADD  CONSTRAINT [CK_internal_requests_status] CHECK  (([status]='CANCELLED' OR [status]='REJECTED' OR [status]='CLOSED' OR [status]='COMPLETED' OR [status]='IN_PROGRESS' OR [status]='SUBMITTED' OR [status]='DRAFT'))
+ 3380: GO
+ 3381: ALTER TABLE [dbo].[internal_requests] CHECK CONSTRAINT [CK_internal_requests_status]
+ 3382: GO
+ 3383: ALTER TABLE [dbo].[maintenance_work_logs]  WITH CHECK ADD  CONSTRAINT [CK_maintenance_work_logs_status] CHECK  (([status] IS NULL OR ([status]='COMPLETED' OR [status]='ON_HOLD' OR [status]='IN_PROGRESS')))
+ 3384: GO
+ 3385: ALTER TABLE [dbo].[maintenance_work_logs] CHECK CONSTRAINT [CK_maintenance_work_logs_status]
+ 3386: GO
+ 3387: ALTER TABLE [dbo].[maintenance_works]  WITH CHECK ADD  CONSTRAINT [CK_maintenance_works_status] CHECK  (([status]='CANCELLED' OR [status]='CLOSED' OR [status]='COMPLETED' OR [status]='ON_HOLD' OR [status]='IN_PROGRESS' OR [status]='PENDING'))
+ 3388: GO
+ 3389: ALTER TABLE [dbo].[maintenance_works] CHECK CONSTRAINT [CK_maintenance_works_status]
+ 3390: GO
+ 3391: ALTER TABLE [dbo].[material_fulfillments]  WITH CHECK ADD  CONSTRAINT [CK_material_fulfillments_status] CHECK  (([status]='CANCELLED' OR [status]='RECEIVED' OR [status]='ISSUED' OR [status]='PREPARING'))
+ 3392: GO
+ 3393: ALTER TABLE [dbo].[material_fulfillments] CHECK CONSTRAINT [CK_material_fulfillments_status]
+ 3394: GO
+ 3395: ALTER TABLE [dbo].[material_request_approvals]  WITH CHECK ADD  CONSTRAINT [CK_material_request_approvals_decision] CHECK  (([decision]='RETURNED' OR [decision]='REJECTED' OR [decision]='APPROVED'))
+ 3396: GO
+ 3397: ALTER TABLE [dbo].[material_request_approvals] CHECK CONSTRAINT [CK_material_request_approvals_decision]
+ 3398: GO
+ 3399: ALTER TABLE [dbo].[material_requests]  WITH CHECK ADD  CONSTRAINT [CK_material_requests_status] CHECK  (([status]='CANCELLED' OR [status]='REJECTED' OR [status]='COMPLETED' OR [status]='PARTIALLY_FULFILLED' OR [status]='APPROVED' OR [status]='RETURNED' OR [status]='SUBMITTED' OR [status]='DRAFT'))
+ 3400: GO
+ 3401: ALTER TABLE [dbo].[material_requests] CHECK CONSTRAINT [CK_material_requests_status]
+ 3402: GO
+
+ 3439: ALTER TABLE [dbo].[room_inspections]  WITH CHECK ADD  CONSTRAINT [CK_room_inspections_status] CHECK  (([status]='CANCELLED' OR [status]='COMPLETED' OR [status]='IN_PROGRESS' OR [status]='PENDING'))
+ 3440: GO
+ 3441: ALTER TABLE [dbo].[room_inspections] CHECK CONSTRAINT [CK_room_inspections_status]
+ 3442: GO
+ 3443: ALTER TABLE [dbo].[room_inspections]  WITH CHECK ADD  CONSTRAINT [CK_room_inspections_status_result] CHECK  (([status]='COMPLETED' AND [result] IS NOT NULL OR [status]<>'COMPLETED' AND [result] IS NULL))
+ 3444: GO
+ 3445: ALTER TABLE [dbo].[room_inspections] CHECK CONSTRAINT [CK_room_inspections_status_result]
+ 3446: GO
+ 3447: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [CK_room_status_history_from] CHECK  (([from_status] IS NULL OR ([from_status]='OUT_OF_SERVICE' OR [from_status]='READY' OR [from_status]='INSPECTION' OR [from_status]='CLEANING' OR [from_status]='DIRTY' OR [from_status]='OCCUPIED' OR [from_status]='AVAILABLE')))
+ 3448: GO
+ 3449: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [CK_room_status_history_from]
+ 3450: GO
+ 3451: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [CK_room_status_history_to] CHECK  (([to_status]='OUT_OF_SERVICE' OR [to_status]='READY' OR [to_status]='INSPECTION' OR [to_status]='CLEANING' OR [to_status]='DIRTY' OR [to_status]='OCCUPIED' OR [to_status]='AVAILABLE'))
+ 3452: GO
+ 3453: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [CK_room_status_history_to]
+ 3454: GO
+ 3455: ALTER TABLE [dbo].[room_status_history]  WITH CHECK ADD  CONSTRAINT [CK_room_status_history_trigger_type] CHECK  (([trigger_type] IS NULL OR ([trigger_type]='MANUAL_CORRECTION' OR [trigger_type]='MAINTENANCE' OR [trigger_type]='ROOM_BLOCK' OR [trigger_type]='INSPECTION' OR [trigger_type]='CLEANING_TASK' OR [trigger_type]='CHECKOUT' OR [trigger_type]='CHECKIN' OR [trigger_type]='RELEASE' OR [trigger_type]='INIT')))
+ 3456: GO
+ 3457: ALTER TABLE [dbo].[room_status_history] CHECK CONSTRAINT [CK_room_status_history_trigger_type]
+ 3458: GO
+ 3459: ALTER TABLE [dbo].[rooms]  WITH CHECK ADD  CONSTRAINT [CK_rooms_operational_status] CHECK  (([operational_status]='OUT_OF_SERVICE' OR [operational_status]='READY' OR [operational_status]='INSPECTION' OR [operational_status]='CLEANING' OR [operational_status]='DIRTY' OR [operational_status]='OCCUPIED' OR [operational_status]='AVAILABLE'))
+ 3460: GO
+ 3461: ALTER TABLE [dbo].[rooms] CHECK CONSTRAINT [CK_rooms_operational_status]
+ 3462: GO
+

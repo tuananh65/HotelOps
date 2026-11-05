@@ -1,0 +1,33 @@
+﻿SOURCE src/HotelOps.Api/Entities/PreventiveMaintenanceRun.cs
+SHA256 43F4D112EAAC765775AA9FF49A513FC2E6A17895851DE75563DCB87761F8360D
+    1: using System;
+    2: using System.Collections.Generic;
+    3: 
+    4: namespace HotelOps.Api.Entities;
+    5: 
+    6: public partial class PreventiveMaintenanceRun
+    7: {
+    8:     public long RunId { get; set; }
+    9: 
+   10:     public long ScheduleId { get; set; }
+   11: 
+   12:     public long? MaintenanceWorkId { get; set; }
+   13: 
+   14:     public DateTime PlannedAt { get; set; }
+   15: 
+   16:     public DateTime? PerformedAt { get; set; }
+   17: 
+   18:     public string? Result { get; set; }
+   19: 
+   20:     public DateTime? NextDueAt { get; set; }
+   21: 
+   22:     public string? Note { get; set; }
+   23: 
+   24:     public long? PerformedBy { get; set; }
+   25: 
+   26:     public virtual MaintenanceWork? MaintenanceWork { get; set; }
+   27: 
+   28:     public virtual User? PerformedByNavigation { get; set; }
+   29: 
+   30:     public virtual PreventiveMaintenanceSchedule Schedule { get; set; } = null!;
+   31: }

@@ -1,0 +1,77 @@
+4: namespace HotelOps.Api.Security.Authorization;
+5: 
+6: public sealed class PermissionService(ICurrentUserAccessor currentUser, IPermissionDataSource data,
+7:     IPermissionResourceResolver resources, TimeProvider clock) : IPermissionService
+8: {
+9:     public Task<PermissionEvaluation> EvaluateGlobalAsync(string permissionCode, CancellationToken cancellationToken) =>
+10:         EvaluateAsync(permissionCode, null, null, cancellationToken);
+11: 
+12:     public Task<PermissionEvaluation> EvaluateBranchAsync(string permissionCode, long branchId, CancellationToken cancellationToken) =>
+13:         branchId <= 0 ? Task.FromResult(new PermissionEvaluation(PermissionDecision.InvalidRequest))
+14:             : EvaluateAsync(permissionCode, branchId, null, cancellationToken);
+15: 
+16:     public Task<PermissionEvaluation> EvaluateResourceAsync(string permissionCode, PermissionResource resource, CancellationToken cancellationToken) =>
+17:         resource is null || resource.ResourceId <= 0 || string.IsNullOrWhiteSpace(resource.ResourceType)
+18:             ? Task.FromResult(new PermissionEvaluation(PermissionDecision.InvalidRequest))
+19:             : EvaluateAsync(permissionCode, null, resource, cancellationToken);
+20: 
+21:     private async Task<PermissionEvaluation> EvaluateAsync(string permissionCode, long? branchId,
+22:         PermissionResource? resource, CancellationToken ct)
+23:     {
+24:         ct.ThrowIfCancellationRequested();
+25:         if (string.IsNullOrWhiteSpace(permissionCode) || permissionCode.Length > 100)
+26:             return new(PermissionDecision.InvalidRequest);
+27:         if (!currentUser.TryGetCurrentUser(out var user) || user.UserId <= 0 || user.SessionId <= 0)
+28:             return new(PermissionDecision.Unauthenticated);
+29:         if (user.IsRestricted) return new(PermissionDecision.Restricted);
+30: 
+31:         try
+32:         {
+33:             if (!await data.IsActiveUserAsync(user.UserId, ct)) return new(PermissionDecision.Denied);
+34:             var ownsResource = false;
+35:             if (resource is not null)
+36:             {
+37:                 var verified = await resources.ResolveAsync(permissionCode, resource, user.UserId, ct);
+38:                 if (verified is null || verified.BranchId <= 0)
+39:                     return new(PermissionDecision.ResourceContextRequired);
+40:                 branchId = verified.BranchId;
+41:                 ownsResource = verified.HasOwnership;
+42:             }
+43:             if (branchId is { } target && !await data.IsActiveBranchAsync(target, ct))
+44:                 return new(PermissionDecision.Denied);
+45: 
+46:             var now = clock.GetUtcNow().UtcDateTime;
+47:             var paths = await data.ReadPathsAsync(user.UserId, permissionCode, now, ct);
+49:             foreach (var path in paths)
+50:             {
+51:                 if (!string.Equals(path.PermissionCode, permissionCode, StringComparison.Ordinal)
+52:                     || !path.AssignmentActive || !path.RoleActive || path.AssignedAt > now
+53:                     || (path.ExpiresAt is { } expiry && expiry <= now)) continue;
+54: 
+59:                     case "ALL":
+60:                         if (path.BranchId is null || (branchId is not null && path.BranchId == branchId))
+61:                             return new(PermissionDecision.Granted);
+62:                         if (branchId is null) needsContext = true;
+63:                         break;
+64:                     case "BRANCH":
+65:                         if (path.BranchId is null) break;
+66:                         if (branchId is null) needsContext = true;
+67:                         else if (path.BranchId == branchId) return new(PermissionDecision.Granted);
+68:                         break;
+69:                     case "OWN":
+70:                         if (path.BranchId is null) break;
+71:                         if (resource is null) needsContext = true;
+72:                         else if (path.BranchId == branchId && ownsResource) return new(PermissionDecision.Granted);
+73:                         break;
+74:                     // Unknown, legacy DEPARTMENT or null scopes never grant access.
+75:                 }
+76:             }
+77:             return new(needsContext ? PermissionDecision.ResourceContextRequired : PermissionDecision.Denied);
+78:         }
+79:         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+80:         catch (Exception error) when (IsDataFailure(error))
+81:         {
+82:             return new(PermissionDecision.Unavailable);
+83:         }
+84:         // Programming/adapter exceptions propagate; callers must never treat failure as permission.
+85:     }

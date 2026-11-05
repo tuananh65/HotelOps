@@ -1,0 +1,85 @@
+﻿{
+    "status":  "PROPOSED_NOT_APPROVED_NOT_APPLIED",
+    "approvalScope":  "A1",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "proposalArtifacts":  [
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/01_WorkTime.forward.sql",
+                                  "sha256":  "74F881B740386CF04536ECEBDC5B4F5ADE0D4288A60C9D09601979F7397ADE03"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/02_WorkTime.rollback.sql",
+                                  "sha256":  "7F296D3FCE2789E0B9C4C04D948443CEA9DA14B74B38D432FA0D3321D17156A4"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/HotelOpsDbContext.WorkTime.cs.proposed",
+                                  "sha256":  "66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/IWorkTimeTransactionParticipant.cs.proposed",
+                                  "sha256":  "FF148586AE64FD9090B8E802D629435C1EAD486908FFCBDD3DD7BA24A2B6C2FB"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/Program.di.patch",
+                                  "sha256":  "1A3A4C52713F84853830346D6768E19B2A868BD17208FEC7AC1766758235BA77"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/TimeCorrectionRequest.cs.proposed",
+                                  "sha256":  "95A627D304B5D921997FD38F3ADC0EE176DB1EA29E3A4AB6719064B31ED3C6E3"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/Workday.cs.proposed",
+                                  "sha256":  "E4BF214DCDA01A5032D91DDF579C2635B1E01E5CC07D99C5261F649185284EEF"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/WorkInterval.cs.proposed",
+                                  "sha256":  "48F3CB02DED43DF0B67404E04DD5BF3450325AC7DE82DA951E16400BEE653573"
+                              },
+                              {
+                                  "path":  "scripts/verification/Task77/proposal/WorkTime.shared.patch",
+                                  "sha256":  "9FA0B82259572667E4B9343CEA7AA5508B5B5F3A57456AD33BCFF0063ACF15D1"
+                              }
+                          ],
+    "targetPreconditions":  [
+                                {
+                                    "path":  "src/HotelOps.Api/Entities/Workday.cs",
+                                    "exists":  false,
+                                    "sha256":  null
+                                },
+                                {
+                                    "path":  "src/HotelOps.Api/Entities/WorkInterval.cs",
+                                    "exists":  false,
+                                    "sha256":  null
+                                },
+                                {
+                                    "path":  "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+                                    "exists":  false,
+                                    "sha256":  null
+                                },
+                                {
+                                    "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+                                    "exists":  false,
+                                    "sha256":  null
+                                },
+                                {
+                                    "path":  "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+                                    "exists":  false,
+                                    "sha256":  null
+                                },
+                                {
+                                    "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+                                    "exists":  true,
+                                    "sha256":  "36B0237EF189F1ECE9FAA2AB88742CD324AC3B74DFF0C1652BF3C2980EA8763E"
+                                },
+                                {
+                                    "path":  "src/HotelOps.Api/Program.cs",
+                                    "exists":  true,
+                                    "sha256":  "64482AD14FEEFE525088CC0353F49D7F00E3FDBCEB378A4A91B7AAB06E3EF819"
+                                }
+                            ],
+    "conditionalDiImplementation":  "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs not yet implemented; registration forbidden until actual build/DI validation",
+    "sqlExecuted":  false,
+    "modelCompiled":  false,
+    "diResolved":  false,
+    "diffsCheckOnly":  true
+}

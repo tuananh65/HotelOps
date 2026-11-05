@@ -1,0 +1,27 @@
+6: namespace HotelOps.Api.Services.Authentication;
+7: 
+8: public interface ISessionRevocationService
+9: {
+10:     /// <summary>Uses the caller transaction/context; takes user lock before sessions.</summary>
+11:     Task<int> RevokeAllAsync(long userId, DateTime utcNow, CancellationToken cancellationToken = default);
+12: }
+13: 
+14: public sealed class SessionRevocationService(HotelOpsDbContext db) : ISessionRevocationService
+15: {
+16:     public async Task<int> RevokeAllAsync(long userId, DateTime utcNow, CancellationToken cancellationToken = default)
+17:     {
+18:         if (utcNow.Kind != DateTimeKind.Utc)
+19:             throw new ArgumentException("UTC time is required.", nameof(utcNow));
+20:         var transaction = db.Database.CurrentTransaction
+21:             ?? throw new InvalidOperationException("Session revocation requires the caller transaction.");
+22:         if (!db.Database.IsSqlServer() || transaction.GetDbTransaction().IsolationLevel
+23:             is not (IsolationLevel.ReadCommitted or IsolationLevel.RepeatableRead or IsolationLevel.Serializable))
+24:             throw new InvalidOperationException("SQL Server locking isolation is required.");
+25:         if (db.ChangeTracker.HasChanges() || db.ChangeTracker.Entries<Entities.UserSession>().Any()
+26:             || db.ChangeTracker.Entries<Entities.User>().Any())
+28: 
+29:         var users = await db.Users.FromSqlInterpolated(
+30:             $"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}")
+31:             .AsNoTracking().ToListAsync(cancellationToken);
+32:         if (users.Count != 1)
+33:             throw new InvalidOperationException("Credential target was not found.");

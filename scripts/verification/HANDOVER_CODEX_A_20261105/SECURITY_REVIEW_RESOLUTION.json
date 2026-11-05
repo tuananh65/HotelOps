@@ -1,0 +1,14 @@
+﻿{
+    "literalFindings":  [
+                            "Generated password prefix concatenated with SessionCredential.Generate(), not a live credential",
+                            "Deliberately invalid CSRF test token, not a real session or access token"
+                        ],
+    "connectionPasswordFindings":  0,
+    "path":  "framework-results/task87.trx",
+    "secretPatternFindings":  0,
+    "originalSha256":  "D7E218D38D9392BCA6BA70C1479AC25988439813C145B4F20FFD9BAD6F6630ED",
+    "privateHostFindingsBefore":  93,
+    "redaction":  "Computer-name metadata only; test counts/outcomes unchanged",
+    "exportSha256":  "7FD8839109BA48F6FE9BEAB425C2B2235A032D52BC2A092E14969E23C5D24C16",
+    "privateHostsRedacted":  true
+}

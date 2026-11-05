@@ -1,0 +1,20 @@
+6: namespace HotelOps.Api.Services.Users;
+7: 
+8: public sealed class UserDirectoryService(HotelOpsDbContext db, TimeProvider clock) : IUserDirectoryService
+9: {
+10:     public async Task<UserAccountDetailDto?> GetAsync(long userId, CancellationToken cancellationToken)
+11:     {
+12:         if (userId <= 0) throw new ValidationException("UserId must be a positive Int64.");
+13:         cancellationToken.ThrowIfCancellationRequested();
+15:         return await db.Users.AsNoTracking().Where(user => user.UserId == userId && user.DeletedAt == null)
+16:             .Select(user => new UserAccountDetailDto(user.UserId, user.EmployeeCode, user.Username,
+17:                 user.FullName, user.Email, user.Phone, user.AccountStatus,
+18:                 user.PrimaryBranch == null ? null : new UserDirectoryBranchDto(user.PrimaryBranch.BranchId,
+19:                     user.PrimaryBranch.BranchCode, user.PrimaryBranch.BranchName),
+20:                 user.Department == null ? null : new UserDirectoryDepartmentDto(user.Department.DepartmentId,
+23:     }
+24: 
+25:     public async Task<UserDirectoryResponse> ListAsync(UserDirectoryQuery query, CancellationToken cancellationToken)
+26:     {
+27:         ArgumentNullException.ThrowIfNull(query);
+28:         cancellationToken.ThrowIfCancellationRequested();

@@ -1,0 +1,88 @@
+12: namespace HotelOps.Api.Services.Users;
+13: 
+14: public enum AccountCreationStatus { Success, Forbidden, InvalidReference, Duplicate, LastAdministrator, SerializationUnavailable }
+15: public sealed record AccountCreationResult(AccountCreationStatus Status, CreatedEmployeeAccountDto? User = null,
+16:     IssuedTemporaryCredential? Credential = null, IReadOnlyList<string>? DuplicateFields = null) : IDisposable
+17: {
+18:     public void Dispose() => Credential?.Dispose();
+19: }
+20: 
+21: public sealed class UserAccountCreationService(HotelOpsDbContext db, ICurrentUserAccessor current,
+22:     IPermissionService permissions, ITemporaryCredentialService credentials,
+23:     IInitialCredentialTransactionParticipant participant, TimeProvider clock)
+24: {
+25:     // UC-004 business allowlist explicitly approved in Task 30; not a grant/catalog edit.
+30:     };
+31: 
+32:     public async Task<AccountCreationResult> CreateAsync(CreateEmployeeAccountRequest input, CancellationToken ct)
+33:     {
+34:         var request = input.Normalize();
+35:         if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Creation requires a clean scoped context.");
+36:         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+37:         GlobalAdminTransaction guard;
+38:         try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
+39:         catch (GlobalAdminLockException) { return new(AccountCreationStatus.SerializationUnavailable); }
+40:         var before = await guard.ReadSnapshotAsync(ct);
+41:         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted
+42:             || !(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
+43:             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
+44:             return new(AccountCreationStatus.Forbidden);
+45:         if (!Departments.TryGetValue(request.RoleCode, out var departmentCode)) return new(AccountCreationStatus.InvalidReference);
+46: 
+47:         // Serialize master deactivation with validation/insert; no assumption from client scope.
+48:         var branch = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={request.BranchId}")
+49:             .AsNoTracking().SingleOrDefaultAsync(ct);
+50:         var department = await db.Departments.FromSqlInterpolated($"SELECT * FROM dbo.departments WITH (UPDLOCK,HOLDLOCK) WHERE department_id={request.DepartmentId}")
+51:             .AsNoTracking().SingleOrDefaultAsync(ct);
+52:         var role = await db.Roles.FromSqlInterpolated($"SELECT * FROM dbo.roles WITH (UPDLOCK,HOLDLOCK) WHERE role_code={request.RoleCode}")
+53:             .AsNoTracking().SingleOrDefaultAsync(ct);
+54:         if (branch is not { IsActive: true } || department is not { IsActive: true } || role is not { IsActive: true }
+55:             || department.BranchId != branch.BranchId || department.DepartmentCode != departmentCode || role.RoleCode != request.RoleCode)
+56:             return new(AccountCreationStatus.InvalidReference);
+57: 
+58:         // Enforce lossless varchar storage under the actual database collation, not a new HR code format.
+59:         var lossy = await db.Database.SqlQueryRaw<int>("""
+70:         var user = new User { EmployeeCode = request.EmployeeCode, Username = request.Username, FullName = request.FullName,
+71:             Email = request.Email, Phone = request.Phone, PrimaryBranchId = branch.BranchId, DepartmentId = department.DepartmentId,
+72:             AccountStatus = "ACTIVE", EmploymentStatus = "ACTIVE", CreatedAt = now };
+73:         db.Users.Add(user);
+74:         try { await db.SaveChangesAsync(ct); }
+75:         catch (DbUpdateException error) when (error.InnerException is SqlException { Number: 2601 or 2627 })
+76:         {
+77:             db.Entry(user).State = EntityState.Detached;
+78:             await transaction.RollbackAsync(ct);
+79:             await transaction.DisposeAsync();
+80:             var duplicates = new List<string>();
+81:             if (await db.Users.AsNoTracking().AnyAsync(u => u.EmployeeCode == request.EmployeeCode, ct)) duplicates.Add("employeeCode");
+82:             if (await db.Users.AsNoTracking().AnyAsync(u => u.Username == request.Username, ct)) duplicates.Add("username");
+83:             if (await db.Users.AsNoTracking().AnyAsync(u => u.Email == request.Email, ct)) duplicates.Add("email");
+84:             return new(AccountCreationStatus.Duplicate, DuplicateFields: duplicates);
+85:         }
+86:         db.Entry(user).State = EntityState.Detached;
+87:         var access = new UserBranchAccess { UserId = user.UserId, BranchId = branch.BranchId, IsPrimary = true,
+88:             AccessLevel = "STANDARD", GrantedBy = actor.UserId, GrantedAt = now };
+89:         var assignment = new UserRole { UserId = user.UserId, RoleId = role.RoleId, BranchId = branch.BranchId,
+90:             AssignedBy = actor.UserId, AssignedAt = now, IsActive = true };
+91:         var audit = new AuditLog { ActorUserId = actor.UserId, BranchId = branch.BranchId, EntityType = "users",
+92:             EntityId = user.UserId.ToString(System.Globalization.CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = now,
+93:             NewValues = JsonSerializer.Serialize(new { employeeCode = request.EmployeeCode, username = request.Username,
+94:                 fullName = request.FullName, email = request.Email, phone = request.Phone, branchId = branch.BranchId,
+95:                 departmentId = department.DepartmentId, roleCode = role.RoleCode, accountStatus = "ACTIVE" }) };
+96:         db.AddRange(access, assignment, audit);
+97:         try { await db.SaveChangesAsync(ct); }
+98:         finally
+99:         {
+100:             db.Entry(access).State = EntityState.Detached; db.Entry(assignment).State = EntityState.Detached;
+107:         {
+108:             try { await guard.EnsurePreservedAsync(before, ct); }
+109:             catch (GlobalAdministrationInvariantException) { return new(AccountCreationStatus.LastAdministrator); }
+110:         }
+111:         if (!(await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted
+112:             || !(await permissions.EvaluateGlobalAsync("ROLE_MANAGE", ct)).IsGranted)
+113:             return new(AccountCreationStatus.Forbidden);
+114:         await transaction.CommitAsync(ct);
+115:         var issued = pending.ReleaseAfterCommit();
+116:         return new(AccountCreationStatus.Success, new(user.UserId, request.EmployeeCode, request.Username, request.FullName,
+117:             request.Email, request.Phone, branch.BranchId, department.DepartmentId, role.RoleCode, "ACTIVE"), issued);
+118:     }
+119: }

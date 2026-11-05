@@ -1,0 +1,9 @@
+{
+    "uc142IndependentPrefixCases":  49,
+    "uc142HttpCases":  40,
+    "additionalUc020IntegrationLabel":  [
+                                            "UC020: UC142 SQL active room count reflects UC020"
+                                        ],
+    "note":  "Do not count the UC020 integration label as another independent UC142 assertion",
+    "historicalOnly":  true
+}

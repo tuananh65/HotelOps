@@ -1,0 +1,4 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/Authorization/Authorization.Verification.csproj --artifacts-path scripts/verification/Task81/artifacts/authorization -p:RestoreIgnoreFailedSources=true -- --production-fallback",
+    "exitCode":  0
+}

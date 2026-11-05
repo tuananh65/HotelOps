@@ -1,0 +1,12 @@
+{
+    "before":  25596,
+    "after":  25599,
+    "missing":  [
+
+                ],
+    "newOutsideTask84":  [
+                             "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+                             "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+                             "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs"
+                         ]
+}

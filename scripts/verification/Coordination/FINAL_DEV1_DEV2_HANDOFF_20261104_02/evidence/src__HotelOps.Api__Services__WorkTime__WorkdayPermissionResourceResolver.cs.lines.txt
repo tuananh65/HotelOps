@@ -1,0 +1,52 @@
+﻿SOURCE: src/HotelOps.Api/Services/WorkTime/WorkdayPermissionResourceResolver.cs
+SHA256: CF96C5A7D998DD66E41E8C6E5FBB83836974FDF63745059418052AB3A9C49DA6
+Ranges: 1-150 (original source line numbers)
+    1: using HotelOps.Api.Data;
+    2: using HotelOps.Api.Security.Authorization;
+    3: using Microsoft.EntityFrameworkCore;
+    4: 
+    5: namespace HotelOps.Api.Services.WorkTime;
+    6: 
+    7: /// <summary>Approved B1.1 own-only bindings. Existing cleaning semantics are delegated unchanged.</summary>
+    8: public sealed class WorkdayPermissionResourceResolver(HotelOpsDbContext db,
+    9:     CleaningTaskResourceResolver cleaning) : IPermissionResourceResolver
+   10: {
+   11:     public async Task<VerifiedPermissionResource?> ResolveAsync(string permissionCode,
+   12:         PermissionResource resource, long currentUserId, CancellationToken cancellationToken)
+   13:     {
+   14:         cancellationToken.ThrowIfCancellationRequested();
+   15:         if (resource is null) return null;
+   16:         if (resource.ResourceType is not ("workday_self_branch" or "workday" or "shift_assignment"))
+   17:             return await cleaning.ResolveAsync(permissionCode, resource, currentUserId, cancellationToken);
+   18:         if (currentUserId <= 0 || resource.ResourceId <= 0) return null;
+   19:         var ct = cancellationToken;
+   20:         long? branch;
+   21:         switch (resource.ResourceType)
+   22:         {
+   23:             case "workday_self_branch":
+   24:                 if (permissionCode is not ("ATTENDANCE_RECORD" or "SHIFT_VIEW")) return null;
+   25:                 branch = resource.ResourceId;
+   26:                 break;
+   27:             case "workday":
+   28:                 if (permissionCode != "ATTENDANCE_RECORD") return null;
+   29:                 branch = await db.Workdays.AsNoTracking().Where(d => d.WorkdayId == resource.ResourceId
+   30:                     && d.UserId == currentUserId).Select(d => (long?)d.BranchId).SingleOrDefaultAsync(ct);
+   31:                 break;
+   32:             default:
+   33:                 if (permissionCode is not ("ATTENDANCE_RECORD" or "SHIFT_VIEW")) return null;
+   34:                 branch = await db.ShiftAssignments.AsNoTracking().Where(a => a.ShiftAssignmentId == resource.ResourceId
+   35:                     && a.UserId == currentUserId).Select(a => (long?)a.Shift.BranchId).SingleOrDefaultAsync(ct);
+   36:                 break;
+   37:         }
+   38:         if (branch is null || branch <= 0) return null;
+   39:         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct);
+   40:         if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == currentUserId
+   41:                 && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null, ct)
+   42:             || !await db.UserBranchAccesses.AsNoTracking().AnyAsync(a => a.UserId == currentUserId
+   43:                 && a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive, ct))
+   44:             return null;
+   45:         // An adapter refusal happens BEFORE grant scope evaluation, including BRANCH/ALL paths.
+   46:         return new(branch.Value, HasOwnership: true);
+   47:     }
+   48: }
+

@@ -3608,6 +3608,7 @@ public partial class HotelOpsDbContext : DbContext
                 .HasConstraintName("FK_material_usages_log_work");
         });
 
+        ConfigureWorkTime(modelBuilder);
         OnModelCreatingPartial(modelBuilder);
     }
 

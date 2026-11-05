@@ -1,0 +1,100 @@
+15: namespace HotelOps.Api.Services.HotelStructure;
+16: 
+17: public enum StructureCreationStatus { Success, SessionInvalid, Forbidden, InvalidBranch, InvalidFloor, DuplicateCode, Unavailable }
+18: public sealed record StructureCreationResult(StructureCreationStatus Status, object? Value = null);
+19: 
+20: public sealed class HotelStructureCreationService(HotelOpsDbContext db, ICurrentUserAccessor current,
+21:     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
+22: {
+23:     public Task<StructureCreationResult> CreateFloorAsync(SessionReference ticket, long sessionId, long branchId,
+24:         CreateFloorRequest request, CancellationToken ct)
+25:     {
+26:         ArgumentNullException.ThrowIfNull(request);
+29:     }
+30: 
+31:     public Task<StructureCreationResult> CreateAreaAsync(SessionReference ticket, long sessionId, long branchId,
+32:         CreateAreaRequest request, CancellationToken ct)
+33:     {
+34:         ArgumentNullException.ThrowIfNull(request);
+38:     }
+39: 
+40:     private async Task<StructureCreationResult> CreateAsync(SessionReference ticket, long sessionId, long branchId,
+41:         string code, string name, string? description, int? floorNumber, long? floorId, bool area, CancellationToken ct)
+42:     {
+43:         ArgumentNullException.ThrowIfNull(ticket);
+45:         ct.ThrowIfCancellationRequested();
+46:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+47:             || actor.IsRestricted || ticket.IsRestricted) return new(StructureCreationStatus.SessionInvalid);
+48:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null
+49:             || System.Transactions.Transaction.Current != null || db.ChangeTracker.Entries().Any())
+50:             throw new InvalidOperationException("Structure creation requires a clean local SQL Server context and its own transaction.");
+51: 
+52:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+53:         try
+54:         {
+55:             // The only User participant is the authenticated actor. Retain it BEFORE session,
+61:             // branch, including absent/cross-table codes; existing unique indexes back it up.
+62:             var branch = await db.Branches.FromSqlInterpolated(
+63:                     $"SELECT * FROM dbo.branches WITH (UPDLOCK,HOLDLOCK) WHERE branch_id={branchId}")
+64:                 .AsNoTracking().TagWith("UC014:BranchLock").SingleOrDefaultAsync(ct);
+65:             if (branch is null || !branch.IsActive) return new(StructureCreationStatus.InvalidBranch);
+66:             if (floorId is { } parent)
+67:             {
+68:                 var floor = await db.Floors.FromSqlInterpolated(
+69:                         $"SELECT * FROM dbo.floors WITH (HOLDLOCK) WHERE floor_id={parent}")
+70:                     .AsNoTracking().TagWith("UC014:ParentFloor").SingleOrDefaultAsync(ct);
+71:                 if (floor is null || !floor.IsActive || floor.BranchId != branchId)
+72:                     return new(StructureCreationStatus.InvalidFloor);
+73:             }
+74:             // GBR003/034: case-insensitive, trimmed branch namespace. Checking both types
+75:             // also preserves the SRS's unified floor/area-code rule without a schema change.
+76:             if (await db.Floors.AsNoTracking().AnyAsync(x => x.BranchId == branchId && x.FloorCode.Trim().ToUpper() == code, ct)
+77:                 || await db.Areas.AsNoTracking().AnyAsync(x => x.BranchId == branchId && x.AreaCode.Trim().ToUpper() == code, ct))
+78:                 return new(StructureCreationStatus.DuplicateCode);
+79: 
+80:             object row = area
+81:                 ? new Area { BranchId = branchId, FloorId = floorId, AreaCode = code, AreaName = name, Description = description, IsActive = true }
+82:                 : new Floor { BranchId = branchId, FloorCode = code, FloorName = name, FloorNumber = floorNumber, Description = description, IsActive = true };
+83:             db.Add(row);
+84:             try { await db.SaveChangesAsync(ct); }
+85:             catch (DbUpdateException error) when (SqlNumber(error) is 2601 or 2627)
+86:             { return new(StructureCreationStatus.DuplicateCode); }
+87:             finally { db.Entry(row).State = EntityState.Detached; }
+88: 
+89:             object value = row is Area ar
+93:             var audit = new AuditLog
+94:             {
+95:                 ActorUserId = actor.UserId, BranchId = branchId, EntityType = area ? "areas" : "floors",
+96:                 EntityId = id.ToString(CultureInfo.InvariantCulture), Action = "CREATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
+97:                 // The canonical audit CHECK uses ISJSON without SCALAR: wrap absence
+98:                 // in an object, as existing account-creation audits do.
+104:             };
+105:             db.Add(audit);
+106:             try { await db.SaveChangesAsync(ct); }
+107:             finally { db.Entry(audit).State = EntityState.Detached; }
+108:             if (await Gate() is { } final) return new(final); // expiry while waiting/writing rolls back both inserts
+109:             await tx.CommitAsync(ct);
+110:             return new(StructureCreationStatus.Success, value);
+111:         }
+112:         catch (Exception error) when (ct.IsCancellationRequested && error is DbException or DbUpdateException or SessionStoreUnavailableException)
+113:         { throw new OperationCanceledException("Structure creation cancelled.", error, ct); }
+116:             // No blind replay of a mutation. Dispose rolls back; caller may retry a deadlock
+117:             // or lock timeout as a NEW request. A commit/connection failure never reports success.
+118:             return new(StructureCreationStatus.Unavailable);
+119:         }
+120: 
+121:         async Task<StructureCreationStatus?> Gate()
+122:         {
+123:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+124:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted)
+125:                 return StructureCreationStatus.SessionInvalid;
+126:             // Global authority is checked first so an authorized global manager can receive
+127:             // parent validation errors. Scoped authority cannot reveal an unavailable branch.
+128:             var access = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", ct);
+129:             if (!access.IsGranted && access.Decision != PermissionDecision.Unavailable)
+130:                 access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branchId, ct);
+131:             return access.IsGranted ? null : access.Decision == PermissionDecision.Unavailable
+132:                 ? StructureCreationStatus.Unavailable : StructureCreationStatus.Forbidden;
+133:         }
+134:     }
+135: 

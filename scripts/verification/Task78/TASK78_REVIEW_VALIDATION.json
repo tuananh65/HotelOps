@@ -1,0 +1,77 @@
+﻿{
+    "status":  "INDEPENDENT_READ_COMPONENT_IMPLEMENTED_B1_1_APPROVAL_REQUIRED_PUBLIC_API_NOT_IMPLEMENTED",
+    "startedUtc":  "2026-11-03T23:07:56.4464111+00:00",
+    "finishedUtc":  "2026-11-03T23:13:44.8621385+00:00",
+    "elapsedSeconds":  348.416,
+    "elapsedDisplay":  "00:05:48",
+    "timingScope":  "Saved preflight to final verification; earlier document review not timed",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "fourWorktreesUnchanged":  true,
+    "existingProductionFilesChanged":  [
+
+                                       ],
+    "task77HashedFilesChanged":  [
+
+                                 ],
+    "sharedChangesApplied":  0,
+    "dev2Edits":  0,
+    "schemaOrDataWrites":  0,
+    "protectedDatabaseAccess":  false,
+    "trial":  "HotelOps_Canonical_20261103_162910_76025447_Fresh",
+    "newReadOnlySqlChecks":  8,
+    "populatedWorkingDayReadTested":  false,
+    "newPublicHttpsAcceptance":  "NOT_RUN",
+    "fullUc139Acceptance":  "NOT_RUN_BLOCKED",
+    "securityChecks":  199,
+    "securityBreakdown":  [
+                              93,
+                              43,
+                              14,
+                              49
+                          ],
+    "securityScope":  "Isolated core/cookie/resource collaborators; no live SQL",
+    "build":  "PASS_0_ERRORS_1_NU1900",
+    "runnerBuild":  "PASS_0_ERRORS_4_NU1900",
+    "frameworkTests":  "NOT_AVAILABLE_NO_CASES",
+    "diffCheck":  "PASS",
+    "b1PatchCheck":  "PASS_NOT_APPLIED",
+    "ledger":  {
+                   "UC111":  "BLOCKED_EXTERNAL",
+                   "UC138":  "NOT_IMPLEMENTED",
+                   "UC139":  "BLOCKED_EXTERNAL",
+                   "completedUCs":  26,
+                   "totalUCs":  75,
+                   "points":  60,
+                   "totalPoints":  256,
+                   "weightedPercent":  23.4375,
+                   "pointsGained":  0
+               },
+    "fileHashes":  [
+                       {
+                           "path":  "src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs",
+                           "sha256":  "975EB7BB337BB2DD919412C79478EE54D9C7E9C2F3F181CAF57C380D318A99D7"
+                       },
+                       {
+                           "path":  "scripts/verification/Task78/B1.Program.di.patch",
+                           "sha256":  "F07F03D88D3169FD9CB557265C7214606DDAB52C02ECA061EB3EC6E02079494E"
+                       },
+                       {
+                           "path":  "scripts/verification/Task78/B1_APPROVAL_SCOPE.md",
+                           "sha256":  "BDCEB049FC3BEC733048009BBC37F2C605F5E98AC41549AFC5D36CDB104BB0FA"
+                       },
+                       {
+                           "path":  "scripts/verification/Task78/OwnWorkdayReaderVerification.cs",
+                           "sha256":  "95EB50DE353655E7E2162D43348294C7829F1AC5D56BE98FAFF2B810E263FFEA"
+                       },
+                       {
+                           "path":  "scripts/verification/Task78/task78-reader.local.json",
+                           "sha256":  "D64C2FB0ACABA57D7005DE921AE63B5B3EFFBD4F188AF423745AAC0CF7B60413"
+                       },
+                       {
+                           "path":  "scripts/verification/Task78/TASK78_UC139_IMPLEMENTATION.md",
+                           "sha256":  "AD4386FB76C7E0166E9558DDD5E72323393A41A689EB4992A77B914587FE1B22"
+                       }
+                   ]
+}

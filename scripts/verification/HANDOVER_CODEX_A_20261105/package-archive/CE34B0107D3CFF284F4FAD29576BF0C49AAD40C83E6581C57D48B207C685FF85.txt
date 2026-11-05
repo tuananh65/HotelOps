@@ -1,0 +1,95 @@
+﻿{
+    "task":  "COORD-FINAL-01_CODEX_B_UC013_READONLY",
+    "branch":  "feature/BE1-database-integration",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "sharedContractPackage":  "COORD-FINAL-01 parallel revision _02",
+    "sharedContractHashes":  [
+                                 {
+                                     "path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_02\\DEV1_SHARED_CONTRACT_FINAL_DECISIONS.md",
+                                     "sha256":  "1A2311A1056BFA2793736B87DC78AF112776EDFA8B1C24A29AC4281E68FB70C9"
+                                 },
+                                 {
+                                     "path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_02\\DEV1_SHARED_APPROVAL_AND_ACCEPTANCE_MATRIX.md",
+                                     "sha256":  "F5DAFC151FB03AD8396634DB43D8B5DE5AC3A7B734F00E0F2D0EE36172E9DE18"
+                                 },
+                                 {
+                                     "path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_02\\HANDOFF_MANIFEST.json",
+                                     "sha256":  "CB9E1B9B9BDCC2F6972DA2596F65D483D311ABC8C4045CA45673BF614EDB7E1B"
+                                 },
+                                 {
+                                     "path":  "D:\\SEP490\\Projects\\HotelOps\\scripts\\verification\\Coordination\\FINAL_DEV1_DEV2_HANDOFF_20261104_02\\DEV1_DEV2_FINAL_HANDOFF.zip",
+                                     "sha256":  "34D937F23872ACB8948FBC493D6B81F1E919459F3188FECF27092DAA0D729CFD"
+                                 }
+                             ],
+    "files":  [
+                  {
+                      "path":  "CODEX_B_UC013_HANDOFF.md",
+                      "sha256":  "94E31B9B4CA8E9DEA25643566CB9834597F1B9F87B6BAC4CD288CDFB065F89A4",
+                      "bytes":  12788
+                  },
+                  {
+                      "path":  "DEV1_LEDGER_EXPORT.csv",
+                      "sha256":  "AAAD6E638D32F1949D28184F9D2AAF4939477664CD1FF4DB452EAF20D9E19C8F",
+                      "bytes":  39737
+                  },
+                  {
+                      "path":  "DEV1_LEDGER_EXPORT.json",
+                      "sha256":  "12EB9A7D963DD80F83312CB1112964EA46E991C6FE0FB113B9F9E59FEB9432AE",
+                      "bytes":  106488
+                  },
+                  {
+                      "path":  "HISTORICAL_UC013_IDENTITIES.json",
+                      "sha256":  "41A5DF44F1A6BDD81BE174584F2A94E4D63E52964FDD6730BE81071A6E5A6184",
+                      "bytes":  10054
+                  },
+                  {
+                      "path":  "POSTFLIGHT.json",
+                      "sha256":  "3EB4453E0DF1E8B7072EF3E3D092B2EA49220229E760D0559AA4FC26C5DD86CA",
+                      "bytes":  152805
+                  },
+                  {
+                      "path":  "PREFLIGHT.json",
+                      "sha256":  "7A4CF72F52299F31E2E822397BBC15EC02B29BDC274F7AA847B4880B44CF8A36",
+                      "bytes":  151158
+                  },
+                  {
+                      "path":  "PROTECTED_INPUT_HASHES.json",
+                      "sha256":  "CD8C86AEA74215D5DC9C31831215B7D478D1ECB180430FD3754A20DE655958E8",
+                      "bytes":  340956
+                  },
+                  {
+                      "path":  "REUSABLE_SOURCE_INVENTORY.json",
+                      "sha256":  "A29B3139A3CA75EFE3D87A51FDA9699F7BE3A92A719EE16554A9D5B60AC9D30C",
+                      "bytes":  34946
+                  },
+                  {
+                      "path":  "SOURCE_SHA256.md",
+                      "sha256":  "5E2B2A05D7BA16204A6FD52AA3D87FA89FEEEF9DA929EF6AE280CEB1C44BD376",
+                      "bytes":  2920
+                  },
+                  {
+                      "path":  "UC013_HISTORICAL_RECEIPT_SUMMARY.json",
+                      "sha256":  "2CE19A94A8747CF6005A4DF845A8CE1E5A4C041BCB41C4E49E0B1D7BE588F9C4",
+                      "bytes":  1506
+                  },
+                  {
+                      "path":  "UC013_PERMISSION_EVIDENCE.json",
+                      "sha256":  "3837266CB715161ECBCC76A501DF67F6759B31B1945D286EA791C1B9D387AEFD",
+                      "bytes":  12661
+                  },
+                  {
+                      "path":  "UC_OWNERSHIP.json",
+                      "sha256":  "BA4F4CADF140C60015FA08A8B484297B5D8C90A8040CBFC2A1C8C3BDE67DBBBF",
+                      "bytes":  50950
+                  },
+                  {
+                      "path":  "VALIDATION.json",
+                      "sha256":  "42BECE504619F0601E8CCE111B3F76E040A6BB3FB1C6EAFC7074A408CD95B9B3",
+                      "bytes":  6217
+                  }
+              ],
+    "selfHashExcluded":  true,
+    "implementationSourceIncluded":  false,
+    "uncommittedSourceTransferred":  false,
+    "priorHandoffPreserved":  true
+}

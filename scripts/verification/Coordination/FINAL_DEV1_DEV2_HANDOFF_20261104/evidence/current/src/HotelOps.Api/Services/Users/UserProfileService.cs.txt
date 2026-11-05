@@ -1,0 +1,73 @@
+11: namespace HotelOps.Api.Services.Users;
+12: 
+13: public enum UserProfileStatus { Success, Forbidden, NotFound, Stale, EmailInUse, LastAdministrator, SerializationUnavailable }
+14: public sealed record UserProfileResult(UserProfileStatus Status, UserProfileDto? Profile = null, byte[]? Version = null);
+15: 
+16: public sealed class UserProfileService(HotelOpsDbContext db, UserProfileAccess access,
+17:     ICurrentUserAccessor current, TimeProvider clock)
+18: {
+19:     public async Task<UserProfileResult> ReadAsync(long id, CancellationToken ct)
+20:     {
+21:         if (!await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
+22:         var row = await ReadRow(id, ct);
+23:         return row is null ? new(UserProfileStatus.NotFound) : Success(row);
+24:     }
+25: 
+26:     public async Task<UserProfileResult> UpdateAsync(long id, byte[] expected, UserProfilePatch patch, CancellationToken ct)
+27:     {
+28:         ArgumentOutOfRangeException.ThrowIfNegativeOrZero(id);
+29:         ArgumentNullException.ThrowIfNull(expected);
+32:         patch = patch.Normalize();
+33:         if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Profile update requires a clean context.");
+34:         await using var transaction = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct);
+35:         GlobalAdminTransaction guard;
+36:         try { guard = await new GlobalAdminSerialization(db, clock).AcquireAsync(ct: ct); }
+37:         catch (GlobalAdminLockException) { return new(UserProfileStatus.SerializationUnavailable); }
+38:         var adminBefore = await guard.ReadSnapshotAsync(ct);
+39:         if (!current.TryGetCurrentUser(out var identity)) return new(UserProfileStatus.Forbidden);
+40:         await access.LockAuthorityAsync(identity.UserId, id, ct);
+41:         if (!await access.CanManageAsync(id, ct) || !current.TryGetCurrentUser(out var actor))
+42:             return new(UserProfileStatus.Forbidden);
+43:         var before = await ReadRow(id, ct);
+44:         if (before is null) return new(UserProfileStatus.NotFound);
+45:         if (!before.Version.AsSpan().SequenceEqual(expected)) return new(UserProfileStatus.Stale);
+46:         var after = new UserProfileDto(id, patch.HasFullName ? patch.FullName! : before.Profile.FullName,
+47:             patch.HasEmail ? patch.Email! : before.Profile.Email, patch.HasPhone ? patch.Phone : before.Profile.Phone);
+48:         var oldValues = new SortedDictionary<string, object?>();
+70:             // Fresh schema uses SQL-generated constraint names, which differ from scaffold names.
+71:             // This catch surrounds only the profile UPDATE, never audit insertion.
+72:             await transaction.RollbackAsync(ct);
+73:             if (await db.Users.AsNoTracking().AnyAsync(u => u.UserId != id && u.Email == after.Email, ct))
+74:                 return new(UserProfileStatus.EmailInUse);
+75:             throw;
+76:         }
+77:         if (updated != 1) return new(UserProfileStatus.Stale);
+78:         var audit = new AuditLog { ActorUserId = actor.UserId, EntityType = "users",
+79:             EntityId = id.ToString(CultureInfo.InvariantCulture), Action = "UPDATE", OccurredAt = now,
+80:             OldValues = JsonSerializer.Serialize(oldValues), NewValues = JsonSerializer.Serialize(newValues),
+81:             ChangedFields = JsonSerializer.Serialize(oldValues.Keys) };
+83:         try
+84:         {
+85:             await db.SaveChangesAsync(ct);
+86:             db.Entry(audit).State = EntityState.Detached;
+87:             if (adminBefore.DurableEligibleUserIds.Count > 0)
+88:             {
+89:                 try { await guard.EnsurePreservedAsync(adminBefore, ct); }
+90:                 catch (GlobalAdministrationInvariantException) { return new(UserProfileStatus.LastAdministrator); }
+91:             }
+92:             if (!await access.CanManageAsync(id, ct)) return new(UserProfileStatus.Forbidden);
+93:             var result = Success((await ReadRow(id, ct))!);
+94:             await transaction.CommitAsync(ct);
+95:             return result;
+96:         }
+97:         finally { db.Entry(audit).State = EntityState.Detached; }
+98:     }
+99: 
+100:     private Task<Row?> ReadRow(long id, CancellationToken ct) => db.Users.AsNoTracking()
+101:         .Where(u => u.UserId == id && u.DeletedAt == null)
+102:         .Select(u => new Row(new UserProfileDto(u.UserId, u.FullName, u.Email, u.Phone), u.RowVersion))
+103:         .SingleOrDefaultAsync(ct);
+104:     private static UserProfileResult Success(Row row) => new(UserProfileStatus.Success, row.Profile, row.Version);
+105:     private sealed record Row(UserProfileDto Profile, byte[] Version);
+106: }
+107: 

@@ -1,0 +1,105 @@
+5: namespace HotelOps.Api.Services.Inventory;
+6: 
+7: public sealed partial class InventoryService
+8: {
+9:     private bool Changed(object entity)
+10:     {
+12:         return db.Entry(entity).State is EntityState.Added or EntityState.Modified;
+13:     }
+14:     public async Task<InventoryItemDto?> SaveItem(long? id, long actorUserId, InventoryItemWrite r, CancellationToken ct)
+15:     {
+16:         var code = Required(r.ItemCode, "ItemCode", 50); var name = Required(r.ItemName, "ItemName", 200);
+17:         await using var tx = await Begin(actorUserId, ct);
+18:         var x = id.HasValue ? await db.InventoryItems.FromSqlInterpolated($"SELECT * FROM dbo.inventory_items WITH (UPDLOCK,HOLDLOCK) WHERE item_id={id}").SingleOrDefaultAsync(ct) : new InventoryItem();
+19:         if (x is null) return null; if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion);
+20:         var before = id.HasValue ? Scalars(x) : null;
+21:         if (await db.InventoryItems.AnyAsync(i => i.ItemCode == code && i.ItemId != id, ct)) throw Invalid("ItemCode already exists.");
+22:         if (!await db.ItemCategories.AnyAsync(c => c.ItemCategoryId == r.CategoryId && c.IsActive, ct) || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.BaseUomId && u.IsActive, ct)) throw Invalid("Active Category and BaseUOM are required.");
+23:         if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.StockMovements.AnyAsync(m => m.ItemId == id, ct)) throw Invalid("Base UOM is immutable after the first stock effect.");
+24:         if (id.HasValue && x.BaseUomId != r.BaseUomId && await db.MaterialReplenishmentLines.AnyAsync(l => l.ItemId == id, ct)) throw Invalid("Base UOM is immutable after replenishment history.");
+25:         x.ItemCode = code; x.ItemName = name; x.CategoryId = r.CategoryId; x.BaseUomId = r.BaseUomId; x.IsConsumable = r.IsConsumable; x.IsActive = r.IsActive; x.Description = r.Description; x.Specification = r.Specification;
+26:         var now = DateTime.UtcNow; if (!id.HasValue) { x.CreatedAt = now; db.InventoryItems.Add(x); }
+27:         if (Changed(x))
+28:         {
+30:             await Audit(x, "inventory_items", x.ItemId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "ITEM_SAVED", before, [null], now, ct);
+31:         }
+32:         await tx.CommitAsync(ct); return Dto(x);
+33:     }
+34:     public async Task<InventoryUnitDto?> SaveUnit(long? id, long actorUserId, InventoryUnitWrite r, CancellationToken ct)
+35:     {
+36:         var code = Required(r.UomCode, "UomCode", 30); var name = Required(r.UomName, "UomName", 100);
+37:         await using var tx = await Begin(actorUserId, ct);
+38:         var x = id.HasValue ? await db.UnitsOfMeasures.FromSqlInterpolated($"SELECT * FROM dbo.units_of_measure WITH (UPDLOCK,HOLDLOCK) WHERE uom_id={id}").SingleOrDefaultAsync(ct) : new UnitsOfMeasure();
+39:         if (x is null) return null; if (id.HasValue) Version(x.RowVersion, r.ExpectedRowVersion); var before = id.HasValue ? Scalars(x) : null;
+40:         if (await db.UnitsOfMeasures.AnyAsync(u => u.UomCode == code && u.UomId != id, ct)) throw Invalid("UomCode already exists.");
+41:         x.UomCode = code; x.UomName = name; x.IsActive = r.IsActive; x.Description = r.Description; if (!id.HasValue) db.UnitsOfMeasures.Add(x);
+42:         if (Changed(x)) await Audit(x, "units_of_measure", x.UomId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "UNIT_SAVED", before, [null], DateTime.UtcNow, ct);
+43:         await tx.CommitAsync(ct); return Dto(x);
+44:     }
+45:     public async Task<InventoryConversionDto?> SaveConversion(long item, long? id, long actorUserId, InventoryConversionWrite r, CancellationToken ct)
+46:     {
+47:         if (r.ConversionFactor <= 0 || r.ConversionFactor > 999999999999.999999m || decimal.Round(r.ConversionFactor, 6) != r.ConversionFactor) throw Invalid("ConversionFactor must be positive decimal(18,6).");
+48:         await using var tx = await Begin(actorUserId, ct); var catalog = await Item(item, ct);
+49:         if (r.FromUomId == catalog.BaseUomId || !await db.UnitsOfMeasures.AnyAsync(u => u.UomId == r.FromUomId && u.IsActive, ct)) throw Invalid("Conversion requires a different active source UOM.");
+50:         var x = id.HasValue ? await db.UomConversions.FromSqlInterpolated($"SELECT * FROM dbo.uom_conversions WITH (UPDLOCK,HOLDLOCK) WHERE conversion_id={id}").SingleOrDefaultAsync(ct) : new UomConversion();
+51:         if (x is null) return null; if (id.HasValue) { Version(x.RowVersion, r.ExpectedRowVersion); if (x.ItemId != item) throw Invalid("Conversion does not belong to this item."); }
+52:         var before = id.HasValue ? Scalars(x) : null;
+53:         if (await db.UomConversions.AnyAsync(c => c.ItemId == item && c.FromUomId == r.FromUomId && c.ToUomId == catalog.BaseUomId && c.ConversionId != id, ct)) throw Invalid("Conversion already exists.");
+54:         x.ItemId = item; x.FromUomId = r.FromUomId; x.ToUomId = catalog.BaseUomId; x.ConversionFactor = r.ConversionFactor; x.IsActive = r.IsActive;
+55:         if (!id.HasValue) db.UomConversions.Add(x);
+56:         if (Changed(x)) await Audit(x, "uom_conversions", x.ConversionId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "CONVERSION_SAVED", before, [null], DateTime.UtcNow, ct);
+57:         await tx.CommitAsync(ct); return Dto(x);
+58:     }
+59:     private async Task<bool> WarehouseHistory(long id, CancellationToken ct) =>
+60:         await db.StockDocuments.AnyAsync(d => d.SourceWarehouseId == id || d.DestinationWarehouseId == id, ct) ||
+61:         await db.StockMovements.AnyAsync(m => m.WarehouseId == id, ct) || await db.Stocktakes.AnyAsync(s => s.WarehouseId == id, ct) ||
+62:         await db.StockThresholds.AnyAsync(t => t.WarehouseId == id, ct) || await db.MaterialRequests.AnyAsync(m => m.SourceWarehouseId == id, ct) ||
+63:         await db.MaterialFulfillments.AnyAsync(m => m.WarehouseId == id, ct) || await db.MaterialReplenishments.AnyAsync(r => r.WarehouseId == id, ct);
+64:     public async Task<InventoryWarehouseDto?> SaveWarehouse(long? id, long actorUserId, InventoryWarehouseWrite r, CancellationToken ct)
+65:     {
+66:         var code = Required(r.WarehouseCode, "WarehouseCode", 40); var name = Required(r.WarehouseName, "WarehouseName", 150);
+67:         // Discovery establishes User lock order only; reread under the Warehouse lock.
+68:         var discovered = id.HasValue ? await db.Warehouses.AsNoTracking().Where(w => w.WarehouseId == id.Value)
+69:             .Select(w => new { w.ManagerUserId }).SingleOrDefaultAsync(ct) : null;
+73:             var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync(ids, token);
+74:             // The old manager may be inactive when removing responsibility.
+75:             if (r.ManagerUserId is long proposed) HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(proposed, locked);
+76:         });
+77:         if (id.HasValue && !await db.Warehouses.AnyAsync(w => w.WarehouseId == id, ct)) return null;
+78:         var x = id.HasValue ? (await Warehouses([id.Value], false, ct)).Single() : new Warehouse();
+85:         }
+86:         var before = id.HasValue ? Scalars(x) : null;
+87:         if ((!id.HasValue || x.BranchId != r.BranchId) && !await db.Branches.AnyAsync(b => b.BranchId == r.BranchId && b.IsActive, ct)) throw Invalid("A new warehouse or branch change requires an active branch.");
+88:         if ((!id.HasValue || r.DepartmentId != x.DepartmentId) && !r.DepartmentId.HasValue) throw Invalid("DepartmentId is required for a new warehouse or department change.");
+89:         if (r.DepartmentId.HasValue && !await db.Departments.AnyAsync(d => d.DepartmentId == r.DepartmentId && d.BranchId == r.BranchId && d.IsActive, ct)) throw Invalid("Department must be active in the selected branch.");
+90:         if (id.HasValue && x.BranchId != r.BranchId && await WarehouseHistory(id.Value, ct)) throw Invalid("Warehouse branch is immutable after dependent history.");
+91:         if (await db.Warehouses.AnyAsync(w => w.BranchId == r.BranchId && w.WarehouseCode == code && w.WarehouseId != id, ct)) throw Invalid("WarehouseCode already exists in this branch.");
+92:         if (id.HasValue && x.IsActive && !r.IsActive)
+93:         {
+94:             if (await db.MaterialReplenishments.AnyAsync(p => p.WarehouseId == id && (p.Status == "REQUESTED" || p.Status == "PARTIALLY_RECEIVED"), ct)) throw Invalid("Warehouse has open replenishments.");
+95:             if (await db.StockMovements.Where(m => m.WarehouseId == id).GroupBy(m => m.ItemId).AnyAsync(g => g.Sum(m => m.SignedBaseQty) != 0, ct) ||
+96:                 await db.StockDocuments.AnyAsync(d => (d.SourceWarehouseId == id || d.DestinationWarehouseId == id) && !TerminalDocuments.Contains(d.Status), ct) ||
+97:                 await db.Stocktakes.AnyAsync(s => s.WarehouseId == id && !TerminalStocktakes.Contains(s.Status), ct)) throw Invalid("Warehouse has nonzero stock or documents/stocktakes whose closure cannot be confirmed.");
+98:         }
+99:         x.BranchId = r.BranchId; x.DepartmentId = r.DepartmentId; x.WarehouseCode = code; x.WarehouseName = name; x.ManagerUserId = r.ManagerUserId; x.LocationDescription = r.LocationDescription; x.IsActive = r.IsActive;
+100:         var now = DateTime.UtcNow; if (!id.HasValue) { x.CreatedAt = now; db.Warehouses.Add(x); }
+101:         if (Changed(x)) await Audit(x, "warehouses", x.WarehouseId, actorUserId, id.HasValue ? "UPDATE" : "CREATE", "WAREHOUSE_SAVED", before, [x.BranchId], now, ct);
+102:         await tx.CommitAsync(ct); return Dto(x);
+103:     }
+104:     public async Task<InventoryThresholdDto> SaveThreshold(long warehouse, long item, long actorUserId, InventoryThresholdWrite r, CancellationToken ct)
+105:     {
+106:         Qty(r.MinimumQty); await using var tx = await Begin(actorUserId, ct); await Item(item, ct);
+107:         var w = (await Warehouses([warehouse], true, ct)).Single();
+108:         await StockGates([(warehouse, item)], ct);
+109:         var x = await db.StockThresholds.FromSqlInterpolated($"SELECT * FROM dbo.stock_thresholds WITH (UPDLOCK,HOLDLOCK) WHERE warehouse_id={warehouse} AND item_id={item}").SingleOrDefaultAsync(ct);
+110:         var create = x is null; object? before = null;
+111:         if (create) { if (r.ExpectedRowVersion is not null) throw Invalid("Threshold no longer exists."); x = new() { WarehouseId = warehouse, ItemId = item, AlertEnabled = true }; db.StockThresholds.Add(x); }
+112:         else { Version(x!.RowVersion, r.ExpectedRowVersion); before = Scalars(x); }
+113:         x!.MinimumQty = r.MinimumQty; var now = DateTime.UtcNow;
+114:         if (Changed(x)) { x.UpdatedAt = now; await Audit(x, "stock_thresholds", x.ThresholdId, actorUserId, create ? "CREATE" : "UPDATE", "THRESHOLD_SAVED", before, [w.BranchId], now, ct); }
+115:         await tx.CommitAsync(ct); return Dto(x);
+116:     }
+117:     public async Task<IReadOnlyList<InventoryThresholdDto>> GetThresholds(long warehouse, CancellationToken ct) =>
+118:         (await db.StockThresholds.AsNoTracking().Where(x => x.WarehouseId == warehouse).OrderBy(x => x.ItemId).ToListAsync(ct)).Select(Dto).ToList();
+119: }
+120: 

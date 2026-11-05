@@ -1,0 +1,151 @@
+﻿SOURCE: src/HotelOps.Api/Services/WorkTime/WorkdayService.cs
+SHA256: 3EF0E458FCE07660C5B07A330CA9FC9B59560B64824DD614FA201D4E4DD1A0F2
+Ranges: 1-170 (original source line numbers)
+    1: using System.Data;
+    2: using HotelOps.Api.Data;
+    3: using HotelOps.Api.DTOs.WorkTime;
+    4: using HotelOps.Api.Entities;
+    5: using HotelOps.Api.Security;
+    6: using HotelOps.Api.Security.Authorization;
+    7: using HotelOps.Api.Services.Authentication;
+    8: using Microsoft.Data.SqlClient;
+    9: using Microsoft.EntityFrameworkCore;
+   10: 
+   11: namespace HotelOps.Api.Services.WorkTime;
+   12: 
+   13: public sealed record WorkdayResult(int Status, object? Value = null, string? Code = null);
+   14: 
+   15: /// <summary>B1.1 scheduled own-workday boundary; caller identity is never model-bound.</summary>
+   16: public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor current,
+   17:     IHttpContextAccessor http, ISqlSessionService sessions, IPermissionService permissions,
+   18:     SqlWorkTimeTransactionParticipant participant, OwnWorkdaySnapshotReader reader)
+   19: {
+   20:     private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
+   21: 
+   22:     public Task<WorkdayResult> StartAsync(long branchId, StartWorkdayRequest request, CancellationToken ct)
+   23:         => Execute(branchId, "ATTENDANCE_RECORD", async actor =>
+   24:         {
+   25:             if (request.ShiftAssignmentId is null)
+   26:             {
+   27:                 if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 1000)
+   28:                     return new(400, Code: "UNSCHEDULED_REASON_REQUIRED");
+   29:                 return new(503, Code: "UNSCHEDULED_NOTIFICATION_UNAVAILABLE");
+   30:             }
+   31:             if (request.ShiftAssignmentId <= 0 || !string.IsNullOrWhiteSpace(request.Reason))
+   32:                 return new(400, Code: "INVALID_SCHEDULED_START");
+   33:             var assignmentId = request.ShiftAssignmentId.Value;
+   34:             var allowed = await Authorize("ATTENDANCE_RECORD", new("shift_assignment", assignmentId), ct);
+   35:             if (allowed is not null) return allowed;
+   36:             if (!await db.ShiftAssignments.AsNoTracking().AnyAsync(a => a.ShiftAssignmentId == assignmentId
+   37:                     && a.UserId == actor.UserId && a.Shift.BranchId == branchId, ct))
+   38:                 return new(403, Code: "TIME_SCOPE_DENIED");
+   39:             var day = await participant.StartScheduledWorkdayAsync(actor.UserId, branchId, assignmentId, ct);
+   40:             return new(201, Response(day));
+   41:         }, ct);
+   42: 
+   43:     public Task<WorkdayResult> CurrentAsync(long branchId, CancellationToken ct)
+   44:         => Execute(branchId, "ATTENDANCE_RECORD", async _ =>
+   45:         {
+   46:             var snapshot = await reader.ReadAsync(branchId, ct);
+   47:             return snapshot is null ? new(204) : new(200, snapshot);
+   48:         }, ct);
+   49: 
+   50:     public Task<WorkdayResult> EndAsync(long branchId, long workdayId, byte[] expectedVersion,
+   51:         bool pauseAll, CancellationToken ct)
+   52:         => Execute(branchId, "ATTENDANCE_RECORD", async actor =>
+   53:         {
+   54:             if (workdayId <= 0 || expectedVersion is not { Length: 8 }) return new(400, Code: "INVALID_IF_MATCH");
+   55:             var allowed = await Authorize("ATTENDANCE_RECORD", new("workday", workdayId), ct);
+   56:             if (allowed is not null) return allowed;
+   57:             if (!await db.Workdays.AsNoTracking().AnyAsync(d => d.WorkdayId == workdayId
+   58:                     && d.UserId == actor.UserId && d.BranchId == branchId, ct))
+   59:                 return new(403, Code: "TIME_SCOPE_DENIED");
+   60:             if (pauseAll) return new(503, Code: "PAUSE_ALL_UNAVAILABLE");
+   61:             var day = await participant.EndWorkdayAsync(actor.UserId, branchId, workdayId, expectedVersion, ct);
+   62:             return new(200, Response(day));
+   63:         }, ct);
+   64: 
+   65:     public Task<WorkdayResult> OwnShiftsAsync(long branchId, CancellationToken ct)
+   66:         => Execute(branchId, "SHIFT_VIEW", async actor =>
+   67:         {
+   68:             var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct), DateTimeKind.Utc);
+   69:             var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
+   70:             var shifts = await db.ShiftAssignments.AsNoTracking().Where(a => a.UserId == actor.UserId
+   71:                     && a.AssignmentStatus == "ASSIGNED" && a.AssignedAt <= now && a.Shift.BranchId == branchId
+   72:                     && a.Shift.Status == "PLANNED" && a.Shift.ShiftDate == today
+   73:                     && a.Shift.ScheduledEndAt >= a.Shift.ScheduledStartAt
+   74:                     && a.Shift.ShiftTemplate.BranchId == branchId && a.Shift.ShiftTemplate.IsActive
+   75:                     && a.Shift.Department.BranchId == branchId && a.Shift.Department.IsActive)
+   76:                 .OrderBy(a => a.Shift.ScheduledStartAt).ThenBy(a => a.ShiftAssignmentId)
+   77:                 .Select(a => new { a.ShiftAssignmentId, a.ShiftId, a.Shift.BranchId, a.Shift.DepartmentId,
+   78:                     a.Shift.ShiftDate, a.Shift.ScheduledStartAt, a.Shift.ScheduledEndAt }).ToArrayAsync(ct);
+   79:             return new(200, shifts.Select(s => new OwnEligibleShift(s.ShiftAssignmentId, s.ShiftId, s.BranchId,
+   80:                 s.DepartmentId, s.ShiftDate, Utc(s.ScheduledStartAt), Utc(s.ScheduledEndAt))).ToArray());
+   81:         }, ct);
+   82: 
+   83:     private async Task<WorkdayResult> Execute(long branchId, string permission,
+   84:         Func<CurrentUserInfo, Task<WorkdayResult>> action, CancellationToken ct)
+   85:     {
+   86:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId <= 0 || actor.SessionId <= 0)
+   87:             return new(401, Code: "SESSION_INVALID");
+   88:         if (actor.IsRestricted) return new(403, Code: "PASSWORD_CHANGE_REQUIRED");
+   89:         if (branchId <= 0) return new(403, Code: "TIME_SCOPE_DENIED");
+   90:         var context = http.HttpContext;
+   91:         if (context is null || !HotelOpsCookieTicket.TryRead(context.User, out var ticket, out var sessionId)
+   92:             || ticket is null || sessionId != actor.SessionId || ticket.UserId != actor.UserId)
+   93:             return new(401, Code: "SESSION_INVALID");
+   94:         try
+   95:         {
+   96:             // Serializable retains session/grant/source reads until commit. User/time locks first;
+   97:             // stale middleware identity cannot survive a revocation committed during a lock wait.
+   98:             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+   99:             await participant.LockUsersAsync([actor.UserId], ct);
+  100:             var validated = await sessions.ValidateSessionAsync(ticket, ct);
+  101:             if (!validated.IsValid || validated.Session?.SessionId != actor.SessionId
+  102:                 || validated.Session.UserId != actor.UserId || validated.Session.IsRestricted)
+  103:                 return new(401, Code: "SESSION_INVALID");
+  104:             if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == actor.UserId
+  105:                     && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null, ct))
+  106:                 return new(403, Code: "TIME_ACTOR_INVALID");
+  107:             var denied = await Authorize(permission, new("workday_self_branch", branchId), ct);
+  108:             if (denied is not null) return denied;
+  109:             var result = await action(actor);
+  110:             if (result.Status is >= 200 and < 300) await tx.CommitAsync(ct);
+  111:             return result;
+  112:         }
+  113:         catch (WorkTimeContractException e)
+  114:         {
+  115:             return e.Code switch
+  116:             {
+  117:                 "TIME_STALE" => new(412, Code: e.Code),
+  118:                 "TIME_SCOPE_DENIED" or "TIME_ACTOR_INVALID" => new(403, Code: e.Code),
+  119:                 "TIME_SESSION_INVALID" => new(401, Code: "SESSION_INVALID"),
+  120:                 "TIME_RESTRICTED" => new(403, Code: "PASSWORD_CHANGE_REQUIRED"),
+  121:                 "TIME_SOURCE_UNRESOLVED" or "TIME_BUSY" => new(503, Code: e.Code),
+  122:                 "TIME_INTERVAL_ALREADY_OPEN" => new(409, Code: "MSG31_PAUSE_ALL_REQUIRED"),
+  123:                 _ => new(409, Code: e.Code)
+  124:             };
+  125:         }
+  126:         catch (SessionStoreUnavailableException) { return new(503, Code: "SESSION_STORE_UNAVAILABLE"); }
+  127:         catch (SqlException) when (!ct.IsCancellationRequested) { return new(503, Code: "WORKDAY_STORE_UNAVAILABLE"); }
+  128:         catch (DbUpdateException) when (!ct.IsCancellationRequested) { return new(503, Code: "WORKDAY_STORE_UNAVAILABLE"); }
+  129:     }
+  130: 
+  131:     private async Task<WorkdayResult?> Authorize(string permission, PermissionResource resource, CancellationToken ct)
+  132:     {
+  133:         var decision = await permissions.EvaluateResourceAsync(permission, resource, ct);
+  134:         return decision.Decision switch
+  135:         {
+  136:             PermissionDecision.Granted => null,
+  137:             PermissionDecision.Unauthenticated => new(401, Code: "SESSION_INVALID"),
+  138:             PermissionDecision.Unavailable => new(503, Code: "AUTHORIZATION_UNAVAILABLE"),
+  139:             _ => new(403, Code: "WORKDAY_FORBIDDEN")
+  140:         };
+  141:     }
+  142: 
+  143:     private static DateTimeOffset Utc(DateTime value) => new(DateTime.SpecifyKind(value, DateTimeKind.Utc));
+  144:     private static WorkdayResponse Response(Workday day) => new(day.WorkdayId, day.BranchId, day.DepartmentId,
+  145:         day.WorkDate, day.ShiftAssignmentId, day.IsUnscheduled, day.Status, Utc(day.StartedAt),
+  146:         day.EndedAt is { } end ? Utc(end) : null, Convert.ToBase64String(day.RowVersion));
+  147: }
+

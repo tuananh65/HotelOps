@@ -1,0 +1,184 @@
+{
+    "task":  86,
+    "status":  "PARTIAL_UC012_DEACTIVATION_CONCURRENCY_BLOCKED",
+    "startedUtc":  "2026-11-04T15:10:46.3900544Z",
+    "recordedUtc":  "2026-11-04T16:13:30.4473571Z",
+    "elapsedSeconds":  3764.1,
+    "branch":  "feature/BE1-database-integration",
+    "head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "productionNewFiles":  4,
+    "productionModifiedExistingFiles":  [
+                                            "src/HotelOps.Api/Program.cs: approved single DI addition"
+                                        ],
+    "approvals":  [
+                      "A_APPROVAL_APPLIED.json",
+                      "SQL_APPROVAL.json",
+                      "SQL_RESUME_APPROVAL.json"
+                  ],
+    "build":  {
+                  "command":  "dotnet build HotelOps.slnx --artifacts-path scripts/verification/Task86/artifacts/integrated --no-restore",
+                  "exitCode":  0,
+                  "errors":  0,
+                  "warnings":  1,
+                  "warningCodes":  [
+                                       "NU1900"
+                                   ],
+                  "result":  "PASS",
+                  "log":  "build-sql-ready.log",
+                  "initialBuildWarnings":  2
+              },
+    "di":  {
+               "checks":  39,
+               "result":  "PASS",
+               "receipt":  "DI_INTEGRATED_RECEIPT.json",
+               "scope":  "MANUAL_SCOPED_GRAPH_INPUT_HTTP_BOUNDARY_EF_TRANSLATION_NO_SQL",
+               "productionStartup":  "PASS_REAL_PROGRAM_HTTPS_SQL"
+           },
+    "security":  {
+                     "result":  "PASS",
+                     "checks":  199,
+                     "breakdown":  {
+                                       "Authorization":  93,
+                                       "ResourceAuthorization":  49,
+                                       "PermissionService":  43,
+                                       "CurrentUserAccessor":  14
+                                   },
+                     "logs":  "postdi-*.log",
+                     "scope":  "ISOLATED_CORE_COOKIE_MIDDLEWARE_DOUBLES_NOT_SQL_SESSIONS"
+                 },
+    "componentRegression":  {
+                                "UC037":  {
+                                              "checks":  14,
+                                              "receipt":  "UC037_RECEIPT.json"
+                                          },
+                                "UC038":  {
+                                              "checks":  26,
+                                              "receipt":  "UC038_RECEIPT.json"
+                                          },
+                                "UC142":  {
+                                              "checks":  19,
+                                              "receipt":  "UC142_RECEIPT.json"
+                                          }
+                            },
+    "framework":  {
+                      "command":  "dotnet test HotelOps.slnx --artifacts-path scripts/verification/Task86/artifacts/framework -p:RestoreIgnoreFailedSources=true",
+                      "exitCode":  0,
+                      "cases":  0,
+                      "result":  "NO_CASES_NOT_AVAILABLE",
+                      "log":  "framework.log"
+                  },
+    "sql":  {
+                "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+                "target":  "HotelOps_Canonical_20261104_223000_c01286a1_Fresh",
+                "createdNew":  true,
+                "protectedDatabaseAccess":  false,
+                "oldTrialAccess":  false,
+                "retained":  true,
+                "schemaDataCompatibility":  "PASS_FRESH_LEGACY_PRECONDITIONS_AND_EF_READ",
+                "rowversionDdlRollback":  "PASS",
+                "forwardIdempotency":  "PASS_TWO_EXECUTIONS",
+                "faultConstraintRemoved":  "PASS_SQL_ORACLE",
+                "catalogCounts":  [
+                                      12,
+                                      62,
+                                      140
+                                  ],
+                "prepareLog":  "sql-prepare-approved.log",
+                "oracleChecks":  13,
+                "oraclePassed":  13,
+                "oracleFailed":  0,
+                "oracleReceipt":  "SQL_ORACLE_FINAL_RECEIPT.json"
+            },
+    "httpsRuns":  [
+                      {
+                          "receipt":  "HTTPS_SQL_RECEIPT.json",
+                          "passed":  83,
+                          "failed":  1,
+                          "overall":  "FAILED_HARNESS_ACTOR_EXPECTATION",
+                          "failure":  "UC038 HTTPS empty history regression status 403"
+                      },
+                      {
+                          "receipt":  "HTTPS_RESUME_RECEIPT.json",
+                          "passed":  37,
+                          "failed":  1,
+                          "overall":  "FAILED_RUNNER_SMALLINT_CAST",
+                          "failure":  "InvalidCastException"
+                      },
+                      {
+                          "receipt":  "HTTPS_RESUME2_RECEIPT.json",
+                          "passed":  51,
+                          "failed":  0,
+                          "overall":  "PASS",
+                          "success":  true
+                      }
+                  ],
+    "httpsCountNote":  "Each run retains duplicate setup/regression checks. Counts are per run, not unique UC acceptance totals; failed receipts preserved.",
+    "verifiedLive":  [
+                         "Create/Update branch",
+                         "Duplicate code case insensitive/concurrent 201+409",
+                         "Stale/concurrent update 200+412",
+                         "No-op unchanged version/audit",
+                         "Real SQL audit failure rollback no partial commit",
+                         "Missing/global/branch-bound permission denial",
+                         "Restricted/expired/revoked/inactive session/account/employment",
+                         "Observed SQL actor lock wait with role/session revocation and no branch/audit mutation",
+                         "UC142 list/detail",
+                         "UC038 supervisor allow/cross-branch deny/SYS_ADMIN deny",
+                         "UC037 supervisor list/detail",
+                         "Empty-branch deactivation fail closed 503, active rooms 409"
+                     ],
+    "notRunOrBlocked":  [
+                            "Successful Active-to-Inactive deactivation",
+                            "Full stock/task/incident/request independent fixture matrix",
+                            "Repeated inactive deactivation",
+                            "Stale deactivation-specific SQL acceptance",
+                            "Deactivate/create deterministic race and inactive-branch consumer guards",
+                            "Joint-approved PM scope and GBR033 terminal-state mapping"
+                        ],
+    "uc012":  {
+                  "historical":  "PARTIAL",
+                  "current":  "PARTIAL",
+                  "weight":  2,
+                  "verifiedPoints":  0,
+                  "newlyCompleted":  false
+              },
+    "progress":  {
+                     "completedUCs":  26,
+                     "ucTotal":  75,
+                     "verifiedPoints":  60,
+                     "pointTotal":  256,
+                     "percent":  23.4375,
+                     "masterLedgerModified":  false
+                 },
+    "safety":  {
+                   "baseline":  "PREFLIGHT.json",
+                   "postflight":  "POSTFLIGHT_VERIFIED.json",
+                   "hashScope":  "1095 src/docs/scripts/tests files excluding bin/obj/artifacts/node_modules/packages",
+                   "approvedExistingProgramOnly":  true,
+                   "dev2SourceEdits":  0,
+                   "efEntityMappingEdits":  0,
+                   "permissionGrantEditsAfterSeed":  0,
+                   "commits":  0,
+                   "pushes":  0,
+                   "merges":  0,
+                   "resets":  0,
+                   "checkouts":  0,
+                   "worktreesExpected":  4,
+                   "originalWorktreesPreserved":  true,
+                   "observedWorktrees":  5,
+                   "fullMembershipIdentical":  false,
+                   "addedWorktrees":  [
+                                          "worktree D:/SEP490/Projects/HotelOps-Codex-B\nHEAD 4a187320643d0c82f232c6b9dd5a667b8401c280\nbranch refs/heads/ai/codex-b"
+                                      ]
+               },
+    "diagnostics":  [
+                        "First proposal extension execution failed before SQL; copied identical approved bytes to .ps1",
+                        "Sandbox SSPI failed before connect; authorized elevated environment succeeded",
+                        "No auto-review rejection",
+                        "Two harness failures retained and corrected within Task86 runners/fixture scope",
+                        "No-index --check exit 1 initially misread by wrapper; no whitespace diagnostics; corrected receipt DIFF_CHECK.json",
+                        "POSTFLIGHT_FINAL.json initially compared UTC mtime to local-parsed timestamps; corrected DateTimeOffset.UTC comparison in POSTFLIGHT_VERIFIED.json confirms 1094 unchanged + approved Program only",
+                        "One external worktree ai/codex-b observed: original four entries preserved, actual total five. Task86 performed no worktree/branch mutations.",
+                        "Elapsed calculation corrected to parse startedUtc with DateTimeOffset before subtracting UTC timestamps."
+                    ]
+}

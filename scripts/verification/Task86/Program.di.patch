@@ -1,0 +1,11 @@
+diff --git a/src/HotelOps.Api/Program.cs b/src/HotelOps.Api/Program.cs
+--- a/src/HotelOps.Api/Program.cs
++++ b/src/HotelOps.Api/Program.cs
+@@ -24,6 +24,7 @@
+ builder.Services.AddScoped<HotelOps.Api.Services.Housekeeping.CleaningMonitorService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeDirectoryService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.TurnoverHistoryService>();
++builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.BranchAdministrationService>();
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
+ builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();

@@ -1,0 +1,219 @@
+7: 
+8: [ApiController]
+9: [Route("api/assets")]
+10: public sealed class AssetsController(IAssetService service) : ControllerBase
+11: {
+12:     [HttpPost("{assetId:long}/handovers")]
+13:     public async Task<ActionResult<AssetHandoverDto>> CreateHandover(long assetId, CreateAssetHandoverRequest request, CancellationToken cancellationToken)
+14:     {
+15:         try
+16:         {
+21:         catch (ValidationException exception)
+22:         {
+23:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+24:                 title: "Asset validation failed", detail: exception.Message);
+25:         }
+26:     }
+27: 
+28:     [HttpGet("{assetId:long}/handovers")]
+29:     public async Task<ActionResult<AssetPagedResponse<AssetHandoverDto>>> GetHandovers(long assetId, [FromQuery] AssetPageRequest request, CancellationToken cancellationToken)
+30:     {
+31:         try
+32:         {
+37:         catch (ValidationException exception)
+38:         {
+39:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+40:                 title: "Asset validation failed", detail: exception.Message);
+41:         }
+42:     }
+43: 
+44:     [HttpGet("/api/asset-handovers/{handoverId:long}")]
+45:     public async Task<ActionResult<AssetHandoverDto>> GetHandover(long handoverId, CancellationToken cancellationToken)
+46:     {
+47:         try
+48:         {
+53:         catch (ValidationException exception)
+54:         {
+55:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+56:                 title: "Asset validation failed", detail: exception.Message);
+57:         }
+58:     }
+59: 
+60:     [HttpPost("/api/asset-handovers/{handoverId:long}/accept")]
+61:     public async Task<ActionResult<AssetHandoverDto>> AcceptHandover(long handoverId, AcceptAssetHandoverRequest request, CancellationToken cancellationToken)
+62:     {
+63:         try
+64:         {
+69:         catch (ValidationException exception)
+70:         {
+71:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+72:                 title: "Asset validation failed", detail: exception.Message);
+73:         }
+74:     }
+75: 
+76:     [HttpPost("/api/asset-handovers/{handoverId:long}/reject")]
+77:     public async Task<ActionResult<AssetHandoverDto>> RejectHandover(long handoverId, RejectAssetHandoverRequest request, CancellationToken cancellationToken)
+78:     {
+79:         try
+80:         {
+85:         catch (ValidationException exception)
+86:         {
+87:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+88:                 title: "Asset validation failed", detail: exception.Message);
+89:         }
+90:     }
+91: 
+92:     [HttpPost("{assetId:long}/retire")]
+93:     public async Task<ActionResult<AssetDetailDto>> RetireAsset(long assetId, RetireAssetRequest request, CancellationToken cancellationToken)
+94:     {
+95:         try
+96:         {
+101:         catch (ValidationException exception)
+102:         {
+103:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+104:                 title: "Asset validation failed", detail: exception.Message);
+105:         }
+106:     }
+107: 
+108:     [HttpGet("{assetId:long}/maintenance-history")]
+109:     public async Task<ActionResult<AssetPagedResponse<AssetMaintenanceHistoryDto>>> GetMaintenanceHistory(long assetId, [FromQuery] AssetMaintenanceHistoryRequest request, CancellationToken cancellationToken)
+110:     {
+111:         try
+112:         {
+117:         catch (ValidationException exception)
+118:         {
+119:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+120:                 title: "Asset validation failed", detail: exception.Message);
+121:         }
+122:     }
+123: 
+124:     [HttpGet("statistics/by-location")]
+125:     public async Task<ActionResult<AssetLocationStatisticsResponse>> GetStatistics([FromQuery] AssetStatisticsRequest request, CancellationToken cancellationToken)
+126:     {
+127:         try
+128:         {
+132:         catch (ValidationException exception)
+133:         {
+134:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+135:                 title: "Asset validation failed", detail: exception.Message);
+136:         }
+137:     }
+138:     [HttpGet]
+139:     public async Task<ActionResult<AssetPagedResponse<AssetListDto>>> GetAssets([FromQuery] AssetQueryRequest request, CancellationToken cancellationToken)
+140:     {
+141:         try
+142:         {
+146:         catch (ValidationException exception)
+147:         {
+148:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+149:                 title: "Asset validation failed", detail: exception.Message);
+150:         }
+151:     }
+152: 
+153:     [HttpGet("{id:long}")]
+154:     public async Task<ActionResult<AssetDetailDto>> GetAsset(long id, CancellationToken cancellationToken)
+155:     {
+156:         try
+157:         {
+162:         catch (ValidationException exception)
+163:         {
+164:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+165:                 title: "Asset validation failed", detail: exception.Message);
+166:         }
+167:     }
+168: 
+169:     [HttpGet("/api/asset-types")]
+170:     public async Task<ActionResult<IReadOnlyList<AssetTypeLookupDto>>> GetAssetTypes(CancellationToken cancellationToken)
+171:     {
+172:         try
+173:         {
+177:         catch (ValidationException exception)
+178:         {
+179:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+180:                 title: "Asset validation failed", detail: exception.Message);
+181:         }
+182:     }
+183: 
+184:     [HttpGet("{id:long}/condition-history")]
+185:     public async Task<ActionResult<AssetPagedResponse<AssetConditionHistoryDto>>> GetConditionHistory(long id, [FromQuery] AssetPageRequest request, CancellationToken cancellationToken)
+186:     {
+187:         try
+188:         {
+193:         catch (ValidationException exception)
+194:         {
+195:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+196:                 title: "Asset validation failed", detail: exception.Message);
+197:         }
+198:     }
+199: 
+200:     [HttpGet("{id:long}/location-history")]
+201:     public async Task<ActionResult<AssetPagedResponse<AssetLocationHistoryDto>>> GetLocationHistory(long id, [FromQuery] AssetPageRequest request, CancellationToken cancellationToken)
+202:     {
+203:         try
+204:         {
+209:         catch (ValidationException exception)
+210:         {
+211:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+212:                 title: "Asset validation failed", detail: exception.Message);
+213:         }
+214:     }
+215: 
+216:     [HttpPost]
+217:     public async Task<ActionResult<AssetDetailDto>> CreateAsset(CreateAssetRequest request, CancellationToken cancellationToken)
+218:     {
+219:         try
+220:         {
+224:         catch (ValidationException exception)
+225:         {
+226:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+227:                 title: "Asset validation failed", detail: exception.Message);
+228:         }
+229:     }
+230: 
+231:     [HttpPut("{id:long}")]
+232:     public async Task<ActionResult<AssetDetailDto>> UpdateAsset(long id, UpdateAssetRequest request, CancellationToken cancellationToken)
+233:     {
+234:         try
+235:         {
+240:         catch (ValidationException exception)
+241:         {
+242:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+243:                 title: "Asset validation failed", detail: exception.Message);
+244:         }
+245:     }
+246: 
+247:     [HttpPost("{id:long}/location")]
+248:     public async Task<ActionResult<AssetDetailDto>> AssignLocation(long id, AssignAssetLocationRequest request, CancellationToken cancellationToken)
+249:     {
+250:         try
+251:         {
+256:         catch (ValidationException exception)
+257:         {
+258:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+259:                 title: "Asset validation failed", detail: exception.Message);
+260:         }
+261:     }
+262: 
+263:     [HttpPost("{id:long}/location-transfers")]
+264:     public async Task<ActionResult<AssetDetailDto>> TransferLocation(long id, TransferAssetLocationRequest request, CancellationToken cancellationToken)
+265:     {
+266:         try
+267:         {
+272:         catch (ValidationException exception)
+273:         {
+274:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+275:                 title: "Asset validation failed", detail: exception.Message);
+276:         }
+277:     }
+278: 
+279:     [HttpPost("{id:long}/condition")]
+280:     public async Task<ActionResult<AssetDetailDto>> ChangeCondition(long id, ChangeAssetConditionRequest request, CancellationToken cancellationToken)
+281:     {
+282:         try
+283:         {
+288:         catch (ValidationException exception)
+289:         {
+290:             return Problem(statusCode: StatusCodes.Status400BadRequest,
+291:                 title: "Asset validation failed", detail: exception.Message);
+292:         }
+293:     }

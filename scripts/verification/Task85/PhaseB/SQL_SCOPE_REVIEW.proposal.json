@@ -1,0 +1,75 @@
+{
+    "status":  "PROPOSAL_ONLY_NOT_EXECUTED",
+    "instance":  "REDACTED_LOCAL_SQL_HOST\\SQLEXPRESS",
+    "target":  "HotelOps_Canonical_20261104_133500_c03885b1_Fresh",
+    "sources":  [
+                    {
+                        "path":  "scripts/database/release/01_HotelOps_Full_Schema.sql",
+                        "sha256":  "EEEF125A5F6595327A6BCDA99EB9E6A8555B46A0929345F84B9B4141BB3CF4D0",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+                        "sha256":  "DD6874DB482B770482B5B8D0B3230F2F4175618433E7A65E29F63C9670DC4F7B",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261019_inventory_contract.sql",
+                        "sha256":  "55437D8B08767C9722D323B808231552837C561663E6EDC192CE4670979A0D8E",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261020_material_request_contract.sql",
+                        "sha256":  "097AAA19389EAA137685EB1A078E55521EA16C20274D386C62B5BF182835B939",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261021_replenishment_contract.sql",
+                        "sha256":  "2CD673D0EE393FEB8FE0D7F340E5068F4858A853C2C9551B0D2394B27232B787",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "database/patches/20261022_maintenance_material_usage_contract.sql",
+                        "sha256":  "132A69FC2C8C260BAF3249B2E9DCED4DB4A7DD46F919647D9CD6A5A6164F67F2",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql",
+                        "sha256":  "7BA7F2204F5ED7C9A28D89E03975AADD56C4C91A9DE43088115D5269B33BEDB3",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/canonical/01_Canonical_Seed.sql",
+                        "sha256":  "B14B510483B4655C0F18FE55F5BF2D8906C6E20F158700BC3928F0AC19DE1035",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/database/release/canonical/02_Canonical_Verify.sql",
+                        "sha256":  "C6CA47A8D083C112D98E5992C61E87825DD300A11C70F25562DC59D5C577D327",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/UserProfileUpdate/rowversion-forward.sql",
+                        "sha256":  "11EC75D8B94940ABE054F2F8DB70907E2B06B2D61A27538120A8C10A5601F18E",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/Task84/05_UC017_Branch_RoomTypes.sql.proposal",
+                        "sha256":  "C1A56FFAED6C096E5F64A6C746552E3DC6BF76BAC1F5209C4CCCC65902420929",
+                        "matchesReviewedTask84Bytes":  true
+                    },
+                    {
+                        "path":  "scripts/verification/Task84/06_UC017_Verify.sql.proposal",
+                        "sha256":  "88700D7384FED0B90ACD13A85A0ABEAA8F2B7639F88655A33395FCA70430ADE7",
+                        "matchesReviewedTask84Bytes":  true
+                    }
+                ],
+    "prepareDatabaseSha256":  "E7FEBA57AE93705C57DBA95DD503BD54AE4F33129ACD0918974C1C25B2C3D666",
+    "prepareProposalSha256":  "B362629F4BF318A52FFF872FCEAD5BB71D3A11FB48319668CD71C085B439CFAC",
+    "fixtureHarness":  "scripts/verification/Task85/PhaseB/HttpsProgram.cs",
+    "fixtureScope":  "New trial only: six new t85b users/role assignments and branch access; type/floors/3 rooms/3 cycles/versioned inspections/progress/rework/defect/attachments/cancellation audit; auth sessions/revocation/inactive own fixture users; no catalog/grant changes",
+    "verifiedSourceContext":  "Same 12 prerequisite script bytes reviewed Task84; Prepare-Database replaces template catalog with exact new trial. Master used only instance/nonexistence/CREATE. Post-create prerequisite guard requires exact target/Task17 marker.",
+    "existingDatabaseAccess":  "NONE",
+    "databaseCreated":  false,
+    "reviewedUtc":  "2026-11-04T06:37:03.5471317Z"
+}

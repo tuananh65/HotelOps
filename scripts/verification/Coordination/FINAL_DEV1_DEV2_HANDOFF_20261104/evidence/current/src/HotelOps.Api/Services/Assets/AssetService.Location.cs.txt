@@ -1,0 +1,58 @@
+6: namespace HotelOps.Api.Services.Assets;
+7: 
+8: public sealed partial class AssetService
+9: {
+10:     public Task<AssetDetailDto?> AssignLocationAsync(long id, AssignAssetLocationRequest request, CancellationToken cancellationToken) =>
+11:         MoveAsync(id, request.ActorUserId, request.RoomId, request.AreaId, request.Reason, null, null, null, cancellationToken);
+12: 
+13:     public Task<AssetDetailDto?> TransferLocationAsync(long id, TransferAssetLocationRequest request, CancellationToken cancellationToken) =>
+14:         MoveAsync(id, request.ActorUserId, request.RoomId, request.AreaId, request.Reason,
+15:             Required(request.ExpectedLocationType, "ExpectedLocationType").ToUpperInvariant(),
+16:             request.ExpectedLocationId, request.ConfirmationNote, cancellationToken);
+17: 
+18:     private async Task<AssetDetailDto?> MoveAsync(long id, long actor, long? roomId, long? areaId,
+19:         string? reason, string? expectedType, long? expectedId, string? confirmation, CancellationToken cancellationToken)
+20:     {
+21:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+22:         var asset = await LockAssetAsync(id, cancellationToken);
+23:         if (asset is null) return null;
+24:         RequireOperational(asset);
+25:         await RequireActorAsync(actor, cancellationToken);
+26:         if (roomId.HasValue == areaId.HasValue)
+27:             throw new ValidationException("Supply exactly one of RoomId and AreaId.");
+28:         var currentType = asset.CurrentRoomId.HasValue ? "ROOM" : asset.CurrentAreaId.HasValue ? "AREA" : null;
+40:                 expectedType != currentType || expectedId != currentId)
+41:                 throw new ValidationException("Expected location does not match the current Asset location.");
+42:             reason = Required(reason, "Reason", minimum: 10);
+43:         }
+44:         var targetType = roomId.HasValue ? "ROOM" : "AREA";
+45:         var targetId = (roomId ?? areaId)!.Value;
+48:         var validTarget = roomId.HasValue
+49:             ? await _dbContext.Rooms.AsNoTracking().AnyAsync(r => r.RoomId == targetId &&
+50:                 r.BranchId == asset.BranchId && r.IsActive, cancellationToken)
+51:             : await _dbContext.Areas.AsNoTracking().AnyAsync(a => a.AreaId == targetId &&
+52:                 a.BranchId == asset.BranchId && a.IsActive, cancellationToken);
+53:         if (!validTarget)
+54:             throw new ValidationException("Target must be an active room/area in the Asset branch.");
+55:         confirmation = OptionalNote(confirmation);
+56:         if (expectedType is not null && await _dbContext.MaintenanceWorks.AsNoTracking()
+57:             .AnyAsync(w => w.Incident != null && w.Incident.AssetId == id &&
+58:                 (w.Status == "PENDING" || w.Status == "IN_PROGRESS" ||
+59:                  w.Status == "ON_HOLD" || w.Status == "COMPLETED"), cancellationToken) && confirmation is null)
+60:             throw new ValidationException("ConfirmationNote is required while active corrective maintenance work exists.");
+61:         var before = Snapshot(asset);
+62:         var now = DateTime.UtcNow;
+71:         };
+72:         _dbContext.AssetLocationHistories.Add(history);
+73:         await _dbContext.SaveChangesAsync(cancellationToken);
+74:         Audit("assets", id, asset, actor, now, before, Snapshot(asset), history.Reason, confirmation);
+75:         Audit("asset_location_history", history.LocationHistoryId, asset, actor, now, null, new()
+76:         {
+79:             ["effective_at"] = now, ["moved_by"] = actor, ["reason"] = history.Reason
+80:         });
+81:         await _dbContext.SaveChangesAsync(cancellationToken);
+82:         var result = await RequireDetailAsync(id, cancellationToken);
+83:         await transaction.CommitAsync(cancellationToken);
+84:         return result;
+85:     }
+86: }

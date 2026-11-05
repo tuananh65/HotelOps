@@ -1,0 +1,78 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class MaterialRequest
+7: {
+8:     public long RequestId { get; set; }
+9: 
+10:     public string RequestNo { get; set; } = null!;
+11: 
+12:     public long BranchId { get; set; }
+13: 
+14:     public long DepartmentId { get; set; }
+15: 
+16:     public long RequesterId { get; set; }
+17: 
+18:     public long? SourceWarehouseId { get; set; }
+19: 
+20:     public string Purpose { get; set; } = null!;
+21: 
+22:     public DateTime? NeededAt { get; set; }
+23: 
+24:     public long? PriorityId { get; set; }
+25: 
+26:     public string Status { get; set; } = null!;
+27: 
+28:     public DateTime? SubmittedAt { get; set; }
+29: 
+30:     public DateTime? CompletedAt { get; set; }
+31: 
+32:     public string? CancellationReason { get; set; }
+33: 
+34:     public DateTime CreatedAt { get; set; }
+35: 
+36:     public DateTime? UpdatedAt { get; set; }
+37: 
+38:     public virtual Branch Branch { get; set; } = null!;
+39: 
+40:     public virtual Department Department { get; set; } = null!;
+41: 
+42:     public virtual ICollection<MaterialFulfillment> MaterialFulfillments { get; set; } = new List<MaterialFulfillment>();
+43: 
+44:     public virtual ICollection<MaterialRequestApproval> MaterialRequestApprovals { get; set; } = new List<MaterialRequestApproval>();
+45: 
+46:     public virtual ICollection<MaterialRequestLine> MaterialRequestLines { get; set; } = new List<MaterialRequestLine>();
+47: 
+48:     public virtual ReferenceValue? Priority { get; set; }
+49: 
+50:     public virtual User Requester { get; set; } = null!;
+51: 
+52:     public virtual Warehouse? SourceWarehouse { get; set; }
+53: 
+54:     public byte[] RowVersion { get; set; } = null!;
+55: 
+56:     public long? ReceivingRoomId { get; set; }
+57: 
+58:     public long? ReceivingAreaId { get; set; }
+59: 
+60:     public long? IncidentId { get; set; }
+61: 
+62:     public DateTime? RemainderClosedAt { get; set; }
+63: 
+64:     public long? RemainderClosedBy { get; set; }
+65: 
+66:     public string? RemainderCloseReason { get; set; }
+67: 
+68:     public virtual Incident? Incident { get; set; }
+69: 
+70:     public virtual ICollection<MaterialRequestApprovalCycle> MaterialRequestApprovalCycles { get; set; } = new List<MaterialRequestApprovalCycle>();
+71: 
+72:     public virtual Area? ReceivingArea { get; set; }
+73: 
+74:     public virtual Room? ReceivingRoom { get; set; }
+75: 
+76:     public virtual User? RemainderClosedByNavigation { get; set; }
+77: }
+78: 

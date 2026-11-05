@@ -1,0 +1,172 @@
+﻿{
+    "status":  "INDEPENDENT_COMPONENT_IMPLEMENTED_SHARED_APPROVAL_PENDING",
+    "validationPassed":  true,
+    "fullUcAcceptancePassed":  false,
+    "startedUtc":  "2026-11-03T08:19:58.6538564Z",
+    "finishedUtc":  "2026-11-03T08:38:48.8645096+00:00",
+    "elapsedSeconds":  1130.211,
+    "elapsedDisplay":  "00:18:50",
+    "protectedPaths":  701,
+    "preservedPaths":  700,
+    "expectedChangedExistingPaths":  [
+                                         "scripts/verification/DEV1_21_DAY_DELIVERY_PLAN.md"
+                                     ],
+    "unexpectedChangedExistingPaths":  [
+
+                                       ],
+    "headUnchanged":  true,
+    "indexUnchanged":  true,
+    "fourWorktreeRegistrationsAndHeadsUnchanged":  true,
+    "productionSourceAdded":  [
+                                  "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs"
+                              ],
+    "existingCSharpFilesChanged":  [
+
+                                   ],
+    "sharedFilesApplied":  [
+
+                           ],
+    "dev2FilesChanged":  [
+
+                         ],
+    "sqlConnections":  0,
+    "build":  {
+                  "result":  "PASS",
+                  "errors":  0,
+                  "warningEntries":  2,
+                  "warningCode":  "NU1900",
+                  "log":  "obj/task77-build.local.log"
+              },
+    "mathVerification":  {
+                             "result":  "PASS",
+                             "checks":  422,
+                             "limits":  "Pure UTC/overlap/effort only; no SQL/HTTP/auth/concurrency acceptance",
+                             "nu1900WarningLines":  4
+                         },
+    "securityRegression":  {
+                               "result":  "PASS",
+                               "authorization":  93,
+                               "permission":  43,
+                               "currentUser":  14,
+                               "resourceAuthorization":  49,
+                               "total":  199,
+                               "noBuildExecutables":  true,
+                               "liveSql":  false
+                           },
+    "frameworkTests":  "dotnet test HotelOps.slnx exit0, restore only; no cases; NOT_AVAILABLE, not PASS",
+    "newWorkdaySqlHttpsAcceptance":  "NOT_RUN",
+    "shiftAttendanceSqlRegression":  "NOT_RUN",
+    "authenticationUserSqlRegression":  "NOT_RUN",
+    "proposals":  {
+                      "sharedPatchCheck":  "PASS_CHECK_ONLY",
+                      "diPatchCheck":  "PASS_CHECK_ONLY",
+                      "applied":  false,
+                      "modelCompiled":  false,
+                      "sqlExecuted":  false,
+                      "diResolved":  false,
+                      "approval":  "A1_PENDING"
+                  },
+    "classifications":  {
+                            "UC111":  "BLOCKED_EXTERNAL",
+                            "UC138":  "NOT_IMPLEMENTED",
+                            "UC139":  "BLOCKED_EXTERNAL"
+                        },
+    "completedUCs":  26,
+    "verifiedPoints":  60,
+    "pointDenominator":  256,
+    "weightedPercent":  23.4375,
+    "newlyCompletedUCs":  0,
+    "pointsGained":  0,
+    "ledgerClassificationsUnchanged":  true,
+    "diffCheck":  "PASS",
+    "newFileWhitespace":  "PASS",
+    "createdFiles":  [
+                         "scripts/verification/Task77/APPROVAL_SCOPE.md",
+                         "scripts/verification/Task77/DEV2_WORKTIME_CONTRACT.md",
+                         "scripts/verification/Task77/Program.cs",
+                         "scripts/verification/Task77/proposal/01_WorkTime.forward.sql",
+                         "scripts/verification/Task77/proposal/02_WorkTime.rollback.sql",
+                         "scripts/verification/Task77/proposal/HotelOpsDbContext.WorkTime.cs.proposed",
+                         "scripts/verification/Task77/proposal/IWorkTimeTransactionParticipant.cs.proposed",
+                         "scripts/verification/Task77/proposal/Program.di.patch",
+                         "scripts/verification/Task77/proposal/TimeCorrectionRequest.cs.proposed",
+                         "scripts/verification/Task77/proposal/Workday.cs.proposed",
+                         "scripts/verification/Task77/proposal/WorkInterval.cs.proposed",
+                         "scripts/verification/Task77/proposal/WorkTime.shared.patch",
+                         "scripts/verification/Task77/PROPOSAL_MANIFEST.json",
+                         "scripts/verification/Task77/TASK77_WORKDAY_FOUNDATION.md",
+                         "scripts/verification/Task77/UC_LEDGER_TASK77.json",
+                         "scripts/verification/Task77/WorkTime.Verification.csproj",
+                         "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs"
+                     ],
+    "artifactHashes":  [
+                           {
+                               "path":  "scripts/verification/Task77/APPROVAL_SCOPE.md",
+                               "sha256":  "F9A37792E1FAF9CAE2D901AE8D59C19CBA465B324837E55A4F3188817A1C2BA3"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/DEV2_WORKTIME_CONTRACT.md",
+                               "sha256":  "F77216C3BC73A4C7CEF3971F4602676BC3769A0A2B070BEC6DEF35DE5029F1A4"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/Program.cs",
+                               "sha256":  "0A76855F137AAF50A86145ADBAB410AB49E1A4076E9DB26EED5213BBEA335217"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/01_WorkTime.forward.sql",
+                               "sha256":  "74F881B740386CF04536ECEBDC5B4F5ADE0D4288A60C9D09601979F7397ADE03"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/02_WorkTime.rollback.sql",
+                               "sha256":  "7F296D3FCE2789E0B9C4C04D948443CEA9DA14B74B38D432FA0D3321D17156A4"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/HotelOpsDbContext.WorkTime.cs.proposed",
+                               "sha256":  "66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/IWorkTimeTransactionParticipant.cs.proposed",
+                               "sha256":  "FF148586AE64FD9090B8E802D629435C1EAD486908FFCBDD3DD7BA24A2B6C2FB"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/Program.di.patch",
+                               "sha256":  "1A3A4C52713F84853830346D6768E19B2A868BD17208FEC7AC1766758235BA77"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/TimeCorrectionRequest.cs.proposed",
+                               "sha256":  "95A627D304B5D921997FD38F3ADC0EE176DB1EA29E3A4AB6719064B31ED3C6E3"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/Workday.cs.proposed",
+                               "sha256":  "E4BF214DCDA01A5032D91DDF579C2635B1E01E5CC07D99C5261F649185284EEF"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/WorkInterval.cs.proposed",
+                               "sha256":  "48F3CB02DED43DF0B67404E04DD5BF3450325AC7DE82DA951E16400BEE653573"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/proposal/WorkTime.shared.patch",
+                               "sha256":  "9FA0B82259572667E4B9343CEA7AA5508B5B5F3A57456AD33BCFF0063ACF15D1"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/PROPOSAL_MANIFEST.json",
+                               "sha256":  "BCC519E018761CC68E9021184DA37D69A043ECAFF2EBDFBB82976F2AC8F6FDD5"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/TASK77_WORKDAY_FOUNDATION.md",
+                               "sha256":  "A198574F53C3856A8AC820FE905126A73FCEFDAD8569ACEEF5C8CD9F66699ECA"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/UC_LEDGER_TASK77.json",
+                               "sha256":  "727285B9C524A7963C7A1B958CDECB178535441D15131C6DA07AF4E2A9881336"
+                           },
+                           {
+                               "path":  "scripts/verification/Task77/WorkTime.Verification.csproj",
+                               "sha256":  "BE7B9E32834B1025C47D6683EBF3E82DB4379F403A55D7FF3D217AFD072BAD73"
+                           },
+                           {
+                               "path":  "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs",
+                               "sha256":  "48EEDE10891487142C552B7764FC84BCF035F8D780EA28F95F127629A11CA839"
+                           }
+                       ]
+}

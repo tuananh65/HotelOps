@@ -1,0 +1,31 @@
+5: namespace HotelOps.Api.Services.Users;
+6: 
+7: public sealed class UserBranchAssignmentAccess(HotelOpsDbContext db, ICurrentUserAccessor current,
+8:     IPermissionService permissions, IPermissionDataSource data, UserCredentialResetAccess authorityLocks, TimeProvider clock)
+9: {
+10:     internal Task LockAuthorityAsync(long actorId, long targetId, CancellationToken ct)
+11:         => authorityLocks.LockAuthorityAsync(actorId, targetId, ct);
+12: 
+13:     public async Task<bool> CanAddAsync(long targetId, long destinationId, long? insertedAccessId, CancellationToken ct)
+14:     {
+15:         if (!current.TryGetCurrentUser(out var actor) || actor.IsRestricted || actor.UserId == targetId) return false;
+16:         if ((await permissions.EvaluateGlobalAsync("USER_MANAGE", ct)).IsGranted) return true;
+17:         var branchOnly = new PermissionService(current, new BranchPaths(data), new UnresolvedPermissionResourceResolver(), clock);
+18:         // Destination authority and pre-existing target visibility are independently required.
+19:         if (!(await branchOnly.EvaluateBranchAsync("USER_MANAGE", destinationId, ct)).IsGranted) return false;
+20:         var now = clock.GetUtcNow().UtcDateTime;
+21:         var common = await db.UserBranchAccesses.AsNoTracking()
+22:             .Where(a => a.UserId == actor.UserId && a.RevokedAt == null && a.GrantedAt <= now && a.Branch.IsActive
+23:                 && db.UserBranchAccesses.Any(t => t.UserId == targetId && t.BranchId == a.BranchId
+24:                     && t.RevokedAt == null && t.GrantedAt <= now && t.User.DeletedAt == null
+25:                     && (!insertedAccessId.HasValue || t.AccessId != insertedAccessId.Value)))
+30:     }
+31: 
+32:     private sealed class BranchPaths(IPermissionDataSource source) : IPermissionDataSource
+33:     {
+34:         public Task<bool> IsActiveUserAsync(long id, CancellationToken ct) => source.IsActiveUserAsync(id, ct);
+35:         public Task<bool> IsActiveBranchAsync(long id, CancellationToken ct) => source.IsActiveBranchAsync(id, ct);
+36:         public async Task<IReadOnlyList<PermissionGrantPath>> ReadPathsAsync(long id, string code, DateTime now, CancellationToken ct)
+37:             => (await source.ReadPathsAsync(id, code, now, ct)).Where(p => p.DataScope == "BRANCH").ToArray();
+38:     }
+39: }

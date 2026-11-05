@@ -1,0 +1,71 @@
+7: namespace HotelOps.Api.Services.Maintenance;
+8: 
+9: public sealed partial class MaintenanceWorkService
+10: {
+11:     public async Task<MaintenanceWorkDetailDto?> CreateWorkAsync(long incidentId,
+12:         CreateMaintenanceWorkRequest request, CancellationToken cancellationToken)
+13:     {
+14:         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
+15:         ValidatePlannedTimes(request.PlannedStartAt, request.PlannedEndAt);
+16:         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+17:         var incident = await LockIncidentAsync(incidentId, cancellationToken);
+18:         if (incident is null)
+19:             return null;
+20:         if (incident.Status != "OPEN")
+21:             throw new ValidationException("Corrective work can be created only for an OPEN incident.");
+22:         await RequireUserAsync(request.ActorUserId, "ActorUserId", cancellationToken);
+23:         if (request.DepartmentId is long departmentId && !await _dbContext.Departments.AsNoTracking()
+24:             .AnyAsync(department => department.DepartmentId == departmentId &&
+25:                 department.BranchId == incident.BranchId, cancellationToken))
+27:         if (request.PriorityId is long priorityId && !await _dbContext.ReferenceValues.AsNoTracking()
+28:             .AnyAsync(value => value.ReferenceId == priorityId && value.GroupCode == "PRIORITY" &&
+29:                 value.IsActive, cancellationToken))
+30:             throw new ValidationException("PriorityId must identify an active PRIORITY reference value.");
+31: 
+32:         // Every corrective writer takes the same Incident lock before this cardinality check.
+33:         if (await _dbContext.MaintenanceWorks.AsNoTracking().AnyAsync(work =>
+34:             work.IncidentId == incidentId &&
+35:             (work.Status == "PENDING" || work.Status == "IN_PROGRESS" ||
+36:              work.Status == "ON_HOLD" || work.Status == "COMPLETED"), cancellationToken))
+37:             throw new ValidationException("The incident already has an active corrective maintenance work.");
+38: 
+39:         var now = DateTime.UtcNow;
+42:             WorkNo = await AllocateWorkNoAsync(now, cancellationToken),
+43:             IncidentId = incidentId,
+44:             AssigneeId = null,
+45:             DepartmentId = request.DepartmentId,
+46:             Title = request.Title.Trim(),
+47:             Instruction = request.Instruction,
+48:             PriorityId = request.PriorityId,
+49:             Status = "PENDING",
+50:             PlannedStartAt = request.PlannedStartAt,
+51:             PlannedEndAt = request.PlannedEndAt,
+52:             CreatedBy = request.ActorUserId,
+53:             CreatedAt = now
+54:         };
+55:         _dbContext.MaintenanceWorks.Add(work);
+56:         await _dbContext.SaveChangesAsync(cancellationToken);
+57:         AddAudit("maintenance_works", work.MaintenanceWorkId, incident.BranchId,
+58:             request.ActorUserId, now, null, WorkSnapshot(work));
+59:         await _dbContext.SaveChangesAsync(cancellationToken);
+60:         var result = await RequireDetailAsync(work.MaintenanceWorkId, cancellationToken);
+61:         await transaction.CommitAsync(cancellationToken);
+62:         return result;
+63:     }
+64: 
+65:     private async Task<string> AllocateWorkNoAsync(DateTime now, CancellationToken cancellationToken)
+66:     {
+67:         var prefix = "MW-" + now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
+68:         var resource = "HotelOps:MaintenanceWorkNo:" + prefix;
+69:         await _dbContext.Database.ExecuteSqlInterpolatedAsync($@"
+70:             DECLARE @result int;
+71:             EXEC @result = sys.sp_getapplock @Resource = {resource},
+72:                 @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 15000;
+73:             IF @result < 0 THROW 50002, 'Could not acquire maintenance number allocation lock.', 1;",
+74:             cancellationToken);
+75:         var maximum = await _dbContext.Database.SqlQuery<long>($@"
+76:             SELECT COALESCE(MAX(TRY_CONVERT(bigint, SUBSTRING(work_no, 13, 40))), CAST(0 AS bigint)) AS [Value]
+77:             FROM maintenance_works WITH (UPDLOCK, HOLDLOCK)
+78:             WHERE work_no LIKE {prefix + "%"}")
+79:             .SingleAsync(cancellationToken);
+80:         return prefix + checked(maximum + 1).ToString("D3", CultureInfo.InvariantCulture);

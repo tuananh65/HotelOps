@@ -1,0 +1,11 @@
+﻿SOURCE src/HotelOps.Api/Data/HotelOpsDbContext.cs
+SHA256 FBA0FE330B5C32A7D66D6112C23A5E003FD9DEB49097630A47D2C42373276BBD
+ 3607:                 .OnDelete(DeleteBehavior.ClientSetNull)
+ 3608:                 .HasConstraintName("FK_material_usages_log_work");
+ 3609:         });
+ 3610: 
+ 3611:         ConfigureWorkTime(modelBuilder);
+ 3612:         OnModelCreatingPartial(modelBuilder);
+ 3613:     }
+ 3614: 
+ 3615:     partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

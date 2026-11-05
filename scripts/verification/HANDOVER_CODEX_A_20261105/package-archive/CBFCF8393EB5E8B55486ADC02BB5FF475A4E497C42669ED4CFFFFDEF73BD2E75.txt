@@ -1,0 +1,131 @@
+﻿SOURCE: src/HotelOps.Api/Services/Authentication/SqlSessionService.cs
+SHA256: 7227F5D33CB9A1981F4A4708C1884E6DAA1CD3966249931FCC5C9DF69DF49325
+Ranges: 1-140 (original source line numbers)
+    1: using System.Data;
+    2: using HotelOps.Api.Data;
+    3: using HotelOps.Api.Entities;
+    4: using Microsoft.EntityFrameworkCore;
+    5: using Microsoft.EntityFrameworkCore.Storage;
+    6: 
+    7: namespace HotelOps.Api.Services.Authentication;
+    8: 
+    9: public sealed class SqlSessionService(HotelOpsDbContext db, ISessionRevocationService revocations, TimeProvider clock)
+   10:     : ISqlSessionService
+   11: {
+   12:     public Task<CreatedSqlSession> CreateSessionAsync(CredentialLockoutResult verifiedCredential, CancellationToken cancellationToken = default)
+   13:         => RunAsync(async () =>
+   14:         {
+   15:             var proof = verifiedCredential.Proof;
+   16:             if (verifiedCredential.Status != CredentialLockoutStatus.Verified || proof is null
+   17:                 || proof.TransactionId != db.Database.CurrentTransaction!.TransactionId || !proof.TryConsume())
+   18:                 throw new InvalidOperationException("A fresh, single-use credential proof in the same transaction is required.");
+   19:             var user = await LockUserAsync(proof.UserId, cancellationToken)
+   20:                 ?? throw new InvalidOperationException("Session user no longer exists.");
+   21:             var now = clock.GetUtcNow().UtcDateTime;
+   22:             if (!SqlSessionPolicy.IsUserActive(user)
+   23:                 || !string.Equals(user.PasswordHash, proof.Hash, StringComparison.Ordinal)
+   24:                 || user.TemporaryPasswordExpiresAt != proof.TemporaryExpiry
+   25:                 || user.LockedUntil > now || user.TemporaryPasswordExpiresAt <= now)
+   26:                 throw new InvalidOperationException("Credential state changed or is ineligible for session creation.");
+   27: 
+   28:             var restricted = user.TemporaryPasswordExpiresAt.HasValue;
+   29:             var absolute = SqlSessionPolicy.AbsoluteDeadline(now, user.TemporaryPasswordExpiresAt);
+   30:             var idle = now.Add(restricted ? SqlSessionPolicy.RestrictedLifetime : SqlSessionPolicy.NormalIdleTimeout);
+   31:             var raw = SessionCredential.Generate();
+   32:             var row = new UserSession { UserId = user.UserId, SessionKeyHash = SessionCredential.Hash(raw),
+   33:                 CreatedAt = now, LastUsedAt = now, ExpiresAt = idle < absolute ? idle : absolute };
+   34:             var audit = Audit(user.UserId, "SESSION_CREATE", now);
+   35:             db.UserSessions.Add(row); db.AuditLogs.Add(audit);
+   36:             try { await db.SaveChangesAsync(cancellationToken); }
+   37:             finally { db.Entry(row).State = EntityState.Detached; db.Entry(audit).State = EntityState.Detached; }
+   38:             var ticket = SessionReference.FromProtectedTicket(user.UserId, raw, restricted, now);
+   39:             return new CreatedSqlSession(ticket, new(row.SessionId, user.UserId, now, row.ExpiresAt, absolute, restricted));
+   40:         }, cancellationToken);
+   41: 
+   42:     public Task<SessionValidationResult> ValidateSessionAsync(SessionReference ticket, CancellationToken cancellationToken = default)
+   43:         => CheckAsync(ticket, false, cancellationToken);
+   44: 
+   45:     public Task<SessionValidationResult> TouchSessionAsync(SessionReference ticket, CancellationToken cancellationToken = default)
+   46:         => CheckAsync(ticket, true, cancellationToken);
+   47: 
+   48:     private Task<SessionValidationResult> CheckAsync(SessionReference ticket, bool touch, CancellationToken ct)
+   49:         => RunAsync(async () =>
+   50:         {
+   51:             var user = await LockUserAsync(ticket.UserId, ct);
+   52:             if (user is null) return new SessionValidationResult(false);
+   53:             var row = await LockSessionAsync(ticket, ct);
+   54:             if (row is null) return new SessionValidationResult(false);
+   55:             var now = clock.GetUtcNow().UtcDateTime;
+   56:             var valid = SqlSessionPolicy.Validate(user, row, ticket, now);
+   57:             if (valid is null) return new SessionValidationResult(false);
+   58:             if (!touch) return new SessionValidationResult(true, valid);
+   59:             var window = SqlSessionPolicy.TouchWindow(row, valid, now);
+   60:             var changed = await db.UserSessions.Where(s => s.SessionId == row.SessionId
+   61:                 && s.UserId == ticket.UserId && s.SessionKeyHash == row.SessionKeyHash
+   62:                 && s.RevokedAt == null && s.ExpiresAt == row.ExpiresAt && s.ExpiresAt > now
+   63:                 && s.LastUsedAt == row.LastUsedAt && s.CreatedAt == row.CreatedAt)
+   64:                 .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.LastUsedAt, window.LastUsedAt)
+   65:                     .SetProperty(s => s.ExpiresAt, window.ExpiresAt), ct);
+   66:             if (changed != 1) throw new DbUpdateConcurrencyException("Session changed; roll back the transaction.");
+   67:             return new SessionValidationResult(true, valid with { ExpiresAtUtc = window.ExpiresAt });
+   68:         }, ct);
+   69: 
+   70:     public Task<bool> RevokeSessionAsync(SessionReference ticket, CancellationToken cancellationToken = default)
+   71:         => RunAsync(async () =>
+   72:         {
+   73:             if (await LockUserAsync(ticket.UserId, cancellationToken) is null) return false;
+   74:             var row = await LockSessionAsync(ticket, cancellationToken);
+   75:             if (row is null || row.RevokedAt.HasValue) return false;
+   76:             var now = clock.GetUtcNow().UtcDateTime;
+   77:             var changed = await db.UserSessions.Where(s => s.SessionId == row.SessionId
+   78:                 && s.UserId == ticket.UserId && s.SessionKeyHash == row.SessionKeyHash && s.RevokedAt == null)
+   79:                 .ExecuteUpdateAsync(setters => setters.SetProperty(s => s.RevokedAt, now), cancellationToken);
+   80:             if (changed != 1) throw new DbUpdateConcurrencyException("Session revocation state changed.");
+   81:             await WriteAuditAsync(ticket.UserId, "SESSION_REVOKE", now, cancellationToken);
+   82:             return true;
+   83:         }, cancellationToken);
+   84: 
+   85:     public Task<int> RevokeAllSessionsAsync(long userId, CancellationToken cancellationToken = default)
+   86:         => RunAsync(async () =>
+   87:         {
+   88:             if (await LockUserAsync(userId, cancellationToken) is null) return 0;
+   89:             var now = clock.GetUtcNow().UtcDateTime;
+   90:             var count = await revocations.RevokeAllAsync(userId, now, cancellationToken);
+   91:             if (count > 0) await WriteAuditAsync(userId, "SESSION_REVOKE_ALL", now, cancellationToken);
+   92:             return count;
+   93:         }, cancellationToken);
+   94: 
+   95:     private async Task<User?> LockUserAsync(long userId, CancellationToken ct)
+   96:         => (await db.Users.FromSqlInterpolated($"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}")
+   97:             .AsNoTracking().ToListAsync(ct)).SingleOrDefault();
+   98: 
+   99:     private async Task<UserSession?> LockSessionAsync(SessionReference ticket, CancellationToken ct)
+  100:         => (await db.UserSessions.FromSqlInterpolated(
+  101:             $"SELECT * FROM dbo.user_sessions WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {ticket.UserId} AND session_key_hash = {ticket.KeyHash}")
+  102:             .AsNoTracking().ToListAsync(ct)).SingleOrDefault();
+  103: 
+  104:     private async Task<T> RunAsync<T>(Func<Task<T>> work, CancellationToken ct)
+  105:     {
+  106:         ct.ThrowIfCancellationRequested();
+  107:         var tx = db.Database.CurrentTransaction ?? throw new InvalidOperationException("A caller-owned SQL session transaction is required.");
+  108:         if (!db.Database.IsSqlServer() || tx.GetDbTransaction().IsolationLevel
+  109:             is not (IsolationLevel.ReadCommitted or IsolationLevel.RepeatableRead or IsolationLevel.Serializable))
+  110:             throw new InvalidOperationException("SQL Server locking isolation is required.");
+  111:         if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Session operations require a clean untracked context.");
+  112:         try { return await work(); }
+  113:         catch (Exception e) when (!ct.IsCancellationRequested && SessionStoreUnavailableException.Matches(e))
+  114:         { throw new SessionStoreUnavailableException(e); }
+  115:     }
+  116: 
+  117:     private static AuditLog Audit(long userId, string authenticationEvent, DateTime now)
+  118:         => AuthenticationAudit.ForUser(userId, authenticationEvent == "SESSION_REVOKE" ? "LOGOUT" : "UPDATE",
+  119:             now, new { authenticationEvent });
+  120: 
+  121:     private async Task WriteAuditAsync(long userId, string action, DateTime now, CancellationToken ct)
+  122:     {
+  123:         var audit = Audit(userId, action, now); db.AuditLogs.Add(audit);
+  124:         try { await db.SaveChangesAsync(ct); }
+  125:         finally { db.Entry(audit).State = EntityState.Detached; }
+  126:     }
+  127: }
+

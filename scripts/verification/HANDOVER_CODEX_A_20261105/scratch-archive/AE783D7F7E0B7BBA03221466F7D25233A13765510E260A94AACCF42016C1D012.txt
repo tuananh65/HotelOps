@@ -1,0 +1,49 @@
+﻿{
+    "Task":  "57",
+    "Result":  "PASS",
+    "Head":  "4a187320643d0c82f232c6b9dd5a667b8401c280",
+    "PreexistingModifiedUntrackedFiles":  364,
+    "IntendedEditedDocuments":  [
+                                    "scripts/verification/UserAccountDeactivation/GATE_RESOLUTION_MATRIX.md",
+                                    "scripts/verification/UserAccountDeactivation/REMAINING_BLOCKERS.md",
+                                    "scripts/verification/UserAccountDeactivation/UC006_V1_CONTRACT_MATRIX.md",
+                                    "scripts/verification/UserAccountDeactivation/VERIFICATION_RESULTS.md"
+                                ],
+    "NewDocuments":  [
+                         "scripts/verification/UserAccountDeactivation/UC006_DEFERRED_WORKFLOWS.md",
+                         "scripts/verification/UserAccountDeactivation/UC006_V1_DEPLOYMENT_SCOPE.md"
+                     ],
+    "MissingOrUnexpectedChanges":  [
+
+                                   ],
+    "IndexUnchanged":  true,
+    "WorktreesUnchanged":  true,
+    "LocalLinksChecked":  58,
+    "SourceControllerCount":  18,
+    "WriterFamilies":  8,
+    "DeferredGroups":  10,
+    "D05":  "APPROVED V1 POLICY; no model/writer bypass",
+    "FormalApprovalsNotInferred":  [
+                                       "D01",
+                                       "D02",
+                                       "D03",
+                                       "D04",
+                                       "D06",
+                                       "D07"
+                                   ],
+    "RuntimeSourceChanged":  false,
+    "SQLConnectionsOpened":  0,
+    "Build":  "NOT RUN - documentation only",
+    "Tests":  "NOT RUN - documentation only",
+    "GitDiffCheckExitCode":  0,
+    "GitDiffCheckOutput":  [
+                               "warning: in the working copy of \u0027scripts/verification/StartupSchemaGate/Program.cs\u0027, LF will be replaced by CRLF the next time Git touches it"
+                           ],
+    "ReleaseGates":  "Three PENDING; unchanged",
+    "UC006":  "BLOCKED; no HTTP/DI registration",
+    "ToolingCorrections":  [
+                               "Initial local validator failed to parse a UTF8 non-ASCII regex on Windows PowerShell; replaced regex with ASCII.",
+                               "Initial diff capture treated native Git LF/CRLF warning as terminating error; capture now preserves warning and checks actual exit code.",
+                               "Preflight write-tree could not acquire index.lock; no index write occurred. Read-only index entries used instead."
+                           ]
+}

@@ -1,0 +1,33 @@
+﻿SOURCE: src/HotelOps.Api/Entities/NotificationRecipient.cs
+SHA256: EF26A77EDA1225C019CBE8659663F555D9E7EF2E0C93B330F7DC1E352812B344
+Ranges: 1-100 (original source line numbers)
+    1: using System;
+    2: using System.Collections.Generic;
+    3: 
+    4: namespace HotelOps.Api.Entities;
+    5: 
+    6: public partial class NotificationRecipient
+    7: {
+    8:     public long RecipientId { get; set; }
+    9: 
+   10:     public long NotificationId { get; set; }
+   11: 
+   12:     public long UserId { get; set; }
+   13: 
+   14:     public string DeliveryChannel { get; set; } = null!;
+   15: 
+   16:     public string DeliveryStatus { get; set; } = null!;
+   17: 
+   18:     public DateTime? DeliveredAt { get; set; }
+   19: 
+   20:     public DateTime? ReadAt { get; set; }
+   21: 
+   22:     public DateTime? DismissedAt { get; set; }
+   23: 
+   24:     public string? FailureReason { get; set; }
+   25: 
+   26:     public virtual Notification Notification { get; set; } = null!;
+   27: 
+   28:     public virtual User User { get; set; } = null!;
+   29: }
+

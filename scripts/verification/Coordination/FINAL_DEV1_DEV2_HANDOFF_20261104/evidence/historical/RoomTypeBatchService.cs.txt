@@ -1,0 +1,203 @@
+1: using System.ComponentModel.DataAnnotations;
+2: using System.Data;
+3: using System.Globalization;
+4: using System.Security.Cryptography;
+5: using System.Text.Json;
+6: using HotelOps.Api.Data;
+7: using HotelOps.Api.DTOs.HotelStructure;
+8: using HotelOps.Api.Entities;
+9: using HotelOps.Api.Security.Authorization;
+10: using HotelOps.Api.Services.Authentication;
+11: using HotelOps.Api.Services.Users;
+12: using Microsoft.EntityFrameworkCore;
+13: 
+14: namespace HotelOps.Api.Services.HotelStructure;
+15: 
+16: public enum RoomTypeBatchStatus { Success, SessionInvalid, Forbidden, NotFound, Inactive, Stale, InvalidReference, Duplicate, SchemaRequired, Unavailable, DependenciesExist }
+17: public sealed record RoomTypeBatchResult(RoomTypeBatchStatus Status, object? Value = null, string? ETag = null);
+18: 
+19: public sealed partial class RoomTypeCreationService
+20: {
+21:     // Retains the UC017 SQL session/grant boundary and lock order for every batch operation.
+22:     private async Task<RoomTypeBatchResult> BatchAsync(SessionReference ticket, long sessionId, long? branchId,
+23:         Func<long, CancellationToken, Task<RoomTypeBatchResult>> operation, CancellationToken ct, bool allowScopedList = false,
+24:         IEnumerable<long>? additionalUsers = null, Func<CancellationToken, Task<bool>>? eligibility = null, bool requireRoomTypeSchema = true,
+25:         string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null)
+26:     {
+27:         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
+28:         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+29:             || actor.IsRestricted || ticket.IsRestricted) return new(RoomTypeBatchStatus.SessionInvalid);
+30:         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
+31:             || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
+32:         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+33:         try
+34:         {
+35:             await new UserEligibilityLock(db).LockAsync((additionalUsers ?? []).Append(actor.UserId), ct);
+36:             if (await Gate() is { } initial) return new(initial);
+37:             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);
+38:             if (branchId is { } branch)
+39:             {
+40:                 var parent = await db.Branches.FromSqlInterpolated($"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={branch}")
+41:                     .AsNoTracking().SingleOrDefaultAsync(ct);
+42:                 if (parent == null) return new(RoomTypeBatchStatus.NotFound);
+43:                 if (!parent.IsActive) return new(RoomTypeBatchStatus.Inactive);
+44:             }
+45:             var acquired = await db.Database.SqlQuery<int>($"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource={CatalogLock},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=5000; SELECT @r AS [Value];").ToArrayAsync(ct);
+46:             if (acquired.Length != 1 || acquired[0] < 0) return new(RoomTypeBatchStatus.Unavailable);
+47:             if (requireRoomTypeSchema && await RoomTypeSchema.ReadAsync(db, ct) != RoomTypeContract.BranchV1) return new(RoomTypeBatchStatus.SchemaRequired);
+48:             var result = await operation(actor.UserId, ct);
+49:             if (result.Status is not (RoomTypeBatchStatus.Success or RoomTypeBatchStatus.DependenciesExist)) return result;
+50:             if (await Gate() is { } final) return new(final);
+51:             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);
+52:             if (result.Status == RoomTypeBatchStatus.DependenciesExist) return result;
+53:             await tx.CommitAsync(ct);
+54:             return result;
+55:         }
+56:         catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2)
+57:         { return new(RoomTypeBatchStatus.Unavailable); }
+58:         catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
+59:         { throw new OperationCanceledException("Hotel structure operation cancelled.", error, ct); }
+60:         finally { db.ChangeTracker.Clear(); }
+61: 
+62:         async Task<RoomTypeBatchStatus?> Gate()
+63:         {
+64:             var valid = await sessions.ValidateSessionAsync(ticket, ct);
+65:             if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return RoomTypeBatchStatus.SessionInvalid;
+66:             var access = featurePermission != null ? await featurePermission(ct) : branchId is { } branch
+67:                 ? await permissions.EvaluateBranchAsync(permissionCode, branch, ct)
+68:                 : await permissions.EvaluateGlobalAsync(permissionCode, ct);
+69:             ct.ThrowIfCancellationRequested();
+70:             if (access.IsGranted) return null;
+71:             if (access.Decision == PermissionDecision.Unavailable) return RoomTypeBatchStatus.Unavailable;
+72:             if (branchId == null && allowScopedList)
+73:                 foreach (var candidate in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(ct))
+74:                 {
+75:                     var scoped = await permissions.EvaluateBranchAsync(permissionCode, candidate, ct);
+76:                     if (scoped.Decision == PermissionDecision.Unavailable) return RoomTypeBatchStatus.Unavailable;
+77:                     if (scoped.IsGranted) return null;
+78:                 }
+79:             return RoomTypeBatchStatus.Forbidden;
+80:         }
+81:     }
+82: 
+83:     private static RoomTypeDetailsDto RoomTypeDto(RoomTypeBranchV1 row) => new(row.RoomTypeId, row.BranchId,
+84:         row.TypeCode, row.TypeName, row.Description, row.StandardCleaningMinutes,
+85:         row.DefaultChecklistId, row.StandardCapacity, row.IsActive);
+86: 
+87:     private async Task<string> RoomTypeTagAsync(RoomTypeDetailsDto value, CancellationToken ct)
+88:     {
+89:         var key = value.Id.ToString(CultureInfo.InvariantCulture);
+90:         var revision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "room_types" && x.EntityId == key)
+91:             .Select(x => (long?)x.AuditId).MaxAsync(ct) ?? 0;
+92:         var activeRooms = await db.Rooms.AsNoTracking().CountAsync(x => x.RoomTypeId == value.Id && x.IsActive
+93:             && (value.BranchId == null || x.BranchId == value.BranchId), ct);
+94:         return '"' + Convert.ToHexString(SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { value, revision, activeRooms }, Json))) + '"';
+95:     }
+96: 
+97:     public Task<RoomTypeBatchResult> ReadRoomTypeAsync(SessionReference ticket, long sessionId, long? branchId, long id, CancellationToken ct)
+98:         => EditRoomTypeAsync(ticket, sessionId, branchId, id, null, null, ct);
+99: 
+100:     public Task<RoomTypeBatchResult> UpdateRoomTypeAsync(SessionReference ticket, long sessionId, long branchId, long id,
+101:         string expected, UpdateRoomTypeRequest request, CancellationToken ct)
+102:     {
+103:         if (!HotelStructureUpdateService.IsStrongTag(expected)) throw new ValidationException("A single strong ETag is required.");
+104:         var name = request.Name?.Trim(); var description = request.Description?.Trim();
+105:         var code = request.Code?.Trim().ToUpperInvariant();
+106:         if (code != null && (code.Length is < 1 or > 30 || !char.IsAsciiLetterOrDigit(code[0])
+107:             || code.Any(c => !char.IsAsciiLetterOrDigit(c) && c is not '_' and not '-')))
+108:             throw new ValidationException("Invalid room type code.");
+109:         if (string.IsNullOrEmpty(name) || name.Length > 150 || name.Any(char.IsControl)
+110:             || description?.Length > 4000 || description?.Any(c => char.IsControl(c) && c is not '\r' and not '\n' and not '\t') == true
+111:             || request.StandardCleaningMinutes <= 0 || request.DefaultChecklistId <= 0) throw new ValidationException("Invalid room type fields.");
+112:         return EditRoomTypeAsync(ticket, sessionId, branchId, id, expected, request with { Name = name, Description = string.IsNullOrEmpty(description) ? null : description, Code = code }, ct);
+113:     }
+114: 
+115:     private Task<RoomTypeBatchResult> EditRoomTypeAsync(SessionReference ticket, long sessionId, long? branchId, long id,
+116:         string? expected, UpdateRoomTypeRequest? input, CancellationToken ct)
+117:     {
+118:         if (id <= 0) throw new ValidationException("Id must be positive.");
+119:         return BatchAsync(ticket, sessionId, branchId, async (actor, token) =>
+120:         {
+121:             if (branchId == null && !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token)).IsGranted)
+122:                 return new(RoomTypeBatchStatus.Forbidden);
+123:             var row = await db.BranchRoomTypes.AsNoTracking().SingleOrDefaultAsync(x => x.RoomTypeId == id && x.BranchId == branchId, token);
+124:             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+125:             var before = RoomTypeDto(row); var tag = await RoomTypeTagAsync(before, token);
+126:             if (input == null) return new(RoomTypeBatchStatus.Success, new RoomTypeListItem(before,
+127:                 await db.Rooms.CountAsync(x => x.RoomTypeId == id && (branchId == null || x.BranchId == branchId) && x.IsActive, token), branchId != null && before.IsActive), tag);
+128:             if (!before.IsActive) return new(RoomTypeBatchStatus.Inactive);
+129:             if (!string.Equals(expected, tag, StringComparison.Ordinal)) return new(RoomTypeBatchStatus.Stale);
+130:             var now = clock.GetUtcNow().UtcDateTime;
+131:             if (!await ChecklistEligible(input.DefaultChecklistId, branchId!.Value, id, token)) return new(RoomTypeBatchStatus.InvalidReference);
+132:             var code = input.Code ?? before.Code;
+133:             if (await db.Database.SqlQuery<int>($"SELECT CONVERT(int,COUNT(*)) AS [Value] FROM dbo.room_types WHERE room_type_id<>{id} AND (branch_id={branchId} OR branch_id IS NULL) AND UPPER(LTRIM(RTRIM(type_code)))={code}").SingleAsync(token) != 0)
+134:                 return new(RoomTypeBatchStatus.Duplicate);
+135:             // Ownership and capacity are immutable. No Room or historical checklist FK is changed.
+136:             await db.Database.ExecuteSqlInterpolatedAsync($"/* UC018:Update */ UPDATE dbo.room_types SET type_code={code},type_name={input.Name},description={input.Description},standard_cleaning_minutes={input.StandardCleaningMinutes},default_checklist_id={input.DefaultChecklistId} WHERE room_type_id={id} AND branch_id={branchId}", token);
+137:             var after = before with { Code = code, Name = input.Name, Description = input.Description, StandardCleaningMinutes = input.StandardCleaningMinutes, DefaultChecklistId = input.DefaultChecklistId };
+138:             await BatchAuditAsync(actor, branchId!.Value, "room_types", id, before, after,
+139:                 code == before.Code ? ["name", "description", "standardCleaningMinutes", "defaultChecklistId"] : ["code", "name", "description", "standardCleaningMinutes", "defaultChecklistId"], token);
+140:             return new(RoomTypeBatchStatus.Success, after, await RoomTypeTagAsync(after, token));
+141:         }, ct);
+142:     }
+143: 
+144:     public Task<RoomTypeBatchResult> ListRoomTypesAsync(SessionReference ticket, long sessionId, long? branchId,
+145:         bool? active, string? search, int page, int pageSize, CancellationToken ct, string sort = "code", bool descending = false)
+146:     {
+147:         search = search?.Trim();
+148:         if (page < 1 || pageSize is < 1 or > 100 || page > int.MaxValue / pageSize || search?.Length > 150 || search?.Any(char.IsControl) == true
+149:             || sort is not ("code" or "name" or "status"))
+150:             throw new ValidationException("Invalid list filters or pagination.");
+151:         return BatchAsync(ticket, sessionId, branchId, async (_, token) =>
+152:         {
+153:             var rows = db.BranchRoomTypes.AsNoTracking();
+154:             var visible = new List<long>();
+155:             var global = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token);
+156:             if (global.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
+157:             if (branchId == null && !global.IsGranted)
+158:             {
+159:                 foreach (var candidate in await db.Branches.AsNoTracking().Select(x => x.BranchId).ToArrayAsync(token))
+160:                 {
+161:                     var access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", candidate, token);
+162:                     if (access.Decision == PermissionDecision.Unavailable) return new(RoomTypeBatchStatus.Unavailable);
+163:                     if (access.IsGranted) visible.Add(candidate);
+164:                 }
+165:                 rows = rows.Where(x => x.BranchId != null && visible.Contains(x.BranchId.Value));
+166:             }
+167:             if (branchId != null) rows = rows.Where(x => x.BranchId == branchId);
+168:             if (active != null) rows = rows.Where(x => x.IsActive == active);
+169:             if (!string.IsNullOrEmpty(search)) rows = rows.Where(x => x.TypeCode.Contains(search) || x.TypeName.Contains(search));
+170:             var total = await rows.CountAsync(token);
+171:             var ordered = (sort, descending) switch
+172:             {
+173:                 ("name", false) => rows.OrderBy(x => x.TypeName), ("name", true) => rows.OrderByDescending(x => x.TypeName),
+174:                 ("status", false) => rows.OrderBy(x => x.IsActive), ("status", true) => rows.OrderByDescending(x => x.IsActive),
+175:                 (_, true) => rows.OrderByDescending(x => x.TypeCode), _ => rows.OrderBy(x => x.TypeCode)
+176:             };
+177:             var slice = await ordered.ThenBy(x => x.BranchId).ThenBy(x => x.RoomTypeId)
+178:                 .Skip((page - 1) * pageSize).Take(pageSize).TagWith("UC142:Page").ToArrayAsync(token);
+179:             var items = new List<RoomTypeListItem>();
+180:             foreach (var row in slice) items.Add(new(RoomTypeDto(row), await db.Rooms.CountAsync(x => x.RoomTypeId == row.RoomTypeId && x.IsActive
+181:                 && (row.BranchId == null || x.BranchId == row.BranchId), token), row.BranchId != null && row.IsActive));
+182:             foreach (var branch in visible)
+183:             {
+184:                 var access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branch, token);
+185:                 if (!access.IsGranted) return new(access.Decision == PermissionDecision.Unavailable ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Forbidden);
+186:             }
+187:             if (branchId == null && global.IsGranted && !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", token)).IsGranted)
+188:                 return new(RoomTypeBatchStatus.Forbidden);
+189:             return new(RoomTypeBatchStatus.Success, new RoomTypePage(items, total, page, pageSize, branchId, active, search, sort, descending));
+190:         }, ct, allowScopedList: true);
+191:     }
+192: 
+193:     private async Task BatchAuditAsync(long actor, long branch, string entity, long id, object? before, object after, string[] fields, CancellationToken ct)
+194:     {
+195:         db.Add(new AuditLog { ActorUserId = actor, BranchId = branch, EntityType = entity, EntityId = id.ToString(CultureInfo.InvariantCulture),
+196:             Action = before == null ? "CREATE" : "UPDATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
+197:             OldValues = before == null ? JsonSerializer.Serialize(new { entity = (object?)null }, Json) : JsonSerializer.Serialize(before, Json),
+198:             NewValues = JsonSerializer.Serialize(after, Json), ChangedFields = JsonSerializer.Serialize(fields, Json) });
+199:         try { await db.SaveChangesAsync(ct); }
+200:         finally { db.ChangeTracker.Clear(); }
+201:     }
+202: }
+203: 

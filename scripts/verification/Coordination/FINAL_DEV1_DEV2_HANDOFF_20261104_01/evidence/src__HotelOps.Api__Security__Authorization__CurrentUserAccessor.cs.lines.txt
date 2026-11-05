@@ -1,0 +1,30 @@
+﻿SOURCE: src/HotelOps.Api/Security/Authorization/CurrentUserAccessor.cs
+SHA256: 8C272556558A9AA55FFC682733242368AFD5C261B55EC8B6D86A43D692649FA0
+Ranges: 1-100 (original source line numbers)
+    1: using HotelOps.Api.Services.Authentication;
+    2: 
+    3: namespace HotelOps.Api.Security.Authorization;
+    4: 
+    5: /// <summary>Reads request-local authenticated identity; does not grant permissions.</summary>
+    6: public sealed class CurrentUserAccessor(IHttpContextAccessor httpContextAccessor) : ICurrentUserAccessor
+    7: {
+    8:     public bool TryGetCurrentUser(out CurrentUserInfo user)
+    9:     {
+   10:         user = default;
+   11:         var context = httpContextAccessor.HttpContext;
+   12:         if (context is null
+   13:             || !HotelOpsCookieTicket.TryRead(context.User, out var reference, out var sessionId)
+   14:             || reference is null
+   15:             || context.Items[typeof(SessionSnapshot)] is not SessionSnapshot session
+   16:             || session.UserId != reference.UserId
+   17:             || session.SessionId != sessionId
+   18:             || session.IsRestricted != reference.IsRestricted
+   19:             || session.CreatedAtUtc != reference.CreatedAtUtc)
+   20:             return false;
+   21: 
+   22:         // Snapshot is supplied by cookie validation in this request; no SQL revalidation.
+   23:         user = new(session.UserId, session.SessionId, session.IsRestricted);
+   24:         return true;
+   25:     }
+   26: }
+

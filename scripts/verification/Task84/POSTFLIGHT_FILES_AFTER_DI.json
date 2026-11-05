@@ -1,0 +1,12 @@
+{
+  "checkedFiles": 25596,
+  "changes": [
+    {
+      "path": "src/HotelOps.Api/Program.cs",
+      "bytesUnchanged": false,
+      "lastWriteUnchanged": false
+    }
+  ],
+  "readErrors": [],
+  "finishedUtc": "2026-11-04T04:57:07.6495952+00:00"
+}

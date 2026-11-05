@@ -1,0 +1,34 @@
+1: ﻿using System;
+2: using System.Collections.Generic;
+3: 
+4: namespace HotelOps.Api.Entities;
+5: 
+6: public partial class Notification
+7: {
+8:     public long NotificationId { get; set; }
+9: 
+10:     public string NotificationType { get; set; } = null!;
+11: 
+12:     public string Title { get; set; } = null!;
+13: 
+14:     public string Message { get; set; } = null!;
+15: 
+16:     public string Priority { get; set; } = null!;
+17: 
+18:     public string? SourceType { get; set; }
+19: 
+20:     public long? SourceId { get; set; }
+21: 
+22:     public string? ActionUrl { get; set; }
+23: 
+24:     public long? CreatedBy { get; set; }
+25: 
+26:     public DateTime CreatedAt { get; set; }
+27: 
+28:     public DateTime? ExpiresAt { get; set; }
+29: 
+30:     public virtual User? CreatedByNavigation { get; set; }
+31: 
+32:     public virtual ICollection<NotificationRecipient> NotificationRecipients { get; set; } = new List<NotificationRecipient>();
+33: }
+34: 
