@@ -1,0 +1,70 @@
+{
+  "mode": "REAL_BROWSER_GATEWAY_VITE_HTTPS_API_SQL",
+  "interception": false,
+  "privateKeyExport": false,
+  "target": "HotelOps_Canonical_20261105_180000_f040001_Fresh",
+  "completed": true,
+  "checks": [
+    {
+      "name": "rooms-live",
+      "authenticated": 200,
+      "anonymous": 401,
+      "denied": 403,
+      "foreignBranch": 403,
+      "invalidQuery": 400,
+      "totalCount": 25,
+      "pageSizes": [
+        20,
+        5
+      ],
+      "browserMatchesSqlFixture": true,
+      "empty": true,
+      "realBrowserOfflineFailure": true,
+      "noMockFallback": true
+    },
+    {
+      "name": "test-result",
+      "status": "passed"
+    },
+    {
+      "name": "uc032-live",
+      "read": 200,
+      "validPut": 200,
+      "stalePut": 412,
+      "missingVersion": 428,
+      "invalidInput": 400,
+      "csrfRejected": 400,
+      "anonymous": 401,
+      "otherAssignee": 403,
+      "foreignBranch": 403,
+      "missingEvidence": 404,
+      "inactivePhase": 409,
+      "stateAt100": "IN_PROGRESS",
+      "percentAfterConflict": 40,
+      "newLogs": 2,
+      "newAudits": 2,
+      "evidenceFilesPrivate": true,
+      "secondClientPuts": 1,
+      "sqlPersistence": true
+    },
+    {
+      "name": "test-result",
+      "status": "passed"
+    },
+    {
+      "name": "suite-result",
+      "completed": true,
+      "authenticationMethod": "Real API login, shared browser cookie jar; frontend SignIn UI not certified"
+    }
+  ],
+  "tests": [
+    {
+      "test": "FS004 real room directory -> Vite proxy -> SQL -> React; scope and pagination",
+      "status": "passed"
+    },
+    {
+      "test": "FS004 UC032 real UI save100, SQL audit/evidence and two-client stale412",
+      "status": "passed"
+    }
+  ]
+}

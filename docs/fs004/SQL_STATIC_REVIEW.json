@@ -1,0 +1,121 @@
+{
+  "approvedDatabase": "HotelOps_Canonical_20261105_180000_f040001_Fresh",
+  "count": 18,
+  "status": "STATIC_REVIEW_PASS_NOT_RUNTIME_ACCEPTANCE",
+  "initialScannerIssue": "Unanchored USE regex matched prose in SQL strings; corrected to statement boundaries",
+  "checks": [
+    {
+      "path": "scripts/database/release/01_HotelOps_Full_Schema.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [
+        "master",
+        "HotelOps_Canonical_20261105_180000_f040001_Fresh"
+      ],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [
+        "HotelOps_Canonical_20261105_180000_f040001_Fresh"
+      ],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "database/patches/20261019_inventory_contract.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "database/patches/20261020_material_request_contract.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "database/patches/20261021_replenishment_contract.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "database/patches/20261022_maintenance_material_usage_contract.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/canonical/01_Canonical_Seed.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/canonical/02_Canonical_Verify.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/verification/UserProfileUpdate/rowversion-forward.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/uc017/06_UC017_Verify.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/checklists/01_Checklists.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/checklists/02_Verify.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/housekeeping/01_Housekeeping.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/housekeeping/02_Verify.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/progress/01_Progress.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    },
+    {
+      "path": "scripts/database/release/progress/02_Verify.sql",
+      "hashMatched": true,
+      "derivedUseTargets": [],
+      "serverScopeMutation": false
+    }
+  ]
+}
