@@ -1,0 +1,52 @@
+[
+  {
+    "path": "frontend/playwright.dev1.config.ts",
+    "content": "normalized Git staged blob",
+    "sha256": "114789ebdfeaab98fca0438adede284e0eab2952ba3ec505ee44ab215b16f66e"
+  },
+  {
+    "path": "frontend/playwright.fs006-live.config.ts",
+    "content": "normalized Git staged blob",
+    "sha256": "85f0cd9fa594f913baca3931ff0c46d9afee14d280a2155f60d04a066539300c"
+  },
+  {
+    "path": "frontend/src/api/dev1/cleaningAssignment.ts",
+    "content": "normalized Git staged blob",
+    "sha256": "492a4490deb59a8913aecd3b25bd1cba4f19b8f9e8f47fe1bd32f55e1f5e9e41"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+    "content": "normalized Git staged blob",
+    "sha256": "32eb3737afdead567b6240fd3f776efc7a4e04f1ae97cb97ec7981e4060ad9fc"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx",
+    "content": "normalized Git staged blob",
+    "sha256": "a028e498b6c2318a6dce122e35f70ec692f8417268ad7183bd5cf1c931a97e80"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+    "content": "normalized Git staged blob",
+    "sha256": "632fa9260e5ce715ff3ca2884f4a1f925758877b002d4e8da019688f9589808d"
+  },
+  {
+    "path": "frontend/tests/cleaning-assignment.spec.ts",
+    "content": "normalized Git staged blob",
+    "sha256": "4d5a47ce6ba803317f2780292f66d199696c7f467e11c2925048d20ea911a132"
+  },
+  {
+    "path": "frontend/tests/cleaning-assignment.test.mjs",
+    "content": "normalized Git staged blob",
+    "sha256": "193e0824ecfddbdbab70bf0ed78e60caa96e16b09f758e9fb13e1533b76ec83a"
+  },
+  {
+    "path": "frontend/tests/fs006-live.spec.ts",
+    "content": "normalized Git staged blob",
+    "sha256": "c62244ddac000d731b73fd88c92c5984eb357ebca1726c2f368a2e875fcb87ee"
+  },
+  {
+    "path": "tests/HotelOps.Dev1.RegressionTests/CleaningLifecycleContractTests.cs",
+    "content": "normalized Git staged blob",
+    "sha256": "286bacc36f82b1f6b96e144338073ddd3a27531a626076bf2442c98581daecfa"
+  }
+]

@@ -1,0 +1,69 @@
+{
+  "mode": "REAL_HTTPS_API_SQL_READ_ONLY",
+  "interception": false,
+  "businessWrites": false,
+  "writeStatus": "LIVE_WRITE_BLOCKED_APPROVAL",
+  "checks": [
+    {
+      "name": "planning-real-GET",
+      "data": {
+        "anonymous": 401,
+        "missingPermission": 403,
+        "foreignBranch": 403,
+        "missingTask": 404,
+        "invalidPage": 400,
+        "valid": 200,
+        "total": 2,
+        "paging": true,
+        "searchEmpty": true,
+        "etag": true,
+        "uiRead": true,
+        "mutationDisabled": true
+      }
+    },
+    {
+      "name": "test-result",
+      "data": "passed"
+    },
+    {
+      "name": "read-regression",
+      "data": {
+        "uc032Read": 200,
+        "monitorRead": 200,
+        "percent": 40,
+        "logCount": 4,
+        "auditCount": 4,
+        "detailToPlanning": true,
+        "createBlocked": true
+      }
+    },
+    {
+      "name": "test-result",
+      "data": "passed"
+    },
+    {
+      "name": "unchanged-retained-task-SQL",
+      "data": {
+        "result": "READ_ONLY_OBSERVATION",
+        "status": "IN_PROGRESS",
+        "percent": 40,
+        "logCount": 4,
+        "auditCount": 4,
+        "evidenceCount": 2,
+        "evidenceFilesPrivate": true,
+        "ownerIsAuthor": true,
+        "auditMatches": true
+      }
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS006 assignment planning real GET: auth, scope, DTO, paging, filters and blocked writes",
+      "status": "passed"
+    },
+    {
+      "name": "FS006 preserves real Monitor/UC032 reads and does not offer mock create",
+      "status": "passed"
+    }
+  ]
+}

@@ -6,6 +6,7 @@ export default defineConfig({
     "dev1-room-read.spec.ts",
     "cleaning-progress.spec.ts",
     "cleaning-monitor.spec.ts",
+    "cleaning-assignment.spec.ts",
   ],
   workers: 1,
   use: {

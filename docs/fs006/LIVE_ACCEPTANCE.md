@@ -1,0 +1,13 @@
+# Live acceptance
+
+**LIVE_WRITE_BLOCKED_APPROVAL** for new Create/Assign operations. User FS006 explicitly limits old FS004 approval; no request for broad writes is inferred. No reset/drop/reseed/DDL or Create/Assign calls. Contracts are also BLOCKED_CONTRACT, so no write approval is requested for an implementation that is not ready.
+
+Read-only trial preflight verified exact retained database HotelOps_Canonical_20261105_180000_f040001_Fresh on local SQLEXPRESS, owner marker DEV1_FS004,8-byte user rowversion,3 optional markers/6 progress tables, existing trusted HTTPS certificate. Actual API startup validators/DI must pass before read suite. Shared config/User Secrets remain unchanged. Local SQL certificate exception stays scoped to this existing synthetic trial; browser HTTPS validation remains enabled.
+
+Read suite: frontend/playwright.fs006-live.config.ts + tests/fs006-live.spec.ts. Explicit FS006_LIVE_ENABLED=APPROVED_FS006_READ_ONLY; NODE_EXTRA_CA_CERTS points at existing FS004 private public PEM. Existing Start/Stop-LiveEnvironment.ps1 launcher retains correct trial/owner/ports and PID/start-time cleanup. Credentials are captured only in child memory via DPAPI FS004 IPC, never terminal/files/evidence. CSRF/login/session calls are real; normal auth session writes are distinct from prohibited business writes.
+
+Planning acceptance covers anonymous401, owner missing CLEANING_ASSIGN403, supervisor200, branch isolation403, missing404, invalid pagination400, ETag format, search/empty/paging, correct task identity/state and React rendering. Monitor+UC032 GET regression compares40% and4logs/4audits with direct existing SQL helper; no live PUT. Retained task observation before/after must equal. See LIVE_RESULTS.json for actual run outcomes; no historical pass substituted.
+
+Unit/interception validate request mapping, malformed/foreign DTO rejection, cancellation/stale scope, error handling, and zero mutations from draft/create. They are VERIFIED_WITH_MOCK, not SQL write acceptance. No duplicate-write/concurrency/audit rollback/notification delivery/frontend post-write refresh is verified; each awaits approved contracts and bounded live write scope. No new fixture for on-shift assignment is fabricated.
+
+Actual result: PASS2/2 in29.2s. Planning returned two candidates; anonymous401, missing permission403, foreign branch403, missing task404, invalid page400, valid200. React displayed real planning, search empty, Save disabled. Monitor→planning navigation and UC032 read passed. Independent retained-task SQL before/after equal: IN_PROGRESS,40%,4progress logs,4task audits,2evidence files with expected owner/branch. Three owned processes stopped using PID/start-time receipt; database/private fixtures retained.

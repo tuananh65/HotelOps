@@ -1,0 +1,13 @@
+﻿# Notification dependencies
+
+**UC029 BLOCKED_CONTRACT.** Current HousekeepingWriteDto defaults Notification=NOT_INTEGRATED. Source search finds entities/mappings, but no approved current production publication/replay/dispatch integration for cleaning assignment. No new publisher/notification table/event enum/source adapter is created by DEV1.
+
+SRS UC029 step7 requires in-app notification to newly assigned housekeeper. Notification-not-sent alternative retains assignment and queues retry, MSG21. Shared coordination contract requires durable publication intent in caller transaction before business commit; delivery failure after commit is retried. Missing mandatory intent/atomicity is not the same as asynchronous delivery failure, and cannot be replaced by a success flag. Enqueue alone does not certify readable inbox delivery.
+
+Historical exact contract at28f0a5e4f582bc56ba101b48915d33baadeb7b95: scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/DEV1_NOTIFICATION_INTEGRATION_CONTRACT.md (read via git show; no archive copied/applied). Task73 conditional approval explicitly keeps notification-dependent UC029/041/046 partial until genuine delivery/retry integration verifies.
+
+DEV2/team must supply and approve exact callable publisher/transaction boundary, durable actor+operation identity/fingerprint and replay behavior, event/source revision/immutable newly persisted AssignmentId and recipient, deduplication, real inbox linkage, retry/claim/poison/restart recovery and delivery proof. Same scoped context/physical transaction, one outer commit; no independent commit/network send while source transaction is open. Fail mandatory intent → rollback source/assignment/audit. Lost response/ambiguous commit → durable operation resolution, not client auto retry.
+
+Recipient is persisted new AssigneeUserId, not broadcast or current latest assignment at delivery time. Existing HK_STAFF CLEANING_VIEW OWN cannot read supervisor branch/global monitor; UC032 read requires IN_PROGRESS and thus is not an ASSIGNED notification destination. Recipient-readable own source and explicit-recipient authority evaluator need approved contract; IPermissionService ambient producer identity cannot authorize recipient access. Do not fake HttpContext, borrow supervisor privileges or grant broad monitor access.
+
+UC028 alone has no GBR010 producer in its main flow. UC030 needs prior+new assignee notification; UC034 needs approved supervisor routing; Department.ManagerUserId is not an approved branch-wide Department Head relationship. Pending Reception/DH revisions are untouched. No automatic external message/handoff was sent.

@@ -1,0 +1,48 @@
+{
+  "baseline": "680f69026644ee3b6201f695f0768de871e2bb0a",
+  "branch": "feature/dev1-room-ops",
+  "status": "PARTIAL_BLOCKED_CONTRACT",
+  "implementation": {
+    "planningRead": true,
+    "localDraft": true,
+    "createWrite": false,
+    "assignmentWriteIntegration": false,
+    "productionBackendChanged": false,
+    "sharedInfrastructureChanged": false
+  },
+  "verification": {
+    "backendBuild": "PASS",
+    "solutionTest": "EXIT0_NO_TEST_PROJECT",
+    "xunit": {
+      "passed": 107,
+      "failed": 0
+    },
+    "frontendBuild": "PASS",
+    "node": {
+      "passed": 39,
+      "failed": 0
+    },
+    "browserInterception": {
+      "passed": 39,
+      "failed": 0
+    },
+    "liveReadOnly": {
+      "passed": 2,
+      "failed": 0
+    },
+    "liveNewWrites": "LIVE_WRITE_BLOCKED_APPROVAL",
+    "UCcredit": 0
+  },
+  "remaining": [
+    "UC028 Room Lifecycle/current-cycle/block protocol",
+    "UC029 mandatory Notification transaction/replay/delivery/recipient-read contract",
+    "separate bounded SQL Create/Assign write approval"
+  ],
+  "warnings": [
+    "NU1900 vulnerability metadata unavailable",
+    "React Router use-client ignored",
+    "Vite chunks above500kB",
+    "NO_COLOR/FORCE_COLOR precedence",
+    "LF/CRLF checkout normalization"
+  ]
+}

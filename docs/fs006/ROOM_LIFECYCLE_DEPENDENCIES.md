@@ -1,0 +1,13 @@
+﻿# Room Lifecycle dependencies
+
+**UC028 / UC030 / UC031 / UC034 BLOCKED_CONTRACT.** SRS GBR043/044 requires room recalculation from authoritative current cycle with effective-block precedence; generated Room.OperationalStatus is a legacy persisted value, not an accepted readiness reducer. Existing RoomsController directory DTO cannot be used as a room-state write contract.
+
+Current CleaningTask EF entity maps status with default PENDING, room/type/priority/due/timestamps but not all optional workflow/rowversion columns. Task73 additive schema provides nullable workflow_status + row_version under prior conditional approval; this does not approve automatic legacy adoption, current-cycle selection or new transitions. Reference/status names or SQL CHECK membership are not enough evidence. No generated entities, DbContext, migrations or SQL tables are modified by FS006.
+
+UC028 requires active room and one open task per room (SRS not Completed/Cancelled), new Pending Assignment + calculated Pending Cleaning unless Blocked + status history/audit atomically. Exact terminal predicate across legacy/coarse/workflow states, authoritative cycle identity, room lock protocol/all writer cooperation, effective manual/incident/maintenance blocks, history shape/reason/time and conflict behavior are unresolved. Creation/duplicate races cannot be certified by a preliminary Any() check or client disabling a button.
+
+UC029 initial assignment source does not recalculate room and Task73 intentionally avoided room-state writes; its immediate blocker is mandatory notification/source-read/replay. UC030/031/034 additionally change time/source/readiness, so need exact coordinated transaction/lock/source ordering. Current-cycle pass/fail/inspection conclusion and actual final-completer identity are not inferred from progress100, latest assignee or WorkInterval.ClosedBy.
+
+Immutable coordination reference: DEV1_ROOM_WORKDAY_SHARED_CONTRACT.md at28f0a5e4f582bc56ba101b48915d33baadeb7b95 under scripts/verification/Coordination/FINAL_DEV1_DEV2_HANDOFF_20261104_02/. This is a dependency handoff, not permission to apply pending shared diffs. DEV2 block writers/maintenance protocols and DEV3 Room/Workday ownership must participate in any shared change. No implementation is integrated from another worktree.
+
+Before coding a create writer: approve exact lifecycle reducer/source identity and allowed inputs; retained lock order and concurrent writer cooperation; legacy mapping/duplicate predicate; atomic task/items/room/history/audit outcomes; schema impact (if any) and test plan. Then obtain separate bounded synthetic SQL write acceptance. This sequence is not bypassed by FS004's old progress fixture approval.

@@ -1,0 +1,9 @@
+﻿# FS007 recommendation
+
+1. **Resolve UC028 Room Lifecycle first:** exact shared contract/diff for current-cycle/effective blocks/open-task duplicate predicate, permitted source statuses and resource authorization, atomic room/task/items/history/audit and deterministic locks. Existing catalog CLEANING_ASSIGN may cover create but its exact binding must be confirmed; do not add CLEANING_CREATE.
+2. **Resolve UC029 notification independently:** approved DEV2 durable producer/transaction/replay/inbox/retry contract, recipient-specific readable ASSIGNED task, explicit-user authorization and exact event schema. Preserve existing initial-assign semantics and do not reuse it for reassign.
+3. Implement the first genuinely ready write slice with backend DTO+service and existing transport fresh CSRF/exact ETag where required. Keep production UI unavailable until mandatory dependencies exist. Test client/server400/401/403/404/409/412/428 according to actual route contract, no unsafe auto retry.
+4. Submit a concrete bounded SQL approval: exact synthetic room/task/user IDs, database identity, allowed tables/operations, expected before/after/audit/notification facts, duplicate/concurrency/rollback cases and cleanup ownership. FS004 trial retention is not authorization for new Create/Assign writes.
+5. After approved acceptance: refresh real list/detail and inspect readable notification delivery; only then consider UC credit. Then plan Start with approved Workday/A1/source ordering, Complete/inspection and reassignment/rework as separate slices.
+
+Pending approvals: exact shared lifecycle/publisher/source-read/replay diffs and separate live write scope. FS006 asks for none blindly: current deliverables are reviewable blocked-contract analysis, tests and GET planning/draft preparation. DEV3 auth/RBAC/Room/Workday and DEV2 Notification ownership remain respected. No pending proposal is applied.

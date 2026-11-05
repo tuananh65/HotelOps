@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   readCleaning,
@@ -78,6 +78,13 @@ export default function CleaningMonitorDetail({
             <Link to={`/cleaning/tasks/${id}?branchId=${branch}`}>
               Mở UC032 · tiến độ của người được phân công
             </Link>
+          )}
+          {kind === "cleaning" && (
+            <p>
+              <Link to={`/cleaning/assignment?branchId=${branch}&taskId=${id}`}>
+                Xem phương án phân công
+              </Link>
+            </p>
           )}
           <h2>Phân công ({result.assignmentCount})</h2>
           {result.assignments.length === 0 && (

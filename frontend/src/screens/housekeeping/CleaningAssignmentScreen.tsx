@@ -1,134 +1,227 @@
-import { useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
-import { domainFor, pathFor } from "../../domain";
-import { t, useLanguage } from "../../i18n";
-import * as service from "../../services";
-import { Form, PageHeader, name, notify, useDB } from "../../ui";
+import { useEffect, useState, type FormEvent } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+  readAssignmentPlan,
+  buildAssignmentDraft,
+  assignmentError,
+  type AssignmentPlan,
+} from "../../api/dev1/cleaningAssignment";
+import { PageHeader } from "../../ui";
 export default function CleaningAssignmentScreen() {
-  useLanguage();
-  const id: number = 27;
-  const db = useDB();
-  const d = domainFor(id);
-  const [params] = useSearchParams();
-  const [chosen, setChosen] = useState(
-    params.get("record") || service.visible(d.key)[0]?.id || "",
-  );
-  const nav = useNavigate();
-  const r = service.visible(d.key).find((r) => r.id === chosen);
-  const allowedRoles =
-    d.key === "cleaning"
-      ? ["Housekeeping Staff"]
-      : d.key === "incidents"
-        ? ["Maintenance Staff", "Maintenance Lead"]
-        : ["Housekeeping Staff", "Maintenance Staff", "Storekeeper"];
-  const employees = db.users.filter(
-    (u) =>
-      u.status === "Active" &&
-      service.inScope(u) &&
-      u.roles.some((role: string) => allowedRoles.includes(role)) &&
-      (!r ||
-        (u.branch === r.branch &&
-          (d.key === "incidents" || u.department === r.department))),
-  );
+  const [params, setParams] = useSearchParams();
+  const branch = params.get("branchId") || "",
+    task = params.get("taskId") || params.get("record") || "",
+    page = Number(params.get("page") || "1"),
+    search = params.get("search") || "";
+  const key = JSON.stringify([branch, task, page, search]);
+  const [result, setResult] = useState<{
+      key: string;
+      data: AssignmentPlan;
+    } | null>(null),
+    [error, setError] = useState<{ key: string; message: string } | null>(null);
+  const [loading, setLoading] = useState(false),
+    [retry, setRetry] = useState(0),
+    [draft, setDraft] = useState<{ key: string; message: string } | null>(null);
+  useEffect(() => {
+    const abort = new AbortController();
+    setResult(null);
+    setError(null);
+    setDraft(null);
+    setLoading(Boolean(branch && task));
+    if (branch && task)
+      readAssignmentPlan(branch, task, page, search, abort.signal)
+        .then((data) => {
+          if (!abort.signal.aborted) setResult({ key, data });
+        })
+        .catch((e) => {
+          if (!abort.signal.aborted)
+            setError({ key, message: assignmentError(e) });
+        })
+        .finally(() => {
+          if (!abort.signal.aborted) setLoading(false);
+        });
+    return () => abort.abort();
+  }, [branch, task, page, search, key, retry]);
+  function load(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const next = new URLSearchParams();
+    for (const k of ["branchId", "taskId", "search"]) {
+      const v = String(form.get(k) || "").trim();
+      if (v) next.set(k, v);
+    }
+    next.set("page", "1");
+    setParams(next);
+    setRetry((v) => v + 1);
+  }
+  function changePage(n: number) {
+    const next = new URLSearchParams(params);
+    next.set("page", String(n));
+    setParams(next);
+  }
+  const data = result?.key === key ? result.data : null;
+  function preview(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    if (!data) return;
+    const form = new FormData(e.currentTarget);
+    try {
+      const value = buildAssignmentDraft(
+        data,
+        String(form.get("assigneeId") || ""),
+        String(form.get("dueAt") || ""),
+        String(form.get("reason") || ""),
+      );
+      setDraft({
+        key,
+        message: `Bản nháp hợp lệ về định dạng: nhân viên ${value.assigneeId}, hạn ${value.dueAt}. Chưa gửi hoặc lưu phân công; điều kiện ca làm sẽ được máy chủ kiểm tra khi chức năng được mở.`,
+      });
+    } catch (e) {
+      setDraft({
+        key,
+        message: e instanceof Error ? e.message : "Bản nháp không hợp lệ.",
+      });
+    }
+  }
   return (
     <>
-      <PageHeader id={id} />
-      <div className="detail-grid">
-        <section className="panel">
-          <h3>{t("Select work")}</h3>
-          <select
-            aria-label={t("Work record")}
-            value={chosen}
-            onChange={(e) => setChosen(e.target.value)}
-          >
-            <option value="">{t("Select a task")}</option>
-            {service
-              .visible(d.key)
-              .filter(
-                (r) =>
-                  ![
-                    "Closed",
-                    "Completed",
-                    "Cancelled",
-                    "Pending Verification",
-                    "Pending Inspection",
-                  ].includes(r.status),
-              )
-              .map((r) => (
-                <option key={r.id} value={r.id}>
-                  {t(r.name)} {t("·")}
-                  {t(r.status)}
-                </option>
+      <PageHeader id={27} />
+      <p role="status">
+        Chỉ xem dữ liệu và chuẩn bị bản nháp. Chưa thể lưu phân công vì thông
+        báo bắt buộc chưa được tích hợp.
+      </p>
+      <form key={key} className="filter-bar" onSubmit={load}>
+        <label>
+          Chi nhánh (ID)
+          <input name="branchId" required defaultValue={branch} />
+        </label>
+        <label>
+          Công việc (ID)
+          <input name="taskId" required defaultValue={task} />
+        </label>
+        <label>
+          Tìm nhân viên
+          <input name="search" defaultValue={search} maxLength={150} />
+        </label>
+        <button>Tải phương án</button>
+      </form>
+      {loading && <p role="status">Đang tải phương án phân công…</p>}
+      {error?.key === key && (
+        <p role="alert">
+          {error.message}{" "}
+          <button onClick={() => setRetry((v) => v + 1)}>Thử lại</button>
+        </p>
+      )}
+      {!branch || !task ? (
+        <p>
+          Nhập mã công việc và chi nhánh được cấp quyền; không dùng dữ liệu nhân
+          viên minh họa.
+        </p>
+      ) : null}
+      {data && (
+        <div className="detail-grid">
+          <section className="panel">
+            <h2>
+              {data.task.number} · {data.task.roomNumber}
+            </h2>
+            <p>
+              Chi nhánh {data.task.branchId} ·{" "}
+              {data.task.workflowState ?? data.task.recordedStatus}
+            </p>
+            <Link
+              to={`/cleaning/tasks/${data.task.id}?branchId=${branch}&monitor=1&kind=cleaning`}
+            >
+              Chi tiết Cleaning Monitor
+            </Link>
+            <form key={`${key}:${retry}`} onSubmit={preview}>
+              <label>
+                Nhân viên (bản nháp)
+                <select
+                  aria-label="Nhân viên (bản nháp)"
+                  name="assigneeId"
+                  required
+                  defaultValue=""
+                >
+                  <option value="">Chọn nhân viên</option>
+                  {data.candidates.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Hạn UTC (ISO 8601)
+                <input
+                  name="dueAt"
+                  required
+                  placeholder="YYYY-MM-DDTHH:mm:ssZ"
+                />
+              </label>
+              <label>
+                Lý do phân công
+                <input name="reason" required maxLength={500} />
+              </label>
+              <button
+                disabled={
+                  !data.workflowStateVerified ||
+                  data.task.workflowState !== "PENDING_ASSIGNMENT"
+                }
+              >
+                Kiểm tra bản nháp
+              </button>
+              <button type="button" disabled>
+                Lưu phân công
+              </button>
+            </form>
+            {draft?.key === key && <p role="status">{draft.message}</p>}
+            <p>
+              Không tự tiếp nhận task legacy, không đổi người phụ trách. Danh
+              sách ứng viên và ca ghi nhận chưa phải xác nhận đủ điều kiện phân
+              công.
+            </p>
+          </section>
+          <section className="panel">
+            <h3>Ứng viên & khối lượng từ máy chủ</h3>
+            <p>
+              {data.total} ứng viên · trang {page} · {data.filters.from} →{" "}
+              {data.filters.to}
+            </p>
+            {data.candidates.length === 0 && <p>Không có ứng viên phù hợp.</p>}
+            {data.candidates.map((c) => (
+              <div className="attention-row" key={c.id}>
+                <span>
+                  <strong>{c.name}</strong>
+                  <small>Đơn vị {c.departmentId ?? "—"}</small>
+                </span>
+                <span>
+                  {c.openTasks} việc mở · {c.openTasksInWindow} trong khoảng
+                </span>
+              </div>
+            ))}
+            <h3>Ca được ghi nhận</h3>
+            {data.recordedShifts.length === 0 && (
+              <p>Không có ca được ghi nhận trong khoảng.</p>
+            )}
+            <ul>
+              {data.recordedShifts.map((s) => (
+                <li key={`${s.id}:${s.userId}`}>
+                  {s.userId} · {s.from} → {s.to} · {s.recordedShiftStatus} /{" "}
+                  {s.recordedAssignmentStatus}
+                </li>
               ))}
-          </select>
-          {r && (
-            <div key={r.id}>
-              <h2>{t(r.name)}</h2>
-              <p>
-                {t("Current assignee:")}
-                {name("users", r.assignee)}
-              </p>
-              <Form
-                fields={[
-                  {
-                    key: "assignee",
-                    label: "Assign employee",
-                    type:
-                      d.key === "cleaning"
-                        ? "housekeeper"
-                        : d.key === "incidents"
-                          ? "technician"
-                          : "user",
-                    required: true,
-                  },
-                  {
-                    key: "reason",
-                    label: r.assignee
-                      ? "Reassignment reason (10+ characters)"
-                      : "Assignment notes",
-                    type: "textarea",
-                    required: !!r.assignee,
-                  },
-                ]}
-                label="Confirm assignment"
-                onSubmit={(v) => {
-                  service.assign(d, r, v.assignee, v.reason || "");
-                  notify("Assignment saved.");
-                  nav(pathFor(d.detail, r.id));
-                }}
-              />
-            </div>
-          )}
-        </section>
-        <section className="panel">
-          <h3>{t("Eligible employees & workload")}</h3>
-          {employees.map((u) => (
-            <div className="attention-row" key={u.id}>
-              <span>
-                <strong>{t(u.name)}</strong>
-                <small>
-                  {t(u.department)} {t("·")}
-                  {u.username}
-                </small>
-              </span>
-              <strong>
-                {
-                  ["cleaning", "tasks", "incidents", "rework"]
-                    .flatMap((k) => db[k])
-                    .filter(
-                      (t) =>
-                        t.assignee === u.id &&
-                        !["Closed", "Completed", "Cancelled"].includes(
-                          t.status,
-                        ),
-                    ).length
-                }{" "}
-                {t("open")}
-              </strong>
-            </div>
-          ))}
-        </section>
-      </div>
+            </ul>
+            <button disabled={page <= 1} onClick={() => changePage(page - 1)}>
+              Trang trước
+            </button>
+            <button
+              disabled={page * 20 >= data.total}
+              onClick={() => changePage(page + 1)}
+            >
+              Trang sau
+            </button>
+          </section>
+        </div>
+      )}
     </>
   );
 }

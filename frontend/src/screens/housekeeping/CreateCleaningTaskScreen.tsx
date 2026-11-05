@@ -1,54 +1,30 @@
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { domainFor, pathFor } from "../../domain";
-import { useLanguage } from "../../i18n";
-import * as service from "../../services";
-import { EntityForm, Form, PageHeader, notify } from "../../ui";
+﻿import { Link, useSearchParams } from "react-router-dom";
+import { PageHeader } from "../../ui";
 export default function CreateCleaningTaskScreen() {
-  useLanguage();
-  const id: number = 25;
-  const d = domainFor(id);
-  const nav = useNavigate();
   const [params] = useSearchParams();
-  const inspection = service
-    .snapshot()
-    .inspections.find((i) => i.id === useParams().id);
+  const branch = params.get("branchId") || "";
   return (
     <>
-      <PageHeader id={id} />
+      <PageHeader id={25} />
       <section className="panel form-panel">
-        {id === 36 ? (
-          <Form
-            fields={d.fields}
-            initial={{
-              name: "Rework · " + inspection?.name,
-              branch: inspection?.branch,
-              department: "Housekeeping",
-              room: inspection?.room,
-              inspection: inspection?.id,
-              priority: "High",
-              criteria: inspection?.criteria,
-              description: "Fix defects from the failed inspection.",
-              defects: inspection?.results
-                ?.filter((v: any) => v.result === "Fail")
-                .map((v: any) => v.defect)
-                .join("\n"),
-            }}
-            label="Request rework"
-            onSubmit={(v) => {
-              const r = service.save(d, v);
-              nav(pathFor(29, r.id));
-              notify("Rework requested.");
-            }}
-          />
-        ) : (
-          <EntityForm
-            d={d}
-            onDone={(r) => {
-              nav(pathFor(d.detail, r.id));
-            }}
-            onCancel={() => nav(pathFor(d.list))}
-          />
-        )}
+        <h2>Tạo công việc vệ sinh</h2>
+        <p role="status">Chưa thể tạo công việc trên máy chủ.</p>
+        <p>
+          API tạo công việc và hợp đồng cập nhật trạng thái phòng chưa được phê
+          duyệt. Chức năng sẽ được mở khi có quy tắc chống trùng, trạng thái
+          phòng và audit trong cùng giao dịch.
+        </p>
+        <button className="primary" disabled>
+          Tạo công việc
+        </button>
+        <p>
+          Không lưu dữ liệu minh họa hoặc báo thành công khi chưa có API thật.
+        </p>
+        <Link
+          to={`/cleaning/tasks${branch ? `?branchId=${encodeURIComponent(branch)}` : ""}`}
+        >
+          Về Cleaning Monitor
+        </Link>
       </section>
     </>
   );

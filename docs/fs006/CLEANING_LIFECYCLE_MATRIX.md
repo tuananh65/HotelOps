@@ -1,0 +1,22 @@
+﻿# Cleaning lifecycle state matrix
+
+SRS DRAFT FE04 §4.1–4.10 và state matrix gần dòng16287 là nguồn mô tả nghiệp vụ; không phải approval áp dụng mọi transition. Change Notes vẫn pending Reception/DH/room transitions. Task73 conditional approval cho foundation/initial assign/inspection không duyệt toàn Room Lifecycle; Task74/FS004 đã nghiệm thu riêng UC032. Không suy diễn từ một cột/enum tồn tại rằng writer đã được duyệt.
+
+| UC | From → To theo SRS / source | Quyền / actor | Room/time/notification | Runtime / approval readiness |
+| --- | --- | --- | --- | --- |
+| UC028 | new → PENDING_ASSIGNMENT (SRS) | Supervisor; catalog CLEANING_ASSIGN mô tả gồm create, chưa có create action/resource binding | Recalculate Pending Cleaning unless effective Blocked + history/audit cùng transaction; SRS không bắt buộc notification trực tiếp | No create API; BLOCKED_CONTRACT |
+| UC029 | PENDING_ASSIGNMENT → ASSIGNED; source mirror legacy PENDING | CLEANING_ASSIGN branch, validated actual actor; assignee eligibility | Initial assignment không mở interval; source không đổi Room; bắt buộc in-app notification/retry | Existing active POST + audit, notification NOT_INTEGRATED; BLOCKED_CONTRACT for end-to-end write |
+| UC030 | ASSIGNED / IN_PROGRESS / ON_HOLD → ASSIGNED (SRS) | Supervisor; catalog CLEANING_ASSIGN, không phải new approved reassign action | Close prior user's open interval, preserve responsibility/time, room recalculation, notify previous+new assignee | No reassign endpoint; BLOCKED_CONTRACT |
+| UC031 | ASSIGNED / ON_HOLD → IN_PROGRESS (SRS) | Assigned staff; existing CLEANING_EXECUTE does not implement Start | First actual start, Working Workday, no other open interval; recalc Cleaning In Progress unless Blocked; atomic audit | No start endpoint; BLOCKED_CONTRACT |
+| UC032 | IN_PROGRESS → IN_PROGRESS, percent0..100 | CLEANING_EXECUTE + exactly one current own ACTIVE assignment | Frozen cleaning items/notes/private evidence + audit; no completion/room/time/notification transition | Existing GET/PUT; preserved implementation; live GET regression only in FS006 |
+| UC033 context | IN_PROGRESS → ON_HOLD (SRS) | Assigned staff, action contract still missing | Blocker+time close+room precedence | Not implemented here |
+| UC034 | IN_PROGRESS → PENDING_INSPECTION (SRS) | Assigned staff | Mandatory items, note/evidence, actual end, close interval; room pending inspection unless Blocked; supervisor notification | No complete endpoint; BLOCKED_CONTRACT |
+| UC044 context | PENDING_INSPECTION → COMPLETED (SRS pass conclusion) | Inspector, exact cycle/SoD | Approved inspection → authoritative readiness + effective blocks | Missing conclusion/lifecycle writer; no progress100 shortcut |
+| UC045 context | PENDING_INSPECTION → REWORK_REQUIRED (SRS fail) | Inspector, exact cycle | Failed criteria/defects/current-cycle/notification | Missing conclusion/lifecycle writer |
+| UC046 / UC035 / UC036 | new→PENDING_ACCEPTANCE→ACCEPTED→IN_PROGRESS→PENDING_REINSPECTION (SRS) | Request eligible assignee; execution own staff | Defect linkage, interval and reinspection/room/notification | Only request POST exists; receive/start/complete not implemented |
+
+Creation business requirement: active room, only one open cleaning task per room (SRS: not Completed/Cancelled), reference-valid cleaning type/priority, due time and room-type cleaning items. Current schema alone does not settle authoritative current-cycle/coarse-vs-workflow terminal predicates or safe concurrent duplicate prevention. Must agree exact room lock, all writer cooperation, legacy adoption, effective blocks/status history before implementation.
+
+Assignment eligibility in existing source: active account/employment, not deleted; same active HK department/branch, current nonrevoked access, active valid branch HK_STAFF role, shift assignment ASSIGNED and shift PLANNED, active matching shift template, shift covers server now. No hard-coded numeric IDs. This source uses role codes; FS006 adds no authorization shortcut. Workday Working is not checked by initial Assign; SRS Workday requirement is explicit for Start and must not be silently added to Assign.
+
+Recorded planning shifts are raw facts, not an eligible-now decision. Client does not infer final eligibility. Shift expiry, state/version and permission/session must be revalidated inside future approved write; a preview is not authorization. Broad grant never replaces source ownership for execution.
