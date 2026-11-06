@@ -10,7 +10,7 @@ const checkpoint = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encod
 const paths = execFileSync('git', ['ls-files', '--', 'src/HotelOps.Api', 'frontend/src', 'frontend/package.json', 'frontend/package-lock.json', 'frontend/vite.config.ts', 'scripts/database/release', 'database/patches', 'scripts/verification/FS011'], { cwd: root, encoding: 'utf8', windowsHide: true }).trim().split(/\r?\n/).filter(Boolean);
 const files = paths.map(file => {
   const buffer = fs.readFileSync(path.join(root, file));
-  const normalize = /\.(cs|csproj|json|sql|ts|tsx|ps1|cjs|mjs|md|props|targets|config)$/.test(file);
+  const normalize = file.endsWith('/.gitignore') || /\.(cs|csproj|json|sql|ts|tsx|ps1|cjs|mjs|md|props|targets|config|http|html|css|svg|xml|txt|yaml|yml|cshtml)$/.test(file);
   return { path: file, normalization: normalize ? 'TEXT_LF' : 'BINARY', sha256: hash(normalize ? text(buffer) : buffer) };
 });
 if (!files.some(file => file.path === 'scripts/verification/FS011/New-TesterTrial.ps1')) throw Error('Commit harness checkpoint before preparing package');
