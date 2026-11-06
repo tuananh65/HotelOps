@@ -68,6 +68,13 @@ public sealed partial class RoomTypeCreationService
             if (await db.CleaningAssignments.AnyAsync(x => x.CleaningTaskId == task && x.AssignmentStatus == "ACTIVE" && x.EndedAt == null, token)) return new(RoomTypeBatchStatus.Duplicate);
             var cycle = await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId}").SingleOrDefaultAsync(token);
             if (cycle != task) return new(RoomTypeBatchStatus.Inactive);
+            if (candidateNotification.UsesSqlWriteBoundary)
+            {
+                var boundedResult = await candidateNotification.AssignWithEvidenceAsync(actor, branch, task, input.AssigneeId,
+                    operation, fingerprint, tag, clock.GetUtcNow().UtcDateTime, input.DueAt, reason, token);
+                created = true;
+                return new(RoomTypeBatchStatus.Success, boundedResult, boundedResult.SourceETag);
+            }
             var assigned = new CleaningAssignment { CleaningTaskId = task, AssigneeUserId = input.AssigneeId, AssignedBy = actor, AssignedAt = clock.GetUtcNow().UtcDateTime, AssignmentStatus = "ACTIVE", Reason = reason };
             db.CleaningAssignments.Add(assigned); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ASSIGNED',status='PENDING',due_at={input.DueAt} WHERE cleaning_task_id={task}", token);
