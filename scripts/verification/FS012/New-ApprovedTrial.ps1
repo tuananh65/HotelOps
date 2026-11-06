@@ -4,8 +4,14 @@ $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../../..')).Path
 $database='HotelOps_Canonical_20261106_f120001_Fresh'
 $manifest=Get-Content -Raw -Encoding utf8 (Join-Path $root 'docs/fs012/SOURCE_MANIFEST_BASE.json')|ConvertFrom-Json
-foreach($entry in $manifest){if((Get-FileHash -LiteralPath (Join-Path $root $entry.path) -Algorithm SHA256).Hash -ine $entry.sha256){throw 'SOURCE_HASH_MISMATCH'}}
-if(!$ExecuteApprovedCreate){[ordered]@{mode='PLAN_ONLY';server='.\SQLEXPRESS';database=$database;sourceCount=$manifest.Count;sourceHashes='Matched';createsDatabase=$false;requiresUserApproval=$true;resetOrDropSupported=$false}|ConvertTo-Json;return}
+function TestSourceHash($entry){
+ $text=[IO.File]::ReadAllText((Join-Path $root $entry.path)).Replace("`r`n","`n").TrimStart([char]0xFEFF)
+ $hasher=[Security.Cryptography.SHA256]::Create()
+ try{$actual=([BitConverter]::ToString($hasher.ComputeHash([Text.Encoding]::UTF8.GetBytes($text)))).Replace('-','')}finally{$hasher.Dispose()}
+ if(!$entry.normalizedSha256 -or $actual -ine $entry.normalizedSha256){throw 'SOURCE_NORMALIZED_HASH_MISMATCH'}
+}
+foreach($entry in $manifest){TestSourceHash $entry}
+if(!$ExecuteApprovedCreate){[ordered]@{mode='PLAN_ONLY';server='.\SQLEXPRESS';database=$database;sourceCount=$manifest.Count;sourceHashes='MatchedNormalizedTextLF';createsDatabase=$false;requiresUserApproval=$true;resetOrDropSupported=$false}|ConvertTo-Json;return}
 # This switch is an execution interlock, not a substitute for explicit user approval in the task.
 $connection=$null;$transaction=$null;$created=$false
 $budget=New-Object Threading.CancellationTokenSource;$budget.CancelAfter(180000)
@@ -44,8 +50,8 @@ try{
  Module 12 13 'HotelOps.Checklists.V1'
  Module 14 15 'HotelOps.Housekeeping.V1'
  Module 16 17 'HotelOps.Progress.V1'
- foreach($entry in $manifest){if((Get-FileHash -LiteralPath (Join-Path $root $entry.path)).Hash -ine $entry.sha256){throw 'SOURCE_CHANGED_DURING_SETUP'}}
- [ordered]@{mode='CREATED_NEW_DISPOSABLE';database=$database;owner='DEV1_FS012';sourceHashes='Matched';syntheticSeedOnly=$true;usersSeeded=$false;runtimeSchemaValidators='NotYetRun';existingDatabaseWritten=$false;dropOrReset=$false}|ConvertTo-Json
+ foreach($entry in $manifest){TestSourceHash $entry}
+ [ordered]@{mode='CREATED_NEW_DISPOSABLE';database=$database;owner='DEV1_FS012';sourceHashes='MatchedNormalizedTextLF';syntheticSeedOnly=$true;usersSeeded=$false;runtimeSchemaValidators='NotYetRun';existingDatabaseWritten=$false;dropOrReset=$false}|ConvertTo-Json
 }catch{
  # Preserve any partial target; no cleanup DROP and no provider/credential payload in stdout.
  [ordered]@{mode='SETUP_FAILED';database=$database;createPhaseCompleted=$created;partialTargetMayExist=$true;resetAttempted=$false;error='SQL_SETUP_FAILED_REVIEW_PRIVATE_DIAGNOSTICS'}|ConvertTo-Json
