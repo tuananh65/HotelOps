@@ -1,0 +1,8 @@
+{
+    "status":  "PASS",
+    "files":  64,
+    "actualSyntheticPasswordsChecked":  4,
+    "privateTrackedFiles":  0,
+    "plaintextPrivateOutputPublished":  false,
+    "earlierScanIpcGateRefusal":  "First scan invocation lacked FS008_LIVE_ENABLED; no valid credential comparison then. This repeat checks child exit and account/password shape before PASS."
+}

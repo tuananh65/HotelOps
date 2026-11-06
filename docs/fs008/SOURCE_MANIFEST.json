@@ -1,0 +1,191 @@
+{
+    "baseline":  "ac0780105503291386ffa39858b0fc18ae80dde6",
+    "scope":  "New/modified source, SQL, harness, tests and original handoff; excludes generated/private files and this manifest",
+    "files":  [
+                  {
+                      "path":  "docs/external-handoff/DEV2_FS007_UC029_AUTH_01.md",
+                      "worktreeSHA256":  "f0613ca8e36d59f70985822b20ec55c0c91879ec0ad72f0b006d4a400557d440",
+                      "gitNormalizedBlob":  "a929cbb492693061459a8ce444ee905310acafd3"
+                  },
+                  {
+                      "path":  "frontend/playwright.dev1.config.ts",
+                      "worktreeSHA256":  "d7e4ed098f4507b85add99ce72c3a78885efcd22f2226e0a05c17ba8c48131aa",
+                      "gitNormalizedBlob":  "a3be648d1c7be0fdaec4a6d1e5538b114e8d84a5"
+                  },
+                  {
+                      "path":  "frontend/playwright.fs008-live.config.ts",
+                      "worktreeSHA256":  "dc4a0282b4cdb28977100044b8e913579e4edffc93f61b84b9f064740034c37f",
+                      "gitNormalizedBlob":  "637ff99772010c4208a1cf1c010ba45f744014e2"
+                  },
+                  {
+                      "path":  "frontend/src/api/dev1/cleaningAssignmentCommand.ts",
+                      "worktreeSHA256":  "75f1a718f3be527a8849509d208121808bd370d22c15f25162a2f773a76b1a43",
+                      "gitNormalizedBlob":  "c6732f817fa6a2ede01dface15d285a9b3f74130"
+                  },
+                  {
+                      "path":  "frontend/src/api/dev1/cleaningCreate.ts",
+                      "worktreeSHA256":  "e21540112d74d0538358905f5c16fd8a3ef2f9e6d2db5ae4f3d56651f0c7e432",
+                      "gitNormalizedBlob":  "4e6fc5d71025b849777c3e0e58cb6481e607c847"
+                  },
+                  {
+                      "path":  "frontend/src/api/dev1/cleaningProgress.ts",
+                      "worktreeSHA256":  "31ec7aaf24e5ef2f2b7ed15c92e0dd1570183a07126e2c1245b6441611bd0cc5",
+                      "gitNormalizedBlob":  "516f63073c4a991ad29d72194e487a187a6a4646"
+                  },
+                  {
+                      "path":  "frontend/src/api/dev1/client.ts",
+                      "worktreeSHA256":  "2b0d2f1ffe58b2a89a9a6d97ae79e60c713e1a55c63040fb1f521ecb394e8fc9",
+                      "gitNormalizedBlob":  "78a82ae7737174e6b4243cf10744344ba24631f3"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/AssignedCleaningHeader.tsx",
+                      "worktreeSHA256":  "76d61bf90d546ab17905f9bb263217279c34ea27ba3ac588da1747a9fa51ed48",
+                      "gitNormalizedBlob":  "3942bdb8a63a2734b6a42b35767c75ef85a30ad5"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+                      "worktreeSHA256":  "f191869d1d429a6290f09ace9b803e07b46b845682671f4fed70f9e0c90844f1",
+                      "gitNormalizedBlob":  "fd505d2571a9c05692f58fd0c3b2c208a9989952"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+                      "worktreeSHA256":  "f80ff1718e0a86942f21a41ecb71ad1a2a63def2712e0fae08eb790a3cb95448",
+                      "gitNormalizedBlob":  "00fcb6f0caeccdd4964f81a9cf574b98ed4f22b9"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+                      "worktreeSHA256":  "7a2fde4c181f666dfce56668a95ef1ea848d1431a3a50c47b72ffc257b17b469",
+                      "gitNormalizedBlob":  "448b44552077aca4fa4a3792947a9ee6cec1c2e7"
+                  },
+                  {
+                      "path":  "frontend/tests/cleaning-assignment.spec.ts",
+                      "worktreeSHA256":  "c12a31e088bf00fd6bf764bc36fd2c7acda6afc55821949a3af11860eb6c53de",
+                      "gitNormalizedBlob":  "6b5553c11740379e9282a0ca85a08bbab5ac6a91"
+                  },
+                  {
+                      "path":  "frontend/tests/cleaning-assignment-command.test.mjs",
+                      "worktreeSHA256":  "3b5fe332c4f305b1f38fb49d85e045b24c15c5c51978096a3474b2b4344c321d",
+                      "gitNormalizedBlob":  "1780c602c4ec042845ef96ce0d94c03392db9077"
+                  },
+                  {
+                      "path":  "frontend/tests/cleaning-create.spec.ts",
+                      "worktreeSHA256":  "6a226d89c942631c8c41e68c6fd4e4feda499e48925f8686b1be02556f106e43",
+                      "gitNormalizedBlob":  "798cd8cb23d4e41ff201c4ee3bf3c95f797450fb"
+                  },
+                  {
+                      "path":  "frontend/tests/cleaning-create.test.mjs",
+                      "worktreeSHA256":  "0202f6c0f3c872b4ee771892dba9b4f878e6cc6969b1432402a63602b4252176",
+                      "gitNormalizedBlob":  "b83ab5b5a633cdab0c269a4bfa172a131d1cf680"
+                  },
+                  {
+                      "path":  "frontend/tests/fs008-live.spec.ts",
+                      "worktreeSHA256":  "35ab165e5c1fd88d65c75fed9f8db21f174d95751483a65d80b345799f824203",
+                      "gitNormalizedBlob":  "90b6df6ff4fead590144e876e03b31b8f0f12024"
+                  },
+                  {
+                      "path":  "scripts/database/release/cleaning-lifecycle/01_Install.sql",
+                      "worktreeSHA256":  "8a5618279efed9d9e18205b53c81714f74b4ec4b4095672a52163c0a87b5d1eb",
+                      "gitNormalizedBlob":  "d528df426f46bc62cd6d33f19b0928018e149b17"
+                  },
+                  {
+                      "path":  "scripts/database/release/cleaning-lifecycle/02_NotificationProposal.sql",
+                      "worktreeSHA256":  "7f842ac558d8a61c120434a64a415ab45f9b16268bab2c83709385b76da21799",
+                      "gitNormalizedBlob":  "353f1724a89f8d6365e17cd41173f664ee6adcdd"
+                  },
+                  {
+                      "path":  "scripts/database/release/cleaning-lifecycle/03_VerifyNotificationProposal.sql",
+                      "worktreeSHA256":  "0a57379c911f11fb03481e8fea44b80da97bbcde41e50d0233c7495afb330df3",
+                      "gitNormalizedBlob":  "2dd1a574dc7286d4649db0cfc253302378b84f2c"
+                  },
+                  {
+                      "path":  "scripts/database/release/cleaning-lifecycle/04_RecoveryNotificationProposal.sql",
+                      "worktreeSHA256":  "a00568aebda51e0a779bc5a1bd0d396a5046b2d5fe4ec61c9150135b67b6eac8",
+                      "gitNormalizedBlob":  "5d15422ac444af7a421d4ecae659717762d21d38"
+                  },
+                  {
+                      "path":  "scripts/database/release/cleaning-lifecycle/05_VerifyLifecycle.sql",
+                      "worktreeSHA256":  "d98b46c414db3ef574eb9034b2e29e6b93a3e9acb439573bfc81ddb62a63e920",
+                      "gitNormalizedBlob":  "b672d3228d59482157943ad1a34ad01e368084d4"
+                  },
+                  {
+                      "path":  "scripts/database/release/cleaning-lifecycle/06_RecoveryLifecycle.sql",
+                      "worktreeSHA256":  "db3ff8ab58aa6226e8a6a678af17bea0db26f7769186f628605ae6239804412a",
+                      "gitNormalizedBlob":  "0f5cb81cf77504444c2ee29a9bf0b1eb687c8f31"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/.gitignore",
+                      "worktreeSHA256":  "7ab91fafe748ad9b91a2ce8336ce7113bbe7f35f922d576b7f8ba69186102813",
+                      "gitNormalizedBlob":  "1cc0d932fb5311d4f35f83aeb0f8b7a35397a7ac"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/FS008.Verification.csproj",
+                      "worktreeSHA256":  "aade52d0eda008cab2f82f4fd2d46b03028a2091295bd1ac7c73110fd10e3574",
+                      "gitNormalizedBlob":  "da4ff77d295b650d51eaae13db64e286b7c3297d"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/Install-Lifecycle.ps1",
+                      "worktreeSHA256":  "7fb43afaee743e03ec8b664084008555a12f286ffe42f17a6728ff226866deda",
+                      "gitNormalizedBlob":  "bf96ce50eac6f169ea28ed9d56e9f36afd119417"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/New-ApprovedTrial.ps1",
+                      "worktreeSHA256":  "b9f259b5ff6ecb92d446d0477a4701174d976188e9a1369a56204754790567c0",
+                      "gitNormalizedBlob":  "d5e821dbbc30ae371bf00547a84062f034fa3c5f"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/Program.cs",
+                      "worktreeSHA256":  "053f39dbf14d883793914a0b2342fa6355044201daba28c10d79e0098d3554bb",
+                      "gitNormalizedBlob":  "6cae4f499705747e9cb460fa3c580c23cd5a4cf9"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/Start-LiveEnvironment.ps1",
+                      "worktreeSHA256":  "4426e914531bf7614d621bc5d27ec130531b6617237feca7b9cd8194269d3b4f",
+                      "gitNormalizedBlob":  "ff195e5d520adacb0bb9c3393550ac1a8889d9b1"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/Stop-LiveEnvironment.ps1",
+                      "worktreeSHA256":  "4417ba41eb530dd6db7b4c741e7db8c38b8cc70bb9525eacda09d1047ffba254",
+                      "gitNormalizedBlob":  "0f526ad5f51e1b9cdc557ba0a0203199cb9e3e3b"
+                  },
+                  {
+                      "path":  "scripts/verification/FS008/Test-NotificationProposal.ps1",
+                      "worktreeSHA256":  "034311afad510c273472deab4bc28545b4ce5db529732d7091d896466119e041",
+                      "gitNormalizedBlob":  "41076d67b4a8b4a361955244e594693f5d238293"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/CleaningTaskLifecycleController.cs",
+                      "worktreeSHA256":  "131a7d8cd9dcbb6b44c75ae629a539e367e80c980edfb464d11a330918c2612c",
+                      "gitNormalizedBlob":  "1f3ab4f0fd7d51633a23a5982ea37cf8de398aa3"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Housekeeping/CleaningTaskCreationDtos.cs",
+                      "worktreeSHA256":  "04d8b7de6473fee7e8e44ed656c06a514eaa8cc1275e1cc103abed8b80940071",
+                      "gitNormalizedBlob":  "0d4c096403b272b21a1e620a4665ba99675adf3f"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/AssignedCleaningReadService.cs",
+                      "worktreeSHA256":  "cc505dc0eb0dea4ee35eb8ac20619f969cd15e0c90c1f64a4997bd27370aea5e",
+                      "gitNormalizedBlob":  "7ce13d5f378188557c315744f5cf87d7de8d3627"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCommandIdentity.cs",
+                      "worktreeSHA256":  "52cf0638c78d7d83312a5f93473290e327d3445929aa5170e0deb4b7f2958626",
+                      "gitNormalizedBlob":  "1d8b67701376f00bfec94e8480d2e81ff7944335"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningTaskCreationService.cs",
+                      "worktreeSHA256":  "f32acf8f200dcc9771119c0958074d7aeefe8322f2bcc94d17efe02f9d1c7902",
+                      "gitNormalizedBlob":  "7f451104fcbf3d711ed0fdff8e6734fcce1a2d4e"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+                      "worktreeSHA256":  "6ca54d24dff5ce6e9907ae960b0f92879f3172df33d1d72f948ee97ad102b50a",
+                      "gitNormalizedBlob":  "cc35a137c9fde0bd77a7f144ebf6df496e6c9ac6"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningCreationTests.cs",
+                      "worktreeSHA256":  "3a197f8e2272342c75473844be6bbb0f43b2c6c51709df5346140f63cac6b9f6",
+                      "gitNormalizedBlob":  "28a0302a4ca8e8f286ac94ebc38c07ade6eb4be9"
+                  }
+              ]
+}

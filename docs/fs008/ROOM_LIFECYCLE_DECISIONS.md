@@ -1,0 +1,11 @@
+﻿# Room Lifecycle decisions — scoped V1
+
+FS0073dimension design preserved. Current-cycle = explicit room_cleaning_cycle_state pointer, not latest timestamp/max task/assignment. Composite FK enforces task belongs to Room. Readiness event captures new task PENDING_CLEANING plus unreleased block EXISTS. Effective block is ReleasedAt NULL; ExpectedReleaseAt never releases, no incident/manual block changes. Occupancy remains unknown/legacy and is not inferred from DIRTY/CLEANING/AVAILABLE/READY.
+
+Two additive SQL sidecars: room_cleaning_cycle_state(room_id PK/FK,cleaning_task_id composite source FK,row_version8), room_readiness_events(event_id identity,room/task composite FK,readiness PENDING_CLEANING CHECK,block snapshot,actual actor/server UTC). Raw parameterized unmapped SQL avoids generated entities/EF mappings. Existing room_status_history CHECK vocabulary unchanged; new readiness explanation is stored separately. There is no new global reducer/Ready state authority or occupancy/check-in/out implementation.
+
+A unique coarse-open-task room index backs duplicate prevention and trusted existing workflow/coarse CHECK. Conservative service checks workflow null as open and refuses unresolved legacy history/pointer adoption. First-Start snapshot semantics remain; Create shows template preview and requires configured definitions. No fake progress version for Pending Assignment; UC032 IN_PROGRESS/owned snapshot contract preserved.
+
+Migration install refuses existing duplicate active data, doesn't repair/backfill or reset history. Scripts are development-only interlocked to exact FS008 target/owner/local instance; verify checks trusted lineage constraints/index/rowversion. Empty-owned recovery refuses populated cycle/event tables. No recovery/drop executed. Forward-only reconciliation is needed for populated shared deployment; no production/shared installation authorized by test.
+
+Limits: derived event currently emitted only for Create. Start/Complete/reassign/cancel/inspection conclusion/rework producers and cross-module block cooperation are not implemented here; no false Ready claim. Full room lifecycle still pending integration/reconciliation, despite verified Create slice.

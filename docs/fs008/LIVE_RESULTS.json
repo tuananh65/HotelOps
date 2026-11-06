@@ -1,0 +1,105 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS008_ONLY",
+  "checks": [
+    {
+      "name": "create-atomic-sql-and-ui",
+      "data": {
+        "taskId": 11,
+        "branch": 1,
+        "room": 9,
+        "legacyUnchanged": true,
+        "cycle": true,
+        "event": 1,
+        "audit": true,
+        "duplicate": 409,
+        "anonymous": 401,
+        "forbidden": 403,
+        "foreign": 403
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "create-race-and-rollback",
+      "data": {
+        "statuses": [
+          201,
+          409
+        ],
+        "auditFailureRollback": true,
+        "noTaskCycleEventAuditPartial": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "uc032-read-assign-failclosed",
+      "data": {
+        "progress": 200,
+        "assignment": 503,
+        "mutation": false,
+        "reason": "MISSING_EXECUTABLE_SOURCE_A01_A02"
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "recipient-own-source-read",
+      "data": {
+        "owner": 200,
+        "foreignBranch": 403,
+        "otherAssignee": 403,
+        "monitorStillDenied": 403,
+        "realReact": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "create-negative-request-and-write-authority",
+      "data": {
+        "missingCsrf": 400,
+        "unknownField": 400,
+        "pastDue": 400,
+        "invalidReference": 400,
+        "foreignWrite": 403,
+        "ownerWrite": 403,
+        "mutation": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS008 create persists exact task/cycle/event/audit, duplicate protection and real React navigation",
+      "status": "passed"
+    },
+    {
+      "name": "FS008 competing Create yields one201/one409; audit failure rolls back all mandatory records",
+      "status": "passed"
+    },
+    {
+      "name": "FS008 UC032 regression read and UC029 mandatory dependency never commits",
+      "status": "passed"
+    },
+    {
+      "name": "FS008 assigned source header independently enforces recipient OWN and branch, renders without monitor widening",
+      "status": "passed"
+    },
+    {
+      "name": "FS008 Create rejects unauthorized writes, invalid contracts and missing CSRF without persistence",
+      "status": "passed"
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+# Frontend / E2E results
+
+Real UI: new Create form loads branch+room options/reference IDs/count from server, validates and posts with fresh CSRF/cookies, shows in-flight/typed errors, navigates successful Create to live detail and refreshes list via server GET. Submit after error/unknown result requires explicit reload/Monitor check, no unsafe automatic retry. No mock fallback or prototype user/role/branch authority.
+
+Shared UC032 send transport was moved verbatim to existing DEV1 client and reused; no auth store/session behavior change. Node/browser UC032 CSRF/ETag/conflict/save/error suite reexecuted. Assigned-source header route/UI is separate from monitor, allowing actual CLEANING_VIEW OWN for exact active assignment with current SQL eligibility; no monitor branch widening.
+
+Node:45/45 PASS after new Create and UC029 wire-preparation tests. Browser interception:41/41 PASS after updated Create no-config baseline + two new Create cases; this is fixture/interception proof, not SQL writes. Final real suite PASS5/5, configured by playwright.fs008-live.config.ts, no interception/traces/screenshots/video, uses trusted HTTPS + real API-assisted fixture login; frontend sign-in UX itself not certified. LIVE_RESULTS.json records actual tests/status and API↔SQL observations.
+
+Intermediate failures disclosed: first new code used generated ReferenceValue.ValueName, corrected to actual DisplayName after compile error; helper had a local rooms-name collision, fixed; one Node-inserted Vietnamese selector was damaged by shell encoding, replaced with semantic input-name selectors; entire41test browser suite rerun PASS. First audit-fault test harness installation failed on historical audit rows; fixed constraint setup and whole real suite rerun, retained database not reset. No historic green test substituted for new code.
+
+Assignment full mutation UI is deliberately still unavailable without verified accepted publisher/result contract. Prepared submitAssignment adapter includes stable GUID/strong original task ETag/fresh CSRF, propagates503 once, but is not wired to Save and rejects unknown success DTO to avoid false committed/delivered claim. No assignment full-stack E2E or post-assignment notification success claimed.

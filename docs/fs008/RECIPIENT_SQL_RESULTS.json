@@ -1,0 +1,7 @@
+﻿{
+  "status": "PASS_EXPLICIT_USER_SQL",
+  "noHttpContext": true,
+  "allowed": true,
+  "revokedDenied": true,
+  "rollbackRestored": true
+}

@@ -1,0 +1,13 @@
+﻿# Security regression
+
+Cookie/SQL session/CSRF/RestrictedSessionMiddleware unchanged; no AllowAnonymous, auth bypass, fake principals, hardcoded numeric role/branch or copied credentials. Controllers handle HTTP only; feature queries/data writes stay in services, asynchronous cancellation and AsNoTracking reads. All responses DTOs independent generated EF entities.
+
+UC028 uses existing CLEANING_ASSIGN branch permission and sorted actor eligibility/session/active branch retained gates inside Batch, then authoritative Room/Floor/Area/Type branch-compatible active checks and actual reference groups/template definitions. Unknown JSON properties rejected on new Create DTO. Active room can be occupied for stayover; no invented vacancy restriction. Due UTC checked before and again after lock waits. Schema availability checked before writes. Request scope does not grant authority.
+
+Source-read CanReadAssignedCleaningAsync takes explicit recipient user ID, no producer HttpContext; validates account ACTIVE/employment ACTIVE/not deleted, active branch, actual grant validity/access and task-room/assignment lineage. OWN requires same assignee ACTIVE/unended assignment; broad grant does not bypass actual source branch. SQL/data errors propagate rather than terminal false denied. Current full-session auth still required for HTTP API, worker would call evaluator with its own explicit recipient semantics if accepted infrastructure exists.
+
+Real checks: anonymous401, owner lacking CLEANING_ASSIGN403, supervisor create200/201, foreign branch403, own assigned header200 vs other employee403 and foreign403, supervisor monitor still403 for OWN actor; transactional permission revoke denies source read and rollback restores. No grant/catalog updates persisted. Raw GET recipient proof is not full history/notification policy acceptance.
+
+UC029 public mutation returns503 before persistence until accepted A01/A02 source; old unnotified core private/unreachable through controller. This is fail-closed dependency handling, not a global transaction interceptor. Privileged direct database access and unrelated producers aren't protected by an invented guard. No successful assignment/delivery evidence fabricated.
+
+Existing UC032 Node/interception ownership/wrong branch/ETag/CSRF tests pass; real progress read200 on new fixture. Live UC032 PUT is not exercised here, so FS004 mutation proof remains historical. No production DDL, key export, TLS ignore, shared User Secrets/appsettings override or protected database access. Development SQL exception only scoped to named isolated SQLExpress target. Private credentials/evidence/logs/PEM/DPAPI/process receipts ignored from Git.

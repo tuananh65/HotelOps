@@ -1,0 +1,16 @@
+﻿# UC029 implementation — IMPLEMENTED_PENDING_INTEGRATION
+
+Actual integration points verified: HousekeepingWorkflowController.AssignCleaning → RoomTypeCreationService.AssignCleaningAsync → existing BatchAsync core. Mandatory staging was absent from inherited core and response default NOT_INTEGRATED. FS008 preserves that core as **private AssignCleaningCoreAsync**, but public method validates existing request syntax then returns Unavailable503 **before reaching persistence**. No assignment may succeed merely because frontend Save was disabled. No external delivery/inner transaction/no-op publisher added.
+
+Accepted A01/A02 executable source is MISSING_EXECUTABLE_SOURCE. User provided official DEV2-FS007-UC029-AUTH-01; exact path/sha in A01_A02_DISCOVERY.json. Development authorized; actual A01 invocation must use verified signatures. Ten accessible remote-tracking source refs and handover evidence do not provide that source. No alternative publisher contract is represented as accepted, and no competing publication runtime is shipped.
+
+Independent implemented parts:
+- CleaningAssignmentCommandIdentity.Fingerprint: version/action/actual actor/branch/task/assignee/UTC due/normalized reason/adoption=false/original If-Match canonical hash. Pure helper, not durable replay.
+- frontend cleaningAssignmentCommand.ts prepares exact POST with stable GUID Idempotency-Key, original task HEX ETag, fresh CSRF and cookie credentials, no automatic retry; not consumed by Save UI and intentionally rejects any unverified success result shape. No phantom accepted publisher DTO.
+- Existing assignment-options GET/search/paging/workload/draft UI preserved; save unavailable. Eligibility remains authoritative in retained old core; current assigned/other state cannot be repurposed as reassign.
+- CanReadAssignedCleaningAsync explicit recipient evaluator + narrow AssignedCleaningHeader API/UI: current actual CLEANING_VIEW grants/active user/employment/branch, exact source assignment+task/room, OWN only actual ACTIVE/unended/current assignee, branch/global actual grant respected; no producer HttpContext, no monitor widening. Historical OWN ended assignment read intentionally not implemented; review exact policy at merge.
+- Three-table B01 development SQL proposal with exact constraints, idempotent installation and empty-owned recovery refusal; six SQL constraint tests, all rolled back. Not runtime A01/A02/B02/C01 acceptance.
+
+Unimplemented/unverified: accepted publisher bridge, durable authorized replay/reservation completion, successful mutation+audit+publication+intent outer transaction guard, worker delivery/retry/claim/restart/actual inbox, ambiguous commit resolution, full-source transition supersession and historical reader policy. B02 typed EF model parity not claimed; SQL proposal accessed as schema component test only. C01 complete commit/bypass interception not claimed. These require exact accepted package and integration evidence; authorization to develop does not supply executable API signatures.
+
+Live test proves503 without source/audit/cycle/event mutations and preserves UC032 reads. No UC029 credit or successful-assignment/full-stack claim. Continuing independent implementation must not bypass mandatory Notification to create a misleading green acceptance.

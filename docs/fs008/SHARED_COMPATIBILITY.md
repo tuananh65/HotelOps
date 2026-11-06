@@ -1,0 +1,11 @@
+﻿# Shared compatibility / exact boundaries
+
+Current policy permits independent source changes in feature branch; previous per-step approvals not requested again. Exact conflicts/ownership and reconciliation are recorded in docs/integration-notes/DEV1_FS008.md. This permission does not assert accepted A01/A02 exists or waive mandatory notification. Official DEV2 reply specifically forbids an alternate publisher merely because accepted source unavailable; FS008 respects that while developing independently testable parts.
+
+No Program.cs, DbContext, generated entities, authentication/middleware/RBAC grant, Workday/ShiftAttendance/UC138/B1.2, Reception or DEV2 source runtime changes. Existing partial RoomTypeCreationService hosts feature methods consistently with current architecture; no extra project/layer. Newly emitted API contracts/cycle sidecars/source-read semantics are DEV1 feature-branch choices pending normal shared merge reconciliation, not falsely approved legacy contracts.
+
+Schema additive only on new target: cycle/readiness tables+constraints/index, B01 local proposal tables. No old room status overwrite or old history vocabulary expansion, no existing RoomBlock index/default change. Migration scripts interlocked to exact isolated owner/target; shared deploy needs new reviewed generalized package, no accidental production run. B01 SQL/EF parity/immutable event facts/C01/dispatch remains pending, not merged as accepted infrastructure.
+
+API compatibility: GET assignment-options route/DTO/eligibility data unchanged, Monitor existing routes/security unchanged, UC032 API and transport semantics preserved. Existing public Assign now503 fail-closed instead of unnotified business success; intentional safety correction and merge-impact note. New narrow source read doesn't widen supervisor monitor or reuse producer auth for recipient. Existing status APIs still recorded legacy, not derived Ready.
+
+User-supplied official handoff file is preserved under actual singular docs/external-handoff path with SHA provenance. Other DEV worktrees/branches untouched; available committed refs read only. No fetch/merge/cherry-pick/import of foreign WIP or protected archive contents. Exact changed source hashes/commit groups reported separately; no automatic merge.
