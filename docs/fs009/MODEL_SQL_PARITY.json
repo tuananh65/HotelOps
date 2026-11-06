@@ -1,0 +1,30 @@
+﻿{
+  "status": "PASS_EF_SQL_COLUMN_PARITY",
+  "rows": [
+    {
+      "table": "notification_operation_reservations",
+      "columns": 8,
+      "foreignKeys": 1,
+      "sqlNullability": true,
+      "rowversionParity": true,
+      "typesAndLengths": true
+    },
+    {
+      "table": "notification_publications",
+      "columns": 9,
+      "foreignKeys": 2,
+      "sqlNullability": true,
+      "rowversionParity": true,
+      "typesAndLengths": true
+    },
+    {
+      "table": "notification_delivery_intents",
+      "columns": 12,
+      "foreignKeys": 3,
+      "sqlNullability": true,
+      "rowversionParity": true,
+      "typesAndLengths": true
+    }
+  ],
+  "generatedRecipientUnchanged": true
+}

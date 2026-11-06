@@ -1,0 +1,26 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS009_ONLY",
+  "runId": "40d2153d-0f4f-400b-a07b-f7c25d986075",
+  "checks": [
+    {
+      "name": "assignment-write-authority",
+      "data": {
+        "anonymous": 401,
+        "invalidKey": 400,
+        "foreignBranch": 403,
+        "forbiddenActor": 403,
+        "mutation": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS009 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation",
+      "status": "passed"
+    }
+  ]
+}

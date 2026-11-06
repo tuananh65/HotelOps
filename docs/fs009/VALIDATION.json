@@ -1,0 +1,66 @@
+{
+  "status": "PASS_VALIDATED_LOCAL_CANDIDATE_ACCEPTANCE_PENDING",
+  "baseline": "72b2a89160b56cb6855688a6f6d0df665ede5b16",
+  "backendBuild": {
+    "command": "dotnet build HotelOps.slnx",
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionTest": {
+    "command": "dotnet test HotelOps.slnx",
+    "exitCode": 0,
+    "testProjectInSolution": false
+  },
+  "xunit": {
+    "command": "dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj --no-restore",
+    "passed": 119,
+    "failed": 0,
+    "skipped": 0
+  },
+  "helperBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "frontendBuild": "PASS",
+  "node": {
+    "passed": 46,
+    "failed": 0
+  },
+  "interception": {
+    "passed": 47,
+    "failed": 0
+  },
+  "liveEvidence": "LIVE_ACCEPTANCE_SUMMARY.json",
+  "sqlComponent": {
+    "constraints": 6,
+    "testRowDelta": 0,
+    "scopedGuardChecks": 7,
+    "modelSqlParity": "PASS",
+    "readOnlyVerifyScripts": 3
+  },
+  "notRun": [
+    "accepted A01/A02 integration",
+    "complete raw physical commit bypass guard",
+    "physical commit ambiguity/cancellation fault injection",
+    "global deactivation/revoke writer race/stress",
+    "independent source-query outage injection",
+    "production/shared DDL"
+  ],
+  "warnings": [
+    "NU1900 vulnerability feed unavailable; not suppressed",
+    "inherited EF20602 RoomTypeBranchV1 view index warnings",
+    "React Router use-client ignored",
+    "Vite chunks over500KB",
+    "NO_COLOR/FORCE_COLOR",
+    "LF/CRLF Git notices",
+    "scoped dotnet format workspace load warning"
+  ],
+  "recoveryOrReset": false,
+  "liveUnique": {
+    "enabled": 12,
+    "defaultOff": 1,
+    "oneUninterruptedFullPass": false
+  }
+}

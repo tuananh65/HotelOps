@@ -1,0 +1,29 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS009_ONLY",
+  "runId": "fac508ad-1b9b-4bff-acb3-e49b40e55a50",
+  "checks": [
+    {
+      "name": "real-assignment-replay-delivery",
+      "data": {
+        "assignmentId": 23,
+        "mandatoryStage": true,
+        "restartReplay": 200,
+        "conflictingReplay": 409,
+        "newKeyStale": 412,
+        "recipientOnly": true,
+        "inboxDelivered": true,
+        "acceptedA01": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS009 real React assignment commits mandatory records, durable replay and recipient inbox delivery",
+      "status": "passed"
+    }
+  ]
+}

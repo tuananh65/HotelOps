@@ -1,0 +1,7 @@
+﻿{
+    "status":  "PASS_READ_ONLY_VERIFY_SQL",
+    "target":  "HotelOps_Canonical_20261106_230000_f090001_Fresh",
+    "scripts":  3,
+    "acceptedA01":  false,
+    "recoveryExecuted":  false
+}

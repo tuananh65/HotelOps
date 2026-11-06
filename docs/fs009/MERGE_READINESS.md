@@ -1,0 +1,9 @@
+# Merge readiness - NOT_READY for whole FE04 or shared Notification
+
+Keep feature/dev1-room-ops; no main/develop merge or unverified infrastructure deployment. User authorizes development/commit/push/PR, but module80-90% threshold not demonstrated. No whole-module PR created merely from two slices or passing mocked tests.
+
+Review groups: (1) UC028 acceptance DTO/options/item preview/existing-task/Save-and-Assign UI and tests; (2) provisional B01/B02/SQL guard/delivery integration plus exact shared mapping/Program/Batch diffs; (3) UC029 candidate producer/capability/UI/replay tests; (4) isolated harness/evidence/docs. Source and commit inventory recorded in SOURCE_MANIFEST/CHANGESET. Shared candidate remains explicitly labeled, not smuggled into an accepted module PR.
+
+Potential isolated UC028 PR: prepare reviewed slice with Create service/controller/DTO/lifecycle sidecars/frontend/tests only, preserve baseline auth/Batch and omit candidate registration/mapping/store/worker. Current containing service optional candidate injection/planning capability must be excluded or reconciled in extraction, not cherry-picked blindly. Local UC028 evidence supports review, not automatic shared acceptance; lifecycle/history/current-cycle/legacy semantics still need review. No new branch/worktree/PR silently created to bypass review.
+
+Before shared merge: exact accepted A01/A02 source/API/result, B01 SQL payload/catalog/immutable/retention agreement, B02 parity/key ownership, C01 physical commit/bypass/cancellation/ambiguity coverage, DEV2 dispatcher lifecycle/lease/retry/inbox policy, DEV3 current/historical source-read and global lock cooperation. Default production remains unavailable. No production/generalized migration here; scripts are exact development interlocked and recovery refuses populated evidence.

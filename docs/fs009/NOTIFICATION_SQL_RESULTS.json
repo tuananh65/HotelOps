@@ -1,0 +1,47 @@
+﻿{
+    "status":  "PASS_COMPONENT_SQL_ONLY",
+    "target":  "HotelOps_Canonical_20261106_230000_f090001_Fresh",
+    "tests":  [
+                  {
+                      "case":  "valid-stage",
+                      "passed":  true,
+                      "sqlError":  null,
+                      "transaction":  "ROLLED_BACK_COMPONENT_TEST"
+                  },
+                  {
+                      "case":  "duplicate-operation",
+                      "passed":  true,
+                      "sqlError":  2627,
+                      "transaction":  "ROLLED_BACK_COMPONENT_TEST"
+                  },
+                  {
+                      "case":  "duplicate-intent",
+                      "passed":  true,
+                      "sqlError":  2627,
+                      "transaction":  "ROLLED_BACK_COMPONENT_TEST"
+                  },
+                  {
+                      "case":  "forged-delivered",
+                      "passed":  true,
+                      "sqlError":  547,
+                      "transaction":  "ROLLED_BACK_COMPONENT_TEST"
+                  },
+                  {
+                      "case":  "invalid-inbox-fk",
+                      "passed":  true,
+                      "sqlError":  547,
+                      "transaction":  "ROLLED_BACK_COMPONENT_TEST"
+                  },
+                  {
+                      "case":  "claim-half-null",
+                      "passed":  true,
+                      "sqlError":  547,
+                      "transaction":  "ROLLED_BACK_COMPONENT_TEST"
+                  }
+              ],
+    "retainedRows":  51,
+    "remainingTestRows":  0,
+    "acceptedA01":  false,
+    "runtimePublisher":  false,
+    "inboxDeliveryVerified":  false
+}

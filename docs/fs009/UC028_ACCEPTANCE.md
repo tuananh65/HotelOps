@@ -1,0 +1,11 @@
+# UC028 acceptance - VERIFIED_LOCAL
+
+Sources: SRS DRAFT lines4168-4257 (UC028), GBR001/002/003/004/005/007/008/014/043/044/045, SRS_CHANGE_NOTES (Reception/permission revisions still pending), FS007 ROOM_LIFECYCLE_CONTRACT and UC028_CREATE_PROPOSAL. No new role/grant or Reception transition introduced. Existing CLEANING_ASSIGN SQL authority retained.
+
+Source-of-truth: cleaning_tasks row is task and logical TaskCycleId; room_cleaning_cycle_state points explicitly to that exact task/room, not MAX/latest task. One room_readiness_events record and audit share the same Serializable transaction. Audit binds actual session actor, room branch and task ID. Task/room composite FKs preserve lineage. New task PENDING_ASSIGNMENT/coarse PENDING, readiness PENDING_CLEANING, effective block independent. No direct Room legacy status, occupancy or room_status_history update. First-Start frozen items remain deferred; Create now displays actual ordered item preview, not only count.
+
+Implementation hardening: options include cleaningItems and existingTaskId; UI renders actual server item labels and link to the authorized existing task. Save-and-Assign creates once, then navigates to existing UC029 screen; no second automatic mutation. Noncandidate environments still keep assignment Save disabled. Conflict/unknown Create result retains explicit reload/Monitor check, no blind retry.
+
+Evidence: real browser Create -> HTTPS -> task/pointer/event/audit -> live Detail -> Monitor; duplicate409, concurrent201/409, audit fault total rollback, actor401/403 and foreign403, invalid DTO/ref/deadline/CSRF400. Additional blocked-room case uses a manual block with ExpectedReleaseAt already past and ReleasedAt NULL, checks HasEffectiveBlock=true, PENDING_CLEANING and unchanged legacy status; actual item preview and Save-and-Assign/existing-task navigation verified in final live results. Instructions and reference groups remain server validated.
+
+Acceptance limits: additive history/readiness interpretation still needs shared merge review; occupancy unknown is not certified vacant/occupied. Full Ready/inspection/rework reducer and noncooperating room/block writers not introduced. Recommend UC028 review as an independent vertical slice, not automatic historical ledger credit or production acceptance.

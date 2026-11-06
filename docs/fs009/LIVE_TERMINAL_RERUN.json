@@ -1,0 +1,54 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS009_ONLY",
+  "runId": "9b234f24-0216-4a29-8244-608fa4623e2d",
+  "checks": [
+    {
+      "name": "terminal-source-policy-and-model",
+      "data": {
+        "results": [
+          "RECIPIENT_INACTIVE",
+          "RECIPIENT_OUT_OF_SCOPE",
+          "SUPERSEDED"
+        ],
+        "parity": {
+          "status": "PASS_EF_SQL_COLUMN_PARITY",
+          "rows": [
+            {
+              "table": "notification_operation_reservations",
+              "columns": 8,
+              "foreignKeys": 1,
+              "sqlNullability": true,
+              "rowversionParity": true
+            },
+            {
+              "table": "notification_publications",
+              "columns": 9,
+              "foreignKeys": 2,
+              "sqlNullability": true,
+              "rowversionParity": true
+            },
+            {
+              "table": "notification_delivery_intents",
+              "columns": 12,
+              "foreignKeys": 3,
+              "sqlNullability": true,
+              "rowversionParity": true
+            }
+          ],
+          "generatedRecipientUnchanged": true
+        },
+        "unauthorizedInboxRows": 0
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS009 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows",
+      "status": "passed"
+    }
+  ]
+}

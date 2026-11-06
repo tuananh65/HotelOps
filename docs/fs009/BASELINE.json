@@ -1,0 +1,13 @@
+{
+    "branch":  "feature/dev1-room-ops",
+    "baseline":  "72b2a89160b56cb6855688a6f6d0df665ede5b16",
+    "initialWorkingTree":  "CLEAN",
+    "remoteContainsFS008":  true,
+    "sourceManifestBlobChecks":  37,
+    "remoteChangeCheck":  "git ls-remote --heads origin: DEV2/BE2/develop2 tips unchanged from FS008, no redundant old source search",
+    "acceptedPublisher":  "MISSING_EXECUTABLE_SOURCE",
+    "retainedFS004andFS008":  "No reset/reseed/write; FS009 fresh target only",
+    "newTarget":  "HotelOps_Canonical_20261106_230000_f090001_Fresh",
+    "owner":  "DEV1_FS009",
+    "generatedEntityEdits":  false
+}

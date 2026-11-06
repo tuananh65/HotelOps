@@ -1,0 +1,11 @@
+# Idempotency and concurrency
+
+Actor+GUID operation key is durable unique identity, fingerprint version1 SHA256 over canonical action/actual actor/branch/task/assignee/UTC due/trimmed reason/adoption=false/original strong task ETag. New key requires current PENDING_ASSIGNMENT, explicit current cycle, no active assignment, eligible target and exact rowversion; no implicit legacy adoption or reassignment. Original deadline may expire for an already-completed replay: current authorization/source checks still run but original command does not mutate again.
+
+Same key+fingerprint returns immutable original result after current actor/session/branch/source authorization, ignoring only original now-stale tag. Different fingerprint ->409. SQL range locks and existing actor/catalog serialization make concurrent same-key requests resolve one persisted result; different keys competing for same task yield one200/one412. Deadlock1205 is never counted as acceptance pass (Batch returns503, test requires expected success/conflict set). No automatic mutation retry.
+
+Stable frontend command captures key/tag/body once. Explicit retry obtains fresh CSRF but preserves original command, including after unknown response. HTTP result must match provisional contract/operation/task/branch/assignee/strong response tag; malformed or unsupported success rejected. Completed response reports original PENDING_DELIVERY staging snapshot, not current dispatcher state.
+
+Real evidence: identical replay through fresh client context, conflicting command409, stale new-key412, concurrent same-key200/200 one assignment/publication, competing200/412, precommit stage fault zero partial records, recipient/actor revocation, fresh-process delivery retry. Durable claim-only process boundary plus lease-expiry recovery tests distinguish committed lease from in-memory flags; test advances only owned pending lease timestamp, no reseed.
+
+Not certified: physical network/SqlTransaction commit exception ambiguity, cancellation exactly during commit, full API-host crash midcommit, concurrent deactivation/revoke across all shared writers, stress/deadlock matrix or reassignment implementation. Durable reservation provides explicit same-command resolution mechanism; do not label unexecuted fault scenarios PASS.

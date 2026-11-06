@@ -1,0 +1,97 @@
+{
+  "status": "PASS_LATEST_PER_CASE_NOT_ONE_UNINTERRUPTED_RUN",
+  "enabledCandidateUniqueCases": 12,
+  "latestPassed": 12,
+  "fullRun": {
+    "evidence": "LIVE_EXPANDED_RUN.json",
+    "passed": 10,
+    "failed": 1,
+    "reason": "recipient-inactive child ETIMEDOUT; no SQL blocking found"
+  },
+  "terminalRerun": {
+    "evidence": "LIVE_TERMINAL_RERUN.json",
+    "passed": 1
+  },
+  "finalReactHappyPath": {
+    "evidence": "LIVE_UI_FINAL.json",
+    "passed": 1
+  },
+  "assignmentDenials": {
+    "evidence": "LIVE_RESULTS.json",
+    "passed": 1
+  },
+  "defaultOff": {
+    "evidence": "DEFAULT_OFF_RESULTS.json",
+    "passed": 1
+  },
+  "disjointEvidenceCategories": {
+    "REAL_BROWSER_E2E": 5,
+    "LIVE_API_SQL": 8,
+    "nestedSQLChecksNotCountedAsAdditionalLiveTests": true
+  },
+  "cases": [
+    {
+      "name": "FS009 create persists exact task/cycle/event/audit, duplicate protection and real React navigation",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 competing Create yields one201/one409; audit failure rolls back all mandatory records",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 UC032 regression read and UC029 stale task version never commits",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 assigned source header independently enforces recipient OWN and branch, renders without monitor widening",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 Create rejects unauthorized writes, invalid contracts and missing CSRF without persistence",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 real React assignment commits mandatory records, durable replay and recipient inbox delivery",
+      "status": "passed",
+      "evidence": "LIVE_UI_FINAL.json"
+    },
+    {
+      "name": "FS009 concurrent same-key and competing assignments, staging failure rollback, durable retry after restart",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 revoked recipient cannot receive source data; actor replay reauthorizes; persisted guard rejects missing records",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 blocked room Create preserves legacy state, keeps effective block and exposes actual item preview",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows",
+      "status": "passed",
+      "evidence": "LIVE_TERMINAL_RERUN.json"
+    },
+    {
+      "name": "FS009 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag",
+      "status": "passed",
+      "evidence": "LIVE_EXPANDED_RUN.json"
+    },
+    {
+      "name": "FS009 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation",
+      "status": "passed",
+      "evidence": "LIVE_RESULTS.json"
+    }
+  ],
+  "acceptedA01": false,
+  "completeC01": false,
+  "sharedMergeReady": false
+}
