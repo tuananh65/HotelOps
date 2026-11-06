@@ -172,3 +172,181 @@ test("assignment cancels stale branch results without retaining staff", async ({
   release();
   await expect(page.getByText("API Staff", { exact: true })).toHaveCount(0);
 });
+
+test("candidate Save uses exact task ETag and displays pending delivery", async ({
+  page,
+}) => {
+  let posts = 0;
+  const tag = '"0000000000000001"';
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/assignment-options?**",
+    (r) =>
+      r.fulfill({
+        headers: { ETag: tag },
+        json: { ...plan, assignmentCapability: "PROVISIONAL_NOT_ACCEPTED" },
+      }),
+  );
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({ json: { headerName: "X-CSRF-TOKEN", csrfToken: "fresh" } }),
+  );
+  await page.route("**/api/branches/7/cleaning-tasks/12/assign", (r) => {
+    posts++;
+    const req = r.request(),
+      d = req.postDataJSON();
+    expect(req.headers()["if-match"]).toBe(tag);
+    return r.fulfill({
+      headers: { ETag: '"0000000000000002"' },
+      json: {
+        id: 12,
+        branchId: 7,
+        assigneeUserId: d.assigneeId,
+        assignmentId: 9,
+        operationId: req.headers()["idempotency-key"],
+        publicationId: "76c44400-7ca4-4da1-8990-8d2fc258f211",
+        workflowState: "ASSIGNED",
+        notification: "PENDING_DELIVERY",
+        sourceETag: '"0000000000000002"',
+        contract: "PROVISIONAL_NOT_ACCEPTED",
+      },
+    });
+  });
+  await page.goto("/cleaning/assignment?branchId=7&taskId=12");
+  await page.locator("select[name=assigneeId]").selectOption("5");
+  await page.locator("input[name=dueAt]").fill("2027-01-01T00:00:00Z");
+  await page.locator("input[name=reason]").fill("candidate test");
+  await page.locator("form button[type=button]").click();
+  await expect(
+    page.getByText("Assignment 9 committed. Notification pending delivery."),
+  ).toBeVisible();
+  expect(posts).toBe(1);
+  await expect(page.locator("form button[type=button]")).toBeDisabled();
+});
+
+test("candidate explicit retry preserves original command and key with fresh CSRF", async ({
+  page,
+}) => {
+  let posts = 0,
+    csrf = 0;
+  const commands: string[] = [],
+    keys: string[] = [];
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/assignment-options?**",
+    (r) =>
+      r.fulfill({
+        headers: { ETag: '"0000000000000001"' },
+        json: { ...plan, assignmentCapability: "PROVISIONAL_NOT_ACCEPTED" },
+      }),
+  );
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({
+      json: { headerName: "X-CSRF-TOKEN", csrfToken: `fresh-${++csrf}` },
+    }),
+  );
+  await page.route("**/api/branches/7/cleaning-tasks/12/assign", (r) => {
+    posts++;
+    commands.push(r.request().postData()!);
+    keys.push(r.request().headers()["idempotency-key"]);
+    return r.fulfill({ status: 503, json: { title: "UNAVAILABLE" } });
+  });
+  await page.goto("/cleaning/assignment?branchId=7&taskId=12");
+  await page.locator("select[name=assigneeId]").selectOption("5");
+  await page.locator("input[name=dueAt]").fill("2027-01-01T00:00:00Z");
+  await page.locator("input[name=reason]").fill("candidate test");
+  await page.locator("form button[type=button]").click();
+  await expect(
+    page.getByRole("button", { name: "Retry same command" }),
+  ).toBeVisible();
+  expect(posts).toBe(1);
+  await page.getByRole("button", { name: "Retry same command" }).click();
+  await expect.poll(() => posts).toBe(2);
+  expect(commands[0]).toBe(commands[1]);
+  expect(keys[0]).toBe(keys[1]);
+  expect(csrf).toBe(2);
+});
+
+test("assignment result from a previous branch cannot replace the current task state", async ({
+  page,
+}) => {
+  let release!: () => void;
+  const gate = new Promise<void>((r) => (release = r));
+  let began!: () => void;
+  const started = new Promise<void>((r) => (began = r));
+  const tag = '"0000000000000001"';
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/assignment-options?**",
+    (r) =>
+      r.fulfill({
+        headers: { ETag: tag },
+        json: { ...plan, assignmentCapability: "PROVISIONAL_NOT_ACCEPTED" },
+      }),
+  );
+  await page.route(
+    "**/api/branches/8/cleaning-tasks/13/assignment-options?**",
+    (r) =>
+      r.fulfill({
+        json: {
+          ...plan,
+          task: {
+            ...plan.task,
+            id: 13,
+            branchId: 8,
+            roomId: 4,
+            roomNumber: "201",
+            number: "API-OTHER",
+          },
+        },
+      }),
+  );
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({ json: { headerName: "X-CSRF-TOKEN", csrfToken: "fresh" } }),
+  );
+  await page.route("**/api/branches/7/cleaning-tasks/12/assign", async (r) => {
+    began();
+    await gate;
+    const req = r.request();
+    await r.fulfill({
+      headers: { ETag: '"0000000000000002"' },
+      json: {
+        id: 12,
+        branchId: 7,
+        assigneeUserId: 5,
+        assignmentId: 9,
+        operationId: req.headers()["idempotency-key"],
+        publicationId: "76c44400-7ca4-4da1-8990-8d2fc258f211",
+        workflowState: "ASSIGNED",
+        notification: "PENDING_DELIVERY",
+        sourceETag: '"0000000000000002"',
+        contract: "PROVISIONAL_NOT_ACCEPTED",
+      },
+    });
+  });
+  await page.goto("/cleaning/assignment?branchId=7&taskId=12");
+  await page.locator("select[name=assigneeId]").selectOption("5");
+  await page.locator("input[name=dueAt]").fill("2027-01-01T00:00:00Z");
+  await page.locator("input[name=reason]").fill("scope test");
+  await page.locator("form button[type=button]").click();
+  await started;
+  await page.locator("input[name=branchId]").fill("8");
+  await page.locator("input[name=taskId]").fill("13");
+  await page.locator("form.filter-bar button").click();
+  await expect(
+    page.getByRole("heading", { name: "API-OTHER · 201" }),
+  ).toBeVisible();
+  const response = page.waitForResponse((r) =>
+    r.url().endsWith("/cleaning-tasks/12/assign"),
+  );
+  release();
+  await response;
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+      ),
+  );
+  await expect(
+    page.getByText("Assignment 9 committed. Notification pending delivery."),
+  ).toHaveCount(0);
+  await expect(
+    page.getByRole("heading", { name: "API-OTHER · 201" }),
+  ).toBeVisible();
+});

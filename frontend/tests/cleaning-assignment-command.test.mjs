@@ -53,3 +53,42 @@ test("UC029 rejects invented revision/key and adoption before network", async ()
     ),
   );
 });
+
+test("UC029 candidate result accepts committed pending facts and rejects malformed success", async () => {
+  const result = {
+    id: 2,
+    branchId: 1,
+    assigneeUserId: 3,
+    assignmentId: 7,
+    operationId: key,
+    publicationId: "76c44400-7ca4-4da1-8990-8d2fc258f211",
+    workflowState: "ASSIGNED",
+    notification: "PENDING_DELIVERY",
+    sourceETag: '"0000000000000002"',
+    contract: "PROVISIONAL_NOT_ACCEPTED",
+  };
+  const respond = (value) => {
+    globalThis.fetch = async (url) =>
+      url.endsWith("/auth/csrf")
+        ? Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "fresh" })
+        : Response.json(value, { headers: { ETag: result.sourceETag } });
+  };
+  respond(result);
+  assert.equal(
+    (await submitAssignment("1", "2", draft, tag, key)).assignmentId,
+    7,
+  );
+  for (const bad of [
+    { ...result, operationId: null },
+    { ...result, notification: "DELIVERED" },
+    { ...result, branchId: 2 },
+    { ...result, assignmentId: 0 },
+    { ...result, contract: "ACCEPTED_A01" },
+  ]) {
+    respond(bad);
+    await assert.rejects(
+      submitAssignment("1", "2", draft, tag, key),
+      (e) => e.status === 502,
+    );
+  }
+});

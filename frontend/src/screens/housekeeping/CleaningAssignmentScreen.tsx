@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { submitAssignment } from "../../api/dev1/cleaningAssignmentCommand";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
   readAssignmentPlan,
@@ -42,6 +43,76 @@ export default function CleaningAssignmentScreen() {
         });
     return () => abort.abort();
   }, [branch, task, page, search, key, retry]);
+  const [command, setCommand] = useState<{
+    branch: string;
+    task: string;
+    draft: ReturnType<typeof buildAssignmentDraft>;
+    tag: string;
+    operation: string;
+  } | null>(null);
+  const [saving, setSaving] = useState(false),
+    [saveError, setSaveError] = useState(""),
+    [committed, setCommitted] = useState<number | null>(null);
+  const activeScope = useRef(branch + ":" + task);
+  activeScope.current = branch + ":" + task;
+  useEffect(() => {
+    setCommand(null);
+    setCommitted(null);
+    setSaveError("");
+    setSaving(false);
+  }, [branch, task]);
+  async function executeCommand(c: NonNullable<typeof command>) {
+    const belongs = () => activeScope.current === c.branch + ":" + c.task;
+    if (saving) return;
+    setSaving(true);
+    setSaveError("");
+    try {
+      const r = await submitAssignment(
+        c.branch,
+        c.task,
+        c.draft,
+        c.tag,
+        c.operation,
+      );
+      if (!belongs()) return;
+      setCommitted(r.assignmentId);
+      setRetry((v) => v + 1);
+    } catch (e) {
+      if (belongs()) setSaveError(assignmentError(e));
+    } finally {
+      if (belongs()) setSaving(false);
+    }
+  }
+  function assign(form: HTMLFormElement) {
+    if (
+      !data ||
+      command ||
+      saving ||
+      data.assignmentCapability !== "PROVISIONAL_NOT_ACCEPTED" ||
+      !data.sourceETag
+    )
+      return;
+    try {
+      const f = new FormData(form);
+      const d = buildAssignmentDraft(
+        data,
+        String(f.get("assigneeId") || ""),
+        String(f.get("dueAt") || ""),
+        String(f.get("reason") || ""),
+      );
+      const c = {
+        branch,
+        task,
+        draft: d,
+        tag: data.sourceETag,
+        operation: crypto.randomUUID(),
+      };
+      setCommand(c);
+      void executeCommand(c);
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Invalid command");
+    }
+  }
   function load(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
@@ -51,12 +122,18 @@ export default function CleaningAssignmentScreen() {
       if (v) next.set(k, v);
     }
     next.set("page", "1");
+    setCommand(null);
+    setCommitted(null);
+    setSaveError("");
     setParams(next);
     setRetry((v) => v + 1);
   }
   function changePage(n: number) {
     const next = new URLSearchParams(params);
     next.set("page", String(n));
+    setCommand(null);
+    setCommitted(null);
+    setSaveError("");
     setParams(next);
   }
   const data = result?.key === key ? result.data : null;
@@ -85,9 +162,29 @@ export default function CleaningAssignmentScreen() {
   return (
     <>
       <PageHeader id={27} />
+      {committed && (
+        <p role="status">
+          Assignment {committed} committed. Notification pending delivery.
+        </p>
+      )}
+      {saveError && (
+        <p role="alert">
+          {saveError}{" "}
+          {command && !committed && (
+            <button
+              disabled={saving}
+              onClick={() => void executeCommand(command)}
+            >
+              Retry same command
+            </button>
+          )}
+        </p>
+      )}
+      {saving && <p role="status">Saving assignment...</p>}
       <p role="status">
-        Chỉ xem dữ liệu và chuẩn bị bản nháp. Chưa thể lưu phân công vì thông
-        báo bắt buộc chưa được tích hợp.
+        {data?.assignmentCapability === "PROVISIONAL_NOT_ACCEPTED"
+          ? "Isolated development candidate. Assignment includes mandatory notification staging; delivery is asynchronous."
+          : "Chỉ xem dữ liệu và chuẩn bị bản nháp. Chưa thể lưu phân công vì thông báo bắt buộc chưa được tích hợp."}
       </p>
       <form key={key} className="filter-bar" onSubmit={load}>
         <label>
@@ -169,7 +266,16 @@ export default function CleaningAssignmentScreen() {
               >
                 Kiểm tra bản nháp
               </button>
-              <button type="button" disabled>
+              <button
+                type="button"
+                disabled={
+                  saving ||
+                  command !== null ||
+                  data.assignmentCapability !== "PROVISIONAL_NOT_ACCEPTED" ||
+                  data.task.workflowState !== "PENDING_ASSIGNMENT"
+                }
+                onClick={(e) => assign(e.currentTarget.form!)}
+              >
                 Lưu phân công
               </button>
             </form>

@@ -1,6 +1,8 @@
-import { ApiError, getJson } from "./client";
+import { ApiError, send } from "./client";
 import { positiveId } from "./rooms";
 export interface AssignmentPlan {
+  assignmentCapability?: string;
+  sourceETag?: string;
   task: {
     id: number;
     number: string;
@@ -81,10 +83,12 @@ export async function readAssignmentPlan(
     throw Error("Invalid planning filters");
   const q = new URLSearchParams({ page: String(page), pageSize: "20" });
   if (search.trim()) q.set("search", search.trim());
-  const v = await getJson(
+  const response = await send(
     `/branches/${b}/cleaning-tasks/${id}/assignment-options?${q}`,
     signal,
+    { method: "GET", headers: { Accept: "application/json" } },
   );
+  const v = response.body;
   if (
     !object(v) ||
     !object(v.task) ||
@@ -137,7 +141,12 @@ export async function readAssignmentPlan(
     )
       invalid();
   }
-  return v as unknown as AssignmentPlan;
+  if (
+    v.assignmentCapability === "PROVISIONAL_NOT_ACCEPTED" &&
+    !/^"[0-9A-F]{16}"$/.test(response.etag)
+  )
+    invalid();
+  return { ...v, sourceETag: response.etag } as unknown as AssignmentPlan;
 }
 export function buildAssignmentDraft(
   plan: AssignmentPlan,

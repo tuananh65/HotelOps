@@ -1,4 +1,4 @@
-﻿import { ApiError, getJson, send } from "./client";
+import { ApiError, getJson, send } from "./client";
 import { positiveId } from "./rooms";
 export interface CreateOptions {
   roomId: number;
@@ -7,6 +7,13 @@ export interface CreateOptions {
   cleaningTypes: { id: number; code: string; name: string }[];
   priorities: { id: number; code: string; name: string }[];
   cleaningItemCount: number;
+  cleaningItems?: {
+    id: number;
+    label: string;
+    isRequired: boolean;
+    sortOrder: number;
+  }[];
+  existingTaskId?: number | null;
 }
 export interface CreateInput {
   roomId: number;
@@ -36,6 +43,22 @@ function checkOptions(v: unknown, b: number, r: number): CreateOptions {
     )
   )
     throw new ApiError(502, "INVALID_CREATE_OPTIONS");
+  if (
+    d.cleaningItems !== undefined &&
+    (!Array.isArray(d.cleaningItems) ||
+      d.cleaningItems.length !== d.cleaningItemCount ||
+      !d.cleaningItems.every(
+        (x) =>
+          Number.isSafeInteger(x.id) &&
+          x.id > 0 &&
+          typeof x.label === "string" &&
+          typeof x.isRequired === "boolean" &&
+          Number.isInteger(x.sortOrder),
+      ))
+  )
+    throw new ApiError(502, "INVALID_CREATE_ITEMS");
+  if (d.existingTaskId !== undefined && d.existingTaskId !== null)
+    positiveId(String(d.existingTaskId));
   return d;
 }
 export async function cleaningOptions(

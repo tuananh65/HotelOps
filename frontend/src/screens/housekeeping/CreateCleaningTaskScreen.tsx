@@ -1,4 +1,4 @@
-﻿import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   cleaningOptions,
@@ -50,6 +50,9 @@ export default function CreateCleaningTaskScreen() {
     e.preventDefault();
     if (!data || busy || submitted) return;
     const f = new FormData(e.currentTarget);
+    const assignImmediately =
+      (e.nativeEvent as SubmitEvent).submitter?.getAttribute("name") ===
+      "saveAndAssign";
     setBusy(true);
     setError("");
     setSubmitted(true);
@@ -61,7 +64,11 @@ export default function CreateCleaningTaskScreen() {
         dueAt: String(f.get("dueAt") || ""),
         instruction: String(f.get("instruction") || "").trim() || null,
       });
-      nav(`/cleaning/tasks/${d.id}?branchId=${branch}&monitor=1&kind=cleaning`);
+      nav(
+        assignImmediately
+          ? `/cleaning/assignment?branchId=${branch}&taskId=${d.id}`
+          : `/cleaning/tasks/${d.id}?branchId=${branch}&monitor=1&kind=cleaning`,
+      );
     } catch (e) {
       setError(createError(e));
     } finally {
@@ -95,6 +102,21 @@ export default function CreateCleaningTaskScreen() {
             {data.cleaningItemCount} hạng mục xem trước; snapshot được cố định
             khi bắt đầu vệ sinh. Trạng thái phòng legacy không bị ghi đè.
           </p>
+          <ul>
+            {data.cleaningItems?.map((item) => (
+              <li key={item.id}>
+                {item.label}
+                {item.isRequired ? " *" : ""}
+              </li>
+            ))}
+          </ul>
+          {data.existingTaskId && (
+            <Link
+              to={`/cleaning/tasks/${data.existingTaskId}?branchId=${branch}&monitor=1&kind=cleaning`}
+            >
+              Open existing cleaning task
+            </Link>
+          )}
           <form onSubmit={submit}>
             <label>
               Loại vệ sinh
@@ -134,6 +156,17 @@ export default function CreateCleaningTaskScreen() {
               }
             >
               {busy ? "Đang tạo…" : "Tạo công việc"}
+            </button>
+            <button
+              name="saveAndAssign"
+              disabled={
+                busy ||
+                submitted ||
+                data.cleaningItemCount < 1 ||
+                data.cleaningItemCount > 100
+              }
+            >
+              Save and Assign
             </button>
           </form>
           {submitted && !busy && (

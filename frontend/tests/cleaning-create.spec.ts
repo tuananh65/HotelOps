@@ -72,3 +72,20 @@ test("Create conflict keeps form and blocks blind retry", async ({ page }) => {
   ).toBeDisabled();
   expect(posts).toBe(1);
 });
+
+for (const status of [401, 403, 503])
+  test(`Create options ${status} maps server error without enabling post`, async ({
+    page,
+  }) => {
+    let posts = 0;
+    await page.route("**/api/branches/7/cleaning-task-options?**", (r) =>
+      r.fulfill({ status, json: { title: "UNAVAILABLE" } }),
+    );
+    page.on("request", (r) => {
+      if (r.url().includes("/api/") && r.method() === "POST") posts++;
+    });
+    await page.goto("/cleaning/tasks/new?branchId=7&roomId=3");
+    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(page.locator("select[name=cleaningTypeId]")).toHaveCount(0);
+    expect(posts).toBe(0);
+  });
