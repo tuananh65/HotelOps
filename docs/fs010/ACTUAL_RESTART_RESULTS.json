@@ -1,0 +1,10 @@
+{
+  "level": "LIVE_API_SQL",
+  "passed": true,
+  "ownedApiGatewayViteRestart": true,
+  "originalIfMatchPreserved": true,
+  "durableResultEqual": true,
+  "notificationRowsUnchanged": true,
+  "publicationCount": 1,
+  "databaseReset": false
+}

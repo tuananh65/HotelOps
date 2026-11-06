@@ -1,0 +1,289 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS010_ONLY",
+  "runId": "b89156a2-f35c-4705-af69-18f52efb3264",
+  "checks": [
+    {
+      "name": "create-atomic-sql-and-ui",
+      "data": {
+        "taskId": 31,
+        "branch": 1,
+        "room": 31,
+        "legacyUnchanged": true,
+        "cycle": true,
+        "event": 1,
+        "audit": true,
+        "duplicate": 409,
+        "anonymous": 401,
+        "forbidden": 403,
+        "foreign": 403
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "create-race-and-rollback",
+      "data": {
+        "statuses": [
+          201,
+          409
+        ],
+        "auditFailureRollback": true,
+        "noTaskCycleEventAuditPartial": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "uc032-read-assign-failclosed",
+      "data": {
+        "progress": 200,
+        "assignment": 412,
+        "mutation": false,
+        "reason": "STALE_SEED_TASK_VERSION"
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "recipient-own-source-read",
+      "data": {
+        "owner": 200,
+        "foreignBranch": 403,
+        "otherAssignee": 403,
+        "monitorStillDenied": 403,
+        "realReact": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "create-negative-request-and-write-authority",
+      "data": {
+        "missingCsrf": 400,
+        "unknownField": 400,
+        "pastDue": 400,
+        "invalidReference": 400,
+        "foreignWrite": 403,
+        "ownerWrite": 403,
+        "mutation": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "real-assignment-replay-delivery",
+      "data": {
+        "assignmentId": 25,
+        "mandatoryStage": true,
+        "restartReplay": 200,
+        "conflictingReplay": 409,
+        "newKeyStale": 412,
+        "recipientOnly": true,
+        "inboxDelivered": true,
+        "acceptedA01": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "assignment-concurrency-rollback-retry",
+      "data": {
+        "sameKey": [
+          200,
+          200
+        ],
+        "competing": [
+          200,
+          412
+        ],
+        "stageFaultRollback": true,
+        "deliveryFailureKeepsAssignment": true,
+        "restartRetry": true,
+        "deadlockAccepted": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "source-security-and-scoped-guard",
+      "data": {
+        "revokedRecipient": "SOURCE_READ_DENIED",
+        "revokedActorReplay": 403,
+        "unauthorizedInboxRows": 0,
+        "guard": {
+          "status": "PASS_SCOPED_GUARD_COMPONENT",
+          "cases": [
+            "valid:PASS",
+            "missing-intent:PASS",
+            "missing-audit:PASS",
+            "savepoint-restore:PASS",
+            "immutable-publication:PASS",
+            "immutable-completion:PASS",
+            "wrong-physical:PASS"
+          ],
+          "rawExternalCommitInterception": false
+        }
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "uc028-blocked-preview-continuation",
+      "data": {
+        "legacyUnchanged": true,
+        "effectiveBlock": true,
+        "expectedReleaseDoesNotRelease": true,
+        "readiness": "PENDING_CLEANING",
+        "snapshotNotFrozen": true,
+        "saveAndAssignNavigation": true,
+        "existingTaskLink": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "terminal-source-policy-and-model",
+      "data": {
+        "results": [
+          "RECIPIENT_INACTIVE",
+          "RECIPIENT_OUT_OF_SCOPE",
+          "SUPERSEDED"
+        ],
+        "parity": {
+          "status": "PASS_EF_SQL_COLUMN_PARITY",
+          "rows": [
+            {
+              "table": "notification_operation_reservations",
+              "columns": 8,
+              "foreignKeys": 1,
+              "sqlNullability": true,
+              "rowversionParity": true,
+              "typesAndLengths": true
+            },
+            {
+              "table": "notification_publications",
+              "columns": 9,
+              "foreignKeys": 2,
+              "sqlNullability": true,
+              "rowversionParity": true,
+              "typesAndLengths": true
+            },
+            {
+              "table": "notification_delivery_intents",
+              "columns": 12,
+              "foreignKeys": 3,
+              "sqlNullability": true,
+              "rowversionParity": true,
+              "typesAndLengths": true
+            }
+          ],
+          "generatedRecipientUnchanged": true
+        },
+        "unauthorizedInboxRows": 0
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "uc032-real-write-regression",
+      "data": {
+        "read": 200,
+        "put": 200,
+        "percent": 100,
+        "state": "IN_PROGRESS",
+        "stale": 412,
+        "foreignOwner": 403,
+        "sqlPersistence": true,
+        "auditIdentity": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "assignment-write-authority",
+      "data": {
+        "anonymous": 401,
+        "invalidKey": 400,
+        "foreignBranch": 403,
+        "forbiddenActor": 403,
+        "mutation": false
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS010 create persists exact task/cycle/event/audit, duplicate protection and real React navigation",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 competing Create yields one201/one409; audit failure rolls back all mandatory records",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 UC032 regression read and UC029 stale task version never commits",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 assigned source header independently enforces recipient OWN and branch, renders without monitor widening",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 Create rejects unauthorized writes, invalid contracts and missing CSRF without persistence",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 real React assignment commits mandatory records, durable replay and recipient inbox delivery",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 concurrent same-key and competing assignments, staging failure rollback, durable retry after restart",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 revoked recipient cannot receive source data; actor replay reauthorizes; persisted guard rejects missing records",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 blocked room Create preserves legacy state, keeps effective block and exposes actual item preview",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag",
+      "status": "passed"
+    },
+    {
+      "name": "FS010 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation",
+      "status": "passed"
+    }
+  ]
+}

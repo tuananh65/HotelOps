@@ -1,0 +1,109 @@
+{
+  "implementationCommit": "ad30eb0ea671518ff8469d06ab2e64362eddc4f7",
+  "harnessCommit": "9778872658737777184a2b2eae10732cce7c466f",
+  "backendBuild": {
+    "command": "dotnet build HotelOps.slnx",
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionTest": {
+    "command": "dotnet test HotelOps.slnx",
+    "result": "PASS_NO_TEST_PROJECT_IN_SOLUTION"
+  },
+  "xunit": {
+    "command": "dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj --no-restore --logger trx",
+    "passed": 127,
+    "failed": 0,
+    "skipped": 0,
+    "evidence": "../test-handover/FE-04/TEST_EVIDENCE/fs010.trx",
+    "warning": "NU1900 vulnerability metadata unavailable"
+  },
+  "frontendBuild": {
+    "result": "PASS",
+    "warnings": [
+      "react-router use client ignored",
+      "Vite chunk >500KB"
+    ]
+  },
+  "node": {
+    "passed": 46,
+    "failed": 0
+  },
+  "interception": {
+    "passed": 47,
+    "failed": 0
+  },
+  "liveFull": [
+    {
+      "run": "run01",
+      "passed": 0,
+      "failed": 12,
+      "reason": "Node public CA not configured before API calls"
+    },
+    {
+      "run": "run02",
+      "passed": 11,
+      "failed": 1,
+      "reason": "Old staging500 expectation; intentional new recovery503"
+    },
+    {
+      "run": "run03",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "run": "run04",
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "liveRestart": {
+    "passed": 1,
+    "failed": 0,
+    "actualOwnedProcessRestart": true
+  },
+  "liveDefaultOff": {
+    "passed": 1,
+    "failed": 0
+  },
+  "commitFaultSQL": {
+    "passed": 4,
+    "failed": 0,
+    "level": "COMPONENT; auth doubles; no actual network partition"
+  },
+  "physicalGuardSQL": {
+    "cases": 9,
+    "protectedBehaviorChecks": 8,
+    "confirmedUnsupportedBypass": 1,
+    "universalGuard": false
+  },
+  "schema": {
+    "idempotentProposal": true,
+    "partialRefusal": true,
+    "transactionRollbackRestoredTable": true,
+    "populatedRecoveryRefused": true,
+    "destructiveRecoveryExecuted": false
+  },
+  "format": {
+    "scopedDotnetWhitespace": "PASS",
+    "newFrontendPrettier": "PASS",
+    "powershellParse": "PASS",
+    "diffWhitespace": "PASS"
+  },
+  "otherWarnings": [
+    "EF20602 inherited view indexes",
+    "NO_COLOR/FORCE_COLOR",
+    "Git LF/CRLF"
+  ],
+  "earlyFailedAttempts": [
+    "Sandbox EPERM build/frontend artifacts, rerun elevated PASS",
+    "Concurrent compiler build conflict and running helper/API DLL lock, rerun stopped/sequential PASS",
+    "Final staged diff found blank-field template trailing spaces; removed and staged diff rechecked"
+  ],
+  "oldTrialWrites": false,
+  "coverage": "NOT_MEASURED",
+  "testerAcceptance": "NOT_RECEIVED",
+  "sharedPublisher": "MISSING_EXECUTABLE_SOURCE",
+  "overall": "PARTIAL"
+}

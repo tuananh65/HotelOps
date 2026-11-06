@@ -1,0 +1,65 @@
+{
+  "level": "COMPONENT_REAL_SQL",
+  "results": [
+    {
+      "fault": "before-commit",
+      "result": "Unavailable",
+      "delta": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restartRetry": "SUCCESS_EXACTLY_ONCE",
+      "gate": "COMPONENT_DOUBLE_NOT_AUTH_EVIDENCE"
+    },
+    {
+      "fault": "after-commit",
+      "result": "Success",
+      "delta": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restartRetry": "SUCCESS_EXACTLY_ONCE",
+      "gate": "COMPONENT_DOUBLE_NOT_AUTH_EVIDENCE"
+    },
+    {
+      "fault": "cancel-before",
+      "result": "Unavailable",
+      "delta": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "restartRetry": "SUCCESS_EXACTLY_ONCE",
+      "gate": "COMPONENT_DOUBLE_NOT_AUTH_EVIDENCE"
+    },
+    {
+      "fault": "cancel-after",
+      "result": "Success",
+      "delta": [
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "restartRetry": "SUCCESS_EXACTLY_ONCE",
+      "gate": "COMPONENT_DOUBLE_NOT_AUTH_EVIDENCE"
+    }
+  ],
+  "countOrder": [
+    "Assignment",
+    "Audit",
+    "Operation",
+    "Publication",
+    "Intent"
+  ],
+  "actualNetworkDisconnect": false
+}

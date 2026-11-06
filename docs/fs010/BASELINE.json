@@ -1,0 +1,13 @@
+{
+  "baseline": "11a2277f077d7310ec29593993afdade11cce03e",
+  "initialRemoteSHA": "11a2277f077d7310ec29593993afdade11cce03e",
+  "initialWorkingTree": "CLEAN",
+  "branch": "feature/dev1-room-ops",
+  "implementationCommit": "ad30eb0ea671518ff8469d06ab2e64362eddc4f7",
+  "remoteDEV2Tips": "Ten existing BE2/DEV2/develop2 tips unchanged; no new publisher branch; no redundant exhaustive source search",
+  "acceptedPublisher": "MISSING_EXECUTABLE_SOURCE",
+  "target": "HotelOps_Canonical_20261106_f100001_Fresh",
+  "owner": "DEV1_FS010",
+  "previousTrials": "FS004/FS008/FS009 no write/reset/reseed",
+  "generatedEFChanges": false
+}

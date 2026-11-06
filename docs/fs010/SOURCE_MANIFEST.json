@@ -1,0 +1,156 @@
+{
+  "baseline": "11a2277f077d7310ec29593993afdade11cce03e",
+  "implementationCommit": "ad30eb0ea671518ff8469d06ab2e64362eddc4f7",
+  "harnessCommit": "9778872658737777184a2b2eae10732cce7c466f",
+  "files": [
+    {
+      "path": "frontend/playwright.fs010-default-off.config.ts",
+      "sha256": "cf894dae6b33fcc3accdb3b0bcff57526737277c48a49ed1b107493476c184ab"
+    },
+    {
+      "path": "frontend/playwright.fs010-live.config.ts",
+      "sha256": "3cd7bb923a03832fce05c72e6de46047e5acde88f470c5580a82a3437d122acd"
+    },
+    {
+      "path": "frontend/playwright.fs010-restart.config.ts",
+      "sha256": "d910794568d32612cae40ada51c63f0eb663a6f720b11c22342d8cad3b4db157"
+    },
+    {
+      "path": "frontend/tests/fs010-default-off.spec.ts",
+      "sha256": "2b6f7a3c1d0f499fe770af7493e9ac3d99cbe2252b75c185b2eb04e41786d260"
+    },
+    {
+      "path": "frontend/tests/fs010-live.spec.ts",
+      "sha256": "88c9c58294dda3508298b55922ba57667c3b86415d6259fc5847479e786835ce"
+    },
+    {
+      "path": "frontend/tests/fs010-restart.spec.ts",
+      "sha256": "db88ccf89b28e5197bdbc89057ebad2ebf3f11ecec7c389202a3ab4d43225f5b"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/01_Install.sql",
+      "sha256": "009ffb05331d800c72bcf4100cd13612c6f6e31a90e7dc89e22097c33e1bff45"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/02_NotificationProposal.sql",
+      "sha256": "0487077e51e4a9f12c6438c4a66efa181d912abce25bce1dcf909d5249f6fa23"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/03_VerifyNotificationProposal.sql",
+      "sha256": "7a24e9bcdf524cb8e17eda3b38f108f9fcb8f5dab09d17e06e8794e908d51315"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/04_RecoveryNotificationProposal.sql",
+      "sha256": "aea23e1c030859f632366fef2c39b18ab7e834bee81433e795f7b7bb4b155bac"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/05_VerifyLifecycle.sql",
+      "sha256": "d058b21f7e7884852dac34f7209e033007f554d6fb1a0b5a5e5ac721dd46e634"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/06_RecoveryLifecycle.sql",
+      "sha256": "ebb616e0eb9caf10f180b1c5a043d4a22e7fc66302549b21908e7efc96bd7f8a"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/07_ExecutableCandidate.sql",
+      "sha256": "4ffb040ca19415ca6f0170dfbf59afb1352c11478cf5c7e04e239b25bb77adf1"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/08_VerifyCandidate.sql",
+      "sha256": "71d30107cca153baea4bb0b44b27a791471e150a2fe37d050c901ef68ed30ad1"
+    },
+    {
+      "path": "scripts/database/release/fs010-candidate/09_RecoveryCandidate.sql",
+      "sha256": "42fd27bdf27707807105c15d1388475f75d5e736653c53d902db7a4b509608d8"
+    },
+    {
+      "path": "scripts/verification/FS010/.gitignore",
+      "sha256": "0c9a592d8c731df697f08fc32b2f2d8a41b2bbbe39cf21c0f5dd160bd9a889ec"
+    },
+    {
+      "path": "scripts/verification/FS010/Build-TestHandover.cjs",
+      "sha256": "a2aa39b64da4ac1aaa15e1172ff65db63505c06cf2b1a967cea62d52014d303d"
+    },
+    {
+      "path": "scripts/verification/FS010/CommitProof.cs",
+      "sha256": "1a4e4c70d41317b2193ddcb12134b569a4df7ee13b7c83c6937e4eedef82e6bd"
+    },
+    {
+      "path": "scripts/verification/FS010/FS010.Verification.csproj",
+      "sha256": "59a3225cf51c65a5b2218c85e10fecd8b70a51ed8a930c595afde7846a07ba12"
+    },
+    {
+      "path": "scripts/verification/FS010/Install-Candidate.ps1",
+      "sha256": "6d8b80db4d323419725026b350e75886b0762ac52e246e83ea6d3111527337e1"
+    },
+    {
+      "path": "scripts/verification/FS010/Install-Lifecycle.ps1",
+      "sha256": "1db5b0d299345477de7f2d6c1203cd14aed94c60af26ed0126ca5de9a21dcf83"
+    },
+    {
+      "path": "scripts/verification/FS010/New-ApprovedTrial.ps1",
+      "sha256": "a26220f265c7969df897927e4724f0ade092845f0eec3f161139ed2ef7e2001a"
+    },
+    {
+      "path": "scripts/verification/FS010/PhysicalGuardProof.cs",
+      "sha256": "0cb18f5d1d75198c939a99cc17946e80a9efdd3869ce76d681eea501fb292482"
+    },
+    {
+      "path": "scripts/verification/FS010/Program.cs",
+      "sha256": "9761dd773860933b2a15c552bad769d88a3da3d9c23b7a79cb825c3b3180afd0"
+    },
+    {
+      "path": "scripts/verification/FS010/Run-LiveSuite.ps1",
+      "sha256": "31cbad9e64ca8dfef2b5484025fe7754e846875b9ad83762fa4ea5b7898ea91f"
+    },
+    {
+      "path": "scripts/verification/FS010/Start-LiveEnvironment.ps1",
+      "sha256": "2eea63760a9b89c06789f4cc5cba6d0657bcca0e8b3124ec8b4da7e57046d9a1"
+    },
+    {
+      "path": "scripts/verification/FS010/Stop-LiveEnvironment.ps1",
+      "sha256": "6c55e6d2dcec8b84ca6d37048bc1932e77e4f0b7da9eb15073b88bd133bd425f"
+    },
+    {
+      "path": "scripts/verification/FS010/Test-NotificationProposal.ps1",
+      "sha256": "27f34b9910569b12be3a981e58864f601d798c298288d1a61f52a135519fa711"
+    },
+    {
+      "path": "scripts/verification/FS010/Test-SchemaSafety.ps1",
+      "sha256": "719c1a9cdd98643ea5c05a877cc247404ea3a0be88a9061b6222027ee9dd0472"
+    },
+    {
+      "path": "scripts/verification/FS010/Verify-Candidate.ps1",
+      "sha256": "da18866e2170e4857487ad3087bca25c5f8133f76833986b227f531e77f0402d"
+    },
+    {
+      "path": "src/HotelOps.Api/Program.cs",
+      "sha256": "73e48251cf232b38107e5fb99bb329d2ed7b55b239abd384c9a8f8af47ce2655"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+      "sha256": "37b8d964f0ee429e7d59ed79375ec4f4bb1458a621f07e145490202ea1a93f65"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCandidateService.cs",
+      "sha256": "9764c0d8dcd73a20a3deeb827ebe07b654850a9608dedaa38d5f2f1abab7029c"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningTaskCreationService.cs",
+      "sha256": "18c3c8920fff4703e9ad5b52e4931bbe360f68f9dbaaf907ea5ca400427d028a"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CandidateCommitGuard.cs",
+      "sha256": "741dfa938ce59d885548f07ec85018214b18f2b573291ea42ae1249673065c3c"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs",
+      "sha256": "10af29e979f70af1e8e520c3a4002f6f511106eca39a412c86f7c7e3aadd7cea"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CandidateCommitGuardTests.cs",
+      "sha256": "afda23924bc9aa573d7fee527bacb20c9c0f5dd1ecb7724e51dcb2f71e5d14ca"
+    }
+  ],
+  "scope": "Changed runtime/test/SQL/harness only; excludes private/build outputs; existing installer baseline hashes separate"
+}

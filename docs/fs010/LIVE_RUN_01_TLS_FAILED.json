@@ -1,0 +1,104 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS010_ONLY",
+  "runId": "556045f4-a130-4cce-890b-217217892913",
+  "checks": [
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS010 create persists exact task/cycle/event/audit, duplicate protection and real React navigation",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 competing Create yields one201/one409; audit failure rolls back all mandatory records",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 UC032 regression read and UC029 stale task version never commits",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 assigned source header independently enforces recipient OWN and branch, renders without monitor widening",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 Create rejects unauthorized writes, invalid contracts and missing CSRF without persistence",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 real React assignment commits mandatory records, durable replay and recipient inbox delivery",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 concurrent same-key and competing assignments, staging failure rollback, durable retry after restart",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 revoked recipient cannot receive source data; actor replay reauthorizes; persisted guard rejects missing records",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 blocked room Create preserves legacy state, keeps effective block and exposes actual item preview",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag",
+      "status": "failed"
+    },
+    {
+      "name": "FS010 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation",
+      "status": "failed"
+    }
+  ]
+}

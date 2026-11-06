@@ -1,0 +1,11 @@
+﻿{
+    "level":  "COMPONENT_REAL_SQL",
+    "idempotentProposal":  "PASS_TWO_EXECUTIONS",
+    "partialPackageRefusal":  "PASS_51891",
+    "rollbackRestoredOriginalTable":  true,
+    "populatedRecoveryRefusal":  "PASS_51917",
+    "actualRecoveryDropExecuted":  false,
+    "retainedRows":  75,
+    "rowDelta":  0,
+    "resetOrReseed":  false
+}

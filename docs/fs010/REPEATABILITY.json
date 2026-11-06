@@ -1,0 +1,29 @@
+{
+  "runs": [
+    {
+      "file": "run03_LIVE_RESULTS.json",
+      "runId": "c61c280a-7815-4269-85ab-de2a1e5dfe46",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "file": "run04_LIVE_RESULTS.json",
+      "runId": "b89156a2-f35c-4705-af69-18f52efb3264",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "metrics": {
+    "calls": 72,
+    "maxDurationMs": 12828,
+    "nonzeroExit": 0,
+    "timeoutEvents": 0
+  },
+  "reset": false,
+  "reseed": false,
+  "additiveSyntheticCapacity": true,
+  "historicalFS009TimeoutRootCause": "NOT_PROVEN_NOT_REPRODUCED",
+  "focusedRerunUsedToClaimFullPass": false
+}
