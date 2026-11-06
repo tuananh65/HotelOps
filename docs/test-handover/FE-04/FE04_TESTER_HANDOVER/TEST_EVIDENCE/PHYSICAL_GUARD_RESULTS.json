@@ -1,0 +1,51 @@
+{
+  "level": "COMPONENT_REAL_SQL",
+  "results": [
+    {
+      "name": "valid-async",
+      "rejected": false,
+      "status": "PASS"
+    },
+    {
+      "name": "sync-rejected",
+      "rejected": true,
+      "status": "PASS"
+    },
+    {
+      "name": "raw-missing-intent",
+      "rejected": true,
+      "status": "PASS"
+    },
+    {
+      "name": "execute-delete-missing-audit",
+      "rejected": true,
+      "status": "PASS"
+    },
+    {
+      "name": "execute-update-source-revision",
+      "rejected": true,
+      "status": "PASS"
+    },
+    {
+      "name": "mutation-after-validation",
+      "rejected": true,
+      "status": "PASS"
+    },
+    {
+      "name": "savepoint-restore",
+      "rejected": false,
+      "status": "PASS"
+    },
+    {
+      "name": "cancel-before-commit",
+      "rejected": true,
+      "status": "PASS"
+    },
+    {
+      "name": "raw-provider-bypass",
+      "rejected": false,
+      "status": "UNSUPPORTED_BYPASS_CONFIRMED"
+    }
+  ],
+  "universalPhysicalGuard": false
+}

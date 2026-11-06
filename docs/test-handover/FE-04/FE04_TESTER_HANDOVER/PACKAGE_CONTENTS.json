@@ -1,0 +1,122 @@
+{
+  "codeCommit": "4f62d1388a6669fbf61ead520ee8d33bc8ae8809",
+  "excludesSelf": true,
+  "files": [
+    {
+      "path": "CODE_COMMIT.txt",
+      "sha256": "66df14faec86d2e3c178bda1f993dfea9d8989f7e2c2a60efbf2054ab12a40e5"
+    },
+    {
+      "path": "EVIDENCE_REFERENCES.md",
+      "sha256": "b328923f54a6165633519eb4a3e11c04aa0f5adba315de0ea1f2d936c6723b31"
+    },
+    {
+      "path": "KNOWN_LIMITATIONS.md",
+      "sha256": "2facefb644d52599db84307a8d77c78a54ec70ebf49b354e11bd2b368958857d"
+    },
+    {
+      "path": "Open-TesterBrowser.cjs",
+      "sha256": "b4d69ba130bb1a68a66d8f3d1d28d292b57a24a9328dc48dde0bee9c5e22638c"
+    },
+    {
+      "path": "README.md",
+      "sha256": "d3b842dbca10267752ba13c7e5c21bd7acd9e2b17bee84356385bb2199b1e50b"
+    },
+    {
+      "path": "READ_ONLY_OBSERVATION.sql",
+      "sha256": "5a224d5588910fd944d3e4c0765de16c21e6139e1b7c5a344fa003892219ebdc"
+    },
+    {
+      "path": "SETUP_TESTER.ps1",
+      "sha256": "9a04d56233f92e911976b08694ee665f7feabdd8dfb288906493954c8551014a"
+    },
+    {
+      "path": "SOURCE_MANIFEST.json",
+      "sha256": "df2b0bf286be958b665530fd049599f2ba95126fdb94c73681130f11910726ce"
+    },
+    {
+      "path": "TESTER_FEEDBACK_TEMPLATE.md",
+      "sha256": "ece5536ec56c8410b6e45614c991c2a25422117aa031fee2f0c5b382f45acb8a"
+    },
+    {
+      "path": "TESTER_TEST_CASES.xlsx",
+      "sha256": "d73ee5480688dd698356f7ffc09e26cf898f4fc2cb309b1c35a31e843d6b4d45"
+    },
+    {
+      "path": "TEST_ENVIRONMENT.md",
+      "sha256": "f771715ccdfc9540c3a054b19627998d8d0ce6ec37d6f5073949fc86b519741a"
+    },
+    {
+      "path": "TEST_EVIDENCE/ACTUAL_RESTART_RESULTS.json",
+      "sha256": "8b1f7ee2f0eabb398f7a4461a4331ea0c23e228056c747984477835e89d227bb"
+    },
+    {
+      "path": "TEST_EVIDENCE/BASELINE_MAPPING_AUDIT.json",
+      "sha256": "73c86c50c6aeb35785f4c382c903387973a347d5bab1c376c3a53b4b4161860a"
+    },
+    {
+      "path": "TEST_EVIDENCE/BOUNDARY_RESULTS.json",
+      "sha256": "98a96672345bafb709a807c3887c6f3b9a9f6cc117dd0e60228ace3ed51b059b"
+    },
+    {
+      "path": "TEST_EVIDENCE/COMMIT_FAULT_RESULTS.json",
+      "sha256": "7c147d8493ee55655cde1f617be309752b79986b8492b68535bcf5ccd65fb2e2"
+    },
+    {
+      "path": "TEST_EVIDENCE/DEFAULT_OFF_RESULTS.json",
+      "sha256": "72ece7cfff181319b357658edb4cf9d8d120162e286524ff7657f3b60baf1466"
+    },
+    {
+      "path": "TEST_EVIDENCE/fs011.trx",
+      "sha256": "58f1be7a89c2d3fa609dad69e566012f687af0296c3674a1ff9b9779dfb79657"
+    },
+    {
+      "path": "TEST_EVIDENCE/full01_LIVE_RESULTS.json",
+      "sha256": "ab139c56209acf2a34e2a551e93dde48052d52f1acae19e9b8ffe364938478fd"
+    },
+    {
+      "path": "TEST_EVIDENCE/full02_LIVE_RESULTS.json",
+      "sha256": "f2519694918c2a1bffd10843d002dff7d7592545fd6371b0cdbae2d896641b79"
+    },
+    {
+      "path": "TEST_EVIDENCE/full03_LIVE_RESULTS.json",
+      "sha256": "0adb44c942e448ec4a55d710d00fcd39757809e95f66b05acae0974f094e2c54"
+    },
+    {
+      "path": "TEST_EVIDENCE/PERMISSION_PROBE.json",
+      "sha256": "da37b7c49ec2828fccd3843d52e4609b8731d8c9bfdf8d1e18452b0eafb6cc2f"
+    },
+    {
+      "path": "TEST_EVIDENCE/PHYSICAL_GUARD_RESULTS.json",
+      "sha256": "6994571806691e1414c35de5909aece6916a1955e1107f4d84ddbe64de0873b5"
+    },
+    {
+      "path": "TEST_EVIDENCE/TESTER_FAULT_GATE.json",
+      "sha256": "02c791da74d728d96479b2fa33135b7704eb98129c4569eaa499a5405f878f88"
+    },
+    {
+      "path": "TEST_EVIDENCE/TESTER_FUNCTIONAL_SMOKE.json",
+      "sha256": "565fc942b4a6b812f322eba2ff2bdc050243535293efd61277fd56036aa427b8"
+    },
+    {
+      "path": "TEST_EVIDENCE/WORKBOOK_VALIDATION.json",
+      "sha256": "016d56983a623dd7d5ca5a46ee817cc1517771cc4281b8254aec81e18f7d18ca"
+    },
+    {
+      "path": "TEST_EXECUTION_GUIDE.md",
+      "sha256": "b654b1360f4f885e13637ba3c73ef6c108d30e7c56e034117dce12a560429e1d"
+    },
+    {
+      "path": "UC_TEST_COVERAGE_MATRIX.md",
+      "sha256": "1aac2b508bf3cacc2d3d4fc81618624cc6c6c6a9204ffcf5e3b7733b49ea0c13"
+    },
+    {
+      "path": "UNIT_TEST_CASES.xlsx",
+      "sha256": "302ed485ae0d4ed139a2f2a3b070a41b149dda19546bbeb0a012757b3be573e1"
+    },
+    {
+      "path": "UNIT_TEST_REPORT.md",
+      "sha256": "8462ded610c6cffadaaff91767239ac03227fe26a3922f21fd0bd77a8033785a"
+    }
+  ]
+}

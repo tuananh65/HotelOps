@@ -1,0 +1,6 @@
+{
+  "case": "candidate-stage-fault-on",
+  "deniedBeforeDatabaseConnection": true,
+  "exitNonzero": true,
+  "databaseWritten": false
+}

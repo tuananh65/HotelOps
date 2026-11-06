@@ -1,0 +1,9 @@
+# Independent Tester package
+
+Path docs/test-handover/FE-04/FE04_TESTER_HANDOVER/. Real XLSX workbooks; baseline audit verifies67 original cases/31 methods exist in source. FS011 adds6 command cases and2 Production-flag cases; current mapping75 cases/34 methods, whole xUnit135. All functional38 IDs unique, status NOT_RUN. No actual Tester execution/acceptance.
+
+Package has exact code checkpoint, normalized source manifest, wrapper validating all required source before setup, unit TRX/report, UC matrix, environment guide, detailed execution guide, read-only observation SQL, known limits, developer evidence, authenticated browser launcher, feedback and ZIP manifest. Developer fault cases are marked DEVELOPER_ONLY_FAULT; accepted shared case remains BLOCKED. Original FS010 workbooks/evidence retained unchanged.
+
+Separate Tester DB HotelOps_Canonical_20261106_f11tester_Fresh, exact owner DEV1_FS011Tester, refuses overwrite/reset. Bootstrap tested end-to-end; credentials private DPAPI, browser launcher authenticates only in memory, no cookies/secrets in package. Helper rejects fault modes before SQL. Developer-only boundary/permission/commit faults run only NEW FS011 scratch. Fault SQL/recovery suites excluded from Tester scaffold; direct privileged SQL remains outside the helper gate.
+
+Developer functional smoke on independent Tester trial PASS1/1 (not Tester acceptance), no historical reset. Initial smoke target assertion was corrected before API execution; failed attempt not renamed PASS. Explicit launcher headless authentication tested; manual headed window remains Tester step. TESTER_READY for functional subset subject to local prerequisites; full shared/candidate-fault acceptance NOT_READY. ZIP content/hash/secret validation receipt records actual result; no fabricated standalone production environment claim.

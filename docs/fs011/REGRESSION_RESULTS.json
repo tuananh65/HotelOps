@@ -1,0 +1,33 @@
+{
+  "runs": [
+    {
+      "file": "full01_LIVE_RESULTS.json",
+      "runId": "b1d08f26-7c76-45be-9620-d31a38caa873",
+      "total": 12,
+      "passed": 11,
+      "failed": 1
+    },
+    {
+      "file": "full02_LIVE_RESULTS.json",
+      "runId": "39773920-9f83-459c-8f94-dd4acf73a4db",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "file": "full03_LIVE_RESULTS.json",
+      "runId": "0e1a1524-5f65-4714-b617-ce484b7b0230",
+      "total": 12,
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "helperCalls": 217,
+  "helperTimeouts": 0,
+  "maxHelperMs": 32392,
+  "timeoutIncreased": false,
+  "resetOrReseed": false,
+  "originalFS009TimeoutRootCause": "NOT_PROVEN",
+  "newUnitCompileFailure": "Fixed HasResult property before executed run",
+  "testerInitialSmoke": "Exact-target assertion corrected before API execution; later1/1 PASS"
+}

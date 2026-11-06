@@ -1,0 +1,8 @@
+{
+    "level":  "COMPONENT_REAL_SQL",
+    "isolatedDenyUpdate":  "PASS_229",
+    "principalAndGrantTransaction":  "ROLLED_BACK",
+    "runtimePrincipalChanged":  false,
+    "sharedOrProductionPermissionsChanged":  false,
+    "limitation":  "Table DENY also blocks direct EF writes; signed-procedure or restricted owner facade needs accepted contract before integration"
+}

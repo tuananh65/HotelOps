@@ -1,0 +1,124 @@
+{
+  "runtimeCommit": "98e5fcf159113a692ac329a1fed956ec791c73b2",
+  "codeCheckpoint": "4f62d1388a6669fbf61ead520ee8d33bc8ae8809",
+  "backendBuild": {
+    "passed": true,
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionTest": "PASS_NO_TEST_PROJECT",
+  "xunit": {
+    "passed": 135,
+    "failed": 0,
+    "skipped": 0,
+    "warning": "NU1900 vulnerability metadata unavailable",
+    "trx": "evidence/fs011.trx"
+  },
+  "frontendBuild": {
+    "passed": true,
+    "inheritedWarnings": [
+      "React Router use-client",
+      "Vite chunks >500KB"
+    ]
+  },
+  "node": {
+    "passed": 46,
+    "failed": 0
+  },
+  "interception": {
+    "passed": 47,
+    "failed": 0
+  },
+  "fullRuns": [
+    {
+      "name": "full01",
+      "passed": 11,
+      "failed": 1,
+      "reason": "Monitor link asserted before response readiness"
+    },
+    {
+      "name": "full02",
+      "passed": 12,
+      "failed": 0
+    },
+    {
+      "name": "full03",
+      "passed": 12,
+      "failed": 0
+    }
+  ],
+  "restart": {
+    "passed": 1,
+    "actualProcessRestart": true
+  },
+  "defaultOff": {
+    "passed": 1,
+    "status": 503,
+    "mutation": false
+  },
+  "commitFaultRealSql": {
+    "cases": 4,
+    "passed": 4,
+    "authDoubles": true,
+    "actualNetworkPartition": false
+  },
+  "physicalGuard": {
+    "cases": 9,
+    "protectedBehaviorChecks": 8,
+    "unsupportedBypass": 1
+  },
+  "efCommandBoundary": {
+    "rejected": 4,
+    "externalAssignmentBypassConfirmed": true
+  },
+  "permissionProbe": {
+    "updateDenied229": true,
+    "temporaryPrincipalRolledBack": true,
+    "runtimeOrSharedPermissionsChanged": false
+  },
+  "tester": {
+    "newSeparateDb": true,
+    "functionalSmokePassed": 1,
+    "privateMemoryLauncherHeadlessSmoke": true,
+    "faultGateDeniedBeforeSQL": true,
+    "setupHashPlanSourceFiles": 603,
+    "actualTesterAcceptance": false
+  },
+  "mapping": {
+    "FS010": {
+      "cases": 67,
+      "methods": 31,
+      "sourceAndCurrentInputEvidenceValidated": true
+    },
+    "FS011": {
+      "cases": 75,
+      "methods": 34
+    },
+    "functionalCases": 38,
+    "allTesterStatus": "NOT_RUN"
+  },
+  "package": {
+    "zipFiles": 30,
+    "workbookCellsScanned": 1686,
+    "zipRoundtrip": "PASS",
+    "secretScan": "PASS_SCOPED_PATTERN_SCAN",
+    "coveragePercentage": "NOT_MEASURED"
+  },
+  "format": {
+    "newRuntimeWhitespace": "PASS",
+    "newFrontendPrettier": "PASS",
+    "powershellParse": "PASS",
+    "sourceDiff": "PASS"
+  },
+  "limitations": [
+    "A01/A02 MISSING_EXECUTABLE_SOURCE",
+    "Raw provider/dynamic SQL/external writers not globally guarded",
+    "Original FS009 timeout root cause not proven",
+    "First new unit compilation property error fixed before execution",
+    "First Tester smoke target assertion corrected before API execution",
+    "Initial mixed-EOL Git-blob raw hash reconstruction mismatch; baseline graph/35 raw checks and new603 normalized source hashes separately disclosed",
+    "No actual shared accepted integration or Tester acceptance",
+    "Inherited EF20602/color/line-ending warnings retained"
+  ],
+  "overall": "PARTIAL"
+}

@@ -1,0 +1,7 @@
+# Merge readiness ? whole FE04 NOT_READY
+
+Runtime safety strengthened for supported producer only; external provider/dynamic SQL risk not globally closed, accepted shared publisher missing, remaining UCs and actual Tester acceptance absent. No merge/PR creation, force-push or other developer worktree change.
+
+UC028 independent PR proposal in UC028_PR_PROPOSAL.md lists exact candidate files/dependencies and contamination gates. Existing FS010 runtime commit ad30eb0 includes Program/Batch/Notification; existing frontend commit8f6e80a includes both Create and Assignment. Neither is independently cherry-pick-safe for a Notification-free UC028 PR. Inspection found optional ProvisionalCleaningNotification in shared RoomTypeCreationService constructor plus planning/capability references. Static isolation cannot be claimed complete just by excluding one file.
+
+An extracted UC028 slice must retain existing auth/session/permission/SQL transaction owner and isolate Create DTO/service/controller/options/readiness projections plus Create UI/client/tests; exclude all CandidateNotification models/mappings/DI/producer/dispatcher/schema. A clean extraction build and live regression, accepted additive lifecycle/readiness schema and Tester approval are required before opening PR. FS011 prepares review proposal, does not rewrite shared service architecture or silently introduce candidate into develop.

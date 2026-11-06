@@ -1,0 +1,19 @@
+{
+  "level": "COMPONENT_REAL_SQL",
+  "checks": [
+    "COMMIT TRANSACTION:REJECTED_BEFORE_EXECUTION",
+    "SELECT 1; ROLLBACK TRANSACTION:REJECTED_BEFORE_EXECUTION",
+    "BEGIN TRANSACTION:REJECTED_BEFORE_EXECUTION",
+    "SAVE TRANSACTION bypass:REJECTED_BEFORE_EXECUTION"
+  ],
+  "externalAssignmentMutation": "CONFIRMED_UNAUDITED_BYPASS",
+  "assignmentId": 16,
+  "unchangedAuditOperationPublicationIntentCounts": [
+    71,
+    11,
+    11,
+    11
+  ],
+  "dbPermissionsChanged": false,
+  "residualRisk": "Trusted provider handles, dynamic SQL/procedures and other connections remain outside EF interception"
+}

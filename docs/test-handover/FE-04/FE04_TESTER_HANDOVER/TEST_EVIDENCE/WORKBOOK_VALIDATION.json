@@ -1,0 +1,29 @@
+{
+  "commitSHA": "98e5fcf159113a692ac329a1fed956ec791c73b2",
+  "testFramework": "xUnit 2.9.3 / VSTest",
+  "executedTotal": 135,
+  "passed": 135,
+  "failed": 0,
+  "skipped": 0,
+  "mappedUnitCases": 75,
+  "mappedDistinctMethods": 34,
+  "testerCases": 38,
+  "testerStatus": "NOT_RUN",
+  "coveragePercentage": "NOT_MEASURED",
+  "checks": [
+    {
+      "file": "UNIT_TEST_CASES.xlsx",
+      "rows": 75,
+      "columns": 15,
+      "roundTrip": "PASS",
+      "sha256": "302ed485ae0d4ed139a2f2a3b070a41b149dda19546bbeb0a012757b3be573e1"
+    },
+    {
+      "file": "TESTER_TEST_CASES.xlsx",
+      "rows": 38,
+      "columns": 14,
+      "roundTrip": "PASS",
+      "sha256": "d73ee5480688dd698356f7ffc09e26cf898f4fc2cb309b1c35a31e843d6b4d45"
+    }
+  ]
+}

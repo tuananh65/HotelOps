@@ -1,0 +1,11 @@
+{
+  "zip": "docs/test-handover/FE-04/FE04_TESTER_HANDOVER.zip",
+  "codeCommit": "4f62d1388a6669fbf61ead520ee8d33bc8ae8809",
+  "files": 30,
+  "xlsxCellsScanned": 1686,
+  "manifestAndZipRoundtrip": "PASS",
+  "secretPatternScan": "PASS_SCOPED_NOT_UNIVERSAL",
+  "privateArtifacts": 0,
+  "zipSHA256": "8e661796fe83b7b15c16d84f79547ce72e4cdd6272f7996ce2fc659003141974",
+  "testerAcceptance": "NOT_RECEIVED"
+}

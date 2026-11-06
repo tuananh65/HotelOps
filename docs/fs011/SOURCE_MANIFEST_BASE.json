@@ -1,0 +1,74 @@
+[
+  {
+    "path": "scripts/database/release/01_HotelOps_Full_Schema.sql",
+    "sha256": "eeef125a5f6595327a6bcda99eb9e6a8555b46a0929345f84b9b4141bb3cf4d0"
+  },
+  {
+    "path": "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+    "sha256": "dd6874db482b770482b5b8d0b3230f2f4175618433e7a65e29f63c9670dc4f7b"
+  },
+  {
+    "path": "database/patches/20261019_inventory_contract.sql",
+    "sha256": "55437d8b08767c9722d323b808231552837c561663e6edc192ce4670979a0d8e"
+  },
+  {
+    "path": "database/patches/20261020_material_request_contract.sql",
+    "sha256": "097aaa19389eaa137685eb1a078e55521ea16c20274d386c62b5bf182835b939"
+  },
+  {
+    "path": "database/patches/20261021_replenishment_contract.sql",
+    "sha256": "2cd673d0ee393feb8fe0d7f340e5068f4858a853c2c9551b0d2394b27232b787"
+  },
+  {
+    "path": "database/patches/20261022_maintenance_material_usage_contract.sql",
+    "sha256": "132a69fc2c8c260baf3249b2e9dced4db4a7dd46f919647d9cd6a5a6164f67f2"
+  },
+  {
+    "path": "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql",
+    "sha256": "7f1ad1a55be75b4a58a4052f1bbb8b158787a9f04e099f8438c0485fffd23db9"
+  },
+  {
+    "path": "scripts/database/release/canonical/01_Canonical_Seed.sql",
+    "sha256": "0e6d5c2266e3f8e2b2f78c819687e74c90b66cd9d3052c523d613258bc3bc5cd"
+  },
+  {
+    "path": "scripts/database/release/canonical/02_Canonical_Verify.sql",
+    "sha256": "0cecd4ece6626ec8c450295e45d4881a5731753f7ba4d0280c4424eaf72b54a0"
+  },
+  {
+    "path": "scripts/verification/UserProfileUpdate/rowversion-forward.sql",
+    "sha256": "64afe255ae91caeddda6549677a4f27939a105ab536e89d6ebb45041f0d9b8d6"
+  },
+  {
+    "path": "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+    "sha256": "c1a56ffaed6c096e5f64a6c746552e3dc6bf76bac1f5209c4cccc65902420929"
+  },
+  {
+    "path": "scripts/database/release/uc017/06_UC017_Verify.sql",
+    "sha256": "88700d7384fed0b90acd13a85a0abeaa8f2b7639f88655a33395fca70430ade7"
+  },
+  {
+    "path": "scripts/database/release/checklists/01_Checklists.sql",
+    "sha256": "2e9fd953d1ba3d8b7479cf2713934da61a21c73546a3c18138b33b3895d1f534"
+  },
+  {
+    "path": "scripts/database/release/checklists/02_Verify.sql",
+    "sha256": "9381d3cb2c3d4f9dd93ba51930a074e639caa629da1a6d8db2f2cd3e723a6a14"
+  },
+  {
+    "path": "scripts/database/release/housekeeping/01_Housekeeping.sql",
+    "sha256": "89a04f356e2dc65b17fab408b775f49de484bc4ae6a582fe95690b6e7365d50c"
+  },
+  {
+    "path": "scripts/database/release/housekeeping/02_Verify.sql",
+    "sha256": "4891917946c5bb8545188f0c64eb486abfadbf44afed4152b8c5bdb4562e25fb"
+  },
+  {
+    "path": "scripts/database/release/progress/01_Progress.sql",
+    "sha256": "8e404ef3c3404f5f50cea444426beaf681ab8b33df8eeb1fc16589065273fbfb"
+  },
+  {
+    "path": "scripts/database/release/progress/02_Verify.sql",
+    "sha256": "30c4cace6f3911492196d93e10041afe61bae399a91521e00d063d161c5a7855"
+  }
+]

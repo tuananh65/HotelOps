@@ -1,0 +1,16 @@
+{
+  "branch": "feature/dev1-room-ops",
+  "baseline": "ff1e791921c803cf41edbbe150e333a1586573c0",
+  "initialRemoteMatches": true,
+  "initialWorkingTree": "CLEAN",
+  "baselineManifestFiles": 37,
+  "initialRawHashesVerified": 35,
+  "knownFilesEditedBeforeRawCheck": [
+    "src/HotelOps.Api/Program.cs",
+    "src/HotelOps.Api/Services/Notifications/CandidateCommitGuard.cs"
+  ],
+  "otherBaselineSourceChanges": false,
+  "gitBlobHashComparison": "Mixed CRLF/LF working-tree receipt cannot universally be reconstructed from Git-normalized blob; do not mislabel all37 raw hashes verified",
+  "DEV2RemoteTips": "Unchanged; bounded discovery; no new publisher branch",
+  "acceptedPublisher": "MISSING_EXECUTABLE_SOURCE"
+}
