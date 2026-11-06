@@ -33,23 +33,20 @@ const plan = {
   capturedAt: "2026-11-06T00:00:00Z",
   workflowStateVerified: true,
 };
-test("create cannot save prototype data when real create contract is blocked", async ({
+test("create without authorized room configuration never posts", async ({
   page,
 }) => {
   const mutations: string[] = [];
   page.on("request", (r) => {
-    if (r.url().includes("/api/") && !["GET", "HEAD"].includes(r.method()))
+    if (r.url().includes("/api/") && r.method() !== "GET")
       mutations.push(r.method());
   });
   await page.goto("/cleaning/tasks/new?branchId=7");
-  await expect(
-    page.getByRole("button", { name: "Tạo công việc", exact: true }),
-  ).toBeDisabled();
-  await expect(
-    page.getByText("Chưa thể tạo công việc trên máy chủ.", { exact: true }),
-  ).toBeVisible();
+  await expect(page.locator('input[name="roomId"]')).toBeVisible();
+  await expect(page.locator('select[name="cleaningTypeId"]')).toHaveCount(0);
   expect(mutations).toEqual([]);
 });
+
 test("assignment previews exact server candidate draft but never sends a mutation", async ({
   page,
 }) => {

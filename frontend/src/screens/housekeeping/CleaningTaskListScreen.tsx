@@ -57,6 +57,9 @@ export default function CleaningTaskListScreen() {
   return (
     <>
       <PageHeader id={24} />
+      <Link to={`/cleaning/tasks/new?branchId=${encodeURIComponent(branch)}`}>
+        Create Cleaning Task
+      </Link>
       <p>
         Cleaning Monitor · dữ liệu máy chủ, theo quyền CLEANING_VIEW. Chi nhánh
         là bộ lọc, không cấp quyền.

@@ -1,4 +1,4 @@
-﻿import { ApiError, apiBase, getJson } from "./client";
+﻿import { ApiError, getJson, send } from "./client";
 import { positiveId } from "./rooms";
 
 export interface CleaningProgressItem {
@@ -132,37 +132,7 @@ function parseProgress(
     throw new ApiError(502, "INVALID_PROGRESS_RESPONSE");
   return data;
 }
-async function send(
-  path: string,
-  signal?: AbortSignal,
-  init: RequestInit = {},
-) {
-  let response: Response;
-  try {
-    response = await fetch(
-      `${apiBase(import.meta.env.VITE_DEV1_API_BASE_URL || "/api")}${path}`,
-      {
-        ...init,
-        credentials: "include",
-        cache: "no-store",
-        redirect: "error",
-        signal,
-      },
-    );
-  } catch (error) {
-    if (signal?.aborted) throw error;
-    throw new ApiError(0, "NETWORK_UNAVAILABLE");
-  }
-  const body = await response.json().catch(() => null);
-  if (!response.ok)
-    throw new ApiError(
-      response.status,
-      typeof (body?.code ?? body?.title) === "string"
-        ? (body.code ?? body.title)
-        : "REQUEST_FAILED",
-    );
-  return { body, etag: response.headers.get("ETag") || "" };
-}
+
 function snapshot(
   result: Awaited<ReturnType<typeof send>>,
   branch: string,

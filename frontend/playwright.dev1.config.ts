@@ -7,6 +7,7 @@ export default defineConfig({
     "cleaning-progress.spec.ts",
     "cleaning-monitor.spec.ts",
     "cleaning-assignment.spec.ts",
+    "cleaning-create.spec.ts",
   ],
   workers: 1,
   use: {

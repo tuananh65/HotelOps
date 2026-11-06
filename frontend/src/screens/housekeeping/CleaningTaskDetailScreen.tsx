@@ -1,10 +1,20 @@
-﻿import { useParams, useSearchParams } from "react-router-dom";
+import AssignedCleaningHeader from "./AssignedCleaningHeader";
+import { useParams, useSearchParams } from "react-router-dom";
 import CleaningProgressPanel from "./CleaningProgressPanel";
 import CleaningMonitorDetail from "./CleaningMonitorDetail";
 export default function CleaningTaskDetailScreen() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const branch = params.get("branchId") || "";
+  if (params.has("assignmentId"))
+    return (
+      <AssignedCleaningHeader
+        key={branch + ":" + id + ":" + params.get("assignmentId")}
+        branch={branch}
+        task={id || ""}
+        assignment={params.get("assignmentId") || ""}
+      />
+    );
   if (params.get("monitor") === "1") {
     const kind = params.get("kind") || "cleaning";
     return (
