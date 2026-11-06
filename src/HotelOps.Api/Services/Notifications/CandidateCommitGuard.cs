@@ -12,6 +12,8 @@ public sealed class CandidateCommitGuard : DbTransactionInterceptor
     private readonly ConditionalWeakTable<DbTransaction, CommandIdentity> commands = new();
     private sealed record CommandIdentity(long Actor, Guid Operation, bool Mutation);
 
+    internal bool IsArmed(DbTransaction? transaction) => transaction != null && commands.TryGetValue(transaction, out _);
+
     public void Arm(DbTransaction transaction, long actor, Guid operation, bool mutation = false)
     {
         if (actor <= 0 || operation == Guid.Empty || transaction.Connection == null)

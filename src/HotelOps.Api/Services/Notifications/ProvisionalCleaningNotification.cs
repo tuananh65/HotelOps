@@ -17,13 +17,18 @@ public sealed class ProvisionalCleaningNotification(HotelOpsDbContext db, IConfi
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public async Task<bool> AvailableAsync(CancellationToken ct)
     {
-        var fs010 = config["CleaningAssignment:Candidate"] == "FS010_PROVISIONAL";
-        var target = fs010 ? "HotelOps_Canonical_20261106_f100001_Fresh" : "HotelOps_Canonical_20261106_230000_f090001_Fresh";
-        if (!env.IsDevelopment() || (!fs010 && config["CleaningAssignment:Candidate"] != "FS009_PROVISIONAL") ||
-            db.Database.GetDbConnection().Database != target) return false;
-        var ownerProperty = fs010 ? "HotelOps.FS010.Owner" : "HotelOps.FS009.Owner";
-        var owner = fs010 ? "DEV1_FS010" : "DEV1_FS009";
-        var versionProperty = fs010 ? "HotelOps.FS010.ExecutableCandidate" : "HotelOps.FS009.ExecutableCandidate";
+        var scope = config["CleaningAssignment:Candidate"] switch
+        {
+            "FS009_PROVISIONAL" => (Target: "HotelOps_Canonical_20261106_230000_f090001_Fresh", Phase: "FS009"),
+            "FS010_PROVISIONAL" => (Target: "HotelOps_Canonical_20261106_f100001_Fresh", Phase: "FS010"),
+            "FS011_PROVISIONAL" => (Target: "HotelOps_Canonical_20261106_f110001_Fresh", Phase: "FS011"),
+            "FS011Tester_PROVISIONAL" => (Target: "HotelOps_Canonical_20261106_f11tester_Fresh", Phase: "FS011Tester"),
+            _ => (Target: "", Phase: "")
+        };
+        if (!env.IsDevelopment() || scope.Target.Length == 0 || db.Database.GetDbConnection().Database != scope.Target) return false;
+        var ownerProperty = $"HotelOps.{scope.Phase}.Owner";
+        var owner = $"DEV1_{scope.Phase}";
+        var versionProperty = $"HotelOps.{scope.Phase}.ExecutableCandidate";
         return await db.Database.SqlQuery<int>($"SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('MachineName'))=HOST_NAME() AND CONVERT(nvarchar(128),SERVERPROPERTY('InstanceName'))='SQLEXPRESS' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name={ownerProperty} AND CONVERT(nvarchar(100),value)={owner}) AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name={versionProperty} AND CONVERT(nvarchar(100),value)='V1') AND OBJECT_ID('dbo.fs009_verify_assignment_guard','P') IS NOT NULL AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_fs009_publication_immutable','TR_fs009_operation_immutable','TR_fs009_publication_source') AND is_disabled=0)=3 AND EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.notification_publications') AND name='UX_fs009_publication_operation' AND is_unique=1 AND is_disabled=0) THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct) == 1;
     }
     public Task<NotificationOperationCandidate?> FindAsync(long actor, Guid key, CancellationToken ct) =>
