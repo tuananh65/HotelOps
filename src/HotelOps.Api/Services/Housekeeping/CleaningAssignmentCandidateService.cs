@@ -13,6 +13,28 @@ public sealed partial class RoomTypeCreationService
 {
     public async Task<RoomTypeBatchResult> AssignCleaningCandidateAsync(SessionReference ticket, long sid, long branch, long task, string tag, string operationKey, AssignCleaningRequest input, CancellationToken ct)
     {
+        try
+        {
+            return await AssignCleaningCandidateCoreAsync(ticket, sid, branch, task, tag, operationKey, input, false, ct);
+        }
+        catch (Exception error) when (error is System.Data.Common.DbException or DbUpdateException or OperationCanceledException)
+        {
+            // BatchAsync has disposed its transaction before recovery. A lost commit acknowledgement
+            // is never success by itself. Reauthorize and look up the original immutable command only.
+            using var recovery = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            try
+            {
+                return await AssignCleaningCandidateCoreAsync(ticket, sid, branch, task, tag, operationKey, input, true, recovery.Token);
+            }
+            catch (Exception recoveryError) when (recoveryError is System.Data.Common.DbException or DbUpdateException or OperationCanceledException)
+            {
+                return new(RoomTypeBatchStatus.Unavailable);
+            }
+        }
+    }
+
+    private async Task<RoomTypeBatchResult> AssignCleaningCandidateCoreAsync(SessionReference ticket, long sid, long branch, long task, string tag, string operationKey, AssignCleaningRequest input, bool recoveryOnly, CancellationToken ct)
+    {
         if (candidateNotification == null || !await candidateNotification.AvailableAsync(ct)) return await AssignCleaningAsync(ticket, sid, branch, task, tag, input, ct);
         if (task <= 0 || input.AssigneeId <= 0 || !WorkflowStrongTag(tag) || !Guid.TryParseExact(operationKey, "D", out var operation) || operation == Guid.Empty || input.AdoptUnassignedLegacy)
             throw new ValidationException("Strong task ETag, GUID operation and nonlegacy command required.");
@@ -33,8 +55,11 @@ public sealed partial class RoomTypeCreationService
                 if (!prior.Completed || prior.ResultJson == null) return new(RoomTypeBatchStatus.Unavailable);
                 var stored = ProvisionalCleaningNotification.ReadResult(prior.ResultJson);
                 if (stored.Id != task || stored.BranchId != branch) return new(RoomTypeBatchStatus.Unavailable);
+                CandidateCommitGuard.Instance.Arm(physical, actor, operation);
                 return new(RoomTypeBatchStatus.Success, stored, stored.SourceETag);
             }
+            if (recoveryOnly) return new(RoomTypeBatchStatus.Unavailable);
+            CandidateCommitGuard.Instance.Arm(physical, actor, operation, mutation: true);
             WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
             if (!await DueHousekeeper(input.AssigneeId, branch, input.DueAt, token)) return new(RoomTypeBatchStatus.InvalidReference);
             var state = await CleaningState(task, token);
@@ -53,11 +78,12 @@ public sealed partial class RoomTypeCreationService
             created = true;
             await candidateNotification.StageAsync(new(operation, publication, actor, branch, task, cycle, row.RoomId, assigned.AssignmentId, assigned.AssigneeUserId, assigned.AssignedAt, revision, input.DueAt), fingerprint, result, token);
             return new(RoomTypeBatchStatus.Success, result, revision);
-        }, ct, additionalUsers: [input.AssigneeId], permissionCode: "CLEANING_ASSIGN", beforeCommit: async token =>
+        }, ct, additionalUsers: [input.AssigneeId], permissionCode: "CLEANING_ASSIGN", preserveCommitErrors: true, beforeCommit: async token =>
         {
             if (physical == null) throw new InvalidOperationException("TRANSACTION_NOT_CAPTURED");
             if (created && !await DueHousekeeper(input.AssigneeId, branch, input.DueAt, token)) throw new ValidationException("Assignee eligibility changed before commit.");
             await candidateNotification.VerifyBeforeCommitAsync(physical, ticket.UserId, operation, token);
+            if (created) await CandidateCommitGuard.VerifyAsync(physical, ticket.UserId, operation, token, mutation: true);
         });
     }
 }

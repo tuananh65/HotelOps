@@ -17,9 +17,14 @@ public sealed class ProvisionalCleaningNotification(HotelOpsDbContext db, IConfi
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public async Task<bool> AvailableAsync(CancellationToken ct)
     {
-        if (!env.IsDevelopment() || config["CleaningAssignment:Candidate"] != "FS009_PROVISIONAL" ||
-            db.Database.GetDbConnection().Database != "HotelOps_Canonical_20261106_230000_f090001_Fresh") return false;
-        return await db.Database.SqlQuery<int>($"SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('MachineName'))=HOST_NAME() AND CONVERT(nvarchar(128),SERVERPROPERTY('InstanceName'))='SQLEXPRESS' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS009.Owner' AND CONVERT(nvarchar(100),value)='DEV1_FS009') AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS009.ExecutableCandidate' AND CONVERT(nvarchar(100),value)='V1') AND OBJECT_ID('dbo.fs009_verify_assignment_guard','P') IS NOT NULL AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_fs009_publication_immutable','TR_fs009_operation_immutable','TR_fs009_publication_source') AND is_disabled=0)=3 AND EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.notification_publications') AND name='UX_fs009_publication_operation' AND is_unique=1 AND is_disabled=0) THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct) == 1;
+        var fs010 = config["CleaningAssignment:Candidate"] == "FS010_PROVISIONAL";
+        var target = fs010 ? "HotelOps_Canonical_20261106_f100001_Fresh" : "HotelOps_Canonical_20261106_230000_f090001_Fresh";
+        if (!env.IsDevelopment() || (!fs010 && config["CleaningAssignment:Candidate"] != "FS009_PROVISIONAL") ||
+            db.Database.GetDbConnection().Database != target) return false;
+        var ownerProperty = fs010 ? "HotelOps.FS010.Owner" : "HotelOps.FS009.Owner";
+        var owner = fs010 ? "DEV1_FS010" : "DEV1_FS009";
+        var versionProperty = fs010 ? "HotelOps.FS010.ExecutableCandidate" : "HotelOps.FS009.ExecutableCandidate";
+        return await db.Database.SqlQuery<int>($"SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('MachineName'))=HOST_NAME() AND CONVERT(nvarchar(128),SERVERPROPERTY('InstanceName'))='SQLEXPRESS' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name={ownerProperty} AND CONVERT(nvarchar(100),value)={owner}) AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name={versionProperty} AND CONVERT(nvarchar(100),value)='V1') AND OBJECT_ID('dbo.fs009_verify_assignment_guard','P') IS NOT NULL AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_fs009_publication_immutable','TR_fs009_operation_immutable','TR_fs009_publication_source') AND is_disabled=0)=3 AND EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.notification_publications') AND name='UX_fs009_publication_operation' AND is_unique=1 AND is_disabled=0) THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct) == 1;
     }
     public Task<NotificationOperationCandidate?> FindAsync(long actor, Guid key, CancellationToken ct) =>
         db.CandidateOperations.FromSqlInterpolated($"SELECT * FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id={actor} AND operation_key={key}").AsNoTracking().SingleOrDefaultAsync(ct);
@@ -38,7 +43,7 @@ public sealed class ProvisionalCleaningNotification(HotelOpsDbContext db, IConfi
     {
         if (!ReferenceEquals(db.Database.CurrentTransaction?.GetDbTransaction(), physical) || !ReferenceEquals(physical.Connection, db.Database.GetDbConnection()))
             throw new InvalidOperationException("WRONG_PHYSICAL_TRANSACTION");
-        await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fs009_verify_assignment_guard @actor={actor},@operation={key}", ct);
+        await CandidateCommitGuard.VerifyAsync(physical, actor, key, ct);
     }
     public static CandidateAssignmentResult ReadResult(string json) => JsonSerializer.Deserialize<CandidateAssignmentResult>(json, Json) ?? throw new InvalidOperationException("INVALID_DURABLE_RESULT");
 }

@@ -19,7 +19,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
-    options.UseSqlServer(
+    options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance).UseSqlServer(
         builder.Configuration.GetConnectionString("HotelOpsDb")));
 
 // Add services to the container.

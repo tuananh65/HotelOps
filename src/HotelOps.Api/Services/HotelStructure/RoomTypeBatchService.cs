@@ -22,7 +22,7 @@ public sealed partial class RoomTypeCreationService
     private async Task<RoomTypeBatchResult> BatchAsync(SessionReference ticket, long sessionId, long? branchId,
         Func<long, CancellationToken, Task<RoomTypeBatchResult>> operation, CancellationToken ct, bool allowScopedList = false,
         IEnumerable<long>? additionalUsers = null, Func<CancellationToken, Task<bool>>? eligibility = null, bool requireRoomTypeSchema = true,
-        string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null, Func<CancellationToken, Task>? beforeCommit = null)
+        string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null, Func<CancellationToken, Task>? beforeCommit = null, bool preserveCommitErrors = false)
     {
         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
@@ -30,6 +30,7 @@ public sealed partial class RoomTypeCreationService
         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction != null || db.ChangeTracker.Entries().Any()
             || System.Transactions.Transaction.Current != null) throw new InvalidOperationException("A clean local SQL context is required.");
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        var commitAttempted = false;
         try
         {
             await new UserEligibilityLock(db).LockAsync((additionalUsers ?? []).Append(actor.UserId), ct);
@@ -51,10 +52,11 @@ public sealed partial class RoomTypeCreationService
             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);
             if (result.Status == RoomTypeBatchStatus.DependenciesExist) return result;
             if (beforeCommit != null) await beforeCommit(ct);
+            commitAttempted = true;
             await tx.CommitAsync(ct);
             return result;
         }
-        catch (Exception error) when (!ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2)
+        catch (Exception error) when (!(preserveCommitErrors && commitAttempted) && !ct.IsCancellationRequested && SqlNumber(error) is 1205 or 1222 or -2)
         { return new(RoomTypeBatchStatus.Unavailable); }
         catch (Exception error) when (ct.IsCancellationRequested && error is System.Data.Common.DbException or DbUpdateException or SessionStoreUnavailableException)
         { throw new OperationCanceledException("Hotel structure operation cancelled.", error, ct); }
