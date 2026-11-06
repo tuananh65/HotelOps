@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Security;
 using HotelOps.Api.Services.HotelStructure;
@@ -17,6 +17,9 @@ public sealed class CleaningTaskLifecycleController(RoomTypeCreationService serv
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}")]
     public Task<IActionResult> Assigned(long branchId, long id, [FromQuery] long assignmentId, CancellationToken ct)
         => Run(false, (ticket, sid) => service.ReadAssignedCleaningAsync(ticket, sid, branchId, id, assignmentId, ct));
+    [HttpGet("api/branches/{branchId:long}/cleaning-assignment-notifications")]
+    public Task<IActionResult> Inbox(long branchId, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.ReadCandidateCleaningInboxAsync(ticket, sid, branchId, ct));
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks")]
     public Task<IActionResult> Create(long branchId, CreateCleaningTaskRequest input, CancellationToken ct)
         => Run(true, (ticket, sid) => service.CreateCleaningTaskAsync(ticket, sid, branchId, input, ct));

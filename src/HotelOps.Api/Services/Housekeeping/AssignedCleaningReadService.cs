@@ -1,4 +1,4 @@
-﻿using HotelOps.Api.Data;
+using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
@@ -39,4 +39,28 @@ public sealed partial class RoomTypeCreationService
         }, ct, requireRoomTypeSchema: false, featurePermission: async token =>
             new PermissionEvaluation(await CanReadAssignedCleaningAsync(ticket.UserId, branch, task, assignment, token) ? PermissionDecision.Granted : PermissionDecision.Denied));
     }
+    public Task<RoomTypeBatchResult> ReadCandidateCleaningInboxAsync(SessionReference ticket, long sid, long branch, CancellationToken ct)
+        => BatchAsync(ticket, sid, branch, async (_, token) =>
+        {
+            if (candidateNotification == null || !await candidateNotification.AvailableAsync(token)) return new(RoomTypeBatchStatus.Unavailable);
+            var rows = await (from i in db.CandidateIntents.AsNoTracking()
+                              join p in db.CandidatePublications.AsNoTracking() on i.PublicationId equals p.PublicationId
+                              join a in db.CleaningAssignments.AsNoTracking() on p.AssignmentId equals a.AssignmentId
+                              where i.UserId == ticket.UserId && i.Status == "DELIVERED" && a.AssigneeUserId == ticket.UserId && a.CleaningTask.Room.BranchId == branch
+                              orderby i.IntentId descending
+                              select new { i.InboxNotificationId, a.CleaningTaskId, a.AssignmentId }).Take(100).ToArrayAsync(token);
+            var visible = new List<object>();
+            foreach (var row in rows)
+                if (await CanReadAssignedCleaningAsync(ticket.UserId, branch, row.CleaningTaskId, row.AssignmentId, token))
+                    visible.Add(new { notificationId = row.InboxNotificationId, taskId = row.CleaningTaskId, row.AssignmentId, actionUrl = $"/cleaning/tasks/{row.CleaningTaskId}?branchId={branch}&assignmentId={row.AssignmentId}" });
+            return new(RoomTypeBatchStatus.Success, visible);
+        }, ct, requireRoomTypeSchema: false, featurePermission: async token =>
+        {
+            var data = new EfPermissionDataSource(db); var now = clock.GetUtcNow().UtcDateTime;
+            foreach (var grant in await data.ReadPathsAsync(ticket.UserId, "CLEANING_VIEW", now, token))
+                if (grant.PermissionCode == "CLEANING_VIEW" && PermissionGrantRules.IsEligible(grant, now) &&
+                    (PermissionGrantRules.EffectiveScope(grant) == "GLOBAL" || grant.BranchId == branch && PermissionGrantRules.EffectiveScope(grant) is "BRANCH" or "OWN"))
+                    return new PermissionEvaluation(PermissionDecision.Granted);
+            return new PermissionEvaluation(PermissionDecision.Denied);
+        });
 }

@@ -12,6 +12,9 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<StartupSchemaValidator>();
+// FS009 provisional candidate remains disabled outside the exact opted-in isolated development target.
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ProvisionalCleaningNotification>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.ProvisionalCleaningDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 

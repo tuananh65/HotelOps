@@ -19,7 +19,7 @@ public enum RoomTypeCreationStatus { Success, SessionInvalid, Forbidden, Duplica
 public sealed record RoomTypeCreationResult(RoomTypeCreationStatus Status, CreatedRoomTypeDto? Value = null);
 
 public sealed partial class RoomTypeCreationService(HotelOpsDbContext db, ICurrentUserAccessor current,
-    IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
+    IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock, HotelOps.Api.Services.Notifications.ProvisionalCleaningNotification? candidateNotification = null)
 {
     public const string CatalogLock = "HotelOps:RoomTypes:v1";
 

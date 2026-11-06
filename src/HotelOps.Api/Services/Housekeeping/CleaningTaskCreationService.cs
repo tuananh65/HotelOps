@@ -8,7 +8,7 @@ namespace HotelOps.Api.Services.HotelStructure;
 public sealed partial class RoomTypeCreationService
 {
     private async Task<bool> LifecycleInstalled(CancellationToken ct) =>
-        await db.Database.SqlQuery<int>($"SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.CleaningLifecycle.V1' AND CONVERT(nvarchar(100),value)='FS008-V1') AND OBJECT_ID('dbo.room_cleaning_cycle_state') IS NOT NULL AND OBJECT_ID('dbo.room_readiness_events') IS NOT NULL AND EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.cleaning_tasks') AND name='UX_cleaning_tasks_open_room_v1' AND is_unique=1 AND is_disabled=0 AND has_filter=1) AND (SELECT COUNT(*) FROM sys.foreign_keys WHERE name IN('FK_room_cycle_task_v1','FK_readiness_task_room_v1') AND is_disabled=0 AND is_not_trusted=0)=2 THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct) == 1;
+        await db.Database.SqlQuery<int>($"SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.CleaningLifecycle.V1' AND CONVERT(nvarchar(100),value) IN('FS008-V1','FS009-V1')) AND OBJECT_ID('dbo.room_cleaning_cycle_state') IS NOT NULL AND OBJECT_ID('dbo.room_readiness_events') IS NOT NULL AND EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.cleaning_tasks') AND name='UX_cleaning_tasks_open_room_v1' AND is_unique=1 AND is_disabled=0 AND has_filter=1) AND (SELECT COUNT(*) FROM sys.foreign_keys WHERE name IN('FK_room_cycle_task_v1','FK_readiness_task_room_v1') AND is_disabled=0 AND is_not_trusted=0)=2 THEN 1 ELSE 0 END AS [Value]").SingleAsync(ct) == 1;
     public Task<RoomTypeBatchResult> CleaningCreationOptionsAsync(SessionReference ticket, long sid, long branch, long room, CancellationToken ct)
     {
         if (room <= 0) throw new ValidationException("RoomId must be positive.");
@@ -22,10 +22,11 @@ public sealed partial class RoomTypeCreationService
             if (!r.IsActive || !await db.Floors.AnyAsync(x => x.FloorId == r.FloorId && x.BranchId == branch && x.IsActive, token) || (r.AreaId != null && !await db.Areas.AnyAsync(x => x.AreaId == r.AreaId && x.BranchId == branch && x.IsActive, token))) return new(RoomTypeBatchStatus.Inactive);
             var refs = await db.ReferenceValues.AsNoTracking().Where(x => x.IsActive && (x.GroupCode == "CLEANING_TYPE" || x.GroupCode == "PRIORITY"))
                 .Select(x => new { x.ReferenceId, x.ValueCode, x.DisplayName, x.GroupCode }).ToArrayAsync(token);
-            var count = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_item_definitions WHERE room_type_id={r.RoomTypeId}").SingleAsync(token);
+            var items = await db.Database.SqlQuery<CleaningItemPreview>($"SELECT TOP(101) item_id AS Id,label AS Label,is_required AS IsRequired,sort_order AS SortOrder FROM dbo.cleaning_item_definitions WHERE room_type_id={r.RoomTypeId} ORDER BY sort_order,item_id").ToArrayAsync(token);
+            var existing = await db.Database.SqlQuery<long>($"SELECT TOP(1) cleaning_task_id AS [Value] FROM dbo.cleaning_tasks WHERE room_id={room} AND (workflow_status IS NULL OR workflow_status NOT IN('COMPLETED','CANCELLED')) ORDER BY cleaning_task_id").SingleOrDefaultAsync(token);
             return new(RoomTypeBatchStatus.Success, new CleaningCreateOptions(room, r.RoomNumber, branch,
                 refs.Where(x => x.GroupCode == "CLEANING_TYPE").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(),
-                refs.Where(x => x.GroupCode == "PRIORITY").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(), count));
+                refs.Where(x => x.GroupCode == "PRIORITY").Select(x => new CleaningReferenceDto(x.ReferenceId, x.ValueCode, x.DisplayName)).ToArray(), items.Length, items, existing > 0 ? existing : null));
         }, ct, permissionCode: "CLEANING_ASSIGN");
     }
 
