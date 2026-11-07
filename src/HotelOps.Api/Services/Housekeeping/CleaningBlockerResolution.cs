@@ -14,8 +14,10 @@ public sealed partial class RoomTypeCreationService
 
     private async Task<bool> ResumeTrialInstalled(CancellationToken ct) =>
         await db.Database.SqlQuery<int>($"""
-        SELECT CASE WHEN DB_NAME()='HotelOps_Canonical_FS014_Resume_V1_Fresh'
-        AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS014.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS014')
+        SELECT CASE WHEN ((DB_NAME()='HotelOps_Canonical_FS014_Resume_V1_Fresh'
+        AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS014.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS014'))
+        OR (DB_NAME()='HotelOps_Canonical_FS015_Cleaning_V1_Fresh'
+        AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS015.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS015')))
         AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS014.Resume' AND CONVERT(nvarchar(128),value)='PROVISIONAL_V1')
         AND OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions','U') IS NOT NULL
         AND EXISTS(SELECT 1 FROM sys.triggers WHERE object_id=OBJECT_ID('dbo.TR_fs014_blocker_version') AND is_disabled=0)

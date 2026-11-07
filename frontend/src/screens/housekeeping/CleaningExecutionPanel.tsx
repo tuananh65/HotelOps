@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { ApiError } from "../../api/dev1/client";
+import { uploadFile } from "../../api/dev1/cleaningProgress";
 import {
   readAssignmentPlan,
   type AssignmentPlan,
@@ -11,6 +12,8 @@ import {
   reassignmentCommand,
   type CleaningExecution,
   type ReassignmentCommand,
+  closureCommand,
+  type ClosureCommand,
 } from "../../api/dev1/cleaningExecution";
 export default function CleaningExecutionPanel({
   branch,
@@ -27,6 +30,14 @@ export default function CleaningExecutionPanel({
     [refresh, setRefresh] = useState(0);
   const [candidatePage, setCandidatePage] = useState(1);
   const [resolutionNote, setResolutionNote] = useState("");
+  const [closurePending, setClosurePending] = useState<{
+    branch: string;
+    task: string;
+    action: "blockers" | "complete";
+    command: ClosureCommand;
+    tag: string;
+    key: string;
+  } | null>(null);
   const [pending, setPending] = useState<{
     command: ReassignmentCommand;
     tag: string;
@@ -83,6 +94,7 @@ export default function CleaningExecutionPanel({
       !data ||
       busy ||
       pending ||
+      closurePending ||
       (resume
         ? data.resumeCapability !== "PROVISIONAL_V1"
         : data.startCapability !== "AVAILABLE")
@@ -133,7 +145,7 @@ export default function CleaningExecutionPanel({
   }
   function reassign(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!data || busy || pending) return;
+    if (!data || busy || pending || closurePending) return;
     try {
       const f = new FormData(e.currentTarget);
       const command = reassignmentCommand(
@@ -153,6 +165,78 @@ export default function CleaningExecutionPanel({
       );
     }
   }
+  async function sendClosure(c: NonNullable<typeof closurePending>) {
+    setError("");
+    setNotice("");
+    try {
+      await mutateCleaningExecution(
+        c.branch,
+        c.task,
+        c.action,
+        c.tag,
+        c.command,
+        c.key,
+      );
+      if (alive.current) {
+        setClosurePending(null);
+        setNotice(
+          c.action === "blockers"
+            ? "Đã ghi nhận trở ngại và tạm dừng dọn phòng."
+            : "Đã hoàn tất dọn phòng, chờ kiểm tra.",
+        );
+        setRefresh((n) => n + 1);
+      }
+    } catch (e) {
+      if (alive.current) {
+        setError(message(e));
+        if (e instanceof ApiError && [400, 409, 412].includes(e.status)) {
+          setClosurePending(null);
+          setNotice(message(e));
+          setRefresh((n) => n + 1);
+        }
+      }
+    }
+  }
+  async function submitClosure(
+    event: FormEvent<HTMLFormElement>,
+    action: "blockers" | "complete",
+  ) {
+    event.preventDefault();
+    if (!data || busy || pending || closurePending) return;
+    const form = new FormData(event.currentTarget);
+    setBusy(true);
+    try {
+      const files = form
+        .getAll("photos")
+        .filter((f): f is File => f instanceof File && f.size > 0);
+      if (files.length > 5) throw Error("TOO_MANY_PHOTOS");
+      const photos = await Promise.all(files.map(uploadFile));
+      const command = closureCommand(
+        data,
+        action,
+        String(form.get("note") ?? ""),
+        String(form.get("reasonId") ?? ""),
+        photos,
+      );
+      const c = {
+        branch,
+        task,
+        action,
+        command,
+        tag: data.sourceETag,
+        key: crypto.randomUUID(),
+      };
+      setClosurePending(c);
+      await sendClosure(c);
+    } catch {
+      if (alive.current)
+        setError(
+          "Kiểm tra lý do, ghi chú, checklist và tệp JPG/PNG/PDF tối đa 10 MiB.",
+        );
+    } finally {
+      if (alive.current) setBusy(false);
+    }
+  }
   return (
     <section className="panel">
       <h1>Vòng đời dọn phòng</h1>
@@ -167,7 +251,12 @@ export default function CleaningExecutionPanel({
             {data.state} · Nhân viên {data.assigneeId ?? "—"}
           </p>
           <button
-            disabled={busy || !!pending || data.startCapability !== "AVAILABLE"}
+            disabled={
+              busy ||
+              !!pending ||
+              !!closurePending ||
+              data.startCapability !== "AVAILABLE"
+            }
             onClick={() => void start()}
           >
             Bắt đầu dọn phòng
@@ -216,14 +305,109 @@ export default function CleaningExecutionPanel({
               <Link to={`/cleaning/tasks/${task}?branchId=${branch}`}>
                 Mở tiến độ dọn phòng
               </Link>
-              <div>
+              {data.reportBlockerCapability === "PROVISIONAL_V1" ? (
+                <form onSubmit={(e) => void submitClosure(e, "blockers")}>
+                  <h3>Báo cáo trở ngại</h3>
+                  <label>
+                    Lý do trở ngại
+                    <select
+                      aria-label="Lý do trở ngại"
+                      name="reasonId"
+                      required
+                      disabled={busy || !!pending || !!closurePending}
+                      defaultValue=""
+                    >
+                      <option value="">Chọn lý do</option>
+                      {data.blockerReasons?.map((r) => (
+                        <option key={r.id} value={r.id}>
+                          {r.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Ghi chú trở ngại
+                    <input
+                      name="note"
+                      required
+                      maxLength={500}
+                      disabled={busy || !!pending || !!closurePending}
+                    />
+                  </label>
+                  <label>
+                    Ảnh hoặc PDF trở ngại
+                    <input
+                      name="photos"
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,application/pdf"
+                      disabled={busy || !!pending || !!closurePending}
+                    />
+                  </label>
+                  <button disabled={busy || !!pending || !!closurePending}>
+                    Báo cáo trở ngại
+                  </button>
+                </form>
+              ) : (
                 <button disabled>Báo cáo trở ngại</button>
+              )}
+              {data.completeCapability === "PROVISIONAL_V1" ? (
+                <form onSubmit={(e) => void submitClosure(e, "complete")}>
+                  <h3>Hoàn tất dọn phòng</h3>
+                  <ul>
+                    {data.items?.map((i) => (
+                      <li key={i.id}>
+                        {i.done ? "✓" : "○"} {i.label}
+                        {i.required ? " (bắt buộc)" : ""}
+                      </li>
+                    ))}
+                  </ul>
+                  <p>
+                    Lưu các hạng mục bắt buộc trong tiến độ rồi tải lại nguồn
+                    trước khi hoàn tất.
+                  </p>
+                  <label>
+                    Ghi chú hoàn tất
+                    <input
+                      name="note"
+                      required
+                      maxLength={500}
+                      disabled={busy || !!pending || !!closurePending}
+                    />
+                  </label>
+                  <label>
+                    Ảnh hoặc PDF hoàn tất
+                    <input
+                      name="photos"
+                      type="file"
+                      multiple
+                      accept="image/jpeg,image/png,application/pdf"
+                      disabled={busy || !!pending || !!closurePending}
+                    />
+                  </label>
+                  <button
+                    disabled={
+                      busy ||
+                      !!pending ||
+                      !!closurePending ||
+                      !data.items?.length ||
+                      data.items.some((i) => i.required && !i.done)
+                    }
+                  >
+                    Hoàn tất dọn phòng
+                  </button>
+                </form>
+              ) : (
                 <button disabled>Hoàn tất dọn phòng</button>
-              </div>
-              <p role="status">
-                Báo cáo trở ngại và hoàn tất dọn phòng tạm thời chưa khả dụng.
-                Bạn vẫn có thể lưu tiến độ; đạt 100% chưa đồng nghĩa hoàn tất.
-              </p>
+              )}
+              {data.reportBlockerCapability !== "PROVISIONAL_V1" &&
+                data.completeCapability !== "PROVISIONAL_V1" && (
+                  <p role="status">
+                    Báo cáo trở ngại và hoàn tất dọn phòng tạm thời chưa khả
+                    dụng. Bạn vẫn có thể lưu tiến độ; đạt 100% chưa đồng nghĩa
+                    hoàn tất.
+                  </p>
+                )}
             </>
           )}
           {data.reassignCapability === "PROVISIONAL_NOT_ACCEPTED" && plan && (
@@ -311,6 +495,22 @@ export default function CleaningExecutionPanel({
       {pending && error && (
         <button disabled={busy} onClick={() => void execute(pending)}>
           Thử lại đúng lệnh phân công lại
+        </button>
+      )}
+      {closurePending && error && (
+        <button
+          disabled={busy}
+          onClick={async () => {
+            if (busy) return;
+            setBusy(true);
+            try {
+              await sendClosure(closurePending);
+            } finally {
+              if (alive.current) setBusy(false);
+            }
+          }}
+        >
+          Thử lại đúng lệnh cho công việc {closurePending.task}
         </button>
       )}
       <button disabled={busy} onClick={() => setRefresh((n) => n + 1)}>

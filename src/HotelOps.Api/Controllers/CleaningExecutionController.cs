@@ -10,8 +10,10 @@ namespace HotelOps.Api.Controllers;
 [ApiController]
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
-public sealed class CleaningExecutionController(RoomTypeCreationService service) : ControllerBase
+[RequestSizeLimit(72 * 1024 * 1024)]
+public sealed class CleaningExecutionController(RoomTypeCreationService service, IWebHostEnvironment? environment = null, IConfiguration? configuration = null) : ControllerBase
 {
+    private string? EvidenceRoot => configuration?["Evidence:PrivateRoot"] ?? (environment == null ? null : Path.Combine(environment.ContentRootPath, "App_Data", "evidence"));
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/execution")]
     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct)
         => Run(false, (ticket, sid) => service.ReadCleaningExecutionAsync(ticket, sid, branchId, id, ct));
@@ -24,11 +26,11 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service)
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/blockers")]
     public Task<IActionResult> ReportBlocker(long branchId, long id, ReportCleaningBlockerRequest request, CancellationToken ct)
         => Run(true, (ticket, sid) => service.ReportCleaningBlockerAsync(ticket, sid, branchId, id,
-            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
+            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct, EvidenceRoot));
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/complete")]
     public Task<IActionResult> Complete(long branchId, long id, CompleteCleaningRequest request, CancellationToken ct)
         => Run(true, (ticket, sid) => service.CompleteCleaningAsync(ticket, sid, branchId, id,
-            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
+            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct, EvidenceRoot));
     private async Task<IActionResult> Run(bool conditional, Func<SessionReference, long, Task<RoomTypeBatchResult>> action)
     {
         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");

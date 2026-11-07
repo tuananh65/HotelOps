@@ -21,6 +21,197 @@ async function source(page: Page, overrides: object = {}) {
 const open = (page: Page) =>
   page.goto("/cleaning/tasks/12?branchId=7&execution=1");
 
+const closureMeta = {
+  state: "IN_PROGRESS",
+  startCapability: "STATE_CONFLICT",
+  reportBlockerCapability: "PROVISIONAL_V1",
+  completeCapability: "PROVISIONAL_V1",
+  progressETag: tag,
+  blockerReasons: [
+    { id: 2, code: "GUEST_IN_ROOM", name: "Khách còn trong phòng" },
+  ],
+  items: [{ id: 3, label: "Lau sàn", required: true, done: true }],
+};
+test("Complete stale response reloads both ETags and never automatically reposts", async ({
+  page,
+}) => {
+  let changed = false,
+    reads = 0,
+    writes = 0;
+  const latest = '"000000000000000B"';
+  await page.route("**/api/branches/7/cleaning-tasks/12/execution", (r) => {
+    reads++;
+    return r.fulfill({
+      headers: { ETag: changed ? latest : tag },
+      json: {
+        ...meta,
+        ...closureMeta,
+        sourceETag: changed ? latest : tag,
+        progressETag: changed ? latest : tag,
+      },
+    });
+  });
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({
+      json: { headerName: "X-CSRF-TOKEN", csrfToken: "interception-only" },
+    }),
+  );
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/complete",
+    async (r) => {
+      writes++;
+      expect(r.request().headers()["if-match"]).toBe(tag);
+      changed = true;
+      await r.fulfill({ status: 412, json: { title: "STALE" } });
+    },
+  );
+  await open(page);
+  await page
+    .getByLabel("Ghi chú hoàn tất", { exact: true })
+    .fill("Đã dọn sạch");
+  const initialReads = reads;
+  await page
+    .getByRole("button", { name: "Hoàn tất dọn phòng", exact: true })
+    .click();
+  await expect(
+    page.getByText("Công việc đã thay đổi. Tải lại nguồn trước lệnh mới.", {
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect.poll(() => reads).toBeGreaterThan(initialReads);
+  await expect(
+    page.getByLabel("Ghi chú hoàn tất", { exact: true }),
+  ).toHaveValue("");
+  expect(writes).toBe(1);
+});
+test("Report uses authorized reason and retains exact command on staging retry", async ({
+  page,
+}) => {
+  await source(page, closureMeta);
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({
+      json: { headerName: "X-CSRF-TOKEN", csrfToken: "interception-only" },
+    }),
+  );
+  const writes: unknown[] = [];
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/blockers",
+    async (r) => {
+      writes.push({
+        body: r.request().postDataJSON(),
+        tag: r.request().headers()["if-match"],
+        key: r.request().headers()["idempotency-key"],
+      });
+      await r.fulfill({ status: 503, json: { title: "STAGING_FAILED" } });
+    },
+  );
+  await open(page);
+  await page.getByLabel("Lý do trở ngại", { exact: true }).selectOption("2");
+  await page
+    .getByLabel("Ghi chú trở ngại", { exact: true })
+    .fill("Khách vẫn còn trong phòng");
+  await page
+    .getByRole("button", { name: "Báo cáo trở ngại", exact: true })
+    .click();
+  await expect(
+    page.getByLabel("Lý do trở ngại", { exact: true }),
+  ).toBeDisabled();
+  await page
+    .getByRole("button", {
+      name: "Thử lại đúng lệnh cho công việc 12",
+      exact: true,
+    })
+    .click();
+  await expect.poll(() => writes.length).toBe(2);
+  expect(writes[0]).toEqual(writes[1]);
+  expect((writes[0] as any).body).toEqual({
+    reasonId: 2,
+    note: "Khách vẫn còn trong phòng",
+  });
+});
+test("Complete remains disabled until required items are saved", async ({
+  page,
+}) => {
+  await source(page, {
+    ...closureMeta,
+    items: [{ ...closureMeta.items[0], done: false }],
+  });
+  await open(page);
+  await expect(
+    page.getByRole("button", { name: "Hoàn tất dọn phòng", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("Lau sàn (bắt buộc)", { exact: false }),
+  ).toBeVisible();
+});
+test("Complete posts both ETags and moves to Pending Inspection without READY", async ({
+  page,
+}) => {
+  let completed = false;
+  await page.route("**/api/branches/7/cleaning-tasks/12/execution", (r) =>
+    r.fulfill({
+      headers: { ETag: tag },
+      json: {
+        ...meta,
+        ...closureMeta,
+        ...(completed
+          ? {
+              state: "PENDING_INSPECTION",
+              reportBlockerCapability: "UNAVAILABLE",
+              completeCapability: "UNAVAILABLE",
+            }
+          : {}),
+      },
+    }),
+  );
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({
+      json: { headerName: "X-CSRF-TOKEN", csrfToken: "interception-only" },
+    }),
+  );
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/complete",
+    async (r) => {
+      expect(r.request().postDataJSON()).toEqual({
+        note: "Đã dọn sạch",
+        progressETag: tag,
+      });
+      expect(r.request().headers()["if-match"]).toBe(tag);
+      completed = true;
+      await r.fulfill({
+        headers: { ETag: tag },
+        json: {
+          id: 12,
+          branchId: 7,
+          assignmentId: 9,
+          operationId: r.request().headers()["idempotency-key"],
+          publicationId: "12c44400-7ca4-4da1-8990-8d2fc258f211",
+          progressId: 8,
+          closedIntervalId: 4,
+          state: "PENDING_INSPECTION",
+          sourceETag: tag,
+          occurredAtUtc: "2026-11-07T00:00:00Z",
+          readiness: "PENDING_INSPECTION",
+          hasEffectiveBlock: false,
+          notification: "PENDING_DELIVERY",
+          contract: "PROVISIONAL_NOT_ACCEPTED",
+        },
+      });
+    },
+  );
+  await open(page);
+  await page
+    .getByLabel("Ghi chú hoàn tất", { exact: true })
+    .fill("Đã dọn sạch");
+  await page
+    .getByRole("button", { name: "Hoàn tất dọn phòng", exact: true })
+    .click();
+  await expect(
+    page.getByText("Đã hoàn tất dọn phòng, chờ kiểm tra.", { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText(/PENDING_INSPECTION ·/)).toBeVisible();
+});
+
 test("closure unavailable keeps progress link and sends no mutation", async ({
   page,
 }) => {

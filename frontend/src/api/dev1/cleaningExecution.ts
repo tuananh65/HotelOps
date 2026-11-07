@@ -1,5 +1,6 @@
 import { ApiError, getJson, send } from "./client";
 import { positiveId } from "./rooms";
+import type { EvidenceUpload, CleaningProgressItem } from "./cleaningProgress";
 export interface CleaningExecution {
   id: number;
   branchId: number;
@@ -11,9 +12,12 @@ export interface CleaningExecution {
   sourceETag: string;
   startCapability: string;
   reassignCapability: string;
-  reportBlockerCapability: "UNAVAILABLE";
-  completeCapability: "UNAVAILABLE";
+  reportBlockerCapability: "UNAVAILABLE" | "PROVISIONAL_V1";
+  completeCapability: "UNAVAILABLE" | "PROVISIONAL_V1";
   resumeCapability: "UNAVAILABLE" | "PROVISIONAL_V1";
+  blockerReasons?: { id: number; code: string; name: string }[];
+  items?: CleaningProgressItem[];
+  progressETag?: string | null;
 }
 const tag = (v: unknown): v is string =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
@@ -66,15 +70,44 @@ export async function readCleaningExecution(
     !["PROVISIONAL_NOT_ACCEPTED", "UNAVAILABLE"].includes(
       d.reassignCapability,
     ) ||
-    ![undefined, "UNAVAILABLE"].includes(d.reportBlockerCapability) ||
-    ![undefined, "UNAVAILABLE"].includes(d.completeCapability) ||
+    ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(
+      d.reportBlockerCapability,
+    ) ||
+    ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(
+      d.completeCapability,
+    ) ||
     ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(d.resumeCapability)
   )
     throw new ApiError(502, "INVALID_CLEANING_EXECUTION");
+  if (
+    (d.reportBlockerCapability === "PROVISIONAL_V1" ||
+      d.completeCapability === "PROVISIONAL_V1") &&
+    (d.state !== "IN_PROGRESS" ||
+      !tag(d.progressETag) ||
+      !Array.isArray(d.blockerReasons) ||
+      d.blockerReasons.some(
+        (r: any) =>
+          !Number.isSafeInteger(r.id) ||
+          r.id <= 0 ||
+          typeof r.code !== "string" ||
+          typeof r.name !== "string",
+      ) ||
+      !Array.isArray(d.items) ||
+      d.items.length < 1 ||
+      d.items.some(
+        (i: any) =>
+          !Number.isSafeInteger(i.id) ||
+          i.id <= 0 ||
+          typeof i.label !== "string" ||
+          typeof i.required !== "boolean" ||
+          typeof i.done !== "boolean",
+      ))
+  )
+    throw new ApiError(502, "INVALID_CLOSURE_METADATA");
   return {
     ...d,
-    reportBlockerCapability: "UNAVAILABLE",
-    completeCapability: "UNAVAILABLE",
+    reportBlockerCapability: d.reportBlockerCapability ?? "UNAVAILABLE",
+    completeCapability: d.completeCapability ?? "UNAVAILABLE",
     resumeCapability: d.resumeCapability ?? "UNAVAILABLE",
   } as CleaningExecution;
 }
@@ -109,14 +142,17 @@ export function reassignmentCommand(
 export async function mutateCleaningExecution(
   branch: string,
   task: string,
-  action: "start" | "reassign",
+  action: "start" | "reassign" | "blockers" | "complete",
   originalTag: string,
-  command: ReassignmentCommand | { resolveBlocker: boolean; note?: string },
+  command:
+    | ReassignmentCommand
+    | { resolveBlocker: boolean; note?: string }
+    | ClosureCommand,
   operation?: string,
 ) {
   const b = positiveId(branch),
     id = positiveId(task);
-  if (!tag(originalTag) || (action === "reassign" && !guid(operation)))
+  if (!tag(originalTag) || (action !== "start" && !guid(operation)))
     throw Error("INVALID_LIFECYCLE_COMMAND");
   if (
     action === "start" &&
@@ -149,7 +185,7 @@ export async function mutateCleaningExecution(
         "Content-Type": "application/json",
         "X-CSRF-TOKEN": csrf.csrfToken,
         "If-Match": originalTag,
-        ...(action === "reassign" ? { "Idempotency-Key": operation! } : {}),
+        ...(action !== "start" ? { "Idempotency-Key": operation! } : {}),
       },
       body: JSON.stringify(command),
     },
@@ -175,6 +211,26 @@ export async function mutateCleaningExecution(
   )
     throw new ApiError(502, "INVALID_START_RESULT_RELOAD_SOURCE");
   if (
+    (action === "blockers" || action === "complete") &&
+    (d.state !== (action === "blockers" ? "ON_HOLD" : "PENDING_INSPECTION") ||
+      d.operationId?.toLowerCase() !== operation!.toLowerCase() ||
+      !guid(d.publicationId) ||
+      !Number.isSafeInteger(d.progressId) ||
+      d.progressId <= 0 ||
+      !Number.isSafeInteger(d.closedIntervalId) ||
+      d.closedIntervalId <= 0 ||
+      d.sourceETag !== r.etag ||
+      d.notification !== "PENDING_DELIVERY" ||
+      d.contract !== "PROVISIONAL_NOT_ACCEPTED" ||
+      typeof d.occurredAtUtc !== "string" ||
+      !/Z$/.test(d.occurredAtUtc) ||
+      !Number.isFinite(Date.parse(d.occurredAtUtc)) ||
+      d.readiness !==
+        (action === "blockers" ? "PENDING_CLEANING" : "PENDING_INSPECTION") ||
+      typeof d.hasEffectiveBlock !== "boolean")
+  )
+    throw new ApiError(502, "INVALID_CLOSURE_RESULT_RELOAD_SOURCE");
+  if (
     action === "reassign" &&
     (d.state !== "ASSIGNED" ||
       d.contract !== "PROVISIONAL_NOT_ACCEPTED" ||
@@ -186,4 +242,48 @@ export async function mutateCleaningExecution(
   )
     throw new ApiError(502, "INVALID_REASSIGN_RESULT_RELOAD_SOURCE");
   return d;
+}
+
+export interface ClosureCommand {
+  note: string;
+  reasonId?: number;
+  progressETag?: string;
+  photos?: EvidenceUpload[];
+}
+export function closureCommand(
+  plan: CleaningExecution,
+  action: "blockers" | "complete",
+  note: string,
+  reason?: string,
+  photos: EvidenceUpload[] = [],
+): ClosureCommand {
+  const text = note.trim();
+  if (
+    plan.state !== "IN_PROGRESS" ||
+    (action === "blockers"
+      ? plan.reportBlockerCapability
+      : plan.completeCapability) !== "PROVISIONAL_V1" ||
+    !text ||
+    text.length > 500 ||
+    /[\u0000-\u001f\u007f-\u009f]/.test(text) ||
+    photos.length > 5
+  )
+    throw Error("INVALID_CLOSURE_COMMAND");
+  if (action === "blockers") {
+    const reasonId = positiveId(reason ?? "");
+    if (!plan.blockerReasons?.some((r) => r.id === reasonId))
+      throw Error("INVALID_BLOCKER_REFERENCE");
+    return { note: text, reasonId, ...(photos.length ? { photos } : {}) };
+  }
+  if (
+    !tag(plan.progressETag) ||
+    !plan.items?.length ||
+    plan.items.some((i) => i.required && i.done !== true)
+  )
+    throw Error("REQUIRED_ITEMS_INCOMPLETE");
+  return {
+    note: text,
+    progressETag: plan.progressETag,
+    ...(photos.length ? { photos } : {}),
+  };
 }

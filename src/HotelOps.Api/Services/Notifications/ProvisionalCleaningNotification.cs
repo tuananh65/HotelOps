@@ -12,7 +12,7 @@ public sealed record CandidateAssignmentEvent(Guid OperationId, Guid Publication
     long TaskId, long TaskCycleId, long RoomId, long AssignmentId, long AssigneeUserId, DateTime AssignedAtUtc, string SourceRevision, DateTime DueAtUtc);
 
 // NOT accepted A01. One candidate only, explicit isolated-development opt-in; no hosted dispatcher.
-public sealed class ProvisionalCleaningNotification(HotelOpsDbContext db, IConfiguration config, IWebHostEnvironment env)
+public sealed partial class ProvisionalCleaningNotification(HotelOpsDbContext db, IConfiguration config, IWebHostEnvironment env)
 {
     internal static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
     public async Task<bool> AvailableAsync(CancellationToken ct)

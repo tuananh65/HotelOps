@@ -9,10 +9,11 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.Notifications;
 
 // Explicitly invoked isolated candidate only. No background host or competing shared dispatcher registered.
-public sealed class ProvisionalCleaningDelivery(HotelOpsDbContext db, ProvisionalCleaningNotification candidate, RoomTypeCreationService source, TimeProvider clock)
+public sealed partial class ProvisionalCleaningDelivery(HotelOpsDbContext db, ProvisionalCleaningNotification candidate, RoomTypeCreationService source, TimeProvider clock)
 {
     public async Task<string> DeliverOneAsync(CancellationToken ct, bool stopAfterDurableClaim = false, Guid? selectedPublication = null)
     {
+        if (await candidate.ClosureAvailableAsync(ct)) return await DeliverClosureOneAsync(ct, selectedPublication);
         if (!await candidate.AvailableAsync(ct)) throw new InvalidOperationException("CANDIDATE_DISABLED");
         var now = clock.GetUtcNow().UtcDateTime; long id; long recipient; Guid claim = Guid.NewGuid();
         await using (var tx = await db.Database.BeginTransactionAsync(IsolationLevel.ReadCommitted, ct))
