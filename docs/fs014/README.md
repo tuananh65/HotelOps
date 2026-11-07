@@ -1,6 +1,6 @@
 # FS-014 — Cleaning Blocker, Resume & Complete
 
-**PARTIAL — PROVISIONAL V1, chưa shared integration acceptance.** Baseline nhánh `feature/dev1-room-ops`, local/remote cùng `77d62009d18c766e2387dfb7f7cb9501dd741257`, working tree sạch. Không triển khai UC035–038, FE-14/15; không tạo PR/Tester package.
+**FS-014 PARTIAL; UC031 PROVISIONAL V1; UC033/UC034 BLOCKED; Notification chưa accepted; Live HTTPS/API NOT_RUN; FE-04 NOT_READY_FOR_MERGE.** Chưa shared integration acceptance. Baseline nhánh `feature/dev1-room-ops`, local/remote cùng `77d62009d18c766e2387dfb7f7cb9501dd741257`, working tree sạch. Không triển khai UC035–038, FE-14/15; không tạo PR/Tester package.
 
 ## UC và source changes
 
@@ -65,4 +65,4 @@ Các lượt build/Node đầu trong sandbox lỗi quyền ghi artifacts; chạy
 
 Chốt accepted supervisor Notification event/recipient/transaction/idempotency contract cho UC033/034; triển khai Report Blocker thật và Complete snapshot/evidence → Pending Inspection thật. Chốt source confirmation reader cho Incident/Material Request; chạy live HTTPS/API regression trên trial và review shared WorkTime deployment trước integration acceptance. Chưa mở UC035–038. FE-04 chưa complete, không tự cộng UC credit hoặc TESTER_READY/ACCEPTED.
 
-Git: HEAD vẫn `77d62009d18c766e2387dfb7f7cb9501dd741257`; source/evidence chưa commit. Automatic approval review từ chối lệnh commit vì chưa công nhận chỉ dẫn trong tệp đính kèm là explicit developer approval theo AGENTS.md. Không chạy commit/push lại bằng đường khác; cần developer xác nhận trực tiếp commit và push nhánh `feature/dev1-room-ops`. Preflight remote cùng baseline; chưa có FS014 remote SHA. Không force-push, PR hoặc merge. Inventory ghi UNCOMMITTED, baseline và SHA256 của source để không gán sai commit identity.
+Git: Project Leader đã phê duyệt trực tiếp commit/push trong phiên ngày 2026-11-07 sau lần automatic approval review từ chối chỉ dẫn trong tệp đính kèm. Source/tests/SQL candidate/evidence được commit tại `b66b03e84af09eac316874470fd763f455e85093` với message `feat(housekeeping): add provisional cleaning resume and closure boundaries` (26 files). Đã push lên `origin feature/dev1-room-ops`, xác minh local HEAD = remote SHA và working tree sạch trước khi cập nhật documentation. Inventory tham chiếu source commit này; cập nhật inventory/README được commit/push documentation riêng theo phê duyệt. Không sửa nghiệp vụ, force-push, PR hoặc merge; các trạng thái PARTIAL/PROVISIONAL/BLOCKED/NOT_RUN/NOT_READY_FOR_MERGE giữ nguyên.
