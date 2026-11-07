@@ -1,4 +1,116 @@
-# FE-04 — Unit Test inventory FS014 / FS015 / FS016
+# FE-04 — Unit Test inventory FS014 / FS015 / FS016 / FS017
+
+## FS017 — UC037/038 read checkpoint PARTIAL
+
+Source commit **6d84ff144c7763157bbfce21d08eb774ff0b6d24**; baseline trước FS017 `279c10932afdbdd5090723c0b82eac3466ef5826`. UC037 readiness/navigation implemented, Cancellation **BLOCKED**. UC038 persisted-source history implemented with incomplete Inspection/RoomHistory coverage, no shared acceptance. Inspection/Notification not shared accepted; shared/production candidate flags OFF; FE-04 NOT_READY_FOR_MERGE. No UC credit/coverage added. Project Leader directly approved FS017 commit/push in this Codex session; source/tests committed using the actual SHA, documentation/inventory committed separately. Historical FS016/015/014 entries remain unchanged.
+
+U17/SQL17/L17: `$env:FS017_SQL_READ='FS016_READ_ONLY'; $env:FS017_LIVE='APPROVED_LOCAL_HTTPS'; dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj --no-restore --filter 'FullyQualifiedName~Turnover|FullyQualifiedName~CleaningMonitorRouteTests' --logger 'trx;LogFileName=fs017-final.trx' --results-directory TestResults/fs017`. Actual **18 PASS / 0 FAIL / 0 SKIP = 16 Unit + 1 SQL component + 1 live HTTPS/API/SQL**. [Final local TRX](../../../TestResults/fs017/fs017-final.trx); ignored local evidence, not staged/committed. SQL source is existing isolated FS016 synthetic dataset; no business fixtures written.
+
+### Unit
+
+| UC | Test source / case / objective | Command | Expected | Actual | Status | Evidence | Source commit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| UC037 regression | `tests/HotelOps.Dev1.RegressionTests/CleaningMonitorRouteTests.cs`: `CleaningMonitorRouteTests.Monitor_exposes_exactly_two_cookie_authenticated_GETs_without_collisions`; Monitor exposes exactly two cookie authenticated GETs without collisions | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistorySqlTests.cs`: `TurnoverHistorySqlTests.History_rejects_mismatched_session_before_SQL`; History rejects mismatched session before SQL | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.Cancellation_reason_only_comes_from_valid_persisted_audit(json: "{\"reason\":\"Guest stayed\"}", expected: "Guest stayed")`; Cancellation reason only comes from valid persisted audit | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.Cancellation_reason_only_comes_from_valid_persisted_audit(json: "{\"reason\":123}", expected: null)`; Cancellation reason only comes from valid persisted audit | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.Cancellation_reason_only_comes_from_valid_persisted_audit(json: "{}", expected: null)`; Cancellation reason only comes from valid persisted audit | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.Cancellation_reason_only_comes_from_valid_persisted_audit(json: "not-json", expected: null)`; Cancellation reason only comes from valid persisted audit | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.Cancellation_reason_only_comes_from_valid_persisted_audit(json: null, expected: null)`; Cancellation reason only comes from valid persisted audit | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_rejects_unsafe_identifiers_and_pagination(room: 0, page: 1, size: 20, timeline: 1, timelineSize: 50)`; History rejects unsafe identifiers and pagination | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_rejects_unsafe_identifiers_and_pagination(room: 1, page: 0, size: 20, timeline: 1, timelineSize: 50)`; History rejects unsafe identifiers and pagination | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_rejects_unsafe_identifiers_and_pagination(room: 1, page: 1, size: 101, timeline: 1, timelineSize: 50)`; History rejects unsafe identifiers and pagination | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_rejects_unsafe_identifiers_and_pagination(room: 1, page: 1, size: 20, timeline: 0, timelineSize: 50)`; History rejects unsafe identifiers and pagination | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_rejects_unsafe_identifiers_and_pagination(room: 1, page: 1, size: 20, timeline: 1, timelineSize: 101)`; History rejects unsafe identifiers and pagination | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_rejects_unsafe_identifiers_and_pagination(room: 1, page: 2147483647, size: 100, timeline: 1, timelineSize: 50)`; History rejects unsafe identifiers and pagination | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.History_requires_UTC_ordered_dates_valid_result_and_cycle_for_evidence`; History requires UTC ordered dates valid result and cycle for evidence | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.Timeline_orders_real_timestamps_with_stable_source_identity_ties`; Timeline orders real timestamps with stable source identity ties | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs`: `TurnoverHistoryTests.UC038_has_exactly_three_authenticated_GET_routes_and_no_collision_or_mutation`; UC038 has exactly three authenticated GET routes and no collision or mutation | U17 | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+
+### SQL component
+
+| UC | Test source / case / objective | Command | Expected | Actual | Status | Evidence | Source commit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverHistorySqlTests.cs`: `TurnoverHistorySqlTests.History_readonly_scope_source_identity_current_cycle_ordering_and_pagination`; History readonly scope source identity current cycle ordering and pagination | SQL17 (read-only; session double) | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+
+### Live
+
+| UC | Test source / case / objective | Command | Expected | Actual | Status | Evidence | Source commit |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| UC038 / UC037 readiness | `tests/HotelOps.Dev1.RegressionTests/TurnoverLiveTests.cs`: `TurnoverLiveTests.Real_HTTPS_turnover_reads_existing_trial_sources_without_business_writes`; Real HTTPS turnover reads existing trial sources without business writes | L17 (real auth/TLS, existing synthetic data) | Passed | Passed | PASS | fs017-final.trx | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+
+SQL asserts exact room/cycle/Inspection/Rework identity, current pointer, UTC/order/timeline paging, empty/date filter, unknown evidence 404, wrong branch 403, unaccepted result filtering unavailable, source-specific INSPECTION_VIEW denial with clean-history subset, permission revocation before response, Monitor readiness and no business/audit/Notification/interval writes. L17 uses owned real API/trusted localhost TLS with all mutation candidates OFF; only auth fixture/session/login/logout writes; synthetic supervisor password memory-only and original hash restored. No synthetic Inspection writer is added/run.
+
+### Node Unit
+
+N17: `node --test tests/turnover-history.test.mjs tests/cleaning-monitor.test.mjs` from frontend: **10 PASS / 0 FAIL**.
+
+| UC | Source / case objective | Command | Expected / Actual | Status | Evidence | Source commit |
+| --- | --- | --- | --- | --- | --- | --- |
+| UC038 | `frontend/tests/turnover-history.test.mjs`: turnover uses cookie GET, allowlisted UTC filters and cancellation with no mutation | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.test.mjs`: turnover rejects wrong room, branch, invented accepted outcome and pagination | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.test.mjs`: turnover rejects unsafe query before network and propagates unavailable result filter | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.test.mjs`: detail enforces cycle/source/evidence identity and does not expose denied Inspection subset | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.test.mjs`: history 401/403/404/503 errors never trigger retry or prototype fallback | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.test.mjs`: monitor uses existing cookie transport, scoped route, allowlisted query and cancellation | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.test.mjs`: monitor rejects malformed rows and wrong pagination instead of mock fallback | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.test.mjs`: monitor propagates 401/403/404/503 once without fallback | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.test.mjs`: monitor rejects unsafe inputs before fetch | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.test.mjs`: detail validates exact identity, timeline and nullable fields | N17 | Passed / Passed | PASS | session stdout, 10 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+
+### Browser interception
+
+B17: `node node_modules/@playwright/test/cli.js test --config playwright.fs017.config.ts` first run **18 PASS / 1 FAIL** (19 cases). Select accessible-label failure corrected with explicit aria-label; targeted `turnover-history.spec.ts --grep 'empty page'` **1 PASS**. Final `turnover-history.spec.ts` **7/7 PASS** after retaining date filters on list/detail navigation. Monitor12 earlier PASS. Total 19 distinct identities PASS across runs, not a single clean 19/19. Local `frontend/test-results/fs017/.last-run.json` covers final turnover7 only; session stdout retains original failure. No live-browser claim.
+
+| UC | Source / case objective | Command | Expected / Actual | Status | Evidence | Source commit |
+| --- | --- | --- | --- | --- | --- | --- |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history filters/paginates cycles, opens ordered timeline and preserves source coverage | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history empty page and explicit unavailable result filter have no mock fallback | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history ignores stale room response after navigation | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history 401 exposes error without prototype data | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history 403 exposes error without prototype data | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history 404 exposes error without prototype data | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC038 | `frontend/tests/turnover-history.spec.ts`: history 503 exposes error without prototype data | B17 turnover-only final | Passed / Passed | PASS | session stdout, 7/7 | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor distinguishes current cycle and unresolved blocker from historical work | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor list filters, paginates and opens real detail mode | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor empty response | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor ignores a stale branch response after filter cancellation | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor 401 never falls back | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: detail 401 has no prototype fallback | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor 403 never falls back | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: detail 403 has no prototype fallback | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor 404 never falls back | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: detail 404 has no prototype fallback | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: monitor 503 never falls back | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+| UC037 regression | `frontend/tests/cleaning-monitor.spec.ts`: detail 503 has no prototype fallback | B17 first run | Passed / Passed | PASS | session stdout, Monitor12 PASS | 6d84ff144c7763157bbfce21d08eb774ff0b6d24 |
+
+### Builds / limitations
+
+Backend `dotnet build HotelOps.slnx` PASS 0 warnings/errors. `dotnet test HotelOps.slnx --no-build --no-restore` exit 0: API-only solution, not a test count. Frontend `npm.cmd run build` PASS; existing use-client/chunk-size warnings. Restore NU1900 vulnerability feed unavailable, browser NO_COLOR/FORCE_COLOR warning. Focused earlier TRX `fs017-focused-attempt1.trx` 16 PASS, `fs017-verified.trx` 18 PASS, `fs017-checkpoint-final.trx` 17 PASS; no count duplication. Final source adds nonfuture readiness-event predicate and final test covers permission-revocation recheck.
+
+NOT_RUN: authoritative Inspection/RoomHistory acceptance, multi-cycle historical SQL fixture generation (existing source only; historical/current rendering verified by browser), live browser against API, cancellation end-to-end, production deployment/least privilege, coverage. No changes to SQL schema/EF mapping/Inspection writer/shared configuration. [FS017 README](../../fs017/README.md) records precise coverage gaps, files, cancellation rationale and next task.
+
+### Working-source SHA256 (not commit SHA)
+
+| Path | SHA256 |
+| --- | --- |
+| `frontend/playwright.fs017.config.ts` | `DF4420D0F19587DC82FDC4266AE8F12E53835069560F0E660B849A0421819D6A` |
+| `frontend/src/api/dev1/cleaningMonitor.ts` | `3DC0D99790182D12DF38E88FB8C3FC105C94C04F0A0436B4175BE38013FF695F` |
+| `frontend/src/api/dev1/turnoverHistory.ts` | `88F8014ADEF9788824BBC18F710C442A661FFEE134773068C203855BF21C5202` |
+| `frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx` | `91CEAE26BE6861C78A9FAA048D43BC6EAD3481FB6929B9E46844368FD4AC9228` |
+| `frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx` | `3C4CF125F75E4B22657E412425CAFCF9AF4C14412D524A5A3CFE7C6325F92896` |
+| `frontend/src/screens/housekeeping/RoomTurnoverHistoryScreen.tsx` | `F7D1FAA35A642B687BC0E36372957D25207751FCA9C547844767D9F36CA2992B` |
+| `frontend/tests/turnover-history.spec.ts` | `4E8C76EBB95193B5F6FD88F7454CCE3DDC6881AAABD135C50F13429622AF492E` |
+| `frontend/tests/turnover-history.test.mjs` | `E3E64A93411E10D2DA5AB002E133FC9D9C7BC0542DE3DE94D529275F3CA04556` |
+| `src/HotelOps.Api/Controllers/OperationalHistoryController.cs` | `2516099B650B580B407FEABAE387D414237270432158BAFB74B1004B0F0A725D` |
+| `src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs` | `8E8875727FB21B4AA8394B365A52B64B8BE277F094A299F019CDB8EE009769D6` |
+| `src/HotelOps.Api/DTOs/Housekeeping/TurnoverDtos.cs` | `3548638284D99BA16BBCE4ABE26C4D3BE928C8C153FDF5C104BE17338DD7CF11` |
+| `src/HotelOps.Api/Services/HotelStructure/TurnoverCycleReadService.cs` | `9853033DB0BFE911810C8C70772CE395678759EA70A2F641F10F81F2DFF31986` |
+| `src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs` | `C82350481BBC7B3C74DEEB3F649423692CE19E6CD52CBDE9C270B229D2806892` |
+| `src/HotelOps.Api/Services/Housekeeping/TurnoverReadRules.cs` | `C31356A6C4BC79A34D4F21F763ECE597F00F996366548603E0B940260B40A315` |
+| `tests/HotelOps.Dev1.RegressionTests/TurnoverHistorySqlTests.cs` | `1AB01C74DCBC37C8939DC27618537C3C55FA013F02D983800F70B7C82993D0CD` |
+| `tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs` | `BC9D3BF19623D2A206E8894ED450146BB60348078C1BAB2B16C4AF43A7C9909C` |
+| `tests/HotelOps.Dev1.RegressionTests/TurnoverLiveTests.cs` | `113CA566DCE357769B74F5B661FAC87DBBF36C67CB306F06F881D0D4A46AAFD6` |
 
 ## FS016 — isolated candidate PROVISIONAL_NOT_ACCEPTED
 
