@@ -25,6 +25,7 @@ export default function CleaningExecutionPanel({
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
     [refresh, setRefresh] = useState(0);
+  const [candidatePage, setCandidatePage] = useState(1);
   const [pending, setPending] = useState<{
     command: ReassignmentCommand;
     tag: string;
@@ -50,7 +51,7 @@ export default function CleaningExecutionPanel({
           const candidates = await readAssignmentPlan(
             branch,
             task,
-            1,
+            candidatePage,
             "",
             abort.signal,
           );
@@ -61,7 +62,7 @@ export default function CleaningExecutionPanel({
         if (!abort.signal.aborted) setError(message(e));
       });
     return () => abort.abort();
-  }, [branch, task, refresh]);
+  }, [branch, task, refresh, candidatePage]);
   function message(e: unknown) {
     if (e instanceof ApiError) {
       if (e.status === 401) return "Phiên đăng nhập đã hết hạn.";
@@ -195,6 +196,29 @@ export default function CleaningExecutionPanel({
                     ))}
                 </select>
               </label>
+              <div>
+                <button
+                  type="button"
+                  disabled={busy || !!pending || candidatePage <= 1}
+                  onClick={() => setCandidatePage((n) => n - 1)}
+                >
+                  Trang trước nhân viên
+                </button>
+                <span>
+                  {" "}
+                  Trang {candidatePage} /{" "}
+                  {Math.max(1, Math.ceil(plan.total / 20))}{" "}
+                </span>
+                <button
+                  type="button"
+                  disabled={
+                    busy || !!pending || candidatePage * 20 >= plan.total
+                  }
+                  onClick={() => setCandidatePage((n) => n + 1)}
+                >
+                  Trang sau nhân viên
+                </button>
+              </div>
               <label>
                 Hạn UTC
                 <input

@@ -213,9 +213,15 @@ test("FS013 Start and Reassign preserve real ownership, intervals, historical re
     expect(wrong.status()).toBe(403);
     await page.context().clearCookies();
     await login(page.context(), "owner");
+    const executionLoaded = page.waitForResponse(
+      (r) =>
+        r.url().endsWith(url(source.id, "execution")) &&
+        r.request().method() === "GET",
+    );
     await page.goto(
       `/cleaning/tasks/${source.id}?branchId=${fixture.branchId}&execution=1`,
     );
+    expect((await executionLoaded).status()).toBe(200);
     await expect(
       page.getByRole("button", { name: "Bắt đầu dọn phòng", exact: true }),
     ).toBeEnabled();

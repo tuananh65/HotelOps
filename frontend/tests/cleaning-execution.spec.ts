@@ -20,6 +20,76 @@ async function source(page: Page, overrides: object = {}) {
 }
 const open = (page: Page) =>
   page.goto("/cleaning/tasks/12?branchId=7&execution=1");
+test("Reassign pages through server candidates without posting a command", async ({
+  page,
+}) => {
+  await source(page, { reassignCapability: "PROVISIONAL_NOT_ACCEPTED" });
+  const pages: number[] = [],
+    writes: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/api/") && r.method() !== "GET")
+      writes.push(r.method());
+  });
+  await page.route(
+    "**/api/branches/7/cleaning-tasks/12/assignment-options?**",
+    (r) => {
+      const pageNumber = Number(
+        new URL(r.request().url()).searchParams.get("page"),
+      );
+      pages.push(pageNumber);
+      return r.fulfill({
+        json: {
+          task: {
+            id: 12,
+            number: "EXEC-12",
+            roomId: 3,
+            roomNumber: "101",
+            branchId: 7,
+            recordedStatus: "PENDING",
+            dueAt: null,
+            workflowState: "ASSIGNED",
+          },
+          candidates: [
+            {
+              id: pageNumber === 1 ? 6 : 26,
+              name: "Page " + pageNumber + " staff",
+              departmentId: 2,
+              openTasks: 0,
+              openTasksInWindow: 0,
+            },
+          ],
+          recordedShifts: [],
+          total: 21,
+          filters: {
+            search: null,
+            from: "2026-11-07T00:00:00Z",
+            to: "2026-11-08T00:00:00Z",
+            page: pageNumber,
+            pageSize: 20,
+          },
+          checklist: null,
+          capturedAt: "2026-11-07T00:00:00Z",
+          workflowStateVerified: true,
+        },
+      });
+    },
+  );
+  await open(page);
+  await expect(page.getByRole("option", { name: /Page 1 staff/ })).toHaveCount(
+    1,
+  );
+  await page
+    .getByRole("button", { name: "Trang sau nhân viên", exact: true })
+    .click();
+  await expect(page.getByRole("option", { name: /Page 2 staff/ })).toHaveCount(
+    1,
+  );
+  await expect(
+    page.getByRole("button", { name: "Trang sau nhân viên", exact: true }),
+  ).toBeDisabled();
+  expect(pages).toEqual([1, 2]);
+  expect(writes).toEqual([]);
+});
 for (const status of [401, 403, 503])
   test(`execution ${status} never exposes a mutable form`, async ({ page }) => {
     await page.route("**/api/branches/7/cleaning-tasks/12/execution", (r) =>
