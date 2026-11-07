@@ -1,0 +1,265 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TestRun id="877606c6-615d-4957-a4a4-ea76ca1a925b" name="hax@DESKTOP-JI8U50T 2026-11-07 12:33:51" runUser="DESKTOP-JI8U50T\hax" xmlns="http://microsoft.com/schemas/VisualStudio/TeamTest/2010">
+  <Times creation="2026-11-07T12:33:51.7717573+07:00" queuing="2026-11-07T12:33:51.7717582+07:00" start="2026-11-07T12:32:33.8479888+07:00" finish="2026-11-07T12:34:26.2347109+07:00" />
+  <TestSettings name="default" id="5f66745b-7256-4e66-88b4-958cc16e4e11">
+    <Deployment runDeploymentRoot="hax_DESKTOP-JI8U50T_2026-11-07_12_33_51" />
+  </TestSettings>
+  <Results>
+    <UnitTestResult executionId="6f947003-6239-47b7-85c8-3c7ce51ba489" testId="43664109-756a-cca5-634f-08eacd168330" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;progress-stale&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.6396042" startTime="2026-11-07T12:34:18.2966355+07:00" endTime="2026-11-07T12:34:19.9420584+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="6f947003-6239-47b7-85c8-3c7ce51ba489" />
+    <UnitTestResult executionId="58d2dd91-4ad6-48c4-8fd6-a3d99919b273" testId="05a0bfbe-2ca3-2d96-9f09-d8f7c3e7e912" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;default-off&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.0022059" startTime="2026-11-07T12:34:19.9433559+07:00" endTime="2026-11-07T12:34:20.9535999+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="58d2dd91-4ad6-48c4-8fd6-a3d99919b273" />
+    <UnitTestResult executionId="57a91531-3657-461a-b88d-6eb8dd8d3d7d" testId="3beb6410-0403-5837-4450-31af36409b80" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;readiness-fault&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.4407786" startTime="2026-11-07T12:34:08.3583580+07:00" endTime="2026-11-07T12:34:09.8016413+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="57a91531-3657-461a-b88d-6eb8dd8d3d7d" />
+    <UnitTestResult executionId="1f7f565c-6ad1-446b-b304-3d08917c9f08" testId="c7cf36e1-f2f5-08d0-5aa2-5c9c20944d49" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;same-key&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.7198779" startTime="2026-11-07T12:34:06.6327891+07:00" endTime="2026-11-07T12:34:08.3564432+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1f7f565c-6ad1-446b-b304-3d08917c9f08" />
+    <UnitTestResult executionId="ddac8160-80c6-44ee-979a-b51463e3d1f5" testId="7de1a774-4357-d5cd-8990-0343edb64c21" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;delivery&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:03.7798869" startTime="2026-11-07T12:34:01.9592766+07:00" endTime="2026-11-07T12:34:05.7351197+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ddac8160-80c6-44ee-979a-b51463e3d1f5" />
+    <UnitTestResult executionId="dda0e606-ec6c-4d55-92bb-752ff372631a" testId="a04fcc36-bd41-f462-decc-48387f680bab" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;invalid-evidence&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:00.8940439" startTime="2026-11-07T12:34:05.7395431+07:00" endTime="2026-11-07T12:34:06.6319138+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="dda0e606-ec6c-4d55-92bb-752ff372631a" />
+    <UnitTestResult executionId="8bfe1e65-2e57-4111-b3cf-379b6b50dd59" testId="8e4aeff3-8568-5d6b-e908-2d82dfcc13bc" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;audit-fault&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.3546444" startTime="2026-11-07T12:34:11.9433135+07:00" endTime="2026-11-07T12:34:13.2895750+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="8bfe1e65-2e57-4111-b3cf-379b6b50dd59">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.ThrowsAny() Failure: No exception was thrown&#xD;
+Expected: typeof(System.Exception)</Message>
+          <StackTrace>   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 116&#xD;
+   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 158&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="efb58d0b-fdbc-4292-9137-cef3988e8d74" testId="706d9072-97b9-15f1-6724-1f9f473dfb41" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;unreconciled&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.0113714" startTime="2026-11-07T12:34:09.8025649+07:00" endTime="2026-11-07T12:34:10.8163048+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="efb58d0b-fdbc-4292-9137-cef3988e8d74" />
+    <UnitTestResult executionId="ee5782e6-a06d-42df-b1b1-c99f103550a0" testId="86231be1-0d20-661a-d86d-71dd8d156585" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;checklist&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:02.4204018" startTime="2026-11-07T12:33:51.6096366+07:00" endTime="2026-11-07T12:33:53.8516802+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ee5782e6-a06d-42df-b1b1-c99f103550a0" />
+    <UnitTestResult executionId="1e7a833e-e21d-49df-b110-001c68259096" testId="d6447594-2a0e-84a8-aaab-51fc632d674b" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;wrong-owner&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:00.9442979" startTime="2026-11-07T12:34:17.3618975+07:00" endTime="2026-11-07T12:34:18.2952815+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="1e7a833e-e21d-49df-b110-001c68259096" />
+    <UnitTestResult executionId="2b214c64-69e8-4c40-946b-acdfff2f1bea" testId="dd167b0d-d4e8-c0ad-ec3f-ce77f8cb1348" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_fingerprint_binds_actor_source_etags_payload_and_photos" computerName="DESKTOP-JI8U50T" duration="00:00:00.0519760" startTime="2026-11-07T12:34:25.3603982+07:00" endTime="2026-11-07T12:34:25.3910997+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="2b214c64-69e8-4c40-946b-acdfff2f1bea" />
+    <UnitTestResult executionId="bc3f2f78-e390-46b9-93e3-732f7890007d" testId="8ca8e1bc-b60f-405d-c8d4-34d75f9584ab" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_rejects_more_than_five_photos_before_persistence(action: &quot;blockers&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:00.0103498" startTime="2026-11-07T12:34:25.3283200+07:00" endTime="2026-11-07T12:34:25.3384692+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="bc3f2f78-e390-46b9-93e3-732f7890007d" />
+    <UnitTestResult executionId="13ef3b03-3fa3-4ed1-bce3-20e7d00c680d" testId="edfd64fe-68e5-a039-8c35-68c3e5cd5bfe" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_rejects_more_than_five_photos_before_persistence(action: &quot;complete&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:00.0163347" startTime="2026-11-07T12:34:25.3186497+07:00" endTime="2026-11-07T12:34:25.3274974+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="13ef3b03-3fa3-4ed1-bce3-20e7d00c680d" />
+    <UnitTestResult executionId="f16e08ed-ef2a-4c7f-bdd0-062a8c129632" testId="886f680e-d7c5-b6a9-63e1-0c11b644638f" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;stale&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:02.3074721" startTime="2026-11-07T12:34:22.9559929+07:00" endTime="2026-11-07T12:34:25.2788268+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="f16e08ed-ef2a-4c7f-bdd0-062a8c129632" />
+    <UnitTestResult executionId="ac2e8b33-0cd8-469e-be40-d434e14c1524" testId="a20ee00f-4d71-8402-6a79-b087e0100509" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;commit-ack&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:02.6496605" startTime="2026-11-07T12:33:53.8879162+07:00" endTime="2026-11-07T12:33:56.7553388+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="ac2e8b33-0cd8-469e-be40-d434e14c1524">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ&#xD;
+Expected: Success&#xD;
+Actual:   Unavailable</Message>
+          <StackTrace>   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 128&#xD;
+   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 158&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="db1a2223-9030-4cf3-914f-ebb63e6eb75d" testId="efdb5872-802e-33e2-c5b9-8d9b7ee57fe5" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;complete&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.0353327" startTime="2026-11-07T12:34:16.3124451+07:00" endTime="2026-11-07T12:34:17.3453027+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="db1a2223-9030-4cf3-914f-ebb63e6eb75d">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ&#xD;
+Expected: Success&#xD;
+Actual:   Unavailable</Message>
+          <StackTrace>   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 128&#xD;
+   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 158&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="58dfdac1-6379-4e9b-ac2f-dc02b90ecdfc" testId="1757602a-cb1f-fb82-bfef-2cc9f6460f18" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;report&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:03.0116143" startTime="2026-11-07T12:34:13.3068609+07:00" endTime="2026-11-07T12:34:16.3050220+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="58dfdac1-6379-4e9b-ac2f-dc02b90ecdfc" />
+    <UnitTestResult executionId="5161c3de-1462-47f3-b785-37c1fd241053" testId="21fff985-6f7e-1ca9-52a0-6410fb826702" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;publication-fault&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.9914682" startTime="2026-11-07T12:34:20.9547690+07:00" endTime="2026-11-07T12:34:22.9548557+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="5161c3de-1462-47f3-b785-37c1fd241053" />
+    <UnitTestResult executionId="7ae9c9e6-e43c-44a0-90ee-8f48b0e56907" testId="3d40552d-b666-5cff-f3af-5b7f82c57b3d" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;cycle&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:03.3508997" startTime="2026-11-07T12:33:56.9645091+07:00" endTime="2026-11-07T12:34:00.1395556+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="7ae9c9e6-e43c-44a0-90ee-8f48b0e56907">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ&#xD;
+Expected: Success&#xD;
+Actual:   Unavailable</Message>
+          <StackTrace>   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 155&#xD;
+   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 158&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+    <UnitTestResult executionId="eb777be4-50ee-49ac-a9e3-c4e5174bb29b" testId="29d88024-f01a-a2db-ab15-ee47a31636fd" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;concurrent&quot;)" computerName="DESKTOP-JI8U50T" duration="00:01:12.6330678" startTime="2026-11-07T12:32:39.0512481+07:00" endTime="2026-11-07T12:33:51.4130754+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="eb777be4-50ee-49ac-a9e3-c4e5174bb29b" />
+    <UnitTestResult executionId="914725e5-b23b-4499-be18-ad349951a91d" testId="4d0aa350-cec5-1402-4646-a06d5dec4563" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;intent-fault&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.8104489" startTime="2026-11-07T12:34:00.1858437+07:00" endTime="2026-11-07T12:34:01.9528480+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Passed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="914725e5-b23b-4499-be18-ad349951a91d" />
+    <UnitTestResult executionId="d6ae5035-239d-4420-a4e3-31716278037b" testId="06231647-90ba-a509-fbb7-c84b35c44358" testName="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;linked&quot;)" computerName="DESKTOP-JI8U50T" duration="00:00:01.1026563" startTime="2026-11-07T12:34:10.8179674+07:00" endTime="2026-11-07T12:34:11.9257847+07:00" testType="13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b" outcome="Failed" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" relativeResultsDirectory="d6ae5035-239d-4420-a4e3-31716278037b">
+      <Output>
+        <ErrorInfo>
+          <Message>Assert.Equal() Failure: Values differ&#xD;
+Expected: Unavailable&#xD;
+Actual:   Stale</Message>
+          <StackTrace>   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 128&#xD;
+   at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario) in D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs:line 158&#xD;
+--- End of stack trace from previous location ---</StackTrace>
+        </ErrorInfo>
+      </Output>
+    </UnitTestResult>
+  </Results>
+  <TestDefinitions>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;default-off&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="05a0bfbe-2ca3-2d96-9f09-d8f7c3e7e912">
+      <Execution id="58d2dd91-4ad6-48c4-8fd6-a3d99919b273" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;stale&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="886f680e-d7c5-b6a9-63e1-0c11b644638f">
+      <Execution id="f16e08ed-ef2a-4c7f-bdd0-062a8c129632" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;readiness-fault&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="3beb6410-0403-5837-4450-31af36409b80">
+      <Execution id="57a91531-3657-461a-b88d-6eb8dd8d3d7d" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;linked&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="06231647-90ba-a509-fbb7-c84b35c44358">
+      <Execution id="d6ae5035-239d-4420-a4e3-31716278037b" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;intent-fault&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="4d0aa350-cec5-1402-4646-a06d5dec4563">
+      <Execution id="914725e5-b23b-4499-be18-ad349951a91d" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;audit-fault&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="8e4aeff3-8568-5d6b-e908-2d82dfcc13bc">
+      <Execution id="8bfe1e65-2e57-4111-b3cf-379b6b50dd59" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;concurrent&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="29d88024-f01a-a2db-ab15-ee47a31636fd">
+      <Execution id="eb777be4-50ee-49ac-a9e3-c4e5174bb29b" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;report&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="1757602a-cb1f-fb82-bfef-2cc9f6460f18">
+      <Execution id="58dfdac1-6379-4e9b-ac2f-dc02b90ecdfc" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;publication-fault&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="21fff985-6f7e-1ca9-52a0-6410fb826702">
+      <Execution id="5161c3de-1462-47f3-b785-37c1fd241053" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_rejects_more_than_five_photos_before_persistence(action: &quot;blockers&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="8ca8e1bc-b60f-405d-c8d4-34d75f9584ab">
+      <Execution id="bc3f2f78-e390-46b9-93e3-732f7890007d" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_rejects_more_than_five_photos_before_persistence" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;cycle&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="3d40552d-b666-5cff-f3af-5b7f82c57b3d">
+      <Execution id="7ae9c9e6-e43c-44a0-90ee-8f48b0e56907" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;unreconciled&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="706d9072-97b9-15f1-6724-1f9f473dfb41">
+      <Execution id="efb58d0b-fdbc-4292-9137-cef3988e8d74" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;delivery&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="7de1a774-4357-d5cd-8990-0343edb64c21">
+      <Execution id="ddac8160-80c6-44ee-979a-b51463e3d1f5" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;checklist&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="86231be1-0d20-661a-d86d-71dd8d156585">
+      <Execution id="ee5782e6-a06d-42df-b1b1-c99f103550a0" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;same-key&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="c7cf36e1-f2f5-08d0-5aa2-5c9c20944d49">
+      <Execution id="1f7f565c-6ad1-446b-b304-3d08917c9f08" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;progress-stale&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="43664109-756a-cca5-634f-08eacd168330">
+      <Execution id="6f947003-6239-47b7-85c8-3c7ce51ba489" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;complete&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="efdb5872-802e-33e2-c5b9-8d9b7ee57fe5">
+      <Execution id="db1a2223-9030-4cf3-914f-ebb63e6eb75d" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;invalid-evidence&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="a04fcc36-bd41-f462-decc-48387f680bab">
+      <Execution id="dda0e606-ec6c-4d55-92bb-752ff372631a" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;commit-ack&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="a20ee00f-4d71-8402-6a79-b087e0100509">
+      <Execution id="ac2e8b33-0cd8-469e-be40-d434e14c1524" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_fingerprint_binds_actor_source_etags_payload_and_photos" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="dd167b0d-d4e8-c0ad-ec3f-ce77f8cb1348">
+      <Execution id="2b214c64-69e8-4c40-946b-acdfff2f1bea" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_fingerprint_binds_actor_source_etags_payload_and_photos" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: &quot;wrong-owner&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="d6447594-2a0e-84a8-aaab-51fc632d674b">
+      <Execution id="1e7a833e-e21d-49df-b110-001c68259096" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_service_SQL_atomicity_authorization_replay_and_lifecycle" />
+    </UnitTest>
+    <UnitTest name="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_rejects_more_than_five_photos_before_persistence(action: &quot;complete&quot;)" storage="d:\sep490\projects\hotelops-dev1\tests\hotelops.dev1.regressiontests\bin\debug\net10.0\hotelops.dev1.regressiontests.dll" id="edfd64fe-68e5-a039-8c35-68c3e5cd5bfe">
+      <Execution id="13ef3b03-3fa3-4ed1-bce3-20e7d00c680d" />
+      <TestMethod codeBase="D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll" adapterTypeName="executor://xunit/VsTestRunner3/netcore/" className="HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests" name="Closure_rejects_more_than_five_photos_before_persistence" />
+    </UnitTest>
+  </TestDefinitions>
+  <TestEntries>
+    <TestEntry testId="43664109-756a-cca5-634f-08eacd168330" executionId="6f947003-6239-47b7-85c8-3c7ce51ba489" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="05a0bfbe-2ca3-2d96-9f09-d8f7c3e7e912" executionId="58d2dd91-4ad6-48c4-8fd6-a3d99919b273" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3beb6410-0403-5837-4450-31af36409b80" executionId="57a91531-3657-461a-b88d-6eb8dd8d3d7d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="c7cf36e1-f2f5-08d0-5aa2-5c9c20944d49" executionId="1f7f565c-6ad1-446b-b304-3d08917c9f08" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="7de1a774-4357-d5cd-8990-0343edb64c21" executionId="ddac8160-80c6-44ee-979a-b51463e3d1f5" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a04fcc36-bd41-f462-decc-48387f680bab" executionId="dda0e606-ec6c-4d55-92bb-752ff372631a" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8e4aeff3-8568-5d6b-e908-2d82dfcc13bc" executionId="8bfe1e65-2e57-4111-b3cf-379b6b50dd59" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="706d9072-97b9-15f1-6724-1f9f473dfb41" executionId="efb58d0b-fdbc-4292-9137-cef3988e8d74" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="86231be1-0d20-661a-d86d-71dd8d156585" executionId="ee5782e6-a06d-42df-b1b1-c99f103550a0" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="d6447594-2a0e-84a8-aaab-51fc632d674b" executionId="1e7a833e-e21d-49df-b110-001c68259096" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="dd167b0d-d4e8-c0ad-ec3f-ce77f8cb1348" executionId="2b214c64-69e8-4c40-946b-acdfff2f1bea" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="8ca8e1bc-b60f-405d-c8d4-34d75f9584ab" executionId="bc3f2f78-e390-46b9-93e3-732f7890007d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="edfd64fe-68e5-a039-8c35-68c3e5cd5bfe" executionId="13ef3b03-3fa3-4ed1-bce3-20e7d00c680d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="886f680e-d7c5-b6a9-63e1-0c11b644638f" executionId="f16e08ed-ef2a-4c7f-bdd0-062a8c129632" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="a20ee00f-4d71-8402-6a79-b087e0100509" executionId="ac2e8b33-0cd8-469e-be40-d434e14c1524" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="efdb5872-802e-33e2-c5b9-8d9b7ee57fe5" executionId="db1a2223-9030-4cf3-914f-ebb63e6eb75d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="1757602a-cb1f-fb82-bfef-2cc9f6460f18" executionId="58dfdac1-6379-4e9b-ac2f-dc02b90ecdfc" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="21fff985-6f7e-1ca9-52a0-6410fb826702" executionId="5161c3de-1462-47f3-b785-37c1fd241053" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="3d40552d-b666-5cff-f3af-5b7f82c57b3d" executionId="7ae9c9e6-e43c-44a0-90ee-8f48b0e56907" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="29d88024-f01a-a2db-ab15-ee47a31636fd" executionId="eb777be4-50ee-49ac-a9e3-c4e5174bb29b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="4d0aa350-cec5-1402-4646-a06d5dec4563" executionId="914725e5-b23b-4499-be18-ad349951a91d" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestEntry testId="06231647-90ba-a509-fbb7-c84b35c44358" executionId="d6ae5035-239d-4420-a4e3-31716278037b" testListId="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+  </TestEntries>
+  <TestLists>
+    <TestList name="Results Not in a List" id="8c84fa94-04c1-424b-9868-57a2d4851a1d" />
+    <TestList name="All Loaded Results" id="19431567-8539-422a-85d7-44ee4e166bda" />
+  </TestLists>
+  <ResultSummary outcome="Failed">
+    <Counters total="22" executed="22" passed="17" failed="5" error="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />
+    <Output>
+      <StdOut>[xUnit.net 00:00:00.01] xUnit.net VSTest Adapter v3.1.1+bf6400fd51 (64-bit .NET 10.0.13)&#xD;
+[xUnit.net 00:00:00.48]   Discovering: HotelOps.Dev1.RegressionTests&#xD;
+[xUnit.net 00:00:01.15]   Discovered:  HotelOps.Dev1.RegressionTests&#xD;
+[xUnit.net 00:00:01.85]   Starting:    HotelOps.Dev1.RegressionTests&#xD;
+[xUnit.net 00:01:20.44]       Assert.Equal() Failure: Values differ&#xD;
+[xUnit.net 00:01:20.45]       Expected: Success&#xD;
+[xUnit.net 00:01:20.45]       Actual:   Unavailable&#xD;
+[xUnit.net 00:01:20.47]       Stack Trace:&#xD;
+[xUnit.net 00:01:20.50]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(128,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:20.50]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(158,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:20.50]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:23.72]       Assert.Equal() Failure: Values differ&#xD;
+[xUnit.net 00:01:23.72]       Expected: Success&#xD;
+[xUnit.net 00:01:23.73]       Actual:   Unavailable&#xD;
+[xUnit.net 00:01:23.73]       Stack Trace:&#xD;
+[xUnit.net 00:01:23.74]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(155,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:23.74]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(158,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:23.74]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:35.50]       Assert.Equal() Failure: Values differ&#xD;
+[xUnit.net 00:01:35.51]       Expected: Unavailable&#xD;
+[xUnit.net 00:01:35.51]       Actual:   Stale&#xD;
+[xUnit.net 00:01:35.51]       Stack Trace:&#xD;
+[xUnit.net 00:01:35.51]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(128,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:35.51]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(158,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:35.52]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:36.87]       Assert.ThrowsAny() Failure: No exception was thrown&#xD;
+[xUnit.net 00:01:36.87]       Expected: typeof(System.Exception)&#xD;
+[xUnit.net 00:01:36.87]       Stack Trace:&#xD;
+[xUnit.net 00:01:36.87]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(116,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:36.87]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(158,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:36.87]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:40.92]       Assert.Equal() Failure: Values differ&#xD;
+[xUnit.net 00:01:40.92]       Expected: Success&#xD;
+[xUnit.net 00:01:40.92]       Actual:   Unavailable&#xD;
+[xUnit.net 00:01:40.92]       Stack Trace:&#xD;
+[xUnit.net 00:01:40.93]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(128,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:40.93]         D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\CleaningClosureWorkflowTests.cs(158,0): at HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(String scenario)&#xD;
+[xUnit.net 00:01:40.93]         --- End of stack trace from previous location ---&#xD;
+[xUnit.net 00:01:49.12]   Finished:    HotelOps.Dev1.RegressionTests&#xD;
+</StdOut>
+    </Output>
+    <RunInfos>
+      <RunInfo computerName="DESKTOP-JI8U50T" outcome="Error" timestamp="2026-11-07T12:33:56.8476654+07:00">
+        <Text>[xUnit.net 00:01:20.42]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: "commit-ack") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-JI8U50T" outcome="Error" timestamp="2026-11-07T12:34:00.1419427+07:00">
+        <Text>[xUnit.net 00:01:23.72]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: "cycle") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-JI8U50T" outcome="Error" timestamp="2026-11-07T12:34:11.9285238+07:00">
+        <Text>[xUnit.net 00:01:35.50]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: "linked") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-JI8U50T" outcome="Error" timestamp="2026-11-07T12:34:13.2919548+07:00">
+        <Text>[xUnit.net 00:01:36.87]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: "audit-fault") [FAIL]</Text>
+      </RunInfo>
+      <RunInfo computerName="DESKTOP-JI8U50T" outcome="Error" timestamp="2026-11-07T12:34:17.3469655+07:00">
+        <Text>[xUnit.net 00:01:40.92]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle(scenario: "complete") [FAIL]</Text>
+      </RunInfo>
+    </RunInfos>
+  </ResultSummary>
+</TestRun>
