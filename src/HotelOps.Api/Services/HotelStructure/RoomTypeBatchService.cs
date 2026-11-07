@@ -22,7 +22,8 @@ public sealed partial class RoomTypeCreationService
     private async Task<RoomTypeBatchResult> BatchAsync(SessionReference ticket, long sessionId, long? branchId,
         Func<long, CancellationToken, Task<RoomTypeBatchResult>> operation, CancellationToken ct, bool allowScopedList = false,
         IEnumerable<long>? additionalUsers = null, Func<CancellationToken, Task<bool>>? eligibility = null, bool requireRoomTypeSchema = true,
-        string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null, Func<CancellationToken, Task>? beforeCommit = null, bool preserveCommitErrors = false)
+        string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null, Func<CancellationToken, Task>? beforeCommit = null, bool preserveCommitErrors = false,
+        Func<CancellationToken, Task>? afterUserLocks = null)
     {
         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
@@ -35,6 +36,7 @@ public sealed partial class RoomTypeCreationService
         {
             await new UserEligibilityLock(db).LockAsync((additionalUsers ?? []).Append(actor.UserId), ct);
             if (await Gate() is { } initial) return new(initial);
+            if (afterUserLocks != null) await afterUserLocks(ct);
             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);
             if (branchId is { } branch)
             {

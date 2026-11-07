@@ -1,0 +1,7 @@
+-- PROVISIONAL_NOT_ACCEPTED. Exact disposable target only, no event catalog table exists in canonical SQL.
+IF DB_NAME()<>N'HotelOps_Canonical_20261106_f130001_Fresh' OR CONVERT(nvarchar(128),SERVERPROPERTY('MachineName'))<>HOST_NAME() OR ISNULL(CONVERT(nvarchar(128),SERVERPROPERTY('InstanceName')),N'')<>N'SQLEXPRESS' OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.FS013.Owner' AND CONVERT(nvarchar(128),value)=N'DEV1_FS013') THROW 51909,'FS013 isolated target required',1;
+IF OBJECT_ID('dbo.fs009_verify_assignment_guard','P') IS NULL THROW 51916,'Guard missing',1;
+IF (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_fs009_publication_immutable','TR_fs009_operation_immutable','TR_fs009_publication_source') AND is_disabled=0)<>3 THROW 51916,'Candidate triggers missing/disabled',1;
+IF NOT EXISTS(SELECT 1 FROM sys.indexes WHERE object_id=OBJECT_ID('dbo.notification_publications') AND name='UX_fs009_publication_operation' AND is_unique=1 AND is_disabled=0) THROW 51916,'Operation-publication uniqueness missing',1;
+IF (SELECT COUNT(*) FROM sys.foreign_keys WHERE parent_object_id IN(OBJECT_ID('dbo.notification_publications'),OBJECT_ID('dbo.notification_delivery_intents')) AND (is_disabled=1 OR is_not_trusted=1))<>0 THROW 51916,'Untrusted candidate FK',1;
+SELECT 'PROVISIONAL_NOT_ACCEPTED_VERIFIED' AS result;

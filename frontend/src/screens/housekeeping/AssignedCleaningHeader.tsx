@@ -68,6 +68,11 @@ export default function AssignedCleaningHeader({
           <p>
             {data.recordedStatus} · Chi nhánh {data.branchId}
           </p>
+          <Link
+            to={`/cleaning/tasks/${data.id}?branchId=${branch}&execution=1`}
+          >
+            Mở Start / Reassign
+          </Link>
           {data.recordedStatus === "IN_PROGRESS" && (
             <Link to={`/cleaning/tasks/${data.id}?branchId=${branch}`}>
               Mở tiến độ UC032

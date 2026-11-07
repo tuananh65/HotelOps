@@ -2,10 +2,19 @@ import AssignedCleaningHeader from "./AssignedCleaningHeader";
 import { useParams, useSearchParams } from "react-router-dom";
 import CleaningProgressPanel from "./CleaningProgressPanel";
 import CleaningMonitorDetail from "./CleaningMonitorDetail";
+import CleaningExecutionPanel from "./CleaningExecutionPanel";
 export default function CleaningTaskDetailScreen() {
   const { id } = useParams();
   const [params] = useSearchParams();
   const branch = params.get("branchId") || "";
+  if (params.get("execution") === "1" && branch)
+    return (
+      <CleaningExecutionPanel
+        key={`${branch}:${id}`}
+        branch={branch}
+        task={id || ""}
+      />
+    );
   if (params.has("assignmentId"))
     return (
       <AssignedCleaningHeader

@@ -28,6 +28,8 @@ public sealed class NotificationCandidateTests
     [InlineData("Production", "FS011Tester_PROVISIONAL")]
     [InlineData("Production", "FS012_PROVISIONAL")]
     [InlineData("Development", "FS012_PROVISIONAL")]
+    [InlineData("Production", "FS013_PROVISIONAL")]
+    [InlineData("Development", "FS013_PROVISIONAL")]
     [InlineData("Development", null)]
     public async Task Candidate_fails_closed_without_development_optin_and_never_contacts_sql(string env, string? flag)
     {

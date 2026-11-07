@@ -39,6 +39,11 @@ export default function CleaningMonitorDetail({
   return (
     <>
       <h1>Cleaning Task Detail</h1>
+      {kind === "cleaning" && (
+        <Link to={`/cleaning/tasks/${id}?branchId=${branch}&execution=1`}>
+          Start / Reassign
+        </Link>
+      )}
       <Link to={`/cleaning/tasks?branchId=${branch}`}>Danh sách công việc</Link>
       {loading && <p role="status">Đang tải chi tiết…</p>}
       {error && (
