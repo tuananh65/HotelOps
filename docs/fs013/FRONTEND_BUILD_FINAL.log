@@ -1,0 +1,32 @@
+npm.cmd : npm notice run hotelops@0.1.0 build
+At line:2 char:1
++ npm.cmd run build > ../docs/fs013/FRONTEND_BUILD_FINAL.log 2>&1; $res ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 build:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run tsc -b && vite build
+vite v6.4.3 building for production...
+transforming...
+node_modules/react-router/dist/development/index.mjs (11:0): Module level directives cause errors when bundled, "use
+client" in "node_modules/react-router/dist/development/index.mjs" was ignored.
+node_modules/react-router/dist/development/dom-export.mjs (1:0): Module level directives cause errors when bundled,
+"use client" in "node_modules/react-router/dist/development/dom-export.mjs" was ignored.
+✓ 1961 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                            0.41 kB │ gzip:   0.30 kB
+dist/assets/index-CPfaW_5z.css            88.64 kB │ gzip:  16.83 kB
+dist/assets/purify.es-DBIK8olT.js         29.40 kB │ gzip:  11.31 kB
+dist/assets/index.es-DEYdMxfm.js         159.76 kB │ gzip:  53.56 kB
+dist/assets/html2canvas.esm-QH1iLAAe.js  202.38 kB │ gzip:  48.04 kB
+dist/assets/jspdf.es.min-Cq5hk-Nv.js     390.77 kB │ gzip: 128.82 kB
+dist/assets/index-uBVFfRxB.js            678.68 kB │ gzip: 185.58 kB
+dist/assets/exceljs.min-BLvJMSHI.js      940.19 kB │ gzip: 271.33 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking:
+https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 30.65s

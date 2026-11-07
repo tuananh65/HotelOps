@@ -1,0 +1,9 @@
+{
+  "status": "PASS_REAL_BROWSER_API_SQL_DEFAULT_OFF",
+  "assignment": 503,
+  "reassignment": 503,
+  "capability": "UNAVAILABLE",
+  "reactSaveDisabled": true,
+  "mutation": false,
+  "sharedProductionActivation": false
+}

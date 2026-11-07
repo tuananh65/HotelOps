@@ -1,0 +1,29 @@
+npx.cmd : npm notice run hotelops@0.1.0 npx
+At line:6 char:1
++ npx.cmd playwright test --config playwright.fs013-ui.config.ts > ../d ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run playwright test --config playwright.fs013-ui.config.ts
+[WebServer] (node:26392) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] failed to load config from D:\SEP490\Projects\HotelOps-DEV1\frontend\vite.config.ts
+[WebServer] error when starting dev server:
+[WebServer] Error: EPERM: operation not permitted, open 'D:\SEP490\Projects\HotelOps-DEV1\frontend\node_modules\.vite-t
+emp\vite.config.ts.timestamp-1794019949143-8c3e4cc905f7e.mjs'
+[WebServer]     at async open (node:internal/fs/promises:1345:25)
+[WebServer]     at async Object.writeFile (node:internal/fs/promises:1965:14)
+[WebServer]     at async loadConfigFromBundledFile
+(file:///D:/SEP490/Projects/HotelOps-DEV1/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49588:5)
+[WebServer]     at async bundleAndLoadConfigFile
+(file:///D:/SEP490/Projects/HotelOps-DEV1/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49433:22)
+[WebServer]     at async loadConfigFromFile
+(file:///D:/SEP490/Projects/HotelOps-DEV1/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:49396:44)
+[WebServer]     at async resolveConfig
+(file:///D:/SEP490/Projects/HotelOps-DEV1/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:48891:24)
+[WebServer]     at async _createServer
+(file:///D:/SEP490/Projects/HotelOps-DEV1/frontend/node_modules/vite/dist/node/chunks/dep-Dm0c1Wj2.js:38478:66)
+[WebServer]     at async CAC.<anonymous>
+(file:///D:/SEP490/Projects/HotelOps-DEV1/frontend/node_modules/vite/dist/node/cli.js:753:20)
+Error: Process from config.webServer was not able to start. Exit code: 1

@@ -1,0 +1,11 @@
+{
+  "status": "FS013_VERIFICATION_FAILED",
+  "stage": "candidate-reassign-diagnostic",
+  "step": "ConnectAndValidate",
+  "invariant": null,
+  "errorType": "InvalidOperationException",
+  "hresult": -2146233079,
+  "sqlNumber": null,
+  "sqlErrors": null,
+  "details": "Provider/credential payload redacted; partial target retained; no reset/drop."
+}

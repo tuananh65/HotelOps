@@ -1,0 +1,16 @@
+
+Running 3 tests using 1 worker
+
+node : (node:27108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:266
++ ... RWARD_ONLY';node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:27108) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\fs013-lifecycle.spec.ts:182:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients (3.2m)
+  ok 2 tests\fs013-lifecycle.spec.ts:409:1 › FS013 Reassign mandatory staging failure rolls source interval and assignment back (39.2s)
+  ok 3 tests\fs013-lifecycle.spec.ts:464:1 › FS013 concurrent Start versus Reassign and invalid authority never leave mismatched owner/time (28.9s)
+
+  3 passed (4.6m)

@@ -1,0 +1,12 @@
+C:\Program Files\dotnet\sdk\10.0.402\Microsoft.Common.CurrentVersion.targets(4919,5): warning MSB3026: Could not copy "obj\Debug\net10.0\FS013.Verification.dll" to "bin\Debug\net10.0\FS013.Verification.dll". Beginning retry 1 in 1000ms. The process cannot access the file 'D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\bin\Debug\net10.0\FS013.Verification.dll' because it is being used by another process. The file is locked by: ".NET Host (8224)" [D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\FS013.Verification.csproj]
+C:\Program Files\dotnet\sdk\10.0.402\Microsoft.Common.CurrentVersion.targets(4919,5): warning MSB3026: Could not copy "obj\Debug\net10.0\FS013.Verification.dll" to "bin\Debug\net10.0\FS013.Verification.dll". Beginning retry 2 in 1000ms. The process cannot access the file 'D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\bin\Debug\net10.0\FS013.Verification.dll' because it is being used by another process.  [D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\FS013.Verification.csproj]
+  FS013.Verification -> D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\bin\Debug\net10.0\FS013.Verification.dll
+
+Build succeeded.
+
+C:\Program Files\dotnet\sdk\10.0.402\Microsoft.Common.CurrentVersion.targets(4919,5): warning MSB3026: Could not copy "obj\Debug\net10.0\FS013.Verification.dll" to "bin\Debug\net10.0\FS013.Verification.dll". Beginning retry 1 in 1000ms. The process cannot access the file 'D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\bin\Debug\net10.0\FS013.Verification.dll' because it is being used by another process. The file is locked by: ".NET Host (8224)" [D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\FS013.Verification.csproj]
+C:\Program Files\dotnet\sdk\10.0.402\Microsoft.Common.CurrentVersion.targets(4919,5): warning MSB3026: Could not copy "obj\Debug\net10.0\FS013.Verification.dll" to "bin\Debug\net10.0\FS013.Verification.dll". Beginning retry 2 in 1000ms. The process cannot access the file 'D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\bin\Debug\net10.0\FS013.Verification.dll' because it is being used by another process.  [D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\FS013.Verification.csproj]
+    2 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:02:10.84

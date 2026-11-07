@@ -1,0 +1,164 @@
+{
+  "status": "PASS_12_UNIQUE_CASES_AFTER_TARGETED_RETESTS",
+  "singleCleanRun": false,
+  "initial": {
+    "passed": 9,
+    "failed": 3
+  },
+  "retest1": {
+    "passed": 1,
+    "failed": 2
+  },
+  "retest2": {
+    "passed": 2,
+    "failed": 0
+  },
+  "totalUniqueCases": 12,
+  "passed": 12,
+  "failed": 0,
+  "allInitialFailuresPreserved": true,
+  "businessSourceChangedForRetests": false,
+  "snapshotHarnessChangedWithExactParity": true,
+  "cases": [
+    {
+      "name": "FS013 create persists exact task/cycle/event/audit, duplicate protection and real React navigation",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 competing Create yields one201/one409; audit failure rolls back all mandatory records",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 UC032 regression read and UC029 stale task version never commits",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 assigned source header independently enforces recipient OWN and branch, renders without monitor widening",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 Create rejects unauthorized writes, invalid contracts and missing CSRF without persistence",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 real React assignment commits mandatory records, durable replay and recipient inbox delivery",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 concurrent same-key and competing assignments, staging failure rollback, durable retry after restart",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 revoked recipient cannot receive source data; actor replay reauthorizes; persisted guard rejects missing records",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 blocked room Create preserves legacy state, keeps effective block and exposes actual item preview",
+      "attempts": [
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows",
+      "attempts": [
+        {
+          "status": "failed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        },
+        {
+          "status": "failed",
+          "evidence": "BASELINE_LIVE_RETEST1.json"
+        },
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_RETEST2.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag",
+      "attempts": [
+        {
+          "status": "failed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        },
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_RETEST1.json"
+        }
+      ],
+      "latestStatus": "passed"
+    },
+    {
+      "name": "FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation",
+      "attempts": [
+        {
+          "status": "failed",
+          "evidence": "BASELINE_LIVE_ATTEMPT1.json"
+        },
+        {
+          "status": "failed",
+          "evidence": "BASELINE_LIVE_RETEST1.json"
+        },
+        {
+          "status": "passed",
+          "evidence": "BASELINE_LIVE_RETEST2.json"
+        }
+      ],
+      "latestStatus": "passed"
+    }
+  ]
+}

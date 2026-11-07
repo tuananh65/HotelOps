@@ -1,0 +1,20 @@
+
+Running 7 tests using 1 worker
+
+node : (node:11764) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:3 char:36
++ ... _SERVER='1';node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:11764) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\cleaning-execution.spec.ts:23:1 › Reassign pages through server candidates without posting a command (5.6s)
+  ok 2 tests\cleaning-execution.spec.ts:94:3 › execution 401 never exposes a mutable form (4.4s)
+  ok 3 tests\cleaning-execution.spec.ts:94:3 › execution 403 never exposes a mutable form (2.3s)
+  ok 4 tests\cleaning-execution.spec.ts:94:3 › execution 503 never exposes a mutable form (2.3s)
+  ok 5 tests\cleaning-execution.spec.ts:105:1 › unresolved blocker does not offer Resume or Start (1.9s)
+  ok 6 tests\cleaning-execution.spec.ts:116:1 › Start uses current task ETag and fresh CSRF, then reloads source (2.6s)
+  ok 7 tests\cleaning-execution.spec.ts:163:1 › Reassign retry preserves exact command identity and disables form editing (3.2s)
+
+  7 passed (26.6s)

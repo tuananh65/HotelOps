@@ -1,0 +1,14 @@
+[
+    {
+        "mode":  "lifecycle-inspect",
+        "elapsedMs":  2371
+    },
+    {
+        "mode":  "candidate-inspect",
+        "elapsedMs":  3541
+    },
+    {
+        "mode":  "candidate-lifecycle-inspect",
+        "elapsedMs":  2573
+    }
+]

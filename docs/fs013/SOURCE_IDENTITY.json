@@ -1,0 +1,239 @@
+{
+  "sourceCheckpoint": "336500eb0bcf119fb1ed0be654fc52f2bb784ef6",
+  "baseline": "2662a1c7cff12edb30bf48515c25ba3a901016a4",
+  "sourceWorkingTreeClean": true,
+  "validationScope": "Application C# unchanged after 5213d81; frontend paging verified at b77f872; read-only helper optimization verified by exact parity and targeted API retests at current source.",
+  "normalizedSourceHashes": [
+    {
+      "path": "frontend/playwright.fs013-default-off.config.ts",
+      "sha256TextLF": "dc49af4157b51a3cf279505bb3201ce6b4076c3f6c113f29214cc0966fc91356"
+    },
+    {
+      "path": "frontend/playwright.fs013-lifecycle.config.ts",
+      "sha256TextLF": "d7925a15b2ad2d4b72228920f8969b0bd1513a72f9869bd4e2f4a835c7a5016d"
+    },
+    {
+      "path": "frontend/playwright.fs013-live.config.ts",
+      "sha256TextLF": "7c340f16e810f7a89a780005cc817c372fb6949445d6ae1f9d35b01874b9f27b"
+    },
+    {
+      "path": "frontend/playwright.fs013-restart.config.ts",
+      "sha256TextLF": "6324f54c41f378923e0c3bf17e56b3f65c62dc2f56c2791ce7a9e04c4ca04a37"
+    },
+    {
+      "path": "frontend/playwright.fs013-ui.config.ts",
+      "sha256TextLF": "989574ac00b1f2ef5c4d23e79c6307b192a2cdf7aa43cb6bf6098828ca588755"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningExecution.ts",
+      "sha256TextLF": "99ee9d6a51c6663c65160dcedcc4a631fd20602d39d72564714c022ce84a58cf"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/AssignedCleaningHeader.tsx",
+      "sha256TextLF": "daf6cc1163a822bcf9d168ee43f275f77bbf4a545c8bce751b9382325352b29b"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningExecutionPanel.tsx",
+      "sha256TextLF": "48d076d6ae413c9d7f74c6dc56252de3e4dbb02de502ef03ba5fea464df80213"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx",
+      "sha256TextLF": "997d3db8fe483782e980dae3e403c661c4eca2e10269a541c033045b3a3cfbd6"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+      "sha256TextLF": "4997d891ea1d5e7b50289faa1a77877aaa6e803413337ead44f84c0836975afc"
+    },
+    {
+      "path": "frontend/tests/cleaning-execution.spec.ts",
+      "sha256TextLF": "b4506787506434d82e9381548a915066ed4190c6cede6ac88588e51c854dc25a"
+    },
+    {
+      "path": "frontend/tests/cleaning-execution.test.mjs",
+      "sha256TextLF": "6d99ba2cd390f2340b59cd06c58305b619dc56bb97964fe77a563e9a79f65b48"
+    },
+    {
+      "path": "frontend/tests/fs013-default-off.spec.ts",
+      "sha256TextLF": "c419b64e8ab39826645207bab31cbb41b9a4fb3305ab51d53a80b2c4324cd2ec"
+    },
+    {
+      "path": "frontend/tests/fs013-lifecycle.spec.ts",
+      "sha256TextLF": "987c1c20db93701223556f1632c8cdb031466de2b5daabff0e78bf8f91ab5d5c"
+    },
+    {
+      "path": "frontend/tests/fs013-live.spec.ts",
+      "sha256TextLF": "059fed045d38247df2571e9f921c027514f0f99339b7edeeb4251e099a3e6f52"
+    },
+    {
+      "path": "frontend/tests/fs013-restart.spec.ts",
+      "sha256TextLF": "20da2e37d5983b2e4c8f5dfa2aafdc1a5ff1f801069b2049f4ba629371390983"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/01_Install.sql",
+      "sha256TextLF": "a324fa32cd7fd9f95249196e2a2cb389e9b020a4792e4c3250ea963c580f24a5"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/02_NotificationProposal.sql",
+      "sha256TextLF": "942102a3203ac8ed316a68318de720b2bc9ff11ab080adb7ea248fa024ec32dd"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/03_VerifyNotificationProposal.sql",
+      "sha256TextLF": "651a22930c4d68921f21ef572689c49ff5ff9b06818004374f153a9df31f5bb0"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/04_RecoveryNotificationProposal.sql",
+      "sha256TextLF": "731d5312bf715ded044a7f59b9f24f661c80aa04d49a8d1c6b75fca5a933e276"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/05_VerifyLifecycle.sql",
+      "sha256TextLF": "96461737574bb32f7d4519e951e779aae08bbafaae2e4458dee60d3b04ac718e"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/06_RecoveryLifecycle.sql",
+      "sha256TextLF": "f91b5123cb63aefa7cb29849339e361803a278531507408fddfd3226703e063b"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/07_ExecutableCandidate.sql",
+      "sha256TextLF": "e922761e24669d79c4ed3b0bbb0ba4e896ce6b998d09b6118871c887105b037c"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/08_VerifyCandidate.sql",
+      "sha256TextLF": "2da50fd4042f45b2df303b79b9161d9e92f942c806cba86a6d26a25940280f0a"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/09_RecoveryCandidate.sql",
+      "sha256TextLF": "71cabb459fbe72468087b08d9e774431f79e0ca31f88adf6dab0ca3ef0299633"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+      "sha256TextLF": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/11_CleaningExecution.sql",
+      "sha256TextLF": "2457c1b2bde3885e4a977eff1ed45d016022f57b1e7e434995d4d015e056f5cf"
+    },
+    {
+      "path": "scripts/verification/FS013/.gitignore",
+      "sha256TextLF": "48fca7bf2eaca6dab68265e25b38c38c27eaf3cbde15c4f627b6f916515bf9a7"
+    },
+    {
+      "path": "scripts/verification/FS013/Build-NodeInventory.cjs",
+      "sha256TextLF": "5e79a9b35b469f107d3dd03054dbb3325274239d605c5030bf76630d76acc14f"
+    },
+    {
+      "path": "scripts/verification/FS013/Build-UnitInventory.cjs",
+      "sha256TextLF": "d0a4352acebeee2acafe1d49ac5db0a1a317bba4593ad52e278326c5242d2e72"
+    },
+    {
+      "path": "scripts/verification/FS013/FS013.Verification.csproj",
+      "sha256TextLF": "896d5a086b3877a98768d4c4e7779e7bf5693b64cba3b5cbd4655aa65eaa86b2"
+    },
+    {
+      "path": "scripts/verification/FS013/Install-Candidate.ps1",
+      "sha256TextLF": "cc8be380a262b147cc644ac6dd53674a26a0f24afb2263b95712512d9d353bd7"
+    },
+    {
+      "path": "scripts/verification/FS013/Install-Execution.ps1",
+      "sha256TextLF": "191ab3f0d160de9e5877281213dbb43407f4d22eddfcef5cee8efe4cc97fe389"
+    },
+    {
+      "path": "scripts/verification/FS013/Install-Lifecycle.ps1",
+      "sha256TextLF": "4f1d2510e1aac56bc6681297cfc9a786d6209bca2d715301270c7d03eeff4724"
+    },
+    {
+      "path": "scripts/verification/FS013/New-ApprovedTrial.ps1",
+      "sha256TextLF": "b3aa98093a7b3d30cc8b839bedd265199cdca69c56e12ddcf4324648d012dd15"
+    },
+    {
+      "path": "scripts/verification/FS013/Program.cs",
+      "sha256TextLF": "51ac4e5fc31b3e7a3ed267d0a6db787cb6c7978f01c170efc225c14849a6170a"
+    },
+    {
+      "path": "scripts/verification/FS013/ReadOnlySnapshots.cs",
+      "sha256TextLF": "2c1bc469cc430e485e5595509891f0b8921c30fe896e45aaecb95257d2f206fd"
+    },
+    {
+      "path": "scripts/verification/FS013/ReassignmentCommitProof.cs",
+      "sha256TextLF": "0f2f2fc0684231ccd70d58cdd31e1b6805f9b7106fa33268aa0c16fdd42b1646"
+    },
+    {
+      "path": "scripts/verification/FS013/Refresh-ExecutionModules.ps1",
+      "sha256TextLF": "e6706df6c47d4f289e7e45d41cd151643f33201c2fc2612630e4624be83fe07c"
+    },
+    {
+      "path": "scripts/verification/FS013/Run-LiveSuite.ps1",
+      "sha256TextLF": "c78a52dc4e3ab60cec9f89c5362609865f4612920b94a8355aea5f85e6a79cdd"
+    },
+    {
+      "path": "scripts/verification/FS013/Start-LiveEnvironment.ps1",
+      "sha256TextLF": "6d4ece18a01c1ae05af989646ef37434d7d33f940d908836dd6611ae37bf5fea"
+    },
+    {
+      "path": "scripts/verification/FS013/Stop-LiveEnvironment.ps1",
+      "sha256TextLF": "ec7c591776d1729c74f43fafbf145d9c9ec2ff4c37fd5167c82fb9610a9c94ec"
+    },
+    {
+      "path": "scripts/verification/FS013/Test-NotificationProposal.ps1",
+      "sha256TextLF": "2fd2d00d2b58b09d19ffa4d11ccd55ac702e5ee4cc48f7ac826ca864f1c408b2"
+    },
+    {
+      "path": "scripts/verification/FS013/Test-ReassignmentSql.ps1",
+      "sha256TextLF": "cede6638f69f8338e65ded13c0aa49df69b5b0a8dc55074bbab45c0519666732"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/CleaningExecutionController.cs",
+      "sha256TextLF": "562ad57132bb56acdc4da39095eb3ed87ba4eeb93c46d99fc7ceaf6eff3a3336"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningLifecycleDtos.cs",
+      "sha256TextLF": "a7aa2d63fb1b4fd69be5f9df64b704a6a6ea5cab7ef53fe1588e3a18ffb52545"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+      "sha256TextLF": "15c7675ac7513cec31e60177436f1ce5b9e3ca6a9fe5cdfce7fbfbf5476578e2"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningLifecycleRules.cs",
+      "sha256TextLF": "3ba009765e1ee7def83385db08f3bb98409cfc1c1d1a1e86b3a29b61e535fd46"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningLifecycleService.cs",
+      "sha256TextLF": "90a1857a6c1e8d84e4a17b48f6ebf1ab377cee493d60f61c27b8d4994517138d"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningReassignmentService.cs",
+      "sha256TextLF": "185b8ff7d4fe17525157fe7b166d7a538a7b7c0684caef1bc843441f83e4d099"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningTaskCreationService.cs",
+      "sha256TextLF": "0beccd276cc49609c0fbeffbf39070748e9098a5f54077003775c6231dd83de1"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs",
+      "sha256TextLF": "c3af3863a7fed32ae513c8b84d19187c9b2178f2f404f17e134a34327e4146d9"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningReassignmentDelivery.cs",
+      "sha256TextLF": "30d4344df79901f73de2c0feb96a37919850c2dd9890fc1367c0d7545d149e71"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningExecutionTests.cs",
+      "sha256TextLF": "9bd966ff761427f8a01f1b3d72c2a1df7829b25eff102501799026018b531a35"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/NotificationCandidateTests.cs",
+      "sha256TextLF": "7a441cd5fc51cef9e66ef6c2b941a6f39e8044d961207036c5c776ab7960c6e3"
+    }
+  ],
+  "builtAssemblies": [
+    {
+      "path": "src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll",
+      "sha256": "c5d840702eea122324be00f5ae2976c9caf6420bc5c9761428e02cb2fb5bca24"
+    },
+    {
+      "path": "scripts/verification/FS013/bin/Debug/net10.0/FS013.Verification.dll",
+      "sha256": "9478b06d88e14f6041fdc061518fbb58015b56d9868307b3726251d708deda22"
+    }
+  ],
+  "testerAcceptance": false
+}

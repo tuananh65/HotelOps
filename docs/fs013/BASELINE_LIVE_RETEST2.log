@@ -1,0 +1,15 @@
+
+Running 2 tests using 1 worker
+
+node : (node:29248) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:213
++ ... .ToString();node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:29248) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows (1.2m)
+  ok 2 tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation (6.1s)
+
+  2 passed (1.3m)

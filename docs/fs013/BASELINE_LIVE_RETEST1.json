@@ -1,0 +1,45 @@
+{
+  "mode": "REAL_AUTH_HTTPS_API_SQL_FS013_ONLY",
+  "runId": "1be61f4e-44e8-4ea5-bd17-aaf527bdd8dc",
+  "checks": [
+    {
+      "name": "test",
+      "data": "failed"
+    },
+    {
+      "name": "uc032-real-write-regression",
+      "data": {
+        "read": 200,
+        "put": 200,
+        "percent": 100,
+        "state": "IN_PROGRESS",
+        "stale": 412,
+        "foreignOwner": 403,
+        "sqlPersistence": true,
+        "auditIdentity": true
+      }
+    },
+    {
+      "name": "test",
+      "data": "passed"
+    },
+    {
+      "name": "test",
+      "data": "failed"
+    }
+  ],
+  "tests": [
+    {
+      "name": "FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows",
+      "status": "failed"
+    },
+    {
+      "name": "FS013 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag",
+      "status": "passed"
+    },
+    {
+      "name": "FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation",
+      "status": "failed"
+    }
+  ]
+}

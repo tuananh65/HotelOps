@@ -1,0 +1,20 @@
+{
+  "status": "PASS",
+  "cases": [
+    {
+      "mode": "LIFECYCLE",
+      "exactParity": true
+    },
+    {
+      "mode": "NOTIFICATION",
+      "exactParity": true
+    },
+    {
+      "mode": "EXECUTION",
+      "exactParity": true
+    }
+  ],
+  "realSql": true,
+  "businessWrites": false,
+  "authBypassInApi": false
+}

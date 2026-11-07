@@ -1,0 +1,23 @@
+npx.cmd : npm notice run hotelops@0.1.0 npx
+At line:2 char:1
++ npx.cmd playwright test --config playwright.fs013-ui.config.ts > ../d ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run playwright test --config playwright.fs013-ui.config.ts
+[WebServer] (node:33412) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 1 worker
+
+(node:30332) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\cleaning-execution.spec.ts:24:3 › execution 401 never exposes a mutable form (21.2s)
+  ok 2 tests\cleaning-execution.spec.ts:24:3 › execution 403 never exposes a mutable form (6.4s)
+  ok 3 tests\cleaning-execution.spec.ts:24:3 › execution 503 never exposes a mutable form (6.5s)
+  ok 4 tests\cleaning-execution.spec.ts:35:1 › unresolved blocker does not offer Resume or Start (6.2s)
+  ok 5 tests\cleaning-execution.spec.ts:46:1 › Start uses current task ETag and fresh CSRF, then reloads source (5.7s)
+  ok 6 tests\cleaning-execution.spec.ts:93:1 › Reassign retry preserves exact command identity and disables form editing (4.8s)
+
+  6 passed (1.1m)

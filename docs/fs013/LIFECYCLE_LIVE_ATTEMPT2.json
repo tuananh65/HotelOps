@@ -1,0 +1,13 @@
+{
+  "level": "REAL_AUTH_HTTPS_API_SQL",
+  "runId": "16581cf6-7f05-48c0-a330-d605163b95d3",
+  "checks": [
+    {
+      "name": "FS013 concurrent Start versus Reassign and invalid authority never leave mismatched owner/time",
+      "data": {
+        "status": "failed"
+      }
+    }
+  ],
+  "testerAcceptance": false
+}

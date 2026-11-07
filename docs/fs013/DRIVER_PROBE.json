@@ -1,0 +1,19 @@
+{
+  "status": "FS013_VERIFICATION_FAILED",
+  "stage": "candidate-lifecycle-inspect",
+  "step": "ConnectAndValidate",
+  "invariant": null,
+  "errorType": "SqlException",
+  "hresult": -2146232060,
+  "sqlNumber": -2,
+  "sqlErrors": [
+    {
+      "number": -2,
+      "class": 11,
+      "state": 0,
+      "procedure": "",
+      "lineNumber": 0
+    }
+  ],
+  "details": "Provider/credential payload redacted; partial target retained; no reset/drop."
+}

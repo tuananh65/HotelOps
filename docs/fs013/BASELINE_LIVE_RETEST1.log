@@ -1,0 +1,55 @@
+
+Running 3 tests using 1 worker
+
+node : (node:30492) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:213
++ ... .ToString();node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:30492) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows (2.3m)
+(node:28388) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 2 tests\fs013-live.spec.ts:950:1 › FS013 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag (1.5m)
+  x  3 tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation (2.3m)
+
+
+  1) tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows
+
+    Error: FS013_HELPER_FAILED mode=lifecycle-inspect exit=null signal=SIGTERM code=ETIMEDOUT; private output redacted
+
+      36 |   );
+      37 |   if (r.status !== 0)
+    > 38 |     throw Error(
+         |           ^
+      39 |       "FS013_HELPER_FAILED mode=" +
+      40 |         args[0] +
+      41 |         " exit=" +
+        at call (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:38:11)
+        at createTask (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:469:17)
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:917:21
+
+    Error Context: test-results\fs013-live\fs013-live-FS013-persisted-a4773-ent-never-create-inbox-rows\error-context.md
+
+  2) tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation
+
+    Error: FS013_HELPER_FAILED mode=lifecycle-inspect exit=null signal=SIGTERM code=ETIMEDOUT; private output redacted
+
+      36 |   );
+      37 |   if (r.status !== 0)
+    > 38 |     throw Error(
+         |           ^
+      39 |       "FS013_HELPER_FAILED mode=" +
+      40 |         args[0] +
+      41 |         " exit=" +
+        at call (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:38:11)
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:1091:5
+
+    Error Context: test-results\fs013-live\fs013-live-FS013-assignmen-17d63-nvalid-key-without-mutation\error-context.md
+
+  2 failed
+    tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows
+    tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation
+  1 passed (6.7m)

@@ -1,0 +1,12 @@
+[
+    {
+        "path":  "docs/test-handover/FE-04/FE04_TESTER_HANDOVER.zip",
+        "sha256":  "8e661796fe83b7b15c16d84f79547ce72e4cdd6272f7996ce2fc659003141974",
+        "unchanged":  true
+    },
+    {
+        "path":  "docs/test-handover/FE-04/FE04_RETEST_FS012.zip",
+        "sha256":  "5e63dc22d590f194b8075aca0f5eaedb8d6bfbe5be11842199db50d898323f46",
+        "unchanged":  true
+    }
+]

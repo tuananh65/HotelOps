@@ -1,0 +1,113 @@
+{
+  "level": "REAL_AUTH_HTTPS_API_SQL",
+  "runId": "51a5c60b-170e-4a58-9a7d-4d3178edfc3d",
+  "checks": [
+    {
+      "name": "suite_started",
+      "data": {
+        "forwardRecovery": true
+      }
+    },
+    {
+      "name": "forward_reassignment_releases_prior_interval",
+      "data": {
+        "taskId": 21,
+        "intervalId": 10,
+        "status": 200,
+        "reset": false
+      }
+    },
+    {
+      "name": "workday_fixture_forward_end",
+      "data": {
+        "status": "FIXTURE_WORKDAYS_ENDED_FORWARD",
+        "reset": false,
+        "actualWorkdayHttpVerified": false
+      }
+    },
+    {
+      "name": "no_working_day_is_atomic_409",
+      "data": {
+        "noMutation": true,
+        "status": 409
+      }
+    },
+    {
+      "name": "start_preserves_effective_room_block",
+      "data": {
+        "hasEffectiveBlock": true,
+        "expectedReleaseDoesNotRelease": true
+      }
+    },
+    {
+      "name": "second_open_interval_rejected",
+      "data": {
+        "status": 409,
+        "noMutation": true
+      }
+    },
+    {
+      "name": "previous_recipient_minimal_receipt",
+      "data": {
+        "actionUrl": null,
+        "sourceId": null,
+        "oldOwnerRead": 403
+      }
+    },
+    {
+      "name": "start_reassign_replay_two_recipients",
+      "data": {
+        "firstStart": 200,
+        "wrongOwner": 403,
+        "stale": 412,
+        "reassign": 200,
+        "replay": 200,
+        "keyConflict": 409,
+        "previousIntervalClosed": true,
+        "actualStartPreserved": true,
+        "notificationRetry": true,
+        "deliveredRecipients": 2
+      }
+    },
+    {
+      "name": "FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients",
+      "data": {
+        "status": "passed"
+      }
+    },
+    {
+      "name": "reassign_staging_failure_rolls_interval_and_source_back",
+      "data": {
+        "status": 503,
+        "exactSnapshotUnchanged": true
+      }
+    },
+    {
+      "name": "FS013 Reassign mandatory staging failure rolls source interval and assignment back",
+      "data": {
+        "status": "passed"
+      }
+    },
+    {
+      "name": "concurrent_start_reassign",
+      "data": {
+        "statuses": [
+          200,
+          412
+        ],
+        "activeAssignments": 1,
+        "openIntervals": 1,
+        "invalidReason": 400,
+        "serverField": 400,
+        "unauthorizedReassign": 403
+      }
+    },
+    {
+      "name": "FS013 concurrent Start versus Reassign and invalid authority never leave mismatched owner/time",
+      "data": {
+        "status": "passed"
+      }
+    }
+  ],
+  "testerAcceptance": false
+}

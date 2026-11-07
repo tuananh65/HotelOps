@@ -1,0 +1,9 @@
+D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\HotelOps.Dev1.RegressionTests.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+  HotelOps.Api -> D:\SEP490\Projects\HotelOps-DEV1\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Dev1.RegressionTests -> D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll
+Test run for D:\SEP490\Projects\HotelOps-DEV1\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+WARNING: Overwriting results file: D:\SEP490\Projects\HotelOps-DEV1\docs\fs013\evidence\fs013.trx
+Results File: D:\SEP490\Projects\HotelOps-DEV1\docs\fs013\evidence\fs013.trx
+
+Passed!  - Failed:     0, Passed:   169, Skipped:     0, Total:   169, Duration: 10 s - HotelOps.Dev1.RegressionTests.dll (net10.0)

@@ -1,0 +1,83 @@
+
+Running 12 tests using 1 worker
+
+node : (node:684) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:213
++ ... .ToString();node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:684) Warn... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\fs013-live.spec.ts:101:1 › FS013 create persists exact task/cycle/event/audit, duplicate protection and real React navigation (44.1s)
+  ok  2 tests\fs013-live.spec.ts:239:1 › FS013 competing Create yields one201/one409; audit failure rolls back all mandatory records (59.2s)
+  ok  3 tests\fs013-live.spec.ts:299:1 › FS013 UC032 regression read and UC029 stale task version never commits (50.6s)
+  ok  4 tests\fs013-live.spec.ts:345:1 › FS013 assigned source header independently enforces recipient OWN and branch, renders without monitor widening (55.6s)
+  ok  5 tests\fs013-live.spec.ts:398:1 › FS013 Create rejects unauthorized writes, invalid contracts and missing CSRF without persistence (1.4m)
+  ok  6 tests\fs013-live.spec.ts:530:1 › FS013 real React assignment commits mandatory records, durable replay and recipient inbox delivery (1.2m)
+  ok  7 tests\fs013-live.spec.ts:676:1 › FS013 concurrent same-key and competing assignments, staging failure rollback, durable retry after restart (2.2m)
+  ok  8 tests\fs013-live.spec.ts:773:1 › FS013 revoked recipient cannot receive source data; actor replay reauthorizes; persisted guard rejects missing records (1.1m)
+  ok  9 tests\fs013-live.spec.ts:831:1 › FS013 blocked room Create preserves legacy state, keeps effective block and exposes actual item preview (20.7s)
+  x  10 tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows (4.4m)
+(node:21924) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  11 tests\fs013-live.spec.ts:950:1 › FS013 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag (2.0m)
+(node:28856) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  12 tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation (2.6m)
+
+
+  1) tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows
+
+    Error: FS013_HELPER_FAILED mode=candidate-inspect exit=null signal=SIGTERM code=ETIMEDOUT; private output redacted
+
+      36 |   );
+      37 |   if (r.status !== 0)
+    > 38 |     throw Error(
+         |           ^
+      39 |       "FS013_HELPER_FAILED mode=" +
+      40 |         args[0] +
+      41 |         " exit=" +
+        at call (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:38:11)
+        at inspectNotification (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:494:3)
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:933:19
+
+    Error Context: test-results\fs013-live\fs013-live-FS013-persisted-a4773-ent-never-create-inbox-rows\error-context.md
+
+  2) tests\fs013-live.spec.ts:950:1 › FS013 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag
+
+    Error: FS013_HELPER_FAILED mode=persistence exit=null signal=SIGTERM code=ETIMEDOUT; private output redacted
+
+      36 |   );
+      37 |   if (r.status !== 0)
+    > 38 |     throw Error(
+         |           ^
+      39 |       "FS013_HELPER_FAILED mode=" +
+      40 |         args[0] +
+      41 |         " exit=" +
+        at call (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:38:11)
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:986:17
+
+    Error Context: test-results\fs013-live\fs013-live-FS013-real-UC03-29e35-ces-ownership-and-stale-tag\error-context.md
+
+  3) tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation
+
+    Error: FS013_HELPER_FAILED mode=lifecycle-inspect exit=null signal=SIGTERM code=ETIMEDOUT; private output redacted
+
+      36 |   );
+      37 |   if (r.status !== 0)
+    > 38 |     throw Error(
+         |           ^
+      39 |       "FS013_HELPER_FAILED mode=" +
+      40 |         args[0] +
+      41 |         " exit=" +
+        at call (D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:38:11)
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-live.spec.ts:1091:5
+
+    Error Context: test-results\fs013-live\fs013-live-FS013-assignmen-17d63-nvalid-key-without-mutation\error-context.md
+
+  3 failed
+    tests\fs013-live.spec.ts:903:1 › FS013 persisted recipient inactivity, lost branch access and superseded assignment never create inbox rows
+    tests\fs013-live.spec.ts:950:1 › FS013 real UC032 PUT retains IN_PROGRESS at 100 percent and enforces ownership and stale tag
+    tests\fs013-live.spec.ts:1016:1 › FS013 assignment authority rejects anonymous, forbidden, foreign branch and invalid key without mutation
+  9 passed (19.6m)

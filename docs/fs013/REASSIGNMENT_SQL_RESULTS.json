@@ -1,0 +1,59 @@
+{
+    "status":  "PASS_SQL_MODULE_COMPONENT",
+    "database":  "HotelOps_Canonical_20261106_f130001_Fresh",
+    "cases":  [
+                  {
+                      "case":  "assigned-two-recipients",
+                      "status":  "PASS",
+                      "expectedSqlError":  null,
+                      "actualSqlError":  null,
+                      "level":  "SQL_MODULE_COMPONENT_NOT_HTTP_AUTH",
+                      "transaction":  "ROLLBACK"
+                  },
+                  {
+                      "case":  "in-progress-close-time",
+                      "status":  "PASS",
+                      "expectedSqlError":  null,
+                      "actualSqlError":  null,
+                      "level":  "SQL_MODULE_COMPONENT_NOT_HTTP_AUTH",
+                      "transaction":  "ROLLBACK"
+                  },
+                  {
+                      "case":  "mandatory-intent-rollback",
+                      "status":  "PASS",
+                      "expectedSqlError":  547,
+                      "actualSqlError":  547,
+                      "level":  "SQL_MODULE_COMPONENT_NOT_HTTP_AUTH",
+                      "transaction":  "ROLLBACK"
+                  },
+                  {
+                      "case":  "open-interval-rejected",
+                      "status":  "PASS",
+                      "expectedSqlError":  51963,
+                      "actualSqlError":  51963,
+                      "level":  "SQL_MODULE_COMPONENT_NOT_HTTP_AUTH",
+                      "transaction":  "ROLLBACK"
+                  },
+                  {
+                      "case":  "missing-recipient-rejected",
+                      "status":  "PASS",
+                      "expectedSqlError":  51962,
+                      "actualSqlError":  51962,
+                      "level":  "SQL_MODULE_COMPONENT_NOT_HTTP_AUTH",
+                      "transaction":  "ROLLBACK"
+                  },
+                  {
+                      "case":  "restricted-direct-DML",
+                      "status":  "PASS",
+                      "expectedSqlError":  229,
+                      "actualSqlError":  229,
+                      "level":  "SQL_MODULE_COMPONENT_NOT_HTTP_AUTH",
+                      "transaction":  "ROLLBACK"
+                  }
+              ],
+    "retainedBusinessRows":  false,
+    "identityCountersMayAdvance":  true,
+    "httpAuthorizationVerified":  false,
+    "dotnetTransactionParticipantVerified":  false,
+    "acceptedNotification":  false
+}

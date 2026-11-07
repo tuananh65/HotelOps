@@ -1,0 +1,46 @@
+
+Running 3 tests using 1 worker
+
+node : (node:29692) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:266
++ ... RWARD_ONLY';node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:29692) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\fs013-lifecycle.spec.ts:182:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients (2.3m)
+(node:26564) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 2 tests\fs013-lifecycle.spec.ts:403:1 › FS013 Reassign mandatory staging failure rolls source interval and assignment back (25.7s)
+  ok 3 tests\fs013-lifecycle.spec.ts:458:1 › FS013 concurrent Start versus Reassign and invalid authority never leave mismatched owner/time (16.7s)
+
+
+  1) tests\fs013-lifecycle.spec.ts:182:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients
+
+    Error: expect(locator).toBeEnabled() failed
+
+    Locator: getByRole('button', { name: 'Bắt đầu dọn phòng', exact: true })
+    Expected: enabled
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toBeEnabled" getByRole('button', { name: 'Bắt đầu dọn phòng', exact: true }) with timeout 5000ms
+      - waiting for getByRole('button', { name: 'Bắt đầu dọn phòng', exact: true })
+
+
+      219 |     await expect(
+      220 |       page.getByRole("button", { name: "Bắt đầu dọn phòng", exact: true }),
+    > 221 |     ).toBeEnabled();
+          |       ^
+      222 |     const startedResponse = page.waitForResponse(
+      223 |       (r) =>
+      224 |         r.url().endsWith(url(source.id, "start")) &&
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-lifecycle.spec.ts:221:7
+
+    Error Context: test-results\fs013-lifecycle\fs013-lifecycle-FS013-Star-0eee2-nd-two-mandatory-recipients\error-context.md
+
+  1 failed
+    tests\fs013-lifecycle.spec.ts:182:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients
+  2 passed (3.9m)

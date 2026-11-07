@@ -1,0 +1,64 @@
+npx.cmd : npm notice run hotelops@0.1.0 npx
+At line:3 char:1
++ npx.cmd playwright test --config playwright.dev1.config.ts --output t ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run playwright test --config playwright.dev1.config.ts --output test-results/fs013-interception
+[WebServer] (node:26708) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 47 tests using 1 worker
+
+(node:22384) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\cleaning-assignment.spec.ts:36:1 › create without authorized room configuration never posts (6.9s)
+  ok  2 tests\cleaning-assignment.spec.ts:50:1 › assignment previews exact server candidate draft but never sends a mutation (3.3s)
+  ok  3 tests\cleaning-assignment.spec.ts:85:3 › assignment 400 has no mock fallback (2.5s)
+  ok  4 tests\cleaning-assignment.spec.ts:85:3 › assignment 401 has no mock fallback (2.2s)
+  ok  5 tests\cleaning-assignment.spec.ts:85:3 › assignment 403 has no mock fallback (2.1s)
+  ok  6 tests\cleaning-assignment.spec.ts:85:3 › assignment 404 has no mock fallback (1.9s)
+  ok  7 tests\cleaning-assignment.spec.ts:85:3 › assignment 409 has no mock fallback (1.9s)
+  ok  8 tests\cleaning-assignment.spec.ts:85:3 › assignment 503 has no mock fallback (2.2s)
+  ok  9 tests\cleaning-assignment.spec.ts:96:1 › already assigned task cannot prepare a reassignment through initial assign (2.2s)
+  ok 10 tests\cleaning-assignment.spec.ts:112:1 › assignment paging and search reload server results (2.6s)
+  ok 11 tests\cleaning-assignment.spec.ts:146:1 › assignment cancels stale branch results without retaining staff (3.8s)
+  ok 12 tests\cleaning-assignment.spec.ts:176:1 › candidate Save uses exact task ETag and displays pending delivery (3.3s)
+  ok 13 tests\cleaning-assignment.spec.ts:225:1 › candidate explicit retry preserves original command and key with fresh CSRF (2.8s)
+  ok 14 tests\cleaning-assignment.spec.ts:267:1 › assignment result from a previous branch cannot replace the current task state (2.8s)
+  ok 15 tests\cleaning-create.spec.ts:10:1 › Create loads authorized configuration and posts once with CSRF then opens live detail (2.5s)
+  ok 16 tests\cleaning-create.spec.ts:50:1 › Create conflict keeps form and blocks blind retry (2.4s)
+  ok 17 tests\cleaning-create.spec.ts:77:3 › Create options 401 maps server error without enabling post (2.3s)
+  ok 18 tests\cleaning-create.spec.ts:77:3 › Create options 403 maps server error without enabling post (2.2s)
+  ok 19 tests\cleaning-create.spec.ts:77:3 › Create options 503 maps server error without enabling post (2.9s)
+  ok 20 tests\cleaning-monitor.spec.ts:31:1 › monitor list filters, paginates and opens real detail mode (5.0s)
+  ok 21 tests\cleaning-monitor.spec.ts:88:3 › monitor 401 never falls back (3.9s)
+  ok 22 tests\cleaning-monitor.spec.ts:88:3 › monitor 403 never falls back (3.6s)
+  ok 23 tests\cleaning-monitor.spec.ts:88:3 › monitor 404 never falls back (3.6s)
+  ok 24 tests\cleaning-monitor.spec.ts:88:3 › monitor 503 never falls back (3.8s)
+  ok 25 tests\cleaning-monitor.spec.ts:96:1 › monitor empty response (3.9s)
+  ok 26 tests\cleaning-monitor.spec.ts:108:1 › monitor ignores a stale branch response after filter cancellation (4.8s)
+  ok 27 tests\cleaning-monitor.spec.ts:142:3 › detail 401 has no prototype fallback (3.9s)
+  ok 28 tests\cleaning-monitor.spec.ts:142:3 › detail 403 has no prototype fallback (3.2s)
+  ok 29 tests\cleaning-monitor.spec.ts:142:3 › detail 404 has no prototype fallback (3.1s)
+  ok 30 tests\cleaning-monitor.spec.ts:142:3 › detail 503 has no prototype fallback (2.9s)
+  ok 31 tests\cleaning-progress.spec.ts:24:1 › UC032 UI reads, saves with CSRF/ETag, refreshes; 100 remains IN_PROGRESS (3.1s)
+  ok 32 tests\cleaning-progress.spec.ts:74:1 › UC032 412 preserves draft and blocks retries until explicit reload (3.2s)
+  ok 33 tests\cleaning-progress.spec.ts:108:3 › UC032 PUT 400 has error state, no automatic retry (3.4s)
+  ok 34 tests\cleaning-progress.spec.ts:108:3 › UC032 PUT 403 has error state, no automatic retry (3.3s)
+  ok 35 tests\cleaning-progress.spec.ts:108:3 › UC032 PUT 409 has error state, no automatic retry (2.6s)
+  ok 36 tests\cleaning-progress.spec.ts:108:3 › UC032 PUT 428 has error state, no automatic retry (2.4s)
+  ok 37 tests\cleaning-progress.spec.ts:108:3 › UC032 PUT 503 has error state, no automatic retry (2.6s)
+  ok 38 tests\cleaning-progress.spec.ts:140:1 › UC032 wrong-branch DTO is rejected without prototype fallback (2.5s)
+  ok 39 tests\cleaning-progress.spec.ts:157:1 › UC032 saved write followed by failed GET is not presented as a failed write (2.5s)
+  ok 40 tests\cleaning-progress.spec.ts:186:1 › UC032 loading and empty items use API state only (2.8s)
+  ok 41 tests\cleaning-progress.spec.ts:209:1 › UC032 anonymous response has no editable form (3.6s)
+  ok 42 tests\cleaning-progress.spec.ts:221:1 › room board ignores a canceled stale branch request (4.3s)
+  ok 43 tests\dev1-room-read.spec.ts:13:1 › board loads API DTO, applies filters and paginates (3.7s)
+  ok 44 tests\dev1-room-read.spec.ts:46:3 › board shows 401 without prototype fallback (2.8s)
+  ok 45 tests\dev1-room-read.spec.ts:46:3 › board shows 403 without prototype fallback (2.8s)
+  ok 46 tests\dev1-room-read.spec.ts:46:3 › board shows 503 without prototype fallback (2.9s)
+  ok 47 tests\dev1-room-read.spec.ts:64:1 › board clears old rooms on failed reload and renders empty result (3.6s)
+
+  47 passed (2.7m)

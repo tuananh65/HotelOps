@@ -1,0 +1,37 @@
+
+Running 3 tests using 1 worker
+
+node : (node:32824) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:266
++ ... RWARD_ONLY';node node_modules/@playwright/test/cli.js test --config p ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ((node:32824) Wa... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+(Use `node --trace-warnings ...` to show where the warning was created)
+  x  1 tests\fs013-lifecycle.spec.ts:179:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients (0ms)
+  -  2 tests\fs013-lifecycle.spec.ts:400:1 › FS013 Reassign mandatory staging failure rolls source interval and assignment back
+  -  3 tests\fs013-lifecycle.spec.ts:455:1 › FS013 concurrent Start versus Reassign and invalid authority never leave mismatched owner/time
+
+
+  1) tests\fs013-lifecycle.spec.ts:179:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients
+
+    Error: expect(received).toBe(expected) // Object.is equality
+
+    Expected: 200
+    Received: 500
+
+      165 |         crypto.randomUUID(),
+      166 |       );
+    > 167 |       expect(moved.status()).toBe(200);
+          |                              ^
+      168 |       record("forward_reassignment_releases_prior_interval", {
+      169 |         taskId: interval.workItemId,
+      170 |         intervalId: interval.intervalId,
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\fs013-lifecycle.spec.ts:167:30
+
+    Error Context: test-results\fs013-lifecycle\fs013-lifecycle-FS013-Star-0eee2-nd-two-mandatory-recipients\error-context.md
+
+  1 failed
+    tests\fs013-lifecycle.spec.ts:179:1 › FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients
+  2 did not run

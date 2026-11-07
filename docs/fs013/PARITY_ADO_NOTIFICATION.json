@@ -1,0 +1,765 @@
+{
+  "operations": [
+    {
+      "actorUserId": 4,
+      "operationKey": "2c3c9e7f-2e3a-4691-ac4d-05963e42272b",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:5,\u0022assignmentId\u0022:18,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00222C3C9E7F-2E3A-4691-AC4D-05963E42272B\u0022,\u0022publicationId\u0022:\u00228DB87791-FBCD-4F3E-99D4-EF24E1EAE781\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022000000000000E2B4\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "8aef42d0-7a3d-42e0-a886-14cb8d21ed16",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:29,\u0022assignmentId\u0022:69,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00228AEF42D0-7A3D-42E0-A886-14CB8D21ED16\u0022,\u0022publicationId\u0022:\u00225F428AC4-54A9-4AA9-A304-D1A4010674C2\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019EC4\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "005766d5-b6ec-4fae-83ea-17ef6aa9db2c",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:3,\u0022assignmentId\u0022:13,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022005766D5-B6EC-4FAE-83EA-17EF6AA9DB2C\u0022,\u0022publicationId\u0022:\u00227DFA8B4D-C7E0-4C68-B61E-CAAA8F7669AD\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022000000000000E2A1\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "a6edaf3a-3b38-48be-8309-1acda8c76b6e",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:15,\u0022assignmentId\u0022:45,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022A6EDAF3A-3B38-48BE-8309-1ACDA8C76B6E\u0022,\u0022publicationId\u0022:\u0022002FB316-9C69-4A91-817C-D9AD00288B94\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000017ED4\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "fa19c759-f2a0-40aa-83f7-2e99ddece1dd",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:13,\u0022assignmentId\u0022:40,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022FA19C759-F2A0-40AA-83F7-2E99DDECE1DD\u0022,\u0022publicationId\u0022:\u002261879FBD-3B4E-4E61-A05C-7C176BE52A2E\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000015FC9\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "27514a08-3143-4f9f-a324-3051618f771a",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:11,\u0022assignmentId\u0022:35,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u002227514A08-3143-4F9F-A324-3051618F771A\u0022,\u0022publicationId\u0022:\u0022F1AF46D0-08DC-4448-93D4-5F8BB1DD0112\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000015FBA\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "6b121938-eea5-458f-86f7-411d7bd45190",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:30,\u0022assignmentId\u0022:70,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00226B121938-EEA5-458F-86F7-411D7BD45190\u0022,\u0022publicationId\u0022:\u0022AE139ECB-C86F-4347-A254-A42B2CC5FAD2\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019ED0\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "2304c76d-69fb-4580-b1ee-4206bf4d0119",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:37,\u0022assignmentId\u0022:76,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00222304C76D-69FB-4580-B1EE-4206BF4D0119\u0022,\u0022publicationId\u0022:\u00220869DA54-DBCF-41EE-9C74-7FD35C14A2B9\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019F27\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "ae2e8414-363a-46af-9a05-547fa702f0fc",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:18,\u0022assignmentId\u0022:53,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022AE2E8414-363A-46AF-9A05-547FA702F0FC\u0022,\u0022publicationId\u0022:\u0022A46FE81A-5EA8-4DDD-A031-B363AB72FB2B\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000017EEC\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "21938aba-2406-423d-bbd7-559b88a2ae62",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:23,\u0022assignmentId\u0022:62,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u002221938ABA-2406-423D-BBD7-559B88A2AE62\u0022,\u0022publicationId\u0022:\u0022221C413A-20AF-48EE-A226-C29E86FD312F\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019E71\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "1067d86a-b4b7-4278-b53d-61422f26a727",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:12,\u0022assignmentId\u0022:38,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00221067D86A-B4B7-4278-B53D-61422F26A727\u0022,\u0022publicationId\u0022:\u002288466F1C-C755-490B-9814-0FF23A18C7C0\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000015FC2\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "c4efd0e7-82d3-4752-9f9c-677f0026b2e9",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:10,\u0022assignmentId\u0022:27,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022C4EFD0E7-82D3-4752-9F9C-677F0026B2E9\u0022,\u0022publicationId\u0022:\u00222CAEDCD0-7D23-42C0-9D12-95C58452EC33\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000010210\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "ba4e3d1d-cd2f-4057-9ea2-6d966e10f844",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:20,\u0022assignmentId\u0022:56,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022BA4E3D1D-CD2F-4057-9EA2-6D966E10F844\u0022,\u0022publicationId\u0022:\u0022AD2CFFF4-CE1B-4806-B8D7-744691499B3D\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019E2D\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "f3d89350-00c6-4eb6-8888-6df730275643",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:4,\u0022assignmentId\u0022:16,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022F3D89350-00C6-4EB6-8888-6DF730275643\u0022,\u0022publicationId\u0022:\u0022139846B3-59E2-4C6C-8023-F0E74A8A8324\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022000000000000E2AC\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "41b325a0-e276-4d1d-a67f-7290da26da95",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:16,\u0022assignmentId\u0022:48,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u002241B325A0-E276-4D1D-A67F-7290DA26DA95\u0022,\u0022publicationId\u0022:\u0022157538A5-6CB5-47BD-B387-61CEE1DBC469\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000017EDD\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "8d856328-c429-4241-92c1-755cc4c70ef3",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:21,\u0022assignmentId\u0022:59,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00228D856328-C429-4241-92C1-755CC4C70EF3\u0022,\u0022publicationId\u0022:\u002269FB4727-8984-49FF-8B93-02DE2DC5537F\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019E45\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "2c82e7d5-da6f-4d68-8f74-79ed9cdaccf5",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:31,\u0022assignmentId\u0022:71,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00222C82E7D5-DA6F-4D68-8F74-79ED9CDACCF5\u0022,\u0022publicationId\u0022:\u00227959E519-E4A9-46DB-A8EC-ACAEA6D6B0C1\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019ED6\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "b6dc53f3-8cbf-4184-b6ac-83efbc829760",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:33,\u0022assignmentId\u0022:73,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022B6DC53F3-8CBF-4184-B6AC-83EFBC829760\u0022,\u0022publicationId\u0022:\u0022710C4F1B-8E5E-40A8-9CBE-7BB497ACDD74\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019EED\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "7e033218-5309-4c58-ae32-8eb69c908424",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:35,\u0022assignmentId\u0022:74,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00227E033218-5309-4C58-AE32-8EB69C908424\u0022,\u0022publicationId\u0022:\u0022C052B6CD-437E-430D-A7A0-84A99C9399E8\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019F01\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "004ef89d-7816-4e10-a725-9780f5b9b9e4",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:25,\u0022assignmentId\u0022:68,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022004EF89D-7816-4E10-A725-9780F5B9B9E4\u0022,\u0022publicationId\u0022:\u0022CB7B10C8-C750-4688-9A4B-9609A434DD73\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019EA4\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "3e3881e6-5ebc-461e-9825-9909d5cbee94",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:6,\u0022assignmentId\u0022:21,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00223E3881E6-5EBC-461E-9825-9909D5CBEE94\u0022,\u0022publicationId\u0022:\u002253C983E8-2965-4E7D-9EF6-FA3EBA94C958\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022000000000000E2BC\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "86b46555-a3fd-49af-b6d1-b7ba8a6458fb",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:19,\u0022assignmentId\u0022:55,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u002286B46555-A3FD-49AF-B6D1-B7BA8A6458FB\u0022,\u0022publicationId\u0022:\u0022173BDDC8-C7B9-4E4F-B0D7-A2EC3E14E8C2\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019E18\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "1eb19912-1839-48b4-a8e6-bf5b32a7888a",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:8,\u0022assignmentId\u0022:24,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00221EB19912-1839-48B4-A8E6-BF5B32A7888A\u0022,\u0022publicationId\u0022:\u00224C83D8A1-33F5-41BD-9492-E2CDB970FED9\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u002200000000000101ED\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "7f281160-fea4-49cc-997f-c38ec8dd0963",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:36,\u0022assignmentId\u0022:75,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00227F281160-FEA4-49CC-997F-C38EC8DD0963\u0022,\u0022publicationId\u0022:\u0022F8FEE41B-FD64-4669-A43D-0A253D804B5F\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019F0B\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "5d437161-bfeb-4d8c-a778-d6d28f2e9565",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:14,\u0022assignmentId\u0022:43,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00225D437161-BFEB-4D8C-A778-D6D28F2E9565\u0022,\u0022publicationId\u0022:\u0022C926D11F-E4F3-46D2-ACAC-E38328D0CFB5\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000015FD1\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "9ed1f2b5-91c4-4d60-890e-e1852ccc9f8c",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:7,\u0022assignmentId\u0022:23,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00229ED1F2B5-91C4-4D60-890E-E1852CCC9F8C\u0022,\u0022publicationId\u0022:\u00226F0620E9-14B2-4198-9EB6-12457AE2DC0E\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u002200000000000101D7\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "497c538f-d203-4bdd-b036-e881a009aeca",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:24,\u0022assignmentId\u0022:65,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022497C538F-D203-4BDD-B036-E881A009AECA\u0022,\u0022publicationId\u0022:\u002207972EAD-5656-46DE-AB4C-8CC55463787C\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019E8B\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "d7f86faa-bd2b-4d98-8fb2-e8dde2e71506",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:9,\u0022assignmentId\u0022:26,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u0022D7F86FAA-BD2B-4D98-8FB2-E8DDE2E71506\u0022,\u0022publicationId\u0022:\u00223E39399E-2AC6-4BAE-BD0C-E64B2D4C56DD\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000010203\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "9abe7c8b-7f1d-48d1-8c00-f062f475c03f",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:22,\u0022assignmentId\u0022:61,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u00229ABE7C8B-7F1D-48D1-8C00-F062F475C03F\u0022,\u0022publicationId\u0022:\u0022B01308B0-DFA0-46E4-A0A2-EBDF9483C80A\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000019E5A\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actorUserId": 4,
+      "operationKey": "83bc6840-d1e7-4540-87e0-f3bcfcb3e677",
+      "completed": true,
+      "resultJson": "{\u0022id\u0022:17,\u0022assignmentId\u0022:50,\u0022branchId\u0022:1,\u0022assigneeUserId\u0022:1,\u0022operationId\u0022:\u002283BC6840-D1E7-4540-87E0-F3BCFCB3E677\u0022,\u0022publicationId\u0022:\u0022A25580AD-F239-4243-A684-D5ECAC52F0E8\u0022,\u0022workflowState\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u00220000000000017EE4\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    }
+  ],
+  "publications": [
+    {
+      "publicationId": "69fb4727-8984-49ff-8b93-02de2dc5537f",
+      "actorUserId": 4,
+      "operationKey": "8d856328-c429-4241-92c1-755cc4c70ef3",
+      "assignmentId": 59,
+      "payloadJson": "{\u0022operationId\u0022:\u00228D856328-C429-4241-92C1-755CC4C70EF3\u0022,\u0022publicationId\u0022:\u002269FB4727-8984-49FF-8B93-02DE2DC5537F\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:21,\u0022taskCycleId\u0022:21,\u0022roomId\u0022:21,\u0022assignmentId\u0022:59,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:25:10.8123562\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019E45\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:25:10.7270000\u0022}"
+    },
+    {
+      "publicationId": "f8fee41b-fd64-4669-a43d-0a253d804b5f",
+      "actorUserId": 4,
+      "operationKey": "7f281160-fea4-49cc-997f-c38ec8dd0963",
+      "assignmentId": 75,
+      "payloadJson": "{\u0022operationId\u0022:\u00227F281160-FEA4-49CC-997F-C38EC8DD0963\u0022,\u0022publicationId\u0022:\u0022F8FEE41B-FD64-4669-A43D-0A253D804B5F\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:36,\u0022taskCycleId\u0022:36,\u0022roomId\u0022:37,\u0022assignmentId\u0022:75,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:45:01.9555802\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019F0B\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:45:01.4580000\u0022}"
+    },
+    {
+      "publicationId": "88466f1c-c755-490b-9814-0ff23a18c7c0",
+      "actorUserId": 4,
+      "operationKey": "1067d86a-b4b7-4278-b53d-61422f26a727",
+      "assignmentId": 38,
+      "payloadJson": "{\u0022operationId\u0022:\u00221067D86A-B4B7-4278-B53D-61422F26A727\u0022,\u0022publicationId\u0022:\u002288466F1C-C755-490B-9814-0FF23A18C7C0\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:12,\u0022taskCycleId\u0022:12,\u0022roomId\u0022:12,\u0022assignmentId\u0022:38,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:16:43.3939545\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000015FC2\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:16:43.3495778\u0022}"
+    },
+    {
+      "publicationId": "6f0620e9-14b2-4198-9eb6-12457ae2dc0e",
+      "actorUserId": 4,
+      "operationKey": "9ed1f2b5-91c4-4d60-890e-e1852ccc9f8c",
+      "assignmentId": 23,
+      "payloadJson": "{\u0022operationId\u0022:\u00229ED1F2B5-91C4-4D60-890E-E1852CCC9F8C\u0022,\u0022publicationId\u0022:\u00226F0620E9-14B2-4198-9EB6-12457AE2DC0E\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:7,\u0022taskCycleId\u0022:7,\u0022roomId\u0022:7,\u0022assignmentId\u0022:23,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:02:58.6274325\u0022,\u0022sourceRevision\u0022:\u0022\\\u002200000000000101D7\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:02:58.1880000\u0022}"
+    },
+    {
+      "publicationId": "f1af46d0-08dc-4448-93d4-5f8bb1dd0112",
+      "actorUserId": 4,
+      "operationKey": "27514a08-3143-4f9f-a324-3051618f771a",
+      "assignmentId": 35,
+      "payloadJson": "{\u0022operationId\u0022:\u002227514A08-3143-4F9F-A324-3051618F771A\u0022,\u0022publicationId\u0022:\u0022F1AF46D0-08DC-4448-93D4-5F8BB1DD0112\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:11,\u0022taskCycleId\u0022:11,\u0022roomId\u0022:11,\u0022assignmentId\u0022:35,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:16:40.6414001\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000015FBA\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:16:39.8112897\u0022}"
+    },
+    {
+      "publicationId": "157538a5-6cb5-47bd-b387-61cee1dbc469",
+      "actorUserId": 4,
+      "operationKey": "41b325a0-e276-4d1d-a67f-7290da26da95",
+      "assignmentId": 48,
+      "payloadJson": "{\u0022operationId\u0022:\u002241B325A0-E276-4D1D-A67F-7290DA26DA95\u0022,\u0022publicationId\u0022:\u0022157538A5-6CB5-47BD-B387-61CEE1DBC469\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:16,\u0022taskCycleId\u0022:16,\u0022roomId\u0022:16,\u0022assignmentId\u0022:48,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:20:26.1919918\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000017EDD\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:20:26.1463808\u0022}"
+    },
+    {
+      "publicationId": "ad2cfff4-ce1b-4806-b8d7-744691499b3d",
+      "actorUserId": 4,
+      "operationKey": "ba4e3d1d-cd2f-4057-9ea2-6d966e10f844",
+      "assignmentId": 56,
+      "payloadJson": "{\u0022operationId\u0022:\u0022BA4E3D1D-CD2F-4057-9EA2-6D966E10F844\u0022,\u0022publicationId\u0022:\u0022AD2CFFF4-CE1B-4806-B8D7-744691499B3D\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:20,\u0022taskCycleId\u0022:20,\u0022roomId\u0022:20,\u0022assignmentId\u0022:56,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:24:43.7848299\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019E2D\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:24:43.6180000\u0022}"
+    },
+    {
+      "publicationId": "710c4f1b-8e5e-40a8-9cbe-7bb497acdd74",
+      "actorUserId": 4,
+      "operationKey": "b6dc53f3-8cbf-4184-b6ac-83efbc829760",
+      "assignmentId": 73,
+      "payloadJson": "{\u0022operationId\u0022:\u0022B6DC53F3-8CBF-4184-B6AC-83EFBC829760\u0022,\u0022publicationId\u0022:\u0022710C4F1B-8E5E-40A8-9CBE-7BB497ACDD74\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:33,\u0022taskCycleId\u0022:33,\u0022roomId\u0022:34,\u0022assignmentId\u0022:73,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:42:10.0257023\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019EED\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:42:09.8570000\u0022}"
+    },
+    {
+      "publicationId": "61879fbd-3b4e-4e61-a05c-7c176be52a2e",
+      "actorUserId": 4,
+      "operationKey": "fa19c759-f2a0-40aa-83f7-2e99ddece1dd",
+      "assignmentId": 40,
+      "payloadJson": "{\u0022operationId\u0022:\u0022FA19C759-F2A0-40AA-83F7-2E99DDECE1DD\u0022,\u0022publicationId\u0022:\u002261879FBD-3B4E-4E61-A05C-7C176BE52A2E\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:13,\u0022taskCycleId\u0022:13,\u0022roomId\u0022:13,\u0022assignmentId\u0022:40,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:16:43.7932350\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000015FC9\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:16:43.7566287\u0022}"
+    },
+    {
+      "publicationId": "0869da54-dbcf-41ee-9c74-7fd35c14a2b9",
+      "actorUserId": 4,
+      "operationKey": "2304c76d-69fb-4580-b1ee-4206bf4d0119",
+      "assignmentId": 76,
+      "payloadJson": "{\u0022operationId\u0022:\u00222304C76D-69FB-4580-B1EE-4206BF4D0119\u0022,\u0022publicationId\u0022:\u00220869DA54-DBCF-41EE-9C74-7FD35C14A2B9\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:37,\u0022taskCycleId\u0022:37,\u0022roomId\u0022:38,\u0022assignmentId\u0022:76,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:55:27.3588758\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019F27\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:55:27\u0022}"
+    },
+    {
+      "publicationId": "c052b6cd-437e-430d-a7a0-84a99c9399e8",
+      "actorUserId": 4,
+      "operationKey": "7e033218-5309-4c58-ae32-8eb69c908424",
+      "assignmentId": 74,
+      "payloadJson": "{\u0022operationId\u0022:\u00227E033218-5309-4C58-AE32-8EB69C908424\u0022,\u0022publicationId\u0022:\u0022C052B6CD-437E-430D-A7A0-84A99C9399E8\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:35,\u0022taskCycleId\u0022:35,\u0022roomId\u0022:36,\u0022assignmentId\u0022:74,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:43:31.1224066\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019F01\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:43:30.9610000\u0022}"
+    },
+    {
+      "publicationId": "07972ead-5656-46de-ab4c-8cc55463787c",
+      "actorUserId": 4,
+      "operationKey": "497c538f-d203-4bdd-b036-e881a009aeca",
+      "assignmentId": 65,
+      "payloadJson": "{\u0022operationId\u0022:\u0022497C538F-D203-4BDD-B036-E881A009AECA\u0022,\u0022publicationId\u0022:\u002207972EAD-5656-46DE-AB4C-8CC55463787C\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:24,\u0022taskCycleId\u0022:24,\u0022roomId\u0022:24,\u0022assignmentId\u0022:65,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:29:31.7397770\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019E8B\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:29:31.6330000\u0022}"
+    },
+    {
+      "publicationId": "2caedcd0-7d23-42c0-9d12-95c58452ec33",
+      "actorUserId": 4,
+      "operationKey": "c4efd0e7-82d3-4752-9f9c-677f0026b2e9",
+      "assignmentId": 27,
+      "payloadJson": "{\u0022operationId\u0022:\u0022C4EFD0E7-82D3-4752-9F9C-677F0026B2E9\u0022,\u0022publicationId\u0022:\u00222CAEDCD0-7D23-42C0-9D12-95C58452EC33\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:10,\u0022taskCycleId\u0022:10,\u0022roomId\u0022:10,\u0022assignmentId\u0022:27,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:05:07.8605922\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000010210\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:05:07.6940000\u0022}"
+    },
+    {
+      "publicationId": "cb7b10c8-c750-4688-9a4b-9609a434dd73",
+      "actorUserId": 4,
+      "operationKey": "004ef89d-7816-4e10-a725-9780f5b9b9e4",
+      "assignmentId": 68,
+      "payloadJson": "{\u0022operationId\u0022:\u0022004EF89D-7816-4E10-A725-9780F5B9B9E4\u0022,\u0022publicationId\u0022:\u0022CB7B10C8-C750-4688-9A4B-9609A434DD73\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:25,\u0022taskCycleId\u0022:25,\u0022roomId\u0022:25,\u0022assignmentId\u0022:68,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:30:10.0280851\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019EA4\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:30:09.9180000\u0022}"
+    },
+    {
+      "publicationId": "173bddc8-c7b9-4e4f-b0d7-a2ec3e14e8c2",
+      "actorUserId": 4,
+      "operationKey": "86b46555-a3fd-49af-b6d1-b7ba8a6458fb",
+      "assignmentId": 55,
+      "payloadJson": "{\u0022operationId\u0022:\u002286B46555-A3FD-49AF-B6D1-B7BA8A6458FB\u0022,\u0022publicationId\u0022:\u0022173BDDC8-C7B9-4E4F-B0D7-A2EC3E14E8C2\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:19,\u0022taskCycleId\u0022:19,\u0022roomId\u0022:19,\u0022assignmentId\u0022:55,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:22:45.9110503\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019E18\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:22:45.0970000\u0022}"
+    },
+    {
+      "publicationId": "ae139ecb-c86f-4347-a254-a42b2cc5fad2",
+      "actorUserId": 4,
+      "operationKey": "6b121938-eea5-458f-86f7-411d7bd45190",
+      "assignmentId": 70,
+      "payloadJson": "{\u0022operationId\u0022:\u00226B121938-EEA5-458F-86F7-411D7BD45190\u0022,\u0022publicationId\u0022:\u0022AE139ECB-C86F-4347-A254-A42B2CC5FAD2\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:30,\u0022taskCycleId\u0022:30,\u0022roomId\u0022:31,\u0022assignmentId\u0022:70,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:39:55.8161032\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019ED0\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:39:55.6000000\u0022}"
+    },
+    {
+      "publicationId": "7959e519-e4a9-46db-a8ec-acaea6d6b0c1",
+      "actorUserId": 4,
+      "operationKey": "2c82e7d5-da6f-4d68-8f74-79ed9cdaccf5",
+      "assignmentId": 71,
+      "payloadJson": "{\u0022operationId\u0022:\u00222C82E7D5-DA6F-4D68-8F74-79ED9CDACCF5\u0022,\u0022publicationId\u0022:\u00227959E519-E4A9-46DB-A8EC-ACAEA6D6B0C1\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:31,\u0022taskCycleId\u0022:31,\u0022roomId\u0022:32,\u0022assignmentId\u0022:71,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:40:01.8493390\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019ED6\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:40:01.6650000\u0022}"
+    },
+    {
+      "publicationId": "a46fe81a-5ea8-4ddd-a031-b363ab72fb2b",
+      "actorUserId": 4,
+      "operationKey": "ae2e8414-363a-46af-9a05-547fa702f0fc",
+      "assignmentId": 53,
+      "payloadJson": "{\u0022operationId\u0022:\u0022AE2E8414-363A-46AF-9A05-547FA702F0FC\u0022,\u0022publicationId\u0022:\u0022A46FE81A-5EA8-4DDD-A031-B363AB72FB2B\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:18,\u0022taskCycleId\u0022:18,\u0022roomId\u0022:18,\u0022assignmentId\u0022:53,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:20:27.6645647\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000017EEC\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:20:27.6190306\u0022}"
+    },
+    {
+      "publicationId": "221c413a-20af-48ee-a226-c29e86fd312f",
+      "actorUserId": 4,
+      "operationKey": "21938aba-2406-423d-bbd7-559b88a2ae62",
+      "assignmentId": 62,
+      "payloadJson": "{\u0022operationId\u0022:\u002221938ABA-2406-423D-BBD7-559B88A2AE62\u0022,\u0022publicationId\u0022:\u0022221C413A-20AF-48EE-A226-C29E86FD312F\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:23,\u0022taskCycleId\u0022:23,\u0022roomId\u0022:23,\u0022assignmentId\u0022:62,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:27:32.4940133\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019E71\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:27:32.3960000\u0022}"
+    },
+    {
+      "publicationId": "7dfa8b4d-c7e0-4c68-b61e-caaa8f7669ad",
+      "actorUserId": 4,
+      "operationKey": "005766d5-b6ec-4fae-83ea-17ef6aa9db2c",
+      "assignmentId": 13,
+      "payloadJson": "{\u0022operationId\u0022:\u0022005766D5-B6EC-4FAE-83EA-17EF6AA9DB2C\u0022,\u0022publicationId\u0022:\u00227DFA8B4D-C7E0-4C68-B61E-CAAA8F7669AD\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:3,\u0022taskCycleId\u0022:3,\u0022roomId\u0022:3,\u0022assignmentId\u0022:13,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:01:35.2140844\u0022,\u0022sourceRevision\u0022:\u0022\\\u0022000000000000E2A1\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:01:34.7057353\u0022}"
+    },
+    {
+      "publicationId": "5f428ac4-54a9-4aa9-a304-d1a4010674c2",
+      "actorUserId": 4,
+      "operationKey": "8aef42d0-7a3d-42e0-a886-14cb8d21ed16",
+      "assignmentId": 69,
+      "payloadJson": "{\u0022operationId\u0022:\u00228AEF42D0-7A3D-42E0-A886-14CB8D21ED16\u0022,\u0022publicationId\u0022:\u00225F428AC4-54A9-4AA9-A304-D1A4010674C2\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:29,\u0022taskCycleId\u0022:29,\u0022roomId\u0022:30,\u0022assignmentId\u0022:69,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:39:18.6836582\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019EC4\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:39:18.3840000\u0022}"
+    },
+    {
+      "publicationId": "a25580ad-f239-4243-a684-d5ecac52f0e8",
+      "actorUserId": 4,
+      "operationKey": "83bc6840-d1e7-4540-87e0-f3bcfcb3e677",
+      "assignmentId": 50,
+      "payloadJson": "{\u0022operationId\u0022:\u002283BC6840-D1E7-4540-87E0-F3BCFCB3E677\u0022,\u0022publicationId\u0022:\u0022A25580AD-F239-4243-A684-D5ECAC52F0E8\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:17,\u0022taskCycleId\u0022:17,\u0022roomId\u0022:17,\u0022assignmentId\u0022:50,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:20:27.0711982\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000017EE4\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:20:27.0144620\u0022}"
+    },
+    {
+      "publicationId": "002fb316-9c69-4a91-817c-d9ad00288b94",
+      "actorUserId": 4,
+      "operationKey": "a6edaf3a-3b38-48be-8309-1acda8c76b6e",
+      "assignmentId": 45,
+      "payloadJson": "{\u0022operationId\u0022:\u0022A6EDAF3A-3B38-48BE-8309-1ACDA8C76B6E\u0022,\u0022publicationId\u0022:\u0022002FB316-9C69-4A91-817C-D9AD00288B94\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:15,\u0022taskCycleId\u0022:15,\u0022roomId\u0022:15,\u0022assignmentId\u0022:45,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:20:23.3602121\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000017ED4\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:20:22.7474908\u0022}"
+    },
+    {
+      "publicationId": "4c83d8a1-33f5-41bd-9492-e2cdb970fed9",
+      "actorUserId": 4,
+      "operationKey": "1eb19912-1839-48b4-a8e6-bf5b32a7888a",
+      "assignmentId": 24,
+      "payloadJson": "{\u0022operationId\u0022:\u00221EB19912-1839-48B4-A8E6-BF5B32A7888A\u0022,\u0022publicationId\u0022:\u00224C83D8A1-33F5-41BD-9492-E2CDB970FED9\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:8,\u0022taskCycleId\u0022:8,\u0022roomId\u0022:8,\u0022assignmentId\u0022:24,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:03:58.4172333\u0022,\u0022sourceRevision\u0022:\u0022\\\u002200000000000101ED\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:03:57.9690000\u0022}"
+    },
+    {
+      "publicationId": "c926d11f-e4f3-46d2-acac-e38328d0cfb5",
+      "actorUserId": 4,
+      "operationKey": "5d437161-bfeb-4d8c-a778-d6d28f2e9565",
+      "assignmentId": 43,
+      "payloadJson": "{\u0022operationId\u0022:\u00225D437161-BFEB-4D8C-A778-D6D28F2E9565\u0022,\u0022publicationId\u0022:\u0022C926D11F-E4F3-46D2-ACAC-E38328D0CFB5\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:14,\u0022taskCycleId\u0022:14,\u0022roomId\u0022:14,\u0022assignmentId\u0022:43,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:16:44.4418574\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000015FD1\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:16:44.3762761\u0022}"
+    },
+    {
+      "publicationId": "3e39399e-2ac6-4bae-bd0c-e64b2d4c56dd",
+      "actorUserId": 4,
+      "operationKey": "d7f86faa-bd2b-4d98-8fb2-e8dde2e71506",
+      "assignmentId": 26,
+      "payloadJson": "{\u0022operationId\u0022:\u0022D7F86FAA-BD2B-4D98-8FB2-E8DDE2E71506\u0022,\u0022publicationId\u0022:\u00223E39399E-2AC6-4BAE-BD0C-E64B2D4C56DD\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:9,\u0022taskCycleId\u0022:9,\u0022roomId\u0022:9,\u0022assignmentId\u0022:26,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:04:48.1387544\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000010203\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:04:47.8310000\u0022}"
+    },
+    {
+      "publicationId": "b01308b0-dfa0-46e4-a0a2-ebdf9483c80a",
+      "actorUserId": 4,
+      "operationKey": "9abe7c8b-7f1d-48d1-8c00-f062f475c03f",
+      "assignmentId": 61,
+      "payloadJson": "{\u0022operationId\u0022:\u00229ABE7C8B-7F1D-48D1-8C00-F062F475C03F\u0022,\u0022publicationId\u0022:\u0022B01308B0-DFA0-46E4-A0A2-EBDF9483C80A\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:22,\u0022taskCycleId\u0022:22,\u0022roomId\u0022:22,\u0022assignmentId\u0022:61,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:26:34.1442455\u0022,\u0022sourceRevision\u0022:\u0022\\\u00220000000000019E5A\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:26:33.5820000\u0022}"
+    },
+    {
+      "publicationId": "8db87791-fbcd-4f3e-99d4-ef24e1eae781",
+      "actorUserId": 4,
+      "operationKey": "2c3c9e7f-2e3a-4691-ac4d-05963e42272b",
+      "assignmentId": 18,
+      "payloadJson": "{\u0022operationId\u0022:\u00222C3C9E7F-2E3A-4691-AC4D-05963E42272B\u0022,\u0022publicationId\u0022:\u00228DB87791-FBCD-4F3E-99D4-EF24E1EAE781\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:5,\u0022taskCycleId\u0022:5,\u0022roomId\u0022:5,\u0022assignmentId\u0022:18,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:01:37.2095615\u0022,\u0022sourceRevision\u0022:\u0022\\\u0022000000000000E2B4\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:01:37.1916313\u0022}"
+    },
+    {
+      "publicationId": "139846b3-59e2-4c6c-8023-f0e74a8a8324",
+      "actorUserId": 4,
+      "operationKey": "f3d89350-00c6-4eb6-8888-6df730275643",
+      "assignmentId": 16,
+      "payloadJson": "{\u0022operationId\u0022:\u0022F3D89350-00C6-4EB6-8888-6DF730275643\u0022,\u0022publicationId\u0022:\u0022139846B3-59E2-4C6C-8023-F0E74A8A8324\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:4,\u0022taskCycleId\u0022:4,\u0022roomId\u0022:4,\u0022assignmentId\u0022:16,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:01:36.9931508\u0022,\u0022sourceRevision\u0022:\u0022\\\u0022000000000000E2AC\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:01:36.9720927\u0022}"
+    },
+    {
+      "publicationId": "53c983e8-2965-4e7d-9ef6-fa3eba94c958",
+      "actorUserId": 4,
+      "operationKey": "3e3881e6-5ebc-461e-9825-9909d5cbee94",
+      "assignmentId": 21,
+      "payloadJson": "{\u0022operationId\u0022:\u00223E3881E6-5EBC-461E-9825-9909D5CBEE94\u0022,\u0022publicationId\u0022:\u002253C983E8-2965-4E7D-9EF6-FA3EBA94C958\u0022,\u0022actorId\u0022:4,\u0022branchId\u0022:1,\u0022taskId\u0022:6,\u0022taskCycleId\u0022:6,\u0022roomId\u0022:6,\u0022assignmentId\u0022:21,\u0022assigneeUserId\u0022:1,\u0022assignedAtUtc\u0022:\u00222026-11-07T03:01:37.4931580\u0022,\u0022sourceRevision\u0022:\u0022\\\u0022000000000000E2BC\\\u0022\u0022,\u0022dueAtUtc\u0022:\u00222026-11-07T04:01:37.4696437\u0022}"
+    }
+  ],
+  "intents": [
+    {
+      "intentId": 8,
+      "publicationId": "7dfa8b4d-c7e0-4c68-b61e-caaa8f7669ad",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 9,
+      "publicationId": "139846b3-59e2-4c6c-8023-f0e74a8a8324",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 10,
+      "publicationId": "8db87791-fbcd-4f3e-99d4-ef24e1eae781",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 11,
+      "publicationId": "53c983e8-2965-4e7d-9ef6-fa3eba94c958",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 12,
+      "publicationId": "6f0620e9-14b2-4198-9eb6-12457ae2dc0e",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 13,
+      "publicationId": "4c83d8a1-33f5-41bd-9492-e2cdb970fed9",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 14,
+      "publicationId": "3e39399e-2ac6-4bae-bd0c-e64b2d4c56dd",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 15,
+      "publicationId": "2caedcd0-7d23-42c0-9d12-95c58452ec33",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 16,
+      "publicationId": "f1af46d0-08dc-4448-93d4-5f8bb1dd0112",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 17,
+      "publicationId": "88466f1c-c755-490b-9814-0ff23a18c7c0",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 18,
+      "publicationId": "61879fbd-3b4e-4e61-a05c-7c176be52a2e",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 19,
+      "publicationId": "c926d11f-e4f3-46d2-acac-e38328d0cfb5",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 20,
+      "publicationId": "002fb316-9c69-4a91-817c-d9ad00288b94",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 21,
+      "publicationId": "157538a5-6cb5-47bd-b387-61cee1dbc469",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 22,
+      "publicationId": "a25580ad-f239-4243-a684-d5ecac52f0e8",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 23,
+      "publicationId": "a46fe81a-5ea8-4ddd-a031-b363ab72fb2b",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 24,
+      "publicationId": "173bddc8-c7b9-4e4f-b0d7-a2ec3e14e8c2",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 25,
+      "publicationId": "ad2cfff4-ce1b-4806-b8d7-744691499b3d",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 26,
+      "publicationId": "69fb4727-8984-49ff-8b93-02de2dc5537f",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 27,
+      "publicationId": "b01308b0-dfa0-46e4-a0a2-ebdf9483c80a",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 28,
+      "publicationId": "221c413a-20af-48ee-a226-c29e86fd312f",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 29,
+      "publicationId": "07972ead-5656-46de-ab4c-8cc55463787c",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 30,
+      "publicationId": "cb7b10c8-c750-4688-9a4b-9609a434dd73",
+      "userId": 1,
+      "status": "PENDING",
+      "attemptCount": 0,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 31,
+      "publicationId": "5f428ac4-54a9-4aa9-a304-d1a4010674c2",
+      "userId": 1,
+      "status": "DELIVERED",
+      "attemptCount": 1,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": 4
+    },
+    {
+      "intentId": 32,
+      "publicationId": "ae139ecb-c86f-4347-a254-a42b2cc5fad2",
+      "userId": 1,
+      "status": "DELIVERED",
+      "attemptCount": 2,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": 6
+    },
+    {
+      "intentId": 33,
+      "publicationId": "7959e519-e4a9-46db-a8ec-acaea6d6b0c1",
+      "userId": 1,
+      "status": "DELIVERED",
+      "attemptCount": 2,
+      "failureCode": null,
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": 7
+    },
+    {
+      "intentId": 35,
+      "publicationId": "710c4f1b-8e5e-40a8-9cbe-7bb497acdd74",
+      "userId": 1,
+      "status": "TERMINAL",
+      "attemptCount": 1,
+      "failureCode": "SOURCE_READ_DENIED",
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 36,
+      "publicationId": "c052b6cd-437e-430d-a7a0-84a99c9399e8",
+      "userId": 1,
+      "status": "TERMINAL",
+      "attemptCount": 1,
+      "failureCode": "RECIPIENT_INACTIVE",
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 37,
+      "publicationId": "f8fee41b-fd64-4669-a43d-0a253d804b5f",
+      "userId": 1,
+      "status": "TERMINAL",
+      "attemptCount": 1,
+      "failureCode": "RECIPIENT_OUT_OF_SCOPE",
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    },
+    {
+      "intentId": 38,
+      "publicationId": "0869da54-dbcf-41ee-9c74-7fd35c14a2b9",
+      "userId": 1,
+      "status": "TERMINAL",
+      "attemptCount": 1,
+      "failureCode": "RECIPIENT_INACTIVE",
+      "claimId": null,
+      "claimedUntil": null,
+      "inboxNotificationId": null
+    }
+  ],
+  "inbox": [
+    {
+      "notificationId": 2,
+      "userId": 1,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "DELIVERED",
+      "actionUrl": null
+    },
+    {
+      "notificationId": 3,
+      "userId": 2,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "DELIVERED",
+      "actionUrl": "/cleaning/tasks/22?branchId=1\u0026assignmentId=63"
+    },
+    {
+      "notificationId": 4,
+      "userId": 1,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "DELIVERED",
+      "actionUrl": "/cleaning/tasks/29?branchId=1\u0026assignmentId=69"
+    },
+    {
+      "notificationId": 6,
+      "userId": 1,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "DELIVERED",
+      "actionUrl": "/cleaning/tasks/30?branchId=1\u0026assignmentId=70"
+    },
+    {
+      "notificationId": 7,
+      "userId": 1,
+      "deliveryChannel": "IN_APP",
+      "deliveryStatus": "DELIVERED",
+      "actionUrl": "/cleaning/tasks/31?branchId=1\u0026assignmentId=71"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+npx.cmd : npm notice run hotelops@0.1.0 npx
+At line:3 char:1
++ npx.cmd playwright test --config playwright.fs013-ui.config.ts > ../d ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run playwright test --config playwright.fs013-ui.config.ts
+[WebServer] (node:24964) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 6 tests using 1 worker
+
+(node:27664) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\cleaning-execution.spec.ts:24:3 › execution 401 never exposes a mutable form (6.7s)
+  ok 2 tests\cleaning-execution.spec.ts:24:3 › execution 403 never exposes a mutable form (3.4s)
+  ok 3 tests\cleaning-execution.spec.ts:24:3 › execution 503 never exposes a mutable form (3.5s)
+  ok 4 tests\cleaning-execution.spec.ts:35:1 › unresolved blocker does not offer Resume or Start (3.2s)
+  ok 5 tests\cleaning-execution.spec.ts:46:1 › Start uses current task ETag and fresh CSRF, then reloads source (3.2s)
+  x  6 tests\cleaning-execution.spec.ts:93:1 › Reassign retry preserves exact command identity and disables form editing (30.1s)
+
+
+  1) tests\cleaning-execution.spec.ts:93:1 › Reassign retry preserves exact command identity and disables form editing
+
+    Test timeout of 30000ms exceeded.
+
+    Error: locator.selectOption: Test timeout of 30000ms exceeded.
+    Call log:
+      - waiting for getByLabel('Người phụ trách mới', { exact: true })
+
+
+      161 |   const select = page.getByLabel("Người phụ trách mới", { exact: true });
+      162 |   await expect(select.locator('option[value="5"]')).toHaveCount(0);
+    > 163 |   await select.selectOption("6");
+          |                ^
+      164 |   await page
+      165 |     .getByLabel("Hạn UTC", { exact: true })
+      166 |     .fill(new Date(Date.now() + 3600000).toISOString());
+        at D:\SEP490\Projects\HotelOps-DEV1\frontend\tests\cleaning-execution.spec.ts:163:16
+
+    Error Context: test-results\fs013-ui\cleaning-execution-Reassig-ecf97-y-and-disables-form-editing\error-context.md
+
+  1 failed
+    tests\cleaning-execution.spec.ts:93:1 › Reassign retry preserves exact command identity and disables form editing
+  5 passed (58.9s)

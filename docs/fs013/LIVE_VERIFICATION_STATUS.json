@@ -1,0 +1,46 @@
+{
+  "status": "PASS_DEVELOPER_VERIFICATION_NOT_MODULE_ACCEPTANCE",
+  "database": "HotelOps_Canonical_20261106_f130001_Fresh",
+  "lifecycle": {
+    "passed": 3,
+    "failed": 0,
+    "evidence": "LIFECYCLE_LIVE_ATTEMPT4.json",
+    "workdayHttpVerified": false
+  },
+  "baseline": {
+    "uniquePassed": 12,
+    "failed": 0,
+    "singleCleanRun": false,
+    "evidence": "REGRESSION_AGGREGATE.json"
+  },
+  "defaultOff": {
+    "passed": 1,
+    "assignment": 503,
+    "reassignment": 503,
+    "sourceMutation": false,
+    "evidence": "DEFAULT_OFF_RESULTS.json"
+  },
+  "sqlModule": {
+    "passed": 6,
+    "evidence": "REASSIGNMENT_SQL_RESULTS.json"
+  },
+  "commitRecovery": {
+    "passed": 4,
+    "sourceState": "ASSIGNED",
+    "gateDoubles": true,
+    "actualNetworkDisconnect": false,
+    "evidence": "REASSIGNMENT_COMMIT_PROOF_FINAL.json"
+  },
+  "snapshotParity": {
+    "passed": 3,
+    "evidence": "SNAPSHOT_PARITY.json"
+  },
+  "ownedServiceProcesses": "STOPPED",
+  "initialFailuresPreserved": true,
+  "notificationAccepted": false,
+  "resumeAccepted": false,
+  "fullLeastPrivilegeAccepted": false,
+  "testerReady": false,
+  "testerAccepted": false,
+  "mergeReady": false
+}

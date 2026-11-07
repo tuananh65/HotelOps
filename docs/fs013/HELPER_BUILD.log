@@ -1,0 +1,12 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  HotelOps.Api -> D:\SEP490\Projects\HotelOps-DEV1\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\Program.cs(140,29): error CS0136: A local or parameter named 'transaction' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\FS013.Verification.csproj]
+
+Build FAILED.
+
+D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\Program.cs(140,29): error CS0136: A local or parameter named 'transaction' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter [D:\SEP490\Projects\HotelOps-DEV1\scripts\verification\FS013\FS013.Verification.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:00:17.82

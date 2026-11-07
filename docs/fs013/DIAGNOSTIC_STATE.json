@@ -1,0 +1,322 @@
+{
+  "commands": [
+    {
+      "actor": 4,
+      "operation": "0b496f99-94a1-4f59-904e-eb1cd4f7e07a",
+      "resultJson": "{\u0022id\u0022:3,\u0022branchId\u0022:1,\u0022previousAssignmentId\u0022:13,\u0022assignmentId\u0022:15,\u0022previousAssigneeId\u0022:1,\u0022assigneeId\u0022:2,\u0022operationId\u0022:\u00220B496F99-94A1-4F59-904E-EB1CD4F7E07A\u0022,\u0022state\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\u00E2\u00A8\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actor": 4,
+      "operation": "daf4901b-ea08-4612-b9ea-7aebc245eeba",
+      "resultJson": "{\u0022id\u0022:4,\u0022branchId\u0022:1,\u0022previousAssignmentId\u0022:16,\u0022assignmentId\u0022:17,\u0022previousAssigneeId\u0022:1,\u0022assigneeId\u0022:2,\u0022operationId\u0022:\u0022DAF4901B-EA08-4612-B9EA-7AEBC245EEBA\u0022,\u0022state\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\u00E2\u00B0\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actor": 4,
+      "operation": "faab6d66-df4e-4795-b92a-1806ffcf30e0",
+      "resultJson": "{\u0022id\u0022:5,\u0022branchId\u0022:1,\u0022previousAssignmentId\u0022:18,\u0022assignmentId\u0022:20,\u0022previousAssigneeId\u0022:1,\u0022assigneeId\u0022:2,\u0022operationId\u0022:\u0022FAAB6D66-DF4E-4795-B92A-1806FFCF30E0\u0022,\u0022state\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\u00E2\u00B8\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actor": 4,
+      "operation": "b6c5047b-792d-4ffc-a81a-d7ed94c89b1a",
+      "resultJson": "{\u0022id\u0022:6,\u0022branchId\u0022:1,\u0022previousAssignmentId\u0022:21,\u0022assignmentId\u0022:22,\u0022previousAssigneeId\u0022:1,\u0022assigneeId\u0022:2,\u0022operationId\u0022:\u0022B6C5047B-792D-4FFC-A81A-D7ED94C89B1A\u0022,\u0022state\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022\\u0000\\u0000\\u0000\\u0000\\u0000\\u0000\u00E2\u00BF\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actor": 4,
+      "operation": "ca2a61a7-469c-4c45-a786-ff15bc951db1",
+      "resultJson": "{\u0022id\u0022:10,\u0022branchId\u0022:1,\u0022previousAssignmentId\u0022:27,\u0022assignmentId\u0022:28,\u0022previousAssigneeId\u0022:1,\u0022assigneeId\u0022:2,\u0022operationId\u0022:\u0022CA2A61A7-469C-4C45-A786-FF15BC951DB1\u0022,\u0022state\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022\\u0000\\u0000\\u0000\\u0000\\u0000\\u0001\\u0002\\u0016\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    },
+    {
+      "actor": 4,
+      "operation": "a224f5a3-8ef5-4659-81b2-fda3526a03bd",
+      "resultJson": "{\u0022id\u0022:7,\u0022branchId\u0022:1,\u0022previousAssignmentId\u0022:23,\u0022assignmentId\u0022:29,\u0022previousAssigneeId\u0022:1,\u0022assigneeId\u0022:2,\u0022operationId\u0022:\u0022A224F5A3-8EF5-4659-81B2-FDA3526A03BD\u0022,\u0022state\u0022:\u0022ASSIGNED\u0022,\u0022notification\u0022:\u0022PENDING_DELIVERY\u0022,\u0022sourceETag\u0022:\u0022\\\u0022\\u0000\\u0000\\u0000\\u0000\\u0000\\u0001!\\u0015\\\u0022\u0022,\u0022contract\u0022:\u0022PROVISIONAL_NOT_ACCEPTED\u0022}"
+    }
+  ],
+  "notices": [
+    {
+      "id": 20015,
+      "operation": "0b496f99-94a1-4f59-904e-eb1cd4f7e07a",
+      "userId": 1,
+      "recipientKind": "PREVIOUS",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20016,
+      "operation": "0b496f99-94a1-4f59-904e-eb1cd4f7e07a",
+      "userId": 2,
+      "recipientKind": "NEW",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20017,
+      "operation": "daf4901b-ea08-4612-b9ea-7aebc245eeba",
+      "userId": 1,
+      "recipientKind": "PREVIOUS",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20018,
+      "operation": "daf4901b-ea08-4612-b9ea-7aebc245eeba",
+      "userId": 2,
+      "recipientKind": "NEW",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20021,
+      "operation": "faab6d66-df4e-4795-b92a-1806ffcf30e0",
+      "userId": 1,
+      "recipientKind": "PREVIOUS",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20022,
+      "operation": "faab6d66-df4e-4795-b92a-1806ffcf30e0",
+      "userId": 2,
+      "recipientKind": "NEW",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20023,
+      "operation": "b6c5047b-792d-4ffc-a81a-d7ed94c89b1a",
+      "userId": 1,
+      "recipientKind": "PREVIOUS",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20024,
+      "operation": "b6c5047b-792d-4ffc-a81a-d7ed94c89b1a",
+      "userId": 2,
+      "recipientKind": "NEW",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20027,
+      "operation": "ca2a61a7-469c-4c45-a786-ff15bc951db1",
+      "userId": 1,
+      "recipientKind": "PREVIOUS",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20028,
+      "operation": "ca2a61a7-469c-4c45-a786-ff15bc951db1",
+      "userId": 2,
+      "recipientKind": "NEW",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20029,
+      "operation": "a224f5a3-8ef5-4659-81b2-fda3526a03bd",
+      "userId": 1,
+      "recipientKind": "PREVIOUS",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    },
+    {
+      "id": 20030,
+      "operation": "a224f5a3-8ef5-4659-81b2-fda3526a03bd",
+      "userId": 2,
+      "recipientKind": "NEW",
+      "status": "PENDING",
+      "inboxId": null,
+      "failureCode": null
+    }
+  ],
+  "intervals": [
+    {
+      "intervalId": 5,
+      "workItemId": 7,
+      "userId": 1,
+      "openedAt": "2026-11-07T03:03:32.1578085",
+      "closedAt": "2026-11-07T03:11:37.8737253",
+      "closedBy": 4
+    }
+  ],
+  "tasks": [
+    {
+      "cleaningTaskId": 1,
+      "status": "IN_PROGRESS",
+      "actualStartAt": "2026-11-07T02:10:35.2557755"
+    },
+    {
+      "cleaningTaskId": 2,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 3,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 4,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 5,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 6,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 7,
+      "status": "PENDING",
+      "actualStartAt": "2026-11-07T03:03:31.8868527"
+    },
+    {
+      "cleaningTaskId": 8,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 9,
+      "status": "PENDING",
+      "actualStartAt": null
+    },
+    {
+      "cleaningTaskId": 10,
+      "status": "PENDING",
+      "actualStartAt": null
+    }
+  ],
+  "assignments": [
+    {
+      "assignmentId": 1,
+      "cleaningTaskId": 1,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T02:05:35.2557755",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 2,
+      "cleaningTaskId": 2,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T02:05:35.2557755",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 13,
+      "cleaningTaskId": 3,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:01:35.2140844",
+      "endedAt": "2026-11-07T03:01:36.8189382"
+    },
+    {
+      "assignmentId": 15,
+      "cleaningTaskId": 3,
+      "assigneeUserId": 2,
+      "assignedAt": "2026-11-07T03:01:36.8189382",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 16,
+      "cleaningTaskId": 4,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:01:36.9931508",
+      "endedAt": "2026-11-07T03:01:37.0620813"
+    },
+    {
+      "assignmentId": 17,
+      "cleaningTaskId": 4,
+      "assigneeUserId": 2,
+      "assignedAt": "2026-11-07T03:01:37.0620813",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 18,
+      "cleaningTaskId": 5,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:01:37.2095615",
+      "endedAt": "2026-11-07T03:01:37.3967671"
+    },
+    {
+      "assignmentId": 20,
+      "cleaningTaskId": 5,
+      "assigneeUserId": 2,
+      "assignedAt": "2026-11-07T03:01:37.3967671",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 21,
+      "cleaningTaskId": 6,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:01:37.493158",
+      "endedAt": "2026-11-07T03:01:37.5613731"
+    },
+    {
+      "assignmentId": 22,
+      "cleaningTaskId": 6,
+      "assigneeUserId": 2,
+      "assignedAt": "2026-11-07T03:01:37.5613731",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 23,
+      "cleaningTaskId": 7,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:02:58.6274325",
+      "endedAt": "2026-11-07T03:11:37.8737253"
+    },
+    {
+      "assignmentId": 24,
+      "cleaningTaskId": 8,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:03:58.4172333",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 26,
+      "cleaningTaskId": 9,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:04:48.1387544",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 27,
+      "cleaningTaskId": 10,
+      "assigneeUserId": 1,
+      "assignedAt": "2026-11-07T03:05:07.8605922",
+      "endedAt": "2026-11-07T03:05:31.1773792"
+    },
+    {
+      "assignmentId": 28,
+      "cleaningTaskId": 10,
+      "assigneeUserId": 2,
+      "assignedAt": "2026-11-07T03:05:31.1773792",
+      "endedAt": null
+    },
+    {
+      "assignmentId": 29,
+      "cleaningTaskId": 7,
+      "assigneeUserId": 2,
+      "assignedAt": "2026-11-07T03:11:37.8737253",
+      "endedAt": null
+    }
+  ],
+  "delivered": [],
+  "auditCount": 49
+}

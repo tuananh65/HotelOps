@@ -1,0 +1,66 @@
+npm.cmd : npm notice run hotelops@0.1.0 test
+At line:6 char:1
++ npm.cmd test *> ../docs/fs013/NODE_TESTS.log
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 test:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run node --test tests/*.test.mjs
+✔ UC029 wire preparation preserves stable GUID, original tag, cookie and fresh CSRF, never retries unavailable publisher (737.849ms)
+✔ UC029 rejects invented revision/key and adoption before network (2.5544ms)
+✔ UC029 candidate result accepts committed pending facts and rejects malformed success (91.245ms)
+✔ assignment planning uses existing GET cookie transport with cancellation, no mutation (465.2697ms)
+✔ assignment plan rejects foreign identities, malformed candidates, unsafe IDs and unrelated shifts (59.2502ms)
+✔ assignment planning propagates real statuses once, without fallback or POST (45.6344ms)
+✔ invalid planning scope/filter never fetches; abort remains cancellation (42.348ms)
+✔ assignment draft maps exact existing request fields without network, timestamps or actor from mock (9.5054ms)
+✔ draft never authorizes legacy adoption, reassignment, unknown candidate or invalid deadline/reason (2.3041ms)
+✔ create uses shared cookie transport and fresh CSRF, no client actor or retries (331.5425ms)
+✔ create conflicts fail once without unsafe automatic retry (23.9215ms)
+✔ create refuses invalid inputs and malformed CSRF before business POST (4.2353ms)
+✔ options verifies exact room and branch and references (14.2379ms)
+✔ UC030 accepts only a different assignee, confirmed capability, UTC future deadline and override reason (20.4704ms)
+✔ Lifecycle read rejects wrong branch, invented capability and mismatched ETag (612.5144ms)
+✔ Reassign retains exact key/body/original ETag and makes one write when notification is unavailable (75.4913ms)
+✔ Start sends no client actor/time and validates server interval result (26.9929ms)
+✔ monitor uses existing cookie transport, scoped route, allowlisted query and cancellation (602.7869ms)
+✔ monitor rejects malformed rows and wrong pagination instead of mock fallback (13.8656ms)
+✔ monitor propagates 401/403/404/503 once without fallback (85.7878ms)
+✔ monitor rejects unsafe inputs before fetch (5.4062ms)
+✔ detail validates exact identity, timeline and nullable fields (15.5611ms)
+✔ UC032 reads exact active route with cookie credentials and strong HEX ETag (544.1275ms)
+✔ UC032 PUT uses fresh identity-bound CSRF and exact If-Match; 100 does not complete (8.2815ms)
+✔ UC032 rejects weak/Base64/lowercase/list tags and invalid item input before fetch (31.1203ms)
+✔ UC032 rejects cross-branch/task DTO and invalid ETag without rendering it (13.7778ms)
+✔ UC032 propagates backend statuses, performs one PUT and never retries mutation (38.268ms)
+✔ UC032 malformed CSRF prevents PUT; cancellation prevents all mutation (7.0969ms)
+✔ UC032 file policy rejects wrong size/type/signature before uploading (6.4421ms)
+✔ UC032 canceled CSRF bootstrap never starts a PUT (14.6472ms)
+✔ DEV1 scoped read sends cookie credentials and filters without prototype identity (274.2791ms)
+✔ DEV1 rejects invalid scope and prototype lifecycle filters before request (5.6554ms)
+✔ DEV1 accepts empty data; rejects wrong branch, unsafe ID and malformed DTO (70.4398ms)
+✔ DEV1 distinguishes 401/403/503 ProblemDetails; no automatic retry (127.3155ms)
+✔ DEV1 handles non-JSON and network failure without mock fallback (13.9841ms)
+✔ DEV1 propagates request cancellation (3.137ms)
+✔ DEV1 rejects cross-origin API base (44.4714ms)
+✔ prototype browsing never requires credentials or permissions (569.3195ms)
+✔ prototype work starts directly; completion updates room readiness and audit (397.0868ms)
+✔ a failed stock posting rolls back every movement and does not change draft (272.3027ms)
+✔ stale row versions are rejected and secrets are excluded from audit (265.4764ms)
+✔ ending a workday with an open interval is rejected (253.8177ms)
+✔ rich mock data meets demo volumes and every operational reference resolves (651.4868ms)
+✔ fresh seeds have stable IDs; reload preserves edits and adds no duplicate mock records (445.3706ms)
+✔ demo URL aliases resolve pre-refactor IDs without changing linked records (230.3723ms)
+✔ inspection approves cleaning and makes the room ready (809.53ms)
+✔ room block takes precedence over ready and a notification acknowledgement leaves source untouched (266.2592ms)
+✔ receipt posting changes stock once, repeated submission rejected (305.9919ms)
+✔ material approval and partial issue preserve approved remainder and reject negative stock (262.5046ms)
+✔ maintenance occurrences are generated once and next due follows schedule (256.202ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 50
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5040.7427

@@ -1,0 +1,73 @@
+{
+  "level": "REAL_AUTH_HTTPS_API_SQL",
+  "runId": "aeda4e99-158f-47f9-affd-2103375e6874",
+  "checks": [
+    {
+      "name": "suite_started",
+      "data": {
+        "forwardRecovery": true
+      }
+    },
+    {
+      "name": "workday_fixture_forward_end",
+      "data": {
+        "status": "FIXTURE_WORKDAYS_ENDED_FORWARD",
+        "reset": false,
+        "actualWorkdayHttpVerified": false
+      }
+    },
+    {
+      "name": "no_working_day_is_atomic_409",
+      "data": {
+        "noMutation": true,
+        "status": 409
+      }
+    },
+    {
+      "name": "FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients",
+      "data": {
+        "status": "failed"
+      }
+    },
+    {
+      "name": "suite_started",
+      "data": {
+        "forwardRecovery": true
+      }
+    },
+    {
+      "name": "reassign_staging_failure_rolls_interval_and_source_back",
+      "data": {
+        "status": 503,
+        "exactSnapshotUnchanged": true
+      }
+    },
+    {
+      "name": "FS013 Reassign mandatory staging failure rolls source interval and assignment back",
+      "data": {
+        "status": "passed"
+      }
+    },
+    {
+      "name": "concurrent_start_reassign",
+      "data": {
+        "statuses": [
+          200,
+          412
+        ],
+        "activeAssignments": 1,
+        "openIntervals": 1,
+        "invalidReason": 400,
+        "serverField": 400,
+        "unauthorizedReassign": 403
+      }
+    },
+    {
+      "name": "FS013 concurrent Start versus Reassign and invalid authority never leave mismatched owner/time",
+      "data": {
+        "status": "passed"
+      }
+    }
+  ],
+  "testerAcceptance": false
+}
