@@ -1,0 +1,10 @@
+﻿{
+  "status": "FS012_VERIFICATION_FAILED",
+  "stage": "candidate-boundary-proof",
+  "step": "ConnectAndValidate",
+  "invariant": null,
+  "errorType": "SqlException",
+  "hresult": -2146232060,
+  "sqlNumber": 596,
+  "details": "Provider/credential payload redacted; partial target retained; no reset/drop."
+}

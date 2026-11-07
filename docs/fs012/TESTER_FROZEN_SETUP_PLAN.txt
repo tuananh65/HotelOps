@@ -1,0 +1,9 @@
+﻿TESTED_SOURCE_HASHES_VERIFIED 603
+{
+    "mode":  "PLAN",
+    "database":  "HotelOps_Canonical_20261106_f11tester_Fresh",
+    "owner":  "DEV1_FS011Tester",
+    "existingDatabaseOverwrite":  false,
+    "faultModes":  "DENIED",
+    "requiresLocalSqlExpressAndTrustedCertificate":  true
+}

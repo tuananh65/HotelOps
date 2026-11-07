@@ -1,0 +1,17 @@
+{
+  "codeCommit": "0a4139fa3520577e82c388fab0893b508da9b820",
+  "zipSHA256": "5e63dc22d590f194b8075aca0f5eaedb8d6bfbe5be11842199db50d898323f46",
+  "files": 29,
+  "sourceFiles": 1969,
+  "unitCases": 77,
+  "unitMethods": 34,
+  "preservedFS011UnitCases": 75,
+  "baselineFunctionalCases": 38,
+  "retestGroups": 8,
+  "testerStatus": "NOT_RUN",
+  "testerExecution": "TESTER_EXECUTION_PENDING",
+  "cellsScanned": 1164,
+  "secretScan": "PASS_SCOPED_PATTERNS",
+  "archiveRoundtrip": "PASS",
+  "noPrivateArtifacts": true
+}

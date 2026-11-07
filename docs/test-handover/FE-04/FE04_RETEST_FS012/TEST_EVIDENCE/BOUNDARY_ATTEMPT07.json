@@ -1,0 +1,134 @@
+﻿{
+  "level": "REAL_SQL_DATABASE_USER_IMPERSONATION",
+  "deploymentLoginVerified": false,
+  "hostIsPrivileged": true,
+  "countOrder": [
+    "Assignment",
+    "AssignmentAudit",
+    "Operation",
+    "Publication",
+    "Intent"
+  ],
+  "checks": [
+    {
+      "name": "UC028_restricted_EF_create_cycle_readiness_audit",
+      "outcome": "PASS"
+    },
+    {
+      "name": "authorized_service_same_caller_transaction",
+      "outcome": "PASS_FIVE_DURABLE_RECORDS"
+    },
+    {
+      "name": "EF_SaveChanges_insert",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "EF_ExecuteUpdate_critical_assignee",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "EF_ExecuteDelete",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "ExecuteSql_explicit_transaction",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "raw_ADO_same_principal",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "audit_removal",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "publication_removal",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "intent_removal",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "intent_recipient_retarget",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 230
+    },
+    {
+      "name": "alternate_existing_writer_proc",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "DDL_alter_unapproved_proc",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 3701
+    },
+    {
+      "name": "independent_connection_same_principal",
+      "outcome": "DENIED_SQL_PERMISSION",
+      "sqlNumber": 229
+    },
+    {
+      "name": "UC032_restricted_EF_save_items_audit_at_100",
+      "outcome": "PASS_RETAINS_IN_PROGRESS",
+      "photoUploadVerified": false
+    },
+    {
+      "name": "module_without_caller_transaction",
+      "outcome": "DENIED_51941"
+    },
+    {
+      "name": "nested_wrong_transaction",
+      "outcome": "DENIED_51941"
+    },
+    {
+      "name": "caller_rollback_complete_bundle",
+      "outcome": "PASS_ZERO_DURABLE_RECORDS"
+    },
+    {
+      "name": "raw_provider_commit_after_approved_module",
+      "outcome": "PASS_FIVE_DURABLE_RECORDS_WITHOUT_EF_COMMIT_HOOK"
+    },
+    {
+      "name": "different_physical_transaction",
+      "outcome": "DENIED_BEFORE_PROOF_QUERY"
+    },
+    {
+      "name": "missing_audit_logs",
+      "outcome": "PASS_SQL_547_COMMIT_REJECTED_ZERO_RECORDS",
+      "transactionState": 0,
+      "commitRejected": true
+    },
+    {
+      "name": "missing_notification_publications",
+      "outcome": "PASS_SQL_547_COMMIT_REJECTED_ZERO_RECORDS",
+      "transactionState": 0,
+      "commitRejected": true
+    },
+    {
+      "name": "two_independent_concurrent_approved_writers",
+      "outcome": "PASS_ONE_COMMIT_ONE_STALE",
+      "outcomes": [
+        "STALE_REJECTED",
+        "COMMITTED"
+      ]
+    },
+    {
+      "name": "privileged_external_reason_write",
+      "outcome": "EXPECTED_UNPROTECTED_PERSISTED_WITHOUT_ADDITIONAL_PROOF",
+      "task": 17,
+      "marker": "FS012_PRIVILEGED_BYPASS_003a4da735e643fe96c21977c5e0a07f"
+    }
+  ],
+  "acceptedA01": false
+}

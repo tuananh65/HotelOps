@@ -1,0 +1,233 @@
+﻿{
+    "databaseName":  "HotelOps_Canonical_20261106_f120001_Fresh",
+    "verificationHostIsSysadmin":  1,
+    "residualFaultConstraintCount":  0,
+    "principals":  [
+                       {
+                           "name":  "fs012_app",
+                           "type_desc":  "SQL_USER",
+                           "authentication_type_desc":  "NONE"
+                       }
+                   ],
+    "permissions":  [
+                        {
+                            "permission_name":  "CONNECT",
+                            "state_desc":  "GRANT"
+                        },
+                        {
+                            "permission_name":  "VIEW DEFINITION",
+                            "state_desc":  "GRANT"
+                        },
+                        {
+                            "permission_name":  "SELECT",
+                            "state_desc":  "GRANT"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_progress_versions"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_progress_versions"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_task_items"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_task_items"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "progress_evidence_links"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "room_cleaning_cycle_state"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "room_cleaning_cycle_state"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "room_readiness_events"
+                        },
+                        {
+                            "permission_name":  "DELETE",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_operation_reservations"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_operation_reservations"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_operation_reservations"
+                        },
+                        {
+                            "permission_name":  "DELETE",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_publications"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_publications"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_publications"
+                        },
+                        {
+                            "permission_name":  "DELETE",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_delivery_intents"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "DENY",
+                            "objectName":  "notification_delivery_intents"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "status"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "attempt_count"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "next_attempt_at"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "claim_id"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "claimed_until"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "failure_code"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "notification_delivery_intents",
+                            "columnName":  "inbox_notification_id"
+                        },
+                        {
+                            "permission_name":  "DELETE",
+                            "state_desc":  "DENY",
+                            "objectName":  "audit_logs"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "audit_logs"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "DENY",
+                            "objectName":  "audit_logs"
+                        },
+                        {
+                            "permission_name":  "DELETE",
+                            "state_desc":  "DENY",
+                            "objectName":  "cleaning_assignments"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "DENY",
+                            "objectName":  "cleaning_assignments"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "DENY",
+                            "objectName":  "cleaning_assignments"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_progress_logs"
+                        },
+                        {
+                            "permission_name":  "EXECUTE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "fs009_verify_assignment_guard"
+                        },
+                        {
+                            "permission_name":  "INSERT",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_tasks"
+                        },
+                        {
+                            "permission_name":  "UPDATE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "cleaning_tasks"
+                        },
+                        {
+                            "permission_name":  "EXECUTE",
+                            "state_desc":  "GRANT",
+                            "objectName":  "fs012_assign_with_evidence"
+                        }
+                    ],
+    "assignmentTriggers":  [
+                               {
+                                   "name":  "TR_progress_cleaning_owner_v1",
+                                   "is_disabled":  false
+                               }
+                           ],
+    "modules":  [
+                    {
+                        "name":  "fs012_assign_with_evidence",
+                        "definitionSqlUnicodeSHA256":  "E3702409060082A1D5891038D34705DE2F0937B2315F220198D6A94A6DF2DA46"
+                    },
+                    {
+                        "name":  "fs012_unapproved_writer_probe",
+                        "definitionSqlUnicodeSHA256":  "46A134EDC871465142A5BE0B95982D3AF6C910A2F08925CB8DE91A141C859C12"
+                    }
+                ],
+    "effectiveDboProcedureExecute":  [
+                                         {
+                                             "name":  "fs009_verify_assignment_guard",
+                                             "effectiveExecute":  1
+                                         },
+                                         {
+                                             "name":  "fs012_assign_with_evidence",
+                                             "effectiveExecute":  1
+                                         },
+                                         {
+                                             "name":  "fs012_unapproved_writer_probe",
+                                             "effectiveExecute":  0
+                                         }
+                                     ]
+}

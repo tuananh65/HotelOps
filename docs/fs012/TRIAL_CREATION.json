@@ -1,0 +1,11 @@
+﻿{
+    "mode":  "CREATED_NEW_DISPOSABLE",
+    "database":  "HotelOps_Canonical_20261106_f120001_Fresh",
+    "owner":  "DEV1_FS012",
+    "sourceHashes":  "Matched",
+    "syntheticSeedOnly":  true,
+    "usersSeeded":  false,
+    "runtimeSchemaValidators":  "NotYetRun",
+    "existingDatabaseWritten":  false,
+    "dropOrReset":  false
+}

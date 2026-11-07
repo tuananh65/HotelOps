@@ -1,0 +1,8 @@
+﻿{
+  "status": "APPENDED_NEW_SYNTHETIC_SHIFT",
+  "shiftId": 2,
+  "scheduledStartAt": "2026-11-06T23:42:22.9890966Z",
+  "scheduledEndAt": "2026-11-07T07:43:22.9890966Z",
+  "priorRowsChanged": false,
+  "testerDatabaseWritten": false
+}

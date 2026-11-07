@@ -1,0 +1,8 @@
+# FS-013 đề xuất và các gate còn mở
+
+1. Nhận/pin accepted A01/A02 executable source (commit + interface/implementation + DI + transaction contract). Reconcile một producer/delivery path, không phát minh accepted signature từ authorization note.
+2. Thiết kế deployment principal/login cho đúng môi trường đã được team duyệt; chạy API bằng login thực sự hạn quyền, không dùng host sysadmin impersonation làm deployment evidence. Review toàn quyền cần cho auth/session/notification/UC032 photos và writer modules, không áp fs012_app prototype lên shared backend.
+3. Kiểm chứng writer drift ở task/delivery sau module; review procedure quyền actor/eligibility, lock ordering, all executable dbo modules, column grants và future UC030 paths. Privileged DB administration cần quy trình/audit ngoài application boundary; không hứa ngăn sysadmin bằng EF interceptor.
+4. Tiếp nhận Tester feedback từ frozen FS011 package, giữ TESTER_EXECUTION_PENDING đến khi có kết quả thực. Triage defects theo mức độ, phát hành retest checkpoint mới; không sửa workbook cũ/Actual Result/Status thay Tester.
+5. Chuẩn bị clean UC028 slice khi có baseline integration review; kiểm dependency closure và room-history interpretation; không PR nguyên branch có Notification provisional. Các UC030/031/033–036 còn thiếu implementation, UC037/038 chưa có full acceptance.
+6. Nếu cần đánh giá lỗi transport, thực hiện network-disconnect/SQL-unavailable/abrupt worker-kill trên scratch riêng; bốn commit tests hiện là provider-ack/cancellation simulation với SQL thật. Không chuyển simulated proof thành real network recovery acceptance.

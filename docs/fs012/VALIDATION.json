@@ -1,0 +1,186 @@
+{
+  "overall": "PARTIAL_ACCEPTANCE_AND_INTEGRATION",
+  "baseline": "0ad98b951cf4737842afe3e382e897f7fb4bacc8",
+  "runtimeSource": "d1260425206a953086107eb8de97f845405fc782",
+  "codeCheckpoint": "0a4139fa3520577e82c388fab0893b508da9b820",
+  "backendBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionTest": "EXIT0_API_ONLY_NO_XUNIT_PROJECT",
+  "xunit": {
+    "passed": 137,
+    "failed": 0,
+    "skipped": 0,
+    "trx": "evidence/fs012.trx",
+    "warnings": [
+      "NU1900 vulnerability metadata unavailable"
+    ]
+  },
+  "frontendBuild": {
+    "result": "PASS",
+    "warnings": [
+      "Inherited React Router use-client",
+      "Vite chunks >500KB"
+    ]
+  },
+  "helperBuild": {
+    "result": "PASS",
+    "warnings": [
+      "NU1900"
+    ]
+  },
+  "node": {
+    "passed": 46,
+    "failed": 0,
+    "priorSandboxAttempt": "FAIL_ACCESS_DENIED_EXISTING_TEST_OUTPUT"
+  },
+  "interception": {
+    "passed": 47,
+    "failed": 0,
+    "api": "MOCKED"
+  },
+  "liveRuns": [
+    {
+      "file": "full01_LIVE_RESULTS.json",
+      "runId": "bb931f6c-d956-4e76-acd1-a1227146e785",
+      "recorded": 11,
+      "passed": 7,
+      "failed": 4,
+      "notRecorded": 1
+    },
+    {
+      "file": "full02_LIVE_RESULTS.json",
+      "runId": "32216057-ebdd-42eb-af3a-24e2655966be",
+      "recorded": 12,
+      "passed": 12,
+      "failed": 0,
+      "notRecorded": 0
+    }
+  ],
+  "full02Helpers": {
+    "calls": 72,
+    "timeouts": 0,
+    "maxMs": 15569,
+    "timeoutSettingsChanged": false
+  },
+  "actualRestart": {
+    "level": "LIVE_API_SQL",
+    "passed": true,
+    "ownedApiGatewayViteRestart": true,
+    "originalIfMatchPreserved": true,
+    "durableResultEqual": true,
+    "notificationRowsUnchanged": true,
+    "publicationCount": 1,
+    "databaseReset": false
+  },
+  "defaultOff": {
+    "status": "PASS_REAL_BROWSER_API_SQL_DEFAULT_OFF",
+    "assignment": 503,
+    "capability": "UNAVAILABLE",
+    "reactSaveDisabled": true,
+    "mutation": false,
+    "sharedProductionActivation": false
+  },
+  "sqlBoundary": {
+    "checks": 24,
+    "protectedOrCompatibility": 23,
+    "privilegedBypass": 1,
+    "identity": "NOLOGIN_DATABASE_USER_IMPERSONATION",
+    "deployedLoginVerified": false,
+    "liveApiUsesPrivilegedDeveloperIdentity": true
+  },
+  "commitFault": {
+    "passed": 4,
+    "actualSql": true,
+    "authDoubles": true,
+    "actualNetworkDisconnect": false
+  },
+  "physicalGuard": {
+    "protected": 8,
+    "unsupportedRawProviderBypass": 1,
+    "universalPhysicalGuard": false
+  },
+  "sqlProposalConstraints": {
+    "passed": 6,
+    "remainingTestRows": 0
+  },
+  "testerPreflight": {
+    "mode": "READ_ONLY",
+    "schema": "PASS",
+    "users": 4,
+    "rooms": 27,
+    "tasks": 3,
+    "faultsExecuted": false,
+    "execution": "TESTER_EXECUTION_PENDING"
+  },
+  "frozenHandover": {
+    "result": "PASS_FROZEN_BYTES_AND_CONTENTS",
+    "zipSHA256": "8e661796fe83b7b15c16d84f79547ce72e4cdd6272f7996ce2fc659003141974",
+    "codeCommit": "4f62d1388a6669fbf61ead520ee8d33bc8ae8809",
+    "files": 30,
+    "sourceFiles": 603,
+    "sourceChangesSinceFS011": [
+      "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCandidateService.cs",
+      "src/HotelOps.Api/Services/Housekeeping/CleaningTaskCreationService.cs",
+      "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs"
+    ],
+    "mapping": {
+      "functionalCases": 38,
+      "testerStatuses": "ALL_NOT_RUN",
+      "unitCases": 75,
+      "unitMethods": 34
+    },
+    "sheets": [
+      {
+        "workbook": "TESTER_TEST_CASES.xlsx",
+        "sheet": "Tester cases",
+        "rows": 39
+      },
+      {
+        "workbook": "UNIT_TEST_CASES.xlsx",
+        "sheet": "Automated unit cases",
+        "rows": 76
+      }
+    ],
+    "xlsxCellsScanned": 1686,
+    "secretScan": "PASS_SCOPED_PATTERNS",
+    "testerExecution": "TESTER_EXECUTION_PENDING",
+    "writesToFrozenPackage": false
+  },
+  "portableSetup": {
+    "workspacePlan": "PASS",
+    "freshGitArchivePlan": "PASS",
+    "newDatabaseCreatedDuringPortabilityCheck": false,
+    "historicalRawSchemaMarkersPreserved": true
+  },
+  "finalStop": {
+    "status": "OWNED_SERVICES_STOPPED",
+    "stopped": 3,
+    "alreadyExited": 0,
+    "databaseDropped": false,
+    "privateFilesDeleted": false
+  },
+  "residualFaultConstraints": 0,
+  "format": {
+    "diffWhitespace": "PASS",
+    "newTypeScriptPrettier": "PASS",
+    "powerShellAst": "PASS",
+    "javascriptSyntax": "PASS"
+  },
+  "a01a02": "MISSING_EXECUTABLE_SOURCE",
+  "uc028": "VERIFIED_LOCAL",
+  "uc029": "PROVISIONAL_NOT_ACCEPTED",
+  "mergeReady": false,
+  "testerAccepted": false,
+  "productionActivation": false,
+  "limitations": [
+    "Deployed restricted login not tested",
+    "Restricted inbox/attachments not granted or tested",
+    "Privileged and raw post-module task/delivery drift remain outside boundary",
+    "No real network outage/abrupt worker kill test",
+    "Live01 interruption root cause not proven",
+    "No accepted A01/A02 or Tester feedback/acceptance"
+  ]
+}

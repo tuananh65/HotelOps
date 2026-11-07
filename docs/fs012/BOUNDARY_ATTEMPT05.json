@@ -1,0 +1,11 @@
+﻿{
+  "status": "FS012_VERIFICATION_FAILED",
+  "stage": "candidate-boundary-proof",
+  "step": "ConnectAndValidate",
+  "invariant": null,
+  "errorType": "InvalidCastException",
+  "hresult": -2147467262,
+  "sqlNumber": null,
+  "sqlErrors": null,
+  "details": "Provider/credential payload redacted; partial target retained; no reset/drop."
+}

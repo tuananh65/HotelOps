@@ -1,0 +1,24 @@
+{
+  "archive": "docs/fs012/evidence/full01-original-error-context.zip",
+  "zipSHA256": "a07786a27c7f2d6ab090cfae1ecbdb4025ffbb90c3dd17d926cb212996bd3bd9",
+  "files": [
+    {
+      "path": "fs012-live-FS012-blocked-r-bcc35-exposes-actual-item-preview.md",
+      "sha256": "79580f8ce27b22593213db805fe1c5781b38ae0ec455e5b3234d530b27d6479f"
+    },
+    {
+      "path": "fs012-live-FS012-concurren-88dfa-durable-retry-after-restart.md",
+      "sha256": "a0a1fb20d32defb24707cf126d0de2639ae22e4d5e06dc319f89279b18a68a2a"
+    },
+    {
+      "path": "fs012-live-FS012-persisted-b5b7b-ent-never-create-inbox-rows.md",
+      "sha256": "ef199cda9ed548df818f68309feed094e5c5f4a7076a1b9cff0652e4710c8f09"
+    },
+    {
+      "path": "fs012-live-FS012-revoked-r-7e907-ard-rejects-missing-records.md",
+      "sha256": "c73403e6bd72ed024370275c094bba231fc320c2a7881bbddf288118beaec969"
+    }
+  ],
+  "roundtrip": "PASS",
+  "renderedMarkdownChange": "Trailing presentation whitespace only; errors/status/source text unchanged; raw bytes preserved in archive"
+}

@@ -1,0 +1,34 @@
+{
+  "result": "PASS_FROZEN_BYTES_AND_CONTENTS",
+  "zipSHA256": "8e661796fe83b7b15c16d84f79547ce72e4cdd6272f7996ce2fc659003141974",
+  "codeCommit": "4f62d1388a6669fbf61ead520ee8d33bc8ae8809",
+  "files": 30,
+  "sourceFiles": 603,
+  "sourceChangesSinceFS011": [
+    "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCandidateService.cs",
+    "src/HotelOps.Api/Services/Housekeeping/CleaningTaskCreationService.cs",
+    "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs"
+  ],
+  "mapping": {
+    "functionalCases": 38,
+    "testerStatuses": "ALL_NOT_RUN",
+    "unitCases": 75,
+    "unitMethods": 34
+  },
+  "sheets": [
+    {
+      "workbook": "TESTER_TEST_CASES.xlsx",
+      "sheet": "Tester cases",
+      "rows": 39
+    },
+    {
+      "workbook": "UNIT_TEST_CASES.xlsx",
+      "sheet": "Automated unit cases",
+      "rows": 76
+    }
+  ],
+  "xlsxCellsScanned": 1686,
+  "secretScan": "PASS_SCOPED_PATTERNS",
+  "testerExecution": "TESTER_EXECUTION_PENDING",
+  "writesToFrozenPackage": false
+}

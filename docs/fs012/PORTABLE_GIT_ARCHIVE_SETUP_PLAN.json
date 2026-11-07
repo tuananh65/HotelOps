@@ -1,0 +1,10 @@
+﻿{
+    "mode":  "PLAN_ONLY",
+    "server":  ".\\SQLEXPRESS",
+    "database":  "HotelOps_Canonical_20261106_f120001_Fresh",
+    "sourceCount":  18,
+    "sourceHashes":  "MatchedNormalizedTextLF",
+    "createsDatabase":  false,
+    "requiresUserApproval":  true,
+    "resetOrDropSupported":  false
+}

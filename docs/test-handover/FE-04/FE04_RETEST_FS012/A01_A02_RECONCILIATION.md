@@ -1,0 +1,7 @@
+# A01/A02 — MISSING_EXECUTABLE_SOURCE
+
+Read-only `git ls-remote --heads origin` được lưu ở REMOTE_PREFLIGHT.txt. DEV1 remote khớp baseline 0ad98b951cf4737842afe3e382e897f7fb4bacc8; working tree ban đầu sạch. Mười tip BE2/DEV2/develop2 liên quan trong đợt FS011 vẫn giống hệt (asset, incident, incident-corrective-integrity, maintenance, replenishment, hai deactivation-writer-coordination, inventory-authz-clean, maintenance-returnwork-coordination, FE+BE/develop2). Không có tip/artifact Notification mới được cung cấp trong phiên này. Không fetch/merge, không lặp lại discovery lịch sử hoặc tự coi develop/nhánh frontend là publisher.
+
+Nguồn authorization lịch sử vẫn là `docs/external-handoff/DEV2_FS007_UC029_AUTH_01.md`. Authorization handoff không phải accepted executable interface/implementation, DI lifetime hoặc physical-transaction contract. Không có bằng chứng mới để reconcile accepted A01/A02. Kết luận **MISSING_EXECUTABLE_SOURCE**, UC029 **PROVISIONAL_NOT_ACCEPTED**, shared/production OFF.
+
+FS012 chỉ thay đường ghi candidate trên trial riêng. Không tạo accepted event catalog, không thêm dispatcher hosted, không đăng ký publisher thứ hai. Khi accepted source đến: pin exact commit/artifact/hash; đối chiếu interface/implementation/DI, ownership của transaction, event/schema/payload/fingerprint/result, replay/claims/retry, explicit recipient/source authorization; chuyển một producer sang implementation đã reconcile; chạy lại SQL/API/HTTPS và các fault/replay tests. Integration review quyết định adaptation, không lấy local PASS thay approval.

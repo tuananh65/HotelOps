@@ -1,0 +1,10 @@
+﻿{
+  "status": "SCHEMA_VALIDATORS_PASS",
+  "schema": {
+    "startup": 0,
+    "roomTypes": 1,
+    "checklists": 1,
+    "housekeeping": true,
+    "progress": true
+  }
+}

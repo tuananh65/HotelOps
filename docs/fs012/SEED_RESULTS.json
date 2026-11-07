@@ -1,0 +1,8 @@
+﻿{
+  "status": "SYNTHETIC_FIXTURES_CREATED",
+  "accounts": 4,
+  "rooms": 27,
+  "privateCredentialFile": "FS012/.private/fixture.json",
+  "database": "HotelOps_Canonical_20261106_f120001_Fresh",
+  "noProductionImport": true
+}

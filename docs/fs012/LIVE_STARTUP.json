@@ -1,0 +1,10 @@
+﻿{
+    "status":  "LIVE_SERVICES_READY",
+    "target":  "HotelOps_Canonical_20261106_f120001_Fresh",
+    "browser":  "https://localhost:5173",
+    "routeChain":  "TLS store-key gateway -\u003e Vite loopback proxy -\u003e HTTPS API -\u003e approved SQL trial",
+    "privateKeyExport":  false,
+    "trustStoreChange":  false,
+    "authenticationVerified":  false,
+    "processReceipt":  "FS012/.private/processes.json"
+}

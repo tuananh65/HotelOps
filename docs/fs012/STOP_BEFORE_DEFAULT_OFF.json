@@ -1,0 +1,7 @@
+﻿{
+    "status":  "OWNED_SERVICES_STOPPED",
+    "stopped":  3,
+    "alreadyExited":  0,
+    "databaseDropped":  false,
+    "privateFilesDeleted":  false
+}
