@@ -47,6 +47,7 @@ internal static class ReassignmentCommitProof
             var result = await service.ReassignCleaningAsync(ticket, 1, room.BranchId, task, assigned.ETag!, key.ToString("D"), command, cancellation.Token);
             var committed = fault is "after-commit" or "cancel-after";
             if (result.Status != (committed ? RoomTypeBatchStatus.Success : RoomTypeBatchStatus.Unavailable)) throw new InvalidOperationException("WRONG_RECOVERY_OUTCOME_" + fault);
+            if (committed && !HotelOps.Api.Services.Housekeeping.CleaningLifecycleRules.StrongTag(result.ETag!)) throw new InvalidOperationException("INVALID_DURABLE_RESULT_TAG");
             // Fresh context models restart; never consult the service's memory to decide commit outcome.
             await using var fresh = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection).AddInterceptors(CandidateCommitGuard.Instance, CandidateCommandGuard.Instance).Options);
             var after = await CountsAsync(fresh, task, ct);
@@ -55,6 +56,7 @@ internal static class ReassignmentCommitProof
             var retryService = new RoomTypeCreationService(fresh, gate, gate, gate, TimeProvider.System, new(fresh, config, new CandidateEnvironment()));
             var retry = await retryService.ReassignCleaningAsync(ticket, 1, room.BranchId, task, assigned.ETag!, key.ToString("D"), command, ct);
             if (retry.Status != RoomTypeBatchStatus.Success) throw new InvalidOperationException("RESTART_REPLAY_FAILED");
+            if (!HotelOps.Api.Services.Housekeeping.CleaningLifecycleRules.StrongTag(retry.ETag!)) throw new InvalidOperationException("INVALID_REPLAY_TAG");
             var final = await CountsAsync(fresh, task, ct);
             if (!final.Zip(before, (a, b) => a - b).SequenceEqual(new[] { 1, 1, 1, 2 })) throw new InvalidOperationException("RETRY_DUPLICATED_RECORDS");
             results.Add(new { fault, result = result.Status.ToString(), delta, restartRetry = "SUCCESS_EXACTLY_ONCE", gate = "COMPONENT_DOUBLE_NOT_AUTH_EVIDENCE" });

@@ -8,6 +8,11 @@ public static class CleaningLifecycleRules
 {
     public static bool StrongTag(string? value) => value is { Length: 18 } && value[0] == '"' && value[^1] == '"'
         && value[1..^1].All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
+    public static bool ValidReassignmentResult(ReassignedCleaningDto value, long branch, long task, Guid operation, long assignee)
+        => value.Id == task && value.BranchId == branch && value.OperationId == operation && value.AssigneeId == assignee
+        && value.AssignmentId > 0 && value.PreviousAssignmentId > 0 && value.AssignmentId != value.PreviousAssignmentId
+        && value.PreviousAssigneeId > 0 && value.PreviousAssigneeId != value.AssigneeId && StrongTag(value.SourceETag)
+        && value.State == "ASSIGNED" && value.Notification == "PENDING_DELIVERY" && value.Contract == "PROVISIONAL_NOT_ACCEPTED";
     public static string Reason(string? value, int minimum = 10)
     {
         var text = value?.Trim();

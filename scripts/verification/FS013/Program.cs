@@ -136,6 +136,22 @@ try
             var delivered = await db.Database.SqlQueryRaw<LifecycleDeliveredRow>("SELECT i.operation_key AS Operation,i.recipient_kind AS RecipientKind,n.notification_id AS NotificationId,n.action_url AS ActionUrl,n.source_id AS SourceId FROM dbo.fs013_reassignment_intents i JOIN dbo.notifications n ON n.notification_id=i.inbox_notification_id ORDER BY i.intent_id").ToArrayAsync(ct);
             Console.WriteLine(JsonSerializer.Serialize(new { commands, notices, intervals, tasks, assignments, delivered, auditCount }, jsonOptions)); return;
         }
+        if (mode == "candidate-end-fixture-workdays")
+        {
+            var selectedUsers = await db.Users.AsNoTracking().Where(x => x.Username == "fs013.owner" || x.Username == "fs013.other").OrderBy(x => x.UserId).ToArrayAsync(ct);
+            await using var fixtureEndTransaction = await db.Database.BeginTransactionAsync(ct);
+            var timeParticipant = new HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant(db);
+            await timeParticipant.LockUsersAsync(selectedUsers.Select(x => x.UserId).ToArray(), ct);
+            foreach (var selectedUser in selectedUsers)
+            {
+                var day = await db.Workdays.AsNoTracking().SingleOrDefaultAsync(x => x.UserId == selectedUser.UserId && x.Status == "WORKING", ct);
+                if (day == null) continue;
+                await timeParticipant.EndWorkdayAsync(selectedUser.UserId, day.BranchId, day.WorkdayId, day.RowVersion, ct);
+                db.ChangeTracker.Clear();
+            }
+            await fixtureEndTransaction.CommitAsync(ct);
+            Console.WriteLine("{\"status\":\"FIXTURE_WORKDAYS_ENDED_FORWARD\",\"reset\":false,\"actualWorkdayHttpVerified\":false}"); return;
+        }
         if (mode == "candidate-start-fixture-workdays")
         {
             var selectedUsers = await db.Users.AsNoTracking().Where(x => x.Username == "fs013.owner" || x.Username == "fs013.other").OrderBy(x => x.UserId).ToArrayAsync(ct);

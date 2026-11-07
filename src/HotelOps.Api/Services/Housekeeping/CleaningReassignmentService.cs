@@ -46,7 +46,8 @@ public sealed partial class RoomTypeCreationService
             {
                 if (!previous[0].Fingerprint.SequenceEqual(fingerprint)) return new(RoomTypeBatchStatus.Duplicate);
                 var stored = JsonSerializer.Deserialize<ReassignedCleaningDto>(previous[0].ResultJson, Json) ?? throw new InvalidOperationException("INVALID_DURABLE_REASSIGN_RESULT");
-                if (stored.Id != task || stored.BranchId != branch) return new(RoomTypeBatchStatus.Unavailable);
+                if (!CleaningLifecycleRules.ValidReassignmentResult(stored, branch, task, operation, request.AssigneeId))
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
                 return new(RoomTypeBatchStatus.Success, stored, stored.SourceETag);
             }
             if (recoveryOnly) return new(RoomTypeBatchStatus.Unavailable);
@@ -66,6 +67,9 @@ public sealed partial class RoomTypeCreationService
             {
                 if (interval.Length != 1 || interval[0].UserId != old.AssigneeUserId) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "SOURCE_INTERVAL_REQUIRED");
                 await time.CloseIntervalAsync(new(actor, old.AssigneeUserId, branch, "CLEANING", task), interval[0].IntervalId, interval[0].RowVersion, token);
+                // The participant saves its audit entities; the final SQL session gate requires
+                // an untracked context. No pending writes remain after CloseIntervalAsync.
+                db.ChangeTracker.Clear();
                 closedIntervalId = interval[0].IntervalId;
             }
             else if (interval.Length != 0) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "SOURCE_INTERVAL_STATE_CONFLICT");
@@ -73,6 +77,10 @@ public sealed partial class RoomTypeCreationService
             var values = await db.Database.SqlQuery<string>($"EXEC dbo.fs013_reassign_with_evidence @actor={actor},@branch={branch},@task={task},@previous={old.AssignmentId},@assignee={request.AssigneeId},@operation={operation},@fingerprint={fingerprint},@expected={expected},@due={request.DueAt},@reason={request.Reason},@closedInterval={closedIntervalId}").ToArrayAsync(token);
             if (values.Length != 1) throw new InvalidOperationException("REASSIGN_RESULT_REQUIRED");
             var result = JsonSerializer.Deserialize<ReassignedCleaningDto>(values[0], Json) ?? throw new InvalidOperationException("REASSIGN_RESULT_REQUIRED");
+            if (!CleaningLifecycleRules.ValidReassignmentResult(result, branch, task, operation, request.AssigneeId)
+                || result.PreviousAssignmentId != old.AssignmentId || result.PreviousAssigneeId != old.AssigneeUserId
+                || result.SourceETag != WorkflowTag((await CleaningState(task, token)).Revision))
+                return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
             mutation = true;
             return new(RoomTypeBatchStatus.Success, result, result.SourceETag);
         }, ct, additionalUsers: users, permissionCode: "CLEANING_ASSIGN", requireRoomTypeSchema: false, preserveCommitErrors: true,

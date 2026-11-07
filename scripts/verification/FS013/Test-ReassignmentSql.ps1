@@ -34,9 +34,11 @@ ELSE INSERT dbo.room_cleaning_cycle_state(room_id,cleaning_task_id) VALUES(@room
 DECLARE @interval bigint=NULL;
 '@
    $interval=@'
-DECLARE @day bigint;
+DECLARE @day bigint=(SELECT workday_id FROM dbo.workdays WHERE user_id=@owner AND status='WORKING');
+IF @day IS NULL BEGIN
 INSERT dbo.workdays(user_id,branch_id,department_id,work_date,is_unscheduled,unscheduled_reason,status,started_at) SELECT @owner,@branch,department_id,CONVERT(date,@now),1,'FS013 rollback component fixture','WORKING',DATEADD(minute,-2,@now) FROM dbo.users WHERE user_id=@owner;
 SET @day=CONVERT(bigint,SCOPE_IDENTITY());
+END;
 INSERT dbo.work_intervals(workday_id,user_id,branch_id,work_item_kind,work_item_id,opened_by,opened_at,effective_started_at) VALUES(@day,@owner,@branch,'CLEANING',@task,@owner,DATEADD(minute,-1,@now),DATEADD(minute,-1,@now));
 SET @interval=CONVERT(bigint,SCOPE_IDENTITY());
 UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS' WHERE cleaning_task_id=@task;
@@ -49,6 +51,7 @@ EXEC dbo.fs013_reassign_with_evidence @actor,@branch,@task,@previous,@next,@key,
 IF (SELECT COUNT(*) FROM dbo.fs013_reassignment_intents WHERE actor_user_id=@actor AND operation_key=@key)<>2 THROW 51970,'Two intents required',1;
 IF NOT EXISTS(SELECT 1 FROM dbo.cleaning_assignments WHERE assignment_id=@previous AND ended_at IS NOT NULL) THROW 51970,'Previous assignment not ended',1;
 IF NOT EXISTS(SELECT 1 FROM dbo.cleaning_assignments WHERE cleaning_task_id=@task AND assignee_user_id=@next AND ended_at IS NULL) THROW 51970,'New owner missing',1;
+IF NOT EXISTS(SELECT 1 FROM dbo.fs013_reassignment_operations WHERE actor_user_id=@actor AND operation_key=@key AND LEN(JSON_VALUE(result_json,'$.sourceETag'))=18 AND SUBSTRING(JSON_VALUE(result_json,'$.sourceETag'),2,16) NOT LIKE '%[^0-9A-F]%') THROW 51970,'Strong hexadecimal ETag required',1;
 IF @interval IS NOT NULL AND NOT EXISTS(SELECT 1 FROM dbo.work_intervals w JOIN dbo.cleaning_assignments a ON a.assignment_id=@previous WHERE w.interval_id=@interval AND a.ended_at=w.closed_at) THROW 51970,'Close time mismatch',1;
 SELECT 1;
 '@

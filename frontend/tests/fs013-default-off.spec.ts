@@ -46,6 +46,9 @@ test("FS013 disabled candidate retains real 503/no mutation and disabled React S
     ).status(),
   ).toBe(200);
   const before = {
+    execution: helper("candidate-lifecycle-inspect", [
+      "--local-sql-certificate-exception",
+    ]),
     source: helper("lifecycle-inspect", ["--local-sql-certificate-exception"]),
     notifications: helper("candidate-inspect", [
       "--local-sql-certificate-exception",
@@ -87,7 +90,51 @@ test("FS013 disabled candidate retains real 503/no mutation and disabled React S
   );
   await expect(page.locator("select[name=assigneeId]")).toBeVisible();
   await expect(page.locator("form button[type=button]")).toBeDisabled();
+  const active = before.execution.assignments.find(
+    (a: any) =>
+      a.endedAt === null &&
+      before.execution.tasks.some(
+        (t: any) =>
+          t.cleaningTaskId === a.cleaningTaskId && t.status === "PENDING",
+      ),
+  );
+  expect(active).toBeTruthy();
+  const execution = await page.request.get(
+    `/api/branches/${fixture.branchId}/cleaning-tasks/${active.cleaningTaskId}/execution`,
+  );
+  expect(execution.status()).toBe(200);
+  expect((await execution.json()).reassignCapability).toBe("UNAVAILABLE");
+  const reassignCsrf = await (await page.request.get("/api/auth/csrf")).json();
+  const reassign = await page.request.post(
+    `/api/branches/${fixture.branchId}/cleaning-tasks/${active.cleaningTaskId}/reassign`,
+    {
+      headers: {
+        "X-CSRF-TOKEN": reassignCsrf.csrfToken,
+        "If-Match": execution.headers().etag,
+        "Idempotency-Key": crypto.randomUUID(),
+      },
+      data: {
+        assigneeId:
+          active.assigneeUserId === accounts.owner.userId
+            ? accounts.other.userId
+            : accounts.owner.userId,
+        dueAt: new Date(Date.now() + 3600000).toISOString(),
+        reason: "FS013 disabled reassignment proof",
+      },
+    },
+  );
+  expect(reassign.status()).toBe(503);
+  await page.goto(
+    `/cleaning/tasks/${active.cleaningTaskId}?branchId=${fixture.branchId}&execution=1`,
+  );
+  await expect(page.getByRole("heading", { level: 2 })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Lưu phân công lại", exact: true }),
+  ).toHaveCount(0);
   const after = {
+    execution: helper("candidate-lifecycle-inspect", [
+      "--local-sql-certificate-exception",
+    ]),
     source: helper("lifecycle-inspect", ["--local-sql-certificate-exception"]),
     notifications: helper("candidate-inspect", [
       "--local-sql-certificate-exception",
@@ -100,6 +147,7 @@ test("FS013 disabled candidate retains real 503/no mutation and disabled React S
       {
         status: "PASS_REAL_BROWSER_API_SQL_DEFAULT_OFF",
         assignment: 503,
+        reassignment: 503,
         capability: "UNAVAILABLE",
         reactSaveDisabled: true,
         mutation: false,

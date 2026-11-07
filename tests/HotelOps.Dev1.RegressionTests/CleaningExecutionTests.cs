@@ -8,6 +8,36 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class CleaningExecutionTests
 {
     [Theory]
+    [InlineData("valid", true)]
+    [InlineData("binaryTag", false)]
+    [InlineData("task", false)]
+    [InlineData("branch", false)]
+    [InlineData("operation", false)]
+    [InlineData("owner", false)]
+    [InlineData("sameOwner", false)]
+    [InlineData("state", false)]
+    [InlineData("notification", false)]
+    [InlineData("contract", false)]
+    public void Durable_reassignment_result_must_match_command_and_safe_HTTP_contract(string changed, bool expected)
+    {
+        var operation = Guid.Parse("f1300010-0000-4000-8000-000000000001");
+        var value = new ReassignedCleaningDto(3, 2, 4, 6, 5, 7, operation, "ASSIGNED", "PENDING_DELIVERY", "\"000000000000000A\"");
+        value = changed switch
+        {
+            "binaryTag" => value with { SourceETag = "\"\0\0\0\0\0\0\0A\"" },
+            "task" => value with { Id = 99 },
+            "branch" => value with { BranchId = 99 },
+            "operation" => value with { OperationId = Guid.Empty },
+            "owner" => value with { AssigneeId = 8 },
+            "sameOwner" => value with { PreviousAssigneeId = 7 },
+            "state" => value with { State = "IN_PROGRESS" },
+            "notification" => value with { Notification = "DELIVERED" },
+            "contract" => value with { Contract = "ACCEPTED" },
+            _ => value
+        };
+        Assert.Equal(expected, CleaningLifecycleRules.ValidReassignmentResult(value, 2, 3, operation, 7));
+    }
+    [Theory]
     [InlineData("ASSIGNED", 1, 1, false, null)]
     [InlineData("ASSIGNED", 2, 1, false, "CURRENT_ASSIGNEE_REQUIRED")]
     [InlineData("IN_PROGRESS", 1, 1, false, "TASK_NOT_ASSIGNED")]

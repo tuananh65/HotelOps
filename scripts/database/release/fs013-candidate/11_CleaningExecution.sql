@@ -68,7 +68,7 @@ BEGIN
  AND EXISTS(SELECT 1 FROM dbo.fs013_reassignment_intents i WHERE i.actor_user_id=@actor AND i.operation_key=@operation AND i.user_id=p.assignee_user_id AND i.recipient_kind='PREVIOUS')
  AND EXISTS(SELECT 1 FROM dbo.fs013_reassignment_intents i WHERE i.actor_user_id=@actor AND i.operation_key=@operation AND i.user_id=a.assignee_user_id AND i.recipient_kind='NEW')
  AND (@mutation=0 OR(a.ended_at IS NULL AND a.assignment_status='ACTIVE' AND t.workflow_status='ASSIGNED' AND t.status='PENDING'
- AND JSON_VALUE(o.result_json,'$.sourceETag')='"'+CONVERT(varchar(16),t.row_version,2)+'"'
+ AND JSON_VALUE(o.result_json,'$.sourceETag')='"'+CONVERT(varchar(16),CONVERT(binary(8),t.row_version),2)+'"'
  AND NOT EXISTS(SELECT 1 FROM dbo.work_intervals w WHERE w.work_item_kind='CLEANING' AND w.work_item_id=t.cleaning_task_id AND w.closed_at IS NULL)))) THROW 51962,'Reassignment persisted proof incomplete',1;
  IF(SELECT COUNT(*) FROM dbo.fs013_reassignment_intents WHERE actor_user_id=@actor AND operation_key=@operation)<>2 THROW 51962,'Two distinct recipients required',1;
 END;
@@ -99,7 +99,7 @@ BEGIN
  INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason) VALUES(@task,@assignee,@actor,@now,'ACTIVE',@reason);
  DECLARE @assignment bigint=CONVERT(bigint,SCOPE_IDENTITY());
  UPDATE dbo.cleaning_tasks SET workflow_status='ASSIGNED',status='PENDING',due_at=@due WHERE cleaning_task_id=@task;
- DECLARE @tag varchar(18)=(SELECT '"'+CONVERT(varchar(16),row_version,2)+'"' FROM dbo.cleaning_tasks WHERE cleaning_task_id=@task),@result nvarchar(max);
+ DECLARE @tag varchar(18)=(SELECT '"'+CONVERT(varchar(16),CONVERT(binary(8),row_version),2)+'"' FROM dbo.cleaning_tasks WHERE cleaning_task_id=@task),@result nvarchar(max);
  SELECT @result=(SELECT @task AS id,@branch AS branchId,@previous AS previousAssignmentId,@assignment AS assignmentId,@oldUser AS previousAssigneeId,@assignee AS assigneeId,@operation AS operationId,'ASSIGNED' AS state,'PENDING_DELIVERY' AS notification,@tag AS sourceETag,'PROVISIONAL_NOT_ACCEPTED' AS contract FOR JSON PATH,WITHOUT_ARRAY_WRAPPER);
  INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,occurred_at)
  VALUES(@branch,@actor,'cleaning_tasks',CONVERT(nvarchar(30),@task),'UPDATE',

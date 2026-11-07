@@ -36,10 +36,16 @@ function call(mode: string, extra: string[] = []) {
   return JSON.parse(r.stdout.replace(/^\uFEFF/, ""));
 }
 const accounts = call("credentials-ipc");
-const checks: any[] = [];
-const report = () =>
+const record = (name: string, data: unknown) => {
+  const file = path.join(root, "docs/fs013/LIFECYCLE_LIVE_RESULTS.json");
+  const prior = fs.existsSync(file)
+    ? JSON.parse(fs.readFileSync(file, "utf8"))
+    : null;
+  const checks =
+    prior?.runId === process.env.FS013_LIFECYCLE_RUN_ID ? prior.checks : [];
+  checks.push({ name, data });
   fs.writeFileSync(
-    path.join(root, "docs/fs013/LIFECYCLE_LIVE_RESULTS.json"),
+    file,
     JSON.stringify(
       {
         level: "REAL_AUTH_HTTPS_API_SQL",
@@ -51,9 +57,6 @@ const report = () =>
       2,
     ) + "\n",
   );
-const record = (name: string, data: unknown) => {
-  checks.push({ name, data });
-  report();
 };
 test.afterEach(async ({}, info) => record(info.title, { status: info.status }));
 async function csrf(c: BrowserContext) {
@@ -129,6 +132,53 @@ async function createAssigned(c: BrowserContext) {
   expect(assigned.status()).toBe(200);
   return { id: task.id as number, tag: assigned.headers().etag };
 }
+
+// Explicit forward recovery after a preserved failed attempt. Never reset a task,
+// delete history or clear an interval directly to make a test pass.
+test.beforeAll(async ({ browser }) => {
+  record("suite_started", {
+    forwardRecovery: process.env.FS013_REUSE_WORKDAY_FIXTURE === "FORWARD_ONLY",
+  });
+  if (process.env.FS013_REUSE_WORKDAY_FIXTURE !== "FORWARD_ONLY") return;
+  const context = await browser.newContext();
+  try {
+    await login(context, "admin");
+    const proof = call("candidate-lifecycle-inspect");
+    for (const interval of proof.intervals.filter(
+      (i: any) => i.closedAt === null,
+    )) {
+      const current = await context.request.get(
+        url(interval.workItemId, "execution"),
+      );
+      expect(current.status()).toBe(200);
+      const next =
+        interval.userId === accounts.owner.userId
+          ? accounts.other.userId
+          : accounts.owner.userId;
+      const moved = await post(
+        context,
+        interval.workItemId,
+        "reassign",
+        current.headers().etag,
+        {
+          assigneeId: next,
+          dueAt: new Date(Date.now() + 3600000).toISOString(),
+          reason: "FS013 forward recovery after preserved failed run",
+        },
+        crypto.randomUUID(),
+      );
+      expect(moved.status()).toBe(200);
+      record("forward_reassignment_releases_prior_interval", {
+        taskId: interval.workItemId,
+        intervalId: interval.intervalId,
+        status: 200,
+        reset: false,
+      });
+    }
+  } finally {
+    await context.close();
+  }
+});
 test("FS013 Start and Reassign preserve real ownership, intervals, historical replay and two mandatory recipients", async ({
   page,
   browser,
@@ -140,7 +190,14 @@ test("FS013 Start and Reassign preserve real ownership, intervals, historical re
     await login(admin, "admin");
     await login(owner, "owner");
     await login(other, "other");
+    call("candidate-block-unused-room"); // Synthetic effective block; past expected release is not actual release.
     const source = await createAssigned(admin);
+    if (process.env.FS013_REUSE_WORKDAY_FIXTURE === "FORWARD_ONLY") {
+      record(
+        "workday_fixture_forward_end",
+        call("candidate-end-fixture-workdays"),
+      );
+    }
     const beforeNoDay = call("candidate-lifecycle-inspect");
     const noDay = await post(owner, source.id, "start", source.tag, {
       resolveBlocker: false,
@@ -175,6 +232,11 @@ test("FS013 Start and Reassign preserve real ownership, intervals, historical re
     const first = await started.json();
     expect(first.state).toBe("IN_PROGRESS");
     expect(first.intervalId).toBeGreaterThan(0);
+    expect(first.hasEffectiveBlock).toBe(true);
+    record("start_preserves_effective_room_block", {
+      hasEffectiveBlock: true,
+      expectedReleaseDoesNotRelease: true,
+    });
     expect(
       (
         await post(owner, source.id, "start", source.tag, {
