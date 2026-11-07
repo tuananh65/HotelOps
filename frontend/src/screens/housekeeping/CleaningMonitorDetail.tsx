@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import CleaningCancellationPanel from "./CleaningCancellationPanel";
 import {
   readCleaning,
   monitorError,
@@ -57,6 +58,13 @@ export default function CleaningMonitorDetail({
       )}
       {result && (
         <>
+          {kind === "cleaning" && (
+            <CleaningCancellationPanel
+              key={`${branch}/${id}`}
+              branch={branch}
+              task={id}
+            />
+          )}
           <h2>
             {result.item.taskNumber} · {result.item.roomNumber}
           </h2>

@@ -1,5 +1,11 @@
 ﻿import { test, expect } from "@playwright/test";
 // HTTP interception only; separate from FS005 live SQL acceptance.
+// FS018 capability is independent; keep these Monitor fixtures off live API.
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/branches/*/cleaning-tasks/*/cancellation", (route) =>
+    route.fulfill({ status: 403, json: { title: "CANCELLATION_SCOPE_DENIED" } }),
+  );
+});
 const item = {
   kind: "cleaning",
   id: 12,

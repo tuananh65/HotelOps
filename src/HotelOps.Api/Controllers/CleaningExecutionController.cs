@@ -14,6 +14,13 @@ namespace HotelOps.Api.Controllers;
 public sealed class CleaningExecutionController(RoomTypeCreationService service, IWebHostEnvironment? environment = null, IConfiguration? configuration = null) : ControllerBase
 {
     private string? EvidenceRoot => configuration?["Evidence:PrivateRoot"] ?? (environment == null ? null : Path.Combine(environment.ContentRootPath, "App_Data", "evidence"));
+    [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/cancellation")]
+    public Task<IActionResult> Cancellation(long branchId, long id, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.ReadCancellationAsync(ticket, sid, branchId, id, ct));
+    [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/cancel")]
+    public Task<IActionResult> Cancel(long branchId, long id, CancelCleaningRequest request, CancellationToken ct)
+        => Run(true, (ticket, sid) => service.CancelCleaningAsync(ticket, sid, branchId, id,
+            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/execution")]
     public Task<IActionResult> ReadRework(long branchId, long id, CancellationToken ct)
         => Rework(branchId, id, "read", null, ct);
