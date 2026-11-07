@@ -94,6 +94,12 @@ var connection = new SqlConnectionStringBuilder
     ConnectTimeout = 5,
     ApplicationName = "HotelOps FS013 explicitly isolated verification"
 };
+if (ReadOnlySnapshots.Handles(mode))
+{
+    try { Console.WriteLine(JsonSerializer.Serialize(await ReadOnlySnapshots.ReadAsync(connection.ConnectionString, mode, ct), jsonOptions)); }
+    catch (Exception error) { Console.WriteLine(JsonSerializer.Serialize(new { status = "FS013_VERIFICATION_FAILED", stage = mode, step = "READ_ONLY_ADO_SNAPSHOT", errorType = error.GetType().Name, sqlNumber = CandidateSqlNumber(error), details = "Provider/credential payload redacted; no writes." }, jsonOptions)); Environment.ExitCode = 1; }
+    return;
+}
 await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection.ConnectionString).AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance).Options);
 var step = "ConnectAndValidate";
 try
