@@ -8,7 +8,7 @@ public sealed record CleaningMonitorItem(string Kind, long Id, long CleaningTask
     long RoomId, string RoomNumber, long FloorId, string? FloorName, string RecordedStatus,
     string? WorkflowState, long? PriorityId, string? PriorityCode, long? AssigneeId, string? AssigneeName,
     DateTime? DueAtUtc, bool? IsOverdue, int? ProgressPercent, string? BlockerCode, string? BlockerNote,
-    string? Description);
+    string? Description, bool? IsCurrentCycle = null, bool? HasUnresolvedBlocker = null);
 
 public sealed record CleaningMonitorPage(IReadOnlyList<CleaningMonitorItem> Items, int Total,
     int Page, int PageSize, DateOnly FromDate, DateOnly ToDate, string Timezone, DateTime AsOfUtc);

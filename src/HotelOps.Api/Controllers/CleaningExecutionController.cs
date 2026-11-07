@@ -14,6 +14,24 @@ namespace HotelOps.Api.Controllers;
 public sealed class CleaningExecutionController(RoomTypeCreationService service, IWebHostEnvironment? environment = null, IConfiguration? configuration = null) : ControllerBase
 {
     private string? EvidenceRoot => configuration?["Evidence:PrivateRoot"] ?? (environment == null ? null : Path.Combine(environment.ContentRootPath, "App_Data", "evidence"));
+    [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/execution")]
+    public Task<IActionResult> ReadRework(long branchId, long id, CancellationToken ct)
+        => Rework(branchId, id, "read", null, ct);
+    [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/evidence/{attachmentId:long}")]
+    public Task<IActionResult> ReworkEvidence(long branchId, long id, long attachmentId, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.ExecuteReworkAsync(ticket, sid, branchId, id, "read", null, null, null, EvidenceRoot, ct, attachmentId));
+    [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/accept")]
+    public Task<IActionResult> AcceptRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
+        => Rework(branchId, id, "accept", request, ct);
+    [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/start")]
+    public Task<IActionResult> StartRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
+        => Rework(branchId, id, "start", request, ct);
+    [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/complete")]
+    public Task<IActionResult> CompleteRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
+        => Rework(branchId, id, "complete", request, ct);
+    private Task<IActionResult> Rework(long branch, long id, string action, ReworkActionRequest? input, CancellationToken ct)
+        => Run(action != "read", (ticket, sid) => service.ExecuteReworkAsync(ticket, sid, branch, id, action,
+            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input, EvidenceRoot, ct));
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/execution")]
     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct)
         => Run(false, (ticket, sid) => service.ReadCleaningExecutionAsync(ticket, sid, branchId, id, ct));
@@ -39,7 +57,13 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service,
         try
         {
             var result = await action(ticket!, sid);
-            if (result.Status == RoomTypeBatchStatus.Success) { if (result.ETag != null) Response.Headers.ETag = result.ETag; return Ok(result.Value); }
+            if (result.Status == RoomTypeBatchStatus.Success)
+            {
+                if (result.ETag != null) Response.Headers.ETag = result.ETag;
+                if (result.Value is HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto file)
+                { Response.Headers["X-Content-Type-Options"] = "nosniff"; return File(file.Content, file.ContentType, file.Name); }
+                return Ok(result.Value);
+            }
             return Problem(statusCode: result.Status switch { RoomTypeBatchStatus.SessionInvalid => 401, RoomTypeBatchStatus.Forbidden => 403,
                 RoomTypeBatchStatus.NotFound => 404, RoomTypeBatchStatus.InvalidReference => 400, RoomTypeBatchStatus.Stale => 412,
                 RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate => 409, _ => 503 },

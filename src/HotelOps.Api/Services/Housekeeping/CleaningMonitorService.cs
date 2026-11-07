@@ -44,7 +44,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
             if (input.FloorId is { } floor) rows = rows.Where(x => x.FloorId == floor);
             if (input.AssigneeId is { } assignee) rows = rows.Where(x => x.AssigneeId == assignee);
             if (input.PriorityId is { } priority) rows = rows.Where(x => x.PriorityId == priority);
-            if (!string.IsNullOrEmpty(status)) rows = rows.Where(x => x.RecordedStatus == status || x.WorkflowState == status);
+            if (!string.IsNullOrEmpty(status)) rows = rows.Where(x => (x.WorkflowState ?? x.RecordedStatus) == status);
             if (!string.IsNullOrEmpty(kind)) rows = rows.Where(x => x.Kind == kind);
             if (!string.IsNullOrEmpty(search)) rows = rows.Where(x => x.TaskNumber.Contains(search)
                 || x.RoomNumber.Contains(search) || (x.AssigneeName != null && x.AssigneeName.Contains(search))
@@ -144,6 +144,16 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         var cleaningWorkflow = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_tasks','workflow_status') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
         var reworkWorkflow = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_reworks','workflow_status') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
         var reworkDue = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_reworks','due_at') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+        var cycle = await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.room_cleaning_cycle_state','U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+        var resolutions = await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions','U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+        var remediation = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_rework_defects','remediation_note') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+        var reworkProgress = remediation == 1 ? "(SELECT CASE WHEN COUNT(*)=0 THEN NULL ELSE CONVERT(int,100*SUM(CASE WHEN LEN(LTRIM(RTRIM(rd.remediation_note)))>0 THEN 1 ELSE 0 END)/COUNT(*)) END FROM dbo.cleaning_rework_defects rd WHERE rd.rework_id=w.rework_id)" : "CAST(NULL AS int)";
+        var cycleValue = cycle == 1 ? "CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_cleaning_cycle_state cs WHERE cs.room_id=r.room_id AND cs.cleaning_task_id=c.cleaning_task_id) THEN 1 ELSE 0 END)" : "CAST(NULL AS bit)";
+        // History is not active blocker state. Missing/linked state remains unresolved; never infer source closure.
+        var blockerPredicate = resolutions == 1 ? "AND (br.progress_id IS NULL OR br.resolved_at IS NULL OR br.incident_id IS NOT NULL OR br.material_request_id IS NOT NULL)" : "";
+        var blockerJoin = resolutions == 1 ? "LEFT JOIN dbo.fs014_cleaning_blocker_resolutions br ON br.progress_id=bp.progress_id" : "";
+        var blockerApply = $"OUTER APPLY(SELECT TOP(1) bp.progress_id,bp.blocker_type_id,bp.note FROM dbo.cleaning_progress_logs bp {blockerJoin} WHERE bp.cleaning_task_id=c.cleaning_task_id AND bp.status='BLOCKED' {blockerPredicate} ORDER BY bp.logged_at DESC,bp.progress_id DESC) ub";
+        var blockedValue = resolutions == 1 ? "CONVERT(bit,CASE WHEN ub.progress_id IS NULL THEN 0 ELSE 1 END)" : "CASE WHEN ub.progress_id IS NULL THEN CONVERT(bit,0) ELSE CAST(NULL AS bit) END";
         // Interpolated fragments are fixed identifiers selected only by metadata, never client text.
         var sql = $"""
             SELECT CAST('cleaning' AS nvarchar(10)) AS Kind, c.cleaning_task_id AS Id,
@@ -152,17 +162,20 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
                 {(cleaningWorkflow == 1 ? "c.workflow_status" : "CAST(NULL AS nvarchar(40))")} AS WorkflowState,
                 c.priority_id AS PriorityId,p.value_code AS PriorityCode,a.assignee_user_id AS AssigneeId,u.full_name AS AssigneeName,
                 c.due_at AS DueAt,COALESCE(c.scheduled_start_at,c.created_at) AS OccurredAt,
-                g.progress_percent AS ProgressPercent,b.value_code AS BlockerCode,g.note AS BlockerNote,c.instruction AS Description
+                g.progress_percent AS ProgressPercent,b.value_code AS BlockerCode,ub.note AS BlockerNote,c.instruction AS Description,
+                {cycleValue} AS IsCurrentCycle,{blockedValue} AS HasUnresolvedBlocker
             FROM dbo.cleaning_tasks c JOIN dbo.rooms r ON r.room_id=c.room_id
             LEFT JOIN dbo.floors f ON f.floor_id=r.floor_id AND f.branch_id=r.branch_id
             LEFT JOIN dbo.reference_values p ON p.reference_id=c.priority_id
             OUTER APPLY(SELECT TOP(1) ca.assignee_user_id FROM dbo.cleaning_assignments ca
                 WHERE ca.cleaning_task_id=c.cleaning_task_id AND ca.assignment_status='ACTIVE' AND ca.ended_at IS NULL
-                AND ca.assigned_at<=@now ORDER BY ca.assigned_at DESC,ca.assignment_id DESC) a
+                AND ca.assigned_at<=@now AND (SELECT COUNT(*) FROM dbo.cleaning_assignments own WHERE own.cleaning_task_id=c.cleaning_task_id AND own.assignment_status='ACTIVE' AND own.ended_at IS NULL)=1
+                ORDER BY ca.assigned_at DESC,ca.assignment_id DESC) a
             LEFT JOIN dbo.users u ON u.user_id=a.assignee_user_id
             OUTER APPLY(SELECT TOP(1) cl.progress_percent,cl.blocker_type_id,cl.note FROM dbo.cleaning_progress_logs cl
                 WHERE cl.cleaning_task_id=c.cleaning_task_id ORDER BY cl.logged_at DESC,cl.progress_id DESC) g
-            LEFT JOIN dbo.reference_values b ON b.reference_id=g.blocker_type_id
+            {blockerApply}
+            LEFT JOIN dbo.reference_values b ON b.reference_id=ub.blocker_type_id
             WHERE r.branch_id=@branch
             UNION ALL
             SELECT CAST('rework' AS nvarchar(10)),w.rework_id,c.cleaning_task_id,c.task_no,r.room_id,r.room_number,
@@ -170,13 +183,15 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
                 {(reworkWorkflow == 1 ? "w.workflow_status" : "CAST(NULL AS nvarchar(40))")},
                 c.priority_id,p.value_code,w.assignee_user_id,u.full_name,
                 {(reworkDue == 1 ? "w.due_at" : "CAST(NULL AS datetime2)")},w.requested_at,
-                CAST(NULL AS int),CAST(NULL AS varchar(50)),CAST(NULL AS nvarchar(max)),w.reason
+                {reworkProgress},b.value_code,ub.note,w.reason,{cycleValue},{blockedValue}
             FROM dbo.cleaning_reworks w JOIN dbo.cleaning_tasks c ON c.cleaning_task_id=w.cleaning_task_id
             JOIN dbo.rooms r ON r.room_id=c.room_id
             JOIN dbo.room_inspections i ON i.inspection_id=w.inspection_id AND i.room_id=r.room_id AND i.cleaning_task_id=c.cleaning_task_id
             LEFT JOIN dbo.floors f ON f.floor_id=r.floor_id AND f.branch_id=r.branch_id
             LEFT JOIN dbo.reference_values p ON p.reference_id=c.priority_id
             LEFT JOIN dbo.users u ON u.user_id=w.assignee_user_id
+            {blockerApply}
+            LEFT JOIN dbo.reference_values b ON b.reference_id=ub.blocker_type_id
             WHERE r.branch_id=@branch
             """;
         return db.Database.SqlQueryRaw<MonitorRow>(sql, new SqlParameter("@branch", branchId),
@@ -190,7 +205,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         row.RecordedStatus, row.WorkflowState, row.PriorityId, row.PriorityCode, row.AssigneeId, row.AssigneeName,
         Utc(row.DueAt), (row.WorkflowState ?? row.RecordedStatus) is "COMPLETED" or "CANCELLED"
             ? false : row.DueAt is null ? null : row.DueAt < now,
-        row.ProgressPercent, row.BlockerCode, row.BlockerNote, row.Description);
+        row.ProgressPercent, row.BlockerCode, row.BlockerNote, row.Description, row.IsCurrentCycle, row.HasUnresolvedBlocker);
 
     private sealed class MonitorRow
     {
@@ -214,5 +229,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         public string? BlockerCode { get; set; }
         public string? BlockerNote { get; set; }
         public string? Description { get; set; }
+        public bool? IsCurrentCycle { get; set; }
+        public bool? HasUnresolvedBlocker { get; set; }
     }
 }

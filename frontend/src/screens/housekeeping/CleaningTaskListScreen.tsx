@@ -6,9 +6,13 @@ import {
   type MonitorPage,
 } from "../../api/dev1/cleaningMonitor";
 import { PageHeader } from "../../ui";
-export default function CleaningTaskListScreen() {
+export default function CleaningTaskListScreen({
+  kindOnly,
+}: { kindOnly?: "rework" } = {}) {
   const [params, setParams] = useSearchParams();
-  const key = params.toString(),
+  const effectiveParams = new URLSearchParams(params);
+  if (kindOnly) effectiveParams.set("kind", kindOnly);
+  const key = effectiveParams.toString(),
     branch = params.get("branchId") || "";
   const [result, setResult] = useState<{
     key: string;
@@ -56,10 +60,12 @@ export default function CleaningTaskListScreen() {
   }
   return (
     <>
-      <PageHeader id={24} />
-      <Link to={`/cleaning/tasks/new?branchId=${encodeURIComponent(branch)}`}>
-        Create Cleaning Task
-      </Link>
+      <PageHeader id={kindOnly ? 28 : 24} />
+      {!kindOnly && (
+        <Link to={`/cleaning/tasks/new?branchId=${encodeURIComponent(branch)}`}>
+          Create Cleaning Task
+        </Link>
+      )}
       <p>
         Cleaning Monitor · dữ liệu máy chủ, theo quyền CLEANING_VIEW. Chi nhánh
         là bộ lọc, không cấp quyền.
@@ -95,11 +101,17 @@ export default function CleaningTaskListScreen() {
         ))}
         <label>
           Loại
-          <select name="kind" defaultValue={params.get("kind") || ""}>
+          <select
+            name="kind"
+            value={kindOnly || undefined}
+            defaultValue={kindOnly ? undefined : params.get("kind") || ""}
+            disabled={!!kindOnly}
+          >
             <option value="">Tất cả</option>
             <option value="cleaning">Cleaning</option>
             <option value="rework">Rework</option>
           </select>
+          {kindOnly && <input type="hidden" name="kind" value={kindOnly} />}
         </label>
         <label>
           Quá hạn
@@ -150,6 +162,8 @@ export default function CleaningTaskListScreen() {
                       "Hạn UTC",
                       "Quá hạn",
                       "Tiến độ",
+                      "Chu kỳ hiện tại",
+                      "Blocker",
                     ].map((s) => (
                       <th key={s}>{s}</th>
                     ))}
@@ -182,6 +196,21 @@ export default function CleaningTaskListScreen() {
                         {r.progressPercent === null
                           ? "—"
                           : `${r.progressPercent}%`}
+                      </td>
+                      <td>
+                        {r.isCurrentCycle == null
+                          ? "Chưa xác định"
+                          : r.isCurrentCycle
+                            ? "Có"
+                            : "Không"}
+                      </td>
+                      <td>
+                        {r.hasUnresolvedBlocker == null
+                          ? "Chưa xác định"
+                          : r.hasUnresolvedBlocker
+                            ? "Chưa xử lý"
+                            : "Không"}{" "}
+                        {r.blockerCode}
                       </td>
                     </tr>
                   ))}

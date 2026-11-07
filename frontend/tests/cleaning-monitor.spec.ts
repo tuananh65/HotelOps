@@ -28,6 +28,44 @@ const meta = {
   timezone: "Asia/Ho_Chi_Minh",
   asOfUtc: "2026-11-06T00:00:00Z",
 };
+test("monitor distinguishes current cycle and unresolved blocker from historical work", async ({
+  page,
+}) => {
+  await page.route("**/api/branches/7/cleaning-monitor?**", (route) =>
+    route.fulfill({
+      json: {
+        ...meta,
+        total: 2,
+        page: 1,
+        pageSize: 20,
+        items: [
+          {
+            ...item,
+            isCurrentCycle: true,
+            hasUnresolvedBlocker: true,
+            blockerCode: "GUEST_PRESENT",
+          },
+          {
+            ...item,
+            id: 13,
+            taskNumber: "HISTORICAL-13",
+            isCurrentCycle: false,
+            hasUnresolvedBlocker: false,
+          },
+        ],
+      },
+    }),
+  );
+  await page.goto("/cleaning/tasks?branchId=7");
+  const current = page.getByRole("row").filter({ hasText: "API-CL-12" });
+  await expect(
+    current.getByText("Chưa xử lý GUEST_PRESENT", { exact: true }),
+  ).toBeVisible();
+  await expect(current.getByRole("cell").nth(9)).toHaveText("Có");
+  const historical = page.getByRole("row").filter({ hasText: "HISTORICAL-13" });
+  await expect(historical.getByRole("cell").nth(9)).toHaveText("Không");
+  await expect(historical.getByRole("cell").nth(10)).toHaveText("Không");
+});
 test("monitor list filters, paginates and opens real detail mode", async ({
   page,
 }) => {

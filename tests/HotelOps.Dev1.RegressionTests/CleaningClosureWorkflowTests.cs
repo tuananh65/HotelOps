@@ -18,7 +18,7 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class ClosureTrialTheoryAttribute : TheoryAttribute
 {
     public ClosureTrialTheoryAttribute()
-    { if (Environment.GetEnvironmentVariable("FS015_SQL_TRIAL") != "APPROVED_LOCAL_ONLY") Skip = "Opt-in FS015 service/SQL component; session validation double."; }
+    { if (Environment.GetEnvironmentVariable("FS015_SQL_TRIAL") != "APPROVED_LOCAL_ONLY" && Environment.GetEnvironmentVariable("FS016_SQL_TRIAL") != "APPROVED_LOCAL_ONLY") Skip = "Opt-in FS015/FS016 service/SQL component; session validation double."; }
 }
 
 [CollectionDefinition("HotelOps isolated SQL", DisableParallelization = true)]
@@ -29,7 +29,7 @@ public sealed class CleaningClosureWorkflowTests
 {
     internal const string Connection = "Data Source=.\\SQLEXPRESS;Initial Catalog=HotelOps_Canonical_FS015_Cleaning_V1_Fresh;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;Connect Timeout=5";
     internal static HotelOpsDbContext Context(params IInterceptor[] interceptors)
-        => new(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(Connection).AddInterceptors(interceptors).Options);
+        => new(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(Environment.GetEnvironmentVariable("FS016_SQL_TRIAL") == "APPROVED_LOCAL_ONLY" ? ReworkWorkflowSqlTests.Connection : Connection).AddInterceptors(interceptors).Options);
     internal static ProvisionalCleaningNotification Publisher(HotelOpsDbContext db, bool enabled = true)
         => new(db, new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
             { ["CleaningClosure:Candidate"] = enabled ? "FS015_PROVISIONAL" : null }).Build(), new TestEnvironment());

@@ -1,43 +1,20 @@
-import { useParams } from "react-router-dom";
-import { t, useLanguage } from "../../i18n";
-import * as service from "../../services";
-import { DetailPage, RelatedRecords, Summary, useDB } from "../../ui";
-const informationFields: string[] = ["room", "assignee", "priority", "due"];
-const workflowUCs = ["UC-035", "UC-036"];
+import { useParams, useSearchParams } from "react-router-dom";
+import ReworkExecutionPanel from "./ReworkExecutionPanel";
 export default function ReworkTaskDetailScreen() {
-  useLanguage();
   const { id } = useParams();
-  const db = useDB();
-  const record = service.visible("rework").find((r) => r.id === id);
+  const [params] = useSearchParams();
+  const branch = params.get("branchId") || "";
+  if (!branch)
+    return (
+      <p role="alert">
+        Cần ID chi nhánh được cấp quyền để tải rework từ máy chủ.
+      </p>
+    );
   return (
-    <DetailPage
-      id={29}
-      overview={
-        record && (
-          <Summary
-            items={[
-              {
-                label: "Defects to fix",
-                value: record.defects?.split("\n").filter(Boolean).length || 0,
-              },
-              {
-                label: "Remediation",
-                value: record.remediation ? "Notes recorded" : "Awaiting notes",
-              },
-              { label: "Rework stage", value: record.status },
-            ]}
-          />
-        )
-      }
-      informationFields={informationFields}
-      workflowUCs={workflowUCs}
-      related={
-        <RelatedRecords
-          entity="rework"
-          recordId={id}
-          title={t("Rework Task Detail · related activity")}
-        />
-      }
+    <ReworkExecutionPanel
+      key={`${branch}:${id}`}
+      branch={branch}
+      id={id || ""}
     />
   );
 }

@@ -15,7 +15,8 @@ public sealed class ResumeTrialTheoryAttribute : TheoryAttribute
     public ResumeTrialTheoryAttribute()
     {
         if (Environment.GetEnvironmentVariable("FS014_SQL_TRIAL") != "APPROVED_LOCAL_ONLY"
-            && Environment.GetEnvironmentVariable("FS015_SQL_TRIAL") != "APPROVED_LOCAL_ONLY")
+            && Environment.GetEnvironmentVariable("FS015_SQL_TRIAL") != "APPROVED_LOCAL_ONLY"
+            && Environment.GetEnvironmentVariable("FS016_SQL_TRIAL") != "APPROVED_LOCAL_ONLY")
             Skip = "Opt-in isolated SQL component tests; not unit or live HTTP tests.";
     }
 }
@@ -35,7 +36,8 @@ public sealed class CleaningResumeSqlTests
     }
     private static HotelOpsDbContext Context(DbCommandInterceptor? fault = null)
     {
-        var connection = Environment.GetEnvironmentVariable("FS015_SQL_TRIAL") == "APPROVED_LOCAL_ONLY"
+        var connection = Environment.GetEnvironmentVariable("FS016_SQL_TRIAL") == "APPROVED_LOCAL_ONLY" ? ReworkWorkflowSqlTests.Connection
+            : Environment.GetEnvironmentVariable("FS015_SQL_TRIAL") == "APPROVED_LOCAL_ONLY"
             ? CleaningClosureWorkflowTests.Connection : Connection;
         var options = new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection);
         if (fault != null) options.AddInterceptors(fault);
@@ -65,7 +67,8 @@ public sealed class CleaningResumeSqlTests
         Assert.Equal(1, await db.Database.SqlQuery<int>($"""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('MachineName'))=HOST_NAME() AND
             ((DB_NAME()='HotelOps_Canonical_FS014_Resume_V1_Fresh' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS014.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS014'))
-            OR (DB_NAME()='HotelOps_Canonical_FS015_Cleaning_V1_Fresh' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS015.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS015')))
+            OR (DB_NAME()='HotelOps_Canonical_FS015_Cleaning_V1_Fresh' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS015.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS015'))
+            OR (DB_NAME()='HotelOps_Canonical_FS016_Rework_V1_Fresh' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS016.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS016')))
             THEN 1 ELSE 0 END AS [Value]
             """).SingleAsync(ct));
         var f = await CreateFixtureAsync(db, ct);

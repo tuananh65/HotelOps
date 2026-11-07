@@ -13,6 +13,11 @@ public sealed partial class ProvisionalCleaningDelivery(HotelOpsDbContext db, Pr
 {
     public async Task<string> DeliverOneAsync(CancellationToken ct, bool stopAfterDurableClaim = false, Guid? selectedPublication = null)
     {
+        if (await candidate.ReworkAvailableAsync(ct))
+        {
+            var rework = await DeliverReworkOneAsync(ct, selectedPublication);
+            if (rework != "EMPTY") return rework;
+        }
         if (await candidate.ClosureAvailableAsync(ct)) return await DeliverClosureOneAsync(ct, selectedPublication);
         if (!await candidate.AvailableAsync(ct)) throw new InvalidOperationException("CANDIDATE_DISABLED");
         var now = clock.GetUtcNow().UtcDateTime; long id; long recipient; Guid claim = Guid.NewGuid();

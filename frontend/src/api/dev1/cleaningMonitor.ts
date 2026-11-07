@@ -21,6 +21,8 @@ export interface MonitorItem {
   blockerCode: string | null;
   blockerNote: string | null;
   description: string | null;
+  isCurrentCycle?: boolean | null;
+  hasUnresolvedBlocker?: boolean | null;
 }
 export interface MonitorPage {
   items: MonitorItem[];
@@ -95,6 +97,9 @@ function item(v: unknown): asserts v is MonitorItem {
     ].every(nullableText) ||
     ![v.priorityId, v.assigneeId].every(nullableId) ||
     !nullableStamp(v.dueAtUtc) ||
+    ![v.isCurrentCycle, v.hasUnresolvedBlocker].every(
+      (value) => value == null || typeof value === "boolean",
+    ) ||
     !(v.isOverdue === null || typeof v.isOverdue === "boolean") ||
     !(
       v.progressPercent === null ||

@@ -70,6 +70,8 @@ test("monitor rejects malformed rows and wrong pagination instead of mock fallba
     { ...page, items: [{ ...item, id: Number.MAX_SAFE_INTEGER + 1 }] },
     { ...page, page: 2 },
     { ...page, items: [{ ...item, progressPercent: 101 }] },
+    { ...page, items: [{ ...item, isCurrentCycle: "true" }] },
+    { ...page, items: [{ ...item, hasUnresolvedBlocker: 0 }] },
   ]) {
     globalThis.fetch = async () => Response.json(value);
     await assert.rejects(

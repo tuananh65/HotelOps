@@ -44,6 +44,9 @@ export default function CleaningMonitorDetail({
           Start / Reassign
         </Link>
       )}
+      {kind === "rework" && (
+        <Link to={`/rework/${id}?branchId=${branch}`}>Mở thực hiện rework</Link>
+      )}
       <Link to={`/cleaning/tasks?branchId=${branch}`}>Danh sách công việc</Link>
       {loading && <p role="status">Đang tải chi tiết…</p>}
       {error && (
@@ -76,7 +79,20 @@ export default function CleaningMonitorDetail({
             <dd>{result.item.description ?? "—"}</dd>
             <dt>Blocker</dt>
             <dd>
+              {result.item.hasUnresolvedBlocker == null
+                ? "Chưa xác định"
+                : result.item.hasUnresolvedBlocker
+                  ? "Chưa xử lý"
+                  : "Không"}{" "}
               {result.item.blockerCode ?? "—"} {result.item.blockerNote}
+            </dd>
+            <dt>Chu kỳ hiện tại</dt>
+            <dd>
+              {result.item.isCurrentCycle == null
+                ? "Chưa xác định"
+                : result.item.isCurrentCycle
+                  ? "Có"
+                  : "Không"}
             </dd>
           </dl>
           {kind === "cleaning" && (
@@ -91,7 +107,10 @@ export default function CleaningMonitorDetail({
               </Link>
             </p>
           )}
-          <h2>Phân công ({result.assignmentCount})</h2>
+          <h2>
+            Phân công {kind === "rework" ? "cleaning cycle " : ""}(
+            {result.assignmentCount})
+          </h2>
           {result.assignments.length === 0 && (
             <p>Không có phân công trên trang này.</p>
           )}
@@ -102,7 +121,10 @@ export default function CleaningMonitorDetail({
               </li>
             ))}
           </ul>
-          <h2>Tiến độ ({result.progressCount})</h2>
+          <h2>
+            Tiến độ {kind === "rework" ? "cleaning cycle " : ""}(
+            {result.progressCount})
+          </h2>
           {result.progress.length === 0 && (
             <p>Không có tiến độ trên trang này.</p>
           )}

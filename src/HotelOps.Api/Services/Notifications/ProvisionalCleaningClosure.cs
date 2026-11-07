@@ -15,10 +15,11 @@ public sealed partial class ProvisionalCleaningNotification
     public async Task<bool> ClosureAvailableAsync(CancellationToken ct)
     {
         if (!env.IsDevelopment() || config["CleaningClosure:Candidate"] != "FS015_PROVISIONAL"
-            || db.Database.GetDbConnection().Database != "HotelOps_Canonical_FS015_Cleaning_V1_Fresh") return false;
+            || db.Database.GetDbConnection().Database is not ("HotelOps_Canonical_FS015_Cleaning_V1_Fresh" or "HotelOps_Canonical_FS016_Rework_V1_Fresh")) return false;
         return await db.Database.SqlQuery<int>($"""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('MachineName'))=HOST_NAME()
-            AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS015.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS015')
+            AND ((DB_NAME()='HotelOps_Canonical_FS015_Cleaning_V1_Fresh' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS015.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS015'))
+              OR (DB_NAME()='HotelOps_Canonical_FS016_Rework_V1_Fresh' AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS016.Owner' AND CONVERT(nvarchar(128),value)='DEV1_FS016')))
             AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS015.Closure' AND CONVERT(nvarchar(128),value)='PROVISIONAL_V1')
             AND COL_LENGTH('dbo.notification_publications','occurrence_key') IS NOT NULL
             AND OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions','U') IS NOT NULL
