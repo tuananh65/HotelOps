@@ -147,6 +147,9 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         var cycle = await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.room_cleaning_cycle_state','U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
         var resolutions = await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.fs014_cleaning_blocker_resolutions','U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
         var remediation = await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_rework_defects','remediation_note') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+        var readiness = await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.room_readiness_events','U') IS NULL THEN 0 ELSE 1 END AS [Value]").SingleAsync(ct);
+        var readinessApply = cycle == 1 && readiness == 1 ? "OUTER APPLY(SELECT TOP(1) e.readiness FROM dbo.room_readiness_events e JOIN dbo.room_cleaning_cycle_state cp ON cp.room_id=e.room_id AND cp.cleaning_task_id=e.cleaning_task_id WHERE e.room_id=r.room_id AND e.occurred_at<=@now ORDER BY e.occurred_at DESC,e.event_id DESC) re" : "OUTER APPLY(SELECT CAST(NULL AS varchar(40)) AS readiness) re";
+        var effectiveReadiness = "CASE WHEN r.is_active=0 THEN 'INACTIVE' WHEN EXISTS(SELECT 1 FROM dbo.room_blocks rb WHERE rb.room_id=r.room_id AND rb.released_at IS NULL AND rb.blocked_at<=@now) THEN 'BLOCKED' ELSE re.readiness END";
         var reworkProgress = remediation == 1 ? "(SELECT CASE WHEN COUNT(*)=0 THEN NULL ELSE CONVERT(int,100*SUM(CASE WHEN LEN(LTRIM(RTRIM(rd.remediation_note)))>0 THEN 1 ELSE 0 END)/COUNT(*)) END FROM dbo.cleaning_rework_defects rd WHERE rd.rework_id=w.rework_id)" : "CAST(NULL AS int)";
         var cycleValue = cycle == 1 ? "CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.room_cleaning_cycle_state cs WHERE cs.room_id=r.room_id AND cs.cleaning_task_id=c.cleaning_task_id) THEN 1 ELSE 0 END)" : "CAST(NULL AS bit)";
         // History is not active blocker state. Missing/linked state remains unresolved; never infer source closure.
@@ -163,7 +166,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
                 c.priority_id AS PriorityId,p.value_code AS PriorityCode,a.assignee_user_id AS AssigneeId,u.full_name AS AssigneeName,
                 c.due_at AS DueAt,COALESCE(c.scheduled_start_at,c.created_at) AS OccurredAt,
                 g.progress_percent AS ProgressPercent,b.value_code AS BlockerCode,ub.note AS BlockerNote,c.instruction AS Description,
-                {cycleValue} AS IsCurrentCycle,{blockedValue} AS HasUnresolvedBlocker
+                {cycleValue} AS IsCurrentCycle,{blockedValue} AS HasUnresolvedBlocker,{effectiveReadiness} AS EffectiveReadiness
             FROM dbo.cleaning_tasks c JOIN dbo.rooms r ON r.room_id=c.room_id
             LEFT JOIN dbo.floors f ON f.floor_id=r.floor_id AND f.branch_id=r.branch_id
             LEFT JOIN dbo.reference_values p ON p.reference_id=c.priority_id
@@ -175,6 +178,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
             OUTER APPLY(SELECT TOP(1) cl.progress_percent,cl.blocker_type_id,cl.note FROM dbo.cleaning_progress_logs cl
                 WHERE cl.cleaning_task_id=c.cleaning_task_id ORDER BY cl.logged_at DESC,cl.progress_id DESC) g
             {blockerApply}
+            {readinessApply}
             LEFT JOIN dbo.reference_values b ON b.reference_id=ub.blocker_type_id
             WHERE r.branch_id=@branch
             UNION ALL
@@ -183,7 +187,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
                 {(reworkWorkflow == 1 ? "w.workflow_status" : "CAST(NULL AS nvarchar(40))")},
                 c.priority_id,p.value_code,w.assignee_user_id,u.full_name,
                 {(reworkDue == 1 ? "w.due_at" : "CAST(NULL AS datetime2)")},w.requested_at,
-                {reworkProgress},b.value_code,ub.note,w.reason,{cycleValue},{blockedValue}
+                {reworkProgress},b.value_code,ub.note,w.reason,{cycleValue},{blockedValue},{effectiveReadiness}
             FROM dbo.cleaning_reworks w JOIN dbo.cleaning_tasks c ON c.cleaning_task_id=w.cleaning_task_id
             JOIN dbo.rooms r ON r.room_id=c.room_id
             JOIN dbo.room_inspections i ON i.inspection_id=w.inspection_id AND i.room_id=r.room_id AND i.cleaning_task_id=c.cleaning_task_id
@@ -191,6 +195,7 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
             LEFT JOIN dbo.reference_values p ON p.reference_id=c.priority_id
             LEFT JOIN dbo.users u ON u.user_id=w.assignee_user_id
             {blockerApply}
+            {readinessApply}
             LEFT JOIN dbo.reference_values b ON b.reference_id=ub.blocker_type_id
             WHERE r.branch_id=@branch
             """;
@@ -205,7 +210,8 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         row.RecordedStatus, row.WorkflowState, row.PriorityId, row.PriorityCode, row.AssigneeId, row.AssigneeName,
         Utc(row.DueAt), (row.WorkflowState ?? row.RecordedStatus) is "COMPLETED" or "CANCELLED"
             ? false : row.DueAt is null ? null : row.DueAt < now,
-        row.ProgressPercent, row.BlockerCode, row.BlockerNote, row.Description, row.IsCurrentCycle, row.HasUnresolvedBlocker);
+        row.ProgressPercent, row.BlockerCode, row.BlockerNote, row.Description, row.IsCurrentCycle, row.HasUnresolvedBlocker,
+        row.EffectiveReadiness, row.EffectiveReadiness == null ? "UNAVAILABLE" : "PERSISTED_SOURCE_NOT_SHARED_ACCEPTED");
 
     private sealed class MonitorRow
     {
@@ -231,5 +237,6 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         public string? Description { get; set; }
         public bool? IsCurrentCycle { get; set; }
         public bool? HasUnresolvedBlocker { get; set; }
+        public string? EffectiveReadiness { get; set; }
     }
 }

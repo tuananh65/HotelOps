@@ -164,6 +164,7 @@ export default function CleaningTaskListScreen({
                       "Tiến độ",
                       "Chu kỳ hiện tại",
                       "Blocker",
+                      "Readiness phòng hiện tại",
                     ].map((s) => (
                       <th key={s}>{s}</th>
                     ))}
@@ -212,6 +213,7 @@ export default function CleaningTaskListScreen({
                             : "Không"}{" "}
                         {r.blockerCode}
                       </td>
+                      <td>{r.effectiveReadiness ?? "Chưa xác định"}</td>
                     </tr>
                   ))}
                 </tbody>

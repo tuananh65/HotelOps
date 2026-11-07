@@ -23,6 +23,8 @@ export interface MonitorItem {
   description: string | null;
   isCurrentCycle?: boolean | null;
   hasUnresolvedBlocker?: boolean | null;
+  effectiveReadiness?: string | null;
+  readinessCoverage?: string;
 }
 export interface MonitorPage {
   items: MonitorItem[];
@@ -97,6 +99,15 @@ function item(v: unknown): asserts v is MonitorItem {
     ].every(nullableText) ||
     ![v.priorityId, v.assigneeId].every(nullableId) ||
     !nullableStamp(v.dueAtUtc) ||
+    !(
+      v.effectiveReadiness === undefined || nullableText(v.effectiveReadiness)
+    ) ||
+    !(
+      v.readinessCoverage === undefined ||
+      ["UNAVAILABLE", "PERSISTED_SOURCE_NOT_SHARED_ACCEPTED"].includes(
+        String(v.readinessCoverage),
+      )
+    ) ||
     ![v.isCurrentCycle, v.hasUnresolvedBlocker].every(
       (value) => value == null || typeof value === "boolean",
     ) ||

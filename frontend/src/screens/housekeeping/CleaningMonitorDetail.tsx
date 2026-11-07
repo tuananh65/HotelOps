@@ -95,6 +95,16 @@ export default function CleaningMonitorDetail({
                   : "Không"}
             </dd>
           </dl>
+          <p>
+            Readiness phòng hiện tại:{" "}
+            {result.item.effectiveReadiness ?? "Chưa xác định"} ·{" "}
+            {result.item.readinessCoverage ?? "UNAVAILABLE"}
+          </p>
+          <Link
+            to={`/rooms/turnover?branchId=${branch}&roomId=${result.item.roomId}`}
+          >
+            Lịch sử turnover của phòng
+          </Link>
           {kind === "cleaning" && (
             <Link to={`/cleaning/tasks/${id}?branchId=${branch}`}>
               Mở UC032 · tiến độ của người được phân công

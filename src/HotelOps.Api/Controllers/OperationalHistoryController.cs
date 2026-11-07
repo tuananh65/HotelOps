@@ -12,7 +12,7 @@ namespace HotelOps.Api.Controllers;
 [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 [UserAccountActivationErrors]
-public sealed class OperationalHistoryController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
+public sealed class OperationalHistoryController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration, TurnoverHistoryService turnover) : ControllerBase
 {
     private string PrivateRoot => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
 
@@ -29,16 +29,28 @@ public sealed class OperationalHistoryController(RoomTypeCreationService service
         => Execute((ticket, sid) => service.InspectionHistoryAsync(ticket, sid, new(BranchId: branchId), id, ct, attachmentId, PrivateRoot));
 
     [HttpGet("api/rooms/{roomId:long}/turnover-history")]
-    public Task<IActionResult> Turnovers(long roomId, [FromQuery] OperationalHistoryQuery query, CancellationToken ct)
-        => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, query, null, ct));
+    public Task<IActionResult> Turnovers(long roomId, [FromQuery] HotelOps.Api.DTOs.Housekeeping.TurnoverQuery query, CancellationToken ct)
+        => ExecuteTurnover((ticket, sid) => turnover.ReadTurnoverAsync(ticket, sid, roomId, query, null, ct));
 
     [HttpGet("api/rooms/{roomId:long}/turnover-history/{id:long}")]
-    public Task<IActionResult> Turnover(long roomId, long id, [FromQuery] long? branchId, CancellationToken ct)
-        => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct));
+    public Task<IActionResult> Turnover(long roomId, long id, [FromQuery] HotelOps.Api.DTOs.Housekeeping.TurnoverQuery query, CancellationToken ct)
+        => ExecuteTurnover((ticket, sid) => turnover.ReadTurnoverAsync(ticket, sid, roomId, query, id, ct));
 
     [HttpGet("api/rooms/{roomId:long}/turnover-history/{id:long}/evidence/{attachmentId:long}")]
     public Task<IActionResult> TurnoverEvidence(long roomId, long id, long attachmentId, [FromQuery] long? branchId, CancellationToken ct)
-        => Execute((ticket, sid) => service.TurnoverHistoryAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct, attachmentId, PrivateRoot));
+        => ExecuteTurnover((ticket, sid) => turnover.ReadTurnoverAsync(ticket, sid, roomId, new(BranchId: branchId), id, ct, attachmentId, PrivateRoot));
+
+    private Task<IActionResult> ExecuteTurnover(Func<SessionReference, long, Task<TurnoverHistoryResult>> operation)
+        => Execute(async (ticket, sid) =>
+        {
+            var result = await operation(ticket, sid);
+            return new RoomTypeBatchResult(result.Status switch
+            {
+                TurnoverHistoryStatus.Success => RoomTypeBatchStatus.Success, TurnoverHistoryStatus.SessionInvalid => RoomTypeBatchStatus.SessionInvalid,
+                TurnoverHistoryStatus.Forbidden => RoomTypeBatchStatus.Forbidden, TurnoverHistoryStatus.NotFound => RoomTypeBatchStatus.NotFound,
+                TurnoverHistoryStatus.Inactive => RoomTypeBatchStatus.Inactive, _ => RoomTypeBatchStatus.Unavailable
+            }, result.Value);
+        });
 
     private async Task<IActionResult> Execute(Func<SessionReference, long, Task<RoomTypeBatchResult>> operation)
     {
