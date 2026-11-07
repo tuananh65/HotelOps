@@ -26,6 +26,7 @@ export default function CleaningExecutionPanel({
     [busy, setBusy] = useState(false),
     [refresh, setRefresh] = useState(0);
   const [candidatePage, setCandidatePage] = useState(1);
+  const [resolutionNote, setResolutionNote] = useState("");
   const [pending, setPending] = useState<{
     command: ReassignmentCommand;
     tag: string;
@@ -77,15 +78,23 @@ export default function CleaningExecutionPanel({
     }
     return "Không xác minh được kết quả. Tải lại nguồn; với Reassign hãy thử đúng lệnh cũ.";
   }
-  async function start() {
-    if (!data || busy || pending || data.startCapability !== "AVAILABLE")
+  async function start(resume = false) {
+    if (
+      !data ||
+      busy ||
+      pending ||
+      (resume
+        ? data.resumeCapability !== "PROVISIONAL_V1"
+        : data.startCapability !== "AVAILABLE")
+    )
       return;
     setBusy(true);
     setError("");
     setNotice("");
     try {
       await mutateCleaningExecution(branch, task, "start", data.sourceETag, {
-        resolveBlocker: false,
+        resolveBlocker: resume,
+        ...(resume ? { note: resolutionNote.trim() } : {}),
       });
       if (alive.current) {
         setNotice("Đã bắt đầu dọn phòng; thời gian được ghi nhận bởi máy chủ.");
@@ -164,12 +173,58 @@ export default function CleaningExecutionPanel({
             Bắt đầu dọn phòng
           </button>
           {data.startCapability === "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" && (
-            <p>Chưa thể tiếp tục: cần xác nhận trở ngại đã được giải quyết.</p>
+            <>
+              {data.resumeCapability === "PROVISIONAL_V1" ? (
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void start(true);
+                  }}
+                >
+                  <label>
+                    Ghi chú xử lý trở ngại
+                    <input
+                      required
+                      maxLength={500}
+                      value={resolutionNote}
+                      disabled={busy || !!pending}
+                      onChange={(event) =>
+                        setResolutionNote(event.target.value)
+                      }
+                    />
+                  </label>
+                  <p>Tiếp tục xác nhận rằng các trở ngại đã được xử lý.</p>
+                  <button
+                    disabled={busy || !!pending || !resolutionNote.trim()}
+                  >
+                    Tiếp tục dọn phòng
+                  </button>
+                </form>
+              ) : (
+                <>
+                  <button disabled>Tiếp tục dọn phòng</button>
+                  <p>
+                    Chưa thể tiếp tục: chức năng xác nhận xử lý trở ngại chưa
+                    sẵn sàng.
+                  </p>
+                </>
+              )}
+            </>
           )}
           {data.state === "IN_PROGRESS" && (
-            <Link to={`/cleaning/tasks/${task}?branchId=${branch}`}>
-              Mở tiến độ dọn phòng
-            </Link>
+            <>
+              <Link to={`/cleaning/tasks/${task}?branchId=${branch}`}>
+                Mở tiến độ dọn phòng
+              </Link>
+              <div>
+                <button disabled>Báo cáo trở ngại</button>
+                <button disabled>Hoàn tất dọn phòng</button>
+              </div>
+              <p role="status">
+                Báo cáo trở ngại và hoàn tất dọn phòng tạm thời chưa khả dụng.
+                Bạn vẫn có thể lưu tiến độ; đạt 100% chưa đồng nghĩa hoàn tất.
+              </p>
+            </>
           )}
           {data.reassignCapability === "PROVISIONAL_NOT_ACCEPTED" && plan && (
             <form onSubmit={reassign}>

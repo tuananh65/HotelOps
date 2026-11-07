@@ -25,6 +25,10 @@ public static class CleaningLifecycleRules
         : state != "ASSIGNED" ? "TASK_NOT_ASSIGNED" : resolveBlocker ? "NO_OPEN_BLOCKER_TO_RESOLVE" : null;
     public static string? ReassignConflict(string? state, long previous, long next)
         => previous == next ? "SAME_ASSIGNEE" : state is not ("ASSIGNED" or "IN_PROGRESS" or "ON_HOLD") ? "REASSIGN_STATE_INVALID" : null;
+    public static string? ResumeConflict(string? state, long actor, long owner, bool confirm, string? note)
+        => actor != owner ? "CURRENT_ASSIGNEE_REQUIRED" : state != "ON_HOLD" ? "TASK_NOT_ON_HOLD"
+        : !confirm ? "BLOCKER_RESOLUTION_CONFIRMATION_REQUIRED"
+        : string.IsNullOrWhiteSpace(note) ? "BLOCKER_RESOLUTION_NOTE_REQUIRED" : null;
     public static byte[] Fingerprint(long actor, long branch, long task, string originalTag, ReassignCleaningRequest request)
         => SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(new { version = 1, action = "REASSIGN", actor, branch, task, originalTag,
             request.AssigneeId, due = request.DueAt.ToUniversalTime().ToString("O"), reason = request.Reason.Trim() }));

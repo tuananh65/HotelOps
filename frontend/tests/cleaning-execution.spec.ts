@@ -20,6 +20,68 @@ async function source(page: Page, overrides: object = {}) {
 }
 const open = (page: Page) =>
   page.goto("/cleaning/tasks/12?branchId=7&execution=1");
+
+test("closure unavailable keeps progress link and sends no mutation", async ({
+  page,
+}) => {
+  await source(page, {
+    state: "IN_PROGRESS",
+    startCapability: "STATE_CONFLICT",
+    reportBlockerCapability: "UNAVAILABLE",
+    completeCapability: "UNAVAILABLE",
+  });
+  const writes: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/api/") && r.method() !== "GET")
+      writes.push(r.method());
+  });
+  await open(page);
+  await expect(
+    page.getByRole("button", { name: "Báo cáo trở ngại", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Hoàn tất dọn phòng", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("link", { name: "Mở tiến độ dọn phòng" }),
+  ).toBeVisible();
+  expect(writes).toEqual([]);
+});
+
+test("provisional Resume requires note and sends explicit confirmation with current ETag", async ({
+  page,
+}) => {
+  await source(page, {
+    state: "ON_HOLD",
+    startCapability: "BLOCKER_RESOLUTION_CONTRACT_REQUIRED",
+    resumeCapability: "PROVISIONAL_V1",
+  });
+  await page.route("**/api/auth/csrf", (r) =>
+    r.fulfill({
+      json: { headerName: "X-CSRF-TOKEN", csrfToken: "interception-only" },
+    }),
+  );
+  let writes = 0;
+  await page.route("**/api/branches/7/cleaning-tasks/12/start", async (r) => {
+    writes++;
+    expect(r.request().postDataJSON()).toEqual({
+      resolveBlocker: true,
+      note: "Guest has left",
+    });
+    expect(r.request().headers()["if-match"]).toBe(tag);
+    await r.fulfill({ status: 412, json: { title: "STALE" } });
+  });
+  await open(page);
+  const resume = page.getByRole("button", {
+    name: "Tiếp tục dọn phòng",
+    exact: true,
+  });
+  await expect(resume).toBeDisabled();
+  await page.getByLabel("Ghi chú xử lý trở ngại").fill("Guest has left");
+  await resume.click();
+  await expect(page.getByRole("alert")).toContainText("Công việc đã thay đổi");
+  expect(writes).toBe(1);
+});
 test("Reassign pages through server candidates without posting a command", async ({
   page,
 }) => {

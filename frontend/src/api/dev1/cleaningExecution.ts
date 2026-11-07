@@ -11,6 +11,9 @@ export interface CleaningExecution {
   sourceETag: string;
   startCapability: string;
   reassignCapability: string;
+  reportBlockerCapability: "UNAVAILABLE";
+  completeCapability: "UNAVAILABLE";
+  resumeCapability: "UNAVAILABLE" | "PROVISIONAL_V1";
 }
 const tag = (v: unknown): v is string =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
@@ -60,10 +63,20 @@ export async function readCleaningExecution(
       "STATE_CONFLICT",
       "BLOCKER_RESOLUTION_CONTRACT_REQUIRED",
     ].includes(d.startCapability) ||
-    !["PROVISIONAL_NOT_ACCEPTED", "UNAVAILABLE"].includes(d.reassignCapability)
+    !["PROVISIONAL_NOT_ACCEPTED", "UNAVAILABLE"].includes(
+      d.reassignCapability,
+    ) ||
+    ![undefined, "UNAVAILABLE"].includes(d.reportBlockerCapability) ||
+    ![undefined, "UNAVAILABLE"].includes(d.completeCapability) ||
+    ![undefined, "UNAVAILABLE", "PROVISIONAL_V1"].includes(d.resumeCapability)
   )
     throw new ApiError(502, "INVALID_CLEANING_EXECUTION");
-  return d as CleaningExecution;
+  return {
+    ...d,
+    reportBlockerCapability: "UNAVAILABLE",
+    completeCapability: "UNAVAILABLE",
+    resumeCapability: d.resumeCapability ?? "UNAVAILABLE",
+  } as CleaningExecution;
 }
 export interface ReassignmentCommand {
   assigneeId: number;
@@ -98,13 +111,23 @@ export async function mutateCleaningExecution(
   task: string,
   action: "start" | "reassign",
   originalTag: string,
-  command: ReassignmentCommand | { resolveBlocker: false },
+  command: ReassignmentCommand | { resolveBlocker: boolean; note?: string },
   operation?: string,
 ) {
   const b = positiveId(branch),
     id = positiveId(task);
   if (!tag(originalTag) || (action === "reassign" && !guid(operation)))
     throw Error("INVALID_LIFECYCLE_COMMAND");
+  if (
+    action === "start" &&
+    "resolveBlocker" in command &&
+    command.resolveBlocker &&
+    (typeof command.note !== "string" ||
+      !command.note.trim() ||
+      command.note.length > 500 ||
+      /[\u0000-\u001f\u007f-\u009f]/.test(command.note))
+  )
+    throw Error("INVALID_BLOCKER_RESOLUTION_NOTE");
   const csrf = (await getJson("/auth/csrf")) as {
     headerName?: string;
     csrfToken?: string;
@@ -146,7 +169,9 @@ export async function mutateCleaningExecution(
     (d.state !== "IN_PROGRESS" ||
       !Number.isSafeInteger(d.intervalId) ||
       d.intervalId <= 0 ||
-      !/Z$/.test(d.actualStartAtUtc))
+      typeof d.actualStartAtUtc !== "string" ||
+      !/Z$/.test(d.actualStartAtUtc) ||
+      !Number.isFinite(Date.parse(d.actualStartAtUtc)))
   )
     throw new ApiError(502, "INVALID_START_RESULT_RELOAD_SOURCE");
   if (

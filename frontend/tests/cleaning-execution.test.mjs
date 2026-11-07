@@ -126,3 +126,75 @@ test("Start sends no client actor/time and validates server interval result", as
     8,
   );
 });
+
+test("Closure capabilities fail closed for old metadata and reject invented availability", async () => {
+  globalThis.fetch = async () =>
+    Response.json(plan, { headers: { ETag: tag } });
+  const source = await readCleaningExecution("1", "2");
+  assert.equal(source.reportBlockerCapability, "UNAVAILABLE");
+  assert.equal(source.completeCapability, "UNAVAILABLE");
+  assert.equal(source.resumeCapability, "UNAVAILABLE");
+  for (const patch of [
+    { reportBlockerCapability: "AVAILABLE" },
+    { completeCapability: "AVAILABLE" },
+    { resumeCapability: "AVAILABLE" },
+  ]) {
+    globalThis.fetch = async () =>
+      Response.json({ ...plan, ...patch }, { headers: { ETag: tag } });
+    await assert.rejects(
+      readCleaningExecution("1", "2"),
+      (e) => e.status === 502,
+    );
+  }
+});
+
+test("Resume sends explicit confirmation and note through existing CSRF transport", async () => {
+  let writes = 0;
+  globalThis.fetch = async (url, init) => {
+    if (url.endsWith("/auth/csrf"))
+      return Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "fresh" });
+    writes++;
+    assert.ok(url.endsWith("/start"));
+    assert.equal(init.headers["If-Match"], tag);
+    assert.equal(init.headers["X-CSRF-TOKEN"], "fresh");
+    assert.deepEqual(JSON.parse(init.body), {
+      resolveBlocker: true,
+      note: "Guest has left",
+    });
+    return Response.json(
+      {
+        id: 2,
+        branchId: 1,
+        assignmentId: 4,
+        state: "IN_PROGRESS",
+        intervalId: 9,
+        actualStartAtUtc: "2026-11-07T00:00:00Z",
+      },
+      { headers: { ETag: tag } },
+    );
+  };
+  assert.equal(
+    (
+      await mutateCleaningExecution("1", "2", "start", tag, {
+        resolveBlocker: true,
+        note: "Guest has left",
+      })
+    ).intervalId,
+    9,
+  );
+  assert.equal(writes, 1);
+});
+
+test("Resume rejects invalid resolution notes before any network request", async () => {
+  globalThis.fetch = async () => {
+    throw Error("UNEXPECTED_NETWORK");
+  };
+  for (const note of [undefined, "", " ", "bad\nnote", "x".repeat(501)])
+    await assert.rejects(
+      mutateCleaningExecution("1", "2", "start", tag, {
+        resolveBlocker: true,
+        note,
+      }),
+      /INVALID_BLOCKER_RESOLUTION_NOTE/,
+    );
+});

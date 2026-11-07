@@ -21,6 +21,14 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service)
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/reassign")]
     public Task<IActionResult> Reassign(long branchId, long id, ReassignCleaningRequest request, CancellationToken ct)
         => Run(true, (ticket, sid) => service.ReassignCleaningAsync(ticket, sid, branchId, id, Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
+    [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/blockers")]
+    public Task<IActionResult> ReportBlocker(long branchId, long id, ReportCleaningBlockerRequest request, CancellationToken ct)
+        => Run(true, (ticket, sid) => service.ReportCleaningBlockerAsync(ticket, sid, branchId, id,
+            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
+    [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/complete")]
+    public Task<IActionResult> Complete(long branchId, long id, CompleteCleaningRequest request, CancellationToken ct)
+        => Run(true, (ticket, sid) => service.CompleteCleaningAsync(ticket, sid, branchId, id,
+            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
     private async Task<IActionResult> Run(bool conditional, Func<SessionReference, long, Task<RoomTypeBatchResult>> action)
     {
         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
