@@ -1,0 +1,12 @@
+{
+  "database": "HotelOps_Canonical_20261108_100612_c882a0ce_Fresh",
+  "owner": "228c43c9-5cad-4cf1-8010-02374be0b828",
+  "branch": 1,
+  "foreign": 2,
+  "typeId": 1,
+  "httpsApi": "https://127.0.0.1:7447",
+  "httpsFrontend": "https://127.0.0.1:7448",
+  "certificateThumbprint": "644A3C254B11254D88CB102CE55CC8160491B112",
+  "syntheticGrant": "Existing catalog INSPECTION_PERFORM/VIEW grants; no permission changes",
+  "masterDataGrantedToHK": false
+}

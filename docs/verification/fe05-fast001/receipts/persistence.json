@@ -1,0 +1,28 @@
+{
+  "success": true,
+  "database": "HotelOps_Canonical_20261108_100612_c882a0ce_Fresh",
+  "owner": "228c43c9-5cad-4cf1-8010-02374be0b828",
+  "states": [
+    "PENDING_CONCLUSION",
+    "PENDING_CONCLUSION"
+  ],
+  "results": [
+    {
+      "InspectionId": 1,
+      "Outcome": "FAIL"
+    },
+    {
+      "InspectionId": 2,
+      "Outcome": "PASS"
+    }
+  ],
+  "defects": [
+    {
+      "InspectionId": 1,
+      "Description": "Synthetic dust defect"
+    }
+  ],
+  "attachments": 2,
+  "sessions": 2,
+  "audit": 7
+}

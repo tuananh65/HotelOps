@@ -1,0 +1,28 @@
+{
+  "task": "FE05-FAST-001",
+  "database": "HotelOps_Canonical_20261108_100612_c882a0ce_Fresh",
+  "owner": "228c43c9-5cad-4cf1-8010-02374be0b828",
+  "live": true,
+  "httpInterception": false,
+  "cases": [
+    {
+      "name": "Real SignInScreen, cookie session and HTTPS",
+      "result": "FAIL",
+      "error": "expect(page).toHaveURL(expected) failed\n\nExpected pattern: /\\/dashboard$/\nReceived string:  \"https://127.0.0.1:7448/login\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toHaveURL\" with timeout 5000ms\n    13 × locator resolved to <html lang=\"en\">…</html>\n       - unexpected value \"https://127.0.0.1:7448/login\"\n"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    }
+  ],
+  "success": false,
+  "error": "expect(page).toHaveURL(expected) failed\n\nExpected pattern: /\\/dashboard$/\nReceived string:  \"https://127.0.0.1:7448/login\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"toHaveURL\" with timeout 5000ms\n    13 × locator resolved to <html lang=\"en\">…</html>\n       - unexpected value \"https://127.0.0.1:7448/login\"\n"
+}

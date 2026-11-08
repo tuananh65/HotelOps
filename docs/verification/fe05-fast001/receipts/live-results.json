@@ -1,0 +1,313 @@
+{
+  "task": "FE05-FAST-001",
+  "database": "HotelOps_Canonical_20261108_100612_c882a0ce_Fresh",
+  "owner": "228c43c9-5cad-4cf1-8010-02374be0b828",
+  "live": true,
+  "httpInterception": false,
+  "cases": [
+    {
+      "name": "Real SignInScreen, cookie session and HTTPS",
+      "result": "PASS"
+    },
+    {
+      "name": "Assigned source, Start, mandatory validation, FAIL and criterion evidence Save",
+      "result": "PASS"
+    },
+    {
+      "name": "Record defect with actual severity reference and private evidence",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale ETag rejected, real CSRF enforced, Finish and persistence after reload",
+      "result": "PASS"
+    },
+    {
+      "name": "Second inspection PASS Save/Finish through real UI",
+      "result": "PASS"
+    },
+    {
+      "name": "History collection search, branch filter, pagination and detail",
+      "result": "PASS"
+    },
+    {
+      "name": "Evidence download authorized by backend and actual bytes",
+      "result": "PASS"
+    },
+    {
+      "name": "Real branch isolation, denied account 403 and anonymous 401",
+      "result": "PASS"
+    },
+    {
+      "name": "Independent SQL persistence results/defect/evidence/session/audit",
+      "result": "PASS"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/start",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/finish",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/branches/1/inspections/1/results",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/defects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/finish",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/finish",
+      "status": 412
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/defects",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/2/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/2/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/start",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/start",
+      "status": 412
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/2/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/branches/1/inspections/2/results",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/finish",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspection-history?page=1&pageSize=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspection-history?page=1&pageSize=20&branchId=1&search=FAST_INSP_1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspection-history?branchId=1&page=2&pageSize=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspection-history/1?branchId=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspection-history/1/evidence/2?branchId=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspections/1/execution",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/inspection-history?branchId=2",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 403
+    }
+  ],
+  "success": true
+}

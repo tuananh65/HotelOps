@@ -1,3 +1,6 @@
+import { InspectionBoundary } from "../inspection/InspectionBoundary";
+import { InspectionEntry, ExecutionPage } from "../inspection/ExecutionPage";
+import { HistoryPage, HistoryDetailPage } from "../inspection/HistoryPage";
 import { useRef } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import SignInScreen from "../screens/auth/SignInScreen";
@@ -148,6 +151,18 @@ export function AuthRouteHost() {
       <Route element={<UsersRouteBoundary />}>
         <Route path="/users" element={<UserDirectoryPage />} />
         <Route path="/users/:id" element={<UserAccessReviewPage />} />
+      </Route>
+      <Route element={<InspectionBoundary />}>
+        <Route path="/inspections" element={<InspectionEntry />} />
+        <Route
+          path="/inspections/:branch/:id/execution"
+          element={<ExecutionPage />}
+        />
+        <Route path="/inspections/history" element={<HistoryPage />} />
+        <Route
+          path="/inspections/history/:branch/:id"
+          element={<HistoryDetailPage />}
+        />
       </Route>
       <Route path="*" element={<BusinessBoundary />} />
     </Routes>
