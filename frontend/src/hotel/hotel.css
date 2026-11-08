@@ -1,0 +1,49 @@
+.hotel-workspace {
+  max-width: 1080px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+}
+.hotel-workspace nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+.hotel-workspace section,
+.hotel-workspace form {
+  border: 1px solid #aaa;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin: 1rem 0;
+}
+.hotel-workspace label {
+  display: inline-flex;
+  vertical-align: top;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin: 0.5rem 1rem 0.5rem 0;
+}
+.hotel-workspace input,
+.hotel-workspace select,
+.hotel-workspace textarea {
+  padding: 0.5rem;
+  color: inherit;
+  background: inherit;
+  border: 1px solid #888;
+  border-radius: 0.25rem;
+}
+.hotel-workspace button {
+  margin: 0.5rem;
+  padding: 0.6rem 1rem;
+}
+.hotel-workspace dt {
+  font-weight: 600;
+}
+.hotel-workspace dd {
+  margin: 0.15rem 0 0.5rem 1rem;
+  overflow-wrap: anywhere;
+}
+.hotel-workspace [role="alert"] {
+  border-left: 4px solid #a32b2b;
+  padding: 0.75rem;
+}
