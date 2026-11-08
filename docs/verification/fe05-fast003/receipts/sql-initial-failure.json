@@ -1,0 +1,36 @@
+{
+  "success": false,
+  "coreOnly": true,
+  "authoritativeHandoff": false,
+  "cases": [
+    {
+      "name": "Caller transaction required",
+      "result": "PASS"
+    },
+    {
+      "name": "Valid FAILED and REWORK_REQUIRED transition; caller rollback restores both",
+      "result": "PASS"
+    },
+    {
+      "name": "Rollback restored original pending conclusion",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing confirmation rejected before writes",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing failed-criterion defect rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong current cycle rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale root revision rejected by conditional SQL",
+      "result": "FAIL",
+      "error": "BeginExecuteReader requires the command to have a transaction when the connection assigned to the command is in a pending local transaction.  The Transaction property of the command has not been initialized."
+    }
+  ]
+}

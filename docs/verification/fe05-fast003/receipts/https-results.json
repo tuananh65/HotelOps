@@ -1,0 +1,263 @@
+{
+  "task": "FE05-FAST-003",
+  "database": "HotelOps_Canonical_20261108_110524_fc68d7da_Fresh",
+  "owner": "3e531db0-1455-4db4-bb41-c9c982b8da98",
+  "realHttps": true,
+  "httpInterception": false,
+  "authoritativeHandoff": false,
+  "cases": [
+    {
+      "name": "Real cookie authentication over pinned HTTPS",
+      "result": "PASS"
+    },
+    {
+      "name": "Trusted reject preview reads persisted current cycle, defects, direct evidence and rowversion",
+      "result": "PASS"
+    },
+    {
+      "name": "Valid Reject and duplicate key fail closed without lifecycle/staging/receipt participant",
+      "result": "PASS"
+    },
+    {
+      "name": "Confirmation, reason, strong ETag and operation key validated",
+      "result": "PASS"
+    },
+    {
+      "name": "D4 evidence metadata invalidates Reject source; stale If-Match rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Persisted failed facts are readable but explicitly not authority",
+      "result": "PASS"
+    },
+    {
+      "name": "Rework refuses fixture FAIL authority; selected defects and stale revision checked",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong phase, absent source, anonymous, forbidden and branch isolation",
+      "result": "PASS"
+    },
+    {
+      "name": "Actual current-cycle mismatch rejects source without latest-ID inference",
+      "result": "PASS"
+    },
+    {
+      "name": "Independent persistence confirms no production Reject/Rework mutation",
+      "result": "PASS"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/reject-source",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 428
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reject",
+      "status": 412
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/reject-source",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/2/rework-source",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/2/rework-source",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/reworks",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/reworks",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/reworks",
+      "status": 412
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/reworks",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/2/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/2/reject",
+      "status": 409
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/999999/reject-source",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspections/1/reject-source",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspections/1/rework-source",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/reject-source",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/reject-source",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/reject-source",
+      "status": 409
+    }
+  ],
+  "success": true
+}

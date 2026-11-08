@@ -1,0 +1,13 @@
+{
+  "success": true,
+  "database": "HotelOps_Canonical_20261108_110524_fc68d7da_Fresh",
+  "owner": "3e531db0-1455-4db4-bb41-c9c982b8da98",
+  "states": [
+    "PENDING_CONCLUSION",
+    "FAILED"
+  ],
+  "reworks": 0,
+  "audits": 0,
+  "secondInspectionIsCoreOnlyFixture": true,
+  "authoritativeHandoff": false
+}

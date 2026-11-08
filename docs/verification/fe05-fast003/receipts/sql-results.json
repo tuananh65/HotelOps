@@ -1,0 +1,75 @@
+{
+  "success": true,
+  "coreOnly": true,
+  "authoritativeHandoff": false,
+  "database": "HotelOps_Canonical_20261108_110524_fc68d7da_Fresh",
+  "owner": "3e531db0-1455-4db4-bb41-c9c982b8da98",
+  "cases": [
+    {
+      "name": "Caller transaction required",
+      "result": "NOT_RERUN",
+      "priorReceipt": "sql-initial-failure.json"
+    },
+    {
+      "name": "Valid FAILED and REWORK_REQUIRED transition; caller rollback restores both",
+      "result": "NOT_RERUN",
+      "priorReceipt": "sql-initial-failure.json"
+    },
+    {
+      "name": "Rollback restored original pending conclusion",
+      "result": "NOT_RERUN",
+      "priorReceipt": "sql-initial-failure.json"
+    },
+    {
+      "name": "Missing confirmation rejected before writes",
+      "result": "NOT_RERUN",
+      "priorReceipt": "sql-initial-failure.json"
+    },
+    {
+      "name": "Missing failed-criterion defect rejected",
+      "result": "NOT_RERUN",
+      "priorReceipt": "sql-initial-failure.json"
+    },
+    {
+      "name": "Wrong current cycle rejected",
+      "result": "NOT_RERUN",
+      "priorReceipt": "sql-initial-failure.json"
+    },
+    {
+      "name": "Stale root revision rejected by conditional SQL",
+      "result": "PASS"
+    },
+    {
+      "name": "D4 evidence metadata invalidates pending conclusion revision",
+      "result": "PASS"
+    },
+    {
+      "name": "Rework persisted identity and selected defect links inside caller transaction",
+      "result": "PASS"
+    },
+    {
+      "name": "Rework rollback leaves no durable identity or links",
+      "result": "PASS"
+    },
+    {
+      "name": "Cross-inspection selected defects rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Evidence change invalidates FAILED revision before rework",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong branch cannot create core rework",
+      "result": "PASS"
+    },
+    {
+      "name": "Concurrent conditional Reject has one SQL core winner",
+      "result": "PASS"
+    },
+    {
+      "name": "Committed SQL-core test fixture has no production authority proof",
+      "result": "PASS"
+    }
+  ]
+}

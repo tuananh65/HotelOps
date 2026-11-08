@@ -1,0 +1,11 @@
+{
+  "success": true,
+  "coreOnly": true,
+  "authoritativeHandoff": false,
+  "cases": [
+    {
+      "name": "Failure after root UPDATE rolls back Inspection, task and cycle together",
+      "result": "PASS"
+    }
+  ]
+}

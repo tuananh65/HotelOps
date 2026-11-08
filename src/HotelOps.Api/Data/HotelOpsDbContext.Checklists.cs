@@ -11,6 +11,7 @@ public partial class HotelOpsDbContext
 
     private static void ConfigureChecklists(ModelBuilder model)
     {
+        model.Entity<Attachment>().ToTable("attachments", t => t.UseSqlOutputClause(false));
         // Approved Task74 optional progress triggers; compatible before/after deployment.
         model.Entity<CleaningTask>().ToTable("cleaning_tasks", t => t.UseSqlOutputClause(false));
         model.Entity<CleaningAssignment>().ToTable("cleaning_assignments", t => t.UseSqlOutputClause(false));

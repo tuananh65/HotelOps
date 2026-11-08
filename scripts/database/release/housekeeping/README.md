@@ -1,5 +1,90 @@
 # Housekeeping V1 — Task73 disposable-only rollout
 
+## INSP-004C2 evidence revision patch
+
+INSP-004C3 subsequently verified the patch on a newly created, owner-marked local disposable
+database only. See `tests/HotelOps.Inspection.EvidenceTests/INSP004C3_REPORT.md` for actual
+receipts, failures/fixes and limits. This is not D4 acceptance or shared deployment approval.
+
+No database deployment or D4 acceptance is granted by this patch. Original
+`01_Housekeeping.sql` is unchanged, preserving existing V1 package identity. The existing
+runner accepts explicit `-Stage Apply -EvidenceInvalidation` only on its already guarded
+disposable targets, after a separate authorization to execute. Default Apply does not install
+the amendment. `-Stage Verify -EvidenceInvalidation` refuses unamended V1. Once installed,
+any runner invocation verifies the amendment automatically, including without the switch.
+
+`04_EvidenceInvalidation.sql` replaces the two link trigger definitions and adds one
+Attachment trigger. All three handle INSERT/UPDATE/DELETE set-wise; existing ownership
+guards remain. Attachment rebinds inconsistent with existing links throw. Soft-delete/restore
+and metadata updates invalidate related Inspection roots. Unlinked direct Inspection evidence
+also invalidates its old/new root, because existing history includes these attachments.
+Legacy null-workflow Inspections are not adopted. No columns, FK, enum or ledger are added.
+
+The separate `HotelOps.Housekeeping.EvidenceRevision.V1` marker stores the amendment file
+hash. `05_VerifyEvidence.sql` checks marker, trigger parents, enabled state and all I/U/D
+events. The runner additionally checks exact marker hash and OBJECT_DEFINITION of all nine
+effective triggers (only CREATE/ALTER header normalization accounts for SQL Server's stored
+CREATE OR ALTER representation; the body is compared exactly). Base trigger definitions are overlaid with the three amendment definitions;
+old same-name V1 triggers cannot satisfy amendment verification. Missing/partial/unknown/drifted
+packages are refused, not silently repaired. Generic runtime HousekeepingSchema remains the
+V1 compatibility gate; it does not certify D4. No runtime writer is enabled by this release.
+
+DDL, marker and verification use the runner's single transaction/catalog lock. Existing full
+module rollback verifies definitions and refuses owned data first; on an empty module it also
+drops the Attachment trigger and evidence marker before removing referenced tables. There is
+no separate populated amendment downgrade. After data exists use a reviewed forward recovery.
+Install, replay, post-DDL fault rollback and empty/full rollback guards were subsequently
+exercised in INSP-004C3; populated forward recovery remains a separately reviewed operation.
+
+Deploy the prepared Attachment partial mapping (`UseSqlOutputClause(false)`) with the patch
+before enabling triggers. Without it EF inserts can fail with SQL Server bare OUTPUT rules.
+Shared StoreFeatureEvidence users (Inspection and WorkProgress, plus FE-04 consumers at
+integration) need real upload/save/download regressions. Generated entities remain unchanged.
+
+No trigger execution order is assumed: all validations and touches participate in the same
+mutation transaction; any THROW rolls everything back. Root updates do not mutate links or
+attachments, so these three triggers form no recursive cycle. Do not configure trigger-order
+overrides or global server settings as part of this package. Existing nested root guards may
+execute; their behavior and relevant server settings must be captured in isolated SQL tests.
+
+Multi-row mutations deduplicate parents within each trigger, not across an entire operation;
+rowversion may advance multiple times. Rollback leaves rowversion gaps, never a committed
+evidence change with only a rolled-back root touch. No numeric increment contract is promised.
+Child-first DML then parent touch can deadlock with root-first conclusion. No deadlock-free
+guarantee/retry layer is introduced. Activated writers must reconcile ordering and handle
+victim rollback using existing transaction error behavior. UC045 still needs a conditional
+state/rowversion update; comparing an ETag outside the transaction is insufficient.
+
+Offline checks:
+
+```powershell
+& scripts/verification/Housekeeping/Test-EvidencePatch.ps1
+dotnet run --project tests/HotelOps.Inspection.EvidenceTests
+```
+
+These verify PowerShell/package comparison logic and EF metadata only, not SQL semantics.
+At patch preparation no authorized isolated database was supplied. The following is the
+regression plan; INSP-004C3 records the subset actually run and does not claim all settings
+or all possible batch permutations were exhaustively exercised:
+
+- Base installation then explicit upgrade; fresh base+amendment; repeat Apply/Verify; old V1
+  refusal under explicit evidence Verify; missing/disabled/altered triggers and marker drift.
+- Single/multi-row I/U/D on both bridges; old/new parent changes, multiple parents and shared
+  attachment references; zero-row DML; unchanged legacy roots and unrelated attachments.
+- Direct Inspection attachment insert/delete/rebind, soft-delete/restore and metadata updates;
+  rejected linked-owner rebind and failed link to deleted/foreign attachment; FK hard-delete.
+- Existing result/defect mutations, conclusion-root guards, no recursion, effective trigger
+  settings/order variations; EF private evidence upload and identity return after mapping change.
+- Rollback after evidence mutation/parent touch/DDL fault; marker and definitions rollback;
+  refusal of populated full rollback without deletion, and successful empty full rollback.
+- Two sessions racing evidence mutation and conditional conclusion in both directions;
+  stale rejection, blocking/deadlock victim rollback, final committed source/revision consistency.
+- Private bytes remain create-new storage assets. Out-of-band byte replacement is not observable
+  by database triggers; do not claim filesystem immutability or distributed atomicity from D4.
+
+Implementation owner: DEV1 FE-05; shared database/Attachment mapping approval and FE-04/DEV2
+consumer coordination remain required. D3/D5/D7 and authoritative UC045 writer are excluded.
+
 Conditionally approved for UC029/041/042/043/046. No production/shared database deployment
 is authorized. No generated entities, roles/permission grants or DEV2 source are changed.
 No startup migrations. Existing coarse status values remain available to legacy readers.

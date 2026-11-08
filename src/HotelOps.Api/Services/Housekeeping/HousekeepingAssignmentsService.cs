@@ -96,32 +96,8 @@ public sealed partial class RoomTypeCreationService
         }, ct, additionalUsers: [input.InspectorId], eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token), permissionCode: "INSPECTION_PERFORM");
     }
 
-    public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket, long sid, long branch, long inspection, string tag, RequestReworkRequest input, CancellationToken ct)
-    {
-        if (inspection <= 0 || input.AssigneeId <= 0 || input.DefectIds == null || input.DefectIds.Count is < 1 or > 200
-            || input.DefectIds.Distinct().Count() != input.DefectIds.Count || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid rework request.");
-        var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
-        return BatchAsync(ticket, sid, branch, async (actor, token) =>
-        {
-            if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
-            var rooms = await HistoryRooms(token); if (rooms == null) return new(RoomTypeBatchStatus.SchemaRequired);
-            var ids = rooms.Where(r => r.BranchId == branch && r.IsActive).Select(r => r.RoomId);
-            var row = await db.RoomInspections.AsNoTracking().SingleOrDefaultAsync(i => i.InspectionId == inspection && ids.Contains(i.RoomId) && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
-            if (row == null) return new(RoomTypeBatchStatus.NotFound);
-            var state = await InspectionState(inspection, token);
-            if (tag != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
-            if (state.State != "FAILED" || (await CleaningState(row.CleaningTaskId!.Value, token)).State != "REWORK_REQUIRED") return new(RoomTypeBatchStatus.Inactive);
-            if (await db.CleaningReworks.AnyAsync(r => r.InspectionId == inspection && r.Status != "COMPLETED" && r.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
-            if (await db.InspectionDefects.CountAsync(d => d.InspectionId == inspection && input.DefectIds.Contains(d.DefectId), token) != input.DefectIds.Count) return new(RoomTypeBatchStatus.InvalidReference);
-            var rework = new CleaningRework { InspectionId = inspection, CleaningTaskId = row.CleaningTaskId.Value, AssigneeUserId = input.AssigneeId, Reason = reason, Status = "PENDING", RequestedAt = clock.GetUtcNow().UtcDateTime };
-            db.Add(rework); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
-            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={"PENDING_ACCEPTANCE"},due_at={input.DueAt} WHERE rework_id={rework.ReworkId}", token);
-            foreach (var defect in input.DefectIds) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_rework_defects(rework_id,defect_id) VALUES({rework.ReworkId},{defect})", token);
-            var after = new HousekeepingWriteDto(rework.ReworkId, "PENDING_ACCEPTANCE");
-            await BatchAuditAsync(actor, branch, "cleaning_reworks", rework.ReworkId, null, new { reason, defects = input.DefectIds, entity = after }, ["assignee", "defects", "dueAt"], token);
-            return new(RoomTypeBatchStatus.Success, after);
-        }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueHousekeeper(input.AssigneeId, branch, input.DueAt, token), permissionCode: "INSPECTION_PERFORM");
-    }
+    public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket,long sid,long branch,long inspection,string tag,RequestReworkRequest input,CancellationToken ct)
+        => RequestAuthoritativeReworkAsync(ticket,sid,branch,inspection,tag,input,ct);
     private async Task<bool> DueHousekeeper(long id, long branch, DateTime due, CancellationToken ct) => due > clock.GetUtcNow().UtcDateTime
         && await EligibleHousekeeper(id, branch, clock.GetUtcNow().UtcDateTime, ct);
 }

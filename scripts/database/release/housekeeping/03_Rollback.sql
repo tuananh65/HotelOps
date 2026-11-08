@@ -2,6 +2,9 @@ IF EXISTS(SELECT 1 FROM dbo.cleaning_tasks WHERE workflow_status IS NOT NULL) OR
  OR EXISTS(SELECT 1 FROM dbo.cleaning_reworks WHERE workflow_status IS NOT NULL) OR EXISTS(SELECT 1 FROM dbo.inspection_defects WHERE room_location IS NOT NULL)
  OR EXISTS(SELECT 1 FROM dbo.cleaning_rework_defects) OR EXISTS(SELECT 1 FROM dbo.inspection_defect_attachments) OR EXISTS(SELECT 1 FROM dbo.inspection_result_attachments)
  THROW 51730,'Owned data exists; rollback refused. Use reviewed forward recovery.',1;
+IF OBJECT_ID(N'dbo.TR_hk_attachment_revision_v1',N'TR') IS NOT NULL DROP TRIGGER dbo.TR_hk_attachment_revision_v1;
+IF EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.Housekeeping.EvidenceRevision.V1')
+ EXEC sys.sp_dropextendedproperty @name=N'HotelOps.Housekeeping.EvidenceRevision.V1';
 DROP TRIGGER dbo.TR_hk_inspections_v1;
 DROP TRIGGER dbo.TR_hk_used_criteria_v1;
 DROP TRIGGER dbo.TR_hk_used_version_v1;
