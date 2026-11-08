@@ -27,7 +27,7 @@ window.fixture={calls,finish:(key,r)=>waiting.get(key).shift()(respond(r)),reval
   write: false,
   format: "iife",
   jsx: "automatic",
-  define: { "process.env.NODE_ENV": '"development"' },
+  define: { "process.env.NODE_ENV": '"development"', "import.meta.env": "{}" },
 });
 let browser;
 before(async () => {
@@ -338,10 +338,12 @@ test("FE01 and FE02 navigation delegates to accepted hosts", () =>
     await p.goBack();
     await p.waitForURL("**/profile");
   }));
-test("accepted entry remains unchanged; no production route activation", () => {
+test("accepted entry remains unchanged; workday route requires feature flag", () => {
   assert.ok(readFileSync("index.html", "utf8").includes("/src/hotel/main.tsx"));
   assert.ok(
-    !readFileSync("src/hotel/HotelRouteHost.tsx", "utf8").includes("workday"),
+    readFileSync("src/hotel/HotelRouteHost.tsx", "utf8").includes(
+      "workdayReadEnabled &&",
+    ),
   );
 });
 

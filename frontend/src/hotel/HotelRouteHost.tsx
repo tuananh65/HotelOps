@@ -3,6 +3,8 @@ import { useAuth } from "../auth/AuthProvider";
 import { AuthRouteHost } from "../auth/AuthRouteHost";
 import { HotelWorkspace } from "./HotelWorkspace";
 import type { Screen } from "./operations";
+import { workdayReadEnabled } from "../workday/readFeature";
+import { WorkdayRoute } from "../workday/WorkdayRoute";
 function HotelRoute({ screen }: { screen: Screen }) {
   const location = useLocation();
   return (
@@ -18,6 +20,9 @@ function IntegratedDashboard() {
       {state.status === "AUTHENTICATED" && state.session && (
         <nav aria-label="Integrated modules">
           <Link to="/hotel">Hotel structure</Link>
+          {workdayReadEnabled &&
+            !state.session.mustChangePassword &&
+            state.pending === null && <Link to="/workday">Workday</Link>}
         </nav>
       )}
     </>
@@ -27,6 +32,9 @@ export function HotelRouteHost() {
   return (
     <Routes>
       <Route path="/dashboard" element={<IntegratedDashboard />} />
+      {workdayReadEnabled && (
+        <Route path="/workday" element={<WorkdayRoute />} />
+      )}
       <Route path="/hotel" element={<HotelRoute screen="structure" />} />
       <Route path="/branches" element={<HotelRoute screen="structure" />} />
       <Route
