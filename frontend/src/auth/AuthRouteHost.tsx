@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
+import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
 import SignInScreen from "../screens/auth/SignInScreen";
 import ProfileScreen from "../screens/auth/ProfileScreen";
 import ChangePasswordScreen from "../screens/auth/ChangePasswordScreen";
@@ -120,16 +121,7 @@ export function AuthRouteHost() {
         path="/change-password"
         element={<AuthFormRoute key="changePassword" kind="changePassword" />}
       />
-      <Route
-        path="/forgot-password"
-        element={
-          <main>
-            <h1>Forgot Password</h1>
-            <p>Please contact your Administrator for password assistance.</p>
-            <Link to="/login">Return to sign in</Link>
-          </main>
-        }
-      />
+      <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
       <Route path="/dev/*" element={<PrototypeUnavailable />} />
       <Route path="/users/new" element={<CreateUserFlowBoundary />} />
       <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />

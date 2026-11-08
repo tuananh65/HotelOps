@@ -83,7 +83,7 @@ window.fixture={calls,unexpected,revalidate:()=>store.revalidate(),navigate(path
   format: "iife",
   platform: "browser",
   jsx: "automatic",
-  define: { "process.env.NODE_ENV": '"development"' },
+  define: { "process.env.NODE_ENV": '"development"', "import.meta.env": "{}" },
 });
 let browser;
 before(async () => {
@@ -278,7 +278,13 @@ for (const [path, expected] of [
     await withHotel(path, {}, async (p) => {
       await ready(p);
       await load(p);
-      await p.getByRole("region", { name: "Server hotel data" }).waitFor();
+      await p
+        .getByRole("region", {
+          name: path.startsWith("/hotel")
+            ? "Progressive branch structure"
+            : "Server hotel data",
+        })
+        .waitFor();
       assert.ok((await p.locator("body").innerText()).includes(expected));
       assert.equal((await writes(p)).length, 0);
     });
@@ -533,7 +539,9 @@ test("branch change aborts old GET; late branch data remains hidden", async () =
       await p.locator('input[name="branchId"]').fill("2");
       await finish(p, "read", { body: structure() });
       assert.equal(
-        await p.getByRole("region", { name: "Server hotel data" }).count(),
+        await p
+          .getByRole("region", { name: "Progressive branch structure" })
+          .count(),
         0,
       );
       assert.equal(
@@ -573,16 +581,26 @@ test("UC013 selects a floor node and child collection using server contract", as
   };
   await withHotel(
     "/hotel?branchId=1",
-    { responses: { "GET /api/branches/1/structure": [{ body: data }] } },
+    {
+      responses: {
+        "GET /api/branches/1/structure": [
+          { body: structure() },
+          { body: data },
+        ],
+      },
+    },
     async (p) => {
       await ready(p);
-      await p
-        .getByRole("combobox", { name: "Structure node" })
-        .selectOption("floor");
-      await p.locator('input[name="nodeId"]').fill("11");
       await load(p);
-      await p.getByRole("region", { name: "Server hotel data" }).waitFor();
-      const c = (await calls(p)).find((c) => c.url.includes("/structure"));
+      await p
+        .getByRole("button", { name: "floor: Server Floor", exact: true })
+        .click();
+      await p
+        .getByRole("region", { name: "Progressive branch structure" })
+        .waitFor();
+      const c = (await calls(p))
+        .filter((c) => c.url.includes("/structure"))
+        .at(-1);
       const q = new URL(c.url, "http://test.local").searchParams;
       assert.equal(q.get("nodeType"), "floor");
       assert.equal(q.get("nodeId"), "11");
