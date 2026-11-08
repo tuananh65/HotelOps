@@ -1,6 +1,7 @@
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { AuthRouteHost } from "../auth/AuthRouteHost";
+import { BranchStructureTree } from "./BranchStructureTree";
 import { HotelWorkspace } from "./HotelWorkspace";
 import { CreateBranchRoute } from "../branch-maintenance/CreateBranchRoute";
 import { BranchMaintenanceRoute } from "../branch-maintenance/BranchMaintenanceRoute";
@@ -9,7 +10,9 @@ import { workdayReadEnabled } from "../workday/readFeature";
 import { WorkdayRoute } from "../workday/WorkdayRoute";
 function HotelRoute({ screen }: { screen: Screen }) {
   const location = useLocation();
-  return (
+  return screen === "structure" ? (
+    <BranchStructureTree key={location.pathname + location.search} />
+  ) : (
     <HotelWorkspace key={location.pathname + location.search} screen={screen} />
   );
 }
