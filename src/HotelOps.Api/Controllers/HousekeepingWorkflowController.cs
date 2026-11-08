@@ -28,7 +28,7 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
     public Task<IActionResult> Defect(long branchId, long id, RecordInspectionDefectRequest input, CancellationToken ct) => Inspect(branchId,id,"defect",null,input,null,ct);
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/assign")]
     public Task<IActionResult> AssignCleaning(long branchId, long id, AssignCleaningRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.AssignCleaningAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true);
+        => Execute((ticket,sid) => service.AssignCleaningCandidateAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true);
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections")]
     public Task<IActionResult> AssignInspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.AssignInspectionAsync(ticket,sid,branchId,id,input,ct),false,true);

@@ -7,4 +7,4 @@ public sealed record PlanningStaffDto(long Id, string Name, long? DepartmentId, 
 public sealed record PlanningChecklistDto(long Id, string Name, long VersionId, int VersionNumber, int ActiveCriteria);
 public sealed record HousekeepingPlanningDto(PlanningTaskDto Task, IReadOnlyList<PlanningStaffDto> Candidates,
     IReadOnlyList<PlanningShiftDto> RecordedShifts, int Total, HousekeepingPlanningQuery Filters,
-    PlanningChecklistDto? Checklist, DateTime CapturedAt, bool WorkflowStateVerified = false);
+    PlanningChecklistDto? Checklist, DateTime CapturedAt, bool WorkflowStateVerified = false, string AssignmentCapability = "UNAVAILABLE");
