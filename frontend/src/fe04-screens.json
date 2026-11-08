@@ -1,0 +1,103 @@
+[
+  {
+    "id": 24,
+    "name": "Cleaning Task List",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Supervisor monitors tasks by status/overdue and cancels tasks; staff see their own cleaning tasks.",
+    "ucs": [
+      "UC-031",
+      "UC-037"
+    ],
+    "route": "/cleaning/tasks",
+    "roles": [
+      "Housekeeping Staff",
+      "Housekeeping Supervisor"
+    ]
+  },
+  {
+    "id": 25,
+    "name": "Create Cleaning Task",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Creates a cleaning task for a room with cleaning type, priority and due time.",
+    "ucs": [
+      "UC-028"
+    ],
+    "route": "/cleaning/tasks/new",
+    "roles": [
+      "Housekeeping Supervisor"
+    ]
+  },
+  {
+    "id": 26,
+    "name": "Cleaning Task Detail",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Displays a cleaning task; staff start it, update progress, report blockers and complete it.",
+    "ucs": [
+      "UC-031",
+      "UC-032",
+      "UC-033",
+      "UC-034",
+      "UC-037"
+    ],
+    "route": "/cleaning/tasks/:id",
+    "roles": [
+      "Housekeeping Staff",
+      "Housekeeping Supervisor"
+    ]
+  },
+  {
+    "id": 27,
+    "name": "Cleaning Assignment",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Assigns or reassigns a cleaning task based on area and current workload.",
+    "ucs": [
+      "UC-029",
+      "UC-030"
+    ],
+    "route": "/cleaning/assignment",
+    "roles": [
+      "Housekeeping Supervisor"
+    ]
+  },
+  {
+    "id": 28,
+    "name": "Rework Task List",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Lists rework tasks; staff see their own rework tasks.",
+    "ucs": [
+      "UC-035"
+    ],
+    "route": "/rework",
+    "roles": [
+      "Housekeeping Staff"
+    ]
+  },
+  {
+    "id": 29,
+    "name": "Rework Task Detail",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Displays defects to fix; staff accept, start and submit the rework with remediation notes.",
+    "ucs": [
+      "UC-035",
+      "UC-036"
+    ],
+    "route": "/rework/:id",
+    "roles": [
+      "Housekeeping Staff"
+    ]
+  },
+  {
+    "id": 30,
+    "name": "Room Turnover History",
+    "feature": "Housekeeping (FE-04)",
+    "description": "Displays cleaning cycles of a room with assignees, times, inspection results and rework count.",
+    "ucs": [
+      "UC-038"
+    ],
+    "route": "/rooms/turnover",
+    "roles": [
+      "Housekeeping Supervisor",
+      "Operations Manager"
+    ]
+  }
+]

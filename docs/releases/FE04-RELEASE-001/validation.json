@@ -1,0 +1,74 @@
+{
+  "base": "6aee2a0e692a7814f41c81224709cddfbe1e2ec4",
+  "source": "8d49a9087ce75fa39c89f35be9a90cd27faa3216",
+  "exactFileCount": 160,
+  "sourceIdenticalFiles": 144,
+  "compatibilityOrNewFiles": [
+    "frontend/playwright.fe04-release.config.ts",
+    "frontend/src/fe04-screens.json",
+    "frontend/src/main.tsx",
+    "frontend/src/ui.tsx",
+    "frontend/tests/cleaning-execution.spec.ts",
+    "frontend/tests/rework-execution.spec.ts",
+    "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+    "src/HotelOps.Api/Program.cs",
+    "tests/HotelOps.Dev1.RegressionTests/AuthorizationTests.cs",
+    "tests/HotelOps.Dev1.RegressionTests/NoIdentity.cs",
+    "tests/HotelOps.Dev1.RegressionTests/ReleaseCompositionTests.cs"
+  ],
+  "baselineDIRegistrationsPreserved": 53,
+  "startupAndMiddlewareUnchanged": true,
+  "protectedPathsChanged": [],
+  "secretScan": {
+    "status": "PASS",
+    "scope": "all release source files; token/private-key/connection-password patterns",
+    "limitation": "pattern scan, not dependency vulnerability or full history scan"
+  },
+  "sqlExecution": "NOT_RUN",
+  "httpsExecution": "NOT_RUN",
+  "ddlExecution": "NOT_RUN",
+  "workerActivation": false,
+  "results": {
+    "backendBuild": {
+      "status": "PASS",
+      "warnings": 0,
+      "errors": 0
+    },
+    "solutionTest": {
+      "exitCode": 0,
+      "limitation": "API-only solution; no regression count"
+    },
+    "focusedBackend": {
+      "passed": 240,
+      "failed": 0,
+      "skipped": 1
+    },
+    "composition": {
+      "passed": 2,
+      "failed": 0
+    },
+    "frontendBuild": "PASS",
+    "node": {
+      "passed": 49,
+      "failed": 0
+    },
+    "browser": {
+      "initialPassed": 71,
+      "initialFailed": 3,
+      "targetedRetestPassed": 2,
+      "targetedRetestFailed": 0,
+      "excluded": "one unrelated FE-03 room-board case",
+      "distinctFE04CasesWithPassingReceipt": 73
+    }
+  },
+  "receipts": [
+    {
+      "path": "TestResults/fe04-release/fe04-release.trx",
+      "sha256": "528c6eb5086581ad9dc558640aebf9f86cb50a42bedf7a791cfbb007f05a8187"
+    },
+    {
+      "path": "TestResults/fe04-release/composition.trx",
+      "sha256": "f8334ab2ed14f4e0975861efee8a30be985c2e227ca17bff5d504499629a3ca4"
+    }
+  ]
+}

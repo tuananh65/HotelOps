@@ -76,7 +76,7 @@ public sealed partial class RoomTypeCreationService
             if (!await HistoryFinal(permission, [branch], token)) return new(RoomTypeBatchStatus.Forbidden);
             HousekeepingState? workflow = await HousekeepingSchema.InstalledAsync(db, token) ? await CleaningState(taskId, token) : null;
             if (workflow != null) task = task with { WorkflowState = workflow.State };
-            return new(RoomTypeBatchStatus.Success, new HousekeepingPlanningDto(task, page, shifts, total, query, checklist, now, workflow?.State != null), workflow == null ? null : WorkflowTag(workflow.Revision));
+            return new(RoomTypeBatchStatus.Success, new HousekeepingPlanningDto(task, page, shifts, total, query, checklist, now, workflow?.State != null, !inspection && candidateNotification != null && await candidateNotification.AvailableAsync(token) ? "PROVISIONAL_NOT_ACCEPTED" : "UNAVAILABLE"), workflow == null ? null : WorkflowTag(workflow.Revision));
         }, ct, requireRoomTypeSchema: false, permissionCode: permission);
     }
 }

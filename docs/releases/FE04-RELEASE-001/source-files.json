@@ -1,0 +1,1091 @@
+{
+  "base": "6aee2a0e692a7814f41c81224709cddfbe1e2ec4",
+  "source": "8d49a9087ce75fa39c89f35be9a90cd27faa3216",
+  "files": [
+    {
+      "path": "frontend/.gitignore",
+      "releaseBlob": "62ed7e3b235f719089219a50efb3e1c7566a26d4",
+      "sourceBlob": "62ed7e3b235f719089219a50efb3e1c7566a26d4",
+      "sourceIdentityUnchanged": true,
+      "sha256": "147564f5e38256e827972dc3f57dc64c0a5956fd899153c9e6628e5f88d2860b"
+    },
+    {
+      "path": "frontend/index.html",
+      "releaseBlob": "d404d0bdaf3d48d2e1b3e06d2f00c180345a8518",
+      "sourceBlob": "d404d0bdaf3d48d2e1b3e06d2f00c180345a8518",
+      "sourceIdentityUnchanged": true,
+      "sha256": "ed76d915f9d7a8a24d9b2316d3fda20ef8fd5181f40bc0cf8f3b05de66211839"
+    },
+    {
+      "path": "frontend/package-lock.json",
+      "releaseBlob": "50ffd55c5d6735e2379d2f3b89239e564c3278ef",
+      "sourceBlob": "50ffd55c5d6735e2379d2f3b89239e564c3278ef",
+      "sourceIdentityUnchanged": true,
+      "sha256": "0eeb547cf539086a4b461de97789e1f54041545677e49231085b1d43d91fbdbb"
+    },
+    {
+      "path": "frontend/package.json",
+      "releaseBlob": "cf63fcc29086c03e4d250449756fe1362c3295a7",
+      "sourceBlob": "cf63fcc29086c03e4d250449756fe1362c3295a7",
+      "sourceIdentityUnchanged": true,
+      "sha256": "bf1662bcd09fcb0967b40afee2107307797fd47f7c5f826c2dd8ee3e5addadfd"
+    },
+    {
+      "path": "frontend/playwright.fe04-release.config.ts",
+      "releaseBlob": "965721d86dc8a65dc73a097d3ada1878fd820466",
+      "sourceBlob": null,
+      "sourceIdentityUnchanged": false,
+      "sha256": "770e8819711028bf243a4ab3d2a5d1823959ded6d89305eaa0d5f9a9e460d633"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningAssignment.ts",
+      "releaseBlob": "c40c791090bc4b2b760abbc28bf0c09568a65ef4",
+      "sourceBlob": "c40c791090bc4b2b760abbc28bf0c09568a65ef4",
+      "sourceIdentityUnchanged": true,
+      "sha256": "6d4db3a176a050939bc4ba41cea599ed2f43e3fcc00201e09b06e86bcce153a2"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningAssignmentCommand.ts",
+      "releaseBlob": "f195b642337353a6c70aeb531e9ac3c2168521d6",
+      "sourceBlob": "f195b642337353a6c70aeb531e9ac3c2168521d6",
+      "sourceIdentityUnchanged": true,
+      "sha256": "b42db4828a232333e96ef93b1115f19ad5240d75e6093f4faac3e5fdb89dbf18"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningCancellation.ts",
+      "releaseBlob": "d4a1bd2148301aa75018041ba1ebc20ca8bc2051",
+      "sourceBlob": "d4a1bd2148301aa75018041ba1ebc20ca8bc2051",
+      "sourceIdentityUnchanged": true,
+      "sha256": "a3a0cd35d2b0ae778715faeac2cf2e9c22f4bcf8e19464377e2145956c79fa79"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningCreate.ts",
+      "releaseBlob": "4ab8666332ac81a01c45474447670526e97b79e1",
+      "sourceBlob": "4ab8666332ac81a01c45474447670526e97b79e1",
+      "sourceIdentityUnchanged": true,
+      "sha256": "50ae1dfb814e19234fdf1672cec7097e2a0a7d394af53616c6b5af0a310c110c"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningExecution.ts",
+      "releaseBlob": "796c1f4b4fe428288cd3dbf2ed9e0c2f8a58597c",
+      "sourceBlob": "796c1f4b4fe428288cd3dbf2ed9e0c2f8a58597c",
+      "sourceIdentityUnchanged": true,
+      "sha256": "63f9276e6b8b3953c7da9267ddcce413f73ee5d30b07e22d47d27f40c80dd111"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningMonitor.ts",
+      "releaseBlob": "9a95a43752de7dfac8430822714ab14e7d11d085",
+      "sourceBlob": "9a95a43752de7dfac8430822714ab14e7d11d085",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3dc0d99790182d12df38e88fb8c3fc105c94c04f0a0436b4175be38013ff695f"
+    },
+    {
+      "path": "frontend/src/api/dev1/cleaningProgress.ts",
+      "releaseBlob": "516f63073c4a991ad29d72194e487a187a6a4646",
+      "sourceBlob": "516f63073c4a991ad29d72194e487a187a6a4646",
+      "sourceIdentityUnchanged": true,
+      "sha256": "31ec7aaf24e5ef2f2b7ed15c92e0dd1570183a07126e2c1245b6441611bd0cc5"
+    },
+    {
+      "path": "frontend/src/api/dev1/client.ts",
+      "releaseBlob": "78a82ae7737174e6b4243cf10744344ba24631f3",
+      "sourceBlob": "78a82ae7737174e6b4243cf10744344ba24631f3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2b0d2f1ffe58b2a89a9a6d97ae79e60c713e1a55c63040fb1f521ecb394e8fc9"
+    },
+    {
+      "path": "frontend/src/api/dev1/reworkExecution.ts",
+      "releaseBlob": "54146c522b1713f00a082f3feac3bd1636bc9296",
+      "sourceBlob": "54146c522b1713f00a082f3feac3bd1636bc9296",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3c2d135df4232f8759b9be9e463730433e83ded56d556f6f09cd246ac0b9bd54"
+    },
+    {
+      "path": "frontend/src/api/dev1/rooms.ts",
+      "releaseBlob": "bb02b7588354b559170f8ca944dcfa1ec86cf11a",
+      "sourceBlob": "bb02b7588354b559170f8ca944dcfa1ec86cf11a",
+      "sourceIdentityUnchanged": true,
+      "sha256": "70b5cadf591b06f7882a1f187f327e3b2e6d86320cf8f4eee246f894c7452a0f"
+    },
+    {
+      "path": "frontend/src/api/dev1/turnoverHistory.ts",
+      "releaseBlob": "5cecc23141d8fdca1fe2ba6eb4845779adc5943c",
+      "sourceBlob": "5cecc23141d8fdca1fe2ba6eb4845779adc5943c",
+      "sourceIdentityUnchanged": true,
+      "sha256": "88f8014adef9788824bbc18f710c442a661ffee134773068c203855bf21c5202"
+    },
+    {
+      "path": "frontend/src/fe04-screens.json",
+      "releaseBlob": "09740eec0876d9b8caec6638331b22c79108fe39",
+      "sourceBlob": null,
+      "sourceIdentityUnchanged": false,
+      "sha256": "a9c6880979a3c1753226d6719db4c54db1675b70b54f96d924161b409b24f978"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "releaseBlob": "582dade18fb00ea588d513cc0bc0f7f2a1bc40ac",
+      "sourceBlob": "d3575c1b0de2f216ab482e56c2fa6598ce64f35a",
+      "sourceIdentityUnchanged": false,
+      "sha256": "c9d73066c3bd82ccbf5653dbb643628b1dd7e1dc55fa40827b390fde785df221"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/AssignedCleaningHeader.tsx",
+      "releaseBlob": "1ea79af1431b812abc09abaf843b80d9eb6dc69f",
+      "sourceBlob": "1ea79af1431b812abc09abaf843b80d9eb6dc69f",
+      "sourceIdentityUnchanged": true,
+      "sha256": "daf6cc1163a822bcf9d168ee43f275f77bbf4a545c8bce751b9382325352b29b"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+      "releaseBlob": "a7a5f907bd365e91a938df1277f396861ab0ac60",
+      "sourceBlob": "a7a5f907bd365e91a938df1277f396861ab0ac60",
+      "sourceIdentityUnchanged": true,
+      "sha256": "0cb6d0c3965ac8b5106195c8ad03574997050499609a8d0cf2f84df3941884c4"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningCancellationPanel.tsx",
+      "releaseBlob": "04b9bf2aa2da079b01577ef0fe6ada65aa253635",
+      "sourceBlob": "04b9bf2aa2da079b01577ef0fe6ada65aa253635",
+      "sourceIdentityUnchanged": true,
+      "sha256": "bd43e6d69823b9f4fbb18aa9256ba74245379b9730e4130c99953c2bb5c0cab2"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningExecutionPanel.tsx",
+      "releaseBlob": "46961ee7bb1c007a69c38d2881d33a8df7b8ee85",
+      "sourceBlob": "46961ee7bb1c007a69c38d2881d33a8df7b8ee85",
+      "sourceIdentityUnchanged": true,
+      "sha256": "fe7d15ae9829ca3964f9d2da4ab74031dc4f5040dc6bb98a2df71c46b01974c9"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningMonitorDetail.tsx",
+      "releaseBlob": "613718692b651c14be13fc4b94933c0475f60ef9",
+      "sourceBlob": "613718692b651c14be13fc4b94933c0475f60ef9",
+      "sourceIdentityUnchanged": true,
+      "sha256": "99a5a78102ebb5e88ceef7aef57f7dee7361299c24a53e616c5e73d2bbaa7377"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningProgressPanel.tsx",
+      "releaseBlob": "f1b2770db527db68106fcebbb8c38b976423ea96",
+      "sourceBlob": "f1b2770db527db68106fcebbb8c38b976423ea96",
+      "sourceIdentityUnchanged": true,
+      "sha256": "209c88cc17d4923428e96da2699d5e7d216a34452d1e484b8d377b2bfaf4d989"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+      "releaseBlob": "b09301581fb1ed32a661756b0b8b4c21ac15be91",
+      "sourceBlob": "b09301581fb1ed32a661756b0b8b4c21ac15be91",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4997d891ea1d5e7b50289faa1a77877aaa6e803413337ead44f84c0836975afc"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+      "releaseBlob": "c097349f5de99956fafc312ad47c85fab10d69e1",
+      "sourceBlob": "c097349f5de99956fafc312ad47c85fab10d69e1",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3c4cf125f75e4b22657e412425cafcf9af4c14412d524a5a3cfe7c6325f92896"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+      "releaseBlob": "38146a820e17a8b07e7d915a5c0014231a2fdbc2",
+      "sourceBlob": "38146a820e17a8b07e7d915a5c0014231a2fdbc2",
+      "sourceIdentityUnchanged": true,
+      "sha256": "143057421c93229876701715844cde7bad853b460bf851a51c9b183afbc3bc66"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/ReworkExecutionPanel.tsx",
+      "releaseBlob": "c1c44d475812655f675050f06aed2f7374c4dda3",
+      "sourceBlob": "c1c44d475812655f675050f06aed2f7374c4dda3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "7a42481788a8176168af03ee4f6498a809ce4d48f6a7fcc235051e2777f03ea8"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/ReworkTaskDetailScreen.tsx",
+      "releaseBlob": "07146a834df5a8b23912280156ad00b6351df027",
+      "sourceBlob": "07146a834df5a8b23912280156ad00b6351df027",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c741259c3a3d91078f3cec2f4edcbdc5343b738b48c8540497c71c7769a26c45"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/ReworkTaskListScreen.tsx",
+      "releaseBlob": "831aeb2bbdd41e0f8b957a00ae043c0067519258",
+      "sourceBlob": "831aeb2bbdd41e0f8b957a00ae043c0067519258",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2ee6c652ad3dc941ae29aa4ded4292a63b641491e2513b34e38b2c0e3673349e"
+    },
+    {
+      "path": "frontend/src/screens/housekeeping/RoomTurnoverHistoryScreen.tsx",
+      "releaseBlob": "822709238f656cb0ac91de9c39e1a8ded39d848d",
+      "sourceBlob": "822709238f656cb0ac91de9c39e1a8ded39d848d",
+      "sourceIdentityUnchanged": true,
+      "sha256": "f7d1faa35a642b687bc0e36372957d25207751fca9c547844767d9f36ca2992b"
+    },
+    {
+      "path": "frontend/src/styles.css",
+      "releaseBlob": "ce21bf32baf5ff8113e5ade540fa743e2d881144",
+      "sourceBlob": "ce21bf32baf5ff8113e5ade540fa743e2d881144",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c8dfb00192ecec46b784e3130b0f1ae3d8350146403e4499815097482079d069"
+    },
+    {
+      "path": "frontend/src/styles/operations.css",
+      "releaseBlob": "a784964320fae284df6f0aac3a195cb192f3b091",
+      "sourceBlob": "a784964320fae284df6f0aac3a195cb192f3b091",
+      "sourceIdentityUnchanged": true,
+      "sha256": "5344cc0424ef579c52335faa72a477f6bc4522983329efba297dcc7a5d3e0899"
+    },
+    {
+      "path": "frontend/src/styles/tokens.css",
+      "releaseBlob": "bd6626e93c0e2fbf78d1fa46bbbba081ce3182ab",
+      "sourceBlob": "bd6626e93c0e2fbf78d1fa46bbbba081ce3182ab",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e594f19d55e49f8c24e384282b043fc3134127abb0542ca4d5b63808ca380b81"
+    },
+    {
+      "path": "frontend/src/ui.tsx",
+      "releaseBlob": "04368d5813f9cae423306c010d3fba443cf9c10b",
+      "sourceBlob": "d84299387c8f1553e99794c662b44cda73460dc6",
+      "sourceIdentityUnchanged": false,
+      "sha256": "7e291e06de7efa9f54be2c9dcec45b773ca1699d6d23a46f8888d387127ed7d6"
+    },
+    {
+      "path": "frontend/src/vite-env.d.ts",
+      "releaseBlob": "11f02fe2a0061d6e6e1f271b21da95423b448b32",
+      "sourceBlob": "11f02fe2a0061d6e6e1f271b21da95423b448b32",
+      "sourceIdentityUnchanged": true,
+      "sha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92"
+    },
+    {
+      "path": "frontend/tests/cleaning-assignment-command.test.mjs",
+      "releaseBlob": "10a02ba75faa4b702a42dc67b817c24358086859",
+      "sourceBlob": "10a02ba75faa4b702a42dc67b817c24358086859",
+      "sourceIdentityUnchanged": true,
+      "sha256": "6b62b2aead036b67dc244d8603e232d0a4d1158f0db121d76be21512c38833ba"
+    },
+    {
+      "path": "frontend/tests/cleaning-assignment.spec.ts",
+      "releaseBlob": "49f8281d922512b4f5452f211eece12cd30f828d",
+      "sourceBlob": "49f8281d922512b4f5452f211eece12cd30f828d",
+      "sourceIdentityUnchanged": true,
+      "sha256": "21d6ba7a617ab728202205f140b4c472f9ec48677ddb4ef44cba52c6bad8463b"
+    },
+    {
+      "path": "frontend/tests/cleaning-assignment.test.mjs",
+      "releaseBlob": "28021e5a71188f5c79daa4ab7f551624c54dc346",
+      "sourceBlob": "28021e5a71188f5c79daa4ab7f551624c54dc346",
+      "sourceIdentityUnchanged": true,
+      "sha256": "193e0824ecfddbdbab70bf0ed78e60caa96e16b09f758e9fb13e1533b76ec83a"
+    },
+    {
+      "path": "frontend/tests/cleaning-cancellation.spec.ts",
+      "releaseBlob": "6f19e5e3549d816bcbc9a9a1b9f0b4ef926219cc",
+      "sourceBlob": "6f19e5e3549d816bcbc9a9a1b9f0b4ef926219cc",
+      "sourceIdentityUnchanged": true,
+      "sha256": "0e9a1c167bc0818995328f805f74c308be6ecf3cc209b0ae923c4412a516a098"
+    },
+    {
+      "path": "frontend/tests/cleaning-cancellation.test.mjs",
+      "releaseBlob": "796fa6d938c120b070897d7cab9be6a34e70e96a",
+      "sourceBlob": "796fa6d938c120b070897d7cab9be6a34e70e96a",
+      "sourceIdentityUnchanged": true,
+      "sha256": "7ab6534c4d2a8c54c98b0bdf5ee3f54a3497fe712209631bec40591ceb78225b"
+    },
+    {
+      "path": "frontend/tests/cleaning-create.spec.ts",
+      "releaseBlob": "729f51b45cc43a5b6564ce80be134070a9cf545d",
+      "sourceBlob": "729f51b45cc43a5b6564ce80be134070a9cf545d",
+      "sourceIdentityUnchanged": true,
+      "sha256": "1ed0054ddf08bd296f140c77848d8cba8b82ceed754eb94ed9265b7301f0c70d"
+    },
+    {
+      "path": "frontend/tests/cleaning-create.test.mjs",
+      "releaseBlob": "b83ab5b5a633cdab0c269a4bfa172a131d1cf680",
+      "sourceBlob": "b83ab5b5a633cdab0c269a4bfa172a131d1cf680",
+      "sourceIdentityUnchanged": true,
+      "sha256": "0202f6c0f3c872b4ee771892dba9b4f878e6cc6969b1432402a63602b4252176"
+    },
+    {
+      "path": "frontend/tests/cleaning-execution.spec.ts",
+      "releaseBlob": "6c1f331eb81b69ebb92b407238fd35bddb7e6cb7",
+      "sourceBlob": "0a090223ab211227c56f0f69c8dd638e640782c7",
+      "sourceIdentityUnchanged": false,
+      "sha256": "f7b7af4df90141ba35a9d7e33dcf97b9a87a36771c577d16ccbbe9dbecdc14b6"
+    },
+    {
+      "path": "frontend/tests/cleaning-execution.test.mjs",
+      "releaseBlob": "624971c34898fa583c132919e0f948c59acaa424",
+      "sourceBlob": "624971c34898fa583c132919e0f948c59acaa424",
+      "sourceIdentityUnchanged": true,
+      "sha256": "fc3975775dba24140964a945c109952b8cb779f3fe54d6fcb03e163b90109c87"
+    },
+    {
+      "path": "frontend/tests/cleaning-monitor.spec.ts",
+      "releaseBlob": "dc1ecbb6eb7c036404c70d4c9d5113431aac1231",
+      "sourceBlob": "dc1ecbb6eb7c036404c70d4c9d5113431aac1231",
+      "sourceIdentityUnchanged": true,
+      "sha256": "f515a19bc20547a0fee16dc6da4c40f168ead76014b670065479e5ecf8311256"
+    },
+    {
+      "path": "frontend/tests/cleaning-monitor.test.mjs",
+      "releaseBlob": "b5ec0020870f26d4cdc1b0f6a7b9f7da35827a63",
+      "sourceBlob": "b5ec0020870f26d4cdc1b0f6a7b9f7da35827a63",
+      "sourceIdentityUnchanged": true,
+      "sha256": "373aaf84dd96d9358c50bc5caab21b20c9e5f6cf8e381fd8ccf8d3829e84320e"
+    },
+    {
+      "path": "frontend/tests/cleaning-progress.spec.ts",
+      "releaseBlob": "1dcc5d1ad5db54800c6c7e497b7b6f06e2f233e5",
+      "sourceBlob": "1dcc5d1ad5db54800c6c7e497b7b6f06e2f233e5",
+      "sourceIdentityUnchanged": true,
+      "sha256": "234ffe0704340e0fb8bde2c9c33858bb57a1408540489550f8f54bdcb85d30f6"
+    },
+    {
+      "path": "frontend/tests/cleaning-progress.test.mjs",
+      "releaseBlob": "a7cb0a72582dddef37db1b65330d2fc88b3cdfa8",
+      "sourceBlob": "a7cb0a72582dddef37db1b65330d2fc88b3cdfa8",
+      "sourceIdentityUnchanged": true,
+      "sha256": "30a606fb2c7db42aee29775247126b8f176364965f82001a097fd223814b161c"
+    },
+    {
+      "path": "frontend/tests/rework-execution.spec.ts",
+      "releaseBlob": "9215db3594eda3eb619e370cc0c433e7a72c75a1",
+      "sourceBlob": "d5ff1f5cace0d2c614fc612c628832f27ec8bd43",
+      "sourceIdentityUnchanged": false,
+      "sha256": "2d3a3adceeda4e514867f0d49281fc9f647ccd936dd2821b02e4d066470ae976"
+    },
+    {
+      "path": "frontend/tests/rework-execution.test.mjs",
+      "releaseBlob": "f9fa63346817cf6a0fd07053c28ab100a7412802",
+      "sourceBlob": "f9fa63346817cf6a0fd07053c28ab100a7412802",
+      "sourceIdentityUnchanged": true,
+      "sha256": "721f138303bfcfd519c1ee27daedca9f70389ddb5540d68af362a137101e4bd6"
+    },
+    {
+      "path": "frontend/tests/turnover-history.spec.ts",
+      "releaseBlob": "b384c056a099695915f2f55c4b10d9442e4caa97",
+      "sourceBlob": "b384c056a099695915f2f55c4b10d9442e4caa97",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4e8c76ebb95193b5f6fd88f7454cce3ddc6881aaabd135c50f13429622af492e"
+    },
+    {
+      "path": "frontend/tests/turnover-history.test.mjs",
+      "releaseBlob": "1b05b9bc4333de8b3b39312b6d370cc7ff3ee703",
+      "sourceBlob": "1b05b9bc4333de8b3b39312b6d370cc7ff3ee703",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e3e64a93411e10d2da5ab002e133fc9d9c7bc0542de3de94d529275f3ca04556"
+    },
+    {
+      "path": "frontend/tsconfig.json",
+      "releaseBlob": "2d791609365cb96af8f38af699c32582fa1313f6",
+      "sourceBlob": "2d791609365cb96af8f38af699c32582fa1313f6",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4e0117cf76e7d00b83f10b5dc09ea50a0053415b0b76f8f9ae217acad5460324"
+    },
+    {
+      "path": "frontend/vite.config.ts",
+      "releaseBlob": "d0610b15a8985a29e878b17a63da933804d3aed9",
+      "sourceBlob": "d0610b15a8985a29e878b17a63da933804d3aed9",
+      "sourceIdentityUnchanged": true,
+      "sha256": "eae3ed4082f37a0cb9781c723d67773a879bda901f844bbac773cabc8b53b986"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/01_Install.sql",
+      "releaseBlob": "ca01cd608eaf238b72ee3542c0a93b034f28b6c0",
+      "sourceBlob": "ca01cd608eaf238b72ee3542c0a93b034f28b6c0",
+      "sourceIdentityUnchanged": true,
+      "sha256": "60b95e4531d53ecfee4a71ba347aaf5b4401175815c63d8d0eb505930d2896fa"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/02_NotificationProposal.sql",
+      "releaseBlob": "34f4ba364882c52b802ef83304b9badf8f3c24db",
+      "sourceBlob": "34f4ba364882c52b802ef83304b9badf8f3c24db",
+      "sourceIdentityUnchanged": true,
+      "sha256": "6b7cf0a18b0972ed0ef643cfd2f44914d759df91287d3b070607e8ae6b88a353"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/03_VerifyNotificationProposal.sql",
+      "releaseBlob": "efadc197d0b9edfdd5d8de4fda068b807e1051eb",
+      "sourceBlob": "efadc197d0b9edfdd5d8de4fda068b807e1051eb",
+      "sourceIdentityUnchanged": true,
+      "sha256": "fb1f659e3a574c670e0cfa8c08fe73ee548ef50ca8c986cddd13d4ae81d31dc5"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/04_RecoveryNotificationProposal.sql",
+      "releaseBlob": "df31e510f18541c8e00184e8bdede7f93a8cbe5a",
+      "sourceBlob": "df31e510f18541c8e00184e8bdede7f93a8cbe5a",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e353222c34c89709b7a5802b7dfdaf1cd1a0cf97face275a27f165658e2e11dd"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/05_VerifyLifecycle.sql",
+      "releaseBlob": "066b45fbb5f254525435d907acd354c1366a1d17",
+      "sourceBlob": "066b45fbb5f254525435d907acd354c1366a1d17",
+      "sourceIdentityUnchanged": true,
+      "sha256": "14f664b390e4634f1e3b9d9d5c87bb368e2d0735386aa21fafb9969f69582776"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/06_RecoveryLifecycle.sql",
+      "releaseBlob": "2e0fb085fc41806c0b32f4a4ee13430acef96a58",
+      "sourceBlob": "2e0fb085fc41806c0b32f4a4ee13430acef96a58",
+      "sourceIdentityUnchanged": true,
+      "sha256": "f5880e8385e456aa71a51faa92b7cd2fdf58db06ee6e24e500abe3791bea2044"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/07_ExecutableCandidate.sql",
+      "releaseBlob": "122bc5ded3d31b1d847a0530cb5c7afb7754963a",
+      "sourceBlob": "122bc5ded3d31b1d847a0530cb5c7afb7754963a",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e922761e24669d79c4ed3b0bbb0ba4e896ce6b998d09b6118871c887105b037c"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/08_VerifyCandidate.sql",
+      "releaseBlob": "be2ec1d6a77d0088d00345dbf3f99c84666cdaab",
+      "sourceBlob": "be2ec1d6a77d0088d00345dbf3f99c84666cdaab",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2da50fd4042f45b2df303b79b9161d9e92f942c806cba86a6d26a25940280f0a"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/09_RecoveryCandidate.sql",
+      "releaseBlob": "5f6c3e67cb9b3fd42b2861b2a0a08a590439da9c",
+      "sourceBlob": "5f6c3e67cb9b3fd42b2861b2a0a08a590439da9c",
+      "sourceIdentityUnchanged": true,
+      "sha256": "71cabb459fbe72468087b08d9e774431f79e0ca31f88adf6dab0ca3ef0299633"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+      "releaseBlob": "beb3c118eb66c4217345fd3bc3b7f0019408e253",
+      "sourceBlob": "beb3c118eb66c4217345fd3bc3b7f0019408e253",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796"
+    },
+    {
+      "path": "scripts/database/release/fs013-candidate/11_CleaningExecution.sql",
+      "releaseBlob": "8c287d378a002c82adc78b18c8ddc762fba6aa47",
+      "sourceBlob": "8c287d378a002c82adc78b18c8ddc762fba6aa47",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2457c1b2bde3885e4a977eff1ed45d016022f57b1e7e434995d4d015e056f5cf"
+    },
+    {
+      "path": "scripts/database/release/fs014-candidate/01_ResumeV1.sql",
+      "releaseBlob": "c639d90d1cda28b1d7432da66989dd2e662520e2",
+      "sourceBlob": "c639d90d1cda28b1d7432da66989dd2e662520e2",
+      "sourceIdentityUnchanged": true,
+      "sha256": "235b3facf48f0112dcb0a87da9e9124ec2f19fc01a763e3a2763e88457141e33"
+    },
+    {
+      "path": "scripts/database/release/fs015-candidate/01_ClosureWorkflow.sql",
+      "releaseBlob": "4a08bdfe7d0e3637b6d470a385139fb740b12990",
+      "sourceBlob": "4a08bdfe7d0e3637b6d470a385139fb740b12990",
+      "sourceIdentityUnchanged": true,
+      "sha256": "9c61dfe58670f7c9ff05327c3b7f573646f095b063898e7ff186f2fd2ea2112b"
+    },
+    {
+      "path": "scripts/database/release/fs016-candidate/01_Rework.sql",
+      "releaseBlob": "998987069a28e2152bbd2b7009de0664fd417549",
+      "sourceBlob": "998987069a28e2152bbd2b7009de0664fd417549",
+      "sourceIdentityUnchanged": true,
+      "sha256": "14dd6ada8c36068a7b01dda40f56d3542d414578869ca3492c0636862092735e"
+    },
+    {
+      "path": "scripts/database/release/fs018-candidate/01_Cancellation.sql",
+      "releaseBlob": "f8ccce8f8eb8613a53bf18d73cd4d8a984853840",
+      "sourceBlob": "f8ccce8f8eb8613a53bf18d73cd4d8a984853840",
+      "sourceIdentityUnchanged": true,
+      "sha256": "83768c4c8d5f1390df57158ac3a26fe832165820fe67f85210b910907b9894f9"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/CleaningExecutionController.cs",
+      "releaseBlob": "58c9d250f73a04833c76680d57c2f0c234d39b95",
+      "sourceBlob": "58c9d250f73a04833c76680d57c2f0c234d39b95",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e6e02030cfac012e4f9763a02e6e574fb7e8bf8478dca58909633f84a13a7e1f"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+      "releaseBlob": "2d92c51f258872fe07b66ef2c06d0788e88774f5",
+      "sourceBlob": "2d92c51f258872fe07b66ef2c06d0788e88774f5",
+      "sourceIdentityUnchanged": true,
+      "sha256": "78290a75daa821681d3c84c2fb749c73f02ff8e5cd73b67d4e162d11d01531ff"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/CleaningTaskLifecycleController.cs",
+      "releaseBlob": "c5b9c33bfc1a72745089040ec0ddd1803d22bd6b",
+      "sourceBlob": "c5b9c33bfc1a72745089040ec0ddd1803d22bd6b",
+      "sourceIdentityUnchanged": true,
+      "sha256": "508827b46bfd141c57adb28a1a0f88e8db0f578a47b59608961ea67d1bb1a14a"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+      "releaseBlob": "8a73221947ad26ef5aa01cfe66e8a3c9bc3dca5a",
+      "sourceBlob": "8a73221947ad26ef5aa01cfe66e8a3c9bc3dca5a",
+      "sourceIdentityUnchanged": true,
+      "sha256": "be60940722a733ebfe92377f4e166e8cc6912b3cba2ad576ed1dd18a08355b00"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+      "releaseBlob": "4caa004f0f2f22a5fd84ceaa0193886886b2c23f",
+      "sourceBlob": "4caa004f0f2f22a5fd84ceaa0193886886b2c23f",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2516099b650b580b407feabae387d414237270432158bafb74b1004b0f0a725d"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+      "releaseBlob": "a27e56fea91be86dcef5e91a1ad6e77cebdd99c7",
+      "sourceBlob": "a27e56fea91be86dcef5e91a1ad6e77cebdd99c7",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c19a0bc7e4a4c7f373a8f18dcc93b9a02dfb48abd97449548b2a253c98f160ba"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningCancellationDtos.cs",
+      "releaseBlob": "aad0eed59c5c99905102eae857ef17a7f430bd23",
+      "sourceBlob": "aad0eed59c5c99905102eae857ef17a7f430bd23",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e24fcf14c6d4997e27a0bd3d39ee081dbde7e8e2fea5a62a994422ae6b2a68cd"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningLifecycleDtos.cs",
+      "releaseBlob": "695468f8ffcb1cbb52009b37f5c96d39ea443404",
+      "sourceBlob": "695468f8ffcb1cbb52009b37f5c96d39ea443404",
+      "sourceIdentityUnchanged": true,
+      "sha256": "11829fb66c0475f710f86e2560a6ea7b8e57e9863190380dc40babf8f6aa77f8"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+      "releaseBlob": "b430eac33a65d3d9bb06d5b17bec2108dc5ad2c7",
+      "sourceBlob": "b430eac33a65d3d9bb06d5b17bec2108dc5ad2c7",
+      "sourceIdentityUnchanged": true,
+      "sha256": "8e8875727fb21b4aa8394b365a52b64b8be277f094a299f019cdb8ee009769d6"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningTaskCreationDtos.cs",
+      "releaseBlob": "08ab25ca06adc0330297403aebf2c20a1fdad66f",
+      "sourceBlob": "08ab25ca06adc0330297403aebf2c20a1fdad66f",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4b7c2ca8e85df81aa3943648f52461665907da9d831338ac62112e2008590697"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs",
+      "releaseBlob": "af9f75de5a12bf93516c6cb2874e86a3db67ce95",
+      "sourceBlob": "af9f75de5a12bf93516c6cb2874e86a3db67ce95",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4d3c1d1e039e239f7a6ecced6edb7b6f30de958c3ad1b4c7b9a21b694c7695b1"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/ReworkLifecycleDtos.cs",
+      "releaseBlob": "8ba8dc36bb59f9598d9bee1b30c1ff74206c7975",
+      "sourceBlob": "8ba8dc36bb59f9598d9bee1b30c1ff74206c7975",
+      "sourceIdentityUnchanged": true,
+      "sha256": "0b6063d48be9461a65b03525940beace46175a949e0c91edccc05679822054d4"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/TurnoverDtos.cs",
+      "releaseBlob": "449be33717b2af884063071261e5d75130406278",
+      "sourceBlob": "449be33717b2af884063071261e5d75130406278",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3548638284d99ba16bbce4abe26c4d3be928c8c153fdf5c104be17338dd7cf11"
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.NotificationCandidate.cs",
+      "releaseBlob": "aefeedcb7cc5cf0487528e99ba653d47abcb0670",
+      "sourceBlob": "aefeedcb7cc5cf0487528e99ba653d47abcb0670",
+      "sourceIdentityUnchanged": true,
+      "sha256": "fad050081bb65510824dd3c2aac2fa54896816e10638302d3f4b2536a4880f93"
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+      "releaseBlob": "24e330d00961799ba82c1f23381f120525f5b0e6",
+      "sourceBlob": "41a2908fccd97b844936763dadb6d3fd25854267",
+      "sourceIdentityUnchanged": false,
+      "sha256": "4c2f4529072f4b9b2604b0de7bf78c537dbd0f21f95d5374deb42870aca10363"
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+      "releaseBlob": "85a191221ce6d7655a8066ae9d8c3b0683798bc2",
+      "sourceBlob": "85a191221ce6d7655a8066ae9d8c3b0683798bc2",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3d89708ef9d1c052f9c5f12135a8c7d62ad27c42f9f368f0f579173834ddf65c"
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+      "releaseBlob": "376d57d461db96a8b52eed83819219b34e8f7e0c",
+      "sourceBlob": "376d57d461db96a8b52eed83819219b34e8f7e0c",
+      "sourceIdentityUnchanged": true,
+      "sha256": "14d6d49a853762cf4c3c4fd058bfd3615b9005f5684a100ceaf001cc8d91b0fc"
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/WorkInterval.cs",
+      "releaseBlob": "3fc02a48552c1cd2f3e0232901b13655315a7d70",
+      "sourceBlob": "3fc02a48552c1cd2f3e0232901b13655315a7d70",
+      "sourceIdentityUnchanged": true,
+      "sha256": "aaec0e06812273cb487e8caf784a652fff7c0185021a8dc6f6503212d5b1b091"
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/Workday.cs",
+      "releaseBlob": "9952630f8e977f6f66772c0c83d1bde95d233903",
+      "sourceBlob": "9952630f8e977f6f66772c0c83d1bde95d233903",
+      "sourceIdentityUnchanged": true,
+      "sha256": "7f7b31b121d9ccbf1072c2ca1bcd1fbd0b69b1a8e9345ebea9554c826dd6884b"
+    },
+    {
+      "path": "src/HotelOps.Api/Models/NotificationCandidate.cs",
+      "releaseBlob": "e586d4d6097597ac5e14fd29053a9270dc092fe8",
+      "sourceBlob": "e586d4d6097597ac5e14fd29053a9270dc092fe8",
+      "sourceIdentityUnchanged": true,
+      "sha256": "dbb58ece14124fb79cddde25460cec74a89ba345b80ce15ceb4c3c0e24166d15"
+    },
+    {
+      "path": "src/HotelOps.Api/Program.cs",
+      "releaseBlob": "e1e91a1e07c67fff01e4bcb0372ce565aadc11b2",
+      "sourceBlob": "f57e680f239f61bef8eacbe621de506a1518dbf2",
+      "sourceIdentityUnchanged": false,
+      "sha256": "bd217da170450053c795a782d5cd268a851f76b0a84e6f50ed1d8e38885b55a3"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+      "releaseBlob": "8b5a284c6dc273175b1a6cb3eeaa57ca6ee37be4",
+      "sourceBlob": "8b5a284c6dc273175b1a6cb3eeaa57ca6ee37be4",
+      "sourceIdentityUnchanged": true,
+      "sha256": "5da35672008223be50e0186ee5ad87023b5499ab578cfc9846d2ab84bc729caf"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+      "releaseBlob": "24b95d962e7c727b6c594cbb3e00639c9b01443c",
+      "sourceBlob": "24b95d962e7c727b6c594cbb3e00639c9b01443c",
+      "sourceIdentityUnchanged": true,
+      "sha256": "071af958deebcce01fe5e5cdacc58e65f071b67db9fd98c97345a3d686dbe9c7"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+      "releaseBlob": "81b752083173913c2767d634459643a77cbc834b",
+      "sourceBlob": "81b752083173913c2767d634459643a77cbc834b",
+      "sourceIdentityUnchanged": true,
+      "sha256": "072e41a655a870c6544ae6401826f03239dc6ad067d10a94993ab5d5bc77c34e"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverCycleReadService.cs",
+      "releaseBlob": "7dbe1ee5c926b3ab3706ccf8da0f8037e1665c09",
+      "sourceBlob": "7dbe1ee5c926b3ab3706ccf8da0f8037e1665c09",
+      "sourceIdentityUnchanged": true,
+      "sha256": "9853033db0bfe911810c8c70772ce395678759ea70a2f641f10f81f2dff31986"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+      "releaseBlob": "f9b9eb61cd6ce8236332f38072d88581ec75bcf8",
+      "sourceBlob": "f9b9eb61cd6ce8236332f38072d88581ec75bcf8",
+      "sourceIdentityUnchanged": true,
+      "sha256": "a77ee4ea9879df27f371cae1a0b9e3caa8baaa93c3e56293755a5b60cf32b280"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs",
+      "releaseBlob": "82e65bd99a77ead8e6fe121c4d7f303a30888e2f",
+      "sourceBlob": "82e65bd99a77ead8e6fe121c4d7f303a30888e2f",
+      "sourceIdentityUnchanged": true,
+      "sha256": "85cae60b8d6ad93f5bb31d7bfaffc4bfefa46599012d584d641983f53b64324c"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs",
+      "releaseBlob": "ebab78320763c88d088fd0fec79ad7719e570420",
+      "sourceBlob": "ebab78320763c88d088fd0fec79ad7719e570420",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4374454d9a05640fed038588b414e87a67f846cb261e2058910a3dadd2bce3bc"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+      "releaseBlob": "0467a64c936a8dad12de60cae8272d680e01bfb9",
+      "sourceBlob": "0467a64c936a8dad12de60cae8272d680e01bfb9",
+      "sourceIdentityUnchanged": true,
+      "sha256": "60834f41bedec9563a97316300e04b364c45347a993a16d4816bd7dc8405d84c"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/AssignedCleaningReadService.cs",
+      "releaseBlob": "669694935931c7bc73478add7d28f3d5246e1e3f",
+      "sourceBlob": "669694935931c7bc73478add7d28f3d5246e1e3f",
+      "sourceIdentityUnchanged": true,
+      "sha256": "15823f47049e4ab2561e8d87c41137de5189bd392e3a6324b61905fa84f15c5f"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCandidateService.cs",
+      "releaseBlob": "5ad27681f26d84f4ab1a199f5dc9effabe2c6693",
+      "sourceBlob": "5ad27681f26d84f4ab1a199f5dc9effabe2c6693",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c3e61ac2c3d8f59edc1623edde0f96f9244d1d87bf70c9a50a39c9aa7fe3ecc7"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCommandIdentity.cs",
+      "releaseBlob": "1d8b67701376f00bfec94e8480d2e81ff7944335",
+      "sourceBlob": "1d8b67701376f00bfec94e8480d2e81ff7944335",
+      "sourceIdentityUnchanged": true,
+      "sha256": "52cf0638c78d7d83312a5f93473290e327d3445929aa5170e0deb4b7f2958626"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentNotification06R1Adapter.cs",
+      "releaseBlob": "b1725a9dd4cb3f8c99cc196d23c2655346e8080b",
+      "sourceBlob": "b1725a9dd4cb3f8c99cc196d23c2655346e8080b",
+      "sourceIdentityUnchanged": true,
+      "sha256": "a9676891af7ad3cb6990565b9af3f6c29654f5af136bd388d45a3dc3fa73b66a"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentNotificationSource.cs",
+      "releaseBlob": "48c599d2ae3aa69bc0540e74cef1d03a2584fbd8",
+      "sourceBlob": "48c599d2ae3aa69bc0540e74cef1d03a2584fbd8",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2a63cd31e86840fb2c4adcc77bbbc9365121e652091b5d48940844f57953ddc8"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningBlockerResolution.cs",
+      "releaseBlob": "8c422bf02bcc0dc192bcddb6fca120c7310d1a69",
+      "sourceBlob": "8c422bf02bcc0dc192bcddb6fca120c7310d1a69",
+      "sourceIdentityUnchanged": true,
+      "sha256": "7639bff17f1046802b1ac81d6d51d237d6f0f97d1efb37806295a93d4274780d"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningCancellationRules.cs",
+      "releaseBlob": "9d4f9a3a9a3e774199e62244c174fcaff11daa93",
+      "sourceBlob": "9d4f9a3a9a3e774199e62244c174fcaff11daa93",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c42480ad4bca6815fe75b0ddd2d5b84a5b2c9178c73cae137e32a14cb876f25c"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningCancellationService.cs",
+      "releaseBlob": "9251715fe7118ba074860c381003e9135b276858",
+      "sourceBlob": "9251715fe7118ba074860c381003e9135b276858",
+      "sourceIdentityUnchanged": true,
+      "sha256": "a8fb03c7f580ce2f7a3c499b9a594fe4818ff8801d41b448341ece4a897ce114"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningClosureBoundary.cs",
+      "releaseBlob": "a3c6946b312bfbcd32e0172cff2fe8c5180fe424",
+      "sourceBlob": "a3c6946b312bfbcd32e0172cff2fe8c5180fe424",
+      "sourceIdentityUnchanged": true,
+      "sha256": "145287eec27e1d17c35efe215d943d04f5c9e9f815d4c48c445829e67a8494ad"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningLifecycleRules.cs",
+      "releaseBlob": "1c6c582f74edb9bb91c7f227fdad031be8ff8e35",
+      "sourceBlob": "1c6c582f74edb9bb91c7f227fdad031be8ff8e35",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c3a4b90cff40b73a4ed03a32b4a5f0e61ec52b9dd36fc963b04581d198bb29f5"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningLifecycleService.cs",
+      "releaseBlob": "4233351a1f017a41584d32d57f8b296fdc2a1771",
+      "sourceBlob": "4233351a1f017a41584d32d57f8b296fdc2a1771",
+      "sourceIdentityUnchanged": true,
+      "sha256": "ffb61117dec42c4e48b758a6e6d0a1a000594dc1b4b46ecd8450a280cc3680f6"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+      "releaseBlob": "403f73e4b484a74a5f529a6338715efd0d42eeb1",
+      "sourceBlob": "403f73e4b484a74a5f529a6338715efd0d42eeb1",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c82350481bbc7b3c74deeb3f649423692ce19e6cd52cbde9c270b229d2806892"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningReassignmentService.cs",
+      "releaseBlob": "3a4b8b4f740b7a495ab50a97ced7c14635647b0c",
+      "sourceBlob": "3a4b8b4f740b7a495ab50a97ced7c14635647b0c",
+      "sourceIdentityUnchanged": true,
+      "sha256": "185b8ff7d4fe17525157fe7b166d7a538a7b7c0684caef1bc843441f83e4d099"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningTaskCreationService.cs",
+      "releaseBlob": "0bfa99c0dfc3778a5ad9406d5c52547bc0b1f56e",
+      "sourceBlob": "0bfa99c0dfc3778a5ad9406d5c52547bc0b1f56e",
+      "sourceIdentityUnchanged": true,
+      "sha256": "17c64c752a5c2397ae4a2c01973ad7c4a989a13030709316be57981031f887ff"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+      "releaseBlob": "cc35a137c9fde0bd77a7f144ebf6df496e6c9ac6",
+      "sourceBlob": "cc35a137c9fde0bd77a7f144ebf6df496e6c9ac6",
+      "sourceIdentityUnchanged": true,
+      "sha256": "6ca54d24dff5ce6e9907ae960b0f92879f3172df33d1d72f948ee97ad102b50a"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+      "releaseBlob": "88cb3fc8386649d648e175c07221dd35dd6a47d8",
+      "sourceBlob": "88cb3fc8386649d648e175c07221dd35dd6a47d8",
+      "sourceIdentityUnchanged": true,
+      "sha256": "2a5dd75f2b0854440bad6dda63e128b774c9233fd31b89373a3d61d7654114e4"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/ReworkLifecycleRules.cs",
+      "releaseBlob": "b6acb1af9cd76ca06a3c234245e9d0322d455210",
+      "sourceBlob": "b6acb1af9cd76ca06a3c234245e9d0322d455210",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c1f048bffa1fa462695de1abaed7afce8739d2fc0946c7a00e4a9257b3a8ec23"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/ReworkLifecycleService.cs",
+      "releaseBlob": "67743d0b3c2191cd1291e1720d980d26fdd9603a",
+      "sourceBlob": "67743d0b3c2191cd1291e1720d980d26fdd9603a",
+      "sourceIdentityUnchanged": true,
+      "sha256": "80db0715d29573f088de8bbb2e492bb8c69bec02923de6275d9d95ed4dfc9ca9"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/TurnoverReadRules.cs",
+      "releaseBlob": "1e74bbf3729021b25d66206079a7b03b3d5f1e89",
+      "sourceBlob": "1e74bbf3729021b25d66206079a7b03b3d5f1e89",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c31356a6c4bc79a34d4f21f763ece597f00f996366548603e0b940260b40a315"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CandidateCommandGuard.cs",
+      "releaseBlob": "4165c71f7a716a176681efc8b22caefabdb0abca",
+      "sourceBlob": "4165c71f7a716a176681efc8b22caefabdb0abca",
+      "sourceIdentityUnchanged": true,
+      "sha256": "1a96941c8061578b9ca9eef181ebe751353666954f4fbc504308de6eeb20ab21"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CandidateCommitGuard.cs",
+      "releaseBlob": "ab45a13d69304d197ca0a07d2191218729ba00f7",
+      "sourceBlob": "ab45a13d69304d197ca0a07d2191218729ba00f7",
+      "sourceIdentityUnchanged": true,
+      "sha256": "cdaf6d1f6ee031eeb04570a4e760bb13c104fd3f2eef84b80c1a56f4400d1d3b"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningCancellation.cs",
+      "releaseBlob": "1f8df3ae9f50ad5f70db74b6b6c1f7dee625df76",
+      "sourceBlob": "1f8df3ae9f50ad5f70db74b6b6c1f7dee625df76",
+      "sourceIdentityUnchanged": true,
+      "sha256": "e7884c28415b899c00173ba812a3959c86766cf796d5357035a65775a9a63742"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningClosure.cs",
+      "releaseBlob": "d144d344d6b357d2ee4a0faa33dfe3ca513382d1",
+      "sourceBlob": "d144d344d6b357d2ee4a0faa33dfe3ca513382d1",
+      "sourceIdentityUnchanged": true,
+      "sha256": "59a203c8c21be766c8cee9370611a952cb31a40e3e0d767ec0e5c7fb3253e1bb"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningDelivery.cs",
+      "releaseBlob": "99ac3c5160da72913b458acaea7ddc748d5667ee",
+      "sourceBlob": "99ac3c5160da72913b458acaea7ddc748d5667ee",
+      "sourceIdentityUnchanged": true,
+      "sha256": "6d72e841e487cc45a6c289dae7c9dd9fb8712e2b8aadb609074d2c4988d792aa"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs",
+      "releaseBlob": "05aaa1f8fd96780920cf6f4b8d582672c633a8b3",
+      "sourceBlob": "05aaa1f8fd96780920cf6f4b8d582672c633a8b3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "d05d90a4130eafd4413c6dc0a7166bb3ca0741e8fc251775ab47b98d3a1a03e2"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningReassignmentDelivery.cs",
+      "releaseBlob": "a26f13d6d7501e7dd9060d4c6fe5355bded1325d",
+      "sourceBlob": "a26f13d6d7501e7dd9060d4c6fe5355bded1325d",
+      "sourceIdentityUnchanged": true,
+      "sha256": "30d4344df79901f73de2c0feb96a37919850c2dd9890fc1367c0d7545d149e71"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/ProvisionalReworkNotification.cs",
+      "releaseBlob": "5ee485994aa2a514a03f3279500217ce1bf0b4a5",
+      "sourceBlob": "5ee485994aa2a514a03f3279500217ce1bf0b4a5",
+      "sourceIdentityUnchanged": true,
+      "sha256": "1d35cf7fc640f7c2df46309267d49bf794d9aeb164a86f66c45de55e792d5c8a"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+      "releaseBlob": "7f02696530fa587454f81dfaf3a4e4467a2bdf16",
+      "sourceBlob": "7f02696530fa587454f81dfaf3a4e4467a2bdf16",
+      "sourceIdentityUnchanged": true,
+      "sha256": "b108c0f05ca4a9dd6659430151670273460a32fccfd11aa0402cf5b975a5f58c"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+      "releaseBlob": "00727a65ed2ef1fd7c5bd6b86fe7d1c5c10e7732",
+      "sourceBlob": "00727a65ed2ef1fd7c5bd6b86fe7d1c5c10e7732",
+      "sourceIdentityUnchanged": true,
+      "sha256": "0eef6dfe431f70ec6decda97cce2afad5ac464e99b5aedfda8f95b3e421505a2"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/AuthorizationTests.cs",
+      "releaseBlob": "5f55170bdcc9aa9d0ade3a339dee8a5a1f6c4a37",
+      "sourceBlob": "cee7c89a7ae22501a0bcdc308f02285ab447f9ec",
+      "sourceIdentityUnchanged": false,
+      "sha256": "b2546b2f06f3c5d9ffe9f4c26623eba27f7fe0ce61d14a6ec382a36828112294"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CancellationLiveTests.cs",
+      "releaseBlob": "26b0682f6e749a4043804c1051251eb620b6b695",
+      "sourceBlob": "26b0682f6e749a4043804c1051251eb620b6b695",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4026a394dc0c983ccb4ddd0c83e4653ea84973ffcb282d6eb401d59c634e958a"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CandidateCommandGuardTests.cs",
+      "releaseBlob": "2aa0d34bfcb26eb590c9d281588ba18062475f68",
+      "sourceBlob": "2aa0d34bfcb26eb590c9d281588ba18062475f68",
+      "sourceIdentityUnchanged": true,
+      "sha256": "8b5f430202f78a9ba692ba6b7f20ff199c491b30daf90423bfb2e2836ac6d842"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CandidateCommitGuardTests.cs",
+      "releaseBlob": "d805c68fc9a71e885c091acc27743480e8369770",
+      "sourceBlob": "d805c68fc9a71e885c091acc27743480e8369770",
+      "sourceIdentityUnchanged": true,
+      "sha256": "afda23924bc9aa573d7fee527bacb20c9c0f5dd1ecb7724e51dcb2f71e5d14ca"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningAssignmentNotification06R1Tests.cs",
+      "releaseBlob": "56cb2088ee9eceaf2ea57d63ba92f52200145488",
+      "sourceBlob": "56cb2088ee9eceaf2ea57d63ba92f52200145488",
+      "sourceIdentityUnchanged": true,
+      "sha256": "c602c1c9ea5ca6eca5c9ae3a290136ae70baf141d02e50ff93c144e8353ff36f"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningAssignmentNotificationTests.cs",
+      "releaseBlob": "d4b925a72f15782b1c01b2532a750f2424d415b4",
+      "sourceBlob": "d4b925a72f15782b1c01b2532a750f2424d415b4",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4c1fcc598ad4d6fc15be0914b0de137d5d0b5cb98d7126e9392180a10e68ecff"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningCancellationSqlTests.cs",
+      "releaseBlob": "e31b2f60a397a7b8c08fd9be15272b2735c4f420",
+      "sourceBlob": "e31b2f60a397a7b8c08fd9be15272b2735c4f420",
+      "sourceIdentityUnchanged": true,
+      "sha256": "a56c061969c0c10989c9ca742d230105d37602b000c3f83ea0c789568726a056"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningCancellationTests.cs",
+      "releaseBlob": "82762e2e3918d9a1f854a2e20a0d091a433001c3",
+      "sourceBlob": "82762e2e3918d9a1f854a2e20a0d091a433001c3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "7a9c6b3ce9fbf9e2fee6e6e269e5692791d233f5c6a2434a613f46476ad253e6"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningClosureBoundaryTests.cs",
+      "releaseBlob": "75282bbaa7347f058e254dd5126b0002b616b3f2",
+      "sourceBlob": "75282bbaa7347f058e254dd5126b0002b616b3f2",
+      "sourceIdentityUnchanged": true,
+      "sha256": "47cb6d47f083df876f1c8b70f09f395f6a2f3a672bb669ee889e1e5ae8e97c28"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningClosureLiveTests.cs",
+      "releaseBlob": "a557712016d3b92402a85677755d36767b8814d9",
+      "sourceBlob": "a557712016d3b92402a85677755d36767b8814d9",
+      "sourceIdentityUnchanged": true,
+      "sha256": "9c7572ba6285587622281a5733ba4c44c160ea0d59e0c5d3c2b72c3909293de9"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningClosureWorkflowTests.cs",
+      "releaseBlob": "8585c7591695179b6e02bcecb6797d31b722ca45",
+      "sourceBlob": "8585c7591695179b6e02bcecb6797d31b722ca45",
+      "sourceIdentityUnchanged": true,
+      "sha256": "4e1b1b1f714fc578ac8c18bf2cc6f0af38f5688c0727edd5fea7754e98efa821"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningCreationTests.cs",
+      "releaseBlob": "28a0302a4ca8e8f286ac94ebc38c07ade6eb4be9",
+      "sourceBlob": "28a0302a4ca8e8f286ac94ebc38c07ade6eb4be9",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3a197f8e2272342c75473844be6bbb0f43b2c6c51709df5346140f63cac6b9f6"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningExecutionTests.cs",
+      "releaseBlob": "f0430aa0282384cba51a9bac3d2a5aab54a4e670",
+      "sourceBlob": "f0430aa0282384cba51a9bac3d2a5aab54a4e670",
+      "sourceIdentityUnchanged": true,
+      "sha256": "9bd966ff761427f8a01f1b3d72c2a1df7829b25eff102501799026018b531a35"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningLifecycleContractTests.cs",
+      "releaseBlob": "29db04797aa1e92e98ab637ef78f9b2a06dc71c0",
+      "sourceBlob": "29db04797aa1e92e98ab637ef78f9b2a06dc71c0",
+      "sourceIdentityUnchanged": true,
+      "sha256": "5d188b48ae16d42e2898844b23900b85cd9fa6864daa2a99d039684f9837a20e"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningMonitorFs016Tests.cs",
+      "releaseBlob": "c41cce3604f7c7e1c860c4c3a7d481f9aa1865f2",
+      "sourceBlob": "c41cce3604f7c7e1c860c4c3a7d481f9aa1865f2",
+      "sourceIdentityUnchanged": true,
+      "sha256": "fef63524204566acc51f66d0edfb11c56702b5aeef5b9a65f8bb476264399305"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningMonitorRouteTests.cs",
+      "releaseBlob": "91dc160e86aa12f2238a3d2f9d9d50cddbe652a6",
+      "sourceBlob": "91dc160e86aa12f2238a3d2f9d9d50cddbe652a6",
+      "sourceIdentityUnchanged": true,
+      "sha256": "23432c2276014db28b37469d747d1f373721c00bd28b31fe12b37ec6e32c340e"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleaningResumeSqlTests.cs",
+      "releaseBlob": "8f21a150d478a7f3ca62be4dfb77c44dc2bb31d2",
+      "sourceBlob": "8f21a150d478a7f3ca62be4dfb77c44dc2bb31d2",
+      "sourceIdentityUnchanged": true,
+      "sha256": "3266b9b85122a2f186914eef149d025aca32a10b1395d96e93340a04065f7bab"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj",
+      "releaseBlob": "3eb88e1e128832419e57d8afc0f130a6ab3a7f37",
+      "sourceBlob": "3eb88e1e128832419e57d8afc0f130a6ab3a7f37",
+      "sourceIdentityUnchanged": true,
+      "sha256": "a86aca0b48f74d381f963a249f5840dd6933c38f4197022e8ce9ba1a4b698609"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/NoIdentity.cs",
+      "releaseBlob": "89d80910356a8e194a850976587489667a421287",
+      "sourceBlob": null,
+      "sourceIdentityUnchanged": false,
+      "sha256": "85f93746d2694a5aee33522112916708038ac8b169359df21615e1e3784ee4ca"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/NotificationCandidateTests.cs",
+      "releaseBlob": "991834a939a7e0c0e1129308a25a084c9e4cf9f3",
+      "sourceBlob": "991834a939a7e0c0e1129308a25a084c9e4cf9f3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "397b6f83ea6a180d88e4ed9504dc0658aeae4ad0da42c2855f4575748158294c"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/ReleaseCompositionTests.cs",
+      "releaseBlob": "f041757b3a7b419e46cef2e252e9ad568ed1fd2d",
+      "sourceBlob": null,
+      "sourceIdentityUnchanged": false,
+      "sha256": "1e9ae2e13c62b07bdbcdb7ecb00c44ba7de2d91f170e651443b19b22b020adb3"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/ReworkLifecycleTests.cs",
+      "releaseBlob": "b4d43eb8c40073c908c767a19d11c9c16ee69932",
+      "sourceBlob": "b4d43eb8c40073c908c767a19d11c9c16ee69932",
+      "sourceIdentityUnchanged": true,
+      "sha256": "ba21b52888e53d078617e9435d4e9eba9841447d79bb7a3c63801fe97ef31808"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/ReworkLiveTests.cs",
+      "releaseBlob": "e69e0d3f8a89460702f85c288055dc45f1b441a3",
+      "sourceBlob": "e69e0d3f8a89460702f85c288055dc45f1b441a3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "7e5672af31df4a9728d622fe67772ff0c8d0f291304e427423cdab63f06d17bc"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/ReworkWorkflowSqlTests.cs",
+      "releaseBlob": "e0617eebdc165892b1b5b25ce9742980258d4a95",
+      "sourceBlob": "e0617eebdc165892b1b5b25ce9742980258d4a95",
+      "sourceIdentityUnchanged": true,
+      "sha256": "41b3a723cea9550992a2ef8ed3c430f1e25621229209572985eeac4b7ff8f1f4"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/TurnoverHistorySqlTests.cs",
+      "releaseBlob": "05ec38ee2e5ef1c5c40f776d72df5e5e06e272e3",
+      "sourceBlob": "05ec38ee2e5ef1c5c40f776d72df5e5e06e272e3",
+      "sourceIdentityUnchanged": true,
+      "sha256": "1ab01c74dcbc37c8939dc27618537c3c55fa013f02d983800f70b7c82993d0cd"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/TurnoverHistoryTests.cs",
+      "releaseBlob": "0176cea7e3893d9ef5c11e4ec907e02f28c09f53",
+      "sourceBlob": "0176cea7e3893d9ef5c11e4ec907e02f28c09f53",
+      "sourceIdentityUnchanged": true,
+      "sha256": "bc9d3bf19623d2a206e8894ed450146bb60348078c1bab2b16c4af43a7c9909c"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/TurnoverLiveTests.cs",
+      "releaseBlob": "d85e3b2ef954de5046f10e37802999cc4d5cd22f",
+      "sourceBlob": "d85e3b2ef954de5046f10e37802999cc4d5cd22f",
+      "sourceIdentityUnchanged": true,
+      "sha256": "113ca566dce357769b74f5b661fac87dbbf36c67cb306f06f881d0d4a46aafd6"
+    }
+  ]
+}

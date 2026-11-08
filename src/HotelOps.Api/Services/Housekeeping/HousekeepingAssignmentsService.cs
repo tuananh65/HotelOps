@@ -33,6 +33,15 @@ public sealed partial class RoomTypeCreationService
     {
         if (task <= 0 || input.AssigneeId <= 0 || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid assignment or If-Match.");
         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
+        // FS008: DEV2-FS007-UC029-AUTH-01 requires verified accepted A01 invocation.
+        // No alternate publisher or successful business commit until that executable package is available.
+        return Task.FromResult(new RoomTypeBatchResult(RoomTypeBatchStatus.Unavailable));
+    }
+
+    private Task<RoomTypeBatchResult> AssignCleaningCoreAsync(SessionReference ticket, long sid, long branch, long task, string tag, AssignCleaningRequest input, CancellationToken ct)
+    {
+        if (task <= 0 || input.AssigneeId <= 0 || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid assignment or If-Match.");
+        var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
             if (!await HousekeepingSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
