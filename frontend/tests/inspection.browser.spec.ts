@@ -78,6 +78,8 @@ async function setup(
         { title: options.status === 403 ? "FORBIDDEN" : "SESSION_INVALID" },
         options.status,
       );
+    if (path.endsWith("/inspection-severities"))
+      return send([{ id: 12, code: "MINOR", name: "Minor" }]);
     if (path.endsWith("/execution")) return send(current);
     if (path.includes("/inspections/") && req.method() !== "GET") {
       writes.push(path);
@@ -174,7 +176,7 @@ test("FAIL saved then defect unlocks finish", async ({ page }) => {
   await page.getByRole("button", { name: "Save Draft", exact: true }).click();
   await expect(page.getByText("Defect required: Desk")).toBeVisible();
   await page.getByLabel("Failed criterion").selectOption("3");
-  await page.getByLabel("Severity reference ID").fill("12");
+  await page.getByLabel("Severity", { exact: true }).selectOption("12");
   await page.getByLabel("Description", { exact: true }).fill("Dust found");
   await page.getByLabel("Location in room").fill("Desk");
   await page

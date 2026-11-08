@@ -1,3 +1,5 @@
+import { InspectionDirectory } from "./InspectionDirectory";
+import { reads, type Severity } from "./reads";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api, EvidenceList, Results, useOperation } from "./shared";
@@ -19,6 +21,7 @@ export function InspectionEntry() {
   return (
     <main>
       <h1>Perform Room Inspection</h1>
+      <InspectionDirectory />
       <p>
         Open the inspection assigned to you using its branch and inspection
         identity. The server verifies your assignment.
@@ -80,6 +83,8 @@ function ExecutionEditor({
   const [source, setSource] = useState<{ data: Execution; tag: string } | null>(
     null,
   );
+  const [severityError, setSeverityError] = useState("");
+  const [severities, setSeverities] = useState<Severity[]>([]);
   const [draft, setDraft] = useState<ResultInput[]>([]);
   const [blocked, setBlocked] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -117,8 +122,35 @@ function ExecutionEditor({
   const load = () => {
     setNotice("");
     return run(
-      (s) => api.execution(branch, id, s),
-      adopt,
+      async (s) => {
+        const v = await api.execution(branch, id, s);
+        try {
+          return {
+            v,
+            values: await reads.severities(branch, s),
+            lookupError: "",
+          };
+        } catch (e) {
+          if (
+            s.aborted ||
+            (e instanceof InspectionError &&
+              (e.status === 401 || e.status === 403))
+          )
+            throw e;
+          return {
+            v,
+            values: [] as Severity[],
+            lookupError:
+              "Severity lookup unavailable. Reload before recording a defect.",
+          };
+        }
+      },
+      ({ v, values, lookupError }) => {
+        setSeverityError(lookupError);
+        adopt(v);
+        setSeverities(values);
+        setSeverity("");
+      },
       () => {
         setSource(null);
         setBlocked(true);
@@ -388,19 +420,28 @@ function ExecutionEditor({
                   </select>
                 </label>
                 <label>
-                  Severity reference ID
-                  <input
+                  Severity
+                  <select
+                    aria-label="Severity"
                     required
-                    inputMode="numeric"
                     value={severity}
                     onChange={(e) => setSeverity(e.target.value)}
-                  />
+                  >
+                    <option value="">Choose severity</option>
+                    {severities.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name} ({v.code})
+                      </option>
+                    ))}
+                  </select>
                 </label>
-                <p>
-                  Use an active MINOR or MAJOR reference ID from your
-                  administrator. A severity lookup API is not available in this
-                  backend; no ID is assumed.
-                </p>
+                {severityError && <p role="alert">{severityError}</p>}
+                {!severities.length && (
+                  <p role="alert">
+                    No active Inspection severity is available. Reload or
+                    contact your administrator.
+                  </p>
+                )}
                 <label>
                   Description
                   <textarea
@@ -446,7 +487,7 @@ function ExecutionEditor({
                 <button
                   disabled={
                     !criterion ||
-                    !severity ||
+                    !severities.some((v) => String(v.id) === severity) ||
                     !description.trim() ||
                     !location.trim()
                   }

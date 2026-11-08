@@ -1,0 +1,21 @@
+{
+  "success": true,
+  "database": "HotelOps_Canonical_20261108_103655_8b2980a9_Fresh",
+  "owner": "e0935dad-a179-4dd7-8ea0-67aedcea1e5f",
+  "inspections": 2,
+  "tasks": 3,
+  "results": [
+    {
+      "InspectionId": 1,
+      "Outcome": "FAIL"
+    }
+  ],
+  "defects": [
+    {
+      "Description": "FAST002 selected severity defect",
+      "SeverityId": 5
+    }
+  ],
+  "audit": 3,
+  "assignmentWriterInvoked": false
+}

@@ -1,0 +1,309 @@
+{
+  "task": "FE05-FAST-002",
+  "database": "HotelOps_Canonical_20261108_103655_8b2980a9_Fresh",
+  "owner": "e0935dad-a179-4dd7-8ea0-67aedcea1e5f",
+  "live": true,
+  "httpInterception": false,
+  "cases": [
+    {
+      "name": "Real Sign-In and cookie session",
+      "result": "PASS"
+    },
+    {
+      "name": "Severity lookup: active MINOR/MAJOR domain, inactive MAJOR excluded, branch and input scope",
+      "result": "NOT_RERUN",
+      "priorReceipt": "live-results.json"
+    },
+    {
+      "name": "Assigned list belongs to session actor; search and server pagination",
+      "result": "PASS"
+    },
+    {
+      "name": "Assigned list UI opens actual assigned execution",
+      "result": "PASS"
+    },
+    {
+      "name": "Assignment queue excludes cycles with open inspection; planning preview and writer dependency enforced",
+      "result": "PASS"
+    },
+    {
+      "name": "Concurrent read transactions return scoped snapshots",
+      "result": "PASS"
+    },
+    {
+      "name": "Severity selector submits server ID; inactive severity rejected and defect persists after reload",
+      "result": "PASS"
+    },
+    {
+      "name": "Read collections empty, wrong branch forbidden, denied account and anonymous handling",
+      "result": "PASS"
+    },
+    {
+      "name": "SQL persistence and unchanged assignment count",
+      "result": "PASS"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?page=1&pageSize=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?page=2&pageSize=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?page=0",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?pageSize=101",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?search=FAST_INSP_1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?search=&page=1&pageSize=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-tasks",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-tasks?search=&page=1&pageSize=20",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/cleaning-tasks/3/inspection-options",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/start",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/branches/1/inspections/1/results",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/defects",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspections/1/defects",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/1/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?search=NO_MATCH",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspection-severities",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspections/assigned",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspection-assignment-tasks",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-tasks",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-tasks",
+      "status": 403
+    }
+  ],
+  "success": true
+}

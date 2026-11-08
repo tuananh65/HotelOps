@@ -231,8 +231,8 @@ try {
         .getByLabel("Failed criterion")
         .selectOption(String(read.body.criteria[0].itemId));
       await page
-        .getByLabel("Severity reference ID")
-        .fill(String(runtime.severityId));
+        .getByLabel("Severity", { exact: true })
+        .selectOption(String(runtime.severityId));
       await page
         .getByLabel("Description", { exact: true })
         .fill("Synthetic dust defect");
