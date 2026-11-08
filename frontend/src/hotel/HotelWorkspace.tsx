@@ -327,6 +327,14 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
       <h1>Hotel structure — {titles[screen]}</h1>
       <nav aria-label="Hotel structure navigation">
         <Link to="/profile">Profile</Link>
+        {screen === "structure" && (
+          <Link to="/branches/new">Create Branch</Link>
+        )}
+        {screen === "structure" && branchId && (
+          <Link to={`/branches/${branchId}/edit`}>
+            Update branch information
+          </Link>
+        )}
         {Object.entries({
           "/hotel": "Branch structure",
           "/floors": "Floors",
@@ -345,7 +353,7 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
         graph is used.
       </p>
       <p>
-        Branch listing and branch maintenance, floor/area deactivation, room
+        Branch listing, branch deactivation, floor/area deactivation, room
         deactivation and department deactivation are outside this integration
         slice.
       </p>

@@ -2,6 +2,8 @@ import { Link, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { AuthRouteHost } from "../auth/AuthRouteHost";
 import { HotelWorkspace } from "./HotelWorkspace";
+import { CreateBranchRoute } from "../branch-maintenance/CreateBranchRoute";
+import { BranchMaintenanceRoute } from "../branch-maintenance/BranchMaintenanceRoute";
 import type { Screen } from "./operations";
 import { workdayReadEnabled } from "../workday/readFeature";
 import { WorkdayRoute } from "../workday/WorkdayRoute";
@@ -37,6 +39,11 @@ export function HotelRouteHost() {
       )}
       <Route path="/hotel" element={<HotelRoute screen="structure" />} />
       <Route path="/branches" element={<HotelRoute screen="structure" />} />
+      <Route path="/branches/new" element={<CreateBranchRoute />} />
+      <Route
+        path="/branches/:branchId/edit"
+        element={<BranchMaintenanceRoute />}
+      />
       <Route
         path="/branches/:branchId"
         element={<HotelRoute screen="structure" />}
