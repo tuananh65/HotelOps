@@ -16,6 +16,10 @@ namespace HotelOps.Api.Controllers;
 [Route("api/branches/{branchId:long}/inspection-checklists")]
 public sealed class InspectionChecklistsController(RoomTypeCreationService service) : ControllerBase
 {
+    [HttpGet]
+    public Task<IActionResult> List(long branchId, [FromQuery] ChecklistCollectionRequest query, CancellationToken ct)
+        => Execute((ticket, sid) => service.ListChecklistsAsync(ticket, sid, branchId, query, ct));
+
     [HttpPost]
     public Task<IActionResult> Create(long branchId, CreateChecklistRequest request, CancellationToken ct)
         => Execute((ticket, sid) => service.CreateChecklistAsync(ticket, sid, branchId, request, ct), true);

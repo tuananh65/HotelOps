@@ -1,0 +1,197 @@
+{
+    "baseline":  "e7f84422a33a8a65c771efdfb248e8231e83bb6a",
+    "target":  "D:/SEP490/Projects/HotelOps-DEV1-FE05-INT003",
+    "branch":  "integration/dev1-fe05-checklists",
+    "sourceManifestSha256":  "C62D6410FB3E42BB71D70E3F6070E959224717DA756B7290A2F3DCF622147765",
+    "files":  [
+                  {
+                      "path":  "docs/fe05/FE05_INT001_LIVE_REPORT.md",
+                      "adapterChange":  false,
+                      "sourceSha256":  "6675DEC9C45142B437DD1192C0E3F946EFD7CEA2E74E615BF7FF684E9103494C",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "6675DEC9C45142B437DD1192C0E3F946EFD7CEA2E74E615BF7FF684E9103494C"
+                  },
+                  {
+                      "path":  "docs/fe05/FE05_UI002_COLLECTION_API.md",
+                      "adapterChange":  false,
+                      "sourceSha256":  "2B3FD72FF0D7006A580B8B9F8542591451EA8CCE7AAE4F24F7480ACA4B742F3D",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "2B3FD72FF0D7006A580B8B9F8542591451EA8CCE7AAE4F24F7480ACA4B742F3D"
+                  },
+                  {
+                      "path":  "scripts/verification/ChecklistLive/ChecklistLive.csproj",
+                      "adapterChange":  false,
+                      "sourceSha256":  "F4224C82E932FD384923A75EADC79150E8C96C433F0BD7E4DB8551B13F5DA335",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "F4224C82E932FD384923A75EADC79150E8C96C433F0BD7E4DB8551B13F5DA335"
+                  },
+                  {
+                      "path":  "scripts/verification/ChecklistLive/Program.cs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "98FD8AAD53EAA2259F777568647CDAFFCF168480E5D8C9A0AE6B1ACA4475B2A4",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "98FD8AAD53EAA2259F777568647CDAFFCF168480E5D8C9A0AE6B1ACA4475B2A4"
+                  },
+                  {
+                      "path":  "scripts/verification/ChecklistLive/README.md",
+                      "adapterChange":  false,
+                      "sourceSha256":  "CDDD9C81BECACE78798ABE2A1C1E46E67612FD0E1F5BA8E444BEDA5563E7805A",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "CDDD9C81BECACE78798ABE2A1C1E46E67612FD0E1F5BA8E444BEDA5563E7805A"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "297BF8FCCE8CC92509601268D9976BEBDBFFE80C94CFC5B0F4C74EAA3A94B801",
+                      "action":  "APPLY_FE05_DELTA",
+                      "targetSha256":  "297BF8FCCE8CC92509601268D9976BEBDBFFE80C94CFC5B0F4C74EAA3A94B801"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/HotelStructure/ChecklistCollectionDtos.cs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "A84D4BB865656DF6F03D9215F491DF6183C8DD5568E17C022AC358AC880F0575",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "A84D4BB865656DF6F03D9215F491DF6183C8DD5568E17C022AC358AC880F0575"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/ChecklistCollectionService.cs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "FCF2591AB5BEE0B068D39C7007B8C0C74DCFB7663F234E1775C40784EC01BE52",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "FCF2591AB5BEE0B068D39C7007B8C0C74DCFB7663F234E1775C40784EC01BE52"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Checklist.CollectionTests/CollectionTests.cs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "63C76CF20BD493CF914E4EEB48BFE4131F34F4340A6D6775073AE37DAD17994A",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "63C76CF20BD493CF914E4EEB48BFE4131F34F4340A6D6775073AE37DAD17994A"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Checklist.CollectionTests/HotelOps.Checklist.CollectionTests.csproj",
+                      "adapterChange":  false,
+                      "sourceSha256":  "16CCB9121DB76578A0BC47951FD4D83C18D4B39D7C3FD884759D43B391FF29FB",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "16CCB9121DB76578A0BC47951FD4D83C18D4B39D7C3FD884759D43B391FF29FB"
+                  },
+                  {
+                      "path":  "frontend/docs/FE05_UI001.md",
+                      "adapterChange":  false,
+                      "sourceSha256":  "B9FB0C8C4059EA65D4F4FE7B394B8E1E9018EC85CF599CAD5E80A9DBD577194D",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "B9FB0C8C4059EA65D4F4FE7B394B8E1E9018EC85CF599CAD5E80A9DBD577194D"
+                  },
+                  {
+                      "path":  "frontend/docs/FE05_UI003.md",
+                      "adapterChange":  false,
+                      "sourceSha256":  "88334813AB50AABAFF0B3F7395BE066A78FB70C56DB4DAC0BE64AC6A0C75E5C8",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "88334813AB50AABAFF0B3F7395BE066A78FB70C56DB4DAC0BE64AC6A0C75E5C8"
+                  },
+                  {
+                      "path":  "frontend/playwright.fe05.config.ts",
+                      "adapterChange":  false,
+                      "sourceSha256":  "493F3E575A259CAD37231D41F60FB70408D79814998B1B25C65F7BAE8F6B9452",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "493F3E575A259CAD37231D41F60FB70408D79814998B1B25C65F7BAE8F6B9452"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/api.ts",
+                      "adapterChange":  false,
+                      "sourceSha256":  "B8FDE5178BE4913FCFB2824C02C26CDEA12C4E5371D17F189645C6A1F20E8BC7",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "B8FDE5178BE4913FCFB2824C02C26CDEA12C4E5371D17F189645C6A1F20E8BC7"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/ChecklistCollection.tsx",
+                      "adapterChange":  false,
+                      "sourceSha256":  "138A3CEA53D94F43C31CEE356317717F5D02F279F84B5044C8E934130D3625BA",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "138A3CEA53D94F43C31CEE356317717F5D02F279F84B5044C8E934130D3625BA"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/ChecklistForm.tsx",
+                      "adapterChange":  false,
+                      "sourceSha256":  "F697F9E6D94682928CD6D6F8244691D7125E6693E0541A6C459EAEA1729886A1",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "F697F9E6D94682928CD6D6F8244691D7125E6693E0541A6C459EAEA1729886A1"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/checklists.css",
+                      "adapterChange":  false,
+                      "sourceSha256":  "243067CD92571A328E22174A47BDA1D842764FCAA6ABC8072769C9B030166599",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "243067CD92571A328E22174A47BDA1D842764FCAA6ABC8072769C9B030166599"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/ChecklistWorkspace.tsx",
+                      "adapterChange":  false,
+                      "sourceSha256":  "DE93B0200029A49AF934E37D12297BA9A18719C3F0801F26365068F90A847E05",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "DE93B0200029A49AF934E37D12297BA9A18719C3F0801F26365068F90A847E05"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/collection.ts",
+                      "adapterChange":  false,
+                      "sourceSha256":  "97EDCDF2F211BC48370642FA3330C899EAC26BD53DEF11A85BB72861681CBB68",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "97EDCDF2F211BC48370642FA3330C899EAC26BD53DEF11A85BB72861681CBB68"
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionChecklists/model.ts",
+                      "adapterChange":  false,
+                      "sourceSha256":  "467ACBCF18245382C158B971F74073BD51B053D4BDC3AA2088FA7227F292B179",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "467ACBCF18245382C158B971F74073BD51B053D4BDC3AA2088FA7227F292B179"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+                      "adapterChange":  false,
+                      "sourceSha256":  "A6668D7304480A363C46C38E33F3AAAAFD6511C2D846B99F6B258C7A798C5295",
+                      "action":  "APPLY_FE05_DELTA",
+                      "targetSha256":  "A6668D7304480A363C46C38E33F3AAAAFD6511C2D846B99F6B258C7A798C5295"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+                      "adapterChange":  false,
+                      "sourceSha256":  "E463E00B23E0E716D4E2949172352E766FA77D3796134EA3DA7BCD86275CF056",
+                      "action":  "APPLY_FE05_DELTA",
+                      "targetSha256":  "E463E00B23E0E716D4E2949172352E766FA77D3796134EA3DA7BCD86275CF056"
+                  },
+                  {
+                      "path":  "frontend/tests/fe05-checklists.spec.ts",
+                      "adapterChange":  false,
+                      "sourceSha256":  "B60ED770191A55C9ECD398DC900A83B58C3E602CCBA2334EE5806BF98210BE58",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "B60ED770191A55C9ECD398DC900A83B58C3E602CCBA2334EE5806BF98210BE58"
+                  },
+                  {
+                      "path":  "frontend/tests/fe05-checklists.test.mjs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "FCFAA53CA1892C304FAA4A040995F0C3D3CD92E7B60482C9767AE897CAFEA000",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "FCFAA53CA1892C304FAA4A040995F0C3D3CD92E7B60482C9767AE897CAFEA000"
+                  },
+                  {
+                      "path":  "frontend/tests/fe05-collection.test.mjs",
+                      "adapterChange":  false,
+                      "sourceSha256":  "861B1488CD31DF2FF5EDC51E6994D19183751F10095F3978850CCF47D02A2C3F",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "861B1488CD31DF2FF5EDC51E6994D19183751F10095F3978850CCF47D02A2C3F"
+                  },
+                  {
+                      "path":  "frontend/tests/fe05-live.mjs",
+                      "adapterChange":  true,
+                      "sourceSha256":  "FC44378E79A299764ACF017695F30DE0B039187367B3E46ECD818E9C8DD3F1FC",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "08FD8121BFD0F41C2CF66D9D66162DDA8333695F51326FCE84CD534A64D8F671"
+                  },
+                  {
+                      "path":  "frontend/tests/fe05-live-resume.mjs",
+                      "adapterChange":  true,
+                      "sourceSha256":  "842F689A5E6349CDA15F23518F00D15BB4D57F48EBF1657DB6ADDFE2A64D0B7B",
+                      "action":  "ADD_MISSING",
+                      "targetSha256":  "133D46D7B29AE944246F174BD7104C343F0A3A402CF12E6F8698657BC830A619"
+                  }
+              ]
+}
