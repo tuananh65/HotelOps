@@ -8,7 +8,7 @@ const result = await build({
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
-    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ScheduledWorkdayPanel}from'./src/workday/ScheduledWorkdayPanel';const s=window.scenario,calls=[],waiters=[];let working=s.working??false;const d=${JSON.stringify(day())},sh=${JSON.stringify(shift())},sess=${JSON.stringify(session())};const reply=(v,status=200)=>Response.json(v,{status,headers:{ETag:'"AAAAAAAAAAE="'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return s.anonymous?reply({},401):reply({...sess,mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf')return reply({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});const b=Number(u.split('/')[3]);if(u.endsWith('/own-shifts'))return s.shiftDenied?reply({},403):reply([{...sh,branchId:b}]);if(u.endsWith('/current')){const f=()=>s.currentDenied?reply({},403):working?reply({...d,branchId:b,openInterval:s.open?{intervalId:3,workItemKind:'TASK',workItemId:4,openedAtUtc:d.startedAtUtc,rowVersion:d.rowVersion}:null}):new Response(null,{status:204});if(s.late&&b===1)return new Promise(resolve=>waiters.push(()=>resolve(f())));return f();}const end=u.endsWith('/end');const finish=()=>{if(s.network)throw Error('SECRET');if(s.status)return reply({title:'SECRET'},s.status);working=!end;const v={...d,branchId:b,status:end?'ENDED':'WORKING',endedAtUtc:end?(s.endedAtUtc??'2026-11-08T09:00:00Z'):null};delete v.openInterval;return reply(v,end?200:201);};if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(s.invalid?0:1);return <><button onClick={()=>set(2)}>Change branch</button><ScheduledWorkdayPanel branchId={b} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}><App/></AuthProvider>);window.fixture={calls,finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
+    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ScheduledWorkdayPanel}from'./src/workday/ScheduledWorkdayPanel';const s=window.scenario,calls=[],waiters=[];let working=s.working??false;const d=${JSON.stringify(day())},sh=${JSON.stringify(shift())},sess=${JSON.stringify(session())};const reply=(v,status=200)=>Response.json(v,{status,headers:{ETag:'"AAAAAAAAAAE="'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return (s.anonymous||s.revoked)?reply({},401):reply({...sess,mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf')return reply({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});const b=Number(u.split('/')[3]);if(u.endsWith('/own-shifts'))return s.shiftInvalid?reply({},401):s.shiftDenied?reply({},403):reply([{...sh,branchId:b}]);if(u.endsWith('/current')){const f=()=>s.currentInvalid?reply({},401):s.currentDenied?reply({},403):working?reply({...d,branchId:b,openInterval:s.open?{intervalId:3,workItemKind:'TASK',workItemId:4,openedAtUtc:d.startedAtUtc,rowVersion:d.rowVersion}:null}):new Response(null,{status:204});if(s.late&&b===1)return new Promise(resolve=>waiters.push(()=>resolve(f())));return f();}const end=u.endsWith('/end');const finish=()=>{if(s.network)throw Error('SECRET');if(s.status)return reply({title:'SECRET'},s.status);working=!end;const v={...d,branchId:b,status:end?'ENDED':'WORKING',endedAtUtc:end?(s.endedAtUtc??'2026-11-08T09:00:00Z'):null};delete v.openInterval;return reply(v,end?200:201);};if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(s.invalid?0:1);return <><button onClick={()=>set(2)}>Change branch</button><ScheduledWorkdayPanel branchId={b} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}><App/></AuthProvider>);window.fixture={calls,recover:()=>{s.currentInvalid=false;s.shiftInvalid=false;s.revoked=false;},revoke:()=>{s.revoked=true;},finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
   },
   bundle: true,
   write: false,
@@ -205,7 +205,7 @@ for (const status of [401, 403, 409, 412, 503])
       await choose(p);
       await p.getByRole("button", { name: "Start scheduled workday" }).click();
       await p
-        .getByRole("status")
+        .getByRole(status === 401 ? "alert" : "status")
         .filter({
           hasText:
             status === 401
@@ -257,6 +257,104 @@ test("branch change during POST discards old success", () =>
     assert.equal(await p.getByText(/Start confirmed/).count(), 0);
     assert.match(await p.locator("main").innerText(), /Branch 2/);
     assert.equal((await posts(p)).length, 1);
+  }));
+
+for (const scenario of [
+  { shiftInvalid: true, working: true },
+  { currentInvalid: true, working: true },
+  { shiftInvalid: true, working: true, late: true },
+]) {
+  test(
+    "read 401 hides all protected snapshots and requires session recovery " +
+      JSON.stringify(scenario),
+    () =>
+      run({ ...scenario, enabled: true }, async (p) => {
+        await p
+          .getByText(
+            "Session invalid. Revalidate before reading or changing workday.",
+          )
+          .waitFor();
+        await p.evaluate(() => window.fixture.finish());
+        assert.equal(
+          await p.getByText("Working day 20", { exact: true }).count(),
+          0,
+        );
+        assert.equal(
+          await p.getByLabel("Scheduled shift", { exact: true }).count(),
+          0,
+        );
+        assert.equal(
+          await p
+            .getByRole("button", { name: "Refresh snapshot", exact: true })
+            .count(),
+          0,
+        );
+        assert.equal((await posts(p)).length, 0);
+        const before = await p.evaluate(() => window.fixture.calls.length);
+        await p
+          .getByRole("button", { name: "Change branch", exact: true })
+          .click();
+        assert.equal(
+          await p.evaluate(() => window.fixture.calls.length),
+          before,
+        );
+        await p.evaluate(() => window.fixture.revoke());
+        await p
+          .getByRole("button", { name: "Revalidate session", exact: true })
+          .click();
+        await p.waitForFunction(
+          () =>
+            window.fixture.calls.filter((c) => c.url === "/api/auth/session")
+              .length === 2,
+        );
+        assert.equal((await posts(p)).length, 0);
+        assert.equal(
+          await p.getByText("Working day 20", { exact: true }).count(),
+          0,
+        );
+      }),
+  );
+}
+
+test("mutation 401 removes previous data and prevents repeated End", () =>
+  run({ enabled: true, working: true, status: 401 }, async (p) => {
+    await p.getByText("Working day 20", { exact: true }).waitFor();
+    await p.getByRole("button", { name: "End workday", exact: true }).click();
+    await p
+      .getByText(
+        "Session invalid. Revalidate before reading or changing workday.",
+      )
+      .waitFor();
+    assert.equal(
+      await p.getByText("Working day 20", { exact: true }).count(),
+      0,
+    );
+    assert.equal(
+      await p.getByRole("button", { name: "End workday", exact: true }).count(),
+      0,
+    );
+    assert.equal((await posts(p)).length, 1);
+  }));
+
+test("explicit successful session revalidation restores reads without POST replay", () =>
+  run({ enabled: true, working: true, currentInvalid: true }, async (p) => {
+    await p
+      .getByText(
+        "Session invalid. Revalidate before reading or changing workday.",
+      )
+      .waitFor();
+    await p.evaluate(() => window.fixture.recover());
+    await p
+      .getByRole("button", { name: "Revalidate session", exact: true })
+      .click();
+    await p.getByText("Working day 20", { exact: true }).waitFor();
+    assert.equal((await posts(p)).length, 0);
+    assert.equal(
+      (await p.evaluate(() => window.fixture.calls)).filter(
+        (c) => c.url === "/api/auth/session",
+      ).length,
+      2,
+    );
   }));
 
 test("malformed End calendar locks replay without confirmed success or refresh", () =>
