@@ -8,7 +8,7 @@ const result = await build({
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
-    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ScheduledWorkdayPanel}from'./src/workday/ScheduledWorkdayPanel';const s=window.scenario,calls=[],waiters=[];let working=s.working??false;const d=${JSON.stringify(day())},sh=${JSON.stringify(shift())},sess=${JSON.stringify(session())};const reply=(v,status=200)=>Response.json(v,{status,headers:{ETag:'"AAAAAAAAAAE="'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return (s.anonymous||s.revoked)?reply({},401):reply({...sess,mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf')return reply({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});const b=Number(u.split('/')[3]);if(u.endsWith('/own-shifts'))return s.shiftInvalid?reply({},401):s.shiftDenied?reply({},403):reply([{...sh,branchId:b}]);if(u.endsWith('/current')){const f=()=>s.currentInvalid?reply({},401):s.currentDenied?reply({},403):working?reply({...d,branchId:b,openInterval:s.open?{intervalId:3,workItemKind:'TASK',workItemId:4,openedAtUtc:d.startedAtUtc,rowVersion:d.rowVersion}:null}):new Response(null,{status:204});if(s.late&&b===1)return new Promise(resolve=>waiters.push(()=>resolve(f())));return f();}const end=u.endsWith('/end');const finish=()=>{if(s.network)throw Error('SECRET');if(s.status)return reply({title:'SECRET'},s.status);working=!end;const v={...d,branchId:b,status:end?'ENDED':'WORKING',endedAtUtc:end?(s.endedAtUtc??'2026-11-08T09:00:00Z'):null};delete v.openInterval;return reply(v,end?200:201);};if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(s.invalid?0:1);return <><button onClick={()=>set(2)}>Change branch</button><ScheduledWorkdayPanel branchId={b} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}><App/></AuthProvider>);window.fixture={calls,recover:()=>{s.currentInvalid=false;s.shiftInvalid=false;s.revoked=false;},revoke:()=>{s.revoked=true;},finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
+    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ScheduledWorkdayPanel}from'./src/workday/ScheduledWorkdayPanel';const s=window.scenario,calls=[],waiters=[];let working=s.working??false;const d=${JSON.stringify(day())},sh=${JSON.stringify(shift())},sess=${JSON.stringify(session())};const reply=(v,status=200)=>Response.json(v,{status,headers:{ETag:'"AAAAAAAAAAE="'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return (s.anonymous||s.revoked)?reply({},401):reply({...sess,mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf'){if(s.csrfFailure==='network')throw Error('SECRET');if(s.csrfFailure==='cancelled')throw new DOMException('SECRET','AbortError');if(s.csrfFailure==='malformed')return reply({headerName:'Wrong',csrfToken:'SECRET'});if(s.csrfStatus)return reply({title:'SECRET',detail:'SECRET',traceId:'SECRET',csrfToken:'SECRET'},s.csrfStatus);return reply({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});}const b=Number(u.split('/')[3]);if(u.endsWith('/own-shifts'))return s.shiftInvalid?reply({},401):s.shiftDenied?reply({},403):reply([{...sh,branchId:b}]);if(u.endsWith('/current')){const f=()=>s.currentInvalid?reply({},401):s.currentDenied?reply({},403):working?reply({...d,branchId:b,openInterval:s.open?{intervalId:3,workItemKind:'TASK',workItemId:4,openedAtUtc:d.startedAtUtc,rowVersion:d.rowVersion}:null}):new Response(null,{status:204});if(s.late&&b===1)return new Promise(resolve=>waiters.push(()=>resolve(f())));return f();}const end=u.endsWith('/end');const finish=()=>{if(s.network)throw Error('SECRET');if(s.status)return reply({title:'SECRET'},s.status);working=!end;const v={...d,branchId:b,status:end?'ENDED':'WORKING',endedAtUtc:end?(s.endedAtUtc??'2026-11-08T09:00:00Z'):null};delete v.openInterval;return reply(v,end?200:201);};if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(s.invalid?0:1);return <><button onClick={()=>set(2)}>Change branch</button><ScheduledWorkdayPanel branchId={b} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}><App/></AuthProvider>);window.fixture={calls,recover:()=>{s.currentInvalid=false;s.shiftInvalid=false;s.revoked=false;s.csrfStatus=undefined;s.csrfFailure=undefined;},revoke:()=>{s.revoked=true;},finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
   },
   bundle: true,
   write: false,
@@ -31,7 +31,9 @@ after(async () => browser?.close());
 async function run(s, fn) {
   const p = await browser.newPage();
   p.setDefaultTimeout(5000);
-  const errors = [];
+  const errors = [],
+    logs = [];
+  p.on("console", (message) => logs.push(message.text()));
   p.on("pageerror", (e) => errors.push(e.message));
   await p.route("**/*", (r) =>
     r.request().resourceType() === "document"
@@ -52,6 +54,7 @@ async function run(s, fn) {
     await p.addScriptTag({ content: result.outputFiles[0].text });
     await fn(p);
     assert.deepEqual(errors, []);
+    assert.ok(!logs.join(" ").includes("SECRET"));
     assert.ok(!(await p.locator("body").innerText()).includes("SECRET"));
   } finally {
     await p.close();
@@ -380,3 +383,163 @@ test("malformed End calendar locks replay without confirmed success or refresh",
       );
     },
   ));
+
+async function triggerScheduled(p, operation) {
+  if (operation === "start") await choose(p);
+  else await p.getByText("Working day 20", { exact: true }).waitFor();
+  await p
+    .getByRole("button", {
+      name: operation === "start" ? "Start scheduled workday" : "End workday",
+      exact: true,
+    })
+    .click();
+}
+for (const operation of ["start", "end"]) {
+  for (const recovered of [false, true]) {
+    test(
+      "CSRF 401 " +
+        operation +
+        " requires confirmed session recovery: " +
+        recovered,
+      () =>
+        run(
+          { enabled: true, working: operation === "end", csrfStatus: 401 },
+          async (p) => {
+            await triggerScheduled(p, operation);
+            await p
+              .getByText(
+                "Session invalid. Revalidate before reading or changing workday.",
+              )
+              .waitFor();
+            assert.equal(
+              await p.getByText("Working day 20", { exact: true }).count(),
+              0,
+            );
+            assert.equal(
+              await p.getByLabel("Scheduled shift", { exact: true }).count(),
+              0,
+            );
+            const before = await p.evaluate(() => window.fixture.calls.length);
+            await p
+              .getByRole("button", { name: "Change branch", exact: true })
+              .click();
+            assert.equal(
+              await p.evaluate(() => window.fixture.calls.length),
+              before,
+            );
+            await p.evaluate(
+              (success) =>
+                success ? window.fixture.recover() : window.fixture.revoke(),
+              recovered,
+            );
+            await p
+              .getByRole("button", { name: "Revalidate session", exact: true })
+              .click();
+            await p.waitForFunction(
+              () =>
+                window.fixture.calls.filter(
+                  (c) => c.url === "/api/auth/session",
+                ).length === 2,
+            );
+            if (recovered)
+              await p
+                .getByRole("heading", {
+                  name: "Scheduled workday",
+                  exact: true,
+                })
+                .waitFor();
+            else {
+              await p
+                .getByText("Confirmed unrestricted session required.", {
+                  exact: true,
+                })
+                .waitFor();
+              assert.equal(
+                await p
+                  .getByRole("heading", {
+                    name: "Scheduled workday",
+                    exact: true,
+                  })
+                  .count(),
+                0,
+              );
+            }
+            const calls = await p.evaluate(() => window.fixture.calls);
+            assert.equal(
+              calls.filter((c) => c.url === "/api/auth/csrf").length,
+              1,
+            );
+            assert.equal((await posts(p)).length, 0);
+            assert.ok(!JSON.stringify(calls).includes("SECRET"));
+          },
+        ),
+    );
+  }
+  for (const status of [403, 503]) {
+    test(
+      "CSRF " +
+        status +
+        " " +
+        operation +
+        " remains operation-level with no POST",
+      () =>
+        run(
+          { enabled: true, working: operation === "end", csrfStatus: status },
+          async (p) => {
+            await triggerScheduled(p, operation);
+            await p
+              .getByRole("status")
+              .filter({
+                hasText:
+                  status === 403 ? "Server denied" : "Service unavailable",
+              })
+              .waitFor();
+            assert.equal(
+              await p
+                .getByText(
+                  "Session invalid. Revalidate before reading or changing workday.",
+                )
+                .count(),
+              0,
+            );
+            assert.equal(
+              await p
+                .getByRole("heading", {
+                  name: "Scheduled workday",
+                  exact: true,
+                })
+                .count(),
+              1,
+            );
+            assert.equal((await posts(p)).length, 0);
+            assert.equal(
+              (await p.evaluate(() => window.fixture.calls)).filter(
+                (c) => c.url === "/api/auth/csrf",
+              ).length,
+              1,
+            );
+          },
+        ),
+    );
+  }
+}
+for (const csrfFailure of ["network", "cancelled", "malformed"]) {
+  test(
+    "CSRF " + csrfFailure + " cannot dispatch or expose sensitive failure",
+    () =>
+      run({ enabled: true, csrfFailure }, async (p) => {
+        await triggerScheduled(p, "start");
+        await p
+          .getByRole("status")
+          .filter({ hasText: "Operation not confirmed" })
+          .waitFor();
+        assert.equal((await posts(p)).length, 0);
+        assert.equal(
+          (await p.evaluate(() => window.fixture.calls)).filter(
+            (c) => c.url === "/api/auth/csrf",
+          ).length,
+          1,
+        );
+      }),
+  );
+}
