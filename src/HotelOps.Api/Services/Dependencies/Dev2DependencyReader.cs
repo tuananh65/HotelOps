@@ -19,23 +19,37 @@ public sealed class Dev2DependencyReader(HotelOpsDbContext db,ICurrentUserAccess
     public Task<DependencySnapshot> ReadRoomAsync(long room,long branch,CancellationToken ct)=>Read("ROOM",room,branch,ct);
     public Task<DependencySnapshot> ReadDepartmentAsync(long department,long branch,CancellationToken ct)=>Read("DEPARTMENT",department,branch,ct);
     private (Guid Transaction,long User)? globalLease;
+    private sealed record GlobalUserReviewAuthority(CurrentUserInfo Actor,long Target);
+
+    private async Task<GlobalUserReviewAuthority> AuthorizeGlobalUserAsync(long user,CancellationToken ct,
+        GlobalUserReviewAuthority? expected=null)
+    {
+        ct.ThrowIfCancellationRequested();
+        if(!current.TryGetCurrentUser(out var actor)||actor.UserId<=0||actor.SessionId<=0||actor.IsRestricted||user<=0||
+            expected is not null&&(expected.Actor!=actor||expected.Target!=user)||
+            !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct)).IsGranted||
+            !await userAccess.CanManageAsync(user,ct))throw new DependencyScopeException();
+        if(!current.TryGetCurrentUser(out var observed)||observed!=actor)throw new DependencyScopeException();
+        return new(actor,user);
+    }
 
     // Global target review must not silently certify only one branch's responsibilities.
     public async Task<GlobalUserDependencySnapshot> ReadUserGlobalAsync(long user,CancellationToken ct)
     {
         ct.ThrowIfCancellationRequested();
-        if(!current.TryGetCurrentUser(out var a)||a.UserId<=0||a.SessionId<=0||a.IsRestricted||user<=0||
-            !(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct)).IsGranted||
-            !await userAccess.CanManageAsync(user,ct))throw new DependencyScopeException();
+        var authority=await AuthorizeGlobalUserAsync(user,ct);
         var branches=await db.Branches.AsNoTracking().OrderBy(b=>b.BranchId).Select(b=>b.BranchId).ToArrayAsync(ct);
         var result=new List<DependencySnapshot>();
-        foreach(var branch in branches)result.Add(await Read("USER",user,branch,ct,globalCoverage:true));
+        foreach(var branch in branches)result.Add(await Read("USER",user,branch,ct,authority));
         var unscoped=new List<UnscopedResponsibility>();
         foreach(var w in await Dev2DependencyQueries.AssignedWorks(db.MaintenanceWorks.AsNoTracking(),user)
             .Where(w=>w.Incident==null&&w.Department==null || w.Incident!=null&&w.Department!=null&&w.Incident.BranchId!=w.Department.BranchId)
             .OrderBy(w=>w.MaintenanceWorkId).Select(w=>new{w.MaintenanceWorkId,w.Status,w.IncidentId,w.DepartmentId,w.AssigneeId,w.ResolvedAt,w.ReviewedAt}).ToArrayAsync(ct))
             unscoped.Add(new("MAINTENANCE_UNRESOLVED_SCOPE",w.MaintenanceWorkId,w.Status,SourceFingerprint(w)));
-        if(!(await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct)).IsGranted||!await userAccess.CanManageAsync(user,ct))throw new DependencyScopeException();
+        var coveredBranches=await db.Branches.AsNoTracking().OrderBy(b=>b.BranchId).Select(b=>b.BranchId).ToArrayAsync(ct);
+        if(!branches.SequenceEqual(coveredBranches))
+            throw new DependencySnapshotConflictException();
+        await AuthorizeGlobalUserAsync(user,ct,authority);
         var digest=SourceFingerprint(new{user,branches=result.Select(s=>new{s.BranchId,s.Fingerprint}),unscoped});
         return new(user,result.AsReadOnly(),unscoped.AsReadOnly(),digest); // Never mutation approval.
     }
@@ -109,11 +123,25 @@ public sealed class Dev2DependencyReader(HotelOpsDbContext db,ICurrentUserAccess
             !StringComparer.Ordinal.Equals(expected.Fingerprint,fresh.Fingerprint))throw new DependencySnapshotConflictException();
     }
 
-    private async Task<DependencySnapshot> Read(string kind,long id,long branch,CancellationToken ct,bool globalCoverage=false)
+    private async Task AuthorizeReadAsync(string kind,long id,long branch,GlobalUserReviewAuthority? globalAuthority,CancellationToken ct)
     {
+        if(globalAuthority is not null)
+        {
+            // Private target-bound context minted only after approved global checks.
+            // Revalidate it at BOTH ends; a flag or branch grant cannot enter this path.
+            if(kind!="USER"||id!=globalAuthority.Target||branch<=0)throw new DependencyScopeException();
+            await AuthorizeGlobalUserAsync(id,ct,globalAuthority);
+            return;
+        }
         await Authorize(branch,ct);
         if(id<=0||kind=="BRANCH"&&id!=branch)throw new DependencyScopeException();
         if(kind=="USER" && !await userAccess.CanManageAsync(id,ct))throw new DependencyScopeException();
+    }
+
+    private async Task<DependencySnapshot> Read(string kind,long id,long branch,CancellationToken ct,GlobalUserReviewAuthority? globalAuthority=null)
+    {
+        await AuthorizeReadAsync(kind,id,branch,globalAuthority,ct);
+        if(id<=0||kind=="BRANCH"&&id!=branch)throw new DependencyScopeException();
         if(!await db.Branches.AsNoTracking().AnyAsync(b=>b.BranchId==branch,ct) ||
             kind=="ROOM" && !await db.Rooms.AsNoTracking().AnyAsync(r=>r.RoomId==id&&r.BranchId==branch,ct) ||
             kind=="DEPARTMENT" && !await db.Departments.AsNoTracking().AnyAsync(d=>d.DepartmentId==id&&d.BranchId==branch,ct))
@@ -153,7 +181,7 @@ public sealed class Dev2DependencyReader(HotelOpsDbContext db,ICurrentUserAccess
             foreach(var c in await Dev2DependencyQueries.PendingApprovals(db.MaterialRequestApprovalCycles.AsNoTracking(),id,branch)
                 .OrderBy(c=>c.ApprovalCycleId).Select(c=>c.ApprovalCycleId).ToArrayAsync(ct))Add("MATERIAL_REQUEST_APPROVER",c,"PENDING",true);
             foreach(var i in await db.Incidents.AsNoTracking().Where(i=>i.BranchId==branch&&i.ReportedBy==id).Select(i=>i.IncidentId).ToArrayAsync(ct))Add("HISTORICAL_ACTOR",i,"INCIDENT_REPORTER");
-            if(!globalCoverage)unresolved.Add("USER_OTHER_BRANCH_COVERAGE_REQUIRED");
+            if(globalAuthority is null)unresolved.Add("USER_OTHER_BRANCH_COVERAGE_REQUIRED");
             unresolved.Add("REPLENISHMENT_CURRENT_RESPONSIBILITY_POLICY_REQUIRED");
             // Existing state validation includes unknown/legacy and current-cycle anomalies.
             if((await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE",ct)).IsGranted)
@@ -232,8 +260,7 @@ public sealed class Dev2DependencyReader(HotelOpsDbContext db,ICurrentUserAccess
         if(kind=="BRANCH")unresolved.Add("NOTIFICATION_FOUNDATION_NOT_PRESENT_IN_SELECTED_BASE");
         if(kind=="ROOM")unresolved.Add("DEV1_CURRENT_CYCLE_CLEANING_INSPECTION_ROOMBLOCK_REQUIRED");
         // Reauthorize after all reads. Never leak a partial snapshot on cancellation/failure.
-        await Authorize(branch,ct);
-        if(kind=="USER"&&!await userAccess.CanManageAsync(id,ct))throw new DependencyScopeException();
+        await AuthorizeReadAsync(kind,id,branch,globalAuthority,ct);
         return Canonical(kind,id,branch,facts,unresolved);
         void Add(string category,long record,string state,bool approved=false,object? version=null)=>facts.Add(new(category,record,branch,state,Dev2DependencyQueries.Classify(category,state,approved),version is null?null:SourceFingerprint(version)));
     }

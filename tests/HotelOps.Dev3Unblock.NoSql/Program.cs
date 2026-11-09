@@ -123,6 +123,7 @@ Check("Three placement actions retain route and require cookie authorization plu
 });
 checks.AddRange(await ExpansionChecks.RunAsync(db));
 checks.AddRange(await WriterOrderChecks.RunAsync());
+checks.AddRange(await Uc006InactiveBranchChecks.RunAsync());
 Console.WriteLine(JsonSerializer.Serialize(new{pass=true,tests=checks.Count,checks,sqlConnections=0,sqlConcurrency="NOT_RUN",qualification="Actual production validator and transaction guard tests; not SQL writer/concurrency acceptance."}));
 sealed class NoActor:ICurrentUserAccessor{public bool TryGetCurrentUser(out CurrentUserInfo user){user=default;return false;}}
 sealed class Actor:ICurrentUserAccessor{public bool TryGetCurrentUser(out CurrentUserInfo user){user=new(9,1,false);return true;}}
