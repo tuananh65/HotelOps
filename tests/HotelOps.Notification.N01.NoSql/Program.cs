@@ -61,5 +61,6 @@ Check("missing authenticated actor rejected before source read",()=>Reject<Fe05N
 Check("no caller transaction rejected without a SQL connection",()=>Reject<InvalidOperationException>(()=>Fe05CallerIntegration.StageInCallerTransactionAsync(db,staging,command,default).GetAwaiter().GetResult()));
 Check("no graph or pending intent was created",()=>Require(!db.ChangeTracker.Entries().Any()&&db.Database.GetDbConnection().State==System.Data.ConnectionState.Closed));
 checks.AddRange(await ImplementationChecks.RunAsync());
+checks.AddRange(await Decision08RecipientChecks.RunAsync());
 Console.WriteLine(JsonSerializer.Serialize(new{pass=true,tests=checks.Count,checks,sqlConnections=0,sqlAcceptance="NOT_RUN",qualification="Actual mapping, operation orchestration and EF interceptor tests with explicitly in-memory graph/authorization and stub transaction; not SQL persistence, rollback, lock/concurrency or accepted recipient evidence."}));
 sealed class NoActor:ICurrentUserAccessor {public bool TryGetCurrentUser(out CurrentUserInfo user){user=default;return false;}}

@@ -1,0 +1,4 @@
+﻿"path","sha256","sourceIdentity","owner"
+"src/HotelOps.Api/Services/Notifications/Fe05Decision08Recipients.cs","b8b707f4fa9dcfcf9ee46286a8ed29929640296cd1b676f0b0db3f494bb10b07","8b241249b8a6b99f601ff35ee048528d0319eaf0f4d63565d758715021ab67e5","DEV2 Notification DECISION08"
+"tests/HotelOps.Notification.N01.NoSql/Decision08RecipientChecks.cs","2d4a3401b5280f6de0f6319106e9e465b581b329379a13fb059a05b6378d707c","8b241249b8a6b99f601ff35ee048528d0319eaf0f4d63565d758715021ab67e5","DEV2 Notification DECISION08"
+"tests/HotelOps.Notification.N01.NoSql/Program.cs","4676e08d40dc9666a04df6f772d4f31312e8669212e2c3a044da820c018ca649","8b241249b8a6b99f601ff35ee048528d0319eaf0f4d63565d758715021ab67e5","DEV2 Notification DECISION08"

@@ -1,0 +1,33 @@
+{
+  "success": true,
+  "realSession": true,
+  "domainMutation": false,
+  "sourceReadBinding": null,
+  "sqlDmvUsed": false,
+  "cases": [
+    {
+      "title": "Existing caller without hook retains Gate/domain/final-Gate behavior",
+      "result": "PASS"
+    },
+    {
+      "title": "Optional callback sees complete sorted locked results before Gate/catalog/domain",
+      "result": "PASS"
+    },
+    {
+      "title": "Callback exception rolls back injected SQL and prevents Gate/domain execution",
+      "result": "PASS"
+    },
+    {
+      "title": "Recipient outside actual Batch locked results fails closed before Gate",
+      "result": "PASS"
+    },
+    {
+      "title": "Concurrent real Batch callers contend on sorted Users then finish without lock-order deadlock",
+      "result": "PASS"
+    },
+    {
+      "title": "Concurrent revocation is blocked by retained recipient User lock and rolls back",
+      "result": "PASS"
+    }
+  ]
+}

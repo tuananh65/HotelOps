@@ -15,14 +15,20 @@ public sealed partial class RoomTypeCreationService
     internal static readonly string[] ReworkWriteDependencies = ["AUTHORITATIVE_FAILED_RECEIPT_CONTRACT_REQUIRED",
         "REWORK_SOURCE_BINDING_CONTRACT_REQUIRED","REWORK_REQUESTED_STAGING_UNACCEPTED","PRIVATE_EVIDENCE_IMMUTABILITY_UNACCEPTED"];
 
-    public Task<RoomTypeBatchResult> RejectInspectionAsync(SessionReference ticket,long sid,long branch,long id,
+    public async Task<RoomTypeBatchResult> RejectInspectionAsync(SessionReference ticket,long sid,long branch,long id,
         string tag,string key,RejectInspectionRequest input,CancellationToken ct,bool preview=false)
     {
         if(branch<=0||id<=0||!CleaningLifecycleRules.StrongTag(tag))throw new ValidationException("Positive source identity and strong If-Match required.");
         if(!preview)CleaningLifecycleRules.Operation(key);
+        InspectionRecipientRoster? discovered = null;
         var composed = false;
+        if(!preview&&RejectWriteDependencies.Length==0)
+        {
+            var readiness=await DiscoverAuthorizedRosterAsync(ticket,sid,branch,id,null,HotelOps.Api.Services.Notifications.Fe05NotificationKind.InspectionFailed,ct);
+            if(readiness.Denied is {} denied)return new(denied);discovered=readiness.Roster;
+        }
         var command=new RejectInspectionLoadCommand(branch,id,new(input.Reason,input.Confirmed,tag));
-        return BatchAsync(ticket,sid,branch,async(actor,token)=>
+        return await BatchAsync(ticket,sid,branch,async(actor,token)=>
         {
             // Reserve/replay precedes state-sensitive preflight. Existing gates remain closed.
             if (!preview && RejectWriteDependencies.Length == 0)
@@ -43,7 +49,8 @@ public sealed partial class RoomTypeCreationService
                 source.Domain.Defects.Select(d=>d.DefectId).ToArray(),source.Evidence.Where(e=>e.DeletedAt==null).Select(e=>e.AttachmentId).Distinct().ToArray(),false,RejectWriteDependencies),tag);
             if(RejectWriteDependencies.Length!=0)return new(RoomTypeBatchStatus.Unavailable,new InspectionMutationBlocked("INSPECTION_INTEGRATION_REQUIRED",RejectWriteDependencies));
             throw new InvalidOperationException("INSPECTION_COMPOSITION_REQUIRED");
-        },ct,requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM",beforeCommit:token => composed
+        },ct,additionalUsers:discovered?.Users,onUsersLocked:discovered==null?null:(locked,token)=>inspectionUsers!.RetainLockedUsersAsync(discovered,locked,token),
+            requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM",beforeCommit:token => composed
             ? inspectionCommitGuard!.VerifyBeforeCommitAsync(db,token) : Task.CompletedTask,preserveCommitErrors:true);
     }
 
@@ -61,16 +68,22 @@ public sealed partial class RoomTypeCreationService
                 s.Domain.WorkflowState!,WorkflowTag(s.Domain.Revision),s.Domain.Defects.Select(d=>d.DefectId).ToArray(),s.Evidence.Where(e=>e.DeletedAt==null).Select(e=>e.AttachmentId).Distinct().ToArray(),false,RejectWriteDependencies),WorkflowTag(s.Domain.Revision));
         },ct,requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM");
 
-    private Task<RoomTypeBatchResult> RequestAuthoritativeReworkAsync(SessionReference ticket,long sid,long branch,long id,
+    private async Task<RoomTypeBatchResult> RequestAuthoritativeReworkAsync(SessionReference ticket,long sid,long branch,long id,
         string tag,RequestReworkRequest input,CancellationToken ct,string? operationKey = null)
     {
         if(id<=0||input.AssigneeId<=0||!CleaningLifecycleRules.StrongTag(tag)||input.DefectIds==null||input.DefectIds.Count is <1 or >200
             ||input.DefectIds.Distinct().Count()!=input.DefectIds.Count||input.DefectIds.Any(x=>x<=0))throw new ValidationException("Invalid rework source/request.");
         if(input.DueAt.Kind!=DateTimeKind.Utc)throw new ValidationException("Due time must be UTC.");
+        InspectionRecipientRoster? discovered = null;
         var operationId = CleaningLifecycleRules.Operation(operationKey ?? "");
         var composed = false;
+        if(ReworkWriteDependencies.Length==0)
+        {
+            var readiness=await DiscoverAuthorizedRosterAsync(ticket,sid,branch,id,input.AssigneeId,HotelOps.Api.Services.Notifications.Fe05NotificationKind.CleaningReworkRequested,ct);
+            if(readiness.Denied is {} denied)return new(denied);discovered=readiness.Roster;
+        }
         WorkflowReason(input.Reason); // Due is checked only on a fresh operation, never before completed replay.
-        return BatchAsync(ticket,sid,branch,async(_,token)=>
+        return await BatchAsync(ticket,sid,branch,async(_,token)=>
         {
             if (ReworkWriteDependencies.Length == 0)
             {
@@ -92,7 +105,8 @@ public sealed partial class RoomTypeCreationService
             if(ReworkWriteDependencies.Length!=0)
                 return new(RoomTypeBatchStatus.Unavailable,new InspectionMutationBlocked("AUTHORITATIVE_FAILED_SOURCE_UNAVAILABLE",ReworkWriteDependencies));
             throw new InvalidOperationException("REWORK_COMPOSITION_REQUIRED");
-        },ct,additionalUsers:[input.AssigneeId],requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM",
+        },ct,additionalUsers:discovered?.Users??[input.AssigneeId],
+            onUsersLocked:discovered==null?null:(locked,token)=>inspectionUsers!.RetainLockedUsersAsync(discovered,locked,token),requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM",
             beforeCommit:token => composed ? inspectionCommitGuard!.VerifyBeforeCommitAsync(db,token) : Task.CompletedTask,preserveCommitErrors:true);
     }
 }

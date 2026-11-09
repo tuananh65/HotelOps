@@ -23,10 +23,23 @@ public sealed partial class RoomTypeCreationService
         // N01 validates the retained pre-mutation protocol and its completed domain
         // receipt before returning Replay. Do not rerun source preflight on replay.
         await LockInspectionCompositionSourceAsync(ticket,sid,branch,inspection,ct);
+        if(inspectionOwner!=null)
+        {
+            if(inspectionUsers==null)throw new InvalidOperationException("Complete retained Users roster required");
+            await inspectionUsers.ConfirmAfterSourcesAsync(false,ct);
+            inspectionOwner.Bind(db,ticket,sid,request);
+            inspectionOwner.VerifySnapshot=async(rework,sourceDigest,evidenceDigest,token)=>
+            {
+                var snapshot=await BuildReworkAuthoritySnapshotAsync(db.Database.GetDbConnection(),db.Database.CurrentTransaction!.GetDbTransaction(),rework,null,token);
+                if(snapshot==null||Convert.ToHexString(snapshot.SourceDigest)!=sourceDigest||Convert.ToHexString(snapshot.EvidenceDigest)!=evidenceDigest)
+                    throw new NotificationConflictException();
+            };
+        }
         var lease=await Fe05CallerIntegration.ReserveOperationAsync(db,staging,request,ct);
         if(lease.Replay!=null)return await ReadInspectionReplay(ticket,sid,request,"FE05_INSPECTION_CONCLUSION_V1",guard,ct);
         var changed=await ExecuteTrustedRejectDomainInCallerTransactionAsync(ticket,sid,new(branch,inspection,domainInput),identity,ct);
         var revision=WorkflowTag(changed.Revision??throw new InvalidOperationException("FE05_POST_REVISION_REQUIRED"));
+        inspectionOwner?.Written(revision);
         await Fe05CallerIntegration.StageOperationAsync(db,staging,lease,[new(Fe05NotificationKind.InspectionFailed,key,branch,inspection,revision)],ct);
         var completed=await CompleteTrustedRejectInCallerTransactionAsync(ticket,sid,branch,inspection,revision,identity,ct);
         var physical=db.Database.CurrentTransaction!.GetDbTransaction();
@@ -42,10 +55,23 @@ public sealed partial class RoomTypeCreationService
         var identity=InspectionIssuerOperation.Rework(key,ticket.UserId,branch,inspection,expected,input);
         var request=new Fe05OperationRequest(key,branch,inspection,Convert.ToHexString(identity.Fingerprint),[Fe05NotificationKind.CleaningReworkRequested]);
         await LockInspectionCompositionSourceAsync(ticket,sid,branch,inspection,ct);
+        if(inspectionOwner!=null)
+        {
+            if(inspectionUsers==null)throw new InvalidOperationException("Complete retained Users roster required");
+            await inspectionUsers.ConfirmAfterSourcesAsync(false,ct);
+            inspectionOwner.Bind(db,ticket,sid,request);
+            inspectionOwner.VerifySnapshot=async(rework,sourceDigest,evidenceDigest,token)=>
+            {
+                var snapshot=await BuildReworkAuthoritySnapshotAsync(db.Database.GetDbConnection(),db.Database.CurrentTransaction!.GetDbTransaction(),rework,evidenceRoot,token);
+                if(snapshot==null||Convert.ToHexString(snapshot.SourceDigest)!=sourceDigest||Convert.ToHexString(snapshot.EvidenceDigest)!=evidenceDigest)
+                    throw new NotificationConflictException();
+            };
+        }
         var lease=await Fe05CallerIntegration.ReserveOperationAsync(db,staging,request,ct);
         if(lease.Replay!=null)return await ReadInspectionReplay(ticket,sid,request,"FE05_REWORK_AUTHORITY_V1",guard,ct);
         var changed=await ExecuteTrustedReworkDomainInCallerTransactionAsync(ticket,sid,branch,inspection,expected,input,identity,ct);
         var rework=changed.ReworkId??throw new InvalidOperationException("FE05_PERSISTED_REWORK_REQUIRED");
+        inspectionOwner?.Written(expected,rework);
         var physical=db.Database.CurrentTransaction!.GetDbTransaction();
         var snapshot=await PrepareReworkAuthorityInCallerTransactionAsync(ticket,sid,db.Database.GetDbConnection(),physical,
             branch,inspection,rework,expected,key,input.DefectIds,evidenceRoot,ct);
@@ -63,6 +89,18 @@ public sealed partial class RoomTypeCreationService
             throw new InvalidOperationException("FE05_EVIDENCE_CHANGED_BEFORE_COMMIT");
         await guard.VerifyBeforeCommitAsync(db,ct);
         return completed.ResultJson??throw new InvalidOperationException("FE05_DOMAIN_RECEIPT_REQUIRED");
+    }
+
+    private async Task<(RoomTypeBatchStatus? Denied,InspectionRecipientRoster? Roster)> DiscoverAuthorizedRosterAsync(
+        SessionReference ticket,long sid,long branch,long inspection,long? assignee,Fe05NotificationKind kind,CancellationToken ct)
+    {
+        if(!current.TryGetCurrentUser(out var actor)||actor.UserId!=ticket.UserId||actor.SessionId!=sid||actor.IsRestricted||ticket.IsRestricted)
+            return(RoomTypeBatchStatus.SessionInvalid,null);
+        // Authentication supplied the current principal. Discovery is advisory only;
+        // existing BatchAsync rechecks the SQL session inside the caller transaction after Users locks.
+        var access=await permissions.EvaluateBranchAsync("INSPECTION_PERFORM",branch,ct);
+        if(!access.IsGranted)return(access.Decision==HotelOps.Api.Security.Authorization.PermissionDecision.Unavailable?RoomTypeBatchStatus.Unavailable:RoomTypeBatchStatus.Forbidden,null);
+        return(null,await (inspectionRoster??throw new InvalidOperationException("Complete roster required")).DiscoverAsync(ticket.UserId,branch,inspection,assignee,kind,ct));
     }
 
     private async Task LockInspectionCompositionSourceAsync(SessionReference ticket,long sid,long branch,long inspection,CancellationToken ct)

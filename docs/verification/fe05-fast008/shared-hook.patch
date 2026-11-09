@@ -1,0 +1,24 @@
+diff --git a/src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs b/src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs
+index 8b5a284..17832cf 100644
+--- a/src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs
++++ b/src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs
+@@ -23,7 +23,8 @@ public sealed partial class RoomTypeCreationService
+         Func<long, CancellationToken, Task<RoomTypeBatchResult>> operation, CancellationToken ct, bool allowScopedList = false,
+         IEnumerable<long>? additionalUsers = null, Func<CancellationToken, Task<bool>>? eligibility = null, bool requireRoomTypeSchema = true,
+         string permissionCode = "MASTER_DATA_MANAGE", Func<CancellationToken, Task<PermissionEvaluation>>? featurePermission = null, Func<CancellationToken, Task>? beforeCommit = null, bool preserveCommitErrors = false,
+-        Func<CancellationToken, Task>? afterUserLocks = null)
++        Func<CancellationToken, Task>? afterUserLocks = null,
++        Func<IReadOnlyDictionary<long, UserEligibilityLock.LockedUser?>, CancellationToken, Task>? onUsersLocked = null)
+     {
+         if (branchId <= 0) throw new ValidationException("BranchId must be positive.");
+         if (!current.TryGetCurrentUser(out var actor) || actor.UserId != ticket.UserId || actor.SessionId != sessionId
+@@ -34,7 +35,8 @@ public sealed partial class RoomTypeCreationService
+         var commitAttempted = false;
+         try
+         {
+-            await new UserEligibilityLock(db).LockAsync((additionalUsers ?? []).Append(actor.UserId), ct);
++            var lockedUsers = await new UserEligibilityLock(db).LockAsync((additionalUsers ?? []).Append(actor.UserId), ct);
++            if (onUsersLocked != null) await onUsersLocked(lockedUsers, ct);
+             if (await Gate() is { } initial) return new(initial);
+             if (afterUserLocks != null) await afterUserLocks(ct);
+             if (eligibility != null && !await eligibility(ct)) return new(RoomTypeBatchStatus.InvalidReference);

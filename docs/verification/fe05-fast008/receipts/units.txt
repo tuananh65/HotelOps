@@ -1,0 +1,29 @@
+PASS Roster includes all independent users in ascending identity
+PASS Dual role ID deduplicates after both identities supplied
+PASS Supervisor change invalidates retained participant tuple
+PASS Original cleaner change invalidates retained participant tuple
+PASS Binding revision change invalidates retained participant tuple
+PASS Cycle revision change invalidates retained participant tuple
+PASS Only own root revision may be excluded from participant equality
+PASS Branch mismatch invalidates retained tuple
+PASS Typed receipt shape and identity validator accepts consistent fixture (not SQL authority)
+PASS Typed receipt rejects actorUserId
+PASS Typed receipt rejects branchId
+PASS Typed receipt rejects inspectionId
+PASS Typed receipt rejects cleaningTaskId
+PASS Typed receipt rejects roomId
+PASS Typed receipt rejects operationId
+PASS Typed receipt rejects requestFingerprint
+PASS Typed receipt rejects issuer
+PASS Typed receipt rejects issuerVersion
+PASS Typed receipt rejects writerTransactionId
+PASS Typed receipt rejects conclusion
+PASS No original-cleaner heuristic/default authority
+PASS Production default source coordination remains unaccepted
+PASS Concrete owner coordination is explicit opt-in
+PASS Public Reject dependency gate remains closed
+PASS Public Rework dependency gate remains closed
+PASS Opt-in coordination/recipient dependency graph resolves
+PASS N01 sees exact same scoped prelock instance
+PASS Candidate composition opens no SQL connection
+28/28 PASS structural/unit checks; no source-read grant or persisted authority acceptance

@@ -21,7 +21,9 @@ public sealed record RoomTypeCreationResult(RoomTypeCreationStatus Status, Creat
 public sealed partial class RoomTypeCreationService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock, HotelOps.Api.Services.Notifications.ProvisionalCleaningNotification? candidateNotification = null,
     HotelOps.Api.Services.Notifications.Fe05OperationStaging? inspectionStaging = null,
-    HotelOps.Api.Services.Notifications.NotificationCommitGuard? inspectionCommitGuard = null)
+    HotelOps.Api.Services.Notifications.NotificationCommitGuard? inspectionCommitGuard = null,
+    InspectionOwnerOperation? inspectionOwner = null, InspectionUsersPrelock? inspectionUsers = null,
+    InspectionRecipientRosterReader? inspectionRoster = null)
 {
     public const string CatalogLock = "HotelOps:RoomTypes:v1";
 

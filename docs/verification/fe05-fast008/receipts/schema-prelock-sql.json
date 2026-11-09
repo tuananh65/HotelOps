@@ -1,0 +1,109 @@
+{
+  "success": true,
+  "schemaCandidateOnly": true,
+  "originalCleanerFixtureOnly": true,
+  "acceptedSourceReadBinding": null,
+  "publicMutation": false,
+  "cases": [
+    {
+      "title": "Explicit supervisor FK binding touches root revision and audits in same transaction",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Multi-parent supervisor insert invalidates both inspection roots",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong branch binding is rejected atomically",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale cycle revision binding is rejected",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Missing supervisor FK rejected",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Removing supervisor without accepted removal actor contract rejected",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Missing supervisor binding never falls back to inspector or creator",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Missing R04 original cleaner never falls back to assignment history",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Roster discovery refuses execution after caller transaction started",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Users retained ascending before catalog and exact source assertion",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Already-locked attestation refuses an unheld User lock",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Already-locked hook attests existing sorted Batch-style User locks without extending them",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Retained Users attestation cannot cross caller transaction boundaries",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Missing accepted source-read policy fails closed despite branch and complete Users locks",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "New user after retention poisons roster and never extends it",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Account revocation invalidates eligibility before downstream locks",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale root evidence revision rejected after Users retention",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Changed current-cycle revision invalidates retained roster",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong branch cannot discover resource roster",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Supervisor reassignment invalidates roster without late Users locks",
+      "result": "PASS",
+      "rollback": true
+    }
+  ]
+}

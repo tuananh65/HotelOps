@@ -1,0 +1,12 @@
+{
+    "database":  "HotelOps_Canonical_20261109_104635_af7db21e_Fresh",
+    "owner":  "060570d5-159f-412e-b480-55fbe8c78748",
+    "schemaCandidateOnly":  true,
+    "triggerSha256Utf16":  "18CF08FC7D0D29F3B5440C5BABC04B4D2D53DF4C8A9F4C957DF7C126B53BA0C4",
+    "sourceSha256":  "65F40F47B4F72ABC9A272CA72A85201E42DCA24F0AB9ED6B62D5DB8E497F59FE",
+    "accepted":  false,
+    "deployedShared":  false,
+    "foreignKeyCount":  6,
+    "retainedSupervisorRows":  0,
+    "productionIssuerPresent":  0
+}
