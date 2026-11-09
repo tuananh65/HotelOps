@@ -1,25 +1,39 @@
--- REVIEW-ONLY. Stop producers first, central lease + preservation capture required.
+-- Restore only the captured, owner-reviewed prior trigger. Never synthesize its body.
 SET XACT_ABORT ON;
-IF CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))<>N'KIENPC' OR DB_NAME()<>N'HotelOps_DEV2_FullStack_Trial'
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+IF CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))<>N'DESKTOP-JI8U50T\SQLEXPRESS'
+ OR DB_NAME()<>N'HotelOps_ENVNOTIF001_Trial_20261109'
  OR ISNULL(CONVERT(nvarchar(128),SESSION_CONTEXT(N'HotelOps.FE04.ApprovedTrial')),N'')<>N'FE04-P0-APPROVED-SCHEMA'
- OR @@TRANCOUNT<>0 THROW 51962,'Exact owner-approved isolated schema session required.',1;
+ OR @@TRANCOUNT<>0 THROW 51962,'Dedicated exact-target schema session required.',1;
+IF NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaLeaseEndUtc'
+ AND TRY_CONVERT(datetimeoffset,value)>SYSUTCDATETIME())
+ THROW 51962,'Active notification trial lease required.',1;
+-- Parameters are supplied from the protected owner capture.
+IF @PriorTrigger IS NULL OR @PriorSha IS NULL OR @InstalledSha IS NULL
+ OR HASHBYTES('SHA2_256',CONVERT(varbinary(max),@PriorTrigger))<>@PriorSha
+ OR @InstalledSha<>ISNULL((SELECT HASHBYTES('SHA2_256',CONVERT(varbinary(max),definition)) FROM sys.sql_modules
+ WHERE object_id=OBJECT_ID('dbo.TR_fs009_publication_source')),0x)
+ THROW 51962,'Missing, altered capture or changed installed trigger; no overwrite.',1;
 IF NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.FE04.NotificationReconciliation'
  AND CONVERT(nvarchar(128),value)=N'FE04-P0-FS013-N01-CANDIDATE-V1') THROW 51962,'Exact reconciliation marker required.',1;
 BEGIN TRANSACTION;
-IF EXISTS(SELECT 1 FROM dbo.notification_publications WITH(UPDLOCK,HOLDLOCK) WHERE event_type IN('inspection.failed','cleaning.rework.requested'))
- OR EXISTS(SELECT 1 FROM dbo.notification_publications WITH(UPDLOCK,HOLDLOCK) GROUP BY actor_user_id,operation_key HAVING COUNT(*)>1)
- THROW 51962,'Rollback would strand N01/multi-event history. Preserve data and request owner reconciliation.',1;
+DECLARE @lock int;
+EXEC @lock=sys.sp_getapplock @Resource=N'HotelOps:NotificationSchema002',@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=0;
+IF @lock<0 THROW 51962,'Another schema runner holds the lease.',1;
+IF EXISTS(SELECT 1 FROM dbo.notification_publications WITH(UPDLOCK,HOLDLOCK)
+ WHERE event_type IN('inspection.failed','cleaning.rework.requested','REWORK_SUBMITTED'))
+ OR EXISTS(SELECT 1 FROM dbo.notification_publications WITH(UPDLOCK,HOLDLOCK)
+ GROUP BY actor_user_id,operation_key HAVING COUNT(*)>1)
+ THROW 51962,'Rollback would strand typed/multi-event history. Preserve data; owner reconciliation required.',1;
 DROP INDEX UX_fs009_publication_operation ON dbo.notification_publications;
 CREATE UNIQUE INDEX UX_fs009_publication_operation ON dbo.notification_publications(actor_user_id,operation_key);
--- Exact original bc0110e9 semantic body; owner must compare with captured pre-upgrade definition.
-EXEC(N'CREATE OR ALTER TRIGGER dbo.TR_fs009_publication_source ON dbo.notification_publications AFTER INSERT AS
-BEGIN SET NOCOUNT ON;
- IF EXISTS(SELECT 1 FROM inserted p WHERE NOT EXISTS(
- SELECT 1 FROM dbo.cleaning_assignments a JOIN dbo.cleaning_tasks t ON t.cleaning_task_id=a.cleaning_task_id
- WHERE a.assignment_id=p.assignment_id AND p.source_revision=t.row_version
- AND TRY_CONVERT(datetime2(7),JSON_VALUE(p.payload_json,''$.dueAtUtc''))=t.due_at))
- THROW 51915,''Publication transition revision/deadline does not match persisted assignment task'',1;
-END;');
+-- Preflight excludes object permissions/properties/signatures; transactional DROP/CREATE
+-- restores captured text without rewriting CREATE to ALTER.
+DROP TRIGGER dbo.TR_fs009_publication_source;
+EXEC sys.sp_executesql @PriorTrigger;
+IF @PriorSha<>(SELECT HASHBYTES('SHA2_256',CONVERT(varbinary(max),definition)) FROM sys.sql_modules
+ WHERE object_id=OBJECT_ID('dbo.TR_fs009_publication_source'))
+ THROW 51962,'Prior trigger restore hash mismatch.',1;
 EXEC sys.sp_dropextendedproperty @name=N'HotelOps.FE04.NotificationReconciliation';
 COMMIT;
--- N01 columns/constraints/markers and domain result_json/completed are never removed here.
