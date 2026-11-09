@@ -1,3 +1,10 @@
+using HotelOps.Api.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.Data.SqlClient;
+using System.Data;
+using System.Data.Common;
+using System.Reflection;
 using System.Text.Json;
 using HotelOps.Api.DTOs.WorkTime;
 using HotelOps.Api.Services.WorkTime;
@@ -19,7 +26,7 @@ foreach (var invalid in new[] { Draft(0), Draft(template: 0), Draft(branch: 0) }
     var result = await Preview(reader, invalid);
     Check(result.Rows[0].Issues.Contains(ShiftPlanIssue.InvalidDraft) && reader.ScopeCalls == 0, "invalid references never read facts");
 }
-foreach (var mode in new[] { "scope", "timezone", "missing-timezone", "template", "inactive-template", "wrong-template-branch", "employee", "inactive-employee", "no-access", "department", "time", "existing", "unavailable" })
+foreach (var mode in new[] { "scope", "timezone", "missing-timezone", "template", "inactive-template", "wrong-template-branch", "employee", "inactive-employee", "no-access", "department", "time", "existing", "unavailable", "timeout" })
 {
     reader = new Reader { Mode = mode };
     var result = await Preview(reader, Draft());
@@ -59,7 +66,24 @@ Check(reader.LastEmployee == 7, "caller cannot replace plan across awaits");
 reader = new Reader { CancelDuringRead = true };
 try { await Preview(reader, Draft()); throw new Exception("Read cancellation swallowed"); }
 catch (OperationCanceledException) { Check(true, "cancellation during reader propagates"); }
-Console.WriteLine($"RESULT: {count} PASS. Fake reader only; SQL, HTTP authorization, roster writes and audit/notification acceptance NOT_RUN.");
+using (var connection = new SqlConnection())
+using (var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection).AddInterceptors(new ForbidConnection()).Options))
+{
+    var sqlReader = new SqlShiftPlanPreviewReader(db);
+    string Sql<T>(string method, params object[] args) => ((IQueryable<T>)typeof(SqlShiftPlanPreviewReader).GetMethod(method, BindingFlags.Instance | BindingFlags.NonPublic)!.Invoke(sqlReader, args)!).ToQueryString();
+    var scopeSql = Sql<ShiftPlanScope>("ScopeQuery", 1L, 11L);
+    Check(scopeSql.Contains("[departments]") && scopeSql.Contains("[branches]") && scopeSql.Contains("[timezone]"), "real scope query translates mapped tables and timezone");
+    Check(scopeSql.Contains("[department_id]") && scopeSql.Contains("[branch_id]") && scopeSql.Contains("[is_active]"), "scope predicates translate");
+    var templateSql = Sql<ShiftPlanTemplate>("TemplateQuery", 10L);
+    Check(templateSql.Contains("[shift_templates]") && templateSql.Contains("[start_time]") && templateSql.Contains("[end_time]") && templateSql.Contains("[crosses_midnight]"), "real template query translates mapped wall-clock fields");
+    var employeeSql = Sql<ShiftPlanEmployee>("EmployeeQuery", 7L, 1L, new DateTime(2026, 11, 9, 0, 0, 0, DateTimeKind.Utc));
+    Check(employeeSql.Contains("[users]") && employeeSql.Contains("[user_branch_access]") && employeeSql.Contains("EXISTS"), "real employee membership projection translates as EXISTS");
+    Check(employeeSql.Contains("[granted_at]") && employeeSql.Contains("[revoked_at]") && employeeSql.Contains("[employment_status]") && employeeSql.Contains("[deleted_at]"), "employee eligibility and current membership predicates translate");
+    Check(Sql<DateTime>("ClockQuery").Contains("SYSUTCDATETIME()"), "real clock query retains SQL UTC source");
+    Check(connection.State == ConnectionState.Closed && connection.ConnectionString.Length == 0, "translation uses empty unconnected SQL connection");
+    Check(!db.ChangeTracker.Entries().Any(), "translation creates no tracked entities");
+}
+Console.WriteLine($"RESULT: {count} PASS. Fake-reader behavior and offline EF translation only; live SQL, HTTP authorization, writes and audit/notification acceptance NOT_RUN.");
 
 sealed class Reader : IShiftPlanPreviewReader
 {
@@ -72,6 +96,7 @@ sealed class Reader : IShiftPlanPreviewReader
     {
         ScopeCalls++; OnScope?.Invoke();
         if (Mode == "unavailable") throw new InvalidOperationException("SECRET");
+        if (Mode == "timeout") throw new TimeoutException("SECRET");
         return Task.FromResult<ShiftPlanScope?>(Mode == "scope" ? null : new(Mode == "timezone" ? "not/a/timezone" : Mode == "missing-timezone" ? null : "UTC"));
     }
     public Task<ShiftPlanTemplate?> ReadTemplateAsync(long templateId, CancellationToken ct)
@@ -88,4 +113,9 @@ sealed class Reader : IShiftPlanPreviewReader
         return Task.FromResult<ShiftPlanEmployee?>(Mode == "employee" ? null : new(employeeId, Mode != "inactive-employee", Mode != "no-access", Mode == "department" ? null : branchId + 10));
     }
     public Task<bool> HasOverlapAsync(long employeeId, DateTimeOffset startUtc, DateTimeOffset endUtc, CancellationToken ct) => Task.FromResult(Mode == "existing");
+}
+sealed class ForbidConnection : DbConnectionInterceptor
+{
+    public override InterceptionResult ConnectionOpening(DbConnection connection, ConnectionEventData eventData, InterceptionResult result) => throw new InvalidOperationException("SQL opening forbidden in offline verification.");
+    public override ValueTask<InterceptionResult> ConnectionOpeningAsync(DbConnection connection, ConnectionEventData eventData, InterceptionResult result, CancellationToken cancellationToken = default) => throw new InvalidOperationException("SQL opening forbidden in offline verification.");
 }

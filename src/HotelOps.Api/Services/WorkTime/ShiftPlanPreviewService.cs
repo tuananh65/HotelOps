@@ -65,7 +65,7 @@ public sealed class ShiftPlanPreviewService(IShiftPlanPreviewReader reader)
                 if (await reader.HasOverlapAsync(draft.EmployeeId, plan.StartUtc, plan.EndUtc, ct))
                     issues[i].Add(ShiftPlanIssue.ExistingOverlap);
             }
-            catch (Exception e) when (e is DbException or InvalidOperationException)
+            catch (Exception e) when (e is DbException or InvalidOperationException or TimeoutException)
             { issues[i].Add(ShiftPlanIssue.DataUnavailable); }
         }
         ct.ThrowIfCancellationRequested();

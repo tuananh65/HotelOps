@@ -38,7 +38,22 @@ No shared SQL, migration, deployment, shared authorization or DEV1/DEV2 source c
 
 ## SHA-256
 src/HotelOps.Api/DTOs/WorkTime/ShiftPlanPreview.cs: 522F210D91FDC1744C0F2FC49DC41EC6584A8786A28A951ABC5C777BEBCD3ED4
-src/HotelOps.Api/Services/WorkTime/ShiftPlanPreviewService.cs: 9018DCDA3F1F8F5E9D522ADA1D01A2538657E7B765015998A8782CC6868AFC47
-src/HotelOps.Api/Services/WorkTime/SqlShiftPlanPreviewReader.cs: 7E975D662F61DD5CB1EB566263905631CB4108A3474FC061341BDB5355017F76
-scripts/verification/ShiftPlanPreview/Program.cs: D3CB64E6CC1A123FD1CBAAFA66F7F42E9CBE272389BC7377F73309B570DDCA8B
+src/HotelOps.Api/Services/WorkTime/ShiftPlanPreviewService.cs: 853368396CC4BED4830EACE9A1B757BAE4E8844ACB090F4358C631D75F7ECDD4
+src/HotelOps.Api/Services/WorkTime/SqlShiftPlanPreviewReader.cs: CAA217F8DFCE15B44885D56B381ACD0303437F6AC803807A624A547EF1E09A5D
+scripts/verification/ShiftPlanPreview/Program.cs: E1A4653B5835B93282A5BCC0320B6CCF034F720C290521C602D6DEAF722D7F52
 scripts/verification/ShiftPlanPreview/ShiftPlanPreview.Verification.csproj: D5DB2CEC2BFB132082C19FC51669858F454CCB2AFD6D9FE87A6790D8AA96E8F0
+
+## DEV3-NEXT-009 synchronized receipts and decisions
+
+Merged integration 4ee4e0d3e5afd8e3a6aaaa888128bc24c3eab4e3 without conflict. PR37 is merged: integration diff is now exactly the six preview files, not eleven. Backend build exit 0 / zero warnings/errors. Preview verification 52/52 PASS (including timeout fail-closed and eight actual EF query translation checks), planner 24/24 PASS. Scoped formatting verifies exit 0. Production read paths now delegate to private query builders so offline ToQueryString checks exercise actual scope/template/employee/clock expressions instead of test copies. No query filtering or authorization policy changed.
+
+Translation uses a parameterless SqlConnection with empty connection string, guarded connection-opening interceptor, and confirms Closed state/no tracked entities. Generated SQL maps departments/branches/timezone, shift_templates/wall times, users and EXISTS current branch access; clock remains SYSUTCDATETIME. No connection opened or query executed. Physical schema/data, provider command timeout behavior and database cancellation are not verified. SQL_ADAPTER_ACCEPTANCE: NOT_RUN. Fake timeout is sanitized DataUnavailable; cancellation propagates. No automatic retry added.
+
+Decision register (all PENDING, not implied approval):
+- Preview/management authority: Project Leader + Security, DEV3 implementer. Approve admission, branch/global/department resource checks and employee visibility before public exposure. Internal reader is not authorization.
+- HTTP contract: Project Leader/TL + DEV3. Freeze request/response/error/query limits and safe exposure of diagnostics before controller/UI.
+- Version/concurrency: TL/Security + DEV3. Approve roster/template aggregate version acquisition, shared writer lock order and final authority; no synthetic ETag/User ETag reuse.
+- Audit/notification: DEV3 + notification-module owner, approved by TL. Define atomic audit/outbox/enqueue and failure/rollback contract; no direct notification send introduced.
+- SQL trial: Project Leader + named trial owner (not yet designated here). Approve exact disposable server/database, ownership/prerequisites/scripts and lease before any live execution; shared database remains prohibited.
+
+Next operation moved to UC016 read-only dependency-review UI, using the existing active GET contract; no UC138 public API/writer is opened to bypass these decisions.
