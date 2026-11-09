@@ -24,6 +24,26 @@ public static class Dev2DependencyQueries
             (s.AssetId!=null && s.Asset!.BranchId==branch || s.RoomId!=null && s.Room!.BranchId==branch || s.AreaId!=null && s.Area!.BranchId==branch));
     public static IQueryable<Incident> RoomIncidents(HotelOpsDbContext db,long branch,long room) =>
         db.Incidents.AsNoTracking().Where(i=>i.BranchId==branch && (i.RoomId==room || i.Asset!=null && i.Asset.BranchId==branch && i.Asset.CurrentRoomId==room));
+    public static IQueryable<MaterialRequest> RoomRequests(HotelOpsDbContext db,long branch,long room) =>
+        db.MaterialRequests.AsNoTracking().Where(r=>r.BranchId==branch && (r.ReceivingRoomId==room ||
+            r.IncidentId!=null && RoomIncidents(db,branch,room).Any(i=>i.IncidentId==r.IncidentId)));
+    public static IQueryable<MaintenanceWork> RoomMaintenance(HotelOpsDbContext db,long branch,long room) =>
+        Maintenance(db.MaintenanceWorks.AsNoTracking(),branch).Where(w=>
+            w.IncidentId!=null && RoomIncidents(db,branch,room).Any(i=>i.IncidentId==w.IncidentId) ||
+            w.PreventiveMaintenanceRuns.Any(r=>r.Schedule.RoomId==room && r.Schedule.Room!.BranchId==branch ||
+                r.Schedule.Asset!=null && r.Schedule.Asset.BranchId==branch && r.Schedule.Asset.CurrentRoomId==room));
+    public static IQueryable<MaintenanceWork> ScopeMismatches(IQueryable<MaintenanceWork> rows,long branch) =>
+        rows.Where(w=>w.Incident!=null&&w.Department!=null&&w.Incident.BranchId!=w.Department.BranchId
+            &&(w.Incident.BranchId==branch||w.Department.BranchId==branch));
+    public static IQueryable<MaterialFulfillment> DepartmentFulfillments(IQueryable<MaterialFulfillment> rows,long branch,long department) =>
+        rows.Where(f=>f.Request.BranchId==branch&&f.Request.DepartmentId==department ||
+            f.Warehouse.BranchId==branch&&f.Warehouse.DepartmentId==department);
+    public static IQueryable<AssetHandover> DepartmentHandovers(IQueryable<AssetHandover> rows,long department) =>
+        rows.Where(h=>h.FromDepartmentId==department||h.ToDepartmentId==department);
+    public static IQueryable<PreventiveMaintenanceSchedule> AmbiguousSchedules(IQueryable<PreventiveMaintenanceSchedule> rows,long branch) =>
+        rows.Where(s=>(s.AssetId!=null?1:0)+(s.RoomId!=null?1:0)+(s.AreaId!=null?1:0)!=1 &&
+            (s.Asset!=null&&s.Asset.BranchId==branch||s.Room!=null&&s.Room.BranchId==branch||s.Area!=null&&s.Area.BranchId==branch||
+                s.AssignedDepartment!=null&&s.AssignedDepartment.BranchId==branch));
     public static DependencyClassification Classify(string category,string? state,bool approvedUserObligation=false)
     {
         // Only the explicit existing Task46/47 DEV2 user predicates confer BLOCKING.

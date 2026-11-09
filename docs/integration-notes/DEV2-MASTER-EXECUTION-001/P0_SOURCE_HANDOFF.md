@@ -35,7 +35,7 @@ Original placement SQL probe cannot be ported as-is: IntegrationSqlGuard is abse
 the source runner refuses SQL until a registered owner runtime adapter and owned fixture approval exist.
 
 Initial 11 paths reconciled individually. Additional owned changes: AssetService constructor injection,
-Dev2PlacementAuthority, and the two controllers' three action boundaries. Program.cs has only four scoped
+Dev2PlacementAuthority, and the two controllers' three action boundaries. Program.cs has only three scoped
 dependency registrations; existing auth/DbContext/middleware preserved, no Notification foundation imported.
 Reader/FE12 adapters are internal source candidates, not new HTTP APIs or business release decisions.
 FE12 has persisted facts reader; actual cycle binding remains closed because selected base lacks accepted cycle source.
@@ -43,3 +43,5 @@ FE12 has persisted facts reader; actual cycle binding remains closed because sel
 Consumer readiness: READY_FOR_FE_IMPLEMENTATION for reviewing DEV2 internal contracts and wiring a candidate.
 READY_FOR_API_INTEGRATION is conditional on authenticated endpoint/runtime tests and owner compatibility.
 READY_FOR_BUSINESS_ACTIVATION=false. No automatic merge/deploy or feature activation authorized.
+
+P1 review addendum: paired Asset/Incident writer User-first corrections are required alongside this checkpoint; see P1_SOURCE_HANDOFF.md. The original P0 commit alone does not resolve the full writer census.

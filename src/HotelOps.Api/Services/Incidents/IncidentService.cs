@@ -24,6 +24,7 @@ public sealed class IncidentService : IIncidentService
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ActorUserId, cancellationToken);
         var incident = await _dbContext.Incidents
             .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
             .AsTracking()
@@ -146,6 +147,7 @@ public sealed class IncidentService : IIncidentService
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ActorUserId, cancellationToken);
 
         // Hold the target row's update lock through validation, change detection, and commit.
         var incident = await _dbContext.Incidents

@@ -121,6 +121,8 @@ Check("Three placement actions retain route and require cookie authorization plu
   Require(m.IsDefined(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute),false)&&m.IsDefined(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute),false)&&m.IsDefined(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute),false));
  }
 });
+checks.AddRange(await ExpansionChecks.RunAsync(db));
+checks.AddRange(await WriterOrderChecks.RunAsync());
 Console.WriteLine(JsonSerializer.Serialize(new{pass=true,tests=checks.Count,checks,sqlConnections=0,sqlConcurrency="NOT_RUN",qualification="Actual production validator and transaction guard tests; not SQL writer/concurrency acceptance."}));
 sealed class NoActor:ICurrentUserAccessor{public bool TryGetCurrentUser(out CurrentUserInfo user){user=default;return false;}}
 sealed class Actor:ICurrentUserAccessor{public bool TryGetCurrentUser(out CurrentUserInfo user){user=new(9,1,false);return true;}}
