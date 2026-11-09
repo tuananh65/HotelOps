@@ -606,14 +606,41 @@ for (const path of ["/dev/screens", "/dev/design-system"]) {
     });
   }
 }
-test("forgot password is informational without mock form or recovery request", async () => {
+test("forgot password shows instruction only after identifier confirmation without recovery request", async () => {
   await withRouter("/forgot-password", {}, async (page) => {
     await heading(page, "Forgot Password");
-    assert.match(
-      await page.locator("body").innerText(),
-      /contact your Administrator/,
+    const identifier = page.getByRole("textbox", { name: "Username or email" });
+    const instruction =
+      "For password assistance, contact your Administrator through your usual internal support channel.";
+    assert.equal(await identifier.count(), 1);
+    assert.equal(await page.getByText(instruction, { exact: true }).count(), 0);
+
+    await page.getByRole("button", { name: "Show instructions" }).click();
+    await page
+      .getByRole("alert")
+      .filter({ hasText: "Enter your username or email." })
+      .waitFor();
+    assert.equal(await page.getByText(instruction, { exact: true }).count(), 0);
+
+    const identifierLogs = [];
+    page.on("console", (message) => identifierLogs.push(message.text()));
+    await identifier.fill("private-identifier@example.test");
+    await page.getByRole("button", { name: "Show instructions" }).click();
+    await page.getByRole("status").filter({ hasText: instruction }).waitFor();
+    assert.equal(await identifier.inputValue(), "");
+    assert.ok(
+      !identifierLogs.join(" ").includes("private-identifier@example.test"),
     );
-    assert.equal(await page.locator("form,input").count(), 0);
+    assert.ok(
+      !JSON.stringify(
+        await page.evaluate(() => window.routerTest.calls),
+      ).includes("private-identifier@example.test"),
+    );
+    assert.ok(
+      !(await page.locator("body").innerText()).includes(
+        "private-identifier@example.test",
+      ),
+    );
     assert.deepEqual(
       (await page.evaluate(() => window.routerTest.calls)).map(
         (call) => call.url,
