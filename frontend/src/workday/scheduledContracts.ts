@@ -18,6 +18,7 @@ export type ScheduledResult =
       error: {
         reason:
           | "DISABLED"
+          | "BUSY"
           | "INVALID_REQUEST"
           | "STALE"
           | "CSRF"
@@ -96,6 +97,8 @@ export function scheduledMessage(
 ): string {
   if (r.outcome === "OUTCOME_UNKNOWN")
     return "Outcome unknown. Do not replay. Verify with an authorized owner before starting a new flow.";
+  if (r.error.reason === "BUSY")
+    return "Another workday request is pending. Wait for its result.";
   if (r.error.reason === "DISABLED")
     return "Scheduled mutation dispatch is disabled pending runtime approval.";
   switch (r.error.status) {
