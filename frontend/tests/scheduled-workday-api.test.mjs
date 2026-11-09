@@ -385,3 +385,70 @@ for (const firstOutcome of ["confirmed", "rejected", "preflight-failed"]) {
     },
   );
 }
+
+for (const operation of ["start", "end"]) {
+  for (const status of [401, 403, 503]) {
+    test(
+      operation +
+        " preserves CSRF preflight HTTP " +
+        status +
+        " without mutation dispatch",
+      async () => {
+        const calls = [];
+        const api = createScheduledWorkdayApi(async (url, options) => {
+          calls.push([url, options]);
+          return Response.json(
+            {
+              title: "SECRET",
+              detail: "SECRET",
+              traceId: "SECRET",
+              csrfToken: "SECRET",
+            },
+            { status },
+          );
+        }, true);
+        const result =
+          operation === "start"
+            ? await api.start(1, 10, () => true)
+            : await api.end(1, 20, 10, tag, () => true);
+        assert.deepEqual(result, {
+          outcome: "NOT_DISPATCHED",
+          error: { reason: "CSRF", status },
+        });
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0][0], "/api/auth/csrf");
+        assert.equal(calls[0][1].method, "GET");
+        assert.equal(calls[0][1].credentials, "include");
+        assert.equal(calls[0][1].cache, "no-store");
+        assert.ok(!JSON.stringify(result).includes("SECRET"));
+      },
+    );
+  }
+}
+for (const failure of ["network", "malformed", "cancelled"]) {
+  test(
+    "CSRF preflight " +
+      failure +
+      " remains NOT_DISPATCHED without fabricated HTTP status",
+    async () => {
+      const controller = new AbortController();
+      let calls = 0;
+      const api = createScheduledWorkdayApi(async () => {
+        calls++;
+        if (failure === "network") throw Error("SECRET");
+        if (failure === "cancelled") {
+          controller.abort();
+          throw new DOMException("SECRET", "AbortError");
+        }
+        return Response.json({ headerName: "Wrong", csrfToken: "SECRET" });
+      }, true);
+      const result = await api.start(1, 10, () => true, controller.signal);
+      assert.deepEqual(result, {
+        outcome: "NOT_DISPATCHED",
+        error: { reason: "CSRF" },
+      });
+      assert.equal(calls, 1);
+      assert.ok(!JSON.stringify(result).includes("SECRET"));
+    },
+  );
+}

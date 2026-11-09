@@ -65,7 +65,15 @@ export function createScheduledWorkdayApi(
       },
     });
     if (!token.ok)
-      return { outcome: "NOT_DISPATCHED", error: { reason: "CSRF" } };
+      return {
+        outcome: "NOT_DISPATCHED",
+        error: {
+          reason: "CSRF",
+          ...(token.error.kind === "http"
+            ? { status: token.error.status }
+            : {}),
+        },
+      };
     if (signal?.aborted || !current())
       return { outcome: "NOT_DISPATCHED", error: { reason: "STALE" } };
     try {
