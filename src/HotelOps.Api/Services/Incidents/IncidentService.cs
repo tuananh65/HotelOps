@@ -11,10 +11,13 @@ namespace HotelOps.Api.Services.Incidents;
 public sealed class IncidentService : IIncidentService
 {
     private readonly HotelOpsDbContext _dbContext;
+    private readonly HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority? _placementAuthority;
 
-    public IncidentService(HotelOpsDbContext dbContext)
+    public IncidentService(HotelOpsDbContext dbContext,
+        HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority? placementAuthority = null)
     {
         _dbContext = dbContext;
+        _placementAuthority = placementAuthority;
     }
 
     public async Task<IncidentDetailDto?> ChangeIncidentStatusAsync(long id, ChangeIncidentStatusRequest request, CancellationToken cancellationToken)
@@ -225,11 +228,20 @@ public sealed class IncidentService : IIncidentService
     public async Task<IncidentDetailDto> CreateIncidentAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
     {
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
-        await ValidateCreateAsync(request, cancellationToken);
+        var authority = _placementAuthority ?? throw new HotelOps.Api.Services.Dependencies.Dev2PlacementDeniedException(401);
+        var actor = authority.Actor(request.ReportedBy);
 
         var reportedAt = DateTime.UtcNow;
         var prefix = "INC-" + reportedAt.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(actor, cancellationToken);
+        await authority.RequireAsync(actor, request.BranchId, "INCIDENT_CREATE", cancellationToken);
+        var placement = new HotelOps.Api.Services.Dependencies.Dev2PlacementGuard(_dbContext);
+        await placement.LockBranchAsync(request.BranchId, cancellationToken);
+        if (request.RoomId is null && request.AreaId is null && request.AssetId is null)
+            throw new ValidationException("At least one physical source is required.");
+        await placement.ValidateReferencesAsync(request.BranchId, request.RoomId, request.AreaId, cancellationToken);
+        await ValidateCreateAsync(request, cancellationToken);
 
         // Serialize allocation across application instances until this transaction ends.
         // Asset -> Incident number allocation. Retirement and handover writers also
@@ -243,6 +255,7 @@ public sealed class IncidentService : IIncidentService
                 throw new ValidationException("AssetId must identify an asset in the specified branch.");
             if (asset.LifecycleStatus == "RETIRED")
                 throw new ValidationException("A retired Asset cannot receive a new Incident.");
+            await placement.ValidateReferencesAsync(request.BranchId, asset.CurrentRoomId, asset.CurrentAreaId, cancellationToken);
         }
 
         // Range locks also protect allocation against writers that do not take the application lock.
@@ -312,6 +325,7 @@ public sealed class IncidentService : IIncidentService
         await _dbContext.SaveChangesAsync(cancellationToken);
         var result = await GetIncidentAsync(incident.IncidentId, cancellationToken)
             ?? throw new InvalidOperationException("Created incident could not be read.");
+        await authority.RequireAsync(actor, request.BranchId, "INCIDENT_CREATE", cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return result;
     }

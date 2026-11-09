@@ -59,6 +59,8 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPost]
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = HotelOps.Api.Security.HotelOpsCookieTicket.Scheme)]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult<IncidentDetailDto>> CreateIncident(
         CreateIncidentRequest request, CancellationToken cancellationToken)
     {
@@ -66,6 +68,10 @@ public class IncidentsController : ControllerBase
         {
             var incident = await _incidentService.CreateIncidentAsync(request, cancellationToken);
             return CreatedAtAction(nameof(GetIncident), new { id = incident.IncidentId }, incident);
+        }
+        catch (HotelOps.Api.Services.Dependencies.Dev2PlacementDeniedException exception)
+        {
+            return Problem(statusCode: exception.Status, title: "PLACEMENT_AUTHORIZATION_REQUIRED");
         }
         catch (ValidationException exception)
         {
