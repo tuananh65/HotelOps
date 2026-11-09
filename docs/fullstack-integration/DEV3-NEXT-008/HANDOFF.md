@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED_SOURCE_ONLY (internal preview, not a public management API).
 Branch: feature/dev3-uc138-plan-preview.
-Stacked base: feature/dev3-uc138-shift-planning at 9d601f4f4eea3c21307659e79030de67e7ecd1dd, incorporating integration ec945e9070855baf2cebf3ecddd8f2229020d33a. PR37 supplies the planner. Review this delta against the parent feature, then retarget to integration after parent merge; do not merge this preview into the parent branch as an integration shortcut.
+Stacked base: feature/dev3-uc138-shift-planning at 9d601f4f4eea3c21307659e79030de67e7ecd1dd, incorporating integration ec945e9070855baf2cebf3ecddd8f2229020d33a. PR37 supplies the planner. PR targets integration/fullstack-base. Until PR37 merges, the overall diff includes its five files plus this six-file delta; review the new delta against the parent SHA. Merge PR37 first so the integration diff automatically narrows; do not merge this preview into the parent branch as an integration shortcut.
 
 ## Implemented business slice
 
