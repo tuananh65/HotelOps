@@ -1,4 +1,4 @@
-﻿import { decodeWorkday, safeId } from "./contracts";
+import { decodeWorkday, safeId } from "./contracts";
 export interface ScheduledWorkdayResponse {
   workdayId: number;
   branchId: number;
@@ -30,6 +30,23 @@ export type ScheduledResult =
     };
 export const strongWorkdayTag = (v: unknown): v is string =>
   typeof v === "string" && /^"[A-Za-z0-9+/]{10}[AEIMQUYcgkosw048]="$/.test(v);
+// Date.parse normalizes invalid dates and accepts 24:00. Do not confirm those
+// values as DateTimeOffset responses from the server.
+function validEndTimestamp(value: unknown): value is string {
+  if (typeof value !== "string") return false;
+  const match =
+    /^(\d{4}-\d{2}-\d{2})T(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d{1,7})?(?:Z|[+-](0\d|1[0-4]):([0-5]\d))$/.exec(
+      value,
+    );
+  if (!match || match[1].startsWith("0000")) return false;
+  const date = new Date(match[1]);
+  return (
+    Number.isFinite(date.getTime()) &&
+    date.toISOString().slice(0, 10) === match[1] &&
+    !(match[2] === "14" && match[3] !== "00") &&
+    Number.isFinite(Date.parse(value))
+  );
+}
 export function decodeScheduledResponse(
   v: unknown,
   branch: number,
@@ -57,11 +74,7 @@ export function decodeScheduledResponse(
   if (
     expected.status === "WORKING"
       ? x.endedAtUtc !== null
-      : typeof x.endedAtUtc !== "string" ||
-        !/^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d{1,7})?(?:Z|[+-]\d\d:\d\d)$/.test(
-          x.endedAtUtc,
-        ) ||
-        !Number.isFinite(Date.parse(x.endedAtUtc)) ||
+      : !validEndTimestamp(x.endedAtUtc) ||
         Date.parse(x.endedAtUtc) < Date.parse(day.startedAtUtc)
   )
     return;

@@ -230,3 +230,58 @@ test("end rejects response for another workday", async () => {
     "OUTCOME_UNKNOWN",
   );
 });
+
+for (const endedAtUtc of [
+  "2026-02-30T09:00:00Z",
+  "2027-02-29T09:00:00Z",
+  "2026-04-31T09:00:00Z",
+  "2026-11-08T24:00:00Z",
+  "2026-11-08T09:00:00+14:01",
+]) {
+  test(
+    "invalid calendar or clock cannot confirm End: " + endedAtUtc,
+    async () => {
+      const calls = [];
+      const api = createScheduledWorkdayApi(async (url, options) => {
+        calls.push([url, options]);
+        return url.endsWith("/csrf")
+          ? csrf()
+          : response({
+              ...body(true),
+              startedAtUtc: "2026-01-01T00:00:00Z",
+              endedAtUtc,
+              secret: "SECRET",
+            });
+      }, true);
+      const result = await api.end(1, 20, 10, tag, () => true);
+      assert.deepEqual(result, {
+        outcome: "OUTCOME_UNKNOWN",
+        error: { reason: "INVALID_RESPONSE" },
+      });
+      assert.equal(
+        calls.filter(([, options]) => options.method === "POST").length,
+        1,
+      );
+      assert.equal(calls[1][0], "/api/branches/1/workdays/20/end");
+      assert.equal(new Headers(calls[1][1].headers).get("If-Match"), tag);
+      assert.ok(!JSON.stringify(result).includes("SECRET"));
+    },
+  );
+}
+for (const endedAtUtc of [
+  "2028-02-29T09:00:00Z",
+  "2026-11-08T09:00:00.1234567+00:00",
+  "2026-11-08T23:00:00+14:00",
+]) {
+  test("valid DateTimeOffset End remains accepted: " + endedAtUtc, async () => {
+    const result = await createScheduledWorkdayApi(
+      async (url) =>
+        url.endsWith("/csrf")
+          ? csrf()
+          : response({ ...body(true), endedAtUtc }),
+      true,
+    ).end(1, 20, 10, tag, () => true);
+    assert.equal(result.outcome, "CONFIRMED");
+    assert.equal(result.data.endedAtUtc, endedAtUtc);
+  });
+}
