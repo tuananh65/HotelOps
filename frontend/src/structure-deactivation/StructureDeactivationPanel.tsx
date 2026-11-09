@@ -1,4 +1,8 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  createDeactivationPreviewApi,
+  type DependencyPreview,
+} from "./deactivationPreviewApi";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createStructureDeactivationApi } from "./structureDeactivationApi";
 import {
@@ -72,13 +76,14 @@ function Bound({
   dispatchEnabled: boolean;
   current: () => boolean;
 }) {
+  const [previewApi] = useState(() => createDeactivationPreviewApi());
   const [api] = useState(() =>
     createStructureDeactivationApi(
       globalThis.fetch.bind(globalThis),
       dispatchEnabled,
     ),
   );
-  const [data, setData] = useState<Snapshot | null>(null),
+  const [data, setData] = useState<DependencyPreview | null>(null),
     [error, setError] = useState<Failure | null>(null),
     [loading, setLoading] = useState(true),
     [reload, setReload] = useState(0),
@@ -108,7 +113,7 @@ function Bound({
     setLoading(true);
     setReview(null);
     setReason("");
-    void api.read(kind, branchId, id, abort.signal).then((r) => {
+    void previewApi.read(kind, branchId, id, abort.signal).then((r) => {
       if (!active || !current()) return;
       setLoading(false);
       if (r.ok) setData(r.data);
@@ -118,7 +123,7 @@ function Bound({
       active = false;
       abort.abort();
     };
-  }, [api, kind, branchId, id, reload, current]);
+  }, [previewApi, kind, branchId, id, reload, current]);
   async function confirm() {
     if (
       !review ||
@@ -149,7 +154,11 @@ function Bound({
     setReview(null);
     setLocked(true);
     if (result.outcome === "CONFIRMED") {
-      setData(result.data);
+      setData({
+        ...result.data,
+        dependencies: [],
+        writerCoordinationRequired: true,
+      });
       setMessage("Deactivation confirmed by server.");
     } else {
       setError(result.error);
@@ -197,10 +206,23 @@ function Bound({
             <dd>{data.record.description ?? "None"}</dd>
           </dl>
           <p>
-            Dependencies are not supplied by GET. Active children, rooms,
-            assets, incidents, tasks or maintenance may block deactivation. A
-            successful GET does not prove eligibility.
+            Dependency preview is a current snapshot, not permission or a
+            reservation. Writer coordination remains unaccepted.
           </p>
+          <section aria-label="Dependency preview">
+            {data.dependencies.length === 0 ? (
+              <p>
+                No blockers observed in this snapshot. Deactivation remains
+                disabled.
+              </p>
+            ) : (
+              data.dependencies.map((d) => (
+                <p key={d.kind}>
+                  {d.kind}: {d.count}
+                </p>
+              ))
+            )}
+          </section>
           {!locked && data.record.isActive && (
             <form
               onSubmit={(e) => {
