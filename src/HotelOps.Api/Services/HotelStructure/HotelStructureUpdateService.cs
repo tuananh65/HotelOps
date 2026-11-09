@@ -17,7 +17,7 @@ namespace HotelOps.Api.Services.HotelStructure;
 
 public enum StructureUpdateStatus { Success, SessionInvalid, Forbidden, NotFound, Inactive, InvalidParent, ParentConflict, DuplicateCode, Stale, Unavailable, DependenciesExist, WriterCoordinationRequired }
 public sealed record StructureUpdateResult(StructureUpdateStatus Status, EditableStructureDto? Value = null, string? ETag = null,
-    IReadOnlyList<StructureDependencyDto>? Dependencies = null);
+    IReadOnlyList<StructureDependencyDto>? Dependencies = null, StructureDeactivationPreviewDto? Preview = null);
 
 public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
@@ -31,6 +31,8 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
         if (!IsStrongTag(etag)) throw new ValidationException("A single strong structure ETag is required.");
         return Run(ticket, sessionId, branchId, id, area, etag, null, ct, deactivate: true);
     }
+    public Task<StructureUpdateResult> ReadDeactivationDependenciesAsync(SessionReference ticket, long sessionId, long branchId,
+        long id, bool area, CancellationToken ct) => Run(ticket, sessionId, branchId, id, area, null, null, ct, preview: true);
     public Task<StructureUpdateResult> ReadAsync(SessionReference ticket, long sessionId, long branchId,
         long id, bool area, CancellationToken ct) => Run(ticket, sessionId, branchId, id, area, null, null, ct);
     public Task<StructureUpdateResult> UpdateFloorAsync(SessionReference ticket, long sessionId, long branchId,
@@ -44,7 +46,7 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
         && tag.AsSpan(1, 64).ToString().All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
 
     private async Task<StructureUpdateResult> Run(SessionReference ticket, long sessionId, long branchId,
-        long id, bool area, string? expected, Input? input, CancellationToken ct, bool deactivate = false)
+        long id, bool area, string? expected, Input? input, CancellationToken ct, bool deactivate = false, bool preview = false)
     {
         if (branchId <= 0 || id <= 0) throw new ValidationException("Branch and record IDs must be positive.");
         if (input != null && !IsStrongTag(expected)) throw new ValidationException("A single strong structure ETag is required.");
@@ -87,6 +89,14 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
             var revision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == entity && x.EntityId == key)
                 .Select(x => (long?)x.AuditId).MaxAsync(ct) ?? 0;
             var tag = Tag(before, revision);
+            if (preview)
+            {
+                var dependencies = await StructureDeactivationDependencies.ReadAsync(db, branchId, id, area, ct);
+                if (await Gate() is { } finalPreviewGate) return new(finalPreviewGate);
+                await tx.CommitAsync(ct);
+                return new(StructureUpdateStatus.Success, ETag: tag,
+                    Preview: new(before, dependencies, WriterCoordinationRequired: true));
+            }
             if (deactivate)
             {
                 if (!string.Equals(tag, expected, StringComparison.Ordinal)) return new(StructureUpdateStatus.Stale);

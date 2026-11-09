@@ -8,7 +8,7 @@ const compiled = await build({
     resolveDir: process.cwd(),
     loader: "tsx",
     contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{StructureDeactivationPanel}from'./src/structure-deactivation/StructureDeactivationPanel';
-const s=window.scenario,calls=[],waiters=[];const reply=(body,status=200)=>Response.json(body,{status,headers:{ETag:'"'+'A'.repeat(64)+'"'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method,body:o.body,headers:Object.fromEntries(new Headers(o.headers))});if(u==='/api/auth/session'&&s.anonymous)return reply({status:401},401);if(u==='/api/auth/session')return reply({user:{id:'7',username:'tester',name:'Tester'},expiresAt:'2099-01-01T00:00:00Z',absoluteExpiresAt:'2099-01-02T00:00:00Z',mustChangePassword:s.restricted??false,csrfToken:'token'});if(u==='/api/auth/csrf')return reply({headerName:'X-CSRF-TOKEN',csrfToken:'token'});const b=Number(u.split('/')[3]);const body={kind:'floor',id:11,branchId:b,code:'F'+b,name:'Protected '+b,description:null,floorId:null,floorNumber:2,isActive:true};if(o.method==='GET'){if(s.late&&b===42)return new Promise(resolve=>waiters.push(()=>resolve(reply(body))));return reply(body);}if(s.network)throw Error('SECRET');if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(reply({status:503,title:'STRUCTURE_WRITER_COORDINATION_REQUIRED'},503))));return reply({status:s.status??409,title:s.status===412?'STALE_STRUCTURE_VERSION':s.status===503?'STRUCTURE_WRITER_COORDINATION_REQUIRED':'STRUCTURE_DEPENDENCIES_EXIST',detail:'SECRET',dependencies:[{kind:'ACTIVE_ROOM',count:2,ids:[3,4]}]},s.status??409);};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(42);return <><button onClick={()=>set(43)}>Change branch</button><StructureDeactivationPanel kind="floor" branchId={b} id={11} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Session unavailable</p>}><App/></AuthProvider>);window.fixture={calls,finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
+const s=window.scenario,calls=[],waiters=[];const reply=(body,status=200)=>Response.json(body,{status,headers:{ETag:'"'+'A'.repeat(64)+'"'}});window.fetch=async(u,o)=>{calls.push({url:u,method:o.method,body:o.body,headers:Object.fromEntries(new Headers(o.headers))});if(u==='/api/auth/session'&&s.anonymous)return reply({status:401},401);if(u==='/api/auth/session')return reply({user:{id:'7',username:'tester',name:'Tester'},expiresAt:'2099-01-01T00:00:00Z',absoluteExpiresAt:'2099-01-02T00:00:00Z',mustChangePassword:s.restricted??false,csrfToken:'token'});if(u==='/api/auth/csrf')return reply({headerName:'X-CSRF-TOKEN',csrfToken:'token'});const b=Number(u.split('/')[3]);const body={kind:'floor',id:11,branchId:b,code:'F'+b,name:'Protected '+b,description:null,floorId:null,floorNumber:2,isActive:true};if(o.method==='GET'){if(s.late&&b===42)return new Promise(resolve=>waiters.push(()=>resolve(reply({record:body,dependencies:[],writerCoordinationRequired:true}))));return reply({record:body,dependencies:s.dependencies??[],writerCoordinationRequired:true});}if(s.network)throw Error('SECRET');if(s.waitPost)return new Promise(resolve=>waiters.push(()=>resolve(reply({status:503,title:'STRUCTURE_WRITER_COORDINATION_REQUIRED'},503))));return reply({status:s.status??409,title:s.status===412?'STALE_STRUCTURE_VERSION':s.status===503?'STRUCTURE_WRITER_COORDINATION_REQUIRED':'STRUCTURE_DEPENDENCIES_EXIST',detail:'SECRET',dependencies:[{kind:'ACTIVE_ROOM',count:2,ids:[3,4]}]},s.status??409);};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[b,set]=useState(42);return <><button onClick={()=>set(43)}>Change branch</button><StructureDeactivationPanel kind="floor" branchId={b} id={11} dispatchEnabled={s.enabled??false}/></>;}createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Session unavailable</p>}><App/></AuthProvider>);window.fixture={calls,finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
   },
   bundle: true,
   write: false,
@@ -197,3 +197,23 @@ test("branch change during POST hides old result", () =>
       1,
     );
   }));
+test("dependency preview displays server counts without granting dispatch", () =>
+  run(
+    { dependencies: [{ kind: "ACTIVE_ROOM", count: 2, ids: [3, 4] }] },
+    async (p) => {
+      await p.getByText("ACTIVE_ROOM: 2", { exact: true }).waitFor();
+      await review(p);
+      assert.equal(
+        await p
+          .getByRole("button", { name: "Confirm deactivation" })
+          .isDisabled(),
+        true,
+      );
+      assert.equal(
+        (await p.evaluate(() => window.fixture.calls)).filter(
+          (c) => c.method === "POST",
+        ).length,
+        0,
+      );
+    },
+  ));
