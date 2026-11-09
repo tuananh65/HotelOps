@@ -21,7 +21,7 @@ internal sealed record InspectionConclusionReceipt(string Contract, string Issue
 
 public sealed partial class RoomTypeCreationService
 {
-    internal const string Fe04AuthoritySourceCommit = "857fe0ded7902bc67fe13fec9b0e029917c63f7d";
+    internal const string Fe04AuthoritySourceCommit = "d37e99f42eaaf3089eb510c6298296a0f0743faa";
 
     // Caller already performed persisted Rework creation/assignee eligibility.
     // This method re-reads facts; it neither creates a reservation nor inserts a proof.

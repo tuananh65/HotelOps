@@ -1,0 +1,71 @@
+{
+  "success": true,
+  "moduleCreated": true,
+  "executeAsOwner": true,
+  "registeredIssuer": false,
+  "publicMutation": false,
+  "successfulDomainMutation": false,
+  "allCasesRollbackVerified": true,
+  "cases": [
+    {
+      "name": "SQL owner module validates real assigned Reject source",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Missing canonical N01 reservation blocks mutation without partial state",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL module rejects revoked session",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL branch permission isolation",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL assigned inspector required",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL D4 stale evidence revision rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL current cycle binding rejected when missing",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL false Reject confirmation rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL NULL Reject confirmation rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL missing source rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL missing FAIL defect rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "SQL owner catalog lock required",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}

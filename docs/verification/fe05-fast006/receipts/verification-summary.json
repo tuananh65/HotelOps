@@ -1,0 +1,41 @@
+{
+    "productionBuild":  {
+                            "result":  "PASS",
+                            "errors":  0,
+                            "warnings":  0
+                        },
+    "issuerUnit":  {
+                       "scope":  "candidate canonical request identity only",
+                       "result":  "PASS",
+                       "failed":  0,
+                       "passed":  11
+                   },
+    "issuerSql":  {
+                      "result":  "PASS",
+                      "successfulDomainMutation":  false,
+                      "source":  "issuer-results.json",
+                      "failed":  0,
+                      "passed":  12
+                  },
+    "composition":  {
+                        "N01ChangedFiles":  14,
+                        "proposedFoundationDependencies":  15,
+                        "errors":  0,
+                        "result":  "PASS",
+                        "candidateOnly":  true,
+                        "warnings":  0,
+                        "productionOverlayApplied":  false
+                    },
+    "coordinatorCandidate":  {
+                                 "runtime":  "NOT_RUN",
+                                 "build":  "PASS"
+                             },
+    "productionAuthoritativeCommit":  "NOT_RUN",
+    "replaySql":  "NOT_RUN",
+    "proofConsumerSql":  "NOT_RUN",
+    "solutionTest":  {
+                         "exitCode":  0,
+                         "reason":  "API-only solution",
+                         "testCredit":  0
+                     }
+}

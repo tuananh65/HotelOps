@@ -1,0 +1,118 @@
+{
+  "sourceCommit": "DEFERRED_BY_USER",
+  "baseline": "e0d0ab3cd31f5d8ead780ef4ce13ab3f5d2c4fb1107983443d6174d5b3e75764",
+  "files": [
+    {
+      "path": "scripts/database/notifications/N01Implement06/01_ForwardCandidate.sql",
+      "bytes": 4890,
+      "sha256": "34f0dafbdbdd564397366030752dc78e3534d1240aba8f80513d18ed6df13957",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "scripts/database/notifications/N01Implement06/02_RollbackCandidate.sql",
+      "bytes": 2164,
+      "sha256": "6ea1bb756e27b643716a8632e7b529b8c24477f343938585b7c4db293204e24d",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05CallerIntegration.cs",
+      "bytes": 1882,
+      "sha256": "f34ea36c80d5f5aa04647f707701b88b837ee51623580a1f28a700807ca03d06",
+      "beforeSha256": "3431436ab70149d05a6bdffe6e83e863abd41d1811b10ad2d72a5a738eb6b840",
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05Fs013CandidateStore.cs",
+      "bytes": 11269,
+      "sha256": "d10a72807b5022f1c728f8427c09d76b485060047a53e76e931519f9b3d1e763",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
+      "bytes": 6771,
+      "sha256": "d5c402d668ce21ba3ca7fc145230f2af00b86f84574c07f88a5db84b63d46207",
+      "beforeSha256": "f98117189fa14baeb4904f3b7f37f7d2616ae6b39cf1b9d350501f6d7e70d038",
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
+      "bytes": 12571,
+      "sha256": "4941b793de6f1e7eece7ffb72f4cf1953b777d6765c904d554598367b275fbe4",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05RecipientResolution.cs",
+      "bytes": 3067,
+      "sha256": "53a6b79fdfd157ec96147bbe67bf63aa2d376443991d4a4ef10a780901d8187e",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05SourceCoordination.cs",
+      "bytes": 11213,
+      "sha256": "26e02bed47bd7546d6c8e734c9c5d44492c030ef9f075c5376eb1b98245bb086",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/NotificationPublisher.cs",
+      "bytes": 9835,
+      "sha256": "580b895ae8db1a0869df9388072bfadda5d8a999b7837ed8c3848971f792151c",
+      "beforeSha256": "90af21fc6d139e6778edd7791481e4098ff83d11a87b4e85527ccf5f081adb7a",
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/NotificationRegistration.cs",
+      "bytes": 2096,
+      "sha256": "c6b05e9a815d4f80bbaa2185e1ee2c2fe9a99c0c699d9886838837628a29aa74",
+      "beforeSha256": "e9ea70edbb2182bf60ac4da52c925abf75197f8263448f59e72e218637045516",
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "tests/HotelOps.FullStack.IntegrationTests/NotificationNoSql.cs",
+      "bytes": 7412,
+      "sha256": "58dd3f15107317d4001465b81e3cf0b8bd9b48b61ecf5eba3a8011a3fdf8a267",
+      "beforeSha256": "42241101b75e5b34ca11963f5f6326be5e1e9b265e1d8c70641fba2fb029077b",
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "tests/HotelOps.Notification.N01.NoSql/ImplementationChecks.cs",
+      "bytes": 18546,
+      "sha256": "eef5d8f05fc428dc163893183cca457e468e63e311776b5a113ad1e1c1bbe7f7",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "tests/HotelOps.Notification.N01.NoSql/N01SqlComponentProbe.cs",
+      "bytes": 9184,
+      "sha256": "4c178e06d5f69c3c172e130e3ad915dd4c5c6667fc1cfd935ebf3c10413fd6ba",
+      "beforeSha256": null,
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    },
+    {
+      "path": "tests/HotelOps.Notification.N01.NoSql/Program.cs",
+      "bytes": 8460,
+      "sha256": "82634d75cfeddee3d9c2e8266c3ea065f30e63ab73b135b2436a05e92e8f99b9",
+      "beforeSha256": "1ef9119a78d04398cdc191e9769e0778c200c3221e6baca79dcca3f4281bcde0",
+      "owner": "DEV2 Notification N01",
+      "sourceCommit": "DEFERRED_BY_USER"
+    }
+  ]
+}
