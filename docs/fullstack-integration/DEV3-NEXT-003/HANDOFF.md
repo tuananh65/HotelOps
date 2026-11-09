@@ -29,3 +29,7 @@ WorkdaysController remains NonController. Scheduled panel is not mounted in prod
 ## Source hashes
 frontend/src/workday/ScheduledWorkdayPanel.tsx: BA6FDE351B63FA67D31A4E2A220CEAE05CFC07DBC74A388C1CD15BED0D5BADD0
 frontend/tests/scheduled-workday-browser.test.mjs: 9E4E808E55A38B4D37CCC90704D48C5AE7C63A83BA22A55EEC79652DEC127348
+
+## DEV3-NEXT-004 merge resolution and receipts
+
+Integration 1916bca64017918ec1d34404d53ccd7dd28b543f merged into the feature. Only conflict: scheduled-workday-browser.test.mjs, with two hunks (fixture and appended tests). Resolution keeps the session invalid/recover/revoke fixture branches AND the endedAtUtc override; concatenates session tests and malformed-calendar test. No test removed. Functional delta remains the three original files. Combined tests: 103/103 PASS (43 API + 25 browser + 35 read); Auth HTTP/state 94/94 PASS; typecheck/build exit 0. Initial scoped formatting exit 1 after merge, corrected with scoped Prettier; final check exit 0. Two inherited React Router build warnings remain. No source behavior changes after these tests, only whitespace and this receipt. Workday writes remain inactive, dispatch OFF, SQL/live NOT_RUN.
