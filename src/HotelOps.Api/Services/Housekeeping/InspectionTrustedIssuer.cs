@@ -12,18 +12,24 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelOps.Api.Services.HotelStructure;
 
-// Internal candidate request identity; not a source/evidence authority hash.
-// UC046 HTTP transport is deliberately unchanged until its canonical contract is confirmed.
-internal sealed record InspectionIssuerOperation(Guid Id, string UseCase, byte[] Fingerprint)
+// Internal request identity, separate from FE04 source/evidence authority digests.
+// ASCII fields and UTF-16LE reason hex have an independently reproducible SQL encoding.
+internal sealed record InspectionIssuerOperation(Guid Id, string UseCase, byte[] Fingerprint, string Canonical)
 {
     internal static InspectionIssuerOperation Reject(Guid id,long actor,long branch,long inspection,string tag,RejectInspectionInput input)
-        => Create(id,"UC045",new{version=1,useCase="UC045",actor,branch,inspection,tag,reason=input.Reason?.Trim(),input.Confirmed});
+        => Create(id,"UC045",actor,branch,inspection,tag,input.Reason,
+            input.Confirmed is null ? "null" : input.Confirmed.Value ? "1" : "0");
     internal static InspectionIssuerOperation Rework(Guid id,long actor,long branch,long inspection,string tag,RequestReworkRequest input)
-        => Create(id,"UC046",new{version=1,useCase="UC046",actor,branch,inspection,tag,input.AssigneeId,input.DueAt,
-            defects=input.DefectIds.Order().ToArray(),reason=input.Reason.Trim()});
-    private static InspectionIssuerOperation Create(Guid id,string uc,object canonical)
-        => id==Guid.Empty?throw new ArgumentException("Operation identity required"):
-            new(id,uc,SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(canonical,JsonSerializerOptions.Web)));
+        => Create(id,"UC046",actor,branch,inspection,tag,input.Reason,
+            Number(input.AssigneeId),Number(input.DueAt.Ticks),string.Join(',',input.DefectIds.Order().Select(Number)));
+    private static string Number(long value)=>value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    private static InspectionIssuerOperation Create(Guid id,string uc,long actor,long branch,long inspection,string tag,string? reason,params string[] tail)
+    {
+        if(id==Guid.Empty)throw new ArgumentException("Operation identity required");
+        var canonical=string.Join('|',new[]{"FE05","1",uc,Number(actor),Number(branch),Number(inspection),tag.Trim('"').ToUpperInvariant(),
+            reason is null ? "NULL" : Convert.ToHexString(System.Text.Encoding.Unicode.GetBytes(reason.Trim()))}.Concat(tail));
+        return new(id,uc,SHA256.HashData(System.Text.Encoding.ASCII.GetBytes(canonical)),canonical);
+    }
 }
 internal sealed record InspectionIssuerStep(long? ReworkId=null,byte[]? Revision=null,string? ResultJson=null);
 
@@ -100,7 +106,7 @@ public sealed partial class RoomTypeCreationService
         Add("@session_hash",SqlDbType.VarChar,ticket.KeyHash,71);Add("@session_created",SqlDbType.DateTime2,ticket.CreatedAtUtc);
         Add("@branch",SqlDbType.BigInt,branch);Add("@inspection",SqlDbType.BigInt,inspection);
         Add("@expected",SqlDbType.Binary,Convert.FromHexString(tag.Trim('"')),8);Add("@operation",SqlDbType.UniqueIdentifier,operation.Id);
-        Add("@fingerprint",SqlDbType.Binary,operation.Fingerprint,32);Add("@reason",SqlDbType.NVarChar,reason,-1);Add("@confirmed",SqlDbType.Bit,confirmed);
+        Add("@fingerprint",SqlDbType.Binary,operation.Fingerprint,32);Add("@canonical",SqlDbType.VarChar,operation.Canonical,-1);Add("@reason",SqlDbType.NVarChar,reason?.Trim(),-1);Add("@confirmed",SqlDbType.Bit,confirmed);
         Add("@assignee",SqlDbType.BigInt,assignee);Add("@due",SqlDbType.DateTime2,due);
         Add("@selected",SqlDbType.NVarChar,selected==null?null:JsonSerializer.Serialize(selected),-1);Add("@rework",SqlDbType.BigInt,rework);
         Add("@source_digest",SqlDbType.Binary,snapshot?.SourceDigest,32);Add("@evidence_digest",SqlDbType.Binary,snapshot?.EvidenceDigest,32);

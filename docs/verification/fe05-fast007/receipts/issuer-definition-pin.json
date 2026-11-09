@@ -1,0 +1,14 @@
+{
+    "database":  "HotelOps_Canonical_20261109_070705_ca0a039b_Fresh",
+    "owner":  "a468f7ac-5191-4033-a8e2-6c20532984e8",
+    "module":  "dbo.fe05_inspection_issuer_v1",
+    "moduleSha256Utf16":  "35E78A81CC0C53F832F0195659604CA40855BA1E078C27FC088DD72A0ACF5248",
+    "executeAsPrincipalId":  -2,
+    "sourcePath":  "scripts/database/fe05-fast007/01_TrustedInspectionIssuer.sql",
+    "sourceSha256":  "0871B871CBAAF1088504ECCF1895DE2172C74C4166C18E6A0BCFED12996B0353",
+    "registration":  "NOT_REGISTERED",
+    "productionActivation":  "OFF",
+    "successfulDomainMutation":  "NOT_RUN",
+    "persistentExplicitExecuteGrants":  0,
+    "temporaryExecuteOnlyPrincipalRemaining":  0
+}

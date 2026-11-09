@@ -15,6 +15,10 @@ internal static class InspectionIssuerUnitChecks
         Check("Branch bound",!reject.Fingerprint.SequenceEqual(InspectionIssuerOperation.Reject(id,1,20,3,tag,input).Fingerprint));
         Check("Actor bound",!reject.Fingerprint.SequenceEqual(InspectionIssuerOperation.Reject(id,10,2,3,tag,input).Fingerprint));
         Check("Confirmation bound",!reject.Fingerprint.SequenceEqual(InspectionIssuerOperation.Reject(id,1,2,3,tag,input with{Confirmed=false}).Fingerprint));
+        Check("Null confirmation is distinct from false",!InspectionIssuerOperation.Reject(id,1,2,3,tag,input with{Confirmed=null}).Fingerprint.SequenceEqual(InspectionIssuerOperation.Reject(id,1,2,3,tag,input with{Confirmed=false}).Fingerprint));
+        var nonAscii=InspectionIssuerOperation.Reject(id,1,2,3,tag,input with{Reason="Phòng 🔍"});
+        Check("Canonical request remains ASCII for Unicode reasons",nonAscii.Canonical.All(c=>c<128));
+        Check("Reason delimiters cannot change canonical field count",InspectionIssuerOperation.Reject(id,1,2,3,tag,input with{Reason="A|B"}).Canonical.Split('|').Length==9);
         var request=new RequestReworkRequest(4,DateTime.UtcNow.AddHours(2),[8,9],"Reason");
         var rework=InspectionIssuerOperation.Rework(id,1,2,3,tag,request);
         Check("UC045 and UC046 operation identities separated",!reject.Fingerprint.SequenceEqual(rework.Fingerprint));

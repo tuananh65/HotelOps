@@ -10,6 +10,7 @@ public partial class HotelOpsDbContext
     partial void OnModelCreatingPartial(ModelBuilder modelBuilder)
     {
         ConfigureChecklists(modelBuilder);
+        ConfigureNotifications(modelBuilder);
         ConfigureWorkTime(modelBuilder);
         ConfigureNotificationCandidate(modelBuilder);
         // SQL triggers enforce scoped assignments after deployment. This also works

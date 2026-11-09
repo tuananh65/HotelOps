@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 // SERIALIZABLE transaction, including credential/session writes and fixtures.
 internal static class InspectionIssuerSqlChecks
 {
-    internal static async Task RunAsync(HotelOpsDbContext db, string environment, string output, Func<Task> guard, string? only = null)
+    internal static async Task RunAsync(HotelOpsDbContext db, string environment, string output, Func<Task> guard, string? only = null, HotelOps.Api.Services.Notifications.NotificationCommitGuard? commitGuard = null)
     {
         using var runtime = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(environment))!, "runtime.private.json")));
         var password = runtime.RootElement.GetProperty("password").GetString()!;
@@ -36,6 +36,7 @@ internal static class InspectionIssuerSqlChecks
         async Task Check(string name, bool passing, Func<RoomTypeCreationService, SessionReference, long, Task> run, bool denied = false)
         {
             if (only != null && name != only) return;
+            if (name.StartsWith("Real N01") && commitGuard == null) return;
             await guard();
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable);
             try
@@ -71,28 +72,74 @@ internal static class InspectionIssuerSqlChecks
             cases.Add(new { name, result = "PASS", rollbackVerified = true }); Console.WriteLine("PASS " + name);
         }
         static void Status(RejectInspectionLoadResult value, RoomTypeBatchStatus expected) { if (value.Status != expected) throw new Exception($"Expected {expected}, got {value.Status}: {value.Blocker} {string.Join(',', value.Errors ?? [])}"); }
-        var script=await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"../../../../../scripts/database/fe05-fast006/01_TrustedInspectionIssuer.sql"));
+        var script=await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"../../../../../scripts/database/fe05-fast007/01_TrustedInspectionIssuer.sql"));
         var batches=System.Text.RegularExpressions.Regex.Split(script,@"(?im)^\s*GO\s*\r?$");
         var existing=await db.Database.SqlQuery<string>($"SELECT definition AS Value FROM sys.sql_modules WHERE object_id=OBJECT_ID('dbo.fe05_inspection_issuer_v1')").SingleOrDefaultAsync();
         if(existing==null){foreach(var batch in batches)if(!string.IsNullOrWhiteSpace(batch)){await guard();await db.Database.ExecuteSqlRawAsync(batch);}}
         else if(existing.Trim()!=batches[1].Trim())throw new Exception("Installed candidate definition changed; refusing overwrite");
         if(await db.Database.SqlQuery<int>($"SELECT execute_as_principal_id AS Value FROM sys.sql_modules WHERE object_id=OBJECT_ID('dbo.fe05_inspection_issuer_v1')").SingleAsync()!=-2)throw new Exception("Module not EXECUTE AS OWNER");
         Console.WriteLine("PASS Candidate module created WITH EXECUTE AS OWNER; unregistered and ungranted");
-        var operation=Guid.NewGuid();var fingerprint=new byte[32];
+        var operation=Guid.NewGuid();
         async Task LockScope(RoomTypeCreationService s,SessionReference t,long sid)
         {var load=await s.PrepareRejectInCallerTransactionAsync(t,sid,new(branch,root.InspectionId,new("SQL issuer fixture",true,await Tag())),default);Status(load,RoomTypeBatchStatus.Success);}
-        Task Raw(SessionReference t,long sid,long scope,long id,string tag,bool? confirmed=true,string action="VALIDATE_REJECT")
+        Task Raw(SessionReference t,long sid,long scope,long id,string tag,bool? confirmed=true,string action="VALIDATE_REJECT",bool tamper=false)
         {
+            var identity=InspectionIssuerOperation.Reject(operation,t.UserId,scope,id,tag,new("SQL issuer fixture",confirmed,tag));
+            var canonical=identity.Canonical; var digest=identity.Fingerprint;
+            if(tamper)canonical=canonical.Replace("|UC045|","|UC046|");
             var bit=new Microsoft.Data.SqlClient.SqlParameter("@confirmation",System.Data.SqlDbType.Bit){Value=(object?)confirmed??DBNull.Value};
-            return db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fe05_inspection_issuer_v1 @action={action},@actor={t.UserId},@session={sid},@session_hash={t.KeyHash},@session_created={t.CreatedAtUtc},@branch={scope},@inspection={id},@expected={Convert.FromHexString(tag.Trim('"'))},@operation={operation},@fingerprint={fingerprint},@reason={"SQL issuer fixture"},@confirmed={bit}");
+            return db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fe05_inspection_issuer_v1 @action={action},@actor={t.UserId},@session={sid},@session_hash={t.KeyHash},@session_created={t.CreatedAtUtc},@branch={scope},@inspection={id},@expected={Convert.FromHexString(tag.Trim('"'))},@operation={operation},@fingerprint={digest},@canonical={canonical},@reason={"SQL issuer fixture"},@confirmed={bit}");
         }
         async Task RejectSql(string message,Func<Task> run){try{await run();}catch(Microsoft.Data.SqlClient.SqlException e)when(e.Number==51996 && e.Message.Contains(message,StringComparison.Ordinal)){return;}throw new Exception("Expected SQL rejection: "+message);}
         try
         {
+            await Check("SQL execute-only caller can validate source without underlying table authority",false,async(s,t,sid)=>{
+                await LockScope(s,t,sid);var tag=await Tag();await guard();
+                await db.Database.ExecuteSqlRawAsync("IF DATABASE_PRINCIPAL_ID('fe05_fast007_execute_only') IS NOT NULL THROW 51996,'Refusing preexisting test principal',1; CREATE USER fe05_fast007_execute_only WITHOUT LOGIN; GRANT EXECUTE ON OBJECT::dbo.fe05_inspection_issuer_v1 TO fe05_fast007_execute_only;");
+                await db.Database.ExecuteSqlRawAsync("EXECUTE AS USER='fe05_fast007_execute_only'");
+                try {
+                    var permissions=await db.Database.SqlQuery<int>($"SELECT CASE WHEN HAS_PERMS_BY_NAME('dbo.fe05_inspection_issuer_v1','OBJECT','EXECUTE')=1 AND ISNULL(HAS_PERMS_BY_NAME('dbo.room_inspections','OBJECT','UPDATE'),0)=0 AND ISNULL(HAS_PERMS_BY_NAME('dbo.room_inspections','OBJECT','SELECT'),0)=0 THEN 1 ELSE 0 END AS Value").SingleAsync();
+                    if(permissions!=1)throw new Exception("Execute-only isolation failed");
+                    await Raw(t,sid,branch,root.InspectionId,tag);
+                } finally { await db.Database.ExecuteSqlRawAsync("REVERT"); }
+            });
+            await Check("Real N01 reservation failure poisons guarded EF commit and rolls back SQL",false,async(s,t,sid)=>{
+                if(commitGuard==null)return; // This case runs only through the dedicated guarded SQL mode.
+                await LockScope(s,t,sid);var tag=await Tag();
+                var identity=new Identity(new(t.UserId,sid,false));
+                var staging=new HotelOps.Api.Services.Notifications.Fe05OperationStaging(db,commitGuard,identity,
+                    new HotelOps.Api.Services.Notifications.UnacceptedFe05Coordination(),
+                    new HotelOps.Api.Services.Notifications.Fe05NotificationStaging(db,commitGuard,identity,
+                        new HotelOps.Api.Services.Notifications.UnacceptedFe05Source(),new HotelOps.Api.Services.Notifications.UnacceptedFe05Recipients()),
+                    new HotelOps.Api.Services.Notifications.Fe05Fs013CandidateStore(db,new InspectionClosedTrialExecution()));
+                await guard();await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.attachments SET original_file_name='rollback-after-n01-boundary.pdf' WHERE entity_type='INSPECTION' AND entity_id={root.InspectionId}");
+                var op=InspectionIssuerOperation.Reject(operation,t.UserId,branch,root.InspectionId,tag,new("SQL issuer fixture",true,tag));
+                try { await s.ComposeRejectInspectionAsync(t,sid,branch,root.InspectionId,tag,operation,new("SQL issuer fixture",true),staging,commitGuard,default); throw new Exception("Unaccepted coordination bypassed"); }
+                catch(HotelOps.Api.Services.Notifications.Fe05NotificationUnavailableException){}
+                try { await commitGuard.VerifyBeforeCommitAsync(db,default); throw new Exception("Poisoned final gate accepted"); }
+                catch(InvalidOperationException e)when(e.Message.Contains("roll back")){}
+                try { await db.Database.CurrentTransaction!.CommitAsync(); throw new Exception("Poisoned EF commit reached provider"); }
+                catch(InvalidOperationException e)when(e.Message.Contains("roll back")){}
+            });
             await Check("SQL owner module validates real assigned Reject source",false,async(s,t,sid)=>{
                 var input=new RejectInspectionInput("SQL issuer fixture",true,await Tag());var op=InspectionIssuerOperation.Reject(operation,actor,branch,root.InspectionId,input.ExpectedETag!,input);
                 var result=await s.ExecuteTrustedRejectDomainInCallerTransactionAsync(t,sid,new(branch,root.InspectionId,input),op,default,validateOnly:true);
                 if(result.Revision==null || '"'+Convert.ToHexString(result.Revision)+'"'!=input.ExpectedETag)throw new Exception("Trusted source mismatch");
+            });
+            await Check("SQL rejects changed canonical bytes before source mutation",false,async(s,t,sid)=>{
+                await LockScope(s,t,sid);var tag=await Tag();await RejectSql("FE05_CANONICAL_FINGERPRINT_INVALID",()=>Raw(t,sid,branch,root.InspectionId,tag,tamper:true));
+            });
+            await Check("SQL hashes non-ASCII reason identically to CSharp",false,async(s,t,sid)=>{
+                var tag=await Tag();var text="Kiểm tra phòng 🔍";var op=InspectionIssuerOperation.Reject(operation,actor,branch,root.InspectionId,tag,new(text,true,tag));
+                var result=await s.ExecuteTrustedRejectDomainInCallerTransactionAsync(t,sid,new(branch,root.InspectionId,new(text,true,tag)),op,default,validateOnly:true);
+                if(result.Revision==null)throw new Exception("Unicode canonical source mismatch");
+            });
+            await Check("SQL canonical UC046 fingerprint and UTC ticks match CSharp",false,async(s,t,sid)=>{
+                var tag=await Tag();var due=new DateTime(2027,1,2,3,4,5,DateTimeKind.Utc).AddTicks(1234567);
+                var op=InspectionIssuerOperation.Rework(operation,actor,branch,root.InspectionId,tag,new(5,due,[9,8],"Reason"));
+                var hash=await db.Database.SqlQuery<byte[]>($"SELECT HASHBYTES('SHA2_256',CONVERT(varchar(max),{op.Canonical})) AS Value").SingleAsync();
+                var ticks=await db.Database.SqlQuery<long>($"SELECT DATEDIFF_BIG(day,CONVERT(datetime2(7),'00010101',112),CONVERT(date,{due}))*CONVERT(bigint,864000000000)+DATEDIFF_BIG(nanosecond,CONVERT(datetime2(7),CONVERT(date,{due})),CONVERT(datetime2(7),{due}))/100 AS Value").SingleAsync();
+                if(!hash.SequenceEqual(op.Fingerprint)||ticks!=due.Ticks)throw new Exception("SQL/CSharp UC046 canonical mismatch");
             });
             await Check("Missing canonical N01 reservation blocks mutation without partial state",false,async(s,t,sid)=>{
                 await LockScope(s,t,sid);var tag=await Tag();await RejectSql("FE05_N01_RESERVED_OPERATION_REQUIRED",()=>Raw(t,sid,branch,root.InspectionId,tag,action:"REJECT"));

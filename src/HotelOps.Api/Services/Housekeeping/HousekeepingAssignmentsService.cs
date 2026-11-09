@@ -96,8 +96,8 @@ public sealed partial class RoomTypeCreationService
         }, ct, additionalUsers: [input.InspectorId], eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token), permissionCode: "INSPECTION_PERFORM");
     }
 
-    public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket,long sid,long branch,long inspection,string tag,RequestReworkRequest input,CancellationToken ct)
-        => RequestAuthoritativeReworkAsync(ticket,sid,branch,inspection,tag,input,ct);
+    public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket,long sid,long branch,long inspection,string tag,RequestReworkRequest input,CancellationToken ct,string? operationKey = null)
+        => RequestAuthoritativeReworkAsync(ticket,sid,branch,inspection,tag,input,ct,operationKey);
     private async Task<bool> DueHousekeeper(long id, long branch, DateTime due, CancellationToken ct) => due > clock.GetUtcNow().UtcDateTime
         && await EligibleHousekeeper(id, branch, clock.GetUtcNow().UtcDateTime, ct);
 }

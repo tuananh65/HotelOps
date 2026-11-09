@@ -1,0 +1,12 @@
+PASS N01 staging resolves through exact source DI
+PASS One guard singleton across caller scopes
+PASS No worker registered
+PASS No producer profile registered
+PASS Notification mapping uses approved partial hook
+PASS FS013 model preserved
+PASS Reject public activation remains closed
+PASS Rework public activation requires byte immutability
+PASS Worker cannot activate by configuration
+PASS Remote trial execution remains closed
+PASS DI/model checks open no SQL connection
+11/11 PASS composition/model checks; no SQL or authority acceptance

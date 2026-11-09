@@ -1,0 +1,15 @@
+PASS Canonical identity deterministic
+PASS Canonical reason normalized
+PASS Revision bound
+PASS Branch bound
+PASS Actor bound
+PASS Confirmation bound
+PASS Null confirmation is distinct from false
+PASS Canonical request remains ASCII for Unicode reasons
+PASS Reason delimiters cannot change canonical field count
+PASS UC045 and UC046 operation identities separated
+PASS Selected defect set canonical
+PASS Assignee bound
+PASS Due bound
+PASS Empty operation refused
+14/14 PASS — candidate canonical request unit checks, not replay acceptance

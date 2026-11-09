@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Notifications;
 using HotelOps.Api.Data;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Security;
@@ -15,8 +16,10 @@ builder.Services.AddScoped<StartupSchemaValidator>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 
-builder.Services.AddDbContext<HotelOpsDbContext>(options =>
-    options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance).UseSqlServer(
+// FAST007 composes the exact singleton guard; worker/producer activation is not authorized.
+HotelOps.Api.Services.HotelStructure.InspectionCompositionRegistration.AddInspectionConclusionComposition(builder.Services,builder.Configuration);
+builder.Services.AddDbContext<HotelOpsDbContext>((services, options) =>
+    options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance, services.GetRequiredService<NotificationCommitGuard>()).UseSqlServer(
         builder.Configuration.GetConnectionString("HotelOpsDb")));
 
 // Add services to the container.

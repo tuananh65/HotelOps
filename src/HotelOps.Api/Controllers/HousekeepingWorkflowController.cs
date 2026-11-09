@@ -34,7 +34,7 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
         => Execute((ticket,sid) => service.AssignInspectionAsync(ticket,sid,branchId,id,input,ct),false,true);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true,true);
+        => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct,Request.Headers["Idempotency-Key"].ToString()),true,true);
     private Task<IActionResult> Inspect(long branch,long id,string action,SaveInspectionRequest? save,RecordInspectionDefectRequest? defect,string? reason,CancellationToken ct)
         => Execute((ticket,sid) => service.ExecuteInspectionAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),action,save,defect,reason,Root,ct),action!="read");
     private async Task<IActionResult> Execute(Func<SessionReference,long,Task<RoomTypeBatchResult>> action,bool conditional,bool created=false)

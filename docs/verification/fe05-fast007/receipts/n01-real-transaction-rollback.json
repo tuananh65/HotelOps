@@ -1,0 +1,16 @@
+{
+  "success": true,
+  "moduleCreated": true,
+  "executeAsOwner": true,
+  "registeredIssuer": false,
+  "publicMutation": false,
+  "successfulDomainMutation": false,
+  "allCasesRollbackVerified": true,
+  "cases": [
+    {
+      "name": "Real N01 reservation failure poisons guarded EF commit and rolls back SQL",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}
