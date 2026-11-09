@@ -1,4 +1,4 @@
-﻿import { createHttpClient } from "../auth/http";
+import { createHttpClient } from "../auth/http";
 import { safeId } from "./contracts";
 import {
   decodeScheduledResponse,
@@ -11,7 +11,20 @@ export function createScheduledWorkdayApi(
   dispatchEnabled = false,
 ) {
   const csrf = createHttpClient(fetcher);
+  let pending = false;
   async function mutate(
+    ...args: Parameters<typeof dispatch>
+  ): Promise<ScheduledResult> {
+    if (pending)
+      return { outcome: "NOT_DISPATCHED", error: { reason: "BUSY" } };
+    pending = true;
+    try {
+      return await dispatch(...args);
+    } finally {
+      pending = false;
+    }
+  }
+  async function dispatch(
     branch: number,
     assignmentId: number,
     workdayId: number | undefined,

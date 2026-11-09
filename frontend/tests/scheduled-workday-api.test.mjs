@@ -291,3 +291,97 @@ for (const endedAtUtc of [
     assert.equal(result.data.endedAtUtc, endedAtUtc);
   });
 }
+
+for (const phase of ["csrf", "post"]) {
+  for (const firstOperation of ["start", "end"]) {
+    for (const secondOperation of ["start", "end"]) {
+      test(
+        "client excludes overlapping " +
+          firstOperation +
+          "/" +
+          secondOperation +
+          " during " +
+          phase,
+        async () => {
+          const calls = [],
+            waiters = [];
+          const api = createScheduledWorkdayApi(async (url, options) => {
+            calls.push([url, options]);
+            const isCsrf = url.endsWith("/csrf");
+            const finish = () =>
+              isCsrf
+                ? csrf()
+                : response(
+                    body(url.endsWith("/end")),
+                    url.endsWith("/end") ? 200 : 201,
+                  );
+            if ((phase === "csrf" && isCsrf) || (phase === "post" && !isCsrf))
+              return new Promise((resolve) =>
+                waiters.push(() => resolve(finish())),
+              );
+            return finish();
+          }, true);
+          const invoke = (operation) =>
+            operation === "start"
+              ? api.start(1, 10, () => true)
+              : api.end(1, 20, 10, tag, () => true);
+          const first = invoke(firstOperation);
+          await new Promise(setImmediate);
+          const second = invoke(secondOperation);
+          await new Promise(setImmediate);
+          waiters.splice(0).forEach((finish) => finish());
+          const [firstResult, secondResult] = await Promise.all([
+            first,
+            second,
+          ]);
+          assert.equal(firstResult.outcome, "CONFIRMED");
+          assert.deepEqual(secondResult, {
+            outcome: "NOT_DISPATCHED",
+            error: { reason: "BUSY" },
+          });
+          assert.equal(
+            calls.filter(([, options]) => options.method === "POST").length,
+            1,
+          );
+          assert.equal(
+            calls.filter(([url]) => url === "/api/auth/csrf").length,
+            1,
+          );
+        },
+      );
+    }
+  }
+}
+for (const firstOutcome of ["confirmed", "rejected", "preflight-failed"]) {
+  test(
+    "client releases exclusion after " +
+      firstOutcome +
+      " without queuing a second operation",
+    async () => {
+      let calls = 0;
+      const api = createScheduledWorkdayApi(async (url) => {
+        calls++;
+        if (firstOutcome === "preflight-failed" && calls === 1)
+          return Response.json({}, { status: 401 });
+        if (url.endsWith("/csrf")) return csrf();
+        if (firstOutcome === "rejected" && calls === 2)
+          return Response.json({}, { status: 409 });
+        return response(body(), 201);
+      }, true);
+      const first = await api.start(1, 10, () => true);
+      assert.equal(
+        first.outcome,
+        firstOutcome === "confirmed"
+          ? "CONFIRMED"
+          : firstOutcome === "rejected"
+            ? "REJECTED"
+            : "NOT_DISPATCHED",
+      );
+      const before = calls;
+      await new Promise(setImmediate);
+      assert.equal(calls, before);
+      assert.equal((await api.start(1, 10, () => true)).outcome, "CONFIRMED");
+      assert.equal(calls, before + 2);
+    },
+  );
+}
