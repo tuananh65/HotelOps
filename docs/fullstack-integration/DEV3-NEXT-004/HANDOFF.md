@@ -29,3 +29,9 @@ No backend, Auth, public route, shared policy, schema, SQL, DEV1/DEV2-owned sour
 ## SHA-256
 frontend/src/workday/scheduledWorkdayApi.ts: 594E4015BD174D2FC047B1CF18CDF8C9B18F229472A8F0BD539E2CB0E3205DB4
 frontend/tests/scheduled-workday-api.test.mjs: 7AAD1E8ABF46F885CCF5EBA66ED171B10F2CED9163E535BC34CCEED46728BE24
+
+## DEV3-NEXT-005 combined acceptance
+
+Merged integration 78f57f1f22bbf401434d058b47b83033a2b43898 without conflict. Allowlist expanded to four files by adding scheduled-workday-browser.test.mjs. Eleven new browser cases cover CSRF 401 on Start/End with successful/failed revalidation, branch bypass prevention, independent 403 denial, 503 unavailable, network/cancelled/malformed preflight and zero POST. Console and rendered-content assertions reject sensitive fixture text. Existing API tests verify no fabricated status and sanitized NOT_DISPATCHED results.
+
+Final combined regression 123/123 PASS (52 API + 36 browser + 35 read), exit 0; Auth HTTP/state 94/94 PASS, exit 0; typecheck/build/scoped Prettier exit 0. Initial combined run 122 PASS / 1 FAIL: assertion incorrectly waited for transient provider loading after 401. Corrected to assert final Confirmed unrestricted session required state; no production behavior changed. Two inherited React Router build warnings. Calendar and previous session tests preserved. Shared SQL/live, concurrency/rollback/audit acceptance remain NOT_RUN; all activation gates unchanged.
