@@ -34,3 +34,9 @@ frontend/src/roles/customRoleApi.ts: 1EE651526C93F6425915876E30A473F02A1A6CC9B52
 frontend/tests/custom-role-api.test.mjs: AEBE6399B1243ECE2790506E6551563F01A0064C3315F266D4EAF42F33BDCAD6
 frontend/tests/custom-role-browser.test.mjs: 7DCF4344C7A03AC8E8755A2E950CD3C16CC1DA32BCC57856F770634DC3760D57
 scripts/verification/CustomRole/Program.cs: D19E4B988604CAC7E2D9FD8FD5DF382377C1FF89140AE66BF129F4143BFDDF0B
+
+## DEV3-NEXT-002 synchronized verification
+
+Merged integration f219d6fc6fea5ee6ce6a375cf3a4d7347f99db1c into this feature branch without conflicts. Functional PR delta remains exactly the same five files; inherited UC001 regression commits are not new PR functionality.
+
+Re-executed backend build (0 warnings/errors), CustomRole verification 25/25, frontend Create/catalog 60/60, Auth HTTP/state 94/94, typecheck, build and scoped Prettier: all exit 0. Build retains two inherited React Router warnings. No live SQL/HTTPS or activation. Existing normalization and mutation safety boundaries remain unchanged.
