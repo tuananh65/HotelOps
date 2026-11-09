@@ -124,3 +124,47 @@ test("invalid metadata sends nothing", async () => {
   }, true).create({ ...input, roleCode: "" }, () => true);
   assert.equal(n, 0);
 });
+
+for (const [submitted, normalized] of [
+  [" straße ", "STRAßE"],
+  ["ß", "ß"],
+  ["ﬀ", "ﬀ"],
+]) {
+  test(
+    "201 invariant normalization without full case expansion: " + submitted,
+    async () => {
+      const calls = [];
+      const result = await createCustomRoleApi(async (url, options) => {
+        calls.push([url, options]);
+        return url.endsWith("/csrf")
+          ? csrf()
+          : created({ ...dto, roleCode: normalized });
+      }, true).create({ ...input, roleCode: submitted }, () => true);
+      assert.equal(result.outcome, "CONFIRMED");
+      assert.equal(result.data.roleCode, normalized);
+      assert.equal(calls.length, 2);
+      assert.equal(calls[1][1].method, "POST");
+      assert.equal(JSON.parse(calls[1][1].body).roleCode, submitted);
+    },
+  );
+}
+
+for (const wrongCode of ["STRASSE", "OTHER", "straße"]) {
+  test(
+    "unrelated or noncanonical Unicode success remains unknown: " + wrongCode,
+    async () => {
+      let posts = 0;
+      const result = await createCustomRoleApi(async (url) => {
+        if (url.endsWith("/csrf")) return csrf();
+        posts++;
+        return created({ ...dto, roleCode: wrongCode, traceId: "SECRET" });
+      }, true).create({ ...input, roleCode: "straße" }, () => true);
+      assert.deepEqual(result, {
+        outcome: "OUTCOME_UNKNOWN",
+        reason: "INVALID_RESPONSE",
+      });
+      assert.equal(posts, 1);
+      assert.ok(!JSON.stringify(result).includes("SECRET"));
+    },
+  );
+}
