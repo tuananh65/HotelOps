@@ -19,6 +19,11 @@ export function ScheduledWorkdayPanel({
   dispatchEnabled?: boolean;
 }) {
   const { state, actions } = useAuth();
+  const identity = useMemo(
+    () => ({}),
+    [state.session, state.status, state.pending],
+  );
+  const [invalidIdentity, setInvalidIdentity] = useState<object | null>(null);
   const binding = useMemo(
     () => ({}),
     [state.session, state.status, state.pending, branchId, dispatchEnabled],
@@ -40,11 +45,23 @@ export function ScheduledWorkdayPanel({
         </button>
       </section>
     );
+  if (invalidIdentity === identity)
+    return (
+      <section>
+        <p role="alert">
+          Session invalid. Revalidate before reading or changing workday.
+        </p>
+        <button onClick={() => void actions.revalidate()}>
+          Revalidate session
+        </button>
+      </section>
+    );
   if (!safeId(branchId)) return <p role="alert">Choose a valid branch ID.</p>;
   return (
     <Bound
       key={key(binding)}
       {...{ branchId, dispatchEnabled, current }}
+      invalidate={() => setInvalidIdentity(identity)}
       revalidate={() => void actions.revalidate()}
     />
   );
@@ -54,11 +71,13 @@ function Bound({
   dispatchEnabled,
   current,
   revalidate,
+  invalidate,
 }: {
   branchId: number;
   dispatchEnabled: boolean;
   current: () => boolean;
   revalidate: () => void;
+  invalidate: () => void;
 }) {
   const [read] = useState(() => createWorkdayApi()),
     [write] = useState(() =>
@@ -75,11 +94,25 @@ function Bound({
     [refresh, setRefresh] = useState(0),
     [pending, setPending] = useState(false),
     [message, setMessage] = useState(""),
+    [sessionInvalid, setSessionInvalid] = useState(false),
     [locked, setLocked] = useState(false);
   const mounted = useRef(false),
     busy = useRef(false),
     uncertain = useRef(false),
+    invalid = useRef(false),
     controller = useRef<AbortController | null>(null);
+  function invalidateSession() {
+    invalid.current = true;
+    invalidate();
+    busy.current = true;
+    controller.current?.abort();
+    setSessionInvalid(true);
+    setShifts(null);
+    setDay(undefined);
+    setSelection("");
+    setMessage("");
+    setPending(false);
+  }
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -96,12 +129,20 @@ function Bound({
     setShiftError("");
     setDayError("");
     void read.ownShifts(branchId, abort.signal).then((r) => {
-      if (!active || !current()) return;
+      if (!active || !current() || invalid.current) return;
+      if (!r.ok && r.error === "unauthorized") {
+        invalidateSession();
+        return;
+      }
       if (r.ok) setShifts(r.data);
       else setShiftError(`Assigned shifts unavailable: ${r.error}.`);
     });
     void read.current(branchId, abort.signal).then((r) => {
-      if (!active || !current()) return;
+      if (!active || !current() || invalid.current) return;
+      if (!r.ok && r.error === "unauthorized") {
+        invalidateSession();
+        return;
+      }
       if (r.ok) {
         setDay(r.data);
         if (!uncertain.current) busy.current = false;
@@ -129,6 +170,7 @@ function Bound({
       !dispatchEnabled ||
       busy.current ||
       uncertain.current ||
+      invalid.current ||
       !mounted.current ||
       !current() ||
       (operation === "start" ? !startAllowed : !endAllowed)
@@ -143,7 +185,7 @@ function Bound({
         ? await write.start(
             branchId,
             selected!.shiftAssignmentId,
-            () => mounted.current && current(),
+            () => mounted.current && current() && !invalid.current,
             controller.current.signal,
           )
         : await write.end(
@@ -151,10 +193,14 @@ function Bound({
             day!.workdayId,
             day!.shiftAssignmentId!,
             `"${day!.rowVersion}"`,
-            () => mounted.current && current(),
+            () => mounted.current && current() && !invalid.current,
             controller.current.signal,
           );
-    if (!mounted.current || !current()) return;
+    if (!mounted.current || !current() || invalid.current) return;
+    if (result.outcome !== "CONFIRMED" && result.error.status === 401) {
+      invalidateSession();
+      return;
+    }
     setPending(false);
     if (result.outcome === "CONFIRMED") {
       setDay(undefined);
@@ -173,6 +219,15 @@ function Bound({
     if (result.outcome !== "CONFIRMED") busy.current = false;
   }
 
+  if (sessionInvalid)
+    return (
+      <section>
+        <p role="alert">
+          Session invalid. Revalidate before reading or changing workday.
+        </p>
+        <button onClick={revalidate}>Revalidate session</button>
+      </section>
+    );
   return (
     <main>
       <h1>Scheduled workday</h1>
