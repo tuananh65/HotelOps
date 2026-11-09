@@ -28,3 +28,7 @@ The guard is per API instance, not server idempotency, cross-tab exclusion or a 
 frontend/src/workday/scheduledWorkdayApi.ts: EF263F068C1B5C21B27A68A0F728B6A8B77FC2228718FB343D9B3573EA3C259D
 frontend/src/workday/scheduledContracts.ts: 829C68C39596E56046F56D18BF1383679FD6BB69043A179BAADD2A283A57488C
 frontend/tests/scheduled-workday-api.test.mjs: C44551F069E3162CBFEF58722872F523A2B1E6F84546C0A9926AD981FE7EFEE4
+
+## DEV3-NEXT-006 synchronized acceptance
+
+Merged integration 71b97f1030d5da3167795030fa847d043704537f. Single conflict in appended scheduled-workday-api.test.mjs blocks; retained complete exclusion tests and appended complete incoming CSRF status tests. API source auto-merge preserves both guard/finally and sanitized preflight status. Functional allowlist remains four files. Combined 134/134 PASS (63 API + 36 browser + 35 read); Auth HTTP/state 94/94 PASS; typecheck/build exit 0. Scoped formatting initially exit 1 after merge, corrected and final exit 0. Two inherited React Router warnings. No activation, shared SQL or live acceptance.
