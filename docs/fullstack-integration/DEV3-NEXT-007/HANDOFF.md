@@ -37,3 +37,7 @@ src/HotelOps.Api/Services/WorkTime/ShiftSchedulePlanner.cs: AF4E3C12234EB6143485
 src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs: B53928FE1503E257A6CB5C6962A8E592EDFD80C7633B26F0553439ED9941ED02
 scripts/verification/ShiftSchedulePlanning/Program.cs: 32B5A60060EA7281846735870035702AAA67B78B0E2858CF773505E802D81ABA
 scripts/verification/ShiftSchedulePlanning/ShiftSchedulePlanning.Verification.csproj: D5DB2CEC2BFB132082C19FC51669858F454CCB2AFD6D9FE87A6790D8AA96E8F0
+
+## DEV3-NEXT-008 synchronization
+
+Merged integration ec945e9070855baf2cebf3ecddd8f2229020d33a without conflict. Same five functional files. Backend build exit 0, zero warnings/errors; focused planner checks 24/24 PASS, exit 0. Scoped dotnet format whitespace for planner and conflict reader --verify-no-changes --no-restore exit 0. Planner requires caller-verified timezone; reader overload validates active/same-branch template and delegates global employee overlap. No SQL/live, route activation or policy change.
