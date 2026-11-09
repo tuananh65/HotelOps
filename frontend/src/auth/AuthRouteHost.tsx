@@ -1,3 +1,4 @@
+import { RoleCatalogRoute } from "../roles/RoleCatalogRoute";
 import { useRef } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
@@ -89,6 +90,7 @@ function BusinessBoundary() {
     <main>
       <h1>HotelOps workspace</h1>
       <p>This business screen is not integrated yet.</p>
+      <Link to="/roles">Role directory</Link>
       <Link to="/profile">Profile</Link>
       <Link to="/change-password">Change password</Link>
     </main>
@@ -122,6 +124,19 @@ export function AuthRouteHost() {
         element={<AuthFormRoute key="changePassword" kind="changePassword" />}
       />
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
+      <Route path="/roles" element={<RoleCatalogRoute mode="list" />} />
+      <Route
+        path="/roles/:roleId"
+        element={<RoleCatalogRoute mode="detail" />}
+      />
+      <Route
+        path="/roles/:roleId/permissions"
+        element={<RoleCatalogRoute mode="matrix" />}
+      />
+      <Route
+        path="/permissions"
+        element={<RoleCatalogRoute mode="catalog" />}
+      />
       <Route path="/dev/*" element={<PrototypeUnavailable />} />
       <Route path="/users/new" element={<CreateUserFlowBoundary />} />
       <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />
