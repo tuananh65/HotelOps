@@ -10,7 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation")) throw new ArgumentException("mode environment-receipt output-directory");
+if(args.Length == 1 && args[0] == "authority-unit") { await InspectionAuthorityUnitChecks.RunAsync(); return; }
+if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection")) throw new ArgumentException("mode environment-receipt output-directory");
 using var env = JsonDocument.Parse(await File.ReadAllTextAsync(args[1]));
 var e = env.RootElement; var name = e.GetProperty("database").GetString()!; var owner = e.GetProperty("owner").GetString()!;
 if (!e.GetProperty("success").GetBoolean() || !e.GetProperty("createdByThisRun").GetBoolean()
@@ -33,6 +34,9 @@ async Task Save() { await Guard(); await db.SaveChangesAsync(); db.ChangeTracker
 async Task Write(string file, object value) => await File.WriteAllTextAsync(Path.Combine(output,file),JsonSerializer.Serialize(value,new JsonSerializerOptions{WriteIndented=true}));
 await Guard();
 if(args[0]=="probe") { Console.WriteLine("PASS owned database identity"); return; }
+if(args[0]=="authority-selection") { await InspectionAuthoritySqlChecks.RunAsync(db,args[1],output,Guard,"Foreign persisted selected defect is rejected"); return; }
+if(args[0]=="authority-concurrency") { await InspectionAuthoritySqlChecks.RunAsync(db,args[1],output,Guard,"Concurrent Reject/Rework contends on source locks and leaves no partial records"); return; }
+if(args[0]=="authority") { await InspectionAuthoritySqlChecks.RunAsync(db,args[1],output,Guard); return; }
 if(args[0]=="preparation") { await ConclusionPreparationChecks.RunAsync(db,args[1],output,Guard); return; }
 var branch = await db.Branches.Where(b=>b.BranchCode=="BR001").Select(b=>b.BranchId).SingleAsync();
 var foreign = await db.Branches.Where(b=>b.BranchCode=="BR002").Select(b=>b.BranchId).SingleAsync();

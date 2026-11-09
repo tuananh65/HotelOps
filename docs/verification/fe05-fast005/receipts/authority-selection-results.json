@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "sqlServer": true,
+  "realSessionValidation": true,
+  "allCasesExplicitRollback": true,
+  "realProofIssued": false,
+  "productionCommit": false,
+  "cases": [
+    {
+      "name": "Foreign persisted selected defect is rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}

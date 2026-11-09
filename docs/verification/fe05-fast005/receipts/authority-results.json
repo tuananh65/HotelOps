@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "sqlServer": true,
+  "realSessionValidation": true,
+  "allCasesExplicitRollback": true,
+  "realProofIssued": false,
+  "productionCommit": false,
+  "cases": [
+    {
+      "name": "Persisted Reject/Rework snapshot produces exact R01 receipt fields in caller transaction",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "R01 selected defect command must match persisted selection",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "D4 metadata change rejects stale authority command",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Wrong persisted cycle prevents authority preparation",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Real revoked SQL session cannot prepare authority",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Real permission denied before authority facts",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Caller rejects another physical connection",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Conclusion receipt and FE04 projection adapter remain fail-closed without schema/staging",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Selected linked evidence uses real file bytes; missing file rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Concurrent Reject/Rework contends on source locks and leaves no partial records",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}

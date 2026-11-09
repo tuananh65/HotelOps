@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "sqlServer": true,
+  "realSessionValidation": true,
+  "allCasesExplicitRollback": true,
+  "realProofIssued": false,
+  "productionCommit": false,
+  "cases": [
+    {
+      "name": "Concurrent Reject/Rework contends on source locks and leaves no partial records",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}
