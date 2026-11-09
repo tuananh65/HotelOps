@@ -29,3 +29,7 @@ Auth/Users, FE12, UC012 Create/Update, backend, schema, permissions and DEV1/DEV
 frontend/src/hotel/RoomDirectoryResults.tsx: 401A78F60865621F809404855498DB7FF6AED837EBBC8A8FC151AFC07ED56AFA
 frontend/src/hotel/HotelWorkspace.tsx: 69451327E9E2C24C5EB5A2A40CC2460867D85159287A5902287EE2FA693F1B4A
 frontend/tests/hotel-router-integration.test.mjs: DE1A89F415ADD58ACCFD1E22D9034659EEAD0DE4F90239188BB9E0E5A5E9063A
+
+## DEV3-NEXT-007 synchronization
+
+Merged integration fdd46ac89e645f40470e9b772fb0224cf41b226e without conflict. Same four functional files. Re-executed focused Hotel router 9/9, Room API 3/3, Auth HTTP/state 94/94, typecheck/build/scoped formatting: PASS, all exit 0. Two inherited React Router warnings. UC023 already COMPLETE in historical ledger; this PR is UX improvement only, no additional completion credit.
