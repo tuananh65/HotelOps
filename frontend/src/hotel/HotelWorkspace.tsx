@@ -1,3 +1,4 @@
+import { RoomDirectoryResults } from "./RoomDirectoryResults";
 import { useRef, useState } from "react";
 import { Link, Navigate, useLocation, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -194,7 +195,13 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
     params.branchId ?? search.get("branchId") ?? "",
   );
   const [record, setRecord] = useState(params.id ?? "");
-  const [action, setAction] = useState<Action>(params.id ? "detail" : "browse");
+  const [action, setAction] = useState<Action>(
+    params.id
+      ? screen === "rooms" && search.get("view") === "history"
+        ? "history"
+        : "detail"
+      : "browse",
+  );
   const [query, setQuery] = useState("");
   const [active, setActive] = useState("");
   const [page, setPage] = useState("1");
@@ -642,7 +649,11 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
       {snapshot && (
         <section aria-label="Server hotel data">
           <h2>Server record snapshot</h2>
-          <Values value={snapshot.data} />
+          {screen === "rooms" && action === "browse" ? (
+            <RoomDirectoryResults data={snapshot.data as ReadTypes["rooms"]} />
+          ) : (
+            <Values value={snapshot.data} />
+          )}
         </section>
       )}
       {(typeReadOnly || inactive) && (
