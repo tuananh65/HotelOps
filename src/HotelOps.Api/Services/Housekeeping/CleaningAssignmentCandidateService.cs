@@ -30,12 +30,33 @@ public sealed partial class RoomTypeCreationService
             {
                 return new(RoomTypeBatchStatus.Unavailable);
             }
+            catch (Exception recoveryError) when (recoveryError is NotificationContractUnavailableException or NotificationConflictException
+                or CleaningSourceStaleException or UnauthorizedAccessException)
+            {
+                return CleaningNotificationFailureResult(recoveryError);
+            }
+        }
+        // Core's caller-owned transaction has been disposed/rolled back before these mappings.
+        catch (Exception error) when (error is NotificationContractUnavailableException or NotificationConflictException
+            or CleaningSourceStaleException or UnauthorizedAccessException)
+        {
+            return CleaningNotificationFailureResult(error);
         }
     }
+
+    private static RoomTypeBatchResult CleaningNotificationFailureResult(Exception error) =>
+        new(CleaningNotificationErrors.Classify(error) switch
+        {
+            CleaningNotificationFailure.Forbidden => RoomTypeBatchStatus.Forbidden,
+            CleaningNotificationFailure.Conflict when error is CleaningSourceStaleException => RoomTypeBatchStatus.Stale,
+            CleaningNotificationFailure.Conflict => RoomTypeBatchStatus.Duplicate,
+            _ => RoomTypeBatchStatus.Unavailable
+        });
 
     private async Task<RoomTypeBatchResult> AssignCleaningCandidateCoreAsync(SessionReference ticket, long sid, long branch, long task, string tag, string operationKey, AssignCleaningRequest input, bool recoveryOnly, CancellationToken ct)
     {
         if (candidateNotification == null || !await candidateNotification.AvailableAsync(ct)) return await AssignCleaningAsync(ticket, sid, branch, task, tag, input, ct);
+        if (cleaningNotifications == null || notificationTransactions == null) return new(RoomTypeBatchStatus.Unavailable);
         if (task <= 0 || input.AssigneeId <= 0 || !WorkflowStrongTag(tag) || !Guid.TryParseExact(operationKey, "D", out var operation) || operation == Guid.Empty || input.AdoptUnassignedLegacy)
             throw new ValidationException("Strong task ETag, GUID operation and nonlegacy command required.");
         var reason = WorkflowReason(input.Reason);
@@ -48,16 +69,20 @@ public sealed partial class RoomTypeCreationService
             // Current branch/source authorization always precedes durable replay. Eligibility only for a new mutation.
             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(x => x.CleaningTaskId == task && x.Room.BranchId == branch && x.Room.IsActive, token);
             if (row == null) return new(RoomTypeBatchStatus.NotFound);
+            var notificationLease = await cleaningNotifications.EnterAsync(db.Database.GetDbConnection(), physical,
+                new(actor, branch, task, input.AssigneeId, operation, Convert.ToHexString(fingerprint)), token);
             var prior = await candidateNotification.FindAsync(actor, operation, token);
             if (prior != null)
             {
                 if (!prior.Fingerprint.SequenceEqual(fingerprint)) return new(RoomTypeBatchStatus.Duplicate);
                 if (!prior.Completed || prior.ResultJson == null) return new(RoomTypeBatchStatus.Unavailable);
                 var stored = ProvisionalCleaningNotification.ReadResult(prior.ResultJson);
-                if (stored.Id != task || stored.BranchId != branch) return new(RoomTypeBatchStatus.Unavailable);
+                if (stored.Id != task || stored.BranchId != branch ||
+                    CleaningAssignmentNotificationReceipt.Adapt(stored) != notificationLease.Replay) return new(RoomTypeBatchStatus.Unavailable);
                 CandidateCommitGuard.Instance.Arm(physical, actor, operation);
                 return new(RoomTypeBatchStatus.Success, stored, stored.SourceETag);
             }
+            if (notificationLease.Replay != null) return new(RoomTypeBatchStatus.Unavailable);
             if (recoveryOnly) return new(RoomTypeBatchStatus.Unavailable);
             CandidateCommitGuard.Instance.Arm(physical, actor, operation, mutation: true);
             WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
@@ -73,6 +98,8 @@ public sealed partial class RoomTypeCreationService
                 var boundedResult = await candidateNotification.AssignWithEvidenceAsync(actor, branch, task, input.AssigneeId,
                     operation, fingerprint, tag, clock.GetUtcNow().UtcDateTime, input.DueAt, reason, token);
                 created = true;
+                await cleaningNotifications.StageAsync(db.Database.GetDbConnection(), physical, notificationLease,
+                    boundedResult.AssignmentId, CleaningAssignmentNotificationReceipt.Adapt(boundedResult), token);
                 return new(RoomTypeBatchStatus.Success, boundedResult, boundedResult.SourceETag);
             }
             var assigned = new CleaningAssignment { CleaningTaskId = task, AssigneeUserId = input.AssigneeId, AssignedBy = actor, AssignedAt = clock.GetUtcNow().UtcDateTime, AssignmentStatus = "ACTIVE", Reason = reason };
@@ -83,13 +110,15 @@ public sealed partial class RoomTypeCreationService
             var result = new CandidateAssignmentResult(task, assigned.AssignmentId, branch, assigned.AssigneeUserId, operation, publication, "ASSIGNED", "PENDING_DELIVERY", revision);
             await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State }, new { assignmentId = assigned.AssignmentId, operationId = operation, entity = result }, ["assignee", "workflowStatus", "dueAt"], token);
             created = true;
-            await candidateNotification.StageAsync(new(operation, publication, actor, branch, task, cycle, row.RoomId, assigned.AssignmentId, assigned.AssigneeUserId, assigned.AssignedAt, revision, input.DueAt), fingerprint, result, token);
+            await cleaningNotifications.StageAsync(db.Database.GetDbConnection(), physical, notificationLease,
+                assigned.AssignmentId, CleaningAssignmentNotificationReceipt.Adapt(result), token);
             return new(RoomTypeBatchStatus.Success, result, revision);
         }, ct, additionalUsers: [input.AssigneeId], permissionCode: "CLEANING_ASSIGN", preserveCommitErrors: true, beforeCommit: async token =>
         {
             if (physical == null) throw new InvalidOperationException("TRANSACTION_NOT_CAPTURED");
             if (created && !await DueHousekeeper(input.AssigneeId, branch, input.DueAt, token)) throw new ValidationException("Assignee eligibility changed before commit.");
             await candidateNotification.VerifyBeforeCommitAsync(physical, ticket.UserId, operation, token);
+            await notificationTransactions.VerifyBeforeCommitAsync(db.Database.GetDbConnection(), physical, token);
             if (created) await CandidateCommitGuard.VerifyAsync(physical, ticket.UserId, operation, token, mutation: true);
         });
     }

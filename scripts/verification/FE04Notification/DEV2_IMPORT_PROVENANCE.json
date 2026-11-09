@@ -1,0 +1,261 @@
+﻿{
+    "zipSha256":  "e8c636faa1ed4451db5d26565bfe5fca9e3237223a02fb8a117050dc72e78be7",
+    "dev2SourceIdentity":  "b7b4dbf1232a4d8988d868197f754efc5ecb2cfd92714755ce1f876c39629e2d",
+    "dev2ImplementationCommit":  null,
+    "frozenN01Identity":  "30bf39ba76e793bab9ad1777a5563d593b6f37239316b0877bcc011c50217392",
+    "baseDevelop":  "bc0110e97ffcb1e32f907302cf16ee45bcc5bb0c",
+    "verifiedPackageEntries":  591,
+    "verifiedSourceFiles":  476,
+    "verifiedCleaningDeltaPaths":  15,
+    "importedFiles":  {
+                          "value":  [
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningAssignmentProfile.cs",
+                                            "sha256":  "9AF1C251842879E58C6BB0E4EEEDD7934DB8D313E2CAFE049D72B76FF630FDAA",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+                                            "sha256":  "23D459A5211B5AA9307B5FF02A7C1DC3919C18321EFC5F34461E1CA9C95932F1",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationAuthority.cs",
+                                            "sha256":  "C794733D598C6F7000D97ABB180D0917E1CB8613811CC12A46CBA7720586244E",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationErrors.cs",
+                                            "sha256":  "F8BF0CEEB057D876BB8B73C444A4F99DE1A50D3B6506AA52BDA623B8F8103727",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationParticipant.cs",
+                                            "sha256":  "ED4484BFF6AB74DAB6F98A53F856BB81123E72A77B32C7B40AAD20E20B82C5BB",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationRegistration.cs",
+                                            "sha256":  "AB1A2585B580756C65AE6C18F344FADBD0D288B3529F9F89A54BB6CAF0D447A6",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+                                            "sha256":  "3F582B7FB4BF46EFFB2C2472EC2EAF7DE2A9124F71428C9B7250010FB52002A3",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05CallerIntegration.cs",
+                                            "sha256":  "F34EA36C80D5F5AA04647F707701B88B837EE51623580A1F28A700807CA03D06",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05Fs013CandidateStore.cs",
+                                            "sha256":  "D10A72807B5022F1C728F8427C09D76B485060047A53E76E931519F9B3D1E763",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
+                                            "sha256":  "D5C402D668CE21BA3CA7FC145230F2AF00B86F84574C07F88A5DB84B63D46207",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05NotificationStaging.cs",
+                                            "sha256":  "30889E884BB7D450BDDC5A48BCDE84E5DBCFC6FF6548BDF03A706C981F866807",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
+                                            "sha256":  "4941B793DE6F1E7EECE7FFB72F4CF1953B777D6765C904D554598367B275FBE4",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05RecipientResolution.cs",
+                                            "sha256":  "53A6B79FDFD157EC96147BBE67BF63AA2D376443991D4A4EF10A780901D8187E",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/Fe05SourceCoordination.cs",
+                                            "sha256":  "26E02BED47BD7546D6C8E734C9C5D44492C030EF9F075C5376EB1B98245BB086",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
+                                            "sha256":  "16C6AA47FDA12EBEBBA04CE9A4113951E9648B667AAC08C7A183E12605FCAAD2",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationContracts.cs",
+                                            "sha256":  "9ECF647A83A3F3E64643D21CF3FBD5FD66334238BB0AFE49723448E668314CF8",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationDelivery.cs",
+                                            "sha256":  "0DEB447F0FAF94CD31B92B742FA8A6B74316733B40AB27BA028E23F4BE8B87CB",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationDeliveryFailures.cs",
+                                            "sha256":  "79931546221FDC300D07DF2043D011375044815987691BEA4D376DED442ED683",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationDeliveryWorker.cs",
+                                            "sha256":  "E5CFF6A76AD5CC7FCDEA21158D29747B0A96BD4CC1868EF213C1F9AB6373CA5D",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationInbox.cs",
+                                            "sha256":  "C908EFE0762077835325224F791E78A4CA9F2E0C465BE4AC549DDB562EE7F544",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationPublisher.cs",
+                                            "sha256":  "580B895AE8DB1A0869DF9388072BFADDA5D8A999B7837ED8C3848971F792151C",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationRegistration.cs",
+                                            "sha256":  "C6B05E9A815D4F80BBAA2185E1EE2C2FE9A99C0C699D9886838837628A29AA74",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationSourcePolicy.cs",
+                                            "sha256":  "F32DBDE1EDFB37B254C4C2B8688D7BBFAA6448BC347DD73C47AFA357329C2CF1",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationSourceReference.cs",
+                                            "sha256":  "ADB6E2F5AC0E3A7E9FAE4C22C3D67596E3A8780880E1DEE12A5A1D055319B490",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Services/Notifications/NotificationTransactionParticipant.cs",
+                                            "sha256":  "A680680134A88455139F1FB803D3C33DB273B6BBDF7BF99A0F6FEB8CCCE0F473",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Data/IntegrationSqlGuard.cs",
+                                            "sha256":  "3CE18BF2C893FB1BCBFB022C2660F4ED85F086AF483477E677993500FA2A7B3E",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.Notifications.cs",
+                                            "sha256":  "226630B3CA87EF1E160F9A7DDD9FA55CC411B22D74993E95E3BCF515B02B7508",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Entities/Notifications/NotificationIntent.cs",
+                                            "sha256":  "416D326DE6C4C442774E96D30CBF3DAE0A8A044CB475F4CDDF4441F34D27CDFC",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "src/HotelOps.Api/Security/Authorization/Resources/MaintenanceWorkAccessReader.cs",
+                                            "sha256":  "FC2D09E8BEFD5828181E94D55ADAFE541830885E0640CB7F0542176DBF121DB2",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "scripts/database/notifications/Fe04UnblockP0/01_ReconcileCandidate.sql",
+                                            "sha256":  "2242FFD858C1F9CAD4ACE53A0FB74F5D491DCB4D9257AD73820B50BB493E2FF5",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "scripts/database/notifications/Fe04UnblockP0/02_RollbackCandidate.sql",
+                                            "sha256":  "646735CDDE4CFF2BD5BE24125A6614CCDCCDABC868CD560A94E6838CF2F2571E",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "scripts/database/notifications/N01Implement06/01_ForwardCandidate.sql",
+                                            "sha256":  "34F0DAFBDBDD564397366030752DC78E3534D1240ABA8F80513D18ED6DF13957",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "scripts/database/notifications/N01Implement06/02_RollbackCandidate.sql",
+                                            "sha256":  "6EA1BB756E27B643716A8632E7B529B8C24477F343938585B7C4DB293204E24D",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.Cleaning.NoSql/CleaningSqlProbe.cs",
+                                            "sha256":  "8658E85162945831A615FFB9AFE61DFB17DDFD01AB15EA223E22D7169D4009FB",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.Cleaning.NoSql/HotelOps.Notification.Cleaning.NoSql.csproj",
+                                            "sha256":  "8608B7B2821AE606879181D4A299C37B2C6E7FF7E9828AEC603867620616CB82",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.Cleaning.NoSql/Program.cs",
+                                            "sha256":  "1BB9C7F8722A968EF96DA6E6BB1E4670364C15B18C53BE107E9AA728D1C0708D",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.Cleaning.NoSql/TestHarness.cs",
+                                            "sha256":  "76E0DA6CF60D6BC1A6875B242224576D1823BFD9A263E2314F07C05BAC253715",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "CLEANING_DELTA"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.N01.NoSql/HotelOps.Notification.N01.NoSql.csproj",
+                                            "sha256":  "549C4404D62DB24D97CC843EA9B101BFE6DDBC5A445792D9A8F6777DEBA79DCA",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.N01.NoSql/ImplementationChecks.cs",
+                                            "sha256":  "EEF5D8F05FC428DC163893183CCA457E468E63E311776B5A113AD1E1C1BBE7F7",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.N01.NoSql/N01SqlComponentProbe.cs",
+                                            "sha256":  "4C178E06D5F69C3C172E130E3AD915DD4C5C6667FC1CFD935EBF3C10413FD6BA",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        },
+                                        {
+                                            "path":  "tests/HotelOps.Notification.N01.NoSql/Program.cs",
+                                            "sha256":  "82634D75CFEDDEE3D9C2E8266C3EA065F30E63AB73B135B2436A05E92E8F99B9",
+                                            "provenance":  "DEV2_PACKAGE_SOURCE_NOT_GIT_COMMIT",
+                                            "importScope":  "N01_SHARED_FOUNDATION_DEPENDENCY"
+                                        }
+                                    ],
+                          "Count":  41
+                      }
+}
