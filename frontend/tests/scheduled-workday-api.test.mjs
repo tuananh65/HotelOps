@@ -1,4 +1,4 @@
-﻿import { test } from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
 import { build } from "esbuild";
 const compiled = await build({
@@ -237,6 +237,12 @@ for (const endedAtUtc of [
   "2026-04-31T09:00:00Z",
   "2026-11-08T24:00:00Z",
   "2026-11-08T09:00:00+14:01",
+  "2026-11-08T09:00:00+15:00",
+  "2026-11-08T09:00:00-15:00",
+  "2026-11-08T09:00:00+14:30",
+  "2026-11-08T09:00:00-14:30",
+  "not-a-timestamp",
+  "2025-12-31T23:59:59Z",
 ]) {
   test(
     "invalid calendar or clock cannot confirm End: " + endedAtUtc,

@@ -30,3 +30,7 @@ This slice validates malformed End response dates; it is not full UC139 acceptan
 frontend/src/workday/scheduledContracts.ts: E7DE75AA8B1F54003A79AFF68B5C7F8C229494E7DD7F1E21EEB6BE7A780F71A1
 frontend/tests/scheduled-workday-api.test.mjs: A2ABEF515CB2D1BE30E55B98C62B432FED19F78E69798739967B55722B2AD9A8
 frontend/tests/scheduled-workday-browser.test.mjs: F2297B925293B37C55E53F5F08283E5B5800EAD2F7637CE0C201907083760F73
+
+## DEV3-NEXT-003 synchronized receipts
+
+Merged integration ce53ee3ff2c70882f81e6a151381826efbf244ae without conflict. Functional delta remains four files. Added six API cases for offsets beyond both ±14:00 bounds, ±14:30, malformed format and End before Start. Scheduled API/browser + read regression: 98/98 PASS (43 + 20 + 35), exit 0. Auth HTTP/state: 94/94 PASS, exit 0. Typecheck/build/scoped Prettier exit 0; two inherited React Router warnings. Millisecond ordering semantics unchanged; live SQL/runtime NOT_RUN; dispatch OFF.
