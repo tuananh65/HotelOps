@@ -56,6 +56,22 @@ test("rework read binds identity, ETag and provisional source, cookie transport 
     await assert.rejects(readRework("2", "3"), /INVALID_REWORK_RESPONSE/);
   }
 });
+test("real persisted V1 authority is a distinct source, never an accepted capability", async () => {
+  globalThis.fetch = async () => Response.json(
+    { ...source, sourceAuthority: "FE05_COMMITTED_V1" }, { headers: { ETag: tag } });
+  const real = await readRework("2", "3");
+  assert.equal(real.sourceAuthority, "FE05_COMMITTED_V1");
+  assert.equal(real.capability, "PROVISIONAL_NOT_ACCEPTED");
+  for (const changed of [
+    { sourceAuthority: "FE05_COMMITTED_V2" },
+    { sourceAuthority: "FAILED" },
+    { sourceAuthority: "FE05_COMMITTED_V1", capability: "ACCEPTED" },
+  ]) {
+    globalThis.fetch = async () => Response.json({ ...source, ...changed }, { headers: { ETag: tag } });
+    await assert.rejects(readRework("2", "3"), /INVALID_REWORK_RESPONSE/);
+  }
+});
+
 test("rework mutations use current CSRF with original key, ETag and immutable body on explicit retry", async () => {
   const payloads = [];
   globalThis.fetch = async (url, opts) => {

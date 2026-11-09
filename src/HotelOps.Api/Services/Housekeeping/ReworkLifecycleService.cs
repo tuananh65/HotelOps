@@ -91,6 +91,7 @@ public sealed partial class RoomTypeCreationService
 
         async Task<RoomTypeBatchResult> Core(bool recoveryOnly, CancellationToken token)
         {
+            ReworkAuthorityProof? trustedProof = null;
             var enabled = candidateNotification != null && await candidateNotification.ReworkAvailableAsync(token);
             var recipients = enabled && action == "complete" ? await candidateNotification!.ClosureRecipientsAsync(branch, token) : [];
             var time = new SqlWorkTimeTransactionParticipant(db); var users = recipients.Append(ticket.UserId).Distinct().Order().ToArray();
@@ -114,8 +115,10 @@ public sealed partial class RoomTypeCreationService
                     || await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId}").SingleOrDefaultAsync(inner) != row.CleaningTaskId
                     || await db.RoomInspections.AnyAsync(i => i.CleaningTaskId == row.CleaningTaskId && i.InspectionId > row.InspectionId, inner))
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "REWORK_SOURCE_NOT_CURRENT");
-                var proof = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fs016_rework_source_proofs WHERE rework_id={id} AND inspection_id={row.InspectionId} AND inspection_revision={inspection.Revision} AND source_digest={await ReworkSourceDigestAsync(id, inner)} AND origin='SYNTHETIC_TEST_ONLY'").SingleAsync(inner);
-                if (proof != 1) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "INSPECTION_AUTHORITY_UNPROVEN");
+                trustedProof = await ReadTrustedReworkAuthorityAsync(actor,branch,id,root,inner);
+                var syntheticProof = trustedProof == null ? await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fs016_rework_source_proofs WHERE rework_id={id} AND inspection_id={row.InspectionId} AND inspection_revision={inspection.Revision} AND source_digest={await ReworkSourceDigestAsync(id, inner)} AND origin='SYNTHETIC_TEST_ONLY'").SingleAsync(inner) : 0;
+                if (trustedProof == null && syntheticProof != 1) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "INSPECTION_AUTHORITY_UNPROVEN");
+                var sourceAuthority = trustedProof?.Origin ?? "SYNTHETIC_TEST_ONLY";
                 if (await db.CleaningReworks.CountAsync(w => w.InspectionId == row.InspectionId && w.Status != "COMPLETED" && w.Status != "CANCELLED", inner) != 1)
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "DUPLICATE_REWORK_SOURCE");
                 var defects = await db.Database.SqlQuery<long>($"SELECT defect_id AS [Value] FROM dbo.cleaning_rework_defects WHERE rework_id={id}").ToArrayAsync(inner);
@@ -147,7 +150,7 @@ public sealed partial class RoomTypeCreationService
                     }
                     return new(RoomTypeBatchStatus.Success, new ReworkExecutionDto(id, branch, row.CleaningTaskId, row.InspectionId, row.RoomId,
                         actor, state.State!, state.DueAt is { } due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null,
-                        WorkflowTag(state.Revision), WorkflowTag(inspection.Revision), output), WorkflowTag(state.Revision));
+                        WorkflowTag(state.Revision), WorkflowTag(inspection.Revision), output, SourceAuthority: sourceAuthority), WorkflowTag(state.Revision));
                 }
                 var stored = await candidateNotification!.FindAsync(actor, operation, inner);
                 if (stored != null)
@@ -156,6 +159,7 @@ public sealed partial class RoomTypeCreationService
                     var receipt = JsonSerializer.Deserialize<ReworkCommandResult>(stored.ResultJson!, Json);
                     if (!ValidReworkReceipt(receipt, actor, branch, id, row.CleaningTaskId, row.InspectionId, operation, action))
                         return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REWORK_DURABLE_RESULT_INVALID");
+                    if (receipt!.SourceAuthority != sourceAuthority) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REWORK_AUTHORITY_REPLAY_MISMATCH");
                     await candidateNotification.VerifyReworkAsync(actor, operation, action == "complete", inner);
                     return new(RoomTypeBatchStatus.Success, receipt, receipt!.SourceETag);
                 }
@@ -199,9 +203,9 @@ public sealed partial class RoomTypeCreationService
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{row.CleaningTaskId},{readiness},{blocked},{actor},{now})", inner);
                 var result = new ReworkCommandResult(id, branch, row.CleaningTaskId, row.InspectionId, actor, action, next, operation,
                     WorkflowTag((await ReworkState(id, inner)).Revision), now, interval, action == "complete" ? Guid.NewGuid() : null,
-                    readiness, action == "complete" ? "PENDING_DELIVERY" : "NOT_REQUIRED");
+                    readiness, action == "complete" ? "PENDING_DELIVERY" : "NOT_REQUIRED", SourceAuthority: sourceAuthority);
                 await BatchAuditAsync(actor, branch, "cleaning_reworks", id, new { state.State }, new { operationId = operation,
-                    action, note = input.Note.Trim(), sourceAuthority = "SYNTHETIC_TEST_ONLY", entity = result }, ["workflowStatus", "remediation", "workInterval", "readiness", "notification"], inner);
+                    action, note = input.Note.Trim(), sourceAuthority, entity = result }, ["workflowStatus", "remediation", "workInterval", "readiness", "notification"], inner);
                 await candidateNotification.RememberReworkAsync(actor, fingerprint, row.RoomId, recipients, result, inner);
                 return new(RoomTypeBatchStatus.Success, result, result.SourceETag);
             }, token, requireRoomTypeSchema: false, additionalUsers: users, preserveCommitErrors: true,
@@ -210,6 +214,13 @@ public sealed partial class RoomTypeCreationService
                 beforeCommit: async inner =>
                 {
                     if (!await candidateNotification!.ReworkAvailableAsync(inner)) throw new InvalidOperationException("REWORK_CANDIDATE_DISABLED");
+                    if (trustedProof != null)
+                    {
+                        var revalidated = await ReadTrustedReworkAuthorityAsync(ticket.UserId,branch,id,root,inner);
+                        if (revalidated == null || revalidated.OperationId != trustedProof.OperationId
+                            || revalidated.Issuer != trustedProof.Issuer || !revalidated.SourceDigest.SequenceEqual(trustedProof.SourceDigest))
+                            throw new InvalidOperationException("REWORK_AUTHORITY_CHANGED_BEFORE_COMMIT");
+                    }
                     if (!read && action == "complete" && !(await candidateNotification.ClosureRecipientsAsync(branch, inner)).SequenceEqual(recipients))
                         throw new InvalidOperationException("SUPERVISOR_SCOPE_CHANGED");
                     commitAttempted = true;
@@ -221,6 +232,7 @@ public sealed partial class RoomTypeCreationService
         => r != null && r.Id == id && r.BranchId == branch && r.AssigneeId == actor && r.CleaningTaskId == task
         && r.InspectionId == inspection && r.OperationId == op && r.Action == action && WorkflowStrongTag(r.SourceETag)
         && r.Contract == "PROVISIONAL_NOT_ACCEPTED" && r.OccurredAtUtc.Kind == DateTimeKind.Utc
+        && r.SourceAuthority is "SYNTHETIC_TEST_ONLY" or ReworkAuthorityContract.Origin
         && r.State == (action == "accept" ? "ACCEPTED" : action == "start" ? "IN_PROGRESS" : "PENDING_REINSPECTION")
         && r.Readiness == (action == "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED")
         && (action == "accept" ? r.IntervalId == null : r.IntervalId > 0)

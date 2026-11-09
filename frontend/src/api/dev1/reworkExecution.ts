@@ -14,7 +14,7 @@ export interface ReworkExecution {
   sourceETag: string;
   inspectionETag: string;
   capability: "PROVISIONAL_NOT_ACCEPTED";
-  sourceAuthority: "SYNTHETIC_TEST_ONLY";
+  sourceAuthority: "SYNTHETIC_TEST_ONLY" | "FE05_COMMITTED_V1";
   defects: {
     id: number;
     description: string;
@@ -74,7 +74,7 @@ export async function readRework(
       "PENDING_REINSPECTION",
     ].includes(d.state) ||
     d.capability !== "PROVISIONAL_NOT_ACCEPTED" ||
-    d.sourceAuthority !== "SYNTHETIC_TEST_ONLY" ||
+    !["SYNTHETIC_TEST_ONLY", "FE05_COMMITTED_V1"].includes(d.sourceAuthority) ||
     !validTag(d.sourceETag) ||
     result.etag !== d.sourceETag ||
     !validTag(d.inspectionETag) ||

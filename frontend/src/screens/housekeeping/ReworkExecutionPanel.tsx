@@ -155,8 +155,9 @@ export default function ReworkExecutionPanel({
           </p>
           <p>
             Inspection {data.inspectionId} · Cycle {data.cleaningTaskId} ·
-            PROVISIONAL_NOT_ACCEPTED · Nguồn synthetic chỉ dùng trial, chưa
-            shared acceptance.
+            PROVISIONAL_NOT_ACCEPTED · {data.sourceAuthority === "FE05_COMMITTED_V1"
+              ? "Nguồn Inspection đã được xác minh; quy trình vẫn chờ nghiệm thu tích hợp."
+              : "Nguồn synthetic chỉ dùng trial, chưa shared acceptance."}
           </p>
           <form key={data.sourceETag} onSubmit={submit}>
             <fieldset disabled={busy || !!pending}>

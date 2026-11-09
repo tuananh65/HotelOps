@@ -25,6 +25,15 @@ const initial = {
   ],
 };
 const open = (page: Page) => page.goto("/rework/3?branchId=2");
+test("real V1 source stays provisional and is not mislabeled synthetic", async ({ page }) => {
+  await page.route("**/api/branches/2/reworks/3/execution", r => r.fulfill({
+    headers: { ETag: tag }, json: { ...initial, sourceAuthority: "FE05_COMMITTED_V1" },
+  }));
+  await open(page);
+  await expect(page.getByText(/Nguồn Inspection đã được xác minh/)).toBeVisible();
+  await expect(page.getByText(/PROVISIONAL_NOT_ACCEPTED/)).toBeVisible();
+  await expect(page.getByText(/Nguồn synthetic chỉ dùng trial/)).toHaveCount(0);
+});
 test("rework list reuses scoped Monitor and navigates to the server execution panel", async ({
   page,
 }) => {

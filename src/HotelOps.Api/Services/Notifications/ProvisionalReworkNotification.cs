@@ -43,7 +43,7 @@ public sealed partial class ProvisionalCleaningNotification
             var payload = JsonSerializer.Serialize(new { schemaVersion = 1, eventName = "REWORK_SUBMITTED", occurrenceKey = occurrence,
                 sourceType = "CLEANING_REWORK", reworkId = result.Id, taskId = result.CleaningTaskId, taskCycleId = result.CleaningTaskId,
                 roomId = room, result.BranchId, result.InspectionId, actorId = actor, result.OperationId, result.PublicationId,
-                result.SourceETag, result.OccurredAtUtc, recipientCount = recipients.Length, sourceAuthority = "SYNTHETIC_TEST_ONLY" }, Json);
+                result.SourceETag, result.OccurredAtUtc, recipientCount = recipients.Length, sourceAuthority = result.SourceAuthority }, Json);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,rework_id,source_revision,payload_json,created_at,occurrence_key)
                 VALUES({result.PublicationId},{actor},{result.OperationId},'REWORK_SUBMITTED',1,{result.Id},{Convert.FromHexString(result.SourceETag.Trim('"'))},{payload},{result.OccurredAtUtc},{occurrence})

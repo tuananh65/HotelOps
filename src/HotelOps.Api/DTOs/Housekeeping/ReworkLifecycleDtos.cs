@@ -14,4 +14,4 @@ public sealed record ReworkExecutionDto(long Id, long BranchId, long CleaningTas
 public sealed record ReworkCommandResult(long Id, long BranchId, long CleaningTaskId, long InspectionId, long AssigneeId,
     string Action, string State, Guid OperationId, string SourceETag, DateTime OccurredAtUtc,
     long? IntervalId, Guid? PublicationId, string Readiness, string Notification,
-    string Contract = "PROVISIONAL_NOT_ACCEPTED");
+    string Contract = "PROVISIONAL_NOT_ACCEPTED", string SourceAuthority = "SYNTHETIC_TEST_ONLY");
