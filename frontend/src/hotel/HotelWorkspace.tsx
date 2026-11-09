@@ -656,6 +656,16 @@ export function HotelWorkspace({ screen = "structure" }: { screen?: Screen }) {
           )}
         </section>
       )}
+      {snapshot &&
+        context?.id &&
+        (screen === "floors" || screen === "areas") &&
+        action === "detail" && (
+          <Link
+            to={`/${screen}/${context.id}/deactivation-review?branchId=${context.branchId}`}
+          >
+            Review deactivation dependencies
+          </Link>
+        )}
       {(typeReadOnly || inactive) && (
         <p>This server record is read-only in this flow.</p>
       )}
