@@ -30,6 +30,14 @@ export function validCustomRole(v: CustomRoleInput) {
     validMetadata(v.roleName, v.description)
   );
 }
+// .NET invariant casing does not expand a code point into multiple characters.
+// Preserve those characters instead of predicting JavaScript full-uppercase codes.
+function expectedRoleCode(value: string): string {
+  return Array.from(value.trim(), (character) => {
+    const upper = character.toUpperCase();
+    return Array.from(upper).length === 1 ? upper : character;
+  }).join("");
+}
 export function createCustomRoleApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,
@@ -44,7 +52,7 @@ export function createCustomRoleApi(
       if (!enabled) return { outcome: "NOT_DISPATCHED", reason: "DISABLED" };
       if (!validCustomRole(input) || !current() || signal?.aborted)
         return { outcome: "NOT_DISPATCHED", reason: "INVALID_REQUEST" };
-      const expectedCode = input.roleCode.trim().toUpperCase(),
+      const expectedCode = expectedRoleCode(input.roleCode),
         expectedName = input.roleName.trim(),
         expectedDescription = input.description?.trim() || null;
       const body = JSON.stringify({

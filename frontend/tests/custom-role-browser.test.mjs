@@ -1,4 +1,4 @@
-﻿import { test, before, after } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { build } from "esbuild";
@@ -8,7 +8,7 @@ const bundle = await build({
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
-    contents: `import React from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthApi}from'./src/auth/authApi';import{createAuthStore}from'./src/auth/authStore';import{CustomRoleForm}from'./src/roles/CustomRoleForm';const s=window.scenario,calls=[],waiters=[];const dto={roleId:12,roleCode:'CUSTOM_X',roleName:'Custom name',description:null,isSystemRole:s.system??false,isActive:true,assignedUserCount:0,permissionGrantCount:0};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json({...${JSON.stringify(session())},mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf')return Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});if(o.method==='GET')return Response.json({role:dto,grants:[]});const finish=()=>{if(s.network)throw Error('SECRET');return s.status?Response.json({detail:'SECRET'},{status:s.status}):Response.json(dto,{status:201,headers:{Location:'/api/roles/12'}});};if(s.late)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));const app=<CustomRoleForm roleId={s.edit?12:undefined} dispatchEnabled={s.enabled??false}/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={app}>{app}</AuthProvider>);window.fixture={calls,replace:()=>store.revalidate(),finish:()=>waiters.splice(0).forEach(f=>f())};`,
+    contents: `import React from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthApi}from'./src/auth/authApi';import{createAuthStore}from'./src/auth/authStore';import{CustomRoleForm}from'./src/roles/CustomRoleForm';const s=window.scenario,calls=[],waiters=[];const dto={roleId:12,roleCode:s.createdCode??'CUSTOM_X',roleName:'Custom name',description:null,isSystemRole:s.system??false,isActive:true,assignedUserCount:0,permissionGrantCount:0};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json({...${JSON.stringify(session())},mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf')return Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});if(o.method==='GET')return Response.json({role:dto,grants:[]});const finish=()=>{if(s.network)throw Error('SECRET');return s.status?Response.json({detail:'SECRET'},{status:s.status}):Response.json(dto,{status:201,headers:{Location:'/api/roles/12'}});};if(s.late)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));const app=<CustomRoleForm roleId={s.edit?12:undefined} dispatchEnabled={s.enabled??false}/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={app}>{app}</AuthProvider>);window.fixture={calls,replace:()=>store.revalidate(),finish:()=>waiters.splice(0).forEach(f=>f())};`,
   },
   bundle: true,
   write: false,
@@ -57,8 +57,8 @@ async function run(s, fn) {
     await p.close();
   }
 }
-async function review(p) {
-  await p.getByLabel("Role code", { exact: true }).fill("CUSTOM_X");
+async function review(p, code = "CUSTOM_X") {
+  await p.getByLabel("Role code", { exact: true }).fill(code);
   await p.getByLabel("Role name", { exact: true }).fill("Custom name");
   await p.getByRole("button", { name: "Review metadata" }).click();
 }
@@ -167,4 +167,24 @@ test("restricted no create", () =>
   run({ restricted: true }, async (p) => {
     await p.getByText("Confirmed unrestricted session required.").waitFor();
     assert.equal((await p.evaluate(() => window.fixture.calls)).length, 1);
+  }));
+
+test("invariant Unicode code confirms Create and refreshes without replay", () =>
+  run({ enabled: true, createdCode: "STRAßE" }, async (p) => {
+    await review(p, " straße ");
+    await p.getByRole("button", { name: "Confirm create" }).click();
+    await p
+      .getByText("Created custom role 12. Authoritative detail refreshed.")
+      .waitFor();
+    await p
+      .getByRole("region", { name: "Authoritative role" })
+      .getByText("STRAßE — Custom name")
+      .waitFor();
+    const calls = await p.evaluate(() => window.fixture.calls);
+    assert.equal(calls.filter((c) => c.method === "POST").length, 1);
+    assert.equal(
+      calls.filter((c) => c.url === "/api/roles/12" && c.method === "GET")
+        .length,
+      1,
+    );
   }));
