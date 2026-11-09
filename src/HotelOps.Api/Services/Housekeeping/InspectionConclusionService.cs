@@ -8,7 +8,7 @@ namespace HotelOps.Api.Services.HotelStructure;
 public sealed partial class RoomTypeCreationService
 {
     private async Task<bool> InspectionEvidenceRevisionInstalled(CancellationToken ct)
-        => await db.Database.SqlQuery<int>($"SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.Housekeeping.EvidenceRevision.V1' AND CONVERT(nvarchar(128),value)='314DBD336CED88E2DCFDCF6762F8126BFA95D349247ACADA7294F83F19B1F7AD') AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_hk_attachment_revision_v1','TR_hk_defect_files_v1','TR_hk_result_files_v1') AND is_disabled=0)=3 THEN 1 ELSE 0 END AS Value").SingleAsync(ct)==1;
+        => await db.Database.SqlQuery<int>($"SELECT CASE WHEN EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.Housekeeping.EvidenceRevision.V1' AND CONVERT(nvarchar(128),value)='E94CD891B0EDE6AD98384B91B35B6DC395E70E53D3CAD994854F4B7237C61CAC') AND (SELECT COUNT(*) FROM sys.triggers WHERE name IN('TR_hk_attachment_revision_v1','TR_hk_defect_files_v1','TR_hk_result_files_v1') AND is_disabled=0)=3 THEN 1 ELSE 0 END AS Value").SingleAsync(ct)==1;
     // Explicitly closed until compatible accepted participants exist. No config toggle can turn a proposal into authority.
     internal static readonly string[] RejectWriteDependencies = ["INSPECTION_NOTIFICATION_STAGING_UNACCEPTED",
         "ROOM_STATUS_PROJECTION_CONTRACT_REQUIRED","DURABLE_INSPECTION_RECEIPT_CONTRACT_REQUIRED"];
@@ -23,7 +23,7 @@ public sealed partial class RoomTypeCreationService
         var command=new RejectInspectionLoadCommand(branch,id,new(input.Reason,input.Confirmed,tag));
         return BatchAsync(ticket,sid,branch,async(actor,token)=>
         {
-            var loaded=await LoadRejectInspectionSourceAsync(ticket,sid,command,token);
+            var loaded=await PrepareRejectInCallerTransactionAsync(ticket,sid,command,token);
             if(loaded.Status!=RoomTypeBatchStatus.Success)return new(loaded.Status,new InspectionMutationBlocked(loaded.Blocker??"REJECT_SOURCE_INVALID",loaded.Errors??[]));
             var source=loaded.Source!;
             if(preview)return new(RoomTypeBatchStatus.Success,new RejectInspectionPreview(id,branch,source.Domain.Inspection.RoomId,
@@ -59,7 +59,7 @@ public sealed partial class RoomTypeCreationService
         WorkflowReason(input.Reason);WorkflowDue(input.DueAt,clock.GetUtcNow().UtcDateTime);
         return BatchAsync(ticket,sid,branch,async(_,token)=>
         {
-            var result=await ReworkSourceSnapshotAsync(branch,id,tag,token);
+            var result=await PrepareReworkInCallerTransactionAsync(ticket,sid,branch,id,tag,token);
             if(result.Status!=RoomTypeBatchStatus.Success)return result;
             var source=(ReworkSourcePreview)result.Value!;
             if(input.DefectIds.Any(d=>!source.DefectIds.Contains(d)))return new(RoomTypeBatchStatus.InvalidReference);

@@ -1,0 +1,65 @@
+{
+  "success": true,
+  "sqlServer": true,
+  "realSessionValidation": true,
+  "physicalCallerTransaction": true,
+  "allCasesExplicitRollback": true,
+  "productionAuthority": false,
+  "cases": [
+    {
+      "name": "UC044 real persisted PASS preflight retains assigned retired version",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 mandatory FAIL prevents approval",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 D4 evidence update invalidates supplied revision",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 persisted current-cycle mismatch rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 revoked real SQL session rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 wrong assigned inspector rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 branch isolation",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 real permission denied",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 persisted cleaner inspector conflict rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 incompatible cleaning phase rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC045 preparation and SQL core share caller transaction; UC046 never claims authority",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}

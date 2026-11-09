@@ -10,7 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
-if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback")) throw new ArgumentException("mode environment-receipt output-directory");
+if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation")) throw new ArgumentException("mode environment-receipt output-directory");
 using var env = JsonDocument.Parse(await File.ReadAllTextAsync(args[1]));
 var e = env.RootElement; var name = e.GetProperty("database").GetString()!; var owner = e.GetProperty("owner").GetString()!;
 if (!e.GetProperty("success").GetBoolean() || !e.GetProperty("createdByThisRun").GetBoolean()
@@ -33,6 +33,7 @@ async Task Save() { await Guard(); await db.SaveChangesAsync(); db.ChangeTracker
 async Task Write(string file, object value) => await File.WriteAllTextAsync(Path.Combine(output,file),JsonSerializer.Serialize(value,new JsonSerializerOptions{WriteIndented=true}));
 await Guard();
 if(args[0]=="probe") { Console.WriteLine("PASS owned database identity"); return; }
+if(args[0]=="preparation") { await ConclusionPreparationChecks.RunAsync(db,args[1],output,Guard); return; }
 var branch = await db.Branches.Where(b=>b.BranchCode=="BR001").Select(b=>b.BranchId).SingleAsync();
 var foreign = await db.Branches.Where(b=>b.BranchCode=="BR002").Select(b=>b.BranchId).SingleAsync();
 if(args[0]=="sql-rollback"){
@@ -167,6 +168,7 @@ foreach(var n in new[]{1,2}){
  await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_cleaning_cycle_state(room_id,cleaning_task_id) VALUES({room.RoomId},{task.CleaningTaskId})");
 }
 }
+if(args[0]=="seed") { await Write("runtime.private.json",new{password,typeId}); await Write("seed.json",new{success=true,syntheticOnly=true,database=name,owner}); Console.WriteLine("PASS fresh synthetic fixtures; no API launched"); return; }
 var inspectionIds=await db.RoomInspections.OrderBy(x=>x.InspectionId).Select(x=>x.InspectionId).ToArrayAsync();
 var severityId=await db.ReferenceValues.Where(x=>x.GroupCode=="SEVERITY"&&x.ValueCode=="MINOR"&&x.IsActive).Select(x=>x.ReferenceId).SingleAsync();
 using var rsa=RSA.Create(2048);var certReq=new CertificateRequest("CN=localhost",rsa,HashAlgorithmName.SHA256,RSASignaturePadding.Pkcs1);

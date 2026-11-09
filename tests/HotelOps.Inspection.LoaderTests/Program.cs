@@ -44,6 +44,44 @@ await using (var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOps
 }
 await Check("Persisted current cycle makes validated source available",new(){Source=FakeSession.SourceGraph() with{CurrentCleaningTaskId=2}},command,RoomTypeBatchStatus.Success);
 await Check("Wrong current cycle rejected",new(){Source=FakeSession.SourceGraph() with{CurrentCleaningTaskId=99}},command,RoomTypeBatchStatus.Inactive,"CURRENT_CYCLE_MISMATCH");
+
+var approval = FakeSession.SourceGraph();
+approval.Domain.Results[0].Outcome = "PASS";
+approval = approval with { Domain = approval.Domain with { Defects = [] }, CurrentCleaningTaskId = 2 };
+void ApproveCheck(string name, RejectInspectionSource source, string? expectedError = null, string? tag = "\"0000000000000001\"")
+{
+    var result = ApproveInspectionValidator.Validate(source, tag);
+    if (expectedError == null ? !result.IsValid : !result.Errors.Contains(expectedError))
+        throw new Exception(name + ": " + string.Join(",", result.Errors));
+    passed++; Console.WriteLine("PASS " + name);
+}
+ApproveCheck("UC044 mandatory PASS with no defects", approval.Domain);
+ApproveCheck("UC044 mandatory FAIL rejected", FakeSession.SourceGraph().Domain, "MANDATORY_PASS_REQUIRED");
+ApproveCheck("UC044 missing mandatory result", approval.Domain with { Results = [] }, "MANDATORY_RESULT_REQUIRED");
+ApproveCheck("UC044 stale snapshot", approval.Domain, "INSPECTION_REVISION_STALE", "\"0000000000000002\"");
+ApproveCheck("UC044 weak tag", approval.Domain, "EXPECTED_REVISION_INVALID", "W/\"0000000000000001\"");
+ApproveCheck("UC044 invalid state", approval.Domain with { WorkflowState = "PASSED" }, "INSPECTION_NOT_PENDING_CONCLUSION");
+ApproveCheck("UC044 wrong criterion version", approval.Domain with { Criteria = [new() { ItemId = 10, VersionId = 999, IsActive = true, IsRequired = true }] }, "CHECKLIST_SOURCE_INVALID");
+ApproveCheck("UC044 duplicate results", approval.Domain with { Results = [approval.Domain.Results[0], approval.Domain.Results[0]] }, "CRITERION_RESULTS_INVALID");
+ApproveCheck("UC044 cross-source result", approval.Domain with { Results = [new() { InspectionId = 99, ChecklistItemId = 10, Outcome = "PASS" }] }, "CRITERION_RESULTS_INVALID");
+var optional = approval.Domain with { Criteria = [approval.Domain.Criteria[0], new() { ItemId = 11, VersionId = 4, IsActive = true }],
+    Results = [approval.Domain.Results[0], new() { InspectionId = 1, ChecklistItemId = 11, Outcome = "FAIL" }],
+    Defects = [new() { DefectId = 20, InspectionId = 1, ChecklistItemId = 11, Description = "Optional defect" }] };
+ApproveCheck("UC044 optional FAIL with defect follows GBR062 mandatory rule", optional);
+ApproveCheck("UC044 optional FAIL still needs defect", optional with { Defects = [] }, "FAILED_CRITERION_DEFECT_REQUIRED");
+ApproveCheck("UC044 foreign defect rejected", approval.Domain with { Defects = FakeSession.SourceGraph().Domain.Defects }, "DEFECT_SOURCE_INVALID");
+foreach (var scenario in new[] {
+    ("UC044 reader valid retired version", new FakeSession { Source = approval }, RoomTypeBatchStatus.Success),
+    ("UC044 reader forbidden", new FakeSession { Source = approval, InitialGate = RoomTypeBatchStatus.Forbidden }, RoomTypeBatchStatus.Forbidden),
+    ("UC044 reader final auth revoked", new FakeSession { Source = approval, FinalGate = RoomTypeBatchStatus.Forbidden }, RoomTypeBatchStatus.Forbidden),
+    ("UC044 reader wrong current cycle", new FakeSession { Source = approval with { CurrentCleaningTaskId = 99 } }, RoomTypeBatchStatus.Inactive),
+    ("UC044 reader evidence owner mismatch", new FakeSession { Source = approval with { Evidence = [new(6,99,"INSPECTION",null)] } }, RoomTypeBatchStatus.InvalidReference) })
+{
+    var result = await RejectInspectionLoading.LoadConclusionAsync(scenario.Item2, 5, 1,
+        source => ApproveInspectionValidator.Validate(source, "\"0000000000000001\"").Errors, default);
+    if (result.Status != scenario.Item3) throw new Exception(scenario.Item1);
+    passed++; Console.WriteLine("PASS " + scenario.Item1);
+}
 Console.WriteLine($"{passed} PASS / {failed} FAIL — read orchestration doubles, no SQL execution");
 if (failed != 0) Environment.ExitCode = 1;
 
