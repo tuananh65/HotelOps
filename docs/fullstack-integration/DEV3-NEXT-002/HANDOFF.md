@@ -22,7 +22,7 @@ One new offline browser regression verifies that a malformed End response yields
 
 ## Preservation and limitations
 
-Only scheduledContracts.ts, its two test files and this handoff differ from integration. No Auth, Hotel, public route, read panel, writer service, controller, SQL, schema, permission or DEV2-owned files changed. Both WorkdaysController and ScheduledWorkdayCandidateController remain NonController; scheduled mutation dispatch defaults OFF. No production activation, SQL/HTTPS, migration, deployment or merge performed. No dependency on unmerged DEV2 PR #25.
+Only scheduledContracts.ts, its two test files and this handoff differ from integration. No Auth, Hotel, public route, read panel, writer service, controller, SQL, schema, permission or DEV2-owned files changed. WorkdaysController retains NonController; scheduled mutation dispatch defaults OFF. No production activation, SQL/HTTPS, migration, deployment or merge performed. No dependency on unmerged DEV2 PR #25.
 
 This slice validates malformed End response dates; it is not full UC139 acceptance or exhaustive DateTimeOffset equivalence. Existing Date.parse chronological comparison retains millisecond precision; this change does not claim 100ns ordering verification. Notification, runtime authorization, SQL concurrency/rollback and approved trial acceptance remain pending.
 
