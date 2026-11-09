@@ -42,3 +42,7 @@ DB23416B11528144170E2287F0F62D593FD9BA97A24DB81FD02B1632125AA93C  frontend/src/h
 1B29C12E786EC19920EFDF209BBA129F8EB013314F6D06B073FECA99BB3279DA  frontend/src/hotel/HotelWorkspace.tsx
 A64A4180AB1565C5F87E3BB119C139230AEC2911F4A3FB9BA11847F769E3814D  frontend/src/structure-deactivation/StructureDependencyReview.tsx
 B0E726429478E27507C2D06B727BF5C503945BABC8EC0B0BCDAC0293C062DB01  frontend/tests/structure-dependency-review.test.mjs
+
+## DEV3-NEXT-010 combined verification
+
+Merged integration 7067523e030eacd46213d8e87b86e4bad4c97e49 without conflict. Exactly the same five functional files. node --test tests/structure-dependency-review.test.mjs tests/deactivation-preview-api.test.mjs tests/hotel-router-integration.test.mjs tests/auth-http.test.mjs tests/auth-state.test.mjs: 182/182 PASS, exit 0. Typecheck/build/scoped Prettier exit 0; same two inherited React Router warnings. No source behavior change. SQL/live still NOT_RUN; deactivation not activated.
