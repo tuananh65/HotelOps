@@ -615,12 +615,12 @@ test("forgot password shows instruction only after identifier confirmation witho
     assert.equal(await page.getByText(instruction, { exact: true }).count(), 0);
 
     await page.getByRole("button", { name: "Show instructions" }).click();
-    await page.getByRole("alert").getByText("Enter your username or email.").waitFor();
+    await page.getByRole("alert").filter({ hasText: "Enter your username or email." }).waitFor();
     assert.equal(await page.getByText(instruction, { exact: true }).count(), 0);
 
     await identifier.fill("private-identifier@example.test");
     await page.getByRole("button", { name: "Show instructions" }).click();
-    await page.getByRole("status").getByText(instruction, { exact: true }).waitFor();
+    await page.getByRole("status").filter({ hasText: instruction }).waitFor();
     assert.equal(await identifier.inputValue(), "");
     assert.ok(!(await page.locator("body").innerText()).includes("private-identifier@example.test"));
     assert.deepEqual(
