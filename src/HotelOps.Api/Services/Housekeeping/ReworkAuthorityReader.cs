@@ -173,7 +173,7 @@ public sealed partial class RoomTypeCreationService
                 AND JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.contract')='FE05_REWORK_AUTHORITY_V1'
                 AND JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.origin')=p.origin
                 AND TRY_CONVERT(int,JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.version'))=p.contract_version
-                AND JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.issuer')=p.issuer
+                AND JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.issuer') COLLATE Latin1_General_100_BIN2=p.issuer
                 AND TRY_CONVERT(int,JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.issuerVersion'))=p.issuer_version
                 AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.actorUserId'))=p.actor_user_id
                 AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N'[]' END,'$.operationId'))=p.operation_key

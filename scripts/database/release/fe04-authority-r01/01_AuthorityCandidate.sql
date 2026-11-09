@@ -23,7 +23,8 @@ ALTER TABLE dbo.fs016_rework_source_proofs ADD
 DECLARE @originCheck sysname=(SELECT name FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID(N'dbo.fs016_rework_source_proofs')
  AND definition LIKE '%origin%' AND definition LIKE '%SYNTHETIC_TEST_ONLY%');
 IF @originCheck IS NULL THROW 51994,'Original synthetic origin constraint required',1;
-EXEC(N'ALTER TABLE dbo.fs016_rework_source_proofs DROP CONSTRAINT '+QUOTENAME(@originCheck));
+DECLARE @dropOriginSql nvarchar(max)=N'ALTER TABLE dbo.fs016_rework_source_proofs DROP CONSTRAINT '+QUOTENAME(@originCheck);
+EXEC(@dropOriginSql);
 -- Strict discriminated replacement, not removal of the original origin protection.
 EXEC(N'ALTER TABLE dbo.fs016_rework_source_proofs ADD CONSTRAINT CK_fe04_authority_origin CHECK(
  (origin=''SYNTHETIC_TEST_ONLY'' AND contract_version IS NULL AND issuer IS NULL AND issuer_version IS NULL
