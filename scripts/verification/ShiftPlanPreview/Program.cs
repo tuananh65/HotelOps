@@ -83,6 +83,18 @@ using (var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbCont
     Check(connection.State == ConnectionState.Closed && connection.ConnectionString.Length == 0, "translation uses empty unconnected SQL connection");
     Check(!db.ChangeTracker.Entries().Any(), "translation creates no tracked entities");
 }
+// Internal presentation compatibility only: no public HTTP contract or endpoint is authorized.
+var web = new JsonSerializerOptions(JsonSerializerDefaults.Web);
+var document = JsonSerializer.SerializeToElement(clear, web);
+Check(document.GetProperty("requiresServerRevalidation").GetBoolean(), "internal presentation retains revalidation marker");
+Check(document.GetProperty("rows")[0].GetProperty("index").GetInt32() == 0
+    && document.GetProperty("rows")[0].GetProperty("startUtc").GetDateTimeOffset() == clear.Rows[0].StartUtc,
+    "internal projection uses camel-case row index and UTC interval");
+var names = new[] { "InvalidDraft", "ScopeUnavailable", "TemplateUnavailable", "EmployeeUnavailable", "EmployeeDepartmentUnconfirmed", "TimezoneUnavailable", "InvalidTime", "ExistingOverlap", "ProposedOverlap", "DataUnavailable" };
+Check(Enum.GetNames<ShiftPlanIssue>().SequenceEqual(names), "presentation diagnostic order matches existing internal enum");
+var diagnostic = JsonSerializer.SerializeToElement(new ShiftPlanPreview([new(0, null, null, [ShiftPlanIssue.ExistingOverlap, ShiftPlanIssue.ProposedOverlap])]), web);
+Check(diagnostic.GetProperty("rows")[0].GetProperty("issues").EnumerateArray().Select(x => x.GetInt32()).SequenceEqual(new[] { 7, 8 }), "internal enum projection remains numeric, not invented public error codes");
+Check(!document.TryGetProperty("canSave", out _) && !document.TryGetProperty("etag", out _) && !document.TryGetProperty("employeeId", out _), "internal presentation does not invent authority version or identities");
 Console.WriteLine($"RESULT: {count} PASS. Fake-reader behavior and offline EF translation only; live SQL, HTTP authorization, writes and audit/notification acceptance NOT_RUN.");
 
 sealed class Reader : IShiftPlanPreviewReader
