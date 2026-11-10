@@ -1,267 +1,333 @@
 ﻿{
     "baseDevelop":  "bc0110e97ffcb1e32f907302cf16ee45bcc5bb0c",
     "selfExcludedFromHash":  "scripts/verification/FE04Notification/CHANGED_FILE_ALLOWLIST.json",
-    "exactChangedFileCount":  52,
+    "exactChangedFileCount":  65,
+    "schemaSourceCommit":  "9cda7997416281c1af41e69704ed3bbda1d36eb9",
     "files":  [
                   {
                       "path":  "scripts/database/notifications/Fe04UnblockP0/01_ReconcileCandidate.sql",
-                      "sha256":  "2242FFD858C1F9CAD4ACE53A0FB74F5D491DCB4D9257AD73820B50BB493E2FF5",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "sha256":  "B9EA47F3082A10703ECEB953543ED1D989971CF9AD3395BAB544C87C878374C5",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
                   },
                   {
                       "path":  "scripts/database/notifications/Fe04UnblockP0/02_RollbackCandidate.sql",
-                      "sha256":  "646735CDDE4CFF2BD5BE24125A6614CCDCCDABC868CD560A94E6838CF2F2571E",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "sha256":  "2C00301A9E09B8D45749C8A4CF3163B9F009D10B46038121ECDA462F3B30C15D",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
                   },
                   {
                       "path":  "scripts/database/notifications/N01Implement06/01_ForwardCandidate.sql",
                       "sha256":  "34F0DAFBDBDD564397366030752DC78E3534D1240ABA8F80513D18ED6DF13957",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "scripts/database/notifications/N01Implement06/02_RollbackCandidate.sql",
                       "sha256":  "6EA1BB756E27B643716A8632E7B529B8C24477F343938585B7C4DB293204E24D",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/AcceptanceCases.json",
+                      "sha256":  "FD81DB5C3F10A8E463669636EE19953A3F89D01D0FAB9CEE413C79942A9AEA36",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/CONTRACT.md",
+                      "sha256":  "6C4057213E8C12BC981FD39C7082DF64EC3EFC58889EEAFAD8F7BEBD5CD757DE",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Install.ps1",
+                      "sha256":  "6DE478B3B05007829B01914BCDA23D3409A321971C9554FBC6D232C72C3729EF",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Preflight.sql",
+                      "sha256":  "D42DEC94ED1457F53D838D99B469C53E93E78B39F453927D20215EEC152B9E05",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Provision.ps1",
+                      "sha256":  "C1B667BED7936D1AC3931AF5C02F3116DA120FCA4B90DFE1579A651A757098F5",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Safety.ps1",
+                      "sha256":  "74C1CD4CEB8DBFE7E22D9158BE11E8D5FFCB47287DC50D2F566FB5B553AFEAC5",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Seed.ps1",
+                      "sha256":  "80F58C96927FD4BCEB8E9C515575C13B634E81EB5379B3380AAD5E09B111CAE0",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Seed.sql",
+                      "sha256":  "FE920C39CC8EDA8D1160298958FAC08384E1B0DC126B53B6CB641B625BA49CFF",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Start-Runtime.ps1",
+                      "sha256":  "080EE58DAE9128ABC1F2320AA0C7068E9AE76E3EBAEBBB3B8A5B606860A54F1A",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Test-Package.ps1",
+                      "sha256":  "2C23D4A35424952165B20CF72ECD5F7D0321B0576730E1793A8CB7771D661F62",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Verify.sql",
+                      "sha256":  "5ABE8B493F2F2F6B60CD6652929AA97507560ECA9B60794DD094C0791896BAAA",
+                      "kind":  "DEV2_SCHEMA002_IMPORT"
                   },
                   {
                       "path":  "scripts/verification/FE04Notification/CHANGED_FILE_ALLOWLIST.json",
                       "sha256":  null,
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "scripts/verification/FE04Notification/DEV2_IMPORT_PROVENANCE.json",
                       "sha256":  "72461EEED5A6CFDA529AD39A41AE9655F282D2D7C1A858AFD64A00E0C7258A5B",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "scripts/verification/FE04Notification/INTEGRATION_HANDOFF.md",
-                      "sha256":  "94F4F084B8723508A0529C1526E33BAD0676B3B26B091510DCB24545478B78F2",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "sha256":  "D280EDF8DD0B8272A91809C52B3B2BD19B13130F794B411593D6EE35D2DF77BF",
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04Notification/SCHEMA002_SOURCE_PIN.json",
+                      "sha256":  "D0417599F3F1FD5F270032DD3712A56F3F173F58D81F1F4957A52C2BE54507FC",
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04Notification/SQL_ACCEPT_001_RESULT.md",
+                      "sha256":  "218A5285123FBE43EC386DF408666B153BA47FF268CA0285F9DE80D1B7D651D4",
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "scripts/verification/FE04Notification/SQL_ACCEPTANCE_NOT_RUN.json",
-                      "sha256":  "9F3A17EC87C302FB6109E6D84B4359F8B5CF126401478A3604159F539FBCA07E",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "sha256":  "F35AAA30E955899D0F26617995083C539083F2729B99AB4E78831D80B2B5B330",
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.Notifications.cs",
                       "sha256":  "226630B3CA87EF1E160F9A7DDD9FA55CC411B22D74993E95E3BCF515B02B7508",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
                       "sha256":  "BB3A7CAFACE69BE764028A547D671D80808AD1DC7216FCA20A5CE4328F7074AA",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Data/IntegrationSqlGuard.cs",
                       "sha256":  "3CE18BF2C893FB1BCBFB022C2660F4ED85F086AF483477E677993500FA2A7B3E",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Entities/Notifications/NotificationIntent.cs",
                       "sha256":  "416D326DE6C4C442774E96D30CBF3DAE0A8A044CB475F4CDDF4441F34D27CDFC",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Program.cs",
                       "sha256":  "38F40EFFB32A1EE9A3D7EDC64F8FBE9CC540813B952E144D0AA51519AF0FE1CC",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Security/Authorization/Resources/MaintenanceWorkAccessReader.cs",
                       "sha256":  "FC2D09E8BEFD5828181E94D55ADAFE541830885E0640CB7F0542176DBF121DB2",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
                       "sha256":  "07E00501828B7B6C6EB3CBD7096E5FC19942192F751DE38F0005AE9DC82EF3B2",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCandidateService.cs",
                       "sha256":  "5CD2F0F47AED18D0184A9723FB2F7226F6E82278372092E60BA8619C79772D47",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentNotificationReceipt.cs",
                       "sha256":  "4107ACC4F764A01E877E5797524F42BBB28478D535F5A32E52E0A446BFBF6966",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningNotificationConsumerRegistration.cs",
                       "sha256":  "110D2B1664AB897B4AE4715B6A34D8FCA1625082444233119C4723A82F25375D",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningAssignmentProfile.cs",
                       "sha256":  "9AF1C251842879E58C6BB0E4EEEDD7934DB8D313E2CAFE049D72B76FF630FDAA",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
                       "sha256":  "23D459A5211B5AA9307B5FF02A7C1DC3919C18321EFC5F34461E1CA9C95932F1",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationAuthority.cs",
                       "sha256":  "C794733D598C6F7000D97ABB180D0917E1CB8613811CC12A46CBA7720586244E",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationErrors.cs",
                       "sha256":  "F8BF0CEEB057D876BB8B73C444A4F99DE1A50D3B6506AA52BDA623B8F8103727",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationParticipant.cs",
                       "sha256":  "ED4484BFF6AB74DAB6F98A53F856BB81123E72A77B32C7B40AAD20E20B82C5BB",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationRegistration.cs",
                       "sha256":  "AB1A2585B580756C65AE6C18F344FADBD0D288B3529F9F89A54BB6CAF0D447A6",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
                       "sha256":  "3F582B7FB4BF46EFFB2C2472EC2EAF7DE2A9124F71428C9B7250010FB52002A3",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05CallerIntegration.cs",
                       "sha256":  "F34EA36C80D5F5AA04647F707701B88B837EE51623580A1F28A700807CA03D06",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05Fs013CandidateStore.cs",
                       "sha256":  "D10A72807B5022F1C728F8427C09D76B485060047A53E76E931519F9B3D1E763",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
                       "sha256":  "D5C402D668CE21BA3CA7FC145230F2AF00B86F84574C07F88A5DB84B63D46207",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05NotificationStaging.cs",
                       "sha256":  "30889E884BB7D450BDDC5A48BCDE84E5DBCFC6FF6548BDF03A706C981F866807",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
                       "sha256":  "4941B793DE6F1E7EECE7FFB72F4CF1953B777D6765C904D554598367B275FBE4",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05RecipientResolution.cs",
                       "sha256":  "53A6B79FDFD157EC96147BBE67BF63AA2D376443991D4A4EF10A780901D8187E",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/Fe05SourceCoordination.cs",
                       "sha256":  "26E02BED47BD7546D6C8E734C9C5D44492C030EF9F075C5376EB1B98245BB086",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
                       "sha256":  "16C6AA47FDA12EBEBBA04CE9A4113951E9648B667AAC08C7A183E12605FCAAD2",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationContracts.cs",
                       "sha256":  "9ECF647A83A3F3E64643D21CF3FBD5FD66334238BB0AFE49723448E668314CF8",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationDelivery.cs",
                       "sha256":  "0DEB447F0FAF94CD31B92B742FA8A6B74316733B40AB27BA028E23F4BE8B87CB",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationDeliveryFailures.cs",
                       "sha256":  "79931546221FDC300D07DF2043D011375044815987691BEA4D376DED442ED683",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationDeliveryWorker.cs",
                       "sha256":  "E5CFF6A76AD5CC7FCDEA21158D29747B0A96BD4CC1868EF213C1F9AB6373CA5D",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationInbox.cs",
                       "sha256":  "C908EFE0762077835325224F791E78A4CA9F2E0C465BE4AC549DDB562EE7F544",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationPublisher.cs",
                       "sha256":  "580B895AE8DB1A0869DF9388072BFADDA5D8A999B7837ED8C3848971F792151C",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationRegistration.cs",
                       "sha256":  "C6B05E9A815D4F80BBAA2185E1EE2C2FE9A99C0C699D9886838837628A29AA74",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationSourcePolicy.cs",
                       "sha256":  "F32DBDE1EDFB37B254C4C2B8688D7BBFAA6448BC347DD73C47AFA357329C2CF1",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationSourceReference.cs",
                       "sha256":  "ADB6E2F5AC0E3A7E9FAE4C22C3D67596E3A8780880E1DEE12A5A1D055319B490",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Notifications/NotificationTransactionParticipant.cs",
                       "sha256":  "A680680134A88455139F1FB803D3C33DB273B6BBDF7BF99A0F6FEB8CCCE0F473",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningNotificationConsumerCompositionTests.cs",
                       "sha256":  "EDDE4237D21D0EA261C84E8847A3024B4C80F71F6A45E761F2ADEA90A2940892",
-                      "kind":  "DEV1_CONSUMER_COMPOSITION_OR_VERIFICATION"
+                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.Cleaning.NoSql/CleaningSqlProbe.cs",
                       "sha256":  "8658E85162945831A615FFB9AFE61DFB17DDFD01AB15EA223E22D7169D4009FB",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.Cleaning.NoSql/HotelOps.Notification.Cleaning.NoSql.csproj",
                       "sha256":  "8608B7B2821AE606879181D4A299C37B2C6E7FF7E9828AEC603867620616CB82",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.Cleaning.NoSql/Program.cs",
                       "sha256":  "1BB9C7F8722A968EF96DA6E6BB1E4670364C15B18C53BE107E9AA728D1C0708D",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.Cleaning.NoSql/TestHarness.cs",
                       "sha256":  "76E0DA6CF60D6BC1A6875B242224576D1823BFD9A263E2314F07C05BAC253715",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.N01.NoSql/HotelOps.Notification.N01.NoSql.csproj",
                       "sha256":  "549C4404D62DB24D97CC843EA9B101BFE6DDBC5A445792D9A8F6777DEBA79DCA",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.N01.NoSql/ImplementationChecks.cs",
                       "sha256":  "EEF5D8F05FC428DC163893183CCA457E468E63E311776B5A113AD1E1C1BBE7F7",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.N01.NoSql/N01SqlComponentProbe.cs",
                       "sha256":  "4C178E06D5F69C3C172E130E3AD915DD4C5C6667FC1CFD935EBF3C10413FD6BA",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
                       "path":  "tests/HotelOps.Notification.N01.NoSql/Program.cs",
                       "sha256":  "82634D75CFEDDEE3D9C2E8266C3EA065F30E63AB73B135B2436A05E92E8F99B9",
-                      "kind":  "BYTE_IDENTICAL_DEV2_IMPORT"
+                      "kind":  "DEV2_PACKAGE_IMPORT"
                   }
               ]
 }

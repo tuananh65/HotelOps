@@ -1,0 +1,59 @@
+﻿{
+    "sourceCommit":  "9cda7997416281c1af41e69704ed3bbda1d36eb9",
+    "parentConsumer":  "e76d6fc2ad9915bf03bd5640a4ee6f63c1806550",
+    "files":  [
+                  {
+                      "path":  "scripts/database/notifications/Fe04UnblockP0/01_ReconcileCandidate.sql",
+                      "sha256":  "B9EA47F3082A10703ECEB953543ED1D989971CF9AD3395BAB544C87C878374C5"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Fe04UnblockP0/02_RollbackCandidate.sql",
+                      "sha256":  "2C00301A9E09B8D45749C8A4CF3163B9F009D10B46038121ECDA462F3B30C15D"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/AcceptanceCases.json",
+                      "sha256":  "FD81DB5C3F10A8E463669636EE19953A3F89D01D0FAB9CEE413C79942A9AEA36"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/CONTRACT.md",
+                      "sha256":  "6C4057213E8C12BC981FD39C7082DF64EC3EFC58889EEAFAD8F7BEBD5CD757DE"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Install.ps1",
+                      "sha256":  "6DE478B3B05007829B01914BCDA23D3409A321971C9554FBC6D232C72C3729EF"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Preflight.sql",
+                      "sha256":  "D42DEC94ED1457F53D838D99B469C53E93E78B39F453927D20215EEC152B9E05"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Provision.ps1",
+                      "sha256":  "C1B667BED7936D1AC3931AF5C02F3116DA120FCA4B90DFE1579A651A757098F5"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Safety.ps1",
+                      "sha256":  "74C1CD4CEB8DBFE7E22D9158BE11E8D5FFCB47287DC50D2F566FB5B553AFEAC5"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Seed.ps1",
+                      "sha256":  "80F58C96927FD4BCEB8E9C515575C13B634E81EB5379B3380AAD5E09B111CAE0"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Seed.sql",
+                      "sha256":  "FE920C39CC8EDA8D1160298958FAC08384E1B0DC126B53B6CB641B625BA49CFF"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Start-Runtime.ps1",
+                      "sha256":  "080EE58DAE9128ABC1F2320AA0C7068E9AE76E3EBAEBBB3B8A5B606860A54F1A"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Test-Package.ps1",
+                      "sha256":  "2C23D4A35424952165B20CF72ECD5F7D0321B0576730E1793A8CB7771D661F62"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/Schema002/Verify.sql",
+                      "sha256":  "5ABE8B493F2F2F6B60CD6652929AA97507560ECA9B60794DD094C0791896BAAA"
+                  }
+              ],
+    "runtimeSourceModified":  false
+}

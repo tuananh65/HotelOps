@@ -1,5 +1,5 @@
 ﻿{
-    "target":  "KIENPC / HotelOps_DEV2_FullStack_Trial",
+    "target":  "DESKTOP-JI8U50T\\SQLEXPRESS / HotelOps_ENVNOTIF001_Trial_20261109",
     "connectionsOpened":  0,
     "executed":  false,
     "cases":  [
@@ -97,9 +97,12 @@
     "sql1205":  "NOT_RUN; any observed 1205 = FAIL",
     "cleanup":  "NOT_RUN",
     "componentProbe":  "tests/HotelOps.Notification.Cleaning.NoSql/CleaningSqlProbe.cs is runnable, NOT_RUN; not a full final-writer/delivery suite",
-    "candidateReferenceTargetOnly":  true,
-    "authorizedRuntimeTarget":  null,
+    "candidateReferenceTargetOnly":  false,
+    "authorizedRuntimeTarget":  "a138fa48-cc14-4070-9ca4-793f1b60c5c1",
     "exclusiveLeaseAvailable":  false,
-    "runtimeHandoff":  "USER_CONFIRMED_MISSING",
-    "httpsStatus":  "NOT_RUN"
+    "runtimeHandoff":  "TARGET_SCHEMA_AVAILABLE_RESTRICTED_WRITER_APPROVAL_MISSING",
+    "httpsStatus":  "READONLY_HEALTH_200_ANONYMOUS_401_BUSINESS_NOT_RUN",
+    "schemaSourceCommit":  "9cda7997416281c1af41e69704ed3bbda1d36eb9",
+    "restrictedWriterApproved":  false,
+    "activeLeaseEndUtc":  "2026-11-10T11:44:09.1792768Z"
 }
