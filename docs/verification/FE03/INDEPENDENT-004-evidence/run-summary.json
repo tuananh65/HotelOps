@@ -1,0 +1,23 @@
+﻿{
+    "frontend_assets":  [
+                            {
+                                "sha256":  "3449ac59c650df0422f05ea80e3dfd2e7de18de1eea9a1f14e64a92685986e30",
+                                "file":  "index-BlgMFNM4.js"
+                            },
+                            {
+                                "sha256":  "5317de509fcd7c47cea2b57f3729e9276b976064cc815a5878173d32000603cc",
+                                "file":  "index-Cna5cSew.css"
+                            }
+                        ],
+    "node_syntax_exit":  0,
+    "powershell_parse":  "PASS",
+    "backend_exit":  0,
+    "previous_live003":  "NOT_FOUND_IN_SEARCHED_LOCAL_EVIDENCE",
+    "source_commit":  "6a0c9248008203c245c347d9d6831279835ee544",
+    "post_state_exit":  0,
+    "application_diff_from_runtime":  "NONE",
+    "frontend_exit":  0,
+    "utc":  "2026-11-10T07:09:13.3120951+00:00",
+    "no_rebuild_of_passed_application":  true,
+    "runtime_unchanged":  true
+}

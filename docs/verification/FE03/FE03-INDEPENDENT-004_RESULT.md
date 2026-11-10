@@ -1,0 +1,30 @@
+﻿# FE03-INDEPENDENT-004 RESULT
+
+- CURRENT_HEAD trước commit evidence: 6a0c9248008203c245c347d9d6831279835ee544.
+- LIVE003_PREVIOUSLY_COMPLETED: Không tìm thấy authoritative LIVE003 acceptance evidence trong worktree FE03 hoặc các đường dẫn handoff đã kiểm tra. ENV smoke không được tính là feature acceptance.
+- ENV_VALID: PASS tại thời điểm chạy (2026-11-10 UTC). Đã đọc LIVE-HANDOFF.md / ENV-CONTRACT.json ở HotelOps-Integration/obj/env-fe03-001; lease còn hiệu lực đến 2026-11-11T03:05:21.0616355Z.
+- SQL identity: DESKTOP-JI8U50T\SQLEXPRESS / HotelOps_ENVFE03001_Trial_20261110; GUID be23f102-29fd-44b5-bfb0-d66e59bb5be4; owner/token/lease markers khớp manifest. Runtime SQL login hạn chế, SQL authentication và TLS được xác minh bằng process/session binding.
+- Runtime: https://localhost:7039; listener PID 49284; binary hash/ProductVersion/command path khớp frozen SHA 6a0c9248008203c245c347d9d6831279835ee544. Không thay runtime/lease/credentials/schema hoặc sử dụng target module khác.
+- LIVE_BACKEND: PASS 84 checks, exit 0, TLS validation enabled. Feature acceptance mới, tách biệt ENV smoke.
+- SQL_QUERY_ACCEPTANCE: PASS trong phạm vi 4 room fixtures đã bàn giao: allowed list IDs/statuses, filters, aggregate counters, pagination, detail/history/RoomBlock đối chiếu SQL thật. Không tạo Cleaning/Inspection data hoặc lifecycle state.
+- AUTHORIZATION: PASS allowed ROOM_VIEW/BRANCH, denied actor 403, anonymous 401, session identity, logout và request sau logout 401. Sử dụng CookieContainer/browser context riêng.
+- BRANCH_ISOLATION: PASS foreign branch list/detail/history 403; room/history của branch khác dưới allowed branch 404; allBranches 403; scope quay lại allowed branch hoạt động; error không chứa items/room.
+- HISTORY_ROOMBLOCK: PASS recorded history và unreleased block khớp same-room SQL; history page ngoài dữ liệu trả empty; không coi unreleased block là accepted effective readiness.
+- LIVE_FRONTEND: PASS 13 checks, exit 0. Built frontend assets của SHA frozen được nạp cục bộ qua browser harness tại origin7039; API thực sự tới HTTPS backend, không thay body/status. Kiểm tra board/counters/filter/detail/history, readiness-unavailable, scope denial/recovery, Browser Back/stale-cache và logout. Chỉ trì hoãn selected request để kiểm tra loading/stale behavior. Đây không phải evidence deployment/frontend hosting/proxy riêng.
+- POST_STATE: PASS; 4 rooms, 2 users, 0 cleaning tasks, 0 inspections, 1 history, 1 block; 0 unrevoked sessions. Không có business writes, chỉ auth/session writes theo handoff.
+- SOURCE_FIXES: Không phát hiện lỗi application FE03 có bằng chứng cần sửa. Đã bổ sung reproducible live acceptance harness và redacted receipts; application source không đổi so với frozen runtime.
+- BUILD_TEST_RESULTS: Giữ evidence hợp lệ của SOURCE_PASS: backend build PASS 0 warnings/errors, backend focused 63 PASS/1 SKIP; frontend typecheck/build PASS, unit59/59, intercepted browser12/12. Không chạy lại vì app source/runtime không đổi. Harness mới: PowerShell parse PASS, Node syntax PASS; actual live84/backend +13/browser PASS; post-state PASS.
+- Backend SKIP: CleaningMonitorFs016Tests.Monitor_reads_current_cycle_and_unresolved_blockers_without_writing_source là opt-in FS016_MONITOR_SQL=READ_ONLY_FS015, được ghim vào HotelOps_Canonical_FS015_Cleaning_V1_Fresh. Không bật trên trial FE03; không phải FE03 test failure hoặc missing room-read acceptance.
+- EF10102: Runtime log cảnh báo row limit thiếu OrderBy. Targeted source thấy login Candidates(...).Take(2) không order, chỉ chấp nhận khi candidate count=1; đây là nguyên nhân phù hợp với warning, chưa trace SQL để gán chính xác warning instance. Directory list/history/current evidence đều order trước Skip/Take/First. Live pagination/count checks đúng; chưa thấy ảnh hưởng FE03. Không sửa Authentication hoặc suppress warning.
+- EF20602: 3 index warnings RoomTypeBranchV1 tồn tại trong frozen runtime; không thay mapping. Read queries trial đã PASS, không khẳng định mọi schema variant đều được kiểm tra.
+- React Router: Vite bỏ qua 2 use client directives trong dependency; đây là client-only build, live browser thực thi board/navigation/API thành công. Chưa thấy lỗi FE03 do warning; giữ dependency và không suppress.
+- Harness corrections: PowerShell switch thay đổi $_ và empty collection/StrictMode làm phép đối chiếu ban đầu lỗi; sửa harness rồi PASS84. Node APIRequest không tin certificate store tương ứng; không disable TLS hoặc đổi global trust. Final harness dùng Edge browser fetch với Windows trust, PASS13. Selector select label ban đầu không đúng; sửa locator. Không coi các lỗi harness này là feature failures; receipt chỉ PASS khi full run hoàn tất.
+- READ_CAPABILITY_STATUS: LIVE_VERIFIED cho frozen application SHA6a0c924 và phạm vi fixtures/checks nêu trên.
+- READINESS_STATUS: BLOCKED_CONTRACT.
+- MUTATION_STATUS: BLOCKED_CONTRACT.
+- TASK_COMPLETION_PERCENT / UC027_VERIFIED_PERCENT: CHƯA ĐỦ DỮ LIỆU; không có denominator approved cho toàn bộ UC027.
+- PR_READINESS: READ_SCOPE_READY_FOR_REVIEW; source và live evidence đủ cho increment read đã kiểm tra. Không khẳng định toàn bộ UC027 ACCEPTED; chưa tạo PR/push/merge/deploy.
+- REMAINING_BLOCKERS: accepted Effective Readiness/FE05 RoomProjection, Cleaning/Inspection/Rework evidence, final transitions/permissions và mutation concurrency/audit/transaction. RoomBlock chỉ là unreleased representation, chưa mở rộng active/effective semantics.
+- NEXT_INDEPENDENT_TASK: Review/handoff read increment dựa trên receipts hiện có; tiếp theo bổ sung actor trong history và downstream actions khi đã có contract tương ứng. Không rerun live khi app/runtime/fixtures không đổi.
+
+Files added: scripts/verification/FE03/{Read-LiveAcceptance.ps1,Read-LiveBrowser.mjs,Run-LiveBrowser.ps1,Verify-LivePostState.ps1}; báo cáo này; INDEPENDENT-004-evidence/{backend-acceptance.json,frontend-acceptance.json,post-acceptance.json,run-summary.json}. Không sửa production source. Commit cuối chỉ chứa harness/evidence, vì vậy chỉ SHA6a0c924 được gắn nhãn application live-verified; commit evidence mới không phải runtime deployment.
