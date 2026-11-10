@@ -1,0 +1,31 @@
+{
+  "approvalStatus": "RECOVERED",
+  "sourceResetCleanDiscard": false,
+  "backendBuild": {
+    "exitCode": 0,
+    "warnings": 0,
+    "errors": 0
+  },
+  "harnessBuild": {
+    "exitCode": 0,
+    "warnings": 0,
+    "errors": 0
+  },
+  "solutionTest": {
+    "command": "dotnet test HotelOps.slnx --no-build --nologo",
+    "exitCode": 0,
+    "functionalAssertionsCredited": 0
+  },
+  "ownerDriver": {
+    "command": "dotnet run --no-build --project tests/HotelOps.Inspection.WriteTests -- owner-14 TestResults/fast013/owner-14",
+    "exitCode": 2,
+    "cases": 14,
+    "notRun": 14,
+    "blocker": "N01_SQL_LANE_NOT_ACCEPTED",
+    "openedSqlConnection": false,
+    "fixtureBindingsAvailable": false
+  },
+  "liveHttps": "NOT_RUN",
+  "successfulAuthoritativeCommit": "NOT_RUN",
+  "productionWriterActivation": false
+}

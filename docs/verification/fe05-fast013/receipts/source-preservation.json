@@ -1,0 +1,77 @@
+{
+  "baseline": "96b1681e86bd41677972ca67410af446a62b3cfc",
+  "allOriginalFilesPreserved": true,
+  "resetCleanOrDiscard": false,
+  "files": [
+    {
+      "path": "docs/verification/fe05-fast013/PERMISSION_PROPOSAL.md",
+      "stillPresent": true,
+      "changedDuringReview": false
+    },
+    {
+      "path": "docs/verification/fe05-fast013/proposals/UC047_PERSISTENCE.sql.review.txt",
+      "stillPresent": true,
+      "changedDuringReview": false
+    },
+    {
+      "path": "frontend/src/features/inspectionReinspection/ReinspectionReviewCandidate.tsx",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "frontend/tests/fe05-fast013-reinspection.test.mjs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/ReinspectionReviewCandidateController.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Housekeeping/ReinspectionReviewDtos.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/InspectionApproveComposition.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/ReinspectionLifecycleCandidate.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/ReinspectionPersistenceCandidate.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/ReinspectionReviewCandidateService.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "tests/HotelOps.Inspection.WriteTests/InspectionFast013Checks.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "tests/HotelOps.Inspection.WriteTests/InspectionOwnerFourteenDriver.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "tests/HotelOps.Inspection.WriteTests/ApproveWriterSqlChecks.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    },
+    {
+      "path": "tests/HotelOps.Inspection.WriteTests/Program.cs",
+      "stillPresent": true,
+      "changedDuringReview": true
+    }
+  ]
+}

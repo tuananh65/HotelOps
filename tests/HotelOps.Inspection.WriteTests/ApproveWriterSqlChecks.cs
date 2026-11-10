@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 // SERIALIZABLE transaction, including credential/session writes and fixtures.
 internal static class ApproveWriterSqlChecks
 {
-    internal static async Task RunAsync(HotelOpsDbContext db, string environment, string output, Func<Task> guard, bool reinspectionOnly = false)
+    internal static async Task RunAsync(HotelOpsDbContext db, string environment, string output, Func<Task> guard, bool reinspectionOnly = false, bool compositionOnly = false, HotelOps.Api.Services.Notifications.NotificationCommitGuard? commitGuard = null)
     {
         using var runtime = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(environment))!, "runtime.private.json")));
         var password = runtime.RootElement.GetProperty("password").GetString()!;
@@ -76,7 +76,7 @@ internal static class ApproveWriterSqlChecks
         }
         try
         {
-            if (!reinspectionOnly) {
+            if (!reinspectionOnly && !compositionOnly) {
             await Check("Approve PASSED/task COMPLETED/audit stays in caller transaction; rollback restores all",true,async(s,t,sid)=>{
                 var audit=await db.AuditLogs.CountAsync();
                 var result=await s.ApproveDomainInCallerTransactionAsync(t,sid,branch,root.InspectionId,await Tag(),default);
@@ -116,6 +116,40 @@ internal static class ApproveWriterSqlChecks
                 await guard();db.Add(new CleaningProgressLog{CleaningTaskId=root.CleaningTaskId!.Value,ProgressPercent=100,LoggedBy=actor,LoggedAt=DateTime.UtcNow});await db.SaveChangesAsync();db.ChangeTracker.Clear();
                 await Deny(async()=>{await s.ApproveDomainInCallerTransactionAsync(t,sid,branch,root.InspectionId,await Tag(),default);},"FE05_APPROVE_SOURCE_Forbidden");
             });
+            }
+            if(compositionOnly) {
+                await Check("UC044 closed binding blocks mutation and poisons caller commit",true,async(s,t,sid)=>{
+                    var audit=await db.AuditLogs.CountAsync();
+                    try{await s.ComposeApproveInCallerTransactionAsync(t,sid,branch,root.InspectionId,await Tag(),Guid.NewGuid(),new ClosedInspectionApproveBinding(),commitGuard!,default);throw new Exception("Closed writer accepted");}
+                    catch(HotelOps.Api.Services.Notifications.Fe05NotificationUnavailableException e)when(e.Message=="UC044_PASSED_STAGING_AND_DURABLE_BINDING_UNACCEPTED"){}
+                    if(audit!=await db.AuditLogs.CountAsync())throw new Exception("Audit changed behind closed gate");
+                    try{await db.Database.CurrentTransaction!.CommitAsync();throw new Exception("Poisoned transaction committed");}
+                    catch(InvalidOperationException e)when(e.Message.Contains("Required notification staging failed")){}
+                });
+                await Check("UC044 injected Stage failure after domain step rolls back root/task/audit",true,async(s,t,sid)=>{
+                    try{await s.ComposeApproveInCallerTransactionAsync(t,sid,branch,root.InspectionId,await Tag(),Guid.NewGuid(),new StageFaultOnly(),commitGuard!,default);throw new Exception("Stage fault ignored");}
+                    catch(InvalidOperationException e)when(e.Message=="TEST_ONLY_STAGE_FAULT"){}
+                    if((await db.RoomInspections.AsNoTracking().SingleAsync(i=>i.InspectionId==root.InspectionId)).Result!="PASS")throw new Exception("Fault did not follow domain write");
+                    try{await db.Database.CurrentTransaction!.CommitAsync();throw new Exception("Faulted transaction committed");}
+                    catch(InvalidOperationException e)when(e.Message.Contains("Required notification staging failed")){}
+                });
+                await Check("UC044 root write lock blocks a second conditional writer; all writes rollback",true,async(s,t,sid)=>{
+                    await s.ApproveDomainInCallerTransactionAsync(t,sid,branch,root.InspectionId,await Tag(),default);
+                    await guard();
+                    await using var contender=new Microsoft.Data.SqlClient.SqlConnection(db.Database.GetConnectionString());await contender.OpenAsync();
+                    await using(var identity=contender.CreateCommand()) {
+                        identity.CommandText="SELECT CONVERT(nvarchar(128),@@SERVERNAME),DB_NAME(),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.FE05INT001.Owner')";
+                        await using var read=await identity.ExecuteReaderAsync();
+                        using var approved=JsonDocument.Parse(await File.ReadAllTextAsync(environment));var owned=approved.RootElement;
+                        if(!await read.ReadAsync()||read.GetString(0)!=owned.GetProperty("server").GetString()||read.GetString(1)!=owned.GetProperty("database").GetString()||read.IsDBNull(2)||read.GetString(2)!=owned.GetProperty("owner").GetString())throw new Exception("Contender SQL identity rejected");
+                    }
+                    await using var otherTx=(Microsoft.Data.SqlClient.SqlTransaction)await contender.BeginTransactionAsync(IsolationLevel.Serializable);
+                    try {
+                        await using var q=contender.CreateCommand();q.Transaction=otherTx;q.CommandText="SET LOCK_TIMEOUT 500; UPDATE dbo.room_inspections SET summary_note=summary_note WHERE inspection_id=@id";q.Parameters.AddWithValue("@id",root.InspectionId);
+                        try{await q.ExecuteNonQueryAsync();throw new Exception("Source write lock not retained");}
+                        catch(Microsoft.Data.SqlClient.SqlException e)when(e.Number==1222){}
+                    }finally{await otherTx.RollbackAsync();}
+                });
             }
             if(reinspectionOnly && await db.Database.SqlQuery<int>($"SELECT CASE WHEN COL_LENGTH('dbo.cleaning_rework_defects','remediation_note') IS NOT NULL AND COL_LENGTH('dbo.cleaning_rework_defects','remediated_by') IS NOT NULL AND COL_LENGTH('dbo.cleaning_rework_defects','remediated_at') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync()!=1) {
                 await Check("UC047 missing remediation schema fails closed before source loading or fixture mutation",false,async(s,t,sid)=>
@@ -166,12 +200,20 @@ internal static class ApproveWriterSqlChecks
                     await Deny(async()=>{await s.ReadReinspectionCandidateInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,f.InspectionTag,'"'+Convert.ToHexString(revision)+'"',default);},"REINSPECTION_REMEDIATION_REQUIRED");
                 });
             }
-            await File.WriteAllTextAsync(Path.Combine(output,reinspectionOnly?"reinspection-reader-results.json":"approve-writer-results.json"),JsonSerializer.Serialize(new{success=true,sqlServer=true,realSessionValidation=true,physicalCallerTransaction=true,allCasesExplicitRollback=true,productionAuthority=false,cases},new JsonSerializerOptions{WriteIndented=true}));
+            await File.WriteAllTextAsync(Path.Combine(output,compositionOnly?"approve-composition-results.json":reinspectionOnly?"reinspection-reader-results.json":"approve-writer-results.json"),JsonSerializer.Serialize(new{success=true,sqlServer=true,realSessionValidation=true,physicalCallerTransaction=true,allCasesExplicitRollback=true,productionAuthority=false,cases},new JsonSerializerOptions{WriteIndented=true}));
         }
         catch(Exception error)
         {
             await File.WriteAllTextAsync(Path.Combine(output,reinspectionOnly?"reinspection-reader-results.json":"approve-writer-results.json"),JsonSerializer.Serialize(new{success=false,cases,error=error.GetType().Name+": "+error.Message},new JsonSerializerOptions{WriteIndented=true}));throw;
         }
+    }
+    // Negative component-only fault seam: cannot complete or verify ANY successful receipt.
+    private sealed class StageFaultOnly : IInspectionApproveAcceptedBinding {
+        public Task RequireAcceptedAsync(HotelOpsDbContext d,InspectionIssuerOperation o,CancellationToken c)=>Task.CompletedTask;
+        public Task<string?> ReserveOrReadCompletedAsync(HotelOpsDbContext d,InspectionIssuerOperation o,CancellationToken c)=>Task.FromResult<string?>(null);
+        public Task StageRequiredAsync(HotelOpsDbContext d,InspectionIssuerOperation o,string tag,CancellationToken c)=>throw new InvalidOperationException("TEST_ONLY_STAGE_FAULT");
+        public Task<string> CompleteWithTrustedSqlReceiptAsync(HotelOpsDbContext d,InspectionIssuerOperation o,string tag,CancellationToken c)=>throw new Exception("FAULT_SEAM_MUST_NEVER_COMPLETE");
+        public Task VerifyCompletedAsync(HotelOpsDbContext d,InspectionIssuerOperation o,string json,CancellationToken c)=>throw new Exception("FAULT_SEAM_MUST_NEVER_VERIFY");
     }
     private sealed class Identity(CurrentUserInfo user):ICurrentUserAccessor { public bool TryGetCurrentUser(out CurrentUserInfo current){current=user;return true;} }
 }

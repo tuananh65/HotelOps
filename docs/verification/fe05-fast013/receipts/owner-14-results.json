@@ -1,0 +1,91 @@
+{
+  "driver": "FE05_OWNER_14_INDEPENDENT_PORTION",
+  "fixtureBindingsAvailable": false,
+  "accepted": false,
+  "results": [
+    {
+      "id": "O01",
+      "Name": "Reject committed source",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O02",
+      "Name": "Rework committed proof",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O03",
+      "Name": "Completed replay preserves domain/audit/graph",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O04",
+      "Name": "Conflicting operation identity",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O05",
+      "Name": "Revoked real session/grant",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O06",
+      "Name": "Wrong branch",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O07",
+      "Name": "Wrong persisted current cycle",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O08",
+      "Name": "Stale revision and D4 invalidation",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O09",
+      "Name": "Changed immutable evidence version/bytes",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O10",
+      "Name": "Wrong selected defect set",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O11",
+      "Name": "Retained Users/revoked recipient/reassignment",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O12",
+      "Name": "Mandatory participant failure rolls back all",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O13",
+      "Name": "Concurrent Reject/Rework serialization",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    },
+    {
+      "id": "O14",
+      "Name": "Unknown outcome and positive FE04 consumer",
+      "result": "NOT_RUN",
+      "blocker": "N01_SQL_LANE_NOT_ACCEPTED"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+﻿{
+ "verifiedBeforeRecovery":true,
+ "backendFocused":{"command":"dotnet run --project tests/HotelOps.Inspection.WriteTests -- fast013-unit","passed":40,"total":40,"scope":"Receipt structure/identity/version, lifecycle plans, error mapping, MVC NonController discovery, closed binding, driver evidence validation and unchanged null permission acceptance"},
+ "frontendFocused":{"command":"node --test tests/fe05-fast013-reinspection.test.mjs","passed":6,"total":6,"scope":"React server render; original/assigned identities, decision choices, disabled mutation despite forged props, escaped notes/no evidence URL, empty/missing notes, no network during render"},
+ "frontendBuild":{"command":"npm run --prefix frontend build","exitCode":0,"warning":"Vite ignored react-router module-level use client directives"},
+ "npmCi":{"exitCode":0,"warnings":"Existing lockfile dependencies deprecated: inflight, lodash.isequal, rimraf, glob, fstream, uuid. No dependency or lockfile change."},
+ "liveHttps":"NOT_RUN",
+ "authoritativeCommit":"NOT_RUN",
+ "credit":"Focused component/source checks only; SSR is neither browser integration nor live E2E. Existing verified suites were not rerun."
+}

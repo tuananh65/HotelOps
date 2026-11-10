@@ -1,0 +1,73 @@
+﻿-- REVIEW-ONLY UC047 persistence candidate. NOT an installation/migration/release script.
+-- Shared DB approval, exact UC041 binding writer, lifecycle mapping and installation lane
+-- are REQUIRED before adapting/executing this text. Never execute on shared/production DB.
+-- No legacy authority backfill, new permission, new lifecycle status or READY projection.
+-- Impact: two proposed FE05 tables/FKs + result revision invalidation; no generated EF changes.
+
+CREATE TABLE dbo.fe05_reinspection_bindings_v1 (
+ inspection_id bigint NOT NULL PRIMARY KEY REFERENCES dbo.room_inspections(inspection_id),
+ rework_id bigint NOT NULL REFERENCES dbo.cleaning_reworks(rework_id),
+ original_inspection_id bigint NOT NULL REFERENCES dbo.room_inspections(inspection_id),
+ cleaning_task_id bigint NOT NULL REFERENCES dbo.cleaning_tasks(cleaning_task_id),
+ room_id bigint NOT NULL REFERENCES dbo.rooms(room_id),
+ branch_id bigint NOT NULL REFERENCES dbo.branches(branch_id),
+ cycle_revision binary(8) NOT NULL,
+ original_version_id bigint NOT NULL REFERENCES dbo.inspection_checklist_versions(version_id),
+ assigned_version_id bigint NOT NULL REFERENCES dbo.inspection_checklist_versions(version_id),
+ rework_revision binary(8) NOT NULL,
+ inspection_revision binary(8) NOT NULL,
+ bound_by bigint NOT NULL REFERENCES dbo.users(user_id),
+ bound_at datetime2(7) NOT NULL,
+ touched_at datetime2(7) NOT NULL,
+ row_version rowversion NOT NULL,
+ CONSTRAINT UQ_fe05_reinspection_pair_v1 UNIQUE(inspection_id,rework_id),
+ CONSTRAINT CK_fe05_reinspection_not_original_v1 CHECK(inspection_id<>original_inspection_id)
+);
+CREATE TABLE dbo.fe05_reinspection_defect_results_v1 (
+ inspection_id bigint NOT NULL,
+ rework_id bigint NOT NULL,
+ defect_id bigint NOT NULL,
+ fixed bit NULL, -- NULL = unanswered, NOT Not Fixed. No new DB workflow enum.
+ note nvarchar(max) NULL, -- sizing/retention remains a review decision; no invented UI cap
+ recorded_by bigint NULL REFERENCES dbo.users(user_id),
+ recorded_at datetime2(7) NULL,
+ row_version rowversion NOT NULL,
+ CONSTRAINT PK_fe05_reinspection_defect_v1 PRIMARY KEY(inspection_id,defect_id),
+ CONSTRAINT FK_fe05_reinspection_binding_v1 FOREIGN KEY(inspection_id,rework_id)
+   REFERENCES dbo.fe05_reinspection_bindings_v1(inspection_id,rework_id),
+ CONSTRAINT FK_fe05_reinspection_selected_v1 FOREIGN KEY(rework_id,defect_id)
+   REFERENCES dbo.cleaning_rework_defects(rework_id,defect_id),
+ CONSTRAINT CK_fe05_reinspection_answer_v1 CHECK(
+   (fixed IS NULL AND recorded_by IS NULL AND recorded_at IS NULL AND note IS NULL) OR
+   (fixed IS NOT NULL AND recorded_by IS NOT NULL AND recorded_at IS NOT NULL))
+);
+-- Proposed INSERT/UPDATE/DELETE result trigger (set-based, distinct old/new parents).
+-- Must be re-reviewed against parent-before-child lock order, nesting/recursion and
+-- root revision invalidation before installing. Binding is immutable after assignment;
+-- changing assignee requires explicit authorized UC041 action and stale-result policy.
+-- CREATE TRIGGER requires its own SQL batch in a future reviewed installer, not here.
+CREATE TRIGGER dbo.TR_fe05_reinspection_result_revision_v1
+ON dbo.fe05_reinspection_defect_results_v1 AFTER INSERT,UPDATE,DELETE AS
+BEGIN
+ SET NOCOUNT ON;
+ UPDATE b SET touched_at=SYSUTCDATETIME()
+ FROM dbo.fe05_reinspection_bindings_v1 b
+ JOIN (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) x
+   ON x.inspection_id=b.inspection_id;
+ UPDATE i SET summary_note=summary_note
+ FROM dbo.room_inspections i
+ JOIN (SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) x
+   ON x.inspection_id=i.inspection_id;
+END;
+-- Trusted setter MUST lock/re-read: actor session/grant -> retained Users -> branch/catalog
+-- -> exact Inspection/task/cycle/Rework, before inserting both binding and selected rows.
+-- Check assigned reinspector/SOD, original FAILED Inspection and exact selected defect set;
+-- record bound_by/time and audit in the SAME caller transaction. Never infer from latest IDs.
+-- Original and assigned checklist versions are separately pinned. Policy for reassignment
+-- is NOT accepted by this draft. No default to latest Published. No private evidence grants.
+-- Result save MUST match binding/Inspection/Rework/cycle revisions and exact selected set,
+-- actor = currently authorized assigned reinspector; audit and all writes rollback together.
+-- All Fixed => plan PASSED + Rework COMPLETED + task COMPLETED; existing FE04 projection.
+-- Any Not Fixed => plan FAILED + Rework FAILED + task REWORK_REQUIRED + new defects/UC046.
+-- The latter Rework FAILED pair is absent from current CKs: NO ALTER is proposed/executed here.
+-- No evidence-byte association until accepted permission/storage ownership/invalidation policy.

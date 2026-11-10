@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "sqlServer": true,
+  "realSessionValidation": true,
+  "physicalCallerTransaction": true,
+  "allCasesExplicitRollback": true,
+  "productionAuthority": false,
+  "cases": [
+    {
+      "name": "UC044 closed binding blocks mutation and poisons caller commit",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 injected Stage failure after domain step rolls back root/task/audit",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC044 root write lock blocks a second conditional writer; all writes rollback",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}
