@@ -1,0 +1,54 @@
+{
+  "success": true,
+  "operationalApplied": false,
+  "cases": [
+    {
+      "name": "All Fixed maps proposed Passed/Rework Completed/task Completed",
+      "result": "PASS"
+    },
+    {
+      "name": "Ready/Blocked remains original FE04 projection responsibility",
+      "result": "PASS"
+    },
+    {
+      "name": "Actor, source revisions and original/assigned versions retained",
+      "result": "PASS"
+    },
+    {
+      "name": "Not Fixed maps proposed Failed/Failed/task Rework Required",
+      "result": "PASS"
+    },
+    {
+      "name": "Next-round link preserves original defect identities only",
+      "result": "PASS"
+    },
+    {
+      "name": "Reject inconsistent or activated plan 5",
+      "result": "PASS"
+    },
+    {
+      "name": "Reject inconsistent or activated plan 6",
+      "result": "PASS"
+    },
+    {
+      "name": "Reject inconsistent or activated plan 7",
+      "result": "PASS"
+    },
+    {
+      "name": "Reject inconsistent or activated plan 8",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 adapter cannot infer criterion facts from Fixed/Not Fixed: True",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 adapter cannot infer criterion facts from Fixed/Not Fixed: False",
+      "result": "PASS"
+    },
+    {
+      "name": "Assignment notification gate stays closed",
+      "result": "PASS"
+    }
+  ]
+}

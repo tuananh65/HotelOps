@@ -1,0 +1,13 @@
+PASS All Fixed maps proposed Passed/Rework Completed/task Completed
+PASS Ready/Blocked remains original FE04 projection responsibility
+PASS Actor, source revisions and original/assigned versions retained
+PASS Not Fixed maps proposed Failed/Failed/task Rework Required
+PASS Next-round link preserves original defect identities only
+PASS Reject inconsistent or activated plan 5
+PASS Reject inconsistent or activated plan 6
+PASS Reject inconsistent or activated plan 7
+PASS Reject inconsistent or activated plan 8
+PASS Original FE04 adapter cannot infer criterion facts from Fixed/Not Fixed: True
+PASS Original FE04 adapter cannot infer criterion facts from Fixed/Not Fixed: False
+PASS Assignment notification gate stays closed
+12/12 PASS proposed plan only; no authoritative source/projection credit

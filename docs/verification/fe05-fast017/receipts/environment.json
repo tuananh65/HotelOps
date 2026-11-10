@@ -1,0 +1,17 @@
+{
+    "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+    "database":  "HotelOps_Canonical_20261110_132140_d03ec6a1_Fresh",
+    "owner":  "0b02e9b9-d008-4938-9dcc-fadbaa89e0d3",
+    "success":  true,
+    "sourceHashes":  {
+                         "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql":  "DD6874DB482B770482B5B8D0B3230F2F4175618433E7A65E29F63C9670DC4F7B",
+                         "scripts/database/release/01_HotelOps_Full_Schema.sql":  "EEEF125A5F6595327A6BCDA99EB9E6A8555B46A0929345F84B9B4141BB3CF4D0",
+                         "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql":  "7F1AD1A55BE75B4A58A4052F1BBB8B158787A9F04E099F8438C0485FFFD23DB9",
+                         "scripts/database/release/canonical/01_Canonical_Seed.sql":  "0E6D5C2266E3F8E2B2F78C819687E74C90B66CD9D3052C523D613258BC3BC5CD",
+                         "scripts/verification/UserProfileUpdate/rowversion-forward.sql":  "64AFE255AE91CAEDDDA6549677A4F27939A105AB536E89D6EBB45041F0D9B8D6"
+                     },
+    "createdByThisRun":  true,
+    "syntheticOnly":  true,
+    "usersBeforeFixtures":  0,
+    "version":  "16.0.1000.6"
+}

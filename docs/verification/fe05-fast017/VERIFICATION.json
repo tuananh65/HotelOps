@@ -1,0 +1,109 @@
+{
+  "baseline": "7f4624751217ac0f1ea35929aadceb1c48c248da",
+  "branch": "feature/dev1-fe05-assignment-readiness",
+  "sql": {
+    "pass": 22,
+    "fail": 0,
+    "isolatedDomainCommitted": true,
+    "notificationAccepted": false,
+    "authoritativeAssignment": false,
+    "liveHTTP": false
+  },
+  "plan": {
+    "pass": 12,
+    "fail": 0,
+    "operationalApplied": false
+  },
+  "client": {
+    "pass": 14,
+    "fail": 0,
+    "controlledFetch": true
+  },
+  "browser": {
+    "pass": 5,
+    "fail": 0,
+    "httpInterception": true
+  },
+  "backendBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "harnessBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "frontendBuild": {
+    "result": "PASS",
+    "existingReactRouterWarnings": true
+  },
+  "solutionTest": {
+    "exitCode": 0,
+    "functionalAssertionCredit": 0
+  },
+  "authoritativeAssignment": "NOT_RUN",
+  "reassignment": "NOT_RUN",
+  "UC047OperationalCommit": "NOT_RUN",
+  "HTTPS": "NOT_RUN",
+  "N01": {
+    "L1": "24 NOT_RUN",
+    "L2": "14 NOT_RUN"
+  },
+  "productionMutation": "FAIL_CLOSED",
+  "newDispatch": "OFF",
+  "sourceFiles": 17,
+  "sourceHashBasis": "Exact working tree UTF-8 without BOM / CRLF; core.autocrlf=true",
+  "sharedUC041FileFE04PrefixSuffix": "MATCH_HEAD",
+  "receiptEncoding": "UTF-8 console transcoding; trailing whitespace trimmed",
+  "receipts": [
+    {
+      "path": "assignment-results.json",
+      "sha256": "18BECA6C366019E7192381CD334EB27930845728FD2EDF40315B6A7056A891C9"
+    },
+    {
+      "path": "assignment-sql.txt",
+      "sha256": "44F0B944A8A3099FC532277FEAF88C0874C4F8303111A1BAAF647A6DF489490E"
+    },
+    {
+      "path": "backend-build.txt",
+      "sha256": "C41243CE33E952E2EC6A7EAD620F6036D695C751321E0864DFF79E75BB7D7EE8"
+    },
+    {
+      "path": "browser-tests.txt",
+      "sha256": "6AE433CA9E67F9596EF65596AEEC5FBCB1C6952A36027C5437C33A86B7E52FCB"
+    },
+    {
+      "path": "client-tests.txt",
+      "sha256": "5E97EE8C1774A2087FCBF1E19E90B57A0D59F67D97A57DC78B0E1536CE76577D"
+    },
+    {
+      "path": "environment.json",
+      "sha256": "20487454744C52AC1937CADCEFA523E7675E525DEEF0524696A5523E1E5E1B8A"
+    },
+    {
+      "path": "frontend-build.txt",
+      "sha256": "D85350A17CD91388EFFE7DA9447653AEB794D6C1FBE7432042C505BA3AC3A05A"
+    },
+    {
+      "path": "harness-build.txt",
+      "sha256": "6D1E5E9D39FF28BE5482664640C1D6CFDA90A22C1D243243E8ADB98A82C85118"
+    },
+    {
+      "path": "install.json",
+      "sha256": "7CF8CC10EA6BBE9D485FA8FE2232E95F2359226272699959A899E69FDD9B2DA8"
+    },
+    {
+      "path": "plan-results.json",
+      "sha256": "B57A525AB657D66DF6FED42D1FFC4C144F46B49C6A6911C6D6BFB59E6A792BE1"
+    },
+    {
+      "path": "plan-tests.txt",
+      "sha256": "9153A09F8240DD768B1E5F6C2C103CEABD3CF8029F3B9FB5503D90A7906EA9DE"
+    },
+    {
+      "path": "solution-test.txt",
+      "sha256": "2AD9967F2280D0195AD457A92FE6A353A8492625846632386DF6DFC446EFE4BC"
+    }
+  ]
+}

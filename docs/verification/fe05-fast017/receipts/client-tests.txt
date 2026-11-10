@@ -1,0 +1,22 @@
+✔ read queue/options uses branch-scoped typed cookie transport (38.6307ms)
+✔ confirm 401 preserves identity and never retries (2.6761ms)
+✔ confirm 403 preserves identity and never retries (1.1166ms)
+✔ confirm 412 preserves identity and never retries (0.8004ms)
+✔ confirm 409 preserves identity and never retries (1.1968ms)
+✔ confirm 503 preserves identity and never retries (0.8592ms)
+✔ unknown outcome does not retry (0.9004ms)
+✔ unexpected successful mutation cannot produce fake UI success (0.972ms)
+✔ invalid explicit selection/confirmation rejected before transport 99,6,true (0.3824ms)
+✔ invalid explicit selection/confirmation rejected before transport 5,99,true (0.3429ms)
+✔ invalid explicit selection/confirmation rejected before transport 5,6,false (0.1957ms)
+✔ reject malformed or unaccepted capability response {"taskId":99,"roomId":3,"taskRevision":"\"0000000000000001\"","cycleRevision":"\"0000000000000002\"","checklistVersionId":4,"inspectors":[{"userId":5,"fullName":"Inspector"}],"responsibleSupervisors":[{"userId":6,"fullName":"Supervisor"}],"productionMutationAvailable":false} (0.638ms)
+✔ reject malformed or unaccepted capability response {"taskId":2,"roomId":3,"taskRevision":"W/\"0000000000000001\"","cycleRevision":"\"0000000000000002\"","checklistVersionId":4,"inspectors":[{"userId":5,"fullName":"Inspector"}],"responsibleSupervisors":[{"userId":6,"fullName":"Supervisor"}],"productionMutationAvailable":false} (0.3749ms)
+✔ reject malformed or unaccepted capability response {"taskId":2,"roomId":3,"taskRevision":"\"0000000000000001\"","cycleRevision":"\"0000000000000002\"","checklistVersionId":4,"inspectors":[{"userId":5,"fullName":"Inspector"}],"responsibleSupervisors":[{"userId":6,"fullName":"Supervisor"}],"productionMutationAvailable":true} (0.298ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 880.5618

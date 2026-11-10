@@ -1,0 +1,56 @@
+# [HotelOps FE05] FAST017 — PARTIALLY_VERIFIED
+
+Worktree: D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST017.
+Branch: feature/dev1-fe05-assignment-readiness.
+Exact parent: 7f4624751217ac0f1ea35929aadceb1c48c248da (FAST016).
+
+## UC041 implementation
+
+The existing UC041 body already created Inspection/audit; the explicit-supervisor variant rolled back, while the legacy public no-supervisor branch could return Success without mandatory notification. FAST017 closes that success path. Public AssignInspectionAsync validates input, uses real session/branch/source preflight and returns Unavailable when eligible; it does not create Inspection/binding/audit. The existing public HTTP route was not newly opened. This is an intentional behavior change to enforce the task's mandatory notification gate, not a claim the original assignment implementation was absent.
+
+The domain body is extracted once into InspectionAssignmentDomainComponent.cs and reused by the old explicit candidate and new internal caller-owned component. No parallel transaction framework, notification graph, permission or responsibility setter. Existing EligibleInspector/ChecklistEligible/WorkflowDue/WorkflowReason, actual SupervisorBindingUsers capability and initial setter/audit are reused. The old explicit candidate still returns Unavailable and Batch rolls back; its users hook now calls the same component. FE04 cleaning-assignment/rework code in the same file is unchanged.
+
+New component: same scoped DbContext/physical SERIALIZABLE transaction; actual sorted Users capability for actor, inspector and explicitly selected supervisor; existing catalog lock before source reads; real current identity/SQL session/INSPECTION_PERFORM branch authorization, target/supervisor eligibility, separation of duties, active room hierarchy, exact task/current-cycle and no open Inspection. Initial assignment resolves the room-type default's effective Published checklist through the existing contract, then compares expected task revision/cycle revision/version. No latest Rework/cycle/inspector or inferred supervisor. Root, due time, pinned version, explicit supervisor binding and both audit records stay in caller transaction. Existing root revision is returned; source/grant/eligibility/due time are checked again before returning. Caller must rollback on any exception/non-success; the component is not an N01 guarded authoritative commit.
+
+The component entry requires an owned-candidate schema marker and cannot be used as a production writer. SQL tests deliberately commit only this domain component on synthetic owned data. Result flags NotificationAccepted=false and AuthoritativeCommitAccepted=false. No required notification is replaced by a permissive test double. Reassignment remains blocked by open-Inspection conflict and the original initial-only binding setter; phase/version/responsibility/notification replacement policy needs approval. Reinspection assignment is not inferred from a Pending Rework: initial component accepts Pending Inspection only until exact UC047 binding/version policy is accepted.
+
+Candidate controller is [NonController], with existing HTTPS/cookie session conventions. Candidate GET `/api/branches/{branchId}/inspection-assignment-candidate` returns pending task IDs/rooms and assigned-to-self Inspection identities. GET `/{taskId}` returns eligible inspector and separately selected responsible-supervisor options, task/cycle tags and checklist version. POST `/{taskId}` validates If-Match/explicit selection/confirmation/reason/UTC due/version/cycle through service preflight and returns 503 UC041_ASSIGNMENT_NOTIFICATION_NOT_ACCEPTED; it never invokes a domain writer. No Program.cs/shared router/auth/CSRF/EF mapping or public dispatch changes.
+
+Targeted reuse check inspected committed execution-history 3502ef7: its InspectionReadsService supplies existing pending collection INSPECTION_VIEW and assigned-self INSPECTION_PERFORM conventions, while its InspectionQueueScreen uses prototype service.visible/useDB. Those production read files are absent from this exact FAST016 target. FAST017 does not merge/copy that whole branch or mount duplicate production endpoints. The compound candidate queue requires BOTH existing VIEW and PERFORM checks; it cannot use Perform as broad pending collection authority. Exact-task assignment options follow the existing assignment authorization. This candidate is unpaginated and does not replace the existing committed paginated API during future source integration.
+
+New unmounted FE05 UI loads the typed queue/options, selects an eligible inspector and explicit responsible supervisor, reviews checklist/due/reason, confirms using strong task tag/cycle/version and actual shared cookie/CSRF transport, handles 401/403/stale/notification-unavailable/unknown outcomes without retries, and reloads source before another attempt. Assigned-to-me passes persisted InspectionId to an integration-host navigation callback; no invented route or rewritten execution screen. No mock permission/auth/store. It cannot show assignment success because no accepted successful mutation response is available; even unexpected 2xx fails closed.
+
+## UC047 / UC044 / UC045/046
+
+New ReinspectionOperationalReadiness.cs is read-only: existing authorized persisted proposal loader → exact proposed Inspection/Rework/task mapping, retained actor/root/Rework/binding tags and original/assigned versions, original remaining defect IDs, CanApply=false. Candidate GET `/{inspectionId}/operational-readiness?reworkId=` uses that service; no proposal/controller conclusion behavior is rewritten or activated. RequiresFe04Projection=true for both outcomes; RequiresNotificationContractDecision=true means an unresolved policy gate, not an invented approved event or recipient.
+
+Compatibility evidence identifies two real gaps: original FE04 adapter requires mandatory criterion PASS on Passed and HasFailedCriterion on Failed; Fixed/Not Fixed storage alone does not provide those facts. SQL also confirms Rework's existing constraint has no Failed state. Original adapter/projection and all production status values remain unchanged. No room/task/Rework transition or automatic next-round Rework. Positive new operational-plan GET against persisted proposal, accepted operational transition, required staging/proof/READY projection remain NOT_RUN. New plan tests are pure component/rule tests, not synthetic authority acceptance.
+
+UC044 Passed integration is the existing exact accepted-binding seam and R05 proposed original-cleaner recipient documented in DECISIONS.md. Current N01 kind/staging graph contains Failed/ReworkRequested only, no accepted Passed/Inspection Assigned profile. No new profile, broad source-read grant or SQL issuer. UC044 source/preflight/replay/receipt stays unchanged and closed. UC045/046/N01/R03/R05/evidence/proof sources and acceptedConcreteBinding=null are preserved. N01 L1 24/L2 14, successful authoritative assignment/conclusion/consumer commit and FE04 handoff remain NOT_RUN/NOT_READY.
+
+## Actual receipts
+
+| Check | Result | Limit |
+|---|---|---|
+| Backend solution build | PASS, 0 warnings/errors | Final source |
+| Focused harness build | PASS, 0 warnings/errors | Final harness |
+| dotnet test HotelOps.slnx | Exit 0 | API-only solution; no functional assertion count |
+| UC041 owned SQL component | 22/22 PASS | Isolated domain commit/reload, NOT authoritative notification-complete assignment |
+| UC047 plan/compatibility | 12/12 PASS | New component/rule checks; no operational SQL mutation |
+| Typed assignment client | 14/14 PASS | Controlled fetch, not live backend |
+| Assignment browser | 5/5 PASS | Real React/client with HTTP interception; not live E2E |
+| Frontend TypeScript/Vite build | PASS | Unmounted feature compiled |
+| Live HTTPS/cookie/CSRF middleware / authoritative assignment/reassignment / UC047 operational commit | NOT_RUN | Required activation/policy/staging/schema/proof absent |
+| FAST015/016 historical suites | NOT_RERUN | Existing proposal/service/client/tests untouched |
+
+SQL cases: explicit eligible self-inspector/supervisor; pending queue; ineligible inspector; wrong branch; stale task/cycle/version; inspector-cleaner conflict; missing cycle/Published version; revoked grant/session; actual SQL error after completed root/binding/two audits with full caller rollback; unchanged physical Serializable transaction; domain commit; separate connection reload; duplicate/reassignment refusal; public service no mutation; old explicit candidate rollback; concurrent assignment gives one commit + one conflict; assigned identity navigation; no invented Failed constraint. These are actual SQL sessions and existing permission evaluator/grants, not mock auth. Concurrency coverage is bounded to the tested existing Users/catalog path, not a deadlock-free claim.
+
+Fresh owned target: DESKTOP-JI8U50T\SQLEXPRESS / HotelOps_Canonical_20261110_132140_d03ec6a1_Fresh; owner 0b02e9b9-d008-4938-9dcc-fadbaa89e0d3. Exact instance/database/owner verified before mutations and independently on extra connections; initially zero users; synthetic-only. Installer installs unchanged FAST008 supervisor schema plus isolated component marker, no shared database/release change. Synthetic seed inspections are cancelled as fixture setup, never treated as business cancellation acceptance. Directly affected reruns (final due guard, then VIEW alignment) reuse only this current trial, retain prior receipts, and keep older task databases intact. Test setup may cancel its prior synthetic assignment rows before the next run; final new assigned rows and bindings remain for inspection. No trial database was dropped/reset.
+
+Development failures retained locally: initial missing namespace imports; raw DTO VersionId projection and snapshot alias corrected; initial fault trigger on audit_logs caused EF OUTPUT incompatibility (fixture defect). That exact owned test trigger was removed; no shared EF mapping changed. Fault test now executes a real SQL THROW after verified domain/audit writes, then explicit caller rollback. Initial browser exact label locator did not find the select; role/name locator fixed, then all 5 passed. No intermediate failure is counted as PASS. Existing npm deprecations and Vite react-router use-client warnings remain; Playwright logs NO_COLOR/FORCE_COLOR. Final C# builds have zero warnings.
+
+Sanitized actual receipts, decision matrix and source SHA256 manifest accompany this report. No credentials, session ticket, runtime.private files, TestResults or database files are committed. Only scoped private commit/push; no merge/deploy/force-push/shared SQL, other-owner worktree edits or producer activation. Source encoding may be normalized after verification without semantic changes; hash basis is explicit.
+
+Estimates, not acceptance: FAST017 85%; UC041 80%; UC044 72%; UC045/046 80%; UC047 75% (readiness evidence strengthened; no new operational acceptance credit).
+
+FE04_DEPENDENCY_STATUS: R03/R05_PINNED_R05_INTEGRATED_VERIFIED_ISOLATED / NOT_READY_FOR_AUTHORITATIVE_HANDOFF. R05 95f7422e284bc81bcfcf9f460dace52022de5cc7 retained; not waiting for FE04 UC029 acceptance to implement FE05 domain components. No AUTHORITATIVE_INSPECTION_HANDOFF_READY or UC ACCEPTED.

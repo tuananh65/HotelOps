@@ -1,0 +1,23 @@
+PASS Existing eligibility supplies explicit self inspector/supervisor without inference
+PASS Branch queue contains pending current-cycle tasks
+PASS Ineligible inspector is rejected
+PASS Wrong branch has no assignment authority
+PASS Stale task revision is rejected
+PASS Wrong current-cycle revision is rejected
+PASS Changed checklist version is rejected
+PASS Inspector who cleaned this cycle is rejected
+PASS Missing exact current cycle fails closed
+PASS Missing Published checklist fails closed
+PASS Revoked existing permission grant fails closed
+PASS Revoked real SQL session fails closed
+PASS Actual SQL participant fault after domain/audit rolls back root, binding and both audits
+PASS Domain participant keeps caller physical SERIALIZABLE transaction
+PASS Assignment persists exact cycle/version/explicit supervisor, without notification acceptance
+PASS Separate connection reload sees committed assigned Inspection and responsibility
+PASS Open Inspection rejects duplicate/reassignment before overwrite
+PASS Production service remains unavailable and does not mutate
+PASS Existing explicit candidate still rolls back without mandatory notification
+PASS Concurrent assignment gives one isolated component commit and one conflict
+PASS Assigned-to-me navigation uses persisted Inspection identity
+PASS UC047 production Rework constraint still has no invented Failed state
+22/22 PASS isolated UC041 domain only; authoritative assignment NOT_RUN
