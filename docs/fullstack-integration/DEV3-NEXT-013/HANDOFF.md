@@ -5,7 +5,7 @@ Base22cff049c343b1e742ec6068dc7f6fb96202f83f; feature/dev3-uc006-deactivation-ca
 
 ## Autonomous selection
 
-UC010 candidate PR45 is open/mergeable, review pending, so no merge authorization conditions are satisfied. No duplicate UC010 implementation. UC007 approved Add membership is already implemented; Department/primary replacement/remove/transfer are explicitly excluded in UserBranchAssignment/OUTSTANDING_ISSUES.md. Moved to actual UC006 gap: internal deactivation service/strict reason DTO already exist but no HTTP/frontend confirmation flow. Reused these business rules rather than inventing a new authorization/dependency/version protocol.
+At initial selection UC010 candidate PR45 was open/mergeable with review pending; no self-merge was performed and no duplicate implementation was created. UC007 approved Add membership is already implemented; Department/primary replacement/remove/transfer are explicitly excluded in UserBranchAssignment/OUTSTANDING_ISSUES.md. Moved to actual UC006 gap: internal deactivation service/strict reason DTO already exist but no HTTP/frontend confirmation flow. Reused these business rules rather than inventing a new authorization/dependency/version protocol.
 
 ## Delivered candidate
 
@@ -43,7 +43,7 @@ Full implementation authority does not sign these business/SQL decisions. No new
 
 ## Preservation
 
-Eight NEW files only; existing service, DTO, release acceptance, auth/session, Assign/Activate, FE02/FE12, DbContext/entities, Program.cs and DEV1/DEV2 writers unchanged. PR45 worktree and root local ZIPs preserved. No merge/rebase/cherry-pick/deploy/SQL/migration. Source-only PR for review, not runtime activation.
+Eight NEW files only; existing service, DTO, release acceptance, auth/session, Assign/Activate, FE02/FE12, DbContext/entities, Program.cs and DEV1/DEV2 writers unchanged. PR45 worktree and root local ZIPs preserved. No self-merge into integration/develop/main, rebase/cherry-pick/deploy/SQL/migration. Source-only PR for review, not runtime activation.
 
 ## SHA256
 
@@ -54,3 +54,7 @@ Eight NEW files only; existing service, DTO, release acceptance, auth/session, A
 97FB6DEE73BEAC66E480DC0725D3D91560632CB5A9FCD6FE12B81B2235C78AD2  frontend/tests/user-deactivation-candidate-browser.test.mjs
 845B5DA39BF5866EA7A324F6832F5C36D8916A1B7C70FCE2CED2E83DAE6168FF  scripts/verification/UserDeactivationCandidate/Program.cs
 720478BD353C02A24462E2FE4F00BD713CC9ABD45A42AE42F904BDF140B13A50  scripts/verification/UserDeactivationCandidate/UserDeactivationCandidate.Verification.csproj
+
+## Current integration synchronization
+
+Remote integration advanced to425375e2450a6f78334a302f289f6e64d265451e (PR45 merged externally). Merged that integration into this feature with a merge commit, no conflicts; same8functional files versus current base. Re-executed combined UC006/Revoke/Assign/Activate/Auth frontend suites563/563 PASS exit0; typecheck/build exit0. Backend build0warnings/errors exit0; UC006 candidate20, existing no-SQL12, UC010 revoke42 checks PASS exit0. These are still isolated/source checks; all business/SQL release gates remain closed.
