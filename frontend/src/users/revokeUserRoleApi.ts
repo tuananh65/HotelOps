@@ -12,7 +12,8 @@ export type RevokeResult =
         | "HTTP"
         | "NETWORK"
         | "CANCELLED"
-        | "INVALID_RESPONSE";
+        | "INVALID_RESPONSE"
+        | "OPEN_WORK";
       status?: number;
     };
 export const userRoleTag = (v: unknown): v is string =>
@@ -116,11 +117,17 @@ export function createRevokeUserRoleApi(
             "code" in p &&
             "title" in p &&
             p.code === p.title &&
-            ["ROLE_ASSIGNMENT_CONFLICT", "LAST_DURABLE_ADMIN"].includes(
-              String(p.code),
-            )
+            [
+              "ROLE_ASSIGNMENT_CONFLICT",
+              "LAST_DURABLE_ADMIN",
+              "OPEN_RESPONSIBILITIES",
+            ].includes(String(p.code))
           )
-            return { outcome: "REJECTED", reason: "HTTP", status: 409 };
+            return {
+              outcome: "REJECTED",
+              reason: p.code === "OPEN_RESPONSIBILITIES" ? "OPEN_WORK" : "HTTP",
+              status: 409,
+            };
         }
         return { outcome: "OUTCOME_UNKNOWN", reason: "HTTP", status: r.status };
       } catch {

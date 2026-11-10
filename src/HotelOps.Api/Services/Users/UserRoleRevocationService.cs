@@ -72,21 +72,44 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         if (!await db.Branches.AnyAsync(b => b.BranchId == branchId && b.IsActive, ct)
             || !await db.Departments.AnyAsync(d => d.DepartmentId == target.DepartmentId && d.BranchId == branchId && d.IsActive && d.DepartmentCode == departmentCode, ct)
             || !await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == branchId && a.RevokedAt == null && a.GrantedAt <= now, ct)) return new(RevokeRoleStatus.Forbidden);
-        // No approved complete dependency predicate exists. DO NOT interpret empty reads as clearance.
-        if (PendingReleaseGates.Count != 0 || !CompleteOpenWorkCoverageAccepted()) return new(RevokeRoleStatus.ReleaseAcceptanceRequired);
+        // Read the complete target, not just the role branch; unscoped/inactive-branch
+        // responsibilities may still require this executor. Readers never certify writers.
+        async Task<RevokeRoleStatus?> Responsibilities()
+        {
+            var review = await new IntegratedDeactivationResponsibilityQueries(db).ReadAsync(targetId, ct);
+            return ValidateResponsibilities(review.Blockers, review.Unresolved, review.Unsupported,
+                PendingResponsibilityWriters);
+        }
+        if (await Responsibilities() is { } dependency) return new(dependency);
+        if (PendingReleaseGates.Count != 0) return new(RevokeRoleStatus.ReleaseAcceptanceRequired);
         if (await Authority() is { } preWrite) return new(preWrite);
+        // Refresh mutable eligibility/expiry at the write boundary under retained locks.
+        var finalTarget = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == targetId, ct);
+        var finalAssignments = await db.UserRoles.AsNoTracking().Where(a => a.UserId == targetId).ToArrayAsync(ct);
+        if (ValidateAssignment(finalTarget, finalAssignments, assignmentId, expected, clock.GetUtcNow().UtcDateTime) is { } changed)
+            return new(changed);
+        if (await Responsibilities() is { } changedWork) return new(changedWork);
         if (await db.Users.Where(u => u.UserId == targetId && u.RowVersion == expected && u.DeletedAt == null && u.AccountStatus == "ACTIVE")
             .ExecuteUpdateAsync(s => s.SetProperty(u => u.UpdatedAt, now), ct) != 1) return new(RevokeRoleStatus.Stale);
         if (await db.UserRoles.Where(a => a.UserRoleId == assignmentId && a.UserId == targetId && a.BranchId == branchId && a.IsActive)
             .ExecuteUpdateAsync(s => s.SetProperty(a => a.IsActive, false), ct) != 1) return new(RevokeRoleStatus.Conflict);
         var revoked = await new SessionRevocationService(db).RevokeAllAsync(targetId, now, ct);
-        var audit = new AuditLog { ActorUserId = actor.UserId, BranchId = branchId, EntityType = "user_roles", EntityId = assignmentId.ToString(CultureInfo.InvariantCulture),
-            Action = "UPDATE", OccurredAt = now, OldValues = JsonSerializer.Serialize(new { isActive = true }),
-            NewValues = JsonSerializer.Serialize(new { isActive = false, revokedSessions = revoked }), ChangedFields = "[\"isActive\"]" };
+        var audit = new AuditLog
+        {
+            ActorUserId = actor.UserId,
+            BranchId = branchId,
+            EntityType = "user_roles",
+            EntityId = assignmentId.ToString(CultureInfo.InvariantCulture),
+            Action = "UPDATE",
+            OccurredAt = now,
+            OldValues = JsonSerializer.Serialize(new { isActive = true }),
+            NewValues = JsonSerializer.Serialize(new { isActive = false, revokedSessions = revoked }),
+            ChangedFields = "[\"isActive\"]"
+        };
         db.Add(audit); try { await db.SaveChangesAsync(ct); } finally { db.Entry(audit).State = EntityState.Detached; }
         try { await guard.EnsurePreservedAsync(before, ct); } catch (GlobalAdministrationInvariantException) { return new(RevokeRoleStatus.LastAdministrator); }
         if (await Authority() is { } final) return new(final);
-        if (!CompleteOpenWorkCoverageAccepted()) return new(RevokeRoleStatus.ReleaseAcceptanceRequired);
+        if (await Responsibilities() is { } finalWork) return new(finalWork);
         var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
         await tx.CommitAsync(ct); return new(RevokeRoleStatus.Success, version);
         // All early returns/errors dispose the uncommitted transaction: no role/session/audit partial commit.
@@ -104,5 +127,23 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         if (history.Count != 1 || !selected.IsActive || selected.AssignedAt > nowUtc || selected.ExpiresAt <= nowUtc) return RevokeRoleStatus.Conflict;
         return null;
     }
-    private static bool CompleteOpenWorkCoverageAccepted() => false; // Replace only with reviewed integrated census + final transaction reread.
+    // Missing external participation is explicit, immutable evidence debt; never a config switch.
+    public static IReadOnlyList<string> PendingResponsibilityWriters { get; } = Array.AsReadOnly(new[] {
+        "DEV1_TASK_CLEANING_INSPECTION_REQUEST_SCHEDULE_WRITERS",
+        "DEV2_MAINTENANCE_ASSET_INVENTORY_REQUEST_WRITERS",
+        "EXTERNAL_IMPORT_JOB_DIRECT_SQL_WRITERS" });
+
+    /// <summary>Pure classification only; a clear result cannot bypass PendingReleaseGates.</summary>
+    public static RevokeRoleStatus? ValidateResponsibilities(IReadOnlyCollection<string> blockers,
+        IReadOnlyCollection<string> unresolved, IReadOnlyCollection<string> unsupported,
+        IReadOnlyCollection<string> uncoordinatedWriters)
+    {
+        ArgumentNullException.ThrowIfNull(blockers);
+        ArgumentNullException.ThrowIfNull(unresolved);
+        ArgumentNullException.ThrowIfNull(unsupported);
+        ArgumentNullException.ThrowIfNull(uncoordinatedWriters);
+        if (unresolved.Count != 0 || unsupported.Count != 0 || uncoordinatedWriters.Count != 0)
+            return RevokeRoleStatus.ResponsibilitiesUnresolved;
+        return blockers.Count != 0 ? RevokeRoleStatus.ResponsibilitiesBlocked : null;
+    }
 }

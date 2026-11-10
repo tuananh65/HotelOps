@@ -233,3 +233,41 @@ test("two synchronous confirms dispatch only one DELETE", () =>
       1,
     );
   }));
+
+test("open responsibilities block confirmation without leaking server details", () =>
+  run(
+    {
+      enabled: true,
+      mutation: {
+        status: 409,
+        body: {
+          status: 409,
+          code: "OPEN_RESPONSIBILITIES",
+          title: "OPEN_RESPONSIBILITIES",
+          detail: "PRIVATE-DEPENDENCY-FACTS",
+        },
+        headers: { "Content-Type": "application/problem+json" },
+      },
+    },
+    async (p) => {
+      await review(p);
+      await p.getByRole("button", { name: "Confirm revoke" }).click();
+      await p
+        .getByText(
+          "Open responsibilities prevent revocation. Arrange an authorized handover before a new review.",
+        )
+        .waitFor();
+      assert.equal(
+        await p.getByRole("button", { name: "Confirm revoke" }).count(),
+        0,
+      );
+      assert.equal(await p.getByText("PRIVATE-DEPENDENCY-FACTS").count(), 0);
+      assert.equal(
+        await p.evaluate(
+          () =>
+            window.fixture.calls.filter((c) => c.method === "DELETE").length,
+        ),
+        1,
+      );
+    },
+  ));

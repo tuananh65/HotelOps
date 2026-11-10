@@ -151,7 +151,13 @@ function Bound({
     if (result.outcome === "CONFIRMED") setPhase("confirmed");
     else {
       setStatus(result.status);
-      setPhase(result.outcome === "OUTCOME_UNKNOWN" ? "unknown" : "rejected");
+      setPhase(
+        result.reason === "OPEN_WORK"
+          ? "blocked"
+          : result.outcome === "OUTCOME_UNKNOWN"
+            ? "unknown"
+            : "rejected",
+      );
     }
   }
   return (
@@ -189,17 +195,19 @@ function Bound({
           Role revoked. Target sessions must be invalidated by the server.
         </p>
       )}
-      {["unavailable", "rejected", "unknown"].includes(phase) && (
+      {["unavailable", "rejected", "unknown", "blocked"].includes(phase) && (
         <p role="alert">
-          {phase === "unknown"
-            ? "Outcome unknown. Do not replay; ask an authorized owner to verify."
-            : status === 412
-              ? "Version changed. Reload and review in a new flow; no replay."
-              : status === 403
-                ? "Access denied by the server."
-                : status === 503
-                  ? "Revocation unavailable. Release gates remain closed."
-                  : "Could not confirm revocation. No automatic retry."}
+          {phase === "blocked"
+            ? "Open responsibilities prevent revocation. Arrange an authorized handover before a new review."
+            : phase === "unknown"
+              ? "Outcome unknown. Do not replay; ask an authorized owner to verify."
+              : status === 412
+                ? "Version changed. Reload and review in a new flow; no replay."
+                : status === 403
+                  ? "Access denied by the server."
+                  : status === 503
+                    ? "Revocation unavailable. Release gates remain closed."
+                    : "Could not confirm revocation. No automatic retry."}
         </p>
       )}
       {status === 401 && <button onClick={recover}>Check session</button>}

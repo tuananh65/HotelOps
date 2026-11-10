@@ -251,3 +251,40 @@ test("production application graph never imports revoke candidate", async () => 
     ),
   );
 });
+
+for (const title of [
+  "OPEN_RESPONSIBILITIES",
+  "LAST_DURABLE_ADMIN",
+  "UNKNOWN",
+]) {
+  test(`open-work response ${title} is sanitized and never retried`, async () => {
+    const h = harness(
+      () =>
+        new Response(
+          JSON.stringify({
+            status: 409,
+            code: "OPEN_RESPONSIBILITIES",
+            title,
+            detail: secret,
+            traceId: secret,
+          }),
+          {
+            status: 409,
+            headers: { "Content-Type": "application/problem+json" },
+          },
+        ),
+    );
+    const result = await h.api.revoke(42, 18, old, () => true);
+    assert.equal(
+      result.outcome,
+      title === "OPEN_RESPONSIBILITIES" ? "REJECTED" : "OUTCOME_UNKNOWN",
+    );
+    assert.equal(
+      result.reason,
+      title === "OPEN_RESPONSIBILITIES" ? "OPEN_WORK" : "HTTP",
+    );
+    assert.equal(h.calls.filter((c) => c.method === "DELETE").length, 1);
+    assert.equal(h.calls.length, 2);
+    assert.equal(JSON.stringify(result).includes(secret), false);
+  });
+}
