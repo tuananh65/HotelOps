@@ -1,0 +1,141 @@
+{
+    "backend_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "task":  "FE03-LIVE-021",
+    "backend_binary_sha256":  "71E65114E7B8C1578F50D71C4649801EF4D0B13A28EFDC0D1813BC3BEFDDC3D7",
+    "after":  {
+                  "tasks":  0,
+                  "histories":  3,
+                  "blocks":  1,
+                  "inspections":  0,
+                  "rooms_checksum":  -1043355948,
+                  "history_checksum":  592617771,
+                  "blocks_checksum":  -1008336744,
+                  "schema_checksum":  -1374280694,
+                  "sessions":  0
+              },
+    "before":  {
+                   "tasks":  0,
+                   "histories":  3,
+                   "blocks":  1,
+                   "inspections":  0,
+                   "rooms_checksum":  -1043355948,
+                   "history_checksum":  592617771,
+                   "blocks_checksum":  -1008336744,
+                   "schema_checksum":  -1374280694,
+                   "sessions":  0
+               },
+    "browser_exit_code":  0,
+    "frontend_sha":  "8c9e6054622b3e7946ea47b3da66ad6a2f09b063",
+    "database_guid":  "be23f102-29fd-44b5-bfb0-d66e59bb5be4",
+    "status":  "PASS",
+    "sql_tls_validation":  true,
+    "lease_expiry":  "2026-11-11T03:05:21.0616355+00:00",
+    "utc":  "2026-11-10T12:29:39.3622572+00:00",
+    "business_sql_mutations":  0,
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "Correct lease and approved environment contract"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Expected frontend/backend SHA"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Expected branch HEAD and clean worktree"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Frontend source snapshot matches approved SHA"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Runtime API source compatible with frontend SHA"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Backend binary hash and embedded source version"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Listener PID 7049"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Listener PID 7459"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Backend process pins expected binary"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Frontend process pins approved source snapshot"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Database GUID/owner/lease markers verified"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "No pre-existing live sessions"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Actual restricted SQL identity and no business write permission"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Actual backend SQL encrypted and isolated login/database"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Allowed approved credential identity"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Denied approved credential identity"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Feature browser acceptance exit code zero"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged tasks"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged histories"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged blocks"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged inspections"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged rooms_checksum"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged history_checksum"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged blocks_checksum"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged schema_checksum"
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Post-check unchanged sessions"
+                   }
+               ]
+}

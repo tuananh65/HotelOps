@@ -1,0 +1,66 @@
+{
+    "task":  "FE03-LIVE-021",
+    "status":  "PASS",
+    "feature_head_before_evidence":  "6083896159f27e23e0cebddd3c0493c9712c4e9a",
+    "frontend_source_sha":  "8c9e6054622b3e7946ea47b3da66ad6a2f09b063",
+    "backend_source_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "feature_checks_pass":  46,
+    "feature_checks_fail":  0,
+    "preflight_post_checks_pass":  26,
+    "preflight_post_checks_fail":  0,
+    "exit_code":  0,
+    "frontend_https":  "https://localhost:7459",
+    "backend_https":  "https://localhost:7049",
+    "lease_expiry":  "2026-11-11T03:05:21.0616355+00:00",
+    "application_source_changed":  false,
+    "responses_intercepted":  0,
+    "business_mutation_requests":  0,
+    "cleaning_submit_executed":  false,
+    "unrevoked_sessions_after":  0,
+    "limitations":  [
+                        "Denied actor lacks both ROOM_VIEW and CLEANING_ASSIGN; ROOM_VIEW-only actor unavailable; no grants or fixtures created.",
+                        "Malformed successful options were not injected into live runtime; covered only by existing offline browser/unit regression.",
+                        "Feature-specific checks are distinct from the 24 ENV smoke checks."
+                    ],
+    "attempts":  [
+                     {
+                         "stage":  "Initial preflight",
+                         "outcome":  "No idle backend SQL session was visible; no login or feature acceptance executed. Read-only health GET opened observable encrypted backend connection with exact approved identity."
+                     },
+                     {
+                         "stage":  "First browser attempt",
+                         "outcome":  "Node APIRequestContext rejected local CA before login. Used OS-trusting browser HTTPS health instead; no TLS bypass or runtime changes."
+                     },
+                     {
+                         "stage":  "First navigation attempt",
+                         "outcome":  "Real destination/context/options passed; Browser Back visibility assertion timed out at default 5 seconds. Cleanup succeeded; fixture state unchanged. No application change."
+                     },
+                     {
+                         "stage":  "Final acceptance",
+                         "outcome":  "Browser Back assertion timeout increased to 15 seconds for live runtime; 46/46 feature checks and 26/26 preflight/post-state checks passed, exit 0."
+                     }
+                 ],
+    "evidence":  [
+                     {
+                         "sha256":  "81A5EB3D2B768AB38C7CD680A311D9204F3E71186FB7C9BCEC19DF6415E93DE3",
+                         "file":  "browser.json"
+                     },
+                     {
+                         "sha256":  "EBF9F181B4087A457D28C22D9EDD600943999A4403357D9C7EE132E4D0F7CFDB",
+                         "file":  "preflight-post.json"
+                     }
+                 ],
+    "harness_sha256":  {
+                           "browser":  "28D27B683AFA505265BF8B622A9B190C1AC7653A69042E6FEFBB2D00E272D9C1",
+                           "runner":  "C03E5B960F7E1C8295F49695BA9970D4111BAAACC6416386E48EACB24B350259"
+                       },
+    "local_command":  "powershell -NoProfile -File obj/fe03-live-021/Run.ps1",
+    "pr_status":  "DRAFT",
+    "readiness":  "READY_FOR_FINAL_REVIEW",
+    "uc041_uc049":  "BLOCKED_LINK_CONTRACT",
+    "mutation":  "BLOCKED_CONTRACT",
+    "effective_readiness":  "BLOCKED_CONTRACT",
+    "roomblock_business_policy":  "BLOCKED_CONTRACT",
+    "uc027":  "NOT_ACCEPTED",
+    "utc":  "2026-11-10T12:29:39.3622572+00:00"
+}
