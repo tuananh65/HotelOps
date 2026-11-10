@@ -1,3 +1,4 @@
+using EventRow = HotelOps.Api.Services.Rooms.RoomRecordedStatusRow;
 using System.ComponentModel.DataAnnotations;
 using System.Data;
 using System.Data.Common;
@@ -75,21 +76,20 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                     .TagWith("UC023:Detail").SingleOrDefaultAsync(ct);
                 if (selected == null) return new(RoomDirectoryStatus.NotFound);
                 var events = db.RoomStatusHistories.AsNoTracking().Where(x => x.RoomId == requestedRoom);
-                var orderedEvents = events.OrderByDescending(x => x.ChangedAt).ThenByDescending(x => x.HistoryId);
+                var orderedEvents = RoomOperationalReadQueries.RecordedHistory(db.RoomStatusHistories.AsNoTracking(), requestedRoom);
                 RoomDirectoryDetailDto? detail = null; RoomDirectoryHistoryDto? timeline = null;
                 if (history)
                 {
                     var count = await events.TagWith("UC023:HistoryCount").LongCountAsync(ct);
                     var page = await orderedEvents.Skip(checked((query.Page-1)*query.PageSize)).Take(query.PageSize)
-                        .Select(x => new EventRow(x.HistoryId,x.FromStatus,x.ToStatus,x.ChangedAt,x.Reason,x.TriggerType,x.TriggerId))
                         .TagWith("UC023:HistoryPage").ToArrayAsync(ct);
                     var sources = await Sources(page, requestedRoom, ct);
                     timeline = new(page.Select(x => new RoomStatusEventDto(x.Id,x.From,x.To,
-                        DateTime.SpecifyKind(x.At,DateTimeKind.Utc),x.Reason,sources[x.Id])).ToArray(),query.Page,query.PageSize,count);
+                        DateTime.SpecifyKind(x.At,DateTimeKind.Utc),x.Reason,sources[x.Id],x.ChangedByUserId)).ToArray(),query.Page,query.PageSize,count);
                 }
                 else
                 {
-                    var last = await orderedEvents.Select(x => new EventRow(x.HistoryId,x.FromStatus,x.ToStatus,x.ChangedAt,x.Reason,x.TriggerType,x.TriggerId))
+                    var last = await orderedEvents
                         .TagWith("UC023:CurrentEvidence").FirstOrDefaultAsync(ct);
                     var evidence = new RoomCurrentStatusEvidenceDto(last == null ? "NOT_RECORDED" : "OUT_OF_SYNC",null,null,null);
                     if (last != null && last.To == selected.Value.OperationalStatusCode)
@@ -166,7 +166,6 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
         };
     }
 
-    private sealed record EventRow(long Id,string? From,string To,DateTime At,string? Reason,string? Type,long? SourceId);
     private async Task<Dictionary<long,RoomStatusSourceDto>> Sources(EventRow[] events,long roomId,CancellationToken ct)
     {
         var tasks=events.Where(x=>x.Type=="CLEANING_TASK"&&x.SourceId!=null).Select(x=>x.SourceId!.Value).ToArray();

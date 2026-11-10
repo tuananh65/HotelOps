@@ -33,6 +33,7 @@ export interface RoomHistory {
     fromStatusCode: string | null;
     toStatusCode: string;
     changedAtUtc: string;
+    changedByUserId: number | null;
     reason: string | null;
     source: RoomSource;
   }[];
@@ -229,6 +230,7 @@ export async function readRoomHistory(
         !text(e.fromStatusCode) ||
         typeof e.toStatusCode !== "string" ||
         !utc(e.changedAtUtc) ||
+        !(e.changedByUserId === null || id(e.changedByUserId)) ||
         !text(e.reason) ||
         !source(e.source),
     )

@@ -280,3 +280,28 @@ test("empty out-of-range history pages and unavailable evidence remain valid", a
     );
   }
 });
+
+test("history accepts persisted actor or missing attribution and rejects invented identity", async () => {
+  for (const changedByUserId of [8, null]) {
+    globalThis.fetch = async () =>
+      Response.json({
+        ...history,
+        items: [{ ...history.items[0], changedByUserId }],
+      });
+    assert.equal(
+      (await readRoomHistory("7", "11", 1)).items[0].changedByUserId,
+      changedByUserId,
+    );
+  }
+  for (const changedByUserId of [undefined, 0, -1, "8", 9007199254740992]) {
+    globalThis.fetch = async () =>
+      Response.json({
+        ...history,
+        items: [{ ...history.items[0], changedByUserId }],
+      });
+    await assert.rejects(
+      readRoomHistory("7", "11", 1),
+      /INVALID_ROOM_RESPONSE/,
+    );
+  }
+});

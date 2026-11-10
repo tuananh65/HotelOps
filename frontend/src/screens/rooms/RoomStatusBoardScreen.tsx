@@ -262,7 +262,8 @@ export default function RoomStatusBoardScreen() {
                 <time>{e.changedAtUtc}</time> · {e.fromStatusCode || "—"} →{" "}
                 {e.toStatusCode} · {e.reason || "—"} · Nguồn{" "}
                 {e.source.type || "—"} {e.source.id ?? ""} (
-                {e.source.availability})
+                {e.source.availability}) · Người thay đổi (ID):{" "}
+                {e.changedByUserId ?? "Chưa ghi nhận"}
               </li>
             ))}
           </ol>
