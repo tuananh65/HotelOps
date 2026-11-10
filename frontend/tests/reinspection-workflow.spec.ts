@@ -37,43 +37,50 @@ test("open exact source, choose Not Fixed, save, reload and review; Conclude sta
 }) => {
   let stored = structuredClone(source),
     puts = 0;
-  await page.route((url) => url.pathname.startsWith("/api/"), async (route) => {
-    const request = route.request(),
-      url = request.url();
-    let body: any = stored;
-    if (url.endsWith("/csrf"))
-      body = { headerName: "X-CSRF-TOKEN", csrfToken: "test" };
-    else if (request.method() === "PUT") {
-      puts++;
-      expect(request.headers()["if-match"]).toBe(stored.inspectionRevision);
-      const command = request.postDataJSON();
-      expect(command.decisions).toEqual([{ defectId: 9, fixed: false }]);
-      stored = {
-        ...stored,
-        inspectionRevision: '"0000000000000004"',
-        bindingRevision: '"0000000000000005"',
-        defects: [
+  await page.route(
+    (url) => url.pathname.startsWith("/api/"),
+    async (route) => {
+      if (route.request().url().includes("/conclusion-proposal")) {
+        await route.fulfill({ json: { proposal: null } });
+        return;
+      }
+      const request = route.request(),
+        url = request.url();
+      let body: any = stored;
+      if (url.endsWith("/csrf"))
+        body = { headerName: "X-CSRF-TOKEN", csrfToken: "test" };
+      else if (request.method() === "PUT") {
+        puts++;
+        expect(request.headers()["if-match"]).toBe(stored.inspectionRevision);
+        const command = request.postDataJSON();
+        expect(command.decisions).toEqual([{ defectId: 9, fixed: false }]);
+        stored = {
+          ...stored,
+          inspectionRevision: '"0000000000000004"',
+          bindingRevision: '"0000000000000005"',
+          defects: [
+            {
+              ...stored.defects[0],
+              fixed: false,
+              recordedBy: 12,
+              recordedAt: "2026-11-10T00:00:00Z",
+            },
+          ],
+        };
+        body = stored;
+      } else if (!url.includes("?"))
+        body = [
           {
-            ...stored.defects[0],
-            fixed: false,
-            recordedBy: 12,
-            recordedAt: "2026-11-10T00:00:00Z",
+            inspectionId: 7,
+            reworkId: 8,
+            originalInspectionId: 2,
+            roomId: 6,
+            assignedChecklistVersionId: 4,
           },
-        ],
-      };
-      body = stored;
-    } else if (!url.includes("?"))
-      body = [
-        {
-          inspectionId: 7,
-          reworkId: 8,
-          originalInspectionId: 2,
-          roomId: 6,
-          assignedChecklistVersionId: 4,
-        },
-      ];
-    await route.fulfill({ json: body });
-  });
+        ];
+      await route.fulfill({ json: body });
+    },
+  );
   await page.goto("/tests/fixtures/reinspection-workflow.html");
   await page.getByRole("button", { name: "Inspection #7 · Rework #8" }).click();
   await expect(page.getByText("Wet floor", { exact: true })).toBeVisible();
@@ -96,29 +103,36 @@ test("open exact source, choose Not Fixed, save, reload and review; Conclude sta
 });
 test("stale save disables another mutation until reload", async ({ page }) => {
   let puts = 0;
-  await page.route((url) => url.pathname.startsWith("/api/"), async (route) => {
-    const url = route.request().url();
-    if (route.request().method() === "PUT") {
-      puts++;
-      await route.fulfill({ status: 412, json: { title: "STALE" } });
-      return;
-    }
-    await route.fulfill({
-      json: url.endsWith("/csrf")
-        ? { headerName: "X-CSRF-TOKEN", csrfToken: "test" }
-        : url.includes("?")
-          ? source
-          : [
-              {
-                inspectionId: 7,
-                reworkId: 8,
-                originalInspectionId: 2,
-                roomId: 6,
-                assignedChecklistVersionId: 4,
-              },
-            ],
-    });
-  });
+  await page.route(
+    (url) => url.pathname.startsWith("/api/"),
+    async (route) => {
+      const url = route.request().url();
+      if (url.includes("/conclusion-proposal")) {
+        await route.fulfill({ json: { proposal: null } });
+        return;
+      }
+      if (route.request().method() === "PUT") {
+        puts++;
+        await route.fulfill({ status: 412, json: { title: "STALE" } });
+        return;
+      }
+      await route.fulfill({
+        json: url.endsWith("/csrf")
+          ? { headerName: "X-CSRF-TOKEN", csrfToken: "test" }
+          : url.includes("?")
+            ? source
+            : [
+                {
+                  inspectionId: 7,
+                  reworkId: 8,
+                  originalInspectionId: 2,
+                  roomId: 6,
+                  assignedChecklistVersionId: 4,
+                },
+              ],
+      });
+    },
+  );
   await page.goto("/tests/fixtures/reinspection-workflow.html");
   await page.getByRole("button", { name: "Inspection #7 · Rework #8" }).click();
   await page.getByLabel("Decision").selectOption("fixed");
@@ -133,8 +147,9 @@ test("stale save disables another mutation until reload", async ({ page }) => {
 });
 for (const status of [401, 403])
   test(`list ${status} displays authorization failure`, async ({ page }) => {
-    await page.route((url) => url.pathname.startsWith("/api/"), (route) =>
-      route.fulfill({ status, json: { title: "DENIED" } }),
+    await page.route(
+      (url) => url.pathname.startsWith("/api/"),
+      (route) => route.fulfill({ status, json: { title: "DENIED" } }),
     );
     await page.goto("/tests/fixtures/reinspection-workflow.html");
     await expect(page.getByRole("alert")).toContainText(
@@ -145,7 +160,10 @@ for (const status of [401, 403])
     ).toHaveCount(0);
   });
 test("empty list has no mutation controls", async ({ page }) => {
-  await page.route((url) => url.pathname.startsWith("/api/"), (route) => route.fulfill({ json: [] }));
+  await page.route(
+    (url) => url.pathname.startsWith("/api/"),
+    (route) => route.fulfill({ json: [] }),
+  );
   await page.goto("/tests/fixtures/reinspection-workflow.html");
   await expect(
     page.getByText("No assigned reinspections available."),

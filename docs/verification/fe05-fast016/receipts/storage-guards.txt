@@ -1,0 +1,4 @@
+PASS Direct result update cannot bypass reviewed storage freeze
+PASS Persisted proposal cannot be rewritten
+PASS Persisted proposal cannot be deleted
+3/3 PASS SQL proposal storage guards; no byte-immutability acceptance

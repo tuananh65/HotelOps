@@ -1,0 +1,111 @@
+{
+  "baseline": "6dac65a63430ce6da07c2245a112f6f6118b3290",
+  "branch": "feature/dev1-fe05-reinspection-conclusion",
+  "sql": {
+    "fixed": 20,
+    "notFixed": 8,
+    "storageGuards": 3,
+    "pass": 31,
+    "fail": 0,
+    "proposalCommitted": true,
+    "operationalLifecycleApplied": false,
+    "acceptedAuthority": false
+  },
+  "client": {
+    "pass": 29,
+    "fail": 0,
+    "controlledFetch": true
+  },
+  "browser": {
+    "pass": 9,
+    "fail": 0,
+    "httpInterception": true,
+    "liveE2E": false
+  },
+  "backendBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "harnessBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "frontendBuild": {
+    "result": "PASS",
+    "existingReactRouterWarnings": true
+  },
+  "solutionTest": {
+    "exitCode": 0,
+    "functionalAssertionsCredit": 0
+  },
+  "HTTPS": "NOT_RUN",
+  "authoritativeCommit": "NOT_RUN",
+  "N01": {
+    "L1": "24 NOT_RUN",
+    "L2": "14 NOT_RUN"
+  },
+  "productionDispatch": "OFF",
+  "sourceFiles": 16,
+  "sourceHashBasis": "Exact working-tree UTF-8 without BOM / CRLF; core.autocrlf=true",
+  "receiptEncoding": "UTF-8 text transcoded from PowerShell console logs; trailing whitespace trimmed",
+  "receipts": [
+    {
+      "path": "backend-build.txt",
+      "sha256": "CA8156B4AAA0E566920BC6C74D71C686B8F4B68BA50B32B90BC0EA4F7776BEF7"
+    },
+    {
+      "path": "browser-tests.txt",
+      "sha256": "EA6D64E167CC801395509677953AE30BF5C1C97C2E6CED1FDFACADBB9D6A797F"
+    },
+    {
+      "path": "client-tests.txt",
+      "sha256": "832E92B1D1029913C5D0FA12334D9DE00A15730A445C6796D49A648104B904DA"
+    },
+    {
+      "path": "environment.json",
+      "sha256": "DD71A8AF5C9CCB4B3DB844BDAC5E3D10D93676B12DDA830D2F7E2222478FF7C6"
+    },
+    {
+      "path": "fixed-proposal-results.json",
+      "sha256": "E345819ABA8DE1E8C5A2DD9EBBD94F7C2887B3C0BF7E4424380881CD166CF0A4"
+    },
+    {
+      "path": "fixed-sql.txt",
+      "sha256": "381EE908AA1B2F5BF5D5E251021AD9026738A780B28F019D2CD38D4510CCB593"
+    },
+    {
+      "path": "frontend-build.txt",
+      "sha256": "BDD303DF67C91F3E305E681D5E205D92569F0258A213F1A94660E321616A5F87"
+    },
+    {
+      "path": "harness-build.txt",
+      "sha256": "33C31CB6DE22411AFEC6193461A7B57F8F6F096CA4F18526F1DC48935FF1C405"
+    },
+    {
+      "path": "install.json",
+      "sha256": "1A68EF650E4E660E7685603980C552B24088F1CB347EFCC99293F90B60E194E1"
+    },
+    {
+      "path": "notfixed-proposal-results.json",
+      "sha256": "2D1F8EC563349A3B9369AA9FBE899759AFAE861A5D86EFF9FFDA7DD8641D0F79"
+    },
+    {
+      "path": "notfixed-sql.txt",
+      "sha256": "33A06D4C2B2CC94C7E331177E5CF3D8FAD988CAA5677F726CF9AF6792C691DA4"
+    },
+    {
+      "path": "solution-test.txt",
+      "sha256": "2AD9967F2280D0195AD457A92FE6A353A8492625846632386DF6DFC446EFE4BC"
+    },
+    {
+      "path": "storage-guard-results.json",
+      "sha256": "3E43B31268CC943F1862ED740DEE6AB13F75800176701D1B7A843307FB7B0BE9"
+    },
+    {
+      "path": "storage-guards.txt",
+      "sha256": "45C9EAC4E998E50C32BBEC0F0A7D84090385918F95C06C1849A891D2B35738C1"
+    }
+  ]
+}

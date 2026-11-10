@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { ReinspectionConclusionReview } from "./ReinspectionConclusionReview";
+import { useCallback, useEffect, useState } from "react";
 import { ApiError } from "../../api/dev1/client";
 import {
   ReinspectionCandidateClient,
@@ -23,7 +24,8 @@ function Workflow({ branchId }: { branchId: number }) {
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
     [reloadRequired, setReloadRequired] = useState(false),
-    [notice, setNotice] = useState("");
+    [notice, setNotice] = useState(""),
+    [reviewed, setReviewed] = useState(false);
   useEffect(() => {
     const c = new AbortController();
     setBusy(true);
@@ -40,6 +42,7 @@ function Workflow({ branchId }: { branchId: number }) {
   }, [branchId]);
   function apply(value: CandidateDetails) {
     setSource(value);
+    setReviewed(false);
     setAnswers(
       Object.fromEntries(value.defects.map((d) => [d.defectId, d.fixed])),
     );
@@ -59,7 +62,7 @@ function Workflow({ branchId }: { branchId: number }) {
     }
   }
   async function save() {
-    if (!source || busy || reloadRequired) return;
+    if (!source || busy || reloadRequired || reviewed) return;
     setBusy(true);
     setError("");
     setNotice("");
@@ -79,13 +82,22 @@ function Workflow({ branchId }: { branchId: number }) {
       setError(candidateError(e));
       if (
         e instanceof ApiError &&
-        (e.status === 412 || e.status === 0 || e.status >= 500)
+        (e.status === 401 ||
+          e.status === 403 ||
+          e.status === 409 ||
+          e.status === 412 ||
+          e.status === 0 ||
+          e.status >= 500)
       )
         setReloadRequired(true);
     } finally {
       setBusy(false);
     }
   }
+  const markReviewed = useCallback(() => setReviewed(true), []);
+  const blockReview = useCallback(() => setReloadRequired(true), []);
+  const dirty =
+    !!source && source.defects.some((d) => answers[d.defectId] !== d.fixed);
   const complete =
     source &&
     source.defects.every((d) => typeof answers[d.defectId] === "boolean");
@@ -129,7 +141,10 @@ function Workflow({ branchId }: { branchId: number }) {
             </ul>
           </details>
           {source.defects.map((d) => (
-            <fieldset key={d.defectId} disabled={busy || reloadRequired}>
+            <fieldset
+              key={d.defectId}
+              disabled={busy || reloadRequired || reviewed}
+            >
               <legend>Defect #{d.defectId}</legend>
               <p>{d.description}</p>
               {d.originalCriterion && (
@@ -170,7 +185,10 @@ function Workflow({ branchId }: { branchId: number }) {
               )}
             </fieldset>
           ))}
-          <button disabled={busy || !complete || reloadRequired} onClick={save}>
+          <button
+            disabled={busy || !complete || reloadRequired || reviewed}
+            onClick={save}
+          >
             Save results
           </button>
           <button disabled={busy} onClick={() => open(source)}>
@@ -180,6 +198,15 @@ function Workflow({ branchId }: { branchId: number }) {
             Review all saved decisions before conclusion. Concluding is
             currently unavailable.
           </p>
+          <ReinspectionConclusionReview
+            key={`${source.inspectionId}:${source.inspectionRevision}:${source.bindingRevision}`}
+            branchId={branchId}
+            source={source}
+            disabled={busy || reloadRequired || dirty}
+            onPersisted={() => open(source)}
+            onBlocked={blockReview}
+            onReviewed={markReviewed}
+          />
           <button disabled>Conclude unavailable</button>
         </div>
       )}

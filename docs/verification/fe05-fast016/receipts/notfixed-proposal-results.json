@@ -1,0 +1,41 @@
+{
+  "success": true,
+  "proposalCommitted": true,
+  "authoritativeLifecycleApplied": false,
+  "syntheticSource": true,
+  "httpMiddlewareVerified": false,
+  "cases": [
+    {
+      "name": "Concurrent identical operation commits once and returns verified replay",
+      "result": "PASS"
+    },
+    {
+      "name": "Not Fixed persists proposed Failed and exact next-round source IDs",
+      "result": "PASS"
+    },
+    {
+      "name": "Separate connection reload sees committed immutable proposal",
+      "result": "PASS"
+    },
+    {
+      "name": "Repeated same operation replays despite old request ETag",
+      "result": "PASS"
+    },
+    {
+      "name": "Different operation for reviewed source conflicts",
+      "result": "PASS"
+    },
+    {
+      "name": "Same operation with changed canonical revision conflicts",
+      "result": "PASS"
+    },
+    {
+      "name": "Save cannot alter already-reviewed results",
+      "result": "PASS"
+    },
+    {
+      "name": "Original defect associations preserved and operational conclusion closed",
+      "result": "PASS"
+    }
+  ]
+}

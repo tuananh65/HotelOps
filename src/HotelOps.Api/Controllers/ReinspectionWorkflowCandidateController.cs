@@ -24,6 +24,13 @@ public sealed class ReinspectionWorkflowCandidateController(RoomTypeCreationServ
         if(!Request.Headers.ContainsKey("If-Match"))return Task.FromResult<IActionResult>(Problem(statusCode:428,title:"IF_MATCH_REQUIRED"));
         return Run((t,s)=>service.SaveReinspectionWorkflowAsync(t,s,branchId,inspectionId,Request.Headers.IfMatch.ToString(),input,ct));
     }
+    [HttpGet("{inspectionId:long}/conclusion-proposal")] public Task<IActionResult> ReadProposal(long branchId,long inspectionId,long reworkId,CancellationToken ct)
+        =>Run((t,s)=>service.ReadReinspectionConclusionAsync(t,s,branchId,inspectionId,reworkId,ct));
+    [HttpPost("{inspectionId:long}/conclusion-proposal")] public Task<IActionResult> PrepareProposal(long branchId,long inspectionId,[FromBody] ReinspectionConclusionProposalRequest input,CancellationToken ct)
+    {
+        if(!Request.Headers.ContainsKey("If-Match"))return Task.FromResult<IActionResult>(Problem(statusCode:428,title:"IF_MATCH_REQUIRED"));
+        return Run((t,s)=>service.PrepareReinspectionConclusionAsync(t,s,branchId,inspectionId,Request.Headers.IfMatch.ToString(),input,ct));
+    }
     [HttpPost("{inspectionId:long}/conclude")] public Task<IActionResult> Conclude(long branchId,long inspectionId,long reworkId,CancellationToken ct)
         =>Run(async(t,s)=>{var source=await service.ReadReinspectionWorkflowAsync(t,s,branchId,inspectionId,reworkId,ct);return source.Status==RoomTypeBatchStatus.Success
             ?new(RoomTypeBatchStatus.Unavailable,new InspectionMutationBlocked("REINSPECTION_LIFECYCLE_NOT_ACCEPTED",["CHECKLIST_BINDING_POLICY","REWORK_COMPLETED_FAILED_TRANSITIONS","REQUIRED_STAGING_AND_PROJECTION"])):source;});

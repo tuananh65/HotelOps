@@ -42,6 +42,7 @@ public sealed partial class RoomTypeCreationService
     internal Task<RoomTypeBatchResult> SaveReinspectionWorkflowAsync(SessionReference ticket,long sid,long branch,long inspection,string expected,ReinspectionSaveCandidateRequest input,CancellationToken ct)
         => ReinspectionWorkflowBatch(ticket,sid,branch,async token=>{
             if(input.Decisions==null)throw new InvalidOperationException("REINSPECTION_EXACT_COMPLETE_DECISIONS_REQUIRED");
+            await RequireUnreviewedProposalSource(ticket,sid,branch,inspection,input.ReworkId,token);
             await SaveReinspectionComponentInCallerTransactionAsync(ticket,sid,branch,inspection,input.ReworkId,expected,input.ReworkRevision,input.BindingRevision,
                 input.Decisions.Select(d=>new ReinspectionDefectDecision(d.DefectId,d.Fixed)).ToArray(),token);
             return await WorkflowDetails(ticket,sid,branch,inspection,input.ReworkId,token);
@@ -57,9 +58,10 @@ public sealed partial class RoomTypeCreationService
         },ct,requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM",preserveCommitErrors:true);
 
     private static RoomTypeBatchStatus? WorkflowError(string code)=>ReinspectionReviewErrors.Status(code)??code switch{
-        "REINSPECTION_BINDING_STALE_OR_WRONG_SOURCE"=>RoomTypeBatchStatus.Stale,
-        "REINSPECTION_BINDING_REVISION_INVALID" or "REINSPECTION_EXACT_COMPLETE_DECISIONS_REQUIRED"=>RoomTypeBatchStatus.InvalidReference,
-        "REINSPECTION_ISOLATED_COMPONENT_SCHEMA_REQUIRED"=>RoomTypeBatchStatus.SchemaRequired,
+        "REINSPECTION_CONCLUSION_STALE" or "REINSPECTION_BINDING_STALE_OR_WRONG_SOURCE"=>RoomTypeBatchStatus.Stale,
+        "REINSPECTION_PROPOSAL_INPUT_INVALID" or "REINSPECTION_BINDING_REVISION_INVALID" or "REINSPECTION_EXACT_COMPLETE_DECISIONS_REQUIRED"=>RoomTypeBatchStatus.InvalidReference,
+        "REINSPECTION_OPERATION_CONFLICT" or "REINSPECTION_RESULTS_ALREADY_REVIEWED"=>RoomTypeBatchStatus.Duplicate,
+        "REINSPECTION_PROPOSAL_SCHEMA_REQUIRED" or "REINSPECTION_ISOLATED_COMPONENT_SCHEMA_REQUIRED"=>RoomTypeBatchStatus.SchemaRequired,
         "REINSPECTION_PERSISTED_BINDING_REQUIRED"=>RoomTypeBatchStatus.NotFound,
         _=>null};
 

@@ -1,0 +1,18 @@
+{
+  "success": true,
+  "proposalOnly": true,
+  "cases": [
+    {
+      "name": "Direct result update cannot bypass reviewed storage freeze",
+      "result": "PASS"
+    },
+    {
+      "name": "Persisted proposal cannot be rewritten",
+      "result": "PASS"
+    },
+    {
+      "name": "Persisted proposal cannot be deleted",
+      "result": "PASS"
+    }
+  ]
+}

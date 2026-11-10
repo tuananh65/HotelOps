@@ -1,0 +1,21 @@
+PASS Unanswered results cannot conclude proposal
+PASS Confirmation is mandatory
+PASS Proposal requires If-Match
+PASS Wrong branch authorization returns 403
+PASS Account without existing grant returns 403
+PASS Stale root revision rejected
+PASS Wrong selected defect set rejected
+PASS Stale binding revision rejected
+PASS Actual audit failure rolls back proposal, root/binding revisions and audit
+PASS Concurrent different operations yield one commit and one conflict
+PASS All Fixed persists proposed Completed
+PASS Separate connection reload sees committed immutable proposal
+PASS Repeated same operation replays despite old request ETag
+PASS Different operation for reviewed source conflicts
+PASS Same operation with changed canonical revision conflicts
+PASS Save cannot alter already-reviewed results
+PASS Original defect associations preserved and operational conclusion closed
+PASS Replay rechecks persisted reinspector
+PASS Changed persisted source invalidates completed replay
+PASS Replay cannot bypass missing current cycle
+20/20 PASS proposal storage/replay; authoritative lifecycle NOT_RUN

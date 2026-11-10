@@ -1,0 +1,9 @@
+PASS Concurrent identical operation commits once and returns verified replay
+PASS Not Fixed persists proposed Failed and exact next-round source IDs
+PASS Separate connection reload sees committed immutable proposal
+PASS Repeated same operation replays despite old request ETag
+PASS Different operation for reviewed source conflicts
+PASS Same operation with changed canonical revision conflicts
+PASS Save cannot alter already-reviewed results
+PASS Original defect associations preserved and operational conclusion closed
+8/8 PASS proposal storage/replay; authoritative lifecycle NOT_RUN

@@ -1,0 +1,89 @@
+{
+  "success": true,
+  "proposalCommitted": true,
+  "authoritativeLifecycleApplied": false,
+  "syntheticSource": true,
+  "httpMiddlewareVerified": false,
+  "cases": [
+    {
+      "name": "Unanswered results cannot conclude proposal",
+      "result": "PASS"
+    },
+    {
+      "name": "Confirmation is mandatory",
+      "result": "PASS"
+    },
+    {
+      "name": "Proposal requires If-Match",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong branch authorization returns 403",
+      "result": "PASS"
+    },
+    {
+      "name": "Account without existing grant returns 403",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale root revision rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong selected defect set rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale binding revision rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "Actual audit failure rolls back proposal, root/binding revisions and audit",
+      "result": "PASS"
+    },
+    {
+      "name": "Concurrent different operations yield one commit and one conflict",
+      "result": "PASS"
+    },
+    {
+      "name": "All Fixed persists proposed Completed",
+      "result": "PASS"
+    },
+    {
+      "name": "Separate connection reload sees committed immutable proposal",
+      "result": "PASS"
+    },
+    {
+      "name": "Repeated same operation replays despite old request ETag",
+      "result": "PASS"
+    },
+    {
+      "name": "Different operation for reviewed source conflicts",
+      "result": "PASS"
+    },
+    {
+      "name": "Same operation with changed canonical revision conflicts",
+      "result": "PASS"
+    },
+    {
+      "name": "Save cannot alter already-reviewed results",
+      "result": "PASS"
+    },
+    {
+      "name": "Original defect associations preserved and operational conclusion closed",
+      "result": "PASS"
+    },
+    {
+      "name": "Replay rechecks persisted reinspector",
+      "result": "PASS"
+    },
+    {
+      "name": "Changed persisted source invalidates completed replay",
+      "result": "PASS"
+    },
+    {
+      "name": "Replay cannot bypass missing current cycle",
+      "result": "PASS"
+    }
+  ]
+}

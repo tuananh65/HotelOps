@@ -1,0 +1,24 @@
+node : [WebServer] (node:85472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:8 char:1
++ node node_modules/@playwright/test/cli.js test --config playwright.fe ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 9 tests using 1 worker
+
+(node:84968) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\reinspection-conclusion.spec.ts:36:3 › Review -> Confirm proposal persists and reloads (782ms)
+  ok 2 tests\reinspection-conclusion.spec.ts:36:3 › Review -> Confirm proposal 412 (487ms)
+  ok 3 tests\reinspection-conclusion.spec.ts:36:3 › Review -> Confirm proposal 403 (482ms)
+  ok 4 tests\reinspection-conclusion.spec.ts:36:3 › Review -> Confirm proposal unknown (456ms)
+  ok 5 tests\reinspection-workflow.spec.ts:35:1 › open exact source, choose Not Fixed, save, reload and review; Conclude stays disabled (455ms)
+  ok 6 tests\reinspection-workflow.spec.ts:104:1 › stale save disables another mutation until reload (429ms)
+  ok 7 tests\reinspection-workflow.spec.ts:149:3 › list 401 displays authorization failure (284ms)
+  ok 8 tests\reinspection-workflow.spec.ts:149:3 › list 403 displays authorization failure (273ms)
+  ok 9 tests\reinspection-workflow.spec.ts:162:1 › empty list has no mutation controls (284ms)
+
+  9 passed (6.1s)

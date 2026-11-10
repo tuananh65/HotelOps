@@ -141,13 +141,13 @@ export class ReinspectionCandidateClient {
       throw new ApiError(502, "SOURCE_MISMATCH");
     return x;
   }
-  private async mutation(
+  private async mutationResponse(
     path: string,
     method: string,
     body: unknown,
     tag: string,
     signal?: AbortSignal,
-  ): Promise<CandidateDetails> {
+  ) {
     const csrf = record(await getJson("/auth/csrf", signal));
     if (
       csrf.headerName !== "X-CSRF-TOKEN" ||
@@ -165,6 +165,22 @@ export class ReinspectionCandidateClient {
       },
       body: JSON.stringify(body),
     });
+    return response;
+  }
+  private async mutation(
+    path: string,
+    method: string,
+    body: unknown,
+    tag: string,
+    signal?: AbortSignal,
+  ): Promise<CandidateDetails> {
+    const response = await this.mutationResponse(
+      path,
+      method,
+      body,
+      tag,
+      signal,
+    );
     const value = decodeDetails(response.body);
     if (response.etag && response.etag !== value.inspectionRevision)
       throw new ApiError(502, "REVISION_RESPONSE_MISMATCH");
@@ -232,6 +248,71 @@ export class ReinspectionCandidateClient {
       throw new ApiError(502, "SOURCE_MISMATCH");
     return saved;
   }
+  async readConclusion(
+    branch: number,
+    source: CandidateDetails,
+    signal?: AbortSignal,
+  ): Promise<ConclusionProposal | null> {
+    decodeDetails(source);
+    const body = record(
+      await getJson(
+        this.path(branch) +
+          `/${source.inspectionId}/conclusion-proposal?reworkId=${source.reworkId}`,
+        signal,
+      ),
+    );
+    if (body.proposal === null) return null;
+    const proposal = decodeProposal(body.proposal, source);
+    if (
+      proposal.inspectionRevision !== source.inspectionRevision ||
+      proposal.bindingRevision !== source.bindingRevision
+    )
+      throw new ApiError(412, "SOURCE_CHANGED");
+    return proposal;
+  }
+  async prepareConclusion(
+    branch: number,
+    source: CandidateDetails,
+    operationId: string,
+    confirmed: boolean,
+    signal?: AbortSignal,
+  ): Promise<ConclusionProposal> {
+    decodeDetails(source);
+    if (
+      !uuid(operationId) ||
+      !confirmed ||
+      source.defects.some(
+        (d) =>
+          typeof d.fixed !== "boolean" ||
+          d.recordedBy === null ||
+          d.recordedAt === null,
+      )
+    )
+      throw new ApiError(400, "SAVED_CONFIRMED_REVIEW_REQUIRED");
+    const response = await this.mutationResponse(
+      this.path(branch) + `/${source.inspectionId}/conclusion-proposal`,
+      "POST",
+      {
+        operationId,
+        reworkId: source.reworkId,
+        reworkRevision: source.reworkRevision,
+        bindingRevision: source.bindingRevision,
+        selectedDefectIds: source.defects
+          .map((d) => d.defectId)
+          .sort((a, b) => a - b),
+        confirmed: true,
+      },
+      source.inspectionRevision,
+      signal,
+    );
+    const value = decodeProposal(response.body, source);
+    if (
+      value.operationId.toLowerCase() !== operationId.toLowerCase() ||
+      (response.etag && response.etag !== value.inspectionRevision)
+    )
+      throw new ApiError(502, "PROPOSAL_RESPONSE_MISMATCH");
+    return value;
+  }
 }
 export function candidateError(error: unknown) {
   if (error instanceof ApiError) {
@@ -242,8 +323,78 @@ export function candidateError(error: unknown) {
       return "The source changed. Reload before saving.";
     if (error.status === 0 || error.status >= 500)
       return "The result could not be confirmed. Reload before another save.";
+    if (error.status === 409)
+      return "This review conflicts with a saved proposal. Reload before continuing.";
     if (error.status === 400)
       return "Review every selected defect before saving.";
   }
   return "Could not load the reinspection. Please reload.";
+}
+
+export interface ConclusionProposal {
+  operationId: string;
+  inspectionId: number;
+  reworkId: number;
+  actorUserId: number;
+  originalChecklistVersionId: number;
+  assignedChecklistVersionId: number;
+  proposedReworkState: "COMPLETED" | "FAILED";
+  inspectionRevision: string;
+  reworkRevision: string;
+  bindingRevision: string;
+  proposalRevision: string;
+  notFixedDefectIds: number[];
+  createdAt: string;
+  replayed: boolean;
+  lifecycleApplied: false;
+  nextRoundCreationAvailable: false;
+}
+const uuid = (v: unknown): v is string =>
+  typeof v === "string" &&
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v) &&
+  !/^0{8}-0{4}-0{4}-0{4}-0{12}$/.test(v);
+export function decodeProposal(
+  value: unknown,
+  source: CandidateDetails,
+): ConclusionProposal {
+  const p = record(value);
+  if (
+    !uuid(p.operationId) ||
+    p.inspectionId !== source.inspectionId ||
+    p.reworkId !== source.reworkId ||
+    !id(p.actorUserId) ||
+    p.originalChecklistVersionId !== source.originalChecklistVersionId ||
+    p.assignedChecklistVersionId !== source.assignedChecklistVersionId ||
+    ![
+      p.inspectionRevision,
+      p.reworkRevision,
+      p.bindingRevision,
+      p.proposalRevision,
+    ].every(strongTag) ||
+    p.reworkRevision !== source.reworkRevision ||
+    p.lifecycleApplied !== false ||
+    p.nextRoundCreationAvailable !== false ||
+    typeof p.createdAt !== "string" ||
+    Number.isNaN(Date.parse(p.createdAt)) ||
+    typeof p.replayed !== "boolean" ||
+    !Array.isArray(p.notFixedDefectIds) ||
+    p.notFixedDefectIds.some((x) => !id(x)) ||
+    new Set(p.notFixedDefectIds).size !== p.notFixedDefectIds.length ||
+    source.defects.some((d) => typeof d.fixed !== "boolean") ||
+    p.proposedReworkState !==
+      (source.defects.every((d) => d.fixed === true)
+        ? "COMPLETED"
+        : "FAILED") ||
+    JSON.stringify(
+      [...p.notFixedDefectIds].sort((a, b) => (a as number) - (b as number)),
+    ) !==
+      JSON.stringify(
+        source.defects
+          .filter((d) => d.fixed === false)
+          .map((d) => d.defectId)
+          .sort((a, b) => a - b),
+      )
+  )
+    throw new ApiError(502, "INVALID_PROPOSAL_RESPONSE");
+  return p as unknown as ConclusionProposal;
 }

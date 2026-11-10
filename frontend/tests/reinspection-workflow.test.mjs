@@ -296,3 +296,157 @@ test("Approve review keeps mutation disabled even when mandatory PASS is true", 
   assert.match(html, /data-inspection-revision/);
   assert.doesNotMatch(html, /<form/);
 });
+
+const savedSource = {
+  ...initial,
+  defects: initial.defects.map((d) => ({
+    ...d,
+    fixed: false,
+    recordedBy: 12,
+    recordedAt: "2026-11-10T00:00:00Z",
+  })),
+};
+const operation = "c351c7f0-9542-4d02-9047-ac21eb46a907";
+const proposal = {
+  operationId: operation,
+  inspectionId: 7,
+  reworkId: 8,
+  actorUserId: 12,
+  originalChecklistVersionId: 3,
+  assignedChecklistVersionId: 4,
+  proposedReworkState: "FAILED",
+  inspectionRevision: '"0000000000000006"',
+  bindingRevision: '"0000000000000007"',
+  reworkRevision: initial.reworkRevision,
+  proposalRevision: '"0000000000000008"',
+  notFixedDefectIds: [9],
+  createdAt: "2026-11-10T00:00:00Z",
+  replayed: false,
+  lifecycleApplied: false,
+  nextRoundCreationAvailable: false,
+};
+test("typed Review/Confirm sends exact saved source, operation and selected identity with no lifecycle flag", async () => {
+  let posts = 0;
+  await intercept(
+    async (url, init) => {
+      if (url.endsWith("/csrf"))
+        return response({ headerName: "X-CSRF-TOKEN", csrfToken: "test" });
+      posts++;
+      assert.equal(init.method, "POST");
+      assert.equal(init.headers["If-Match"], savedSource.inspectionRevision);
+      const body = JSON.parse(init.body);
+      assert.equal(body.operationId, operation);
+      assert.equal(body.confirmed, true);
+      assert.deepEqual(body.selectedDefectIds, [9]);
+      assert.equal(body.bindingRevision, savedSource.bindingRevision);
+      assert.equal(body.reworkRevision, savedSource.reworkRevision);
+      assert.equal(body.fixed, undefined);
+      return response(proposal, 200, proposal.inspectionRevision);
+    },
+    async () => {
+      const result = await client.prepareConclusion(
+        1,
+        savedSource,
+        operation,
+        true,
+      );
+      assert.equal(result.proposedReworkState, "FAILED");
+      assert.equal(result.lifecycleApplied, false);
+      assert.equal(posts, 1);
+    },
+  );
+});
+test("proposal reload verifies exact source and persisted result", async () => {
+  const postSource = {
+    ...savedSource,
+    inspectionRevision: proposal.inspectionRevision,
+    bindingRevision: proposal.bindingRevision,
+  };
+  await intercept(
+    async () => response({ proposal }),
+    async () =>
+      assert.equal(
+        (await client.readConclusion(1, postSource)).operationId,
+        operation,
+      ),
+  );
+});
+test("old source cannot silently adopt another revision on proposal reload", async () => {
+  await intercept(
+    async () => response({ proposal }),
+    async () =>
+      assert.rejects(
+        client.readConclusion(1, savedSource),
+        (e) => e.status === 412,
+      ),
+  );
+});
+test("unreviewed proposal response is explicitly null", async () => {
+  await intercept(
+    async () => response({ proposal: null }),
+    async () => assert.equal(await client.readConclusion(1, savedSource), null),
+  );
+});
+for (const status of [401, 403, 409, 412, 503])
+  test("conclusion " + status + " never retries operation", async () => {
+    let n = 0;
+    await intercept(
+      async (url) => {
+        if (url.endsWith("/csrf"))
+          return response({ headerName: "X-CSRF-TOKEN", csrfToken: "test" });
+        n++;
+        return response({ title: "DENIED" }, status);
+      },
+      async () => {
+        await assert.rejects(
+          client.prepareConclusion(1, savedSource, operation, true),
+          (e) => e.status === status,
+        );
+        assert.equal(n, 1);
+      },
+    );
+  });
+test("unknown conclusion outcome has one attempt and requires reload", async () => {
+  let n = 0;
+  await intercept(
+    async (url) => {
+      if (url.endsWith("/csrf"))
+        return response({ headerName: "X-CSRF-TOKEN", csrfToken: "test" });
+      n++;
+      throw Error("lost response");
+    },
+    async () => {
+      await assert.rejects(
+        client.prepareConclusion(1, savedSource, operation, true),
+        (e) => e.status === 0,
+      );
+      assert.equal(n, 1);
+    },
+  );
+});
+test("confirmation and saved complete decisions are required before transport", async () => {
+  await intercept(
+    async () => {
+      throw Error("unexpected fetch");
+    },
+    async () => {
+      await assert.rejects(
+        client.prepareConclusion(1, savedSource, operation, false),
+        (e) => e.status === 400,
+      );
+      await assert.rejects(
+        client.prepareConclusion(1, initial, operation, true),
+        (e) => e.status === 400,
+      );
+    },
+  );
+});
+test("proposal response cannot claim real lifecycle, different defects/version or outcome", () => {
+  for (const x of [
+    { ...proposal, lifecycleApplied: true },
+    { ...proposal, notFixedDefectIds: [] },
+    { ...proposal, assignedChecklistVersionId: 99 },
+    { ...proposal, proposedReworkState: "COMPLETED" },
+  ])
+    assert.throws(() => decodeProposal(x, savedSource));
+});

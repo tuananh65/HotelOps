@@ -20,7 +20,7 @@ using Microsoft.Extensions.Options;
 internal static class ReinspectionWorkflowSqlChecks
 {
     private sealed class Identity(CurrentUserInfo value):ICurrentUserAccessor {public bool TryGetCurrentUser(out CurrentUserInfo current){current=value;return true;}}
-    internal static async Task RunAsync(HotelOpsDbContext db,string environment,string output,Func<Task> guard)
+    internal static async Task RunAsync(HotelOpsDbContext db,string environment,string output,Func<Task> guard,string? proposalScenario=null)
     {
         using var runtime=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(environment))!,"runtime.private.json")));
         var password=runtime.RootElement.GetProperty("password").GetString()!;
@@ -58,6 +58,7 @@ internal static class ReinspectionWorkflowSqlChecks
         var wr=Tag(await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.cleaning_reworks WHERE rework_id={rework}").SingleAsync());
         var audits=await db.AuditLogs.CountAsync();
         var bound=Details(await controller.Bind(branch,inspection,new(rework,ir,wr),default));
+        if(proposalScenario!=null){await ReinspectionConclusionSqlChecks.RunAsync(db,environment,output,guard,login,denied,bound,branch,foreign,actor,other,root.RoomId,Controller,Service,proposalScenario=="fast016-fixed-sql");return;}
         Check("Authorized candidate bind commits exact source and audit",bound.Criteria.Count>0&&bound.Defects.All(d=>d.Fixed==null&&!string.IsNullOrEmpty(d.Description))&&await db.AuditLogs.CountAsync()==audits+1&&bound.OriginalChecklistVersionId==root.VersionId&&bound.AssignedChecklistVersionId==root.VersionId);
         Check("Duplicate bind returns 409 without duplicate audit",Status(await controller.Bind(branch,inspection,new(rework,bound.InspectionRevision,bound.ReworkRevision),default))==409&&await db.AuditLogs.CountAsync()==audits+1);
         Check("Invalid branch returns 400",Status(await controller.List(0,default))==400);

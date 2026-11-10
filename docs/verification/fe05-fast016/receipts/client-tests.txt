@@ -1,0 +1,37 @@
+✔ typed client list -> detail -> save -> reload uses server revisions, CSRF and cookie transport (19.7285ms)
+✔ server 401 is propagated without retry (0.9006ms)
+✔ server 403 is propagated without retry (0.4989ms)
+✔ server 412 is propagated without retry (0.4249ms)
+✔ server 503 is propagated without retry (0.3223ms)
+✔ empty collection is valid (0.8177ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [] (0.1904ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [{"defectId":9,"fixed":null}] (0.0806ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [{"defectId":10,"fixed":true}] (0.0892ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [{"defectId":9,"fixed":true},{"defectId":9,"fixed":false}] (0.1299ms)
+✔ read rejects foreign identity (0.2844ms)
+✔ invalid CSRF blocks mutation (0.2456ms)
+✔ response ETag must match decoded root revision (0.3072ms)
+✔ bind rejects foreign returned source (0.3618ms)
+✔ decoder rejects weak revision, duplicate defects and enabled lifecycle (0.1701ms)
+✔ network unknown result is never automatically resubmitted (0.2956ms)
+✔ Approve review keeps mutation disabled even when mandatory PASS is true (5.6812ms)
+✔ typed Review/Confirm sends exact saved source, operation and selected identity with no lifecycle flag (1.8245ms)
+✔ proposal reload verifies exact source and persisted result (0.2849ms)
+✔ old source cannot silently adopt another revision on proposal reload (0.2571ms)
+✔ unreviewed proposal response is explicitly null (0.1411ms)
+✔ conclusion 401 never retries operation (0.2431ms)
+✔ conclusion 403 never retries operation (0.148ms)
+✔ conclusion 409 never retries operation (0.1133ms)
+✔ conclusion 412 never retries operation (0.1539ms)
+✔ conclusion 503 never retries operation (0.1276ms)
+✔ unknown conclusion outcome has one attempt and requires reload (0.2594ms)
+✔ confirmation and saved complete decisions are required before transport (0.1282ms)
+✔ proposal response cannot claim real lifecycle, different defects/version or outcome (0.1179ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 404.8079
