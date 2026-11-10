@@ -140,6 +140,16 @@ public sealed class InspectionOwnerSourceCoordination(HotelOpsDbContext context,
             if(owner.VerifySnapshot==null)throw new Fe05NotificationUnavailableException("FE04_SNAPSHOT_REVALIDATION_REQUIRED");
             await owner.VerifySnapshot(id,sourceDigest,evidence,ct);
         }
+        // Replay/completed receipts must not bypass current recipient authority. Existing
+        // persisted graph/proof is necessary, not a replacement for source-read acceptance.
+        foreach(var publication in receipt.Publications)
+            foreach(var recipient in publication.RecipientIds)users.RequireMember(recipient);
+        if(rework)InspectionRecipientPermissionContract.For(InspectionRecipientRelationship.ReworkAssignee).RequireBusinessAcceptance();
+        else
+        {
+            InspectionRecipientPermissionContract.For(InspectionRecipientRelationship.ResponsibleSupervisor).RequireBusinessAcceptance();
+            InspectionRecipientPermissionContract.For(InspectionRecipientRelationship.OriginalCleaner).RequireBusinessAcceptance();
+        }
         // FE04 owns the projection; attest its persisted audit, not a parallel status engine.
         if(await db.Database.SqlQuery<int>($"""
             SELECT COUNT(*) AS Value FROM dbo.audit_logs a WITH(HOLDLOCK) JOIN dbo.rooms r WITH(HOLDLOCK)

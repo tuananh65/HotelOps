@@ -1,0 +1,47 @@
+# FE05-FAST011 — IMPLEMENTED_PENDING_APPROVAL / PARTIALLY_BLOCKED
+
+Worktree D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST011; branch feature/dev1-fe05-authority-closure; parent 7e18caaf095fd6677dfb4fc1d3b002151feb17d9. Scoped delivery SHA/remote result reported after integrity checks. No shared merge/deploy/producer/worker/public writer activation.
+
+## Published-source reconciliation
+
+- DEV2 published source verified YES: d60022b487b5b59e84d6551a0ee5162c9fd32164. Contains N01 Implement06 foundation and Writer004A/Schema002 Fix02 review sources, but NOT Fe05Decision08Recipients.cs or Decision08RecipientChecks.cs. The Fix02 README explicitly remains review-only/owner-pending and references externally preserved DECISION08 inputs. It is not N01 SQL acceptance.
+- N01 DECISION08 Git availability YES in FE05 lineage since FAST008 3a1a168 (exact package/source identity in notification-reconciliation.json); NO in the specified DEV2 commit. Existing candidate/FAST007 foundation adaptations preserved; minimal notification import delta is zero. No second graph, full standalone copy or overwrite of FAST010.
+- FE04 Notification 22b005b106e8dc1eeb75205b98c0b341af23c697 pinned and compared at the notification source boundary; no notification-service delta from d60022b487b5b59e84d6551a0ee5162c9fd32164, no branch cherry-pick. FE04 UC029 acceptance is independent of FE05 N01 14-case acceptance. R03/R05 reader/proof/prelock/setter sources were not reintegrated or retested wholesale.
+
+## Implemented deltas (9 source/test files: 3 modified, 6 added)
+
+1. Concrete permission candidate now has typed exact contract descriptors for all recipients, existing-code/scope evaluation via original grant rules, immutable summary field allowlists and explicit missing business acceptance. Candidate assessment still returns no production read/file authority. Completed/replay receipt verification explicitly rejects missing recipient policy acceptance and requires retained recipient membership, so old receipts cannot bypass that gate. Exact minimal approval proposal: PERMISSION_PROPOSAL.md.
+2. Internal unknown-commit observation path freezes the original canonical request and uses the existing N01 store/owner/guard in the caller transaction. No new reservation/ledger/retry framework or domain mutation. Conflicts reject; absent/incomplete outcomes stay unconfirmed and forbid automatic retries. Completed observations require original domain/N01 receipt identities, graph checks, current authority and original FE04 snapshot/proof/projection verification. No independent commit, reconnect or public endpoint. Actual positive durable replay/composition NOT_RUN because the original SQL-lane gate remains closed.
+3. Minimal versioned evidence integration candidate encodes unique version + SHA256 content checksum in existing attachments.storage_key (fits current 500-character column). File preparation snapshots caller bytes, uses CreateNew, validates private paths/reparse points, and never overwrites an existing object. Read leases hold Windows sharing protection and reverify bytes/length against persisted identity. The producer-side SQL binding authenticates the real owner, retained source/cycle and ETag, loads persisted attachment key/length and binds independent verifiers to the existing commit guard. It returns no bytes/download capability and does not change recipient evidence permission. No new schema/column/FE04 authority digest is created.
+4. Known rollback cleans invocation-owned prepared files. Unknown commit retains possible orphan bytes, avoiding deletion of a possibly committed source. Persisted key/length rebind, stale source, soft delete, byte replacement or premature lease disposal fail closed. Each pin has its own verifier key so repinning cannot overwrite a prior check.
+
+## Verification receipts
+
+| Check | Final actual result | Scope |
+|---|---|---|
+| Backend solution build | PASS, 0 warnings/errors | Final C# source; test harness also built with 0 warnings/errors |
+| dotnet test HotelOps.slnx | Exit 0 | API-only solution; no additional functional assertions credited |
+| Focused unit + actual file checks | 66/66 PASS | Grant contract allow/deny, fixture receipt correlation/conflict/unconfirmed, version parsing, actual Windows lease replacement/delete rejection, post-lease digest rejection, concurrent version preparations, cancellation/rollback/unknown retention |
+| Focused actual SQL component checks | 13/13 PASS | Real owner credential/session and existing permission service; persisted version/ETag/guard/rollback; negative actual N01 lane gate; all three recipient candidate matching and revoked/wrong-relation denial |
+| FE05 N01 14-case SQL acceptance | NOT_RUN | No accepted source/schema/runtime/central lane authorization; no local trial substituted for acceptance |
+| Successful authoritative public Reject/Rework commit, positive durable completed replay/full rollback/proof/projection composition, different-transaction real FE04 consumer acceptance | NOT_RUN | Mandatory policy/N01/storage/proof/runtime gates still closed |
+
+SQL component target reused owned FAST010 synthetic database HotelOps_Canonical_20261110_031050_3a074f28_Fresh on local SQLEXPRESS, owner UUID 2f2502b8-87cc-4185-a56a-2fcae4000c78. Existing guard verifies server/database/UUID before mutations. No DDL, backfill, owner change, reset/drop or shared SQL in FAST011. Only synthetic authentication fixture sessions committed; temporary source/attachment/Rework/grant/audit mutations explicitly rolled back with root/attachment/task/Rework/grant/audit snapshots compared. Files are generated only under ignored TestResults/fast011; no application storage configuration changed. Raw synthetic FAILED/Rework setup is component data, not a trusted SQL issuer commit or business receipt.
+
+Earlier provisional test runs had 60 and then 66 unit/file checks and 9 then 12 SQL checks; final receipts have 66 and 13 after adding real concurrent preparation, scope coverage and all-recipient SQL cases. No unrelated historical suite was rerun. A source-read matching candidate is distinct from successful source-read acceptance. The actual default N01 store was tested to reject the lane, not replaced by a permissive local implementation.
+
+## Immutable evidence limits / approvals
+
+DurableImmutabilityAccepted=false. Windows FileShare.Read protects the open handle window; digest-in-key detects replacement on subsequent reads. Neither proves WORM/ACL/version retention, stable directory namespace against privileged writers, no-overwrite after lease release, or a crash-safe distributed SQL/filesystem transaction. Existing UC043 production upload still uses its verified GUID storage path; this candidate is opt-in/internal and is not silently enabled or a legacy evidence backfill. FE04 original digest/hash authority is unchanged.
+
+Minimal storage approval needed: exact private storage namespace and runtime identities; create-only/version retention/no replace-delete/rebind authority and crash/unknown-commit retention policy; producer/consumer adoption of the persisted version key across the full authority window. Until accepted, no legacy mutable evidence is promoted to immutable authority and production mutation stays closed. FE05 can implement the approved upload/proof integration after that decision; no new work was assigned to another developer.
+
+## Remaining work and approval boundary
+
+- FE05 next executable work after approvals: adopt accepted resource summaries and storage namespace in existing UC043/producer consumers; wire approved runtime/schema configuration without altering pinned notification graph; run the real N01 14 cases, full authoritative transaction/replay/rollback/proof/projection and positive consumer read on the accepted lane. Current candidate code and negative/component checks do not replace these.
+- Approval required: three exact recipient resource policies and same-transaction Rework metadata staging boundary; evidence storage guarantees/permissions; accepted N01 schema/runtime/lane and issuer/proof/receipt deployment prerequisites. These are exact existing gates, not requests to redo R05/UC029 or assignments to DEV2/DEV3/FE04/ENV.
+- UC044: existing mandatory-PASS validator/trusted preflight already covers the independent approved scope. No duplicate implementation/tests added; remaining Passed/task-completion/Ready projection/notification/receipt semantics cannot be invented. UC047 still requires accepted remediation/reinspection lifecycle; ordinary UC044 preparation explicitly rejects treating Rework as normal approval. No speculative lifecycle/writer added.
+
+Progress estimates: FAST011 85%; UC041 70% (existing planning/read/navigation, assignment/notification activation pending); UC044 45%; UC045 80%; UC046 80%; UC047 10% (reusable execution/history foundation only, no verified reinspection writer; technical estimate, not acceptance). No authority-path percentage raised from component tests alone. FE04_DEPENDENCY_STATUS: R03/R05_PINNED_R05_INTEGRATED_VERIFIED_ISOLATED / NOT_READY_FOR_AUTHORITATIVE_HANDOFF.
+
+Exact source hashes in source-manifest.csv; unchanged prerequisite blobs in reuse-manifest.csv. Original worktrees, FE04 source, auth/router, D4, generated mappings/entities, shared hook, prelock, supervisor setter, trusted issuer and N01 foundation remain unchanged. No force-push, shared merge, deploy or production activation. Handoff candidate is explicitly NOT_READY; no ACCEPTED claim.

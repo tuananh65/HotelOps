@@ -1,0 +1,272 @@
+{
+  "success": true,
+  "sql": false,
+  "productionAcceptance": false,
+  "filesRoot": "D:\\SEP490\\Projects\\HotelOps-DEV1-FE05-FAST011\\TestResults\\fast011\\files\\79d708944fd54aa9be95468d7a7613f6",
+  "cases": [
+    {
+      "title": "ResponsibleSupervisor exact existing code",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor own grant candidate matches exact relation branch",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor existing branch grant matches",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor existing global grant still requires separate exact relationship",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor unrelated branch rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor revoked grant rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor inactive role rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor expired grant rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor legacy department scope rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor different permission rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor no source-read or byte acceptance",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor summary fields exclude notes and bytes",
+      "result": "PASS"
+    },
+    {
+      "title": "ResponsibleSupervisor completed/replay acceptance closed",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner exact existing code",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner own grant candidate matches exact relation branch",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner existing branch grant matches",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner existing global grant still requires separate exact relationship",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner unrelated branch rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner revoked grant rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner inactive role rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner expired grant rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner legacy department scope rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner different permission rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner no source-read or byte acceptance",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner summary fields exclude notes and bytes",
+      "result": "PASS"
+    },
+    {
+      "title": "OriginalCleaner completed/replay acceptance closed",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee exact existing code",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee own grant candidate matches exact relation branch",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee existing branch grant matches",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee existing global grant still requires separate exact relationship",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee unrelated branch rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee revoked grant rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee inactive role rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee expired grant rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee legacy department scope rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee different permission rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee no source-read or byte acceptance",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee summary fields exclude notes and bytes",
+      "result": "PASS"
+    },
+    {
+      "title": "ReworkAssignee completed/replay acceptance closed",
+      "result": "PASS"
+    },
+    {
+      "title": "Absent operation stays unconfirmed",
+      "result": "PASS"
+    },
+    {
+      "title": "Incomplete operation stays unconfirmed",
+      "result": "PASS"
+    },
+    {
+      "title": "Missing domain receipt stays unconfirmed",
+      "result": "PASS"
+    },
+    {
+      "title": "Completed typed receipt is structurally observable without commit claim",
+      "result": "PASS"
+    },
+    {
+      "title": "Recovery rejects changed request fingerprint",
+      "result": "PASS"
+    },
+    {
+      "title": "Recovery rejects changed graph fingerprint",
+      "result": "PASS"
+    },
+    {
+      "title": "Recovery rejects wrong actor",
+      "result": "PASS"
+    },
+    {
+      "title": "Recovery rejects wrong operation",
+      "result": "PASS"
+    },
+    {
+      "title": "Recovery rejects domain retarget",
+      "result": "PASS"
+    },
+    {
+      "title": "Recovery rejects wrong domain UC contract",
+      "result": "PASS"
+    },
+    {
+      "title": "Unknown commit never authorizes automatic mutation retry",
+      "result": "PASS"
+    },
+    {
+      "title": "Observed receipt never self-attests production commit acceptance",
+      "result": "PASS"
+    },
+    {
+      "title": "Version identity round trips exact key/digest/length",
+      "result": "PASS"
+    },
+    {
+      "title": "New uploads have distinct version IDs even for same bytes",
+      "result": "PASS"
+    },
+    {
+      "title": "Path traversal version rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "Legacy mutable key rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "Unbounded evidence rejected",
+      "result": "PASS"
+    },
+    {
+      "title": "Prepared file matches version digest",
+      "result": "PASS"
+    },
+    {
+      "title": "Concurrent byte replacement blocked while Windows read lease held",
+      "result": "PASS"
+    },
+    {
+      "title": "Concurrent deletion blocked while Windows read lease held",
+      "result": "PASS"
+    },
+    {
+      "title": "Replacement after lease release detected by same persisted version",
+      "result": "PASS"
+    },
+    {
+      "title": "Rollback candidate cleans invocation-owned file",
+      "result": "PASS"
+    },
+    {
+      "title": "Unknown commit preserves file rather than risking committed attachment deletion",
+      "result": "PASS"
+    },
+    {
+      "title": "Cancelled preparation cleans incomplete candidate",
+      "result": "PASS"
+    },
+    {
+      "title": "Cancellation does not delete unrelated retained version",
+      "result": "PASS"
+    },
+    {
+      "title": "Parallel versions never overwrite same content key",
+      "result": "PASS"
+    },
+    {
+      "title": "Local candidate never claims durable WORM acceptance",
+      "result": "PASS"
+    }
+  ]
+}

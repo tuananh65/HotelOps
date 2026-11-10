@@ -59,11 +59,10 @@ internal sealed class InspectionRecipientSourceReadCandidate(HotelOpsDbContext d
             return new(false,"RECIPIENT_REVOKED_OR_OUTSIDE_BRANCH");
         // Candidate mapping only, pending PL/DEV3/FE04 approval. These are existing codes,
         // evaluated for the RECIPIENT (never the acting inspector's ambient permission).
-        var code=relationship==InspectionRecipientRelationship.ResponsibleSupervisor?"INSPECTION_PERFORM":"CLEANING_VIEW";
+        var contract=InspectionRecipientPermissionContract.For(relationship);
+        var code=contract.ExistingPermission;
         var paths=await new EfPermissionDataSource(db).ReadPathsAsync(recipient,code,now,ct);
-        var match=paths.Any(g=>g.PermissionCode==code&&PermissionGrantRules.IsEligible(g,now)
-            &&(PermissionGrantRules.EffectiveScope(g)=="GLOBAL"||g.BranchId==source.BranchId
-                &&PermissionGrantRules.EffectiveScope(g) is "BRANCH" or "OWN"));
+        var match=paths.Any(g=>contract.MatchesExistingGrant(g,source.BranchId,now));
         // OWN is narrowed above to the exact persisted relationship. This is not an
         // accepted shared resolver, full Inspection history grant or same-tx FE04 proof.
         return new(match,match?"CANDIDATE_RELATIONSHIP_AND_EXISTING_GRANT_MATCH":"EXISTING_RECIPIENT_GRANT_REQUIRED");

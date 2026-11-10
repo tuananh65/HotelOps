@@ -1,0 +1,67 @@
+{
+  "dev2": {
+    "pin": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+    "publishedVerified": true,
+    "decision08InCommit": false
+  },
+  "fe04Notification": {
+    "pin": "22b005b106e8dc1eeb75205b98c0b341af23c697",
+    "mergePerformed": false,
+    "notificationSourceDiffFromDev2": ""
+  },
+  "decision08": {
+    "availableInGit": true,
+    "location": "FE05 feature lineage; package imported in 3a1a16888ab487670335f7cf15cd777645e23ae2",
+    "sourceIdentity": "8b241249b8a6b99f601ff35ee048528d0319eaf0f4d63565d758715021ab67e5",
+    "packageZipSHA256": "D6E23A38938352914E265BCB9F57CF321CEFC1CF3FDB0B1EC263A614DDE16519"
+  },
+  "minimalNotificationImportDelta": 0,
+  "writer004AIsN01Acceptance": false,
+  "schema002Fix02IsN01Acceptance": false,
+  "fe04Uc029AcceptanceIsFe05N01Acceptance": false,
+  "n01FourteenCaseAcceptance": "NOT_RUN; unchanged InspectionClosedTrialExecution denies N01_SQL_LANE_NOT_ACCEPTED",
+  "files": [
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05CallerIntegration.cs",
+      "dev2Exists": true,
+      "dev2Blob": "7943d7f34f7d530589dd22ec7e0319de1e38b6d6",
+      "fe05Blob": "7943d7f34f7d530589dd22ec7e0319de1e38b6d6",
+      "action": "No import; preserve existing FE05 pinned foundation/adaptations and DECISION08 package"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
+      "dev2Exists": true,
+      "dev2Blob": "8f14a2bb9e9495f1302354c071e553fe6993d1ee",
+      "fe05Blob": "8f14a2bb9e9495f1302354c071e553fe6993d1ee",
+      "action": "No import; preserve existing FE05 pinned foundation/adaptations and DECISION08 package"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05NotificationStaging.cs",
+      "dev2Exists": true,
+      "dev2Blob": "5aa888ac7b34549e2292be5058b0a4e790e147a2",
+      "fe05Blob": "5aa888ac7b34549e2292be5058b0a4e790e147a2",
+      "action": "No import; preserve existing FE05 pinned foundation/adaptations and DECISION08 package"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
+      "dev2Exists": true,
+      "dev2Blob": "169014cb45085f00928e9454570e18054ee5d30e",
+      "fe05Blob": "c0f14a67041bc735f89c820f48f6410cd98fa466",
+      "action": "No import; preserve existing FE05 pinned foundation/adaptations and DECISION08 package"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05Fs013CandidateStore.cs",
+      "dev2Exists": true,
+      "dev2Blob": "b1c9675c90fde240f7e6d2f968ffe9ae31bedcbf",
+      "fe05Blob": "1212a8878fe67edd68607665b1790399ad0450db",
+      "action": "No import; preserve existing FE05 pinned foundation/adaptations and DECISION08 package"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/Fe05Decision08Recipients.cs",
+      "dev2Exists": false,
+      "dev2Blob": null,
+      "fe05Blob": "f5c6c318543f3203ec514b4f8c2da26db48809de",
+      "action": "No import; preserve existing FE05 pinned foundation/adaptations and DECISION08 package"
+    }
+  ]
+}

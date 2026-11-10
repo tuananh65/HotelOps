@@ -1,0 +1,75 @@
+{
+  "success": true,
+  "componentOnly": true,
+  "acceptedN01Lane": false,
+  "publicMutation": false,
+  "durableImmutabilityAccepted": false,
+  "realOwnerSession": true,
+  "cases": [
+    {
+      "title": "Persisted version key/length and real owner session pin file in exact guarded transaction",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Source stale ETag cannot pin evidence",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Attachment rebind invalidates pinned metadata and before-commit guard",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Premature lease disposal blocks guarded commit verification",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Legacy mutable storage key rejected without rewriting existing evidence",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked owner SQL session cannot pin evidence",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Soft-deleted attachment rejected by source pin",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Replacement after file lease release invalidates persisted digest identity",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Unknown-commit observation retains actual unaccepted N01 SQL lane gate",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Exact Rework assignee current grant matches and revoked grant denies in same caller transaction",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Exact supervisor and real R05 original-cleaner candidate grants match without business acceptance",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "R05 relationship alone cannot authorize recipient after existing grant revocation",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Other retained User cannot borrow supervisor relationship",
+      "result": "PASS",
+      "rollback": true
+    }
+  ]
+}
