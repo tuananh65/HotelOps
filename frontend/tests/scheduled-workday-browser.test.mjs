@@ -66,6 +66,33 @@ async function choose(p) {
   await p.getByLabel("Scheduled shift", { exact: true }).selectOption("10");
   await p.getByText("No current working day.").waitFor();
 }
+async function openReview(p, operation) {
+  const before = await p.evaluate(() => window.fixture.calls.length);
+  await p
+    .getByRole("button", {
+      name: operation === "start" ? "Start scheduled workday" : "End workday",
+      exact: true,
+    })
+    .click();
+  await p.getByRole("region", { name: "Review scheduled workday" }).waitFor();
+  assert.equal(
+    await p.evaluate(() => window.fixture.calls.length),
+    before,
+    "opening review must not bootstrap CSRF or POST",
+  );
+}
+async function perform(p, operation) {
+  await openReview(p, operation);
+  await p
+    .getByRole("button", {
+      name:
+        operation === "start"
+          ? "Confirm scheduled start"
+          : "Confirm workday end",
+      exact: true,
+    })
+    .click();
+}
 test("OFF zero CSRF/POST", () =>
   run({}, async (p) => {
     await choose(p);
@@ -85,7 +112,7 @@ test("OFF zero CSRF/POST", () =>
 test("confirmed start then end refresh authoritative current", () =>
   run({ enabled: true }, async (p) => {
     await choose(p);
-    await p.getByRole("button", { name: "Start scheduled workday" }).click();
+    await perform(p, "start");
     await p.getByText("Working day 20", { exact: true }).waitFor();
     assert.equal(
       await p
@@ -93,7 +120,7 @@ test("confirmed start then end refresh authoritative current", () =>
         .isDisabled(),
       true,
     );
-    await p.getByRole("button", { name: "End workday", exact: true }).click();
+    await perform(p, "end");
     await p.getByText("No current working day.").waitFor();
     assert.equal((await posts(p)).length, 2);
   }));
@@ -129,8 +156,9 @@ for (const s of [{ restricted: true }, { anonymous: true }, { invalid: true }])
 test("double click one POST", () =>
   run({ enabled: true, waitPost: true }, async (p) => {
     await choose(p);
+    await openReview(p, "start");
     await p
-      .getByRole("button", { name: "Start scheduled workday" })
+      .getByRole("button", { name: "Confirm scheduled start", exact: true })
       .evaluate((b) => {
         b.click();
         b.click();
@@ -145,7 +173,7 @@ test("double click one POST", () =>
 test("unknown outcome stays locked after refresh", () =>
   run({ enabled: true, network: true }, async (p) => {
     await choose(p);
-    await p.getByRole("button", { name: "Start scheduled workday" }).click();
+    await perform(p, "start");
     await p.getByText(/Outcome unknown/).waitFor();
     await p.getByRole("button", { name: "Refresh snapshot" }).click();
     await p.getByText("No current working day.").waitFor();
@@ -174,7 +202,7 @@ test("branch replacement ignores stale current", () =>
 test("session replacement ignores late POST", () =>
   run({ enabled: true, waitPost: true }, async (p) => {
     await choose(p);
-    await p.getByRole("button", { name: "Start scheduled workday" }).click();
+    await perform(p, "start");
     await p.waitForFunction(() =>
       window.fixture.calls.some((c) => c.method === "POST"),
     );
@@ -198,7 +226,7 @@ test("current denial blocks Start", () =>
 test("shift denial permits independent End", () =>
   run({ enabled: true, working: true, shiftDenied: true }, async (p) => {
     await p.getByText("Working day 20", { exact: true }).waitFor();
-    await p.getByRole("button", { name: "End workday", exact: true }).click();
+    await perform(p, "end");
     await p.getByText("No current working day.").waitFor();
     assert.equal((await posts(p)).length, 1);
   }));
@@ -206,7 +234,7 @@ for (const status of [401, 403, 409, 412, 503])
   test("UI mutation error " + status, () =>
     run({ enabled: true, status }, async (p) => {
       await choose(p);
-      await p.getByRole("button", { name: "Start scheduled workday" }).click();
+      await perform(p, "start");
       await p
         .getByRole(status === 401 ? "alert" : "status")
         .filter({
@@ -228,8 +256,9 @@ for (const status of [401, 403, 409, 412, 503])
 test("double End dispatches once and cannot end empty current", () =>
   run({ enabled: true, working: true, waitPost: true }, async (p) => {
     await p.getByText("Working day 20", { exact: true }).waitFor();
+    await openReview(p, "end");
     await p
-      .getByRole("button", { name: "End workday", exact: true })
+      .getByRole("button", { name: "Confirm workday end", exact: true })
       .evaluate((b) => {
         b.click();
         b.click();
@@ -250,7 +279,7 @@ test("double End dispatches once and cannot end empty current", () =>
 test("branch change during POST discards old success", () =>
   run({ enabled: true, waitPost: true }, async (p) => {
     await choose(p);
-    await p.getByRole("button", { name: "Start scheduled workday" }).click();
+    await perform(p, "start");
     await p.waitForFunction(() =>
       window.fixture.calls.some((c) => c.method === "POST"),
     );
@@ -322,7 +351,7 @@ for (const scenario of [
 test("mutation 401 removes previous data and prevents repeated End", () =>
   run({ enabled: true, working: true, status: 401 }, async (p) => {
     await p.getByText("Working day 20", { exact: true }).waitFor();
-    await p.getByRole("button", { name: "End workday", exact: true }).click();
+    await perform(p, "end");
     await p
       .getByText(
         "Session invalid. Revalidate before reading or changing workday.",
@@ -365,7 +394,7 @@ test("malformed End calendar locks replay without confirmed success or refresh",
     { enabled: true, working: true, endedAtUtc: "2027-02-29T09:00:00Z" },
     async (p) => {
       await p.getByText("Working day 20", { exact: true }).waitFor();
-      await p.getByRole("button", { name: "End workday", exact: true }).click();
+      await perform(p, "end");
       await p.getByText(/Outcome unknown/).waitFor();
       assert.equal(await p.getByText(/End confirmed/).count(), 0);
       assert.equal(
@@ -387,12 +416,7 @@ test("malformed End calendar locks replay without confirmed success or refresh",
 async function triggerScheduled(p, operation) {
   if (operation === "start") await choose(p);
   else await p.getByText("Working day 20", { exact: true }).waitFor();
-  await p
-    .getByRole("button", {
-      name: operation === "start" ? "Start scheduled workday" : "End workday",
-      exact: true,
-    })
-    .click();
+  await perform(p, operation);
 }
 for (const operation of ["start", "end"]) {
   for (const recovered of [false, true]) {
@@ -543,3 +567,89 @@ for (const csrfFailure of ["network", "cancelled", "malformed"]) {
       }),
   );
 }
+
+for (const operation of ["start", "end"]) {
+  test(
+    "review " +
+      operation +
+      " shows server record and cancel dispatches nothing",
+    () =>
+      run({ enabled: true, working: operation === "end" }, async (p) => {
+        if (operation === "start") await choose(p);
+        else await p.getByText("Working day 20", { exact: true }).waitFor();
+        await openReview(p, operation);
+        const region = p.getByRole("region", {
+          name: "Review scheduled workday",
+        });
+        assert.match(
+          await region.innerText(),
+          operation === "start" ? /Assignment 10/ : /Workday 20/,
+        );
+        assert.match(
+          await region.innerText(),
+          /Actual time is determined by the server/,
+        );
+        await p.getByRole("button", { name: "Cancel review" }).click();
+        assert.equal(await region.count(), 0);
+        assert.equal((await posts(p)).length, 0);
+        assert.equal(
+          await p.evaluate(
+            () =>
+              window.fixture.calls.filter((c) => c.url === "/api/auth/csrf")
+                .length,
+          ),
+          0,
+        );
+      }),
+  );
+  test("refresh invalidates " + operation + " review without replay", () =>
+    run({ enabled: true, working: operation === "end" }, async (p) => {
+      if (operation === "start") await choose(p);
+      else await p.getByText("Working day 20", { exact: true }).waitFor();
+      await openReview(p, operation);
+      await p.getByRole("button", { name: "Refresh snapshot" }).click();
+      assert.equal(
+        await p
+          .getByRole("region", { name: "Review scheduled workday" })
+          .count(),
+        0,
+      );
+      assert.equal((await posts(p)).length, 0);
+    }),
+  );
+}
+test("changing selected shift invalidates review", () =>
+  run({ enabled: true }, async (p) => {
+    await choose(p);
+    await openReview(p, "start");
+    await p.getByLabel("Scheduled shift", { exact: true }).selectOption("");
+    assert.equal(
+      await p.getByRole("button", { name: "Confirm scheduled start" }).count(),
+      0,
+    );
+    assert.equal((await posts(p)).length, 0);
+  }));
+test("branch replacement discards reviewed identifiers", () =>
+  run({ enabled: true }, async (p) => {
+    await choose(p);
+    await openReview(p, "start");
+    await p.getByRole("button", { name: "Change branch" }).click();
+    await p.getByText("No current working day.").waitFor();
+    assert.equal(
+      await p.getByRole("region", { name: "Review scheduled workday" }).count(),
+      0,
+    );
+    assert.equal((await posts(p)).length, 0);
+  }));
+test("session replacement discards unsubmitted review", () =>
+  run({ enabled: true }, async (p) => {
+    await choose(p);
+    await openReview(p, "start");
+    await p.evaluate(() => window.fixture.replace());
+    await p.getByText("No current working day.").waitFor();
+    assert.equal(
+      await p.getByRole("region", { name: "Review scheduled workday" }).count(),
+      0,
+    );
+    assert.equal((await posts(p)).length, 0);
+  }));
