@@ -1,0 +1,51 @@
+﻿{
+    "powershell_parse":  "PASS",
+    "account_approval":  "PASS_CURRENT_SESSION",
+    "https":  "https://localhost:7049",
+    "env_smoke_is_not_feature_evidence":  true,
+    "source_head_before_task":  "a126dcb877de66262590d3bfd111dd1541768fd0",
+    "frontend_assets":  [
+                            {
+                                "sha256":  "8200e4f0787fdc2ec8cee4089e27a8cafba3c291529b710c3bf038bdb48401c4",
+                                "file":  "index-BXcU7LdZ.js"
+                            },
+                            {
+                                "sha256":  "5317de509fcd7c47cea2b57f3729e9276b976064cc815a5878173d32000603cc",
+                                "file":  "index-Cna5cSew.css"
+                            }
+                        ],
+    "backend_exit":  0,
+    "application_changed":  false,
+    "offline_harness_tests":  32,
+    "task":  "FE03-LIVE-012 / FE03-SESSION-RECOVERY-013",
+    "post_state_exit":  0,
+    "api_response_substitution":  false,
+    "receipts":  [
+                     {
+                         "sha256":  "17ef3b2ebbfd841f1beb3a294fae3129edd6e463f37169d145480bd0d0544a60",
+                         "file":  "backend-acceptance.json"
+                     },
+                     {
+                         "sha256":  "1c07cad565fc70dccdea6efc7012d03af5c5e724d2768f6f4d2f1baaf4a7ea14",
+                         "file":  "frontend-acceptance.json"
+                     },
+                     {
+                         "sha256":  "63a68fda9620db34cfc701e75ce191dd8795204249652b485377f5225e35de98",
+                         "file":  "post-acceptance.json"
+                     }
+                 ],
+    "backend_checks":  27,
+    "lease_expiry":  "2026-11-11T03:05:21.0616355Z",
+    "offline_exit":  0,
+    "frontend_exit":  0,
+    "status":  "PASS",
+    "frontend_delivery":  "Existing built717715 assets served locally by browser harness; API requests/status/body from real TLS backend; selected requests delayed only",
+    "runtime_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "node_syntax_exit":  0,
+    "utc":  "2026-11-10T08:50:02.2617496+00:00",
+    "application_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "database_guid":  "be23f102-29fd-44b5-bfb0-d66e59bb5be4",
+    "business_writes":  0,
+    "frontend_checks":  16,
+    "unit_suites_rerun":  false
+}

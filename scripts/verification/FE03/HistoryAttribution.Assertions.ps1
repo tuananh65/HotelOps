@@ -1,4 +1,4 @@
-﻿# Pure acceptance assertions. No SQL, HTTP, credentials or fixture writes.
+# Pure acceptance assertions. No SQL, HTTP, credentials or fixture writes.
 function Assert-HistoryRuntimeContract($Contract, $Manifest, [string]$ExpectedSha, [DateTimeOffset]$Now = [DateTimeOffset]::UtcNow) {
     if ($ExpectedSha -cne '717715fa0f9fa51ba467592f1dd01ea06e8ce568' -or
         $Contract.source_commit -cne $ExpectedSha -or $Manifest.source_commit -cne $ExpectedSha) {
@@ -53,4 +53,22 @@ function Assert-HistoryFixtureCoverage([object[]]$Rows) {
         throw 'BLOCKED_FIXTURE_COVERAGE: approved recorded/null actors and multiple same-room history rows required.'
     }
     foreach($row in $recorded){Assert-HistoryActor $row.changed_by}
+}
+
+function Convert-HistoryHandoffContract($Contract) {
+    $normalized=$Contract.PSObject.Copy()
+    foreach($pair in @(@('source_commit','APPLICATION_SHA'),@('DATABASE_IDENTITY','DATABASE_GUID'))){
+        $old=$Contract.PSObject.Properties[$pair[0]];$new=$Contract.PSObject.Properties[$pair[1]]
+        if($old -and $new -and $old.Value -cne $new.Value){throw 'BLOCKED_ENVIRONMENT: conflicting contract aliases.'}
+        if(!$old -and $new){$normalized|Add-Member -NotePropertyName $pair[0] -NotePropertyValue $new.Value}
+    }
+    foreach($actor in @(@('ALLOWED_ACTOR_FIXTURE','allowed'),@('DENIED_ACTOR_FIXTURE','denied'))){
+        $old=$Contract.PSObject.Properties[$actor[0]]
+        if($Contract.PSObject.Properties['ACTOR_FIXTURES']){
+            $value=$Contract.ACTOR_FIXTURES.($actor[1])
+            if($old -and ($old.Value.username -cne $value.username -or $old.Value.branch -cne $value.branch)){throw 'BLOCKED_ENVIRONMENT: conflicting actor aliases.'}
+            if(!$old){$normalized|Add-Member -NotePropertyName $actor[0] -NotePropertyValue $value}
+        }
+    }
+    return $normalized
 }

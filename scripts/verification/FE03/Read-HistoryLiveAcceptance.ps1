@@ -29,6 +29,7 @@ function Send($Client, $Method, $Path, $Body=$null) {
 try {
     $c=Get-Content (Join-Path $EnvRoot 'ENV-CONTRACT.json') -Raw|ConvertFrom-Json
     $m=Get-Content (Join-Path $EnvRoot 'manifest.json') -Raw|ConvertFrom-Json
+    $c=Convert-HistoryHandoffContract $c
     # Fail before sourcing environment helpers, accessing credentials or connecting to SQL/HTTPS.
     Assert-HistoryRuntimeContract $c $m $ExpectedApplicationSha
     . (Join-Path $EnvRoot 'Common.ps1')

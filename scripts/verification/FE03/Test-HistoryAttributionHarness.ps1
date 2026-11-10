@@ -42,4 +42,13 @@ Test-Case 'single-event rooms cannot prove live ordering' {
  $a=[pscustomobject]@{room_id=7;changed_by=8};$b=[pscustomobject]@{room_id=9;changed_by=[DBNull]::Value}
  Reject {Assert-HistoryFixtureCoverage @($a,$b)} 'BLOCKED_FIXTURE_COVERAGE'
 }
+Test-Case 'ENV002 aliases normalize without changing original contract' {
+ $new=[pscustomobject]@{APPLICATION_SHA=$sha;DATABASE_GUID='test-guid';ACTOR_FIXTURES=@{allowed=@{username='allowed';branch='BR001'};denied=@{username='denied';branch='BR001'}}}
+ $n=Convert-HistoryHandoffContract $new
+ Require ($n.source_commit -ceq $sha -and $n.DATABASE_IDENTITY -ceq 'test-guid' -and $n.ALLOWED_ACTOR_FIXTURE.username -ceq 'allowed' -and $n.DENIED_ACTOR_FIXTURE.username -ceq 'denied')
+ Require ($null -eq $new.PSObject.Properties['source_commit'])
+}
+Test-Case 'conflicting source aliases rejected' {Reject {Convert-HistoryHandoffContract ([pscustomobject]@{source_commit=$sha;APPLICATION_SHA='old'})} 'BLOCKED_ENVIRONMENT'}
+Test-Case 'conflicting database aliases rejected' {Reject {Convert-HistoryHandoffContract ([pscustomobject]@{DATABASE_IDENTITY='one';DATABASE_GUID='two'})} 'BLOCKED_ENVIRONMENT'}
+Test-Case 'conflicting actor aliases rejected' {Reject {Convert-HistoryHandoffContract ([pscustomobject]@{ALLOWED_ACTOR_FIXTURE=@{username='one';branch='BR001'};ACTOR_FIXTURES=@{allowed=@{username='two';branch='BR001'}}})} 'BLOCKED_ENVIRONMENT'}
 Write-Output ('HISTORY_HARNESS_OFFLINE_PASS: '+$script:passed+' cases; no SQL/HTTP/credentials accessed')

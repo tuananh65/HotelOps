@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "utc": "2026-11-10T08:48:09.299Z",
+  "source_commit": "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+  "backend": "https://localhost:7049",
+  "frontend_static_delivery": "Local built assets served by browser harness; API bodies/statuses all real HTTPS; selected requests delayed without replacement",
+  "tls_validation": true,
+  "checks": [
+    {
+      "name": "Lease still active",
+      "pass": true
+    },
+    {
+      "name": "Live CSRF",
+      "pass": true
+    },
+    {
+      "name": "Live allowed login",
+      "pass": true
+    },
+    {
+      "name": "Frontend real room board and counters",
+      "pass": true
+    },
+    {
+      "name": "Live frontend status filter",
+      "pass": true
+    },
+    {
+      "name": "Live detail history block UI",
+      "pass": true
+    },
+    {
+      "name": "Browser API actor attribution and ordering",
+      "pass": true
+    },
+    {
+      "name": "UI persisted actor1 null actor and history ordering",
+      "pass": true
+    },
+    {
+      "name": "Readiness explicitly unavailable",
+      "pass": true
+    },
+    {
+      "name": "Browser Back hides cache while real response pending",
+      "pass": true
+    },
+    {
+      "name": "Live branch switch 403 with no stale or foreign room",
+      "pass": true
+    },
+    {
+      "name": "Allowed scope recovers",
+      "pass": true
+    },
+    {
+      "name": "Room2 UI isolates history from room1",
+      "pass": true
+    },
+    {
+      "name": "No unexpected server 500 errors",
+      "pass": true
+    },
+    {
+      "name": "Browser session logout",
+      "pass": true
+    },
+    {
+      "name": "Browser session revoked",
+      "pass": true
+    }
+  ]
+}

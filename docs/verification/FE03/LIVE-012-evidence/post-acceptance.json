@@ -1,0 +1,65 @@
+﻿{
+    "status":  "PASS",
+    "application_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "database_guid":  "be23f102-29fd-44b5-bfb0-d66e59bb5be4",
+    "lease_verified":  true,
+    "runtime_pid":  77660,
+    "runtime_binary_sha256":  "71E65114E7B8C1578F50D71C4649801EF4D0B13A28EFDC0D1813BC3BEFDDC3D7",
+    "https":  "https://localhost:7049",
+    "sql_runtime_login":  "HotelOps_ENVFE03001_Runtime",
+    "sql_tls":  "Encrypt TRUE, SQL authentication, zero open transactions",
+    "rooms":  4,
+    "users":  2,
+    "cleaning_tasks":  0,
+    "inspections":  0,
+    "recorded_history":  3,
+    "recorded_blocks":  1,
+    "unrevoked_sessions":  0,
+    "history_facts":  [
+                          {
+                              "history_id":  1,
+                              "room_id":  1,
+                              "changed_by":  null,
+                              "changed_at_utc":  "2026-11-10T03:03:17.1771675Z",
+                              "to_status":  "DIRTY"
+                          },
+                          {
+                              "history_id":  2,
+                              "room_id":  1,
+                              "changed_by":  1,
+                              "changed_at_utc":  "2026-11-10T03:03:18.1771675Z",
+                              "to_status":  "DIRTY"
+                          },
+                          {
+                              "history_id":  3,
+                              "room_id":  2,
+                              "changed_by":  1,
+                              "changed_at_utc":  "2026-11-10T03:03:18.1771675Z",
+                              "to_status":  "READY"
+                          }
+                      ],
+    "room_facts":  [
+                       {
+                           "branch_id":  1,
+                           "room_id":  1,
+                           "operational_status":  "DIRTY"
+                       },
+                       {
+                           "branch_id":  1,
+                           "room_id":  2,
+                           "operational_status":  "READY"
+                       },
+                       {
+                           "branch_id":  1,
+                           "room_id":  3,
+                           "operational_status":  "OUT_OF_SERVICE"
+                       },
+                       {
+                           "branch_id":  2,
+                           "room_id":  4,
+                           "operational_status":  "READY"
+                       }
+                   ],
+    "business_writes":  0,
+    "utc":  "2026-11-10T08:49:00.2144865+00:00"
+}
