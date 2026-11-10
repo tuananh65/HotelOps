@@ -16,6 +16,7 @@ export interface RoomDirectoryResponse {
   page: number;
   pageSize: number;
   totalCount: number;
+  statusCounts?: { operationalStatusCode: string; count: number }[] | null;
 }
 export const roomStatusCodes = [
   "AVAILABLE",
@@ -40,6 +41,7 @@ export async function listRooms(
   status: string,
   search: string,
   signal?: AbortSignal,
+  filters: { floorId?: string; areaId?: string; roomTypeId?: string } = {},
 ): Promise<RoomDirectoryResponse> {
   const branchId = positiveId(branch);
   if (
@@ -56,6 +58,9 @@ export async function listRooms(
     pageSize: "20",
     sort: "floor",
   });
+  for (const key of ["floorId", "areaId", "roomTypeId"] as const) {
+    if (filters[key]) query.set(key, String(positiveId(filters[key])));
+  }
   if (status) query.set("operationalStatusCode", status);
   if (search.trim()) query.set("search", search.trim());
   const data = (await getJson(
