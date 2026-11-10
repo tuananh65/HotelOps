@@ -10,12 +10,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+if(args.Length == 1 && args[0] == "r05-unit") { InspectionR05IntegrationChecks.Unit(); return; }
 if(args.Length == 1 && args[0] == "responsibility-unit") { InspectionResponsibilityChecks.Unit(); return; }
 if(args.Length == 1 && args[0] == "decision08-unit") { await InspectionDecision08UnitChecks.RunAsync(); return; }
 if(args.Length == 1 && args[0] == "composition-unit") { await InspectionCompositionChecks.RunAsync(); return; }
 if(args.Length == 1 && args[0] == "issuer-unit") { InspectionIssuerUnitChecks.Run(); return; }
 if(args.Length == 1 && args[0] == "authority-unit") { await InspectionAuthorityUnitChecks.RunAsync(); return; }
-if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection" or "issuer" or "issuer-leastpriv" or "composition-sql" or "decision08-sql" or "decision08-hook-sql" or "responsibility-sql")) throw new ArgumentException("mode environment-receipt output-directory");
+if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection" or "issuer" or "issuer-leastpriv" or "composition-sql" or "decision08-sql" or "decision08-hook-sql" or "responsibility-sql" or "r05-sql")) throw new ArgumentException("mode environment-receipt output-directory");
 using var env = JsonDocument.Parse(await File.ReadAllTextAsync(args[1]));
 var e = env.RootElement; var name = e.GetProperty("database").GetString()!; var owner = e.GetProperty("owner").GetString()!;
 if (!e.GetProperty("success").GetBoolean() || !e.GetProperty("createdByThisRun").GetBoolean()
@@ -26,7 +27,7 @@ var backend = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory,"../../../.
 var connection = new Microsoft.Data.SqlClient.SqlConnectionStringBuilder { DataSource=@"lpc:.\SQLEXPRESS", InitialCatalog=name, IntegratedSecurity=true, TrustServerCertificate=true, ConnectTimeout=5, ApplicationName="HotelOps FE05 FAST003 owned synthetic trial" }.ConnectionString;
 var n01Guard = new HotelOps.Api.Services.Notifications.NotificationCommitGuard();
 var contextOptions = new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection);
-if(args[0] is "composition-sql" or "decision08-sql" or "responsibility-sql")contextOptions.AddInterceptors(n01Guard);
+if(args[0] is "composition-sql" or "decision08-sql" or "responsibility-sql" or "r05-sql")contextOptions.AddInterceptors(n01Guard);
 await using var db = new HotelOpsDbContext(contextOptions.Options);
 await db.Database.OpenConnectionAsync();
 async Task Guard()
@@ -40,6 +41,7 @@ async Task Guard()
 async Task Save() { await Guard(); await db.SaveChangesAsync(); db.ChangeTracker.Clear(); }
 async Task Write(string file, object value) => await File.WriteAllTextAsync(Path.Combine(output,file),JsonSerializer.Serialize(value,new JsonSerializerOptions{WriteIndented=true}));
 await Guard();
+if(args[0]=="r05-sql") { await InspectionR05IntegrationChecks.SqlAsync(db,args[1],output,Guard,n01Guard); return; }
 if(args[0]=="responsibility-sql") { await InspectionResponsibilityChecks.SqlAsync(db,args[1],output,Guard,n01Guard); return; }
 if(args[0]=="probe") { Console.WriteLine("PASS owned database identity"); return; }
 if(args[0]=="decision08-hook-sql") { await InspectionSharedHookSqlChecks.RunAsync(db,args[1],output,Guard); return; }

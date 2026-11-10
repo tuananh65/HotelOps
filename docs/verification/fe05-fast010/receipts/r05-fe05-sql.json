@@ -1,0 +1,149 @@
+{
+  "success": true,
+  "r05Pin": "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+  "realSqlSession": true,
+  "componentFixtureOnly": true,
+  "fullUc034Command": false,
+  "publicAuthoritativeMutation": false,
+  "acceptedConcreteBinding": null,
+  "cases": [
+    {
+      "title": "R05 attribution read authorized by FE05 in exact caller connection/Serializable transaction",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "CompletionRevision survives later current task rowversion changes",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Changed completion source fails R05 read before domain mutation",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong cycle fails retained source without late Users locks",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong branch fails exact retained read before FE04 reader",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong Inspection cannot reuse retained actor membership",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked actor SQL session is rejected before attribution read",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked actor grant is rejected before FE04 reader",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked cleaner account makes persisted attribution ineligible",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked cleaner branch access fails closed",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Exact supervisor source candidate matches existing grant without granting read/evidence",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Original cleaner candidate matches R05 identity and its own CLEANING_VIEW only",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Cleaner source relation cannot substitute for revoked CLEANING_VIEW grant",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Responsible supervisor binding revision change invalidates entire retained roster",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Post-completion reassignment preserves original assignment identity",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Mandatory recipients use BOTH supervisor and typed original-cleaner binding",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Concrete owner coordination still rejects unapproved source-read binding",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Failed mandatory read poisons guarded commit; caller rollback restores state",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "FE05 owner reservation preconditions validate real R05 binding before domain mutation",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "R05 reader refuses a different physical connection",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Concurrent cleaner revocation waits at retained Users prelock and rolls back",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale advisory CompletionRevision rejected against actual R05 reader",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale advisory AssignmentId rejected against actual R05 reader",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale advisory CompletionProgressId rejected against actual R05 reader",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale advisory WriterTransactionId rejected against actual R05 reader",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Missing attribution fails closed; no legacy/assignment fallback",
+      "result": "PASS"
+    },
+    {
+      "title": "Multi-cleaner capture/read remains null; no primary cleaner inferred",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Unauthorized cleaner cannot discover whole Inspection as acting reader",
+      "result": "PASS"
+    }
+  ]
+}

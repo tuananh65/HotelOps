@@ -1,0 +1,20 @@
+{
+  "server": "DESKTOP-JI8U50T\\SQLEXPRESS",
+  "database": "HotelOps_Canonical_20261110_031050_3a074f28_Fresh",
+  "owner": "2f2502b8-87cc-4185-a56a-2fcae4000c78",
+  "createdForFAST010": true,
+  "syntheticOnly": true,
+  "identityGuard": "server/database/owner UUID before mutations",
+  "transport": "local shared-memory Windows Integrated; no secret connection string exported",
+  "setup": "Fresh trial provisioned through existing FE05 harness; owner set to sa only for this new trial to support original R05 EXECUTE AS OWNER; R05 disposable marker and exact unchanged candidate installed; FAST008 supervisor candidate installed unchanged",
+  "fixture": "Synthetic credential sessions, HK_STAFF eligibility/shift, exact cleaning completion through real R05 capture participant, trusted FAST009 supervisor setter and test inspection phase setup committed in owned trial; not full UC034 or authoritative FAILED writer receipts",
+  "verification": "Every per-case transaction explicitly rolled back; root/attribution/supervisor/task/cycle/assignment/progress/account/role/access/grant/audit snapshots compared. Temporary source changes and failure injections not committed.",
+  "regression": {
+    "database": "HotelOps_Canonical_20261109_104635_af7db21e_Fresh",
+    "owner": "060570d5-159f-412e-b480-55fbe8c78748",
+    "use": "Directly affected FAST009 setter/recipient regression; guarded synthetic existing trial, no new DDL/reset/drop, business changes rolled back; synthetic sessions only committed"
+  },
+  "oldDatabasesResetOrDropped": false,
+  "sharedSql": false,
+  "productionIssuerEnabled": false
+}

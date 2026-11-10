@@ -190,9 +190,9 @@ internal static class InspectionResponsibilityChecks
             await Check("Original cleaner relationship alone cannot borrow actor grant",async()=>{
                 var x=await Failed();var r=await x.Policy.AssessAsync(x.Source,other,InspectionRecipientRelationship.OriginalCleaner,default);if(r.ExistingGrantAndRelationshipMatch)throw new Exception("Borrowed ambient permission");
             });
-            await Check("Original-cleaner narrow candidate uses recipient CLEANING_VIEW; private bytes remain denied",async()=>{
+            await Check("Legacy ID-only cleaner fixture cannot satisfy R05 completion binding despite existing grant",async()=>{
                 await FixtureRole(other,"HK_STAFF");var x=await Failed();var r=await x.Policy.AssessAsync(x.Source,other,InspectionRecipientRelationship.OriginalCleaner,default);
-                if(!r.ExistingGrantAndRelationshipMatch||r.CanRead||r.CanReadPrivateEvidence)throw new Exception("Cleaner candidate mismatch");
+                if(r.ExistingGrantAndRelationshipMatch||r.CanRead||r.CanReadPrivateEvidence)throw new Exception("ID-only fixture became R05 authority");
             });
             await Check("Wrong recipient relationship is denied even if User is in retained roster",async()=>{
                 var x=await Failed();if((await x.Policy.AssessAsync(x.Source,other,InspectionRecipientRelationship.ResponsibleSupervisor,default)).ExistingGrantAndRelationshipMatch)throw new Exception("Wrong role relationship");

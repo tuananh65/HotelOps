@@ -1,0 +1,15 @@
+PASS Completion revision copied immutably from FE04 bytes
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 2, AssignmentId = 21, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 2, AssignmentId = 11, CleanerUserId = 21, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 2, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 21, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 2, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:01 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 2, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000020, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 2, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 21 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 21, RoomId = 5, BranchId = 2, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 21, BranchId = 2, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Retained attribution invalidates changed InspectionCleanerBinding { TaskId = 4, RoomId = 5, BranchId = 21, AssignmentId = 11, CleanerUserId = 9, CompletionProgressId = 12, CompletedAtUtc = 11/10/2026 12:00:00 AM, CompletionRevision = 0000000000000001, WriterTransactionId = 20 }
+PASS Own Inspection revision can change without conflating completion token
+PASS Completion revision is distinct from current cycle revision
+PASS Missing typed source is unequal to a retained R05 source
+PASS Public Reject and Rework gates remain closed
+14/14 PASS

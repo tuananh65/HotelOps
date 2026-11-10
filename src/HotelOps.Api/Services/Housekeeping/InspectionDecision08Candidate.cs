@@ -8,7 +8,9 @@ public static class InspectionDecision08Candidate
 {
     public static IServiceCollection AddInspectionDecision08OwnerCandidate(this IServiceCollection services)
     {
-        services.TryAddScoped<IInspectionOriginalCleanerSource,MissingInspectionOriginalCleanerSource>();
+        services.TryAddScoped<IInspectionOriginalCleanerSource>(sp=>new InspectionR05CleanerSource(sp.GetRequiredService<HotelOpsDbContext>(),
+            sp.GetRequiredService<HotelOps.Api.Security.Authorization.ICurrentUserAccessor>(),sp.GetRequiredService<HotelOps.Api.Security.Authorization.IPermissionService>(),
+            ()=>sp.GetRequiredService<RoomTypeCreationService>()));
         services.AddScoped<InspectionRecipientRosterReader>();services.AddScoped<InspectionUsersPrelock>();
         services.AddScoped<InspectionOwnerOperation>();
         services.Replace(ServiceDescriptor.Scoped<IFe05RecipientPrelockAuthority>(sp=>sp.GetRequiredService<InspectionUsersPrelock>()));
@@ -28,7 +30,7 @@ internal sealed class InspectionMandatoryRecipients(InspectionUsersPrelock users
         if(kind!=Fe05NotificationKind.InspectionFailed)return await rework.ResolveMandatoryIdsAsync(db,source,kind,ct);
         var roster=users.Roster;
         // Both relationships must be independently proven, before any deduplication.
-        if(roster.Kind!=kind||roster.SupervisorId is not >0||roster.OriginalCleanerId is not >0)
+        if(roster.Kind!=kind||roster.SupervisorId is not >0||roster.OriginalCleanerId is not >0||roster.CleanerBinding==null)
             throw new Fe05NotificationUnavailableException("FE05_BOTH_PERSISTED_RECIPIENT_ROLES_REQUIRED");
         foreach(var user in new[]{roster.SupervisorId.Value,roster.OriginalCleanerId.Value})
             await users.RequireAlreadyLockedAsync(db,source,user,ct);

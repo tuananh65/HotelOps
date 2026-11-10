@@ -100,7 +100,8 @@ public sealed partial class RoomTypeCreationService
         // existing BatchAsync rechecks the SQL session inside the caller transaction after Users locks.
         var access=await permissions.EvaluateBranchAsync("INSPECTION_PERFORM",branch,ct);
         if(!access.IsGranted)return(access.Decision==HotelOps.Api.Security.Authorization.PermissionDecision.Unavailable?RoomTypeBatchStatus.Unavailable:RoomTypeBatchStatus.Forbidden,null);
-        return(null,await (inspectionRoster??throw new InvalidOperationException("Complete roster required")).DiscoverAsync(ticket.UserId,branch,inspection,assignee,kind,ct));
+        (inspectionRoster??throw new InvalidOperationException("Complete roster required")).BindCleanerCaller(ticket,sid);
+        return(null,await inspectionRoster.DiscoverAsync(ticket.UserId,branch,inspection,assignee,kind,ct));
     }
 
     private async Task LockInspectionCompositionSourceAsync(SessionReference ticket,long sid,long branch,long inspection,CancellationToken ct)

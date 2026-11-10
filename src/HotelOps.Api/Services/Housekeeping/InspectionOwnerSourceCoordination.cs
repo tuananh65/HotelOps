@@ -46,6 +46,8 @@ public sealed class InspectionOwnerSourceCoordination(HotelOpsDbContext context,
     {
         await Authorize(db,request,actor,ct);
         await users.ConfirmAfterSourcesAsync(false,ct);
+        if(request.RequiredEvents.Contains(Fe05NotificationKind.InspectionFailed)&&users.Roster.CleanerBinding==null)
+            throw new Fe05NotificationUnavailableException("FE04_R05_COMPLETE_ATTRIBUTION_BINDING_REQUIRED");
         if(await db.Database.SqlQuery<string>($"SELECT APPLOCK_MODE('public','HotelOps:RoomTypes:v1','Transaction') AS Value").SingleAsync(ct)!="Exclusive")
             throw new Fe05NotificationUnavailableException("FE05_OWNER_CATALOG_LOCK_REQUIRED");
     }

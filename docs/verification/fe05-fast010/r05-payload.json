@@ -1,0 +1,62 @@
+{
+  "pin": "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+  "sevenFileIntegrity": true,
+  "entries": [
+    {
+      "path": "docs/fe04-r04/RESULT.md",
+      "manifestSHA256": "7B689E6645C6E5A5B555124DFF9A00552BD527FBC50D00D6E48965EA5C9327B7",
+      "matchedEncoding": "Git bytes",
+      "gitBlob": "dc64ad376f3ac051d0372cb10eaefbd3b870b822",
+      "imported": false,
+      "reason": "Not required by FE05 reader; closure capture hook remains FE04-owned, tests/docs not copied"
+    },
+    {
+      "path": "scripts/database/release/fe04-cleaner-r04/01_CleanerAttributionCandidate.sql",
+      "manifestSHA256": "B68936FD5BF07267C3C45A3D9F609A0F333078E8E8EDB658B83C186A53B91ABD",
+      "matchedEncoding": "Git bytes",
+      "gitBlob": "7ae4b4b397e4b69866f96286c166350c2361ebb5",
+      "imported": true,
+      "reason": "Exact reader/contract and unchanged disposable SQL candidate"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleaningClosureBoundary.cs",
+      "manifestSHA256": "6D8CA0E5B7622CD064548A8EC4E8099A96D5E596A4D94EA008A61C41D7B808FE",
+      "matchedEncoding": "CRLF worktree",
+      "gitBlob": "48e102ac1fa8226af91a07b0424e5eb2a83ac052",
+      "imported": false,
+      "reason": "Not required by FE05 reader; closure capture hook remains FE04-owned, tests/docs not copied"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionContract.cs",
+      "manifestSHA256": "E5F84CCCA603B3302C6450127706D32A56375B1DBA5DF792EFDFBB4F36DACB44",
+      "matchedEncoding": "Git bytes",
+      "gitBlob": "86f2bf73fa1ce3925116f9bcfedbbf211ebcf455",
+      "imported": true,
+      "reason": "Exact reader/contract and unchanged disposable SQL candidate"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionSource.cs",
+      "manifestSHA256": "AF51E954A507636A2110888066250996DB1282395F63ED0A84CFE9330E9C88FD",
+      "matchedEncoding": "Git bytes",
+      "gitBlob": "d709fd988b49254b6031b57f0d37603b63421e74",
+      "imported": true,
+      "reason": "Exact reader/contract and unchanged disposable SQL candidate"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleanerAttributionSqlTests.cs",
+      "manifestSHA256": "119A2BB4742F34439DCB4FB18F960E3E4FB21D77AA02EB9553C1F4888440DABE",
+      "matchedEncoding": "Git bytes",
+      "gitBlob": "faa7de69f7ed4b6c64a5de4cf219672d14d314a8",
+      "imported": false,
+      "reason": "Not required by FE05 reader; closure capture hook remains FE04-owned, tests/docs not copied"
+    },
+    {
+      "path": "tests/HotelOps.Dev1.RegressionTests/CleanerAttributionTests.cs",
+      "manifestSHA256": "D6FA17BC4F6429CE3642A13097A18F84C71F40DDBB1A4A154BDB4A1C568F376E",
+      "matchedEncoding": "Git bytes",
+      "gitBlob": "18c931fa711ae05317f9ef79b886e11729c3482a",
+      "imported": false,
+      "reason": "Not required by FE05 reader; closure capture hook remains FE04-owned, tests/docs not copied"
+    }
+  ]
+}

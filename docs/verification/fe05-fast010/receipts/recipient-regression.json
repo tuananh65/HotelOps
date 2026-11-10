@@ -1,0 +1,151 @@
+{
+  "success": true,
+  "callerTransaction": true,
+  "realActorSessionAndPermission": true,
+  "originalCleanerTestFixtureOnly": true,
+  "acceptedConcreteBinding": null,
+  "publicMutation": false,
+  "allBusinessChangesRolledBack": true,
+  "cases": [
+    {
+      "title": "Explicit authorized supervisor binding persists exact identities/cycle/actor and touches root audit",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Explicit selected supervisor differs from actor and inspector without inferred attribution",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Unauthorized actor cannot set responsibility despite locked source",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Explicit supervisor requires existing branch qualification; inspector is not inferred",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale Inspection revision rejects setter",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale current-cycle revision rejects setter",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong branch/current task cannot resolve assignment source",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Existing responsibility cannot be silently replaced or backfilled",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Recipient outside retained Users roster cannot be introduced",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked actor permission cannot borrow supervisor target eligibility",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Revoked supervisor branch access blocks setter",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Supervisor exact-resource candidate matches existing grant but never authorizes production or bytes",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Original cleaner relationship alone cannot borrow actor grant",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Legacy ID-only cleaner fixture cannot satisfy R05 completion binding despite existing grant",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong recipient relationship is denied even if User is in retained roster",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Wrong source branch fails retained source checks",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Stale event revision cannot become recipient read authority",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Recipient branch revocation denies source candidate at staging",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Recipient grant revocation denies exact-source candidate",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Responsibility change invalidates retained binding and poisons commit guard",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Cycle change rejects retained recipient without taking late Users locks",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Owner source coordination remains closed even for candidate match",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Retained binding capability cannot cross transactions",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Rework assignee candidate matches exact persisted resource and own existing CLEANING_VIEW",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Rework recipient without own grant cannot borrow actor permissions",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Rework stale revision is rejected under retained Users",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Rework reassignment cannot acquire late recipient or reuse old roster",
+      "result": "PASS",
+      "rollback": true
+    },
+    {
+      "title": "Concurrent responsibility writer waits at sorted Users admission; no partial overwrite",
+      "result": "PASS",
+      "rollback": true
+    }
+  ]
+}

@@ -6,7 +6,7 @@ namespace HotelOps.Api.Services.HotelStructure;
 // Discovery is advisory, outside the caller transaction. Only the locked reread can attest it.
 internal sealed record InspectionRecipientRoster(long ActorId,long BranchId,long InspectionId,long TaskId,long RoomId,
     long InspectorId,long? AssigneeId,long? SupervisorId,long? OriginalCleanerId,
-    string InspectionRevision,string CycleRevision,string? SupervisorRevision,Fe05NotificationKind Kind)
+    string InspectionRevision,string CycleRevision,string? SupervisorRevision,Fe05NotificationKind Kind,InspectionCleanerBinding? CleanerBinding = null)
 {
     internal long[] Users => new[]{(long?)ActorId,InspectorId,AssigneeId,SupervisorId,OriginalCleanerId}
         .Where(x=>x.HasValue).Select(x=>x!.Value).Distinct().Order().ToArray();
@@ -24,6 +24,8 @@ internal sealed class MissingInspectionOriginalCleanerSource : IInspectionOrigin
 }
 public sealed class InspectionRecipientRosterReader(HotelOpsDbContext db,IInspectionOriginalCleanerSource original)
 {
+    internal void BindCleanerCaller(HotelOps.Api.Services.Authentication.SessionReference ticket,long sid)
+    {if(original is IInspectionCleanerAttributionSource source)source.BindCaller(ticket,sid);}
     internal async Task<InspectionRecipientRoster> DiscoverAsync(long actor,long branch,long inspection,long? assignee,
         Fe05NotificationKind kind,CancellationToken ct)
     {
@@ -48,7 +50,7 @@ public sealed class InspectionRecipientRosterReader(HotelOpsDbContext db,IInspec
             JOIN dbo.room_cleaning_cycle_state c ON c.room_id=i.room_id AND c.cleaning_task_id=t.cleaning_task_id
             WHERE i.inspection_id={inspection}
             """).SingleOrDefaultAsync(ct)??throw new Fe05NotificationUnavailableException("FE05_ROSTER_SOURCE_UNAVAILABLE");
-        long? supervisor=null,cleaner=null;string? bindingRevision=null;
+        long? supervisor=null,cleaner=null;string? bindingRevision=null;InspectionCleanerBinding? cleanerBinding=null;
         if(kind==Fe05NotificationKind.InspectionFailed)
         {
             if(await db.Database.SqlQuery<int>($"SELECT CASE WHEN OBJECT_ID('dbo.inspection_supervisor_bindings','U') IS NULL THEN 0 ELSE 1 END AS Value").SingleAsync(ct)!=1)
@@ -60,11 +62,16 @@ public sealed class InspectionRecipientRosterReader(HotelOpsDbContext db,IInspec
                   AND branch_id={branch} AND cycle_revision={row.CycleRevision}
                 """).SingleOrDefaultAsync(ct)??throw new Fe05NotificationUnavailableException("FE05_PERSISTED_SUPERVISOR_BINDING_REQUIRED");
             supervisor=binding.SupervisorId;bindingRevision=Convert.ToHexString(binding.Revision);
-            cleaner=await original.ReadAsync(inspection,row.TaskId,row.RoomId,branch,Convert.ToHexString(row.CycleRevision),ct);
+            if(original is IInspectionCleanerAttributionSource attribution)
+            {
+                cleanerBinding=await attribution.ReadBindingAsync(inspection,row.TaskId,row.RoomId,branch,Convert.ToHexString(row.CycleRevision),locked,ct);
+                cleaner=cleanerBinding.CleanerUserId;
+            }
+            else cleaner=await original.ReadAsync(inspection,row.TaskId,row.RoomId,branch,Convert.ToHexString(row.CycleRevision),ct);
             if(cleaner<=0)throw new Fe05NotificationUnavailableException("FE04_R04_ORIGINAL_CLEANER_SOURCE_REQUIRED");
         }
         return new(actor,branch,inspection,row.TaskId,row.RoomId,row.InspectorId,assignee,supervisor,cleaner,
-            Convert.ToHexString(row.InspectionRevision),Convert.ToHexString(row.CycleRevision),bindingRevision,kind);
+            Convert.ToHexString(row.InspectionRevision),Convert.ToHexString(row.CycleRevision),bindingRevision,kind,cleanerBinding);
     }
     private sealed class RosterRow
     {

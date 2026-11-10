@@ -24,6 +24,8 @@ internal sealed class InspectionRecipientSourceReadCandidate(HotelOpsDbContext d
         // inspector/supervisor binding/R04 port; this NEVER adds a Users lock.
         await users.RequireAlreadyLockedAsync(db,source,recipient,ct);
         var roster=users.Roster;
+        if(relationship==InspectionRecipientRelationship.OriginalCleaner&&roster.CleanerBinding==null)
+            return new(false,"FE04_R05_COMPLETE_ATTRIBUTION_BINDING_REQUIRED");
         var expected=relationship switch {
             InspectionRecipientRelationship.ResponsibleSupervisor=>roster.SupervisorId,
             InspectionRecipientRelationship.OriginalCleaner=>roster.OriginalCleanerId,
