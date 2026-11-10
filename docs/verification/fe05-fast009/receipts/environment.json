@@ -1,0 +1,14 @@
+{
+  "server": "DESKTOP-JI8U50T\\SQLEXPRESS",
+  "database": "HotelOps_Canonical_20261109_104635_af7db21e_Fresh",
+  "owner": "060570d5-159f-412e-b480-55fbe8c78748",
+  "reusedOwnedFAST008Trial": true,
+  "createdByFAST009": false,
+  "syntheticOnly": true,
+  "identityCheckedBySqlRunner": true,
+  "connectionTransport": "local shared-memory Windows Integrated; no secret connection string exported",
+  "businessMutations": "explicit SERIALIZABLE caller rollback; fixture sessions committed only",
+  "supervisorSchema": "FAST008 candidate unchanged; regression verifies exact SQL definition after CRLF/LF normalization",
+  "oldDatabasesResetOrDropped": false,
+  "sharedSql": false
+}

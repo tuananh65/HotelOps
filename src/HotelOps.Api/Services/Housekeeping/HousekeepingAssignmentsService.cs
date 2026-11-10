@@ -63,7 +63,20 @@ public sealed partial class RoomTypeCreationService
     }
 
     public Task<RoomTypeBatchResult> AssignInspectionAsync(SessionReference ticket, long sid, long branch, long task, AssignInspectionRequest input, CancellationToken ct)
+        => AssignInspectionCoreAsync(ticket,sid,branch,task,input,null,ct);
+
+    // Explicit selection only; no endpoint/default caller activates this candidate.
+    internal Task<RoomTypeBatchResult> AssignInspectionWithSupervisorCandidateAsync(SessionReference ticket,long sid,long branch,long task,
+        AssignInspectionRequest input,long responsibleSupervisorId,CancellationToken ct)
     {
+        if(responsibleSupervisorId<=0)throw new ValidationException("Explicit responsible supervisor is required.");
+        return AssignInspectionCoreAsync(ticket,sid,branch,task,input,responsibleSupervisorId,ct);
+    }
+
+    private Task<RoomTypeBatchResult> AssignInspectionCoreAsync(SessionReference ticket,long sid,long branch,long task,
+        AssignInspectionRequest input,long? responsibleSupervisorId,CancellationToken ct)
+    {
+        SupervisorBindingUsers? bindingUsers=null;
         if (task <= 0 || input.InspectorId <= 0) throw new ValidationException("Invalid task or inspector.");
         var reason = WorkflowReason(input.Reason); WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
@@ -90,10 +103,27 @@ public sealed partial class RoomTypeCreationService
                 InspectorUserId = input.InspectorId, VersionId = version, Status = "PENDING", CreatedAt = now };
             db.Add(inspection); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status={"ASSIGNED"},due_at={input.DueAt} WHERE inspection_id={inspection.InspectionId}", token);
+            if(responsibleSupervisorId is {} supervisor)
+            {
+                var source=await ReadSupervisorAssignmentSourceAsync(branch,inspection.InspectionId,token);
+                await BindSupervisorInAssignmentAsync(ticket,sid,branch,inspection.InspectionId,supervisor,
+                    source.RootRevision,source.CycleRevision,reason,bindingUsers!,token);
+            }
             var after = new HousekeepingWriteDto(inspection.InspectionId, "ASSIGNED");
             await BatchAuditAsync(actor, branch, "room_inspections", inspection.InspectionId, null, new { reason, inspectorId = input.InspectorId, version, entity = after }, ["assignedInspector", "version", "dueAt"], token);
+            // UC041 mandatory assignment-notification composition is not accepted here.
+            // Disposing Batch's caller transaction rolls back root, binding and audit together.
+            if(responsibleSupervisorId!=null)return new(RoomTypeBatchStatus.Unavailable);
             return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await InspectionState(inspection.InspectionId, token)).Revision));
-        }, ct, additionalUsers: [input.InspectorId], eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token), permissionCode: "INSPECTION_PERFORM");
+        }, ct, additionalUsers: responsibleSupervisorId is {} selected ? new[]{input.InspectorId,selected} : [input.InspectorId],
+            eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token)
+                && (responsibleSupervisorId==null||await EligibleInspector(responsibleSupervisorId.Value,branch,token)),
+            permissionCode: "INSPECTION_PERFORM",onUsersLocked: responsibleSupervisorId==null ? null : (locked,token)=>
+            {
+                token.ThrowIfCancellationRequested();
+                bindingUsers=SupervisorBindingUsers.Retain(db,locked,ticket.UserId,input.InspectorId,responsibleSupervisorId.Value);
+                return Task.CompletedTask;
+            });
     }
 
     public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket,long sid,long branch,long inspection,string tag,RequestReworkRequest input,CancellationToken ct,string? operationKey = null)

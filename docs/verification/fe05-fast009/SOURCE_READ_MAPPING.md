@@ -1,0 +1,15 @@
+# FAST009 recipient read candidates — acceptedConcreteBinding=null
+
+These are internal proposal assessments, not approved permissions, endpoints, summary responses or private-file capabilities. CanRead and CanReadPrivateEvidence remain false even on a matching assessment. The opt-in owner coordination always rejects an unapproved recipient binding. Production/default registrations and Reject/Rework gates are unchanged.
+
+| Recipient | Exact persisted relationship | Existing permission checked for RECIPIENT | Candidate resource/data limit | Missing owner acceptance |
+|---|---|---|---|---|
+| Responsible supervisor | inspection_supervisor_bindings exact Inspection/task/room/branch/current cycle and retained binding revision | INSPECTION_PERFORM (proposal only) using EfPermissionDataSource + PermissionGrantRules; no assignment/grant added | Exact FAILED Inspection/cycle identity and state summary only; no whole history, defect/evidence content or bytes | PL/DEV3 must accept the responsibility-scoped mapping; current shared resolver does not establish this authority |
+| Original cleaner | FE04 R04/R05 immutable cleaner source for exact task/room/cycle via existing IInspectionOriginalCleanerSource port | CLEANING_VIEW (proposal only) on independently established exact source relationship | Only FAILED summary associated with own cleaning task/cycle; not Inspection history, unrelated defects or private bytes | Exact committed FE04 attribution source/revision plus PL/DEV3 narrow FAILED read policy |
+| Rework assignee | cleaning_reworks exact PK/FKs/assignee/revision + current task/cycle; DECISION08 resolver revalidates persisted state/timestamp | CLEANING_VIEW; reuse original FE04 R03 grant rules (active user/branch and matching own resource), no role-name shortcut | Exact assigned Rework metadata/FAILED source association, no private evidence capability | FE04/DEV2 same-caller-transaction staging preflight agreement; R03 trusted consumer still requires its original proof/receipt and a different reader transaction |
+
+Every proposal checks the FAST008 retained real Users map/physical transaction, rereads source/cycle/relationship, verifies persisted COMPLETED/FAIL/FAILED and REWORK_REQUIRED state, exact root/version/revision, active account/employment/branch access, and the recipient's own existing grant path. Stale/reassigned/new Users fail; no late Users locks, ambient actor-grant borrowing or frontend authority.
+
+Tests may assign existing HK_STAFF/HK_SUPERVISOR roles and branch access to synthetic fixture Users inside transactions that are explicitly rolled back. These fixture grants are not deployment changes or approved recipient policies. Original-cleaner positive checks use an explicitly named CleanerFixture; no R04 production authority is claimed.
+
+FE04 ref after fetch remains d37e99f42eaaf3089eb510c6298296a0f0743faa. No committed R04/R05 source pin/package was provided or found on the advertised remote authority branch. No uncommitted FE04 source was copied. Real original-cleaner integration remains NOT_RUN.

@@ -62,7 +62,16 @@ public sealed class InspectionOwnerSourceCoordination(HotelOpsDbContext context,
     public async Task<bool> CanRecipientReadAsync(HotelOpsDbContext db,Fe05NotificationSource source,long recipient,CancellationToken ct)
     {
         await users.RequireAlreadyLockedAsync(db,source,recipient,ct);
-        // PL FAST008: acceptedConcreteBinding=null for all three recipient types.
+        var candidate=new InspectionRecipientSourceReadCandidate(db,users,TimeProvider.System);
+        var roster=users.Roster;
+        var roles=source.ReworkId!=null ? new[]{InspectionRecipientRelationship.ReworkAssignee}
+            : new[]{InspectionRecipientRelationship.ResponsibleSupervisor,InspectionRecipientRelationship.OriginalCleaner}
+                .Where(role=>recipient==(role==InspectionRecipientRelationship.ResponsibleSupervisor?roster.SupervisorId:roster.OriginalCleanerId)).ToArray();
+        if(roles.Length==0)throw new Fe05NotificationUnavailableException("FE05_RECIPIENT_RELATIONSHIP_REQUIRED");
+        foreach(var role in roles)
+            if(!(await candidate.AssessAsync(source,recipient,role,ct)).ExistingGrantAndRelationshipMatch)
+                throw new Fe05NotificationUnavailableException("FE05_RECIPIENT_CANDIDATE_DENIED");
+        // PL FAST008/009: acceptedConcreteBinding=null for all three recipient types.
         // In particular, a new uncommitted Rework cannot borrow FE04's committed,
         // different-transaction consumer proof. No role/branch/permission inference.
         throw new Fe05NotificationUnavailableException(source.ReworkId is null

@@ -28,7 +28,7 @@ internal static class InspectionDecision08SqlChecks
             var script=await File.ReadAllTextAsync(Path.Combine(AppContext.BaseDirectory,"../../../../../scripts/database/fe05-fast008/01_SupervisorBindingCandidate.sql"));
             var batches=System.Text.RegularExpressions.Regex.Split(script,@"(?im)^\s*GO\s*\r?$");
             var existing=await db.Database.SqlQuery<string>($"SELECT definition AS Value FROM sys.sql_modules WHERE object_id=OBJECT_ID('dbo.TR_fe05_supervisor_binding_candidate')").SingleOrDefaultAsync();
-            if(existing!=null){if(existing.Trim()!=batches[1].Trim())throw new Exception("Refusing changed candidate schema/trigger definition");}
+            if(existing!=null){if(existing.Replace("\r\n","\n").Trim()!=batches[1].Replace("\r\n","\n").Trim())throw new Exception("Refusing changed candidate schema/trigger definition");}
             else foreach(var batch in batches)if(!string.IsNullOrWhiteSpace(batch)){await guard();await db.Database.ExecuteSqlRawAsync(batch);}
             if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.inspection_supervisor_bindings").SingleAsync()!=0)throw new Exception("Unexpected authority backfill");
             await install.CommitAsync();

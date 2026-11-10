@@ -1,0 +1,11 @@
+PASS Candidate match=False cannot authorize source
+PASS Candidate match=False cannot authorize bytes
+PASS Candidate match=False retains null approved binding
+PASS Candidate match=True cannot authorize source
+PASS Candidate match=True cannot authorize bytes
+PASS Candidate match=True retains null approved binding
+PASS Reject dependency gates remain nonempty
+PASS Rework dependency gates remain nonempty
+PASS Explicit assignment candidate is not public
+PASS Binding writer is not public
+10/10 PASS

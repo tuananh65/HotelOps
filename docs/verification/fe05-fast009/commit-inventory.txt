@@ -1,0 +1,17 @@
+docs/verification/fe05-fast009/REPORT.md
+docs/verification/fe05-fast009/SOURCE_READ_MAPPING.md
+docs/verification/fe05-fast009/commit-inventory.txt
+docs/verification/fe05-fast009/receipts/build.txt
+docs/verification/fe05-fast009/receipts/dotnet-test.txt
+docs/verification/fe05-fast009/receipts/environment.json
+docs/verification/fe05-fast009/receipts/prelock-regression.json
+docs/verification/fe05-fast009/receipts/responsibility-sql.json
+docs/verification/fe05-fast009/receipts/units.txt
+docs/verification/fe05-fast009/source-manifest.csv
+src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs
+src/HotelOps.Api/Services/Housekeeping/InspectionOwnerSourceCoordination.cs
+src/HotelOps.Api/Services/Housekeeping/InspectionRecipientSourceReadCandidate.cs
+src/HotelOps.Api/Services/Housekeeping/InspectionSupervisorBinding.cs
+tests/HotelOps.Inspection.WriteTests/InspectionDecision08SqlChecks.cs
+tests/HotelOps.Inspection.WriteTests/InspectionResponsibilityChecks.cs
+tests/HotelOps.Inspection.WriteTests/Program.cs
