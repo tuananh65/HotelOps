@@ -1,0 +1,46 @@
+{
+  "status": "READY_FOR_OWNER_APPROVAL",
+  "sourceFiles": [
+    "src/HotelOps.Api/Services/Notifications/CleaningCommonTargetAdmission.cs",
+    "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs"
+  ],
+  "wiredMethods": [
+    "CleaningAssignmentStore.EnsureAsync",
+    "CleaningNotificationRuntime.RequireClean"
+  ],
+  "guidSource": "sys.database_recovery_status.database_guid",
+  "brokerGuidAccepted": false,
+  "target": {
+    "server": "DESKTOP-JI8U50T\\SQLEXPRESS",
+    "database": "HotelOps_ENVNOTIF001_Trial_20261109",
+    "actualGuid": "a138fa48-cc14-4070-9ca4-793f1b60c5c1"
+  },
+  "historicalGuard": "Unchanged KIENPC/HotelOps_DEV2_FullStack_Trial SQL guard; verified exact original query bytes and fake-provider path",
+  "sameOpenConnectionRequired": true,
+  "additionalConnectionOpened": false,
+  "transaction": "Exact existing caller-owned physical Serializable transaction; count1; accepted source authority + exact nonempty revision. Runtime clean preflight requires no transaction/tracked entities.",
+  "metadata": "Independent accepted observer only; missing/invisible/stale/non-actual GUID rejects. Observation max age1..60s signed by owners; principal/SID/restrictions/DENYs/catalog/unique indexes/immutable triggers/module hashes must match.",
+  "authorityAdapter": "INotifOwner007RuntimeAuthority.RequireCurrentLeaseAsync + ObserveExistingAsync; default closed, no production implementation supplied",
+  "trustResolver": "INotifOwner007KeyPolicy.GetAcceptedKey; default closed; accepted owner pins must be independent of payload/config",
+  "commonTargetDirectEfInsert": "Explicitly rejected; only existing native UC029 receipt adoption permitted",
+  "registeredInProduction": false,
+  "runtimeAccepted": false,
+  "remainingOwnerRequests": [
+    "D03",
+    "D05",
+    "D08",
+    "NATIVE_TARGET",
+    "FE04_V1_ADAPTER"
+  ],
+  "SQL_CONNECTIONS": 0,
+  "SQL_MUTATIONS_EXECUTED": false,
+  "SQL_DDL_EXECUTED": false,
+  "PERMISSIONS_GRANTED": false,
+  "PERMISSION_STATEMENTS_EXECUTED": false,
+  "WORKER_ENABLED": false,
+  "PRODUCER_ENABLED": false,
+  "RETRY_ENABLED": false,
+  "MERGED": false,
+  "DEPLOYED": false
+}

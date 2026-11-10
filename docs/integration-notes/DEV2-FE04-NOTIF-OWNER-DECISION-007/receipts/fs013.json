@@ -1,0 +1,20 @@
+{
+  "suite": "fs013",
+  "command": [
+    "dotnet",
+    "test",
+    "tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj",
+    "-p:NuGetAudit=false",
+    "--filter",
+    "FullyQualifiedName~CandidateCommitGuardTests|FullyQualifiedName~NotificationCandidateTests|FullyQualifiedName~CandidateCommandGuardTests",
+    "--logger",
+    "console;verbosity=normal"
+  ],
+  "cwd": "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\worktree",
+  "exitCode": 0,
+  "utc": "2026-11-10T16:16:39.253Z",
+  "logSha256": "d3a44fc11eeac60b315b84d7c51007a5feab589dfc8131ea67e5232061db6bd9",
+  "sqlConnections": 0,
+  "sourceBaseline": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+  "qualification": "Source worktree delta; exact files recorded in CHANGED_FILES_SHA256.json. Only offline runners permitted."
+}

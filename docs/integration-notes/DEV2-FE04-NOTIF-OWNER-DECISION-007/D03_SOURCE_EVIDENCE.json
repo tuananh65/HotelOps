@@ -1,0 +1,1118 @@
+[
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "sha256": "b29765a2e68d5208d598878bef553e4bd4d0d62e3ba59b7189db89e8e61aeb68",
+    "token": "dbo.users",
+    "hits": [
+      {
+        "line": 96,
+        "text": "=> (await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}\")"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "sha256": "b29765a2e68d5208d598878bef553e4bd4d0d62e3ba59b7189db89e8e61aeb68",
+    "token": "dbo.user_sessions",
+    "hits": [
+      {
+        "line": 101,
+        "text": "$\"SELECT * FROM dbo.user_sessions WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {ticket.UserId} AND session_key_hash = {ticket.KeyHash}\")"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "db.UserBranchAccesses",
+    "hits": [
+      {
+        "line": 106,
+        "text": "await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==user&&a.BranchId==s.BranchId&&a.RevokedAt==null&&a.GrantedAt<=now,ct)&&"
+      },
+      {
+        "line": 108,
+        "text": "db.UserRoles.AsNoTracking(),db.RolePermissions.AsNoTracking(),db.UserBranchAccesses.AsNoTracking(),user,now)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionDataSource.cs",
+    "sha256": "edbcb1e0de26fef622a426d57bec206995c9d4bf78005799450853072a2536d4",
+    "token": "db.UserRoles",
+    "hits": [
+      {
+        "line": 30,
+        "text": "await (from assignment in db.UserRoles.AsNoTracking()"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
+    "sha256": "16c6aa47fda12ebebba04ce9a4113951e9648b667aac08c7a183e12605fcaad2",
+    "token": "r.Role.IsActive",
+    "hits": [
+      {
+        "line": 19,
+        "text": "roles.Any(r => r.UserId == recipientUserId && r.IsActive && r.Role.IsActive && r.AssignedAt <= now &&"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "db.RolePermissions",
+    "hits": [
+      {
+        "line": 108,
+        "text": "db.UserRoles.AsNoTracking(),db.RolePermissions.AsNoTracking(),db.UserBranchAccesses.AsNoTracking(),user,now)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
+    "sha256": "16c6aa47fda12ebebba04ce9a4113951e9648b667aac08c7a183e12605fcaad2",
+    "token": "p.Permission.PermissionCode",
+    "hits": [
+      {
+        "line": 22,
+        "text": "permissions.Any(p => p.RoleId == r.RoleId && p.Permission.PermissionCode == \"CLEANING_VIEW\" &&"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationAuthority.cs",
+    "sha256": "c794733d598c6f7000d97abb180d0917e1cb8613811cc12a46cba7720586244e",
+    "token": "dbo.branches",
+    "hits": [
+      {
+        "line": 31,
+        "text": "if(!await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={c.BranchId}\")"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+    "token": "u.Department.IsActive",
+    "hits": [
+      {
+        "line": 14,
+        "text": "&& u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == \"HK\""
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "JOIN dbo.rooms",
+    "hits": [
+      {
+        "line": 64,
+        "text": "JOIN dbo.rooms r WITH(HOLDLOCK) ON r.room_id=t.room_id"
+      },
+      {
+        "line": 81,
+        "text": "JOIN dbo.rooms r WITH(HOLDLOCK) ON r.room_id=t.room_id"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "JOIN dbo.floors",
+    "hits": [
+      {
+        "line": 65,
+        "text": "JOIN dbo.floors f WITH(HOLDLOCK) ON f.floor_id=r.floor_id"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "dbo.areas",
+    "hits": [
+      {
+        "line": 60,
+        "text": "AND (r.area_id IS NULL OR EXISTS(SELECT 1 FROM dbo.areas ar WITH(HOLDLOCK)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+    "sha256": "fe1e09b584fc12917149c3d50d681f85c61fd3b83f7bd014e772f88907014fb4",
+    "token": "RoomType",
+    "hits": [
+      {
+        "line": 11,
+        "text": "public sealed partial class RoomTypeCreationService"
+      },
+      {
+        "line": 13,
+        "text": "public Task<RoomTypeBatchResult> HousekeepingPlanningAsync(SessionReference ticket, long sid, long branch,"
+      },
+      {
+        "line": 27,
+        "text": "if (roomQuery == null) return new(RoomTypeBatchStatus.SchemaRequired);"
+      },
+      {
+        "line": 32,
+        "text": "if (task == null) return new(RoomTypeBatchStatus.NotFound);"
+      },
+      {
+        "line": 34,
+        "text": "if (!active) return new(RoomTypeBatchStatus.Inactive);"
+      },
+      {
+        "line": 65,
+        "text": "if (inspection && await RoomTypeSchema.ReadAsync(db, token) == RoomTypeContract.BranchV1)"
+      },
+      {
+        "line": 67,
+        "text": "var typeId = await db.Rooms.Where(r => r.RoomId == task.RoomId).Select(r => r.RoomTypeId).SingleAsync(token);"
+      },
+      {
+        "line": 68,
+        "text": "var checklistId = await db.BranchRoomTypes.Where(t => t.RoomTypeId == typeId && t.IsActive && (t.BranchId == null || t.BranchId == branch)).Select(t => t.DefaultChecklistId).SingleOrDefaultAsync(token);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+    "token": "db.ShiftAssignments",
+    "hits": [
+      {
+        "line": 17,
+        "text": "&& db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == \"ASSIGNED\" && a.Shift.Status == \"PLANNED\""
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+    "token": "a.Shift.Status",
+    "hits": [
+      {
+        "line": 17,
+        "text": "&& db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == \"ASSIGNED\" && a.Shift.Status == \"PLANNED\""
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+    "token": "a.Shift.ShiftTemplate.IsActive",
+    "hits": [
+      {
+        "line": 18,
+        "text": "&& a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "JOIN dbo.cleaning_tasks",
+    "hits": [
+      {
+        "line": 63,
+        "text": "JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=a.cleaning_task_id"
+      },
+      {
+        "line": 80,
+        "text": "JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=ca.cleaning_task_id"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "FROM dbo.cleaning_assignments",
+    "hits": [
+      {
+        "line": 57,
+        "text": "(SELECT COUNT(*) FROM dbo.cleaning_assignments other WITH(HOLDLOCK) WHERE other.cleaning_task_id=t.cleaning_task_id"
+      },
+      {
+        "line": 62,
+        "text": "FROM dbo.cleaning_assignments a WITH(HOLDLOCK)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "dbo.room_cleaning_cycle_state",
+    "hits": [
+      {
+        "line": 67,
+        "text": "LEFT JOIN dbo.room_cleaning_cycle_state c WITH(HOLDLOCK) ON c.room_id=r.room_id"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "dbo.audit_logs",
+    "hits": [
+      {
+        "line": 78,
+        "text": "CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.audit_logs a WITH(HOLDLOCK)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "FROM dbo.notification_operation_reservations",
+    "hits": [
+      {
+        "line": 47,
+        "text": "FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK)"
+      },
+      {
+        "line": 87,
+        "text": "FROM dbo.notification_operation_reservations o WITH(HOLDLOCK)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "FROM dbo.notification_publications",
+    "hits": [
+      {
+        "line": 76,
+        "text": "(SELECT COUNT(*) FROM dbo.notification_publications px WITH(HOLDLOCK)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+    "token": "FROM dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 94,
+        "text": "SELECT user_id AS Value FROM dbo.notification_delivery_intents WITH(HOLDLOCK)"
+      },
+      {
+        "line": 97,
+        "text": "var inApp=await db.Database.SqlQuery<int>($\"SELECT COUNT(*) AS Value FROM dbo.notification_delivery_intents WITH(HOLDLOCK) WHERE publication_id={r.PublicationId} AND delivery_channel='IN_APP'\").SingleAsync(ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs",
+    "sha256": "d05d90a4130eafd4413c6dc0a7166bb3ca0741e8fc251775ab47b98d3a1a03e2",
+    "token": "fs013_assign_with_evidence",
+    "hits": [
+      {
+        "line": 35,
+        "text": "if (scope.Phase == \"FS013\" && await db.Database.SqlQuery<int>($\"SELECT CASE WHEN OBJECT_ID('dbo.fs013_assign_with_evidence','P') IS NOT NULL AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS013.SqlBoundary' AND CONVERT(nvarchar(100),value)='V1') THEN 1 ELSE 0 END AS [Value]\").SingleAsync(ct) != 1) return false;"
+      },
+      {
+        "line": 49,
+        "text": "? await db.Database.SqlQuery<string>($\"EXEC dbo.fs013_assign_with_evidence @actor={actor},@branch={branch},@task={task},@assignee={assignee},@operation={operation},@fingerprint={fingerprint},@expected={revision},@assignedAt={assignedAt},@dueAt={dueAt},@reason={reason}\").ToArrayAsync(ct)"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+    "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+    "token": "sys.",
+    "hits": [
+      {
+        "line": 47,
+        "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+      },
+      {
+        "line": 94,
+        "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+      },
+      {
+        "line": 110,
+        "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+      },
+      {
+        "line": 171,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+      },
+      {
+        "line": 173,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+      },
+      {
+        "line": 182,
+        "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+      },
+      {
+        "line": 183,
+        "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+      },
+      {
+        "line": 184,
+        "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CandidateCommitGuard.cs",
+    "sha256": "cdaf6d1f6ee031eeb04570a4e760bb13c104fd3f2eef84b80c1a56f4400d1d3b",
+    "token": "fs009_verify_assignment_guard",
+    "hits": [
+      {
+        "line": 46,
+        "text": "command.CommandText = \"EXEC dbo.fs009_verify_assignment_guard @actor,@operation\";"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+    "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+    "token": "sys.",
+    "hits": [
+      {
+        "line": 47,
+        "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+      },
+      {
+        "line": 94,
+        "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+      },
+      {
+        "line": 110,
+        "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+      },
+      {
+        "line": 171,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+      },
+      {
+        "line": 173,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+      },
+      {
+        "line": 182,
+        "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+      },
+      {
+        "line": 183,
+        "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+      },
+      {
+        "line": 184,
+        "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_operation_reservations",
+    "hits": [
+      {
+        "line": 25,
+        "text": "IF EXISTS(SELECT 1 FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id=@actor AND operation_key=@operation) THROW 51946,'Operation already reserved; use authorized durable replay',1;"
+      },
+      {
+        "line": 37,
+        "text": "INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at) VALUES(@actor,@operation,1,@fingerprint,1,@result,@assignedAt);"
+      },
+      {
+        "line": 59,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_operation_reservations",
+    "hits": [
+      {
+        "line": 25,
+        "text": "IF EXISTS(SELECT 1 FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id=@actor AND operation_key=@operation) THROW 51946,'Operation already reserved; use authorized durable replay',1;"
+      },
+      {
+        "line": 37,
+        "text": "INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at) VALUES(@actor,@operation,1,@fingerprint,1,@result,@assignedAt);"
+      },
+      {
+        "line": 59,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_operation_reservations",
+    "hits": [
+      {
+        "line": 25,
+        "text": "IF EXISTS(SELECT 1 FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id=@actor AND operation_key=@operation) THROW 51946,'Operation already reserved; use authorized durable replay',1;"
+      },
+      {
+        "line": 37,
+        "text": "INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at) VALUES(@actor,@operation,1,@fingerprint,1,@result,@assignedAt);"
+      },
+      {
+        "line": 59,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+    "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+    "token": "sys.",
+    "hits": [
+      {
+        "line": 47,
+        "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+      },
+      {
+        "line": 94,
+        "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+      },
+      {
+        "line": 110,
+        "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+      },
+      {
+        "line": 171,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+      },
+      {
+        "line": 173,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+      },
+      {
+        "line": 182,
+        "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+      },
+      {
+        "line": 183,
+        "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+      },
+      {
+        "line": 184,
+        "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_publications",
+    "hits": [
+      {
+        "line": 38,
+        "text": "INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,created_at) VALUES(@publication,@actor,@operation,'CLEANING_TASK_ASSIGNED',1,@assignment,@revision,@payload,@assignedAt);"
+      },
+      {
+        "line": 60,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_publications TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_publications",
+    "hits": [
+      {
+        "line": 38,
+        "text": "INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,created_at) VALUES(@publication,@actor,@operation,'CLEANING_TASK_ASSIGNED',1,@assignment,@revision,@payload,@assignedAt);"
+      },
+      {
+        "line": 60,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_publications TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_publications",
+    "hits": [
+      {
+        "line": 38,
+        "text": "INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,created_at) VALUES(@publication,@actor,@operation,'CLEANING_TASK_ASSIGNED',1,@assignment,@revision,@payload,@assignedAt);"
+      },
+      {
+        "line": 60,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_publications TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+    "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+    "token": "sys.",
+    "hits": [
+      {
+        "line": 47,
+        "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+      },
+      {
+        "line": 94,
+        "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+      },
+      {
+        "line": 110,
+        "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+      },
+      {
+        "line": 171,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+      },
+      {
+        "line": 173,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+      },
+      {
+        "line": 182,
+        "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+      },
+      {
+        "line": 183,
+        "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+      },
+      {
+        "line": 184,
+        "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_delivery_intents",
+    "hits": [
+      {
+        "line": 39,
+        "text": "INSERT dbo.notification_delivery_intents(publication_id,user_id,delivery_channel,next_attempt_at) VALUES(@publication,@assignee,'IN_APP',@assignedAt);"
+      },
+      {
+        "line": 61,
+        "text": "DENY INSERT,DELETE ON dbo.notification_delivery_intents TO fs013_app;"
+      },
+      {
+        "line": 62,
+        "text": "GRANT UPDATE(status,attempt_count,next_attempt_at,claim_id,claimed_until,failure_code,inbox_notification_id) ON dbo.notification_delivery_intents TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "notification_delivery_intents",
+    "hits": [
+      {
+        "line": 39,
+        "text": "INSERT dbo.notification_delivery_intents(publication_id,user_id,delivery_channel,next_attempt_at) VALUES(@publication,@assignee,'IN_APP',@assignedAt);"
+      },
+      {
+        "line": 61,
+        "text": "DENY INSERT,DELETE ON dbo.notification_delivery_intents TO fs013_app;"
+      },
+      {
+        "line": 62,
+        "text": "GRANT UPDATE(status,attempt_count,next_attempt_at,claim_id,claimed_until,failure_code,inbox_notification_id) ON dbo.notification_delivery_intents TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+    "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+    "token": "sys.",
+    "hits": [
+      {
+        "line": 47,
+        "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+      },
+      {
+        "line": 94,
+        "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+      },
+      {
+        "line": 110,
+        "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+      },
+      {
+        "line": 171,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+      },
+      {
+        "line": 173,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+      },
+      {
+        "line": 182,
+        "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+      },
+      {
+        "line": 183,
+        "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+      },
+      {
+        "line": 184,
+        "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "cleaning_assignments",
+    "hits": [
+      {
+        "line": 24,
+        "text": "IF EXISTS(SELECT 1 FROM dbo.cleaning_assignments WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id=@task AND assignment_status='ACTIVE' AND ended_at IS NULL) THROW 51945,'Active assignment exists',1;"
+      },
+      {
+        "line": 26,
+        "text": "INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason)"
+      },
+      {
+        "line": 48,
+        "text": "AS UPDATE dbo.cleaning_assignments SET reason=N'FS013_UNAPPROVED_WRITER_PROBE';"
+      },
+      {
+        "line": 58,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.cleaning_assignments TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "cleaning_assignments",
+    "hits": [
+      {
+        "line": 24,
+        "text": "IF EXISTS(SELECT 1 FROM dbo.cleaning_assignments WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id=@task AND assignment_status='ACTIVE' AND ended_at IS NULL) THROW 51945,'Active assignment exists',1;"
+      },
+      {
+        "line": 26,
+        "text": "INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason)"
+      },
+      {
+        "line": 48,
+        "text": "AS UPDATE dbo.cleaning_assignments SET reason=N'FS013_UNAPPROVED_WRITER_PROBE';"
+      },
+      {
+        "line": 58,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.cleaning_assignments TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "cleaning_assignments",
+    "hits": [
+      {
+        "line": 24,
+        "text": "IF EXISTS(SELECT 1 FROM dbo.cleaning_assignments WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id=@task AND assignment_status='ACTIVE' AND ended_at IS NULL) THROW 51945,'Active assignment exists',1;"
+      },
+      {
+        "line": 26,
+        "text": "INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason)"
+      },
+      {
+        "line": 48,
+        "text": "AS UPDATE dbo.cleaning_assignments SET reason=N'FS013_UNAPPROVED_WRITER_PROBE';"
+      },
+      {
+        "line": 58,
+        "text": "DENY INSERT,UPDATE,DELETE ON dbo.cleaning_assignments TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+    "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+    "token": "sys.",
+    "hits": [
+      {
+        "line": 47,
+        "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+      },
+      {
+        "line": 94,
+        "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+      },
+      {
+        "line": 110,
+        "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+      },
+      {
+        "line": 171,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+      },
+      {
+        "line": 173,
+        "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+      },
+      {
+        "line": 182,
+        "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+      },
+      {
+        "line": 183,
+        "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+      },
+      {
+        "line": 184,
+        "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "audit_logs",
+    "hits": [
+      {
+        "line": 34,
+        "text": "INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,occurred_at)"
+      },
+      {
+        "line": 63,
+        "text": "DENY UPDATE,DELETE ON dbo.audit_logs TO fs013_app;"
+      },
+      {
+        "line": 64,
+        "text": "GRANT INSERT ON dbo.audit_logs TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+    "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+    "token": "audit_logs",
+    "hits": [
+      {
+        "line": 34,
+        "text": "INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,occurred_at)"
+      },
+      {
+        "line": 63,
+        "text": "DENY UPDATE,DELETE ON dbo.audit_logs TO fs013_app;"
+      },
+      {
+        "line": 64,
+        "text": "GRANT INSERT ON dbo.audit_logs TO fs013_app;"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "db.Notifications",
+    "hits": [
+      {
+        "line": 84,
+        "text": "db.Notifications.Add(notice);await db.SaveChangesAsync(ct);"
+      },
+      {
+        "line": 175,
+        "text": "var notice=await db.Notifications.AsNoTracking().SingleOrDefaultAsync(n=>n.NotificationId==row.NotificationId,ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "db.Notifications",
+    "hits": [
+      {
+        "line": 84,
+        "text": "db.Notifications.Add(notice);await db.SaveChangesAsync(ct);"
+      },
+      {
+        "line": 175,
+        "text": "var notice=await db.Notifications.AsNoTracking().SingleOrDefaultAsync(n=>n.NotificationId==row.NotificationId,ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "db.NotificationRecipients",
+    "hits": [
+      {
+        "line": 85,
+        "text": "db.NotificationRecipients.Add(new(){NotificationId=notice.NotificationId,UserId=row.UserId,DeliveryChannel=\"IN_APP\",DeliveryStatus=\"DELIVERED\",DeliveredAt=now});"
+      },
+      {
+        "line": 150,
+        "text": "affected=await db.NotificationRecipients.Where(r=>r.NotificationId==item.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\")"
+      },
+      {
+        "line": 178,
+        "text": "var recipient=await db.NotificationRecipients.AsNoTracking().SingleOrDefaultAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\"&&r.DeliveryStatus==\"DELIVERED\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "db.NotificationRecipients",
+    "hits": [
+      {
+        "line": 85,
+        "text": "db.NotificationRecipients.Add(new(){NotificationId=notice.NotificationId,UserId=row.UserId,DeliveryChannel=\"IN_APP\",DeliveryStatus=\"DELIVERED\",DeliveredAt=now});"
+      },
+      {
+        "line": 150,
+        "text": "affected=await db.NotificationRecipients.Where(r=>r.NotificationId==item.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\")"
+      },
+      {
+        "line": 178,
+        "text": "var recipient=await db.NotificationRecipients.AsNoTracking().SingleOrDefaultAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\"&&r.DeliveryStatus==\"DELIVERED\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "db.NotificationRecipients",
+    "hits": [
+      {
+        "line": 85,
+        "text": "db.NotificationRecipients.Add(new(){NotificationId=notice.NotificationId,UserId=row.UserId,DeliveryChannel=\"IN_APP\",DeliveryStatus=\"DELIVERED\",DeliveredAt=now});"
+      },
+      {
+        "line": 150,
+        "text": "affected=await db.NotificationRecipients.Where(r=>r.NotificationId==item.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\")"
+      },
+      {
+        "line": 178,
+        "text": "var recipient=await db.NotificationRecipients.AsNoTracking().SingleOrDefaultAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\"&&r.DeliveryStatus==\"DELIVERED\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  },
+  {
+    "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+    "token": "UPDATE dbo.notification_delivery_intents",
+    "hits": [
+      {
+        "line": 77,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 88,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 102,
+        "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+      },
+      {
+        "line": 147,
+        "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+      }
+    ]
+  }
+]

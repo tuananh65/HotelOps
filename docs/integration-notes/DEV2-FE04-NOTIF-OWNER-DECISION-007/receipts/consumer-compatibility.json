@@ -1,0 +1,20 @@
+{
+  "suite": "consumer-compatibility",
+  "command": [
+    "dotnet",
+    "test",
+    "tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj",
+    "-p:NuGetAudit=false",
+    "--filter",
+    "FullyQualifiedName~Fe04NotificationRuntimeTests|FullyQualifiedName~CleaningNotificationConsumerCompositionTests|FullyQualifiedName~CleaningAssignmentNotificationTests|FullyQualifiedName~CleaningAssignmentNotification06R1Tests",
+    "--logger",
+    "console;verbosity=normal"
+  ],
+  "cwd": "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\consumer",
+  "exitCode": 0,
+  "utc": "2026-11-10T16:19:14.143Z",
+  "logSha256": "32565bc0fe71c6d74ecca25e1550fbc4deb29a3391070ada909e51fce4920dbb",
+  "sqlConnections": 0,
+  "sourceBaseline": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+  "qualification": "Source worktree delta; exact files recorded in CHANGED_FILES_SHA256.json. Only offline runners permitted."
+}

@@ -1,0 +1,58 @@
+{
+  "phase": "source",
+  "branch": "feature/dev2-fe04-notif-owner007",
+  "localCommit": "4733f6318be79d3deb07fde0fa19b325fde9ea6c",
+  "published": false,
+  "remoteBefore": {
+    "args": [
+      "ls-remote",
+      "--exit-code",
+      "--heads",
+      "origin",
+      "refs/heads/feature/dev2-fe04-notif-owner007"
+    ],
+    "exitCode": 128,
+    "stdout": "",
+    "stderr": "fatal: unable to access 'https://github.com/tuananh65/HotelOps.git/': Failed to connect to github.com:443 after 39 ms: Could not connect to server\n"
+  },
+  "commit": {
+    "args": [
+      "commit",
+      "-m",
+      "Implement fail-closed FE04 target admission and versioned writer lease candidate"
+    ],
+    "exitCode": 0,
+    "stdout": "[feature/dev2-fe04-notif-owner007 4733f63] Implement fail-closed FE04 target admission and versioned writer lease candidate\n 8 files changed, 539 insertions(+), 9 deletions(-)\n create mode 100644 docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D03_NarrowedPermissions.review.sql\n create mode 100644 scripts/verification/NotifOwner007/review-permissions.cjs\n create mode 100644 src/HotelOps.Api/Services/Notifications/CleaningCommonTargetAdmission.cs\n create mode 100644 src/HotelOps.Api/Services/Notifications/NotifWriter004BContract.cs\n create mode 100644 tests/HotelOps.Notification.Cleaning.NoSql/Owner007Checks.cs\n",
+    "stderr": ""
+  },
+  "push": {
+    "exitCode": null,
+    "skipped": "Fresh remote branch state unavailable; local commit preserved, host must verify target before normal push."
+  },
+  "remoteAfter": {
+    "args": [
+      "ls-remote",
+      "--exit-code",
+      "--heads",
+      "origin",
+      "refs/heads/feature/dev2-fe04-notif-owner007"
+    ],
+    "exitCode": 128,
+    "stdout": "",
+    "stderr": "fatal: unable to access 'https://github.com/tuananh65/HotelOps.git/': Failed to connect to github.com:443 after 4 ms: Could not connect to server\n"
+  },
+  "staged": [
+    "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D03_NarrowedPermissions.review.sql",
+    "scripts/verification/NotifOwner007/review-permissions.cjs",
+    "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+    "src/HotelOps.Api/Services/Notifications/CleaningCommonTargetAdmission.cs",
+    "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+    "src/HotelOps.Api/Services/Notifications/NotifWriter004BContract.cs",
+    "tests/HotelOps.Notification.Cleaning.NoSql/Owner007Checks.cs",
+    "tests/HotelOps.Notification.Cleaning.NoSql/Program.cs"
+  ],
+  "utc": "2026-11-10T16:23:04.501Z",
+  "forcePush": false,
+  "merged": false,
+  "deployed": false
+}

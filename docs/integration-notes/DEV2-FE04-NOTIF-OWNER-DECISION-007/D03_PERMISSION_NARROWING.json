@@ -1,0 +1,901 @@
+{
+  "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+  "contractPath": "scripts/verification/FE04NotificationRuntime/PERMISSION_CONTRACT.json",
+  "originalSha256": "53365f9a4815916365e8a43467d2562938d5d27270d1bfbb29edd8b430a9b645",
+  "originalCount": 56,
+  "originalAllows": 43,
+  "originalDenies": 13,
+  "status": "REVIEW_ONLY_NOT_ACCEPTED_NOT_EXECUTABLE",
+  "profiles": [
+    "NATIVE_EXECUTION",
+    "ALL_PROFILES_PROTECTIVE_DENY",
+    "APP_AUTH_SOURCE_READ",
+    "PREFLIGHT_METADATA",
+    "OPTIONAL_DELIVERY_INBOX"
+  ],
+  "groups": {
+    "NOTIFICATION_RUNTIME_REQUIRED": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20,
+      21,
+      22,
+      23
+    ],
+    "UNRESOLVED_OWNER_DECISION": [
+      13,
+      25,
+      27,
+      31,
+      35,
+      38,
+      42
+    ],
+    "NATIVE_UC029_REQUIRED": [
+      24,
+      26,
+      28,
+      29,
+      30,
+      32,
+      33,
+      34,
+      36,
+      37,
+      39,
+      40,
+      41,
+      43,
+      44
+    ],
+    "DELIVERY_INBOX_ONLY": [
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      55,
+      56
+    ],
+    "REDUNDANT_OR_OVERBROAD": [
+      53,
+      54
+    ]
+  },
+  "diff": [
+    {
+      "originalOrdinal": 1,
+      "original": {
+        "Object": "dbo.users",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "SQL session eligibility and employment/account state in users; no separate employee table in these 56 entries."
+    },
+    {
+      "originalOrdinal": 2,
+      "original": {
+        "Object": "dbo.user_sessions",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Real session lookup/revocation validation, not native procedure authorization. Session creation/logout UPDATE rights are outside this proposal."
+    },
+    {
+      "originalOrdinal": 3,
+      "original": {
+        "Object": "dbo.user_branch_access",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Actor/recipient branch membership read; ordinary procedure ownership chain cannot cover this EF query."
+    },
+    {
+      "originalOrdinal": 4,
+      "original": {
+        "Object": "dbo.user_roles",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Permission assignment path and actor/recipient role eligibility."
+    },
+    {
+      "originalOrdinal": 5,
+      "original": {
+        "Object": "dbo.roles",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Role navigation participates in generated recipient permission SQL."
+    },
+    {
+      "originalOrdinal": 6,
+      "original": {
+        "Object": "dbo.role_permissions",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Recipient CLEANING_VIEW grant path."
+    },
+    {
+      "originalOrdinal": 7,
+      "original": {
+        "Object": "dbo.permissions",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Permission navigation emitted in recipient query."
+    },
+    {
+      "originalOrdinal": 8,
+      "original": {
+        "Object": "dbo.branches",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Direct branch active-state lock/read and source context."
+    },
+    {
+      "originalOrdinal": 9,
+      "original": {
+        "Object": "dbo.departments",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Assignee eligibility traverses department and branch, outside native proc."
+    },
+    {
+      "originalOrdinal": 10,
+      "original": {
+        "Object": "dbo.rooms",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Persisted assignment source/room branch and graph audit consistency."
+    },
+    {
+      "originalOrdinal": 11,
+      "original": {
+        "Object": "dbo.floors",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Persisted room/floor activity and branch consistency."
+    },
+    {
+      "originalOrdinal": 12,
+      "original": {
+        "Object": "dbo.areas",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Optional room area must belong to same branch/floor and be active."
+    },
+    {
+      "originalOrdinal": 13,
+      "original": {
+        "Object": "dbo.room_types",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "HOLD_UNTIL_NATIVE_CALL_PATH_CONFIRMED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Room-type eligibility/planning navigation; exact native acceptance path must confirm this extra read before grant."
+    },
+    {
+      "originalOrdinal": 14,
+      "original": {
+        "Object": "dbo.shift_assignments",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Housekeeper current shift eligibility before native mutation."
+    },
+    {
+      "originalOrdinal": 15,
+      "original": {
+        "Object": "dbo.work_shifts",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Shift navigation for current branch/department and planned time interval."
+    },
+    {
+      "originalOrdinal": 16,
+      "original": {
+        "Object": "dbo.shift_templates",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Shift template navigation checks active and branch."
+    },
+    {
+      "originalOrdinal": 17,
+      "original": {
+        "Object": "dbo.cleaning_tasks",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Actual caller source/revision/current workflow verification, independent of native proc reads."
+    },
+    {
+      "originalOrdinal": 18,
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Persisted assignment source/current assignee and replay verification."
+    },
+    {
+      "originalOrdinal": 19,
+      "original": {
+        "Object": "dbo.room_cleaning_cycle_state",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Current persisted room cleaning cycle in source verification."
+    },
+    {
+      "originalOrdinal": 20,
+      "original": {
+        "Object": "dbo.audit_logs",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Graph source audit evidence read, while native proc creates audit. No grant for direct audit inserts proposed."
+    },
+    {
+      "originalOrdinal": 21,
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Operation immutable fingerprint/result/completed replay and range lock."
+    },
+    {
+      "originalOrdinal": 22,
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Single existing operation publication and immutable payload/source revision."
+    },
+    {
+      "originalOrdinal": 23,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "dependentBehavior": "Native receipt mandatory recipient/channel cardinality; SELECT not solely delivery."
+    },
+    {
+      "originalOrdinal": 24,
+      "original": {
+        "Object": "dbo.fs013_assign_with_evidence",
+        "Permission": "EXECUTE",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_SCOPED_EXECUTE",
+      "profile": "NATIVE_EXECUTION",
+      "dependentBehavior": "Native assignment caller"
+    },
+    {
+      "originalOrdinal": 25,
+      "original": {
+        "Object": "dbo.fs013_assign_with_evidence",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "proposed": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "profile": "PREFLIGHT_METADATA",
+      "dependentBehavior": "Catalog/module hashing preflight; no native domain data access."
+    },
+    {
+      "originalOrdinal": 26,
+      "original": {
+        "Object": "dbo.fs009_verify_assignment_guard",
+        "Permission": "EXECUTE",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_SCOPED_EXECUTE",
+      "profile": "NATIVE_EXECUTION",
+      "dependentBehavior": "Commit verifier directly invokes fs009, in addition to nested native use"
+    },
+    {
+      "originalOrdinal": 27,
+      "original": {
+        "Object": "dbo.fs009_verify_assignment_guard",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "proposed": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "profile": "PREFLIGHT_METADATA",
+      "dependentBehavior": "Catalog/module hashing preflight; no native domain data access."
+    },
+    {
+      "originalOrdinal": 28,
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 29,
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 30,
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 31,
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "proposed": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "profile": "PREFLIGHT_METADATA",
+      "dependentBehavior": "Catalog/module hashing preflight; no native domain data access."
+    },
+    {
+      "originalOrdinal": 32,
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 33,
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 34,
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 35,
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "proposed": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "profile": "PREFLIGHT_METADATA",
+      "dependentBehavior": "Catalog/module hashing preflight; no native domain data access."
+    },
+    {
+      "originalOrdinal": 36,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 37,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 38,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "proposed": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "profile": "PREFLIGHT_METADATA",
+      "dependentBehavior": "Catalog/module hashing preflight; no native domain data access."
+    },
+    {
+      "originalOrdinal": 39,
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 40,
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 41,
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 42,
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "proposed": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "profile": "PREFLIGHT_METADATA",
+      "dependentBehavior": "Catalog/module hashing preflight; no native domain data access."
+    },
+    {
+      "originalOrdinal": 43,
+      "original": {
+        "Object": "dbo.audit_logs",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 44,
+      "original": {
+        "Object": "dbo.audit_logs",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "proposed": "RETAIN_DENY",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "dependentBehavior": "Restricted principal boundary; not a requested access grant."
+    },
+    {
+      "originalOrdinal": 45,
+      "original": {
+        "Object": "dbo.notifications",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Inbox delivery/query/read state."
+    },
+    {
+      "originalOrdinal": 46,
+      "original": {
+        "Object": "dbo.notifications",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Inbox delivery/query/read state."
+    },
+    {
+      "originalOrdinal": 47,
+      "original": {
+        "Object": "dbo.notification_recipients",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Inbox delivery/query/read state."
+    },
+    {
+      "originalOrdinal": 48,
+      "original": {
+        "Object": "dbo.notification_recipients",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Inbox delivery/query/read state."
+    },
+    {
+      "originalOrdinal": 49,
+      "original": {
+        "Object": "dbo.notification_recipients",
+        "Permission": "UPDATE",
+        "Column": "read_at",
+        "Allowed": true,
+        "phase": "INBOX_MARK_READ_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Inbox delivery/query/read state."
+    },
+    {
+      "originalOrdinal": 50,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "status",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    },
+    {
+      "originalOrdinal": 51,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "attempt_count",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    },
+    {
+      "originalOrdinal": 52,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "next_attempt_at",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    },
+    {
+      "originalOrdinal": 53,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "claim_id",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "OMIT_UNPROVEN_COLUMN_GRANT",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    },
+    {
+      "originalOrdinal": 54,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "claimed_until",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "OMIT_UNPROVEN_COLUMN_GRANT",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    },
+    {
+      "originalOrdinal": 55,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "failure_code",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    },
+    {
+      "originalOrdinal": 56,
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "inbox_notification_id",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "proposed": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "dependentBehavior": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception."
+    }
+  ],
+  "chain": {
+    "staticSameOwnerCandidate": true,
+    "dynamicSqlInTwoProcedures": false,
+    "executeAsInTwoProcedures": false,
+    "deployedOwnershipAndSigning": "NOT_OBSERVED",
+    "identityTablesReadByNative": false,
+    "warning": "Broad installer grants after native body are not this proposal; do not execute installer or alter fs013_app WITHOUT LOGIN."
+  },
+  "exceptions": [
+    "Native body hardcodes canonical database, while FE04 package proposes ENVNOTIF target; schema/native owner exact approved module hash and target decision required.",
+    "room_types direct relevance to native acceptance path requires DEV1 owner confirmation; do not grant merely for unrelated prototype planning.",
+    "Actual database GUID sys.database_recovery_status visibility, principal SID, TLS and catalog hash observation require accepted scoped observer.",
+    "Real session validation may update last-seen/revocation/audit depending path; 56-row SELECT proposal is not proof full authenticated lifecycle rights suffice.",
+    "No explicit employee table entry: employment state is users.EmploymentStatus; no inferred row57.",
+    "SetRead explicitly performs a next_attempt_at self-update for rowversion, so ordinal52 is essential Inbox-only permission; retain it. read_at uses ExecuteUpdate with exactly one field."
+  ],
+  "deniesPreserved": [
+    28,
+    29,
+    30,
+    32,
+    33,
+    34,
+    36,
+    37,
+    39,
+    40,
+    41,
+    43,
+    44
+  ]
+}

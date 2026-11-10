@@ -1,0 +1,9 @@
+# [HOTELOPS DEV2] FE04-NOTIF-OWNER-DECISION-007
+
+D05=READY_FOR_OWNER_APPROVAL. Both DEV2 target methods are wired to optional ICleaningCommonTargetAdmission. Default composition has no registration; absent hook remains closed. New files: CleaningCommonTargetAdmission.cs and NotifWriter004BContract.cs under Services/Notifications.
+
+Common target requires an already-open exact connection and a cryptographically verified successor lease. Accepted observer must read actual sys.database_recovery_status.database_guid on that same connection, never service_broker_guid or a name-only identity. Missing/inaccessible/stale GUID, wrong target/principal/SID/hash/catalog/lease/source/transaction reject before further work. Lease checked before and after observation. Store requires exact physical Serializable caller transaction and source revision proof. No new connection/Open, no privilege fallback.
+
+Historical KIENPC guard SQL is byte-identical, with original catalog markers, unique indexes and immutable triggers. Historical fake-provider test confirms that path still attempts its original guard query rather than common-target admission. Common target direct InsertAsync is explicitly blocked; native graph adoption retains original fingerprint/result/replay ownership.
+
+OWNER_REQUIRED: trusted scoped metadata/central lease adapter, current command/source authority and accepted OS-pinned keys. Adapter must bind the source revision to the independently authorized current command/fixture and transaction, not manufacture proof from two equal strings. Runtime scans/Inbox currently call store.EnsureAsync inside their transactions; no source proof means they remain blocked. Existing FE04 V1 approval adapter still enforces old HardExpiry; new lease cannot bypass it. No production provider or activation is supplied.

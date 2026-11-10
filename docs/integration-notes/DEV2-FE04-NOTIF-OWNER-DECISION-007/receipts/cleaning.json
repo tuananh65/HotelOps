@@ -1,0 +1,17 @@
+{
+  "suite": "cleaning",
+  "command": [
+    "dotnet",
+    "run",
+    "--project",
+    "tests/HotelOps.Notification.Cleaning.NoSql/HotelOps.Notification.Cleaning.NoSql.csproj",
+    "-p:NuGetAudit=false"
+  ],
+  "cwd": "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\worktree",
+  "exitCode": 3762504530,
+  "utc": "2026-11-10T16:15:07.812Z",
+  "logSha256": "66607ba5905b4d7777154b6de526435f7689faf25eb0298c302081db8f9235a6",
+  "sqlConnections": 0,
+  "sourceBaseline": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+  "qualification": "Source worktree delta; exact files recorded in CHANGED_FILES_SHA256.json. Only offline runners permitted."
+}
