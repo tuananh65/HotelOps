@@ -1,0 +1,72 @@
+{
+  "success": true,
+  "componentOnly": true,
+  "originalFe04RuleUnchanged": true,
+  "storageWormAccepted": false,
+  "cases": [
+    {
+      "name": "Original FE04 PASSED rule yields READY only with trusted receipt",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 block precedence preserves operational projection",
+      "result": "PASS"
+    },
+    {
+      "name": "Optional FAIL flag alone does not override active mandatory PASS rule",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 projection rejects untrusted receipt",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 projection rejects wrong cycle",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 projection rejects missing mandatory PASS",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 projection rejects open Rework",
+      "result": "PASS"
+    },
+    {
+      "name": "Original FE04 projection rejects task not completed",
+      "result": "PASS"
+    },
+    {
+      "name": "Actual file sharing denies overwrite while private-byte lease is held",
+      "result": "PASS"
+    },
+    {
+      "name": "Actual post-lease overwrite succeeds: deployment lacks durable immutable enforcement",
+      "result": "PASS"
+    },
+    {
+      "name": "Version/content digest detects post-lease replacement but does not prevent it",
+      "result": "PASS"
+    },
+    {
+      "name": "Known rollback removes candidate-owned file",
+      "result": "PASS"
+    },
+    {
+      "name": "Storage acceptance still false",
+      "result": "PASS"
+    },
+    {
+      "name": "ResponsibleSupervisor policy remains unaccepted/private bytes denied",
+      "result": "PASS"
+    },
+    {
+      "name": "OriginalCleaner policy remains unaccepted/private bytes denied",
+      "result": "PASS"
+    },
+    {
+      "name": "ReworkAssignee policy remains unaccepted/private bytes denied",
+      "result": "PASS"
+    }
+  ]
+}

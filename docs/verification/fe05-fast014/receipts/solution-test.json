@@ -1,0 +1,12 @@
+{
+  "command": "dotnet test HotelOps.slnx --no-build --nologo",
+  "exitCode": 0,
+  "functionalAssertionsCredited": 0,
+  "publicHttps": "NOT_RUN",
+  "successfulAuthoritativeCommit": "NOT_RUN",
+  "durableReplay": "NOT_RUN",
+  "differentTransactionFe04Consumer": "NOT_RUN",
+  "projectionSqlCommit": "NOT_RUN",
+  "frontendSourceChanged": false,
+  "frontendHistoricalTests": "NOT_RERUN"
+}

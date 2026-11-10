@@ -15,7 +15,7 @@ using Microsoft.Extensions.Options;
 // SERIALIZABLE transaction, including credential/session writes and fixtures.
 internal static class ApproveWriterSqlChecks
 {
-    internal static async Task RunAsync(HotelOpsDbContext db, string environment, string output, Func<Task> guard, bool reinspectionOnly = false, bool compositionOnly = false, HotelOps.Api.Services.Notifications.NotificationCommitGuard? commitGuard = null)
+    internal static async Task RunAsync(HotelOpsDbContext db, string environment, string output, Func<Task> guard, bool reinspectionOnly = false, bool compositionOnly = false, HotelOps.Api.Services.Notifications.NotificationCommitGuard? commitGuard = null, bool persistCandidate = false)
     {
         using var runtime = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(environment))!, "runtime.private.json")));
         var password = runtime.RootElement.GetProperty("password").GetString()!;
@@ -31,6 +31,8 @@ internal static class ApproveWriterSqlChecks
         var sessionsBefore = await db.UserSessions.CountAsync();
         var inspectionsBefore = await db.RoomInspections.CountAsync();
         var auditsBefore = await db.AuditLogs.CountAsync();
+        var candidateBindingsBefore=persistCandidate?await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1").SingleAsync():0;
+        var candidateResultsBefore=persistCandidate?await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_defect_results_v1").SingleAsync():0;
         var resultsBefore = await db.InspectionResults.AsNoTracking().Where(r => r.InspectionId == root.InspectionId).Select(r => r.Outcome).ToArrayAsync();
         var defectsBefore = await db.InspectionDefects.CountAsync(d => d.InspectionId == root.InspectionId);
         var attachmentsBefore = await db.Attachments.AsNoTracking().Where(a => a.EntityType == "INSPECTION" && a.EntityId == root.InspectionId).Select(a => a.OriginalFileName).ToArrayAsync();
@@ -68,6 +70,8 @@ internal static class ApproveWriterSqlChecks
                 || !(await db.InspectionResults.AsNoTracking().Where(r => r.InspectionId == root.InspectionId).Select(r => r.Outcome).ToArrayAsync()).SequenceEqual(resultsBefore)
                 || !(await db.Attachments.AsNoTracking().Where(a => a.EntityType == "INSPECTION" && a.EntityId == root.InspectionId).Select(a => a.OriginalFileName).ToArrayAsync()).SequenceEqual(attachmentsBefore))
                 throw new Exception("Rollback persistence mismatch");
+            if(persistCandidate&&(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1").SingleAsync()!=candidateBindingsBefore
+                ||await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_defect_results_v1").SingleAsync()!=candidateResultsBefore))throw new Exception("Candidate rows escaped rollback");
             cases.Add(new { name, result = "PASS", rollbackVerified = true }); Console.WriteLine("PASS " + name);
         }
         static async Task Deny(Func<Task> run, string expected) {
@@ -76,7 +80,7 @@ internal static class ApproveWriterSqlChecks
         }
         try
         {
-            if (!reinspectionOnly && !compositionOnly) {
+            if (!reinspectionOnly && !compositionOnly && !persistCandidate) {
             await Check("Approve PASSED/task COMPLETED/audit stays in caller transaction; rollback restores all",true,async(s,t,sid)=>{
                 var audit=await db.AuditLogs.CountAsync();
                 var result=await s.ApproveDomainInCallerTransactionAsync(t,sid,branch,root.InspectionId,await Tag(),default);
@@ -157,7 +161,7 @@ internal static class ApproveWriterSqlChecks
                 await File.WriteAllTextAsync(Path.Combine(output,"reinspection-reader-results.json"),JsonSerializer.Serialize(new{success=true,componentOnly=true,positiveCases="NOT_RUN",blockedBy="REINSPECTION_REMEDIATION_SCHEMA_REQUIRED",allCasesExplicitRollback=true,cases},new JsonSerializerOptions{WriteIndented=true}));
                 return;
             }
-            if(reinspectionOnly) {
+            if(reinspectionOnly || persistCandidate) {
                 async Task<(long Inspection,long Rework,string InspectionTag,string ReworkTag)> Fixture() {
                     await guard();
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status='FAILED',status='COMPLETED',result='FAIL',inspected_at=SYSUTCDATETIME() WHERE inspection_id={root.InspectionId}; UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED' WHERE cleaning_task_id={root.CleaningTaskId}");
@@ -176,6 +180,32 @@ internal static class ApproveWriterSqlChecks
                     var ir=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.room_inspections WHERE inspection_id={inspection}").SingleAsync();
                     var wr=await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.cleaning_reworks WHERE rework_id={rework}").SingleAsync();
                     return (inspection,rework,'"'+Convert.ToHexString(ir)+'"','"'+Convert.ToHexString(wr)+'"');
+                }
+                if(persistCandidate) {
+                    await Check("UC047 component binding and Fixed/Not Fixed are persisted with actor/audit/revisions; full rollback",false,async(s,t,sid)=>{
+                        var f=await Fixture();var initialAudits=await db.AuditLogs.CountAsync();
+                        var stored=await s.BindReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,f.InspectionTag,f.ReworkTag,default);
+                        if(stored.Decisions.Count==0||stored.Decisions.Any(d=>d.Fixed!=null)||stored.AuthoritativeOrCommitted)throw new Exception("Binding/result initialization mismatch");
+                        var decisions=stored.Decisions.Select((d,index)=>new ReinspectionDefectDecision(d.DefectId,index!=0)).ToArray();
+                        var saved=await s.SaveReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,stored.InspectionETag,stored.ReworkETag,stored.BindingETag,decisions,default);
+                        if(saved.InspectionETag==stored.InspectionETag||saved.BindingETag==stored.BindingETag||saved.Decisions.Any(d=>d.RecordedBy!=actor||d.RecordedAt==null)||saved.Decisions[0].Fixed!=false||await db.AuditLogs.CountAsync()!=initialAudits+2)throw new Exception("Persisted decision/audit/revision mismatch");
+                        await Deny(async()=>{await s.SaveReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,saved.InspectionETag,saved.ReworkETag,stored.BindingETag,decisions,default);},"REINSPECTION_BINDING_STALE_OR_WRONG_SOURCE");
+                        await Deny(async()=>{await s.SaveReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,saved.InspectionETag,saved.ReworkETag,saved.BindingETag,[new(long.MaxValue,true)],default);},"REINSPECTION_EXACT_COMPLETE_DECISIONS_REQUIRED");
+                        var allFixed=await s.SaveReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,saved.InspectionETag,saved.ReworkETag,saved.BindingETag,decisions.Select(d=>d with{Fixed=true}).ToArray(),default);
+                        if(allFixed.Decisions.Any(d=>d.Fixed!=true)||allFixed.AuthoritativeOrCommitted)throw new Exception("All Fixed storage changed authority");
+                    });
+                    await Check("UC047 component binding rejects wrong current cycle without persisted residue",false,async(s,t,sid)=>{
+                        var f=await Fixture();await guard();await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.room_cleaning_cycle_state WHERE room_id={root.RoomId}");
+                        await Deny(async()=>{await s.BindReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,f.InspectionTag,f.ReworkTag,default);},"REINSPECTION_CURRENT_SOURCE_REQUIRED");
+                    });
+                    await Check("UC047 candidate SQL trigger rejects forged result actor and rolls back binding/audit",false,async(s,t,sid)=>{
+                        var f=await Fixture();await s.BindReinspectionComponentInCallerTransactionAsync(t,sid,branch,f.Inspection,f.Rework,f.InspectionTag,f.ReworkTag,default);
+                        await guard();
+                        try{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.fe05_reinspection_defect_results_v1 SET fixed=1,recorded_by={other},recorded_at=SYSUTCDATETIME() WHERE inspection_id={f.Inspection}");throw new Exception("Forged result actor accepted");}
+                        catch(Microsoft.Data.SqlClient.SqlException e)when(e.Number==51997){}
+                    });
+                    await File.WriteAllTextAsync(Path.Combine(output,"uc047-persistence-results.json"),JsonSerializer.Serialize(new{success=true,componentOnly=true,productionAccepted=false,allCasesExplicitRollback=true,cases},new JsonSerializerOptions{WriteIndented=true}));
+                    return;
                 }
                 await Check("UC047 real assigned source reads exact remediation but never claims persisted assignment authority",false,async(s,t,sid)=>{
                     var f=await Fixture();

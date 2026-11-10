@@ -1,0 +1,66 @@
+[
+  {
+    "BLOCKER_ID": "B01",
+    "OWNER": "FS013/schema owner",
+    "REQUIRED_EVIDENCE": "Exact Fix02 + ACCEPT010 GUID candidate source/scripts/prior-trigger/catalog named-index decisions",
+    "ACCEPTANCE_CRITERIA": "Signed owner/date/ref + accepted source/forward/rollback hashes, prior full trigger/catalog, exact test scope",
+    "BLOCKED_CASES": "L1:all24; L2:01-14",
+    "NEXT_ACTION": "Review one exact packet in02/03/04 and SCHEMA_CANDIDATE_HASHES.json"
+  },
+  {
+    "BLOCKER_ID": "B02",
+    "OWNER": "PL/runtime owner + ENV001",
+    "REQUIRED_EVIDENCE": "Actual isolated instance/database/database_guid; restricted login/auth/user SID; EXECUTE module matrix + negative DENYs; explicit SQL authorization",
+    "ACCEPTANCE_CRITERIA": "All12 prerequisites current, central exclusive lease/holder/token/expiry, trusted executor and accepted assembly/source/fixtures/cleanup",
+    "BLOCKED_CASES": "L1:all24; L2:01-14; FE04:all15",
+    "NEXT_ACTION": "Supply exact runtime lane packet; do not execute published provisioning candidate"
+  },
+  {
+    "BLOCKER_ID": "B03",
+    "OWNER": "Schema owner + accepted fixture/provider observer owner",
+    "REQUIRED_EVIDENCE": "IAcceptedL1OwnerBindings; INamedIndexActualEvidenceSource.Trust/FixtureOwnership/ReadProviderErrorsAsync",
+    "ACCEPTANCE_CRITERIA": "Authenticated independent actual fixture receipt/provider collection, exact three index/table/key/filter/enabled contracts; per-case actual before/after preservation",
+    "BLOCKED_CASES": "L1:all24, especially three duplicate cases",
+    "NEXT_ACTION": "Bind original fixtures/artifact/committed install receipt and observer; no expected-to-actual copy"
+  },
+  {
+    "BLOCKER_ID": "B04",
+    "OWNER": "PL + DEV3/RBAC + DEV1 FE05",
+    "REQUIRED_EVIDENCE": "FAST011 PERMISSION_PROPOSAL.md exact3 summaries and same-transaction metadata staging",
+    "ACCEPTANCE_CRITERIA": "Approve exact existing-code/resource/field binding; replace AcceptedConcreteBinding=null/CanRead=false only in owner source after acceptance",
+    "BLOCKED_CASES": "L2:01-13",
+    "NEXT_ACTION": "Approve/reject the three proposed source-read bindings; do not invent INSPECTION_VIEW for cleaner"
+  },
+  {
+    "BLOCKER_ID": "B05",
+    "OWNER": "DEV1 FE05 + FE04 + FS013 owner",
+    "REQUIRED_EVIDENCE": "IAcceptedFe05OwnerCaseDriver.ExecuteAsync + IAcceptedFe05CaseObserver bindings, internal ComposeRejectInspectionAsync/ComposeInspectionReworkAsync retained transaction",
+    "ACCEPTANCE_CRITERIA": "Actual caller-owned Serializable source/domain/Reserve/Stage/Verify/commit/result; sorted Users before source, exact recipients + final reread; durable replay/rollback/concurrency",
+    "BLOCKED_CASES": "L2:01-13; case14 only independently authorized fixture driver",
+    "NEXT_ACTION": "Provide owner-controlled final driver over existing internal composition, no changes to DEV1 writer by DEV2"
+  },
+  {
+    "BLOCKER_ID": "B06",
+    "OWNER": "DEV1 FE05 + storage/runtime owner",
+    "REQUIRED_EVIDENCE": "FAST011 versioned evidence private namespace/lease/read/proof integration",
+    "ACCEPTANCE_CRITERIA": "Accepted create-only version retention and immutable authority window, uncertain commit retention, original FE04 proof/projection preservation",
+    "BLOCKED_CASES": "L2:02,03,04,05,07,08,12,14 as applicable",
+    "NEXT_ACTION": "Finalize exact storage/proof/unknown-outcome acceptance from FAST011 REPORT"
+  },
+  {
+    "BLOCKER_ID": "B07",
+    "OWNER": "DEV1 FE05 / host repository owner",
+    "REQUIRED_EVIDENCE": "Exact FAST012 source and fresh GitHub ref readback",
+    "ACCEPTANCE_CRITERIA": "Real full commit object + branch/decision reference; no fabricated SHA",
+    "BLOCKED_CASES": "FAST012 consumer verification; L2 alignment",
+    "NEXT_ACTION": "Run host read-only verification commands and provide exact source"
+  },
+  {
+    "BLOCKER_ID": "B08",
+    "OWNER": "Runtime/schema owner",
+    "REQUIRED_EVIDENCE": "sys.database_recovery_status.database_guid visibility for restricted accepted executor",
+    "ACCEPTANCE_CRITERIA": "Actual GUID independently attested; inaccessible/null metadata must refuse, no VIEW ANY DATABASE/sysadmin/db_owner workaround",
+    "BLOCKED_CASES": "L1:all24; target admission for L2",
+    "NEXT_ACTION": "Review new seven-file identity correction and least-privilege observation/module strategy"
+  }
+]

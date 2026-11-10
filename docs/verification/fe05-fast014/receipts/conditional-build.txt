@@ -1,0 +1,8 @@
+  HotelOps.Api -> D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST014\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Inspection.WriteTests -> D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST014\tests\HotelOps.Inspection.WriteTests\bin\Debug\net10.0\HotelOps.Inspection.WriteTests.dll
+
+Build succeeded.
+    0 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:08.53

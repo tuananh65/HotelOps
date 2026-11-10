@@ -1,0 +1,23 @@
+{
+  "success": true,
+  "componentOnly": true,
+  "productionAccepted": false,
+  "allCasesExplicitRollback": true,
+  "cases": [
+    {
+      "name": "UC047 component binding and Fixed/Not Fixed are persisted with actor/audit/revisions; full rollback",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC047 component binding rejects wrong current cycle without persisted residue",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "UC047 candidate SQL trigger rejects forged result actor and rolls back binding/audit",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}

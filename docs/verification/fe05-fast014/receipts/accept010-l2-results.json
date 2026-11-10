@@ -1,0 +1,105 @@
+{
+  "sourceIdentity": "9ca9572711d6cc34c532e9530edd4c602bae615215e3a94a3d12eaf80b91fc1e",
+  "sourceStatus": "LOCAL_ONLY_UNCOMMITTED",
+  "compatibilityChecksPassed": 10,
+  "sqlPass": 0,
+  "sqlNotRun": 14,
+  "l1SqlNotRun": 24,
+  "fixtureFactoryInvoked": false,
+  "actualCaseBindingsComplete": false,
+  "results": [
+    {
+      "caseId": "01",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "02",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "03",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "04",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "05",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "06",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "07",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": [
+        "A holds then B contends",
+        "B holds then A contends"
+      ]
+    },
+    {
+      "caseId": "08",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": [
+        "A holds then B contends",
+        "B holds then A contends"
+      ]
+    },
+    {
+      "caseId": "09",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "10",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": [
+        "A holds then B contends",
+        "B holds then A contends"
+      ]
+    },
+    {
+      "caseId": "11",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "12",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "13",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    },
+    {
+      "caseId": "14",
+      "result": "NOT_RUN",
+      "blocker": "ACCEPT010_SQL_EXECUTION_HOLD_BEFORE_CONNECTION",
+      "orderings": []
+    }
+  ]
+}

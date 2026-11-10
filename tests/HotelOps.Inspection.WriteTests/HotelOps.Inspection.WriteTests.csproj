@@ -1,4 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
  <ItemGroup><ProjectReference Include="../../src/HotelOps.Api/HotelOps.Api.csproj" /></ItemGroup>
+ <PropertyGroup Condition="'$(Accept010Inputs)'!=''">
+  <DefineConstants>$(DefineConstants);ACCEPT010_REFERENCE</DefineConstants>
+ </PropertyGroup>
+ <ItemGroup Condition="'$(Accept010Inputs)'!=''">
+  <PackageReference Include="Microsoft.SqlServer.TransactSql.ScriptDom" Version="180.140.0" />
+  <Compile Include="$(Accept010Inputs)/scripts/verification/Accept010/AcceptanceDrivers.cs" Link="Accept010Original/AcceptanceDrivers.cs" />
+  <Compile Include="$(Accept010Inputs)/scripts/verification/Accept010/Schema002ExecutorCandidate.cs" Link="Accept010Original/Schema002ExecutorCandidate.cs" />
+  <Compile Include="$(Accept010Inputs)/scripts/verification/Accept010/Reuse/*.cs" Link="Accept010Original/Reuse/%(Filename)%(Extension)" />
+  <Compile Include="$(Accept010Inputs)/reference/published/scripts/verification/Schema002CorrectionFix02/ActualEvidence.cs" Link="Accept010Original/ActualEvidence.cs" />
+  <Compile Include="$(Accept010Inputs)/reference/published/scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs" Link="Accept010Original/NamedIndexEvidence.cs" />
+  <Compile Include="$(Accept010Inputs)/reference/published/scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs" Link="Accept010Original/Schema002NamedIndexProbes.cs" />
+  <Compile Include="$(Accept010Inputs)/reference/published/scripts/verification/Schema002CorrectionFix02/Schema002Probes.proposed.cs" Link="Accept010Original/Schema002Probes.proposed.cs" />
+ </ItemGroup>
 </Project>
