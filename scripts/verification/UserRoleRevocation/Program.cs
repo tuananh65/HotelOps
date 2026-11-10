@@ -1,0 +1,67 @@
+using HotelOps.Api.Controllers;
+using HotelOps.Api.Data;
+using HotelOps.Api.DTOs.Users;
+using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Users;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
+using System.Data;
+
+int count=0;void Check(bool v,string name){if(!v)throw new Exception("FAIL "+name);count++;Console.WriteLine("PASS "+name);}
+foreach(var invalid in new string?[]{null,"","*","W/\"0011223344556677\"","\"001122334455667\"","\"001122334455667g\"","\"aabbccddeeff0011\"","\"0011223344556677\",\"1122334455667788\""})Check(!RevokeRoleVersion.TryParse(invalid,out _),"reject invalid strong User tag");
+Check(RevokeRoleVersion.TryParse("\"0011223344556677\"",out var version)&&version.Length==8,"parse exact 8-byte User version");
+var manager=new ApplicationPartManager();manager.ApplicationParts.Add(new AssemblyPart(typeof(UserRoleRevocationCandidateController).Assembly));manager.FeatureProviders.Add(new ControllerFeatureProvider());var feature=new ControllerFeature();manager.PopulateFeature(feature);
+Check(!feature.Controllers.Any(t=>t.AsType()==typeof(UserRoleRevocationCandidateController)),"candidate absent from actual MVC discovery");
+Check(!feature.Controllers.Any(t=>t.Name=="WorkdaysController"),"Workday mutations remain inactive");
+var action=typeof(UserRoleRevocationCandidateController).GetMethod("Revoke")!;
+Check(action.GetCustomAttributes(typeof(HttpDeleteAttribute),false).Length==1,"candidate has DELETE only");
+Check(typeof(UserRoleRevocationCandidateController).GetCustomAttributes(typeof(ValidateAntiForgeryTokenAttribute),true).Length==1,"explicit CSRF guard");
+using var connection=new SqlConnection();using var db=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection).Options);
+var actor=new Actor();var service=new UserRoleRevocationService(db,actor,null!,null!,null!,TimeProvider.System);
+var ticket=SessionReference.FromProtectedTicket(7,new string('A',43),false,DateTime.UtcNow);
+actor.Value=new(7,70,false);
+var result=await service.RevokeAsync(ticket,70,8,18,new byte[8],default);
+Check(result.Status==RevokeRoleStatus.ReleaseAcceptanceRequired,"valid-shaped direct call cannot bypass immutable release fuse");
+Check(connection.State==ConnectionState.Closed&&connection.ConnectionString==""&&!db.ChangeTracker.Entries().Any(),"no SQL connection/write/track before release acceptance");
+var attempts=await Task.WhenAll(Enumerable.Range(0,2).Select(_=>service.RevokeAsync(ticket,70,8,18,new byte[8],default)));
+Check(attempts.All(r=>r.Status==RevokeRoleStatus.ReleaseAcceptanceRequired),"concurrent direct calls cannot activate candidate");
+Check((await service.RevokeAsync(ticket,70,7,18,new byte[8],default)).Status==RevokeRoleStatus.Forbidden,"self revoke denied");
+actor.Value=new(7,70,true);Check((await service.RevokeAsync(ticket,70,8,18,new byte[8],default)).Status==RevokeRoleStatus.Forbidden,"restricted actor denied");
+actor.Value=new(9,70,false);Check((await service.RevokeAsync(ticket,70,8,18,new byte[8],default)).Status==RevokeRoleStatus.SessionInvalid,"ticket actor mismatch denied");
+actor.Value=new(7,71,false);Check((await service.RevokeAsync(ticket,70,8,18,new byte[8],default)).Status==RevokeRoleStatus.SessionInvalid,"session replacement denied");
+try{await service.RevokeAsync(ticket,70,8,18,new byte[8],new CancellationToken(true));throw new Exception("cancellation ignored");}catch(OperationCanceledException){Check(true,"pre-cancelled call performs no work");}
+Check(UserRoleRevocationService.PendingReleaseGates.Count==3,"dependency/session/SQL release gates explicit");
+try{((IList<string>)UserRoleRevocationService.PendingReleaseGates).Clear();throw new Exception("mutable release gates");}catch(NotSupportedException){Check(true,"no caller can clear release fuse");}
+var now=DateTime.UtcNow;
+HotelOps.Api.Entities.User Target()=>new(){UserId=8,AccountStatus="ACTIVE",PrimaryBranchId=1,DepartmentId=2,RowVersion=new byte[8]};
+HotelOps.Api.Entities.UserRole Assignment()=>new(){UserRoleId=18,UserId=8,BranchId=1,RoleId=3,IsActive=true,AssignedAt=now.AddHours(-1)};
+Check(UserRoleRevocationService.ValidateAssignment(Target(),[Assignment()],18,new byte[8],now)==null,"valid server assignment facts pass validation only, never release");
+var invalidAssignment=Assignment();invalidAssignment.IsActive=false;Check(UserRoleRevocationService.ValidateAssignment(Target(),[invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Conflict,"inactive/previously revoked conflicts");
+invalidAssignment=Assignment();invalidAssignment.ExpiresAt=now;Check(UserRoleRevocationService.ValidateAssignment(Target(),[invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Conflict,"expired-at-now conflicts");
+invalidAssignment=Assignment();invalidAssignment.AssignedAt=now.AddHours(1);Check(UserRoleRevocationService.ValidateAssignment(Target(),[invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Conflict,"future assignment conflicts");
+invalidAssignment=Assignment();invalidAssignment.UserId=9;Check(UserRoleRevocationService.ValidateAssignment(Target(),[invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Forbidden,"foreign target assignment denied");
+invalidAssignment=Assignment();invalidAssignment.BranchId=2;Check(UserRoleRevocationService.ValidateAssignment(Target(),[invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Forbidden,"cross-branch assignment denied");
+invalidAssignment=Assignment();invalidAssignment.BranchId=null;Check(UserRoleRevocationService.ValidateAssignment(Target(),[invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Forbidden,"unbound privileged assignment denied");
+Check(UserRoleRevocationService.ValidateAssignment(Target(),[Assignment()],19,new byte[8],now)==RevokeRoleStatus.NotFound,"missing exact identity denied");
+Check(UserRoleRevocationService.ValidateAssignment(Target(),[Assignment()],18,new byte[]{1,0,0,0,0,0,0,0},now)==RevokeRoleStatus.Stale,"stale version denied");
+invalidAssignment=Assignment();invalidAssignment.UserRoleId=19;Check(UserRoleRevocationService.ValidateAssignment(Target(),[Assignment(),invalidAssignment],18,new byte[8],now)==RevokeRoleStatus.Conflict,"multiple/historical path conflicts");
+var inactive=Target();inactive.AccountStatus="INACTIVE";Check(UserRoleRevocationService.ValidateAssignment(inactive,[Assignment()],18,new byte[8],now)==RevokeRoleStatus.Conflict,"inactive target conflicts");
+actor.Value=new(7,70,false);
+var context=new Microsoft.AspNetCore.Http.DefaultHttpContext();
+var controller=new UserRoleRevocationCandidateController(service){ControllerContext=new ControllerContext{HttpContext=context}};
+Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==400,"candidate rejects HTTP before service");
+context.Request.Scheme="https";Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==401,"candidate rejects missing cookie identity");
+context.User=(System.Security.Claims.ClaimsPrincipal)typeof(HotelOps.Api.Security.HotelOpsCookieTicket).GetMethod("BuildPrincipal",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)!.Invoke(null,[ticket,70L])!;
+Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==428,"missing If-Match returns428");
+context.Request.Headers.IfMatch="*";Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==400,"invalid If-Match returns400");
+context.Request.Headers.IfMatch="\"0011223344556677\"";context.Request.ContentLength=1;
+Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==400,"nonempty DELETE body rejected");
+context.Request.ContentLength=0;Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==503,"valid candidate HTTP direct invocation stays release-blocked");
+Check(connection.State==ConnectionState.Closed,"controller preflight never opens SQL while gated");
+actor.Value=new(7,0,false);Check((await service.RevokeAsync(ticket,0,8,18,new byte[8],default)).Status==RevokeRoleStatus.SessionInvalid,"zero session cannot enter candidate");
+Console.WriteLine($"{count}/{count} focused checks PASS. SQL mutation/success/rollback NOT_RUN.");
+sealed class Actor:ICurrentUserAccessor {public CurrentUserInfo Value;public bool TryGetCurrentUser(out CurrentUserInfo value){value=Value;return true;}}
