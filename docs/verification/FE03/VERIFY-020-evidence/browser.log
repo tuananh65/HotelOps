@@ -1,0 +1,30 @@
+FE03-VERIFY-020 full browser regression
+Source HEAD: 8c9e6054622b3e7946ea47b3da66ad6a2f09b063
+Working directory: frontend
+Command: node node_modules/@playwright/test/cli.js test --config playwright.fe03.config.ts --reporter=json --global-timeout=240000
+Browser: msedge; workers: 1; local Vite HTTP server; intercepted API fixtures
+Result: PASS=20 FAIL=0 SKIP=0 FLAKY=0; exit code=0
+This sanitized log is derived from the local raw Playwright JSON report.
+PASS | board filters, paginates and opens room detail/history | duration_ms=1014 | retry=0
+PASS | board handles 401 without fallback | duration_ms=776 | retry=0
+PASS | board handles 403 without fallback | duration_ms=876 | retry=0
+PASS | board handles 409 without fallback | duration_ms=1011 | retry=0
+PASS | board handles 400 without fallback | duration_ms=818 | retry=0
+PASS | board handles 503 without fallback | duration_ms=860 | retry=0
+PASS | branch switch ignores canceled stale response | duration_ms=988 | retry=0
+PASS | empty response displays no matching rooms | duration_ms=856 | retry=0
+PASS | denied branch hides previously displayed room data | duration_ms=974 | retry=0
+PASS | detail with another room identity is rejected before rendering | duration_ms=833 | retry=0
+PASS | returning to the same URL does not reveal cached room data while reauthorizing | duration_ms=1095 | retry=0
+PASS | explicit retry recovers from unavailable API without retained room data | duration_ms=1001 | retry=0
+PASS | history shows recorded attribution 8 without current-user fallback | duration_ms=855 | retry=0
+PASS | history shows recorded attribution null without current-user fallback | duration_ms=887 | retry=0
+PASS | next action passes room context to registered UC028 without mutations | duration_ms=955 | retry=0
+PASS | next action unavailable for 403, history preserved | duration_ms=938 | retry=0
+PASS | next action unavailable for 503, history preserved | duration_ms=813 | retry=0
+PASS | next action unavailable for wrongBranch, history preserved | duration_ms=946 | retry=0
+PASS | cross-branch detail never queries workflow eligibility | duration_ms=865 | retry=0
+PASS | scope switch and Back discard canceled eligibility and reauthorize | duration_ms=1444 | retry=0
+Application source unchanged.
+UC028 registered-route navigation, context propagation, denied/cross-branch handling, scope/Browser Back and no API mutation assertion: PASS.
+Live SQL/HTTPS acceptance: NOT_RUN. UC027: NOT ACCEPTED.

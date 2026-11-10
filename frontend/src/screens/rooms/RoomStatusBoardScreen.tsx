@@ -14,6 +14,8 @@ import {
   type RoomHistory,
 } from "../../api/dev1/roomBoard";
 
+import RoomWorkflowActions from "./RoomWorkflowActions";
+
 type Loaded = {
   key: symbol;
   board?: RoomDirectoryResponse;
@@ -221,6 +223,11 @@ export default function RoomStatusBoardScreen() {
             động: {detail.room.isActive ? "Có" : "Không"}
           </p>
           <p>{detail.description}</p>
+          <RoomWorkflowActions
+            key={`${location.key}:${query}:${retry}`}
+            branch={branch}
+            room={room}
+          />
           <h3>Bằng chứng trạng thái hiện tại</h3>
           <p>
             {detail.currentStatusEvidence.availability} ·{" "}

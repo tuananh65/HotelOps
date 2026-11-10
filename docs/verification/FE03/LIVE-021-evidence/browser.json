@@ -1,0 +1,696 @@
+{
+    "task":  "FE03-LIVE-021",
+    "status":  "PASS",
+    "frontend_sha":  "8c9e6054622b3e7946ea47b3da66ad6a2f09b063",
+    "backend_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "pass":  46,
+    "fail":  0,
+    "checks":  [
+                   {
+                       "name":  "Lease active",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed trusted frontend HTTPS/proxy health",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed direct backend trusted browser HTTPS",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed csrf bootstrap",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed login",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed authenticated session",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed scoped options exact persisted room",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Options foreign branch rejected",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  403
+                                  }
+                   },
+                   {
+                       "name":  "Options mismatched room rejected",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  404
+                                  }
+                   },
+                   {
+                       "name":  "Options invalid branch rejected",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  400
+                                  }
+                   },
+                   {
+                       "name":  "Options invalid room rejected",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  400
+                                  }
+                   },
+                   {
+                       "name":  "Options missing room rejected",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  404
+                                  }
+                   },
+                   {
+                       "name":  "Options inactive room rejected",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  409
+                                  }
+                   },
+                   {
+                       "name":  "Live board authorized room list",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "UC028 link enabled after live scoped options",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Unsupported UC041 and UC049 remain disabled",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Real UC028 destination renders exact room context",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Destination performs own live options authorization",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Browser Back reauthorizes room navigation",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied scope removes previous action and room data",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Back from denied scope restores only reloaded authorized action",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Board invalid/foreign context fail closed branchId=2\u0026roomId=4",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Board invalid/foreign context fail closed branchId=1\u0026roomId=4",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Board invalid/foreign context fail closed branchId=0\u0026roomId=1",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Board invalid/foreign context fail closed branchId=1\u0026roomId=0",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Pending real options keeps action disabled",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Scope switch cancels real stale options request",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Late old scope cannot enable action",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed logout cleanup",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Allowed revoked session",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied trusted frontend HTTPS/proxy health",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied direct backend trusted browser HTTPS",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied csrf bootstrap",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied login",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied authenticated session",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied options denied",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  403
+                                  }
+                   },
+                   {
+                       "name":  "Denied board hides room and action",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied destination enforces own authorization",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied logout cleanup",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Denied revoked session",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Anonymous trusted frontend HTTPS/proxy health",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Anonymous direct backend trusted browser HTTPS",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Anonymous options denied",
+                       "pass":  true,
+                       "detail":  {
+                                      "status":  401
+                                  }
+                   },
+                   {
+                       "name":  "Anonymous board hides room and action",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "Anonymous destination enforces own authorization",
+                       "pass":  true
+                   },
+                   {
+                       "name":  "No business mutation requests",
+                       "pass":  true
+                   }
+               ],
+    "network":  [
+                    {
+                        "path":  "/api/health/database",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/health/database",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/auth/csrf",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/auth/login",
+                        "query":  "",
+                        "method":  "POST",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/auth/session",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/2/cleaning-task-options",
+                        "query":  "?roomId=4",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=4",
+                        "method":  "GET",
+                        "status":  404
+                    },
+                    {
+                        "path":  "/api/branches/0/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  400
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=0",
+                        "method":  "GET",
+                        "status":  400
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=999999",
+                        "method":  "GET",
+                        "status":  404
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=3",
+                        "method":  "GET",
+                        "status":  409
+                    },
+                    {
+                        "path":  "/api/rooms",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20\u0026sort=floor",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20\u0026sort=floor",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms",
+                        "query":  "?branchId=2\u0026page=1\u0026pageSize=20\u0026sort=floor",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/4",
+                        "query":  "?branchId=2",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/4/history",
+                        "query":  "?branchId=2\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/4",
+                        "query":  "?branchId=2",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/rooms/4/history",
+                        "query":  "?branchId=2\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/rooms/4",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/4/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/4",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  404
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms",
+                        "query":  "?branchId=2\u0026page=1\u0026pageSize=20\u0026sort=floor",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/auth/logout",
+                        "query":  "",
+                        "method":  "POST",
+                        "status":  204
+                    },
+                    {
+                        "path":  "/api/auth/session",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  401
+                    },
+                    {
+                        "path":  "/api/health/database",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/health/database",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/auth/csrf",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/auth/login",
+                        "query":  "",
+                        "method":  "POST",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/auth/session",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  403
+                    },
+                    {
+                        "path":  "/api/auth/logout",
+                        "query":  "",
+                        "method":  "POST",
+                        "status":  204
+                    },
+                    {
+                        "path":  "/api/auth/session",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  401
+                    },
+                    {
+                        "path":  "/api/health/database",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/health/database",
+                        "query":  "",
+                        "method":  "GET",
+                        "status":  200
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  401
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/rooms/1",
+                        "query":  "?branchId=1",
+                        "method":  "GET",
+                        "status":  401
+                    },
+                    {
+                        "path":  "/api/rooms/1/history",
+                        "query":  "?branchId=1\u0026page=1\u0026pageSize=20",
+                        "method":  "GET",
+                        "status":  401
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "failed":  true,
+                        "aborted":  true
+                    },
+                    {
+                        "path":  "/api/branches/1/cleaning-task-options",
+                        "query":  "?roomId=1",
+                        "method":  "GET",
+                        "status":  401
+                    }
+                ],
+    "business_writes":  [
+
+                        ],
+    "intercepted_responses":  0,
+    "malformed_response_live":  "NOT_INJECTED; covered by offline regression only",
+    "isolated_contexts":  true,
+    "tls_validation":  true
+}

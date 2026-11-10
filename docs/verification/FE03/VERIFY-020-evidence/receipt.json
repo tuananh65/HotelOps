@@ -1,0 +1,229 @@
+{
+    "task":  "FE03-VERIFY-020",
+    "source_head":  "8c9e6054622b3e7946ea47b3da66ad6a2f09b063",
+    "branch":  "feature/dev1-fe03-uc027-actions",
+    "application_source_changed":  false,
+    "command":  "node node_modules/@playwright/test/cli.js test --config playwright.fe03.config.ts --reporter=json --global-timeout=240000",
+    "working_directory":  "frontend",
+    "started_at_utc":  "2026-11-10T09:52:37.7777606Z",
+    "finished_at_utc":  "2026-11-10T09:53:01.7580968Z",
+    "duration_ms":  23179.464,
+    "browser":  "msedge",
+    "workers":  1,
+    "pass":  20,
+    "fail":  0,
+    "skip":  0,
+    "flaky":  0,
+    "exit_code":  0,
+    "global_errors":  0,
+    "spec_sha256":  "300F0DE1CACE387A729547CEFD924F22CB855C38F56A5A8EF4334A3ABE02EBB1",
+    "config_sha256":  "EDADFCDB1A9C7AAAB82839D25A6293996805067BD7E28834503ECF12E227383D",
+    "raw_json_local_reference":  "obj/fe03-verify-020/browser-raw.json",
+    "raw_json_sha256":  "68BF8FDE1B1B94EC80D83AB15D56F75919911280EBF1EF78FB211F07F9A86C5C",
+    "sanitized_log":  "browser.log",
+    "sanitized_log_sha256":  "569F4EBCE339DBBDAA0B9CEB2AE3195816CE318657A47C16F0822D35D441185E",
+    "live_status":  "NOT_RUN",
+    "uc027_status":  "NOT_ACCEPTED",
+    "tests":  [
+                  {
+                      "title":  "board filters, paginates and opens room detail/history",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  10,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  1014,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "board handles 401 without fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  51,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  776,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "board handles 403 without fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  51,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  876,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "board handles 409 without fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  51,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  1011,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "board handles 400 without fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  51,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  818,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "board handles 503 without fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  51,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  860,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "branch switch ignores canceled stale response",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  60,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  988,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "empty response displays no matching rooms",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  85,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  856,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "denied branch hides previously displayed room data",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  97,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  974,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "detail with another room identity is rejected before rendering",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  116,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  833,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "returning to the same URL does not reveal cached room data while reauthorizing",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  132,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  1095,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "explicit retry recovers from unavailable API without retained room data",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  175,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  1001,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "history shows recorded attribution 8 without current-user fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  201,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  855,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "history shows recorded attribution null without current-user fallback",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  201,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  887,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "next action passes room context to registered UC028 without mutations",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  234,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  955,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "next action unavailable for 403, history preserved",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  272,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  938,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "next action unavailable for 503, history preserved",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  272,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  813,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "next action unavailable for wrongBranch, history preserved",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  272,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  946,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "cross-branch detail never queries workflow eligibility",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  294,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  865,
+                      "error_count":  0
+                  },
+                  {
+                      "title":  "scope switch and Back discard canceled eligibility and reauthorize",
+                      "file":  "frontend/tests/room-status.spec.ts",
+                      "line":  315,
+                      "status":  "passed",
+                      "expected_status":  "passed",
+                      "retry":  0,
+                      "duration_ms":  1444,
+                      "error_count":  0
+                  }
+              ]
+}
