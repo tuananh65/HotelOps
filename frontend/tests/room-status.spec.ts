@@ -1,6 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { board, room, detail, history } from "./room-status-fixtures.mjs";
 // Intercepted fixtures test UI behavior only, not live SQL/HTTPS.
+// Every options request stays isolated; individual action tests override this default.
+test.beforeEach(async ({ page }) => {
+  await page.route("**/api/branches/**/cleaning-task-options?**", (route) =>
+    route.fulfill({ status: 403, json: { title: "PERMISSION_DENIED" } }),
+  );
+});
 test("board filters, paginates and opens room detail/history", async ({
   page,
 }) => {
@@ -210,3 +216,143 @@ for (const changedByUserId of [8, null])
       `Người thay đổi (ID): ${changedByUserId ?? "Chưa ghi nhận"}`,
     );
   });
+
+const actionOptions = {
+  roomId: 11,
+  branchId: 7,
+  roomNumber: "A101",
+  cleaningTypes: [],
+  priorities: [],
+  cleaningItemCount: 0,
+};
+async function actionRoom(page: import("@playwright/test").Page) {
+  await page.route("**/api/rooms/11?**", (r) => r.fulfill({ json: detail }));
+  await page.route("**/api/rooms/11/history?**", (r) =>
+    r.fulfill({ json: history }),
+  );
+}
+test("next action passes room context to registered UC028 without mutations", async ({
+  page,
+}) => {
+  await actionRoom(page);
+  const writes: string[] = [];
+  page.on("request", (r) => {
+    if (r.url().includes("/api/") && r.method() !== "GET")
+      writes.push(r.method() + " " + r.url());
+  });
+  await page.route("**/api/branches/7/cleaning-task-options?roomId=11", (r) =>
+    r.fulfill({ json: actionOptions }),
+  );
+  await page.goto("/rooms/status?branchId=7&roomId=11");
+  await expect(
+    page.getByRole("button", { name: "Phân công kiểm tra phòng", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Báo cáo sự cố", exact: true }),
+  ).toBeDisabled();
+  const link = page.getByRole("link", {
+    name: "Tạo công việc vệ sinh",
+    exact: true,
+  });
+  await expect(link).toHaveAttribute(
+    "href",
+    "/cleaning/tasks/new?branchId=7&roomId=11",
+  );
+  await link.click();
+  await expect(page).toHaveURL(/\/cleaning\/tasks\/new\?branchId=7&roomId=11$/);
+  await expect(page.getByText("Page not found", { exact: true })).toHaveCount(
+    0,
+  );
+  await expect(
+    page.getByRole("button", { name: "Tạo công việc", exact: true }),
+  ).toBeVisible();
+  expect(writes).toEqual([]);
+});
+for (const value of [403, 503, "wrongBranch"])
+  test(`next action unavailable for ${value}, history preserved`, async ({
+    page,
+  }) => {
+    await actionRoom(page);
+    await page.route(
+      "**/api/branches/7/cleaning-task-options?roomId=11",
+      (r) =>
+        typeof value === "number"
+          ? r.fulfill({ status: value, json: {} })
+          : r.fulfill({ json: { ...actionOptions, branchId: 8 } }),
+    );
+    await page.goto("/rooms/status?branchId=7&roomId=11");
+    await expect(
+      page.getByRole("button", { name: "Kiểm tra lại hành động" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Tạo công việc vệ sinh", exact: true }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("region", { name: "Lịch sử trạng thái", exact: true }),
+    ).toContainText("Checkout recorded");
+  });
+test("cross-branch detail never queries workflow eligibility", async ({
+  page,
+}) => {
+  let queries = 0;
+  await page.route("**/api/rooms/11?**", (r) =>
+    r.fulfill({ json: { ...detail, room: { ...room, branchId: 8 } } }),
+  );
+  await page.route("**/api/rooms/11/history?**", (r) =>
+    r.fulfill({ json: history }),
+  );
+  await page.route("**/api/branches/**/cleaning-task-options?**", (r) => {
+    queries++;
+    return r.fulfill({ json: actionOptions });
+  });
+  await page.goto("/rooms/status?branchId=7&roomId=11");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Hành động tiếp theo", exact: true }),
+  ).toHaveCount(0);
+  expect(queries).toBe(0);
+});
+test("scope switch and Back discard canceled eligibility and reauthorize", async ({
+  page,
+}) => {
+  await actionRoom(page);
+  let switched = false;
+  await page.route("**/api/rooms?**", (r) => {
+    switched = true;
+    return r.fulfill({ status: 403, json: {} });
+  });
+  let calls = 0;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route(
+    "**/api/branches/7/cleaning-task-options?roomId=11",
+    async (r) => {
+      calls++;
+      if (!switched) {
+        await pending;
+        await r.fulfill({ json: actionOptions }).catch(() => {});
+      } else await r.fulfill({ status: 403, json: {} });
+    },
+  );
+  await page.goto("/rooms/status?branchId=7&roomId=11");
+  await expect.poll(() => calls).toBeGreaterThan(0);
+  await page.getByLabel("Chi nhánh (ID)", { exact: true }).fill("8");
+  await page.getByRole("button", { name: "Lọc phòng" }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Hành động tiếp theo", exact: true }),
+  ).toHaveCount(0);
+  await page.goBack();
+  try {
+    await expect(
+      page.getByRole("button", { name: "Kiểm tra lại hành động" }),
+    ).toBeVisible();
+  } finally {
+    release();
+  }
+  await expect(
+    page.getByRole("link", { name: "Tạo công việc vệ sinh", exact: true }),
+  ).toHaveCount(0);
+});
