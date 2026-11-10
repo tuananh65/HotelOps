@@ -1,4 +1,4 @@
-﻿import {
+import {
   decodeBranch,
   safeId,
   strongBranchTag,
@@ -32,7 +32,7 @@ const optional = (v: unknown, max: number) =>
   (typeof v === "string" &&
     v.trim().length <= max &&
     !/[\u0000-\u001f\u007f]/.test(v));
-/** Code normalization matches MaintainBranchAsync; all other values remain server-owned. */
+/** Code normalization matches BranchAdministrationService.CreateAsync; all other values remain server-owned. */
 export function createRequest(
   v: CreateBranchRequest,
 ): CreateBranchRequest | undefined {
