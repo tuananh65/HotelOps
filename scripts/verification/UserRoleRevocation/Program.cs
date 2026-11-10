@@ -63,5 +63,19 @@ Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==400,"non
 context.Request.ContentLength=0;Check(((ObjectResult)await controller.Revoke(8,18,default)).StatusCode==503,"valid candidate HTTP direct invocation stays release-blocked");
 Check(connection.State==ConnectionState.Closed,"controller preflight never opens SQL while gated");
 actor.Value=new(7,0,false);Check((await service.RevokeAsync(ticket,0,8,18,new byte[8],default)).Status==RevokeRoleStatus.SessionInvalid,"zero session cannot enter candidate");
+Check(UserRoleRevocationService.ValidateResponsibilities([],[],[],[])==null,"complete clear facts pass classification only, not release");
+Check(UserRoleRevocationService.ValidateResponsibilities(["CLEANING_ASSIGNMENT"],[],[],[])==RevokeRoleStatus.ResponsibilitiesBlocked,"open responsibility blocks revoke");
+Check(UserRoleRevocationService.ValidateResponsibilities([], ["UNKNOWN_STATE"],[],[])==RevokeRoleStatus.ResponsibilitiesUnresolved,"unknown lifecycle fails closed");
+Check(UserRoleRevocationService.ValidateResponsibilities([],[],["UNSUPPORTED_MODULE"],[])==RevokeRoleStatus.ResponsibilitiesUnresolved,"unsupported model fails closed");
+Check(UserRoleRevocationService.ValidateResponsibilities([],[],[],["UNCOORDINATED_WRITER"])==RevokeRoleStatus.ResponsibilitiesUnresolved,"empty reader cannot certify writers");
+Check(UserRoleRevocationService.ValidateResponsibilities(["BLOCKER"],["UNKNOWN"],[],[])==RevokeRoleStatus.ResponsibilitiesUnresolved,"unknown coverage takes precedence over known blocker");
+Check(UserRoleRevocationService.ValidateResponsibilities([],[],[],UserRoleRevocationService.PendingResponsibilityWriters.ToArray())==RevokeRoleStatus.ResponsibilitiesUnresolved,"current writer matrix cannot authorize release");
+try{((IList<string>)UserRoleRevocationService.PendingResponsibilityWriters).Clear();throw new Exception("mutable writer debt");}catch(NotSupportedException){Check(true,"external writer evidence cannot be cleared by caller");}
+var source=File.ReadAllText("src/HotelOps.Api/Services/Users/UserRoleRevocationService.cs");
+Check(source.Contains("IntegratedDeactivationResponsibilityQueries(db).ReadAsync(targetId, ct)"),"orchestration uses existing target-wide predicates (source assertion)");
+Check(source.IndexOf("await Responsibilities() is { } changedWork",StringComparison.Ordinal)<source.IndexOf(".ExecuteUpdateAsync",StringComparison.Ordinal),"prewrite responsibility reread precedes conditional mutation (source assertion)");
+Check(source.IndexOf("await Responsibilities() is { } finalWork",StringComparison.Ordinal)<source.IndexOf("await tx.CommitAsync",StringComparison.Ordinal),"final responsibility reread precedes commit (source assertion)");
+actor.Value=new(7,70,false);
+Check((await service.RevokeAsync(ticket,70,8,18,new byte[8],default)).Status==RevokeRoleStatus.ReleaseAcceptanceRequired && connection.State==ConnectionState.Closed,"clear classifier cannot bypass service release gate");
 Console.WriteLine($"{count}/{count} focused checks PASS. SQL mutation/success/rollback NOT_RUN.");
 sealed class Actor:ICurrentUserAccessor {public CurrentUserInfo Value;public bool TryGetCurrentUser(out CurrentUserInfo value){value=Value;return true;}}
