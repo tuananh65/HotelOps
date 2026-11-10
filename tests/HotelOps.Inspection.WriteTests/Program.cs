@@ -24,7 +24,7 @@ if(args.Length == 1 && args[0] == "decision08-unit") { await InspectionDecision0
 if(args.Length == 1 && args[0] == "composition-unit") { await InspectionCompositionChecks.RunAsync(); return; }
 if(args.Length == 1 && args[0] == "issuer-unit") { InspectionIssuerUnitChecks.Run(); return; }
 if(args.Length == 1 && args[0] == "authority-unit") { await InspectionAuthorityUnitChecks.RunAsync(); return; }
-if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection" or "issuer" or "issuer-leastpriv" or "composition-sql" or "decision08-sql" or "decision08-hook-sql" or "responsibility-sql" or "r05-sql" or "closure-sql" or "approve-sql" or "reinspect-sql" or "fast013-sql" or "fast014-persist-sql")) throw new ArgumentException("mode environment-receipt output-directory");
+if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection" or "issuer" or "issuer-leastpriv" or "composition-sql" or "decision08-sql" or "decision08-hook-sql" or "responsibility-sql" or "r05-sql" or "closure-sql" or "approve-sql" or "reinspect-sql" or "fast013-sql" or "fast014-persist-sql" or "fast015-workflow-sql")) throw new ArgumentException("mode environment-receipt output-directory");
 using var env = JsonDocument.Parse(await File.ReadAllTextAsync(args[1]));
 var e = env.RootElement; var name = e.GetProperty("database").GetString()!; var owner = e.GetProperty("owner").GetString()!;
 if (!e.GetProperty("success").GetBoolean() || !e.GetProperty("createdByThisRun").GetBoolean()
@@ -49,6 +49,7 @@ async Task Guard()
 async Task Save() { await Guard(); await db.SaveChangesAsync(); db.ChangeTracker.Clear(); }
 async Task Write(string file, object value) => await File.WriteAllTextAsync(Path.Combine(output,file),JsonSerializer.Serialize(value,new JsonSerializerOptions{WriteIndented=true}));
 await Guard();
+if(args[0]=="fast015-workflow-sql") { await ReinspectionWorkflowSqlChecks.RunAsync(db,args[1],output,Guard); return; }
 if(args[0]=="fast014-persist-sql") { await ApproveWriterSqlChecks.RunAsync(db,args[1],output,Guard,false,false,null,true); return; }
 if(args[0]=="fast013-sql") { await ApproveWriterSqlChecks.RunAsync(db,args[1],output,Guard,false,true,n01Guard); return; }
 if(args[0]=="reinspect-sql") { await ApproveWriterSqlChecks.RunAsync(db,args[1],output,Guard,true); return; }

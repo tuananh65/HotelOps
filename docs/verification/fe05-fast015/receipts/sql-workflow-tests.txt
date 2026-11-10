@@ -1,0 +1,21 @@
+PASS Authorized candidate bind commits exact source and audit
+PASS Duplicate bind returns 409 without duplicate audit
+PASS Invalid branch returns 400
+PASS Assigned list loads persisted exact binding
+PASS Not Fixed service save commits actor, timestamp and aggregate revisions
+PASS Different connection reload sees committed Not Fixed and pinned versions
+PASS Stale root returns 412 without another audit
+PASS Stale binding returns 412
+PASS Missing If-Match returns 428
+PASS Incomplete decisions return 400
+PASS Wrong branch returns 403
+PASS Missing session returns 401
+PASS Existing account without grant returns 403
+PASS All Fixed persists without concluding lifecycle
+PASS Concurrent saves: one commit and one stale rejection
+PASS Explicit rollback restores results, root/binding revision and audit
+PASS Conclude stays 503 with no lifecycle mutation
+PASS Wrong persisted reinspector returns 403
+PASS Missing current cycle fails closed
+PASS Production MVC dispatch remains OFF
+20/20 PASS candidate workflow only; no authoritative handoff

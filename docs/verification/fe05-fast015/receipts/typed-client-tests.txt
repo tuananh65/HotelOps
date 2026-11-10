@@ -1,0 +1,25 @@
+✔ typed client list -> detail -> save -> reload uses server revisions, CSRF and cookie transport (26.4743ms)
+✔ server 401 is propagated without retry (1.2197ms)
+✔ server 403 is propagated without retry (0.6895ms)
+✔ server 412 is propagated without retry (0.659ms)
+✔ server 503 is propagated without retry (0.5039ms)
+✔ empty collection is valid (1.1771ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [] (0.2833ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [{"defectId":9,"fixed":null}] (0.127ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [{"defectId":10,"fixed":true}] (0.1379ms)
+✔ incomplete, foreign or duplicate decisions stop before HTTP [{"defectId":9,"fixed":true},{"defectId":9,"fixed":false}] (0.2059ms)
+✔ read rejects foreign identity (0.4646ms)
+✔ invalid CSRF blocks mutation (0.3468ms)
+✔ response ETag must match decoded root revision (0.4296ms)
+✔ bind rejects foreign returned source (0.4974ms)
+✔ decoder rejects weak revision, duplicate defects and enabled lifecycle (0.2613ms)
+✔ network unknown result is never automatically resubmitted (0.3819ms)
+✔ Approve review keeps mutation disabled even when mandatory PASS is true (8.6209ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 531.101

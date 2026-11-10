@@ -1,0 +1,21 @@
+node.exe : npm notice run hotelops@0.1.0 build
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Hax\AppData\Roaming\np ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 build:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run tsc -b && vite build
+vite v6.4.3 building for production...
+transforming...
+node_modules/react-router/dist/development/index.mjs (11:0): Module level directives cause errors when bundled, "use
+client" in "node_modules/react-router/dist/development/index.mjs" was ignored.
+node_modules/react-router/dist/development/dom-export.mjs (1:0): Module level directives cause errors when bundled,
+"use client" in "node_modules/react-router/dist/development/dom-export.mjs" was ignored.
+✓ 67 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                   0.41 kB │ gzip:   0.29 kB
+dist/assets/index-Cna5cSew.css   68.40 kB │ gzip:  13.64 kB
+dist/assets/index-BM7C83Al.js   344.45 kB │ gzip: 105.13 kB
+✓ built in 4.97s

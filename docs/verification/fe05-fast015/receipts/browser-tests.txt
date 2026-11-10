@@ -1,0 +1,20 @@
+node : [WebServer] (node:5228) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:6 char:1
++ node node_modules/@playwright/test/cli.js test --config playwright.fe ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 5 tests using 1 worker
+
+(node:23604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 1 tests\reinspection-workflow.spec.ts:35:1 › open exact source, choose Not Fixed, save, reload and review; Conclude stays disabled (7.4s)
+  ok 2 tests\reinspection-workflow.spec.ts:97:1 › stale save disables another mutation until reload (2.6s)
+  ok 3 tests\reinspection-workflow.spec.ts:135:3 › list 401 displays authorization failure (1.8s)
+  ok 4 tests\reinspection-workflow.spec.ts:135:3 › list 403 displays authorization failure (1.5s)
+  ok 5 tests\reinspection-workflow.spec.ts:147:1 › empty list has no mutation controls (2.3s)
+
+  5 passed (48.0s)

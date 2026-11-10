@@ -1,0 +1,92 @@
+{
+  "baseline": "c235e23e5f52428554490cab2fc93c65164533ff",
+  "branch": "feature/dev1-fe05-reinspection-workflow",
+  "sqlCandidate": {
+    "pass": 20,
+    "fail": 0,
+    "authoritativeLifecycle": false,
+    "httpMiddleware": false
+  },
+  "typedClient": {
+    "pass": 17,
+    "fail": 0,
+    "controlledFetch": true
+  },
+  "browser": {
+    "pass": 5,
+    "fail": 0,
+    "httpInterception": true,
+    "liveE2E": false
+  },
+  "backendBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "harnessBuild": {
+    "result": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "frontendBuild": {
+    "result": "PASS",
+    "existingReactRouterDirectiveWarnings": true
+  },
+  "solutionTest": {
+    "exitCode": 0,
+    "functionalTestCredit": false
+  },
+  "N01": {
+    "L1": "24 NOT_RUN",
+    "L2": "14 NOT_RUN"
+  },
+  "authoritativeCommit": "NOT_RUN",
+  "productionDispatch": "OFF",
+  "sourceManifest": {
+    "sourceFiles": 14,
+    "hashBasis": "Exact working-tree bytes; UTF-8 without BOM, CRLF, core.autocrlf=true"
+  },
+  "receipts": [
+    {
+      "path": "backend-build.txt",
+      "sha256": "EC6D37BFE1CDB78E84A8A281A2DC3C6577216BDE4A6C6E6D784CBD3A714A02AA"
+    },
+    {
+      "path": "browser-tests.txt",
+      "sha256": "F534C35CC3303D1D6B8170CEF79CA790D50B5200E10E18BF3075685FA7122267"
+    },
+    {
+      "path": "environment.json",
+      "sha256": "7A33E35E728ED59E491F9E07AD779B62F5E28D7F6929112556A5C88E4404EFBC"
+    },
+    {
+      "path": "frontend-build.txt",
+      "sha256": "71A0D3421DF4AB95245178C000156EA9EA31475C80066DC785BD837F362687DE"
+    },
+    {
+      "path": "harness-build.txt",
+      "sha256": "95E29AA8A13478E610A33424ECD39C287DC96076476EC03DA57EC30F32A41228"
+    },
+    {
+      "path": "solution-test.txt",
+      "sha256": "2AD9967F2280D0195AD457A92FE6A353A8492625846632386DF6DFC446EFE4BC"
+    },
+    {
+      "path": "sql-workflow-tests.txt",
+      "sha256": "AAEB54CA2B37E00C526678F3D918DA9BA692A424B7A13B0BD4D8528CE5C7A05D"
+    },
+    {
+      "path": "typed-client-tests.txt",
+      "sha256": "2B6D447E090B835A38898E5065E37FFF03D57F469A57B50337023A4239C8EF1A"
+    },
+    {
+      "path": "uc047-install.json",
+      "sha256": "6D49392DEF9C3DDCB4E499A1FE9C2A45FED8AA8B96401839813E46A93F6FA79A"
+    },
+    {
+      "path": "workflow-results.json",
+      "sha256": "697D65FB4AD9BDFA3598337B1031D14EA96472DF3161F13447A72E6093409BB7"
+    }
+  ],
+  "receiptEncoding": "UTF-8 without BOM; console text transcoded from local PowerShell UTF-16 logs; trailing console whitespace trimmed"
+}

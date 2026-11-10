@@ -1,0 +1,89 @@
+{
+  "success": true,
+  "candidateStorageCommitted": true,
+  "authoritativeLifecycleCommit": false,
+  "httpMiddlewareVerified": false,
+  "syntheticSourceFixtures": true,
+  "cases": [
+    {
+      "name": "Authorized candidate bind commits exact source and audit",
+      "result": "PASS"
+    },
+    {
+      "name": "Duplicate bind returns 409 without duplicate audit",
+      "result": "PASS"
+    },
+    {
+      "name": "Invalid branch returns 400",
+      "result": "PASS"
+    },
+    {
+      "name": "Assigned list loads persisted exact binding",
+      "result": "PASS"
+    },
+    {
+      "name": "Not Fixed service save commits actor, timestamp and aggregate revisions",
+      "result": "PASS"
+    },
+    {
+      "name": "Different connection reload sees committed Not Fixed and pinned versions",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale root returns 412 without another audit",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale binding returns 412",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing If-Match returns 428",
+      "result": "PASS"
+    },
+    {
+      "name": "Incomplete decisions return 400",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong branch returns 403",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing session returns 401",
+      "result": "PASS"
+    },
+    {
+      "name": "Existing account without grant returns 403",
+      "result": "PASS"
+    },
+    {
+      "name": "All Fixed persists without concluding lifecycle",
+      "result": "PASS"
+    },
+    {
+      "name": "Concurrent saves: one commit and one stale rejection",
+      "result": "PASS"
+    },
+    {
+      "name": "Explicit rollback restores results, root/binding revision and audit",
+      "result": "PASS"
+    },
+    {
+      "name": "Conclude stays 503 with no lifecycle mutation",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong persisted reinspector returns 403",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing current cycle fails closed",
+      "result": "PASS"
+    },
+    {
+      "name": "Production MVC dispatch remains OFF",
+      "result": "PASS"
+    }
+  ]
+}
