@@ -1,9 +1,9 @@
-﻿export const room = {
+export const room = {
   id: 11,
   branchId: 7,
   roomNumber: "A101",
   floor: { id: 2, code: "F1", name: "Floor One", number: 1 },
-  area: null,
+  area: { id: 3, code: "E", name: "East" },
   roomType: { id: 4, code: "STD", name: "Standard" },
   operationalStatusCode: "DIRTY",
   isActive: true,

@@ -1,5 +1,5 @@
-﻿import { useEffect, useState, type FormEvent } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
   roomStatusCodes,
   type RoomDirectoryResponse,
@@ -15,21 +15,22 @@ import {
 } from "../../api/dev1/roomBoard";
 
 type Loaded = {
-  key: string;
+  key: symbol;
   board?: RoomDirectoryResponse;
   detail?: RoomDetail;
   history?: RoomHistory;
 };
 export default function RoomStatusBoardScreen() {
   const [params, setParams] = useSearchParams();
+  const location = useLocation();
   const [retry, setRetry] = useState(0);
   const query = params.toString(),
-    key = `${query}|${retry}`;
+    key = useMemo(() => Symbol("room-read"), [location.key, query, retry]);
   const branch = params.get("branchId") || "",
     room = params.get("roomId") || "";
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [failure, setFailure] = useState<{
-    key: string;
+    key: symbol;
     message: string;
   } | null>(null);
   useEffect(() => {

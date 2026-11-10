@@ -1,4 +1,4 @@
-﻿import { ApiError, getJson, errorMessage } from "./client";
+import { ApiError, getJson, errorMessage } from "./client";
 import {
   listRooms,
   positiveId,
@@ -46,15 +46,36 @@ const id = (v: unknown): v is number =>
 const count = (v: unknown) =>
   typeof v === "number" && Number.isSafeInteger(v) && v >= 0;
 const text = (v: unknown) => v === null || typeof v === "string";
-const utc = (v: unknown) =>
-  typeof v === "string" && /Z$/.test(v) && Number.isFinite(Date.parse(v));
+const utc = (v: unknown) => {
+  if (
+    typeof v !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,7})?Z$/.test(v)
+  )
+    return false;
+  const parsed = new Date(v);
+  return (
+    Number.isFinite(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 19) === v.slice(0, 19)
+  );
+};
 const optionalUtc = (v: unknown) => v === null || utc(v);
 const source = (v: RoomSource) =>
   v &&
   text(v.type) &&
-  (v.id === null || id(v.id)) &&
-  typeof v.availability === "string" &&
-  (v.id === null || v.availability === "VERIFIED_SAME_ROOM");
+  (v.availability === "VERIFIED_SAME_ROOM"
+    ? id(v.id) &&
+      ["CLEANING_TASK", "INSPECTION", "ROOM_BLOCK"].includes(v.type || "")
+    : ["NOT_RECORDED", "UNRESOLVED"].includes(v.availability) && v.id === null);
+function pageFits(
+  items: { id: number }[],
+  total: number,
+  page: number,
+): boolean {
+  return (
+    new Set(items.map((item) => item.id)).size === items.length &&
+    items.length <= Math.max(0, total - (page - 1) * 20)
+  );
+}
 function invalid(): never {
   throw new ApiError(502, "INVALID_ROOM_RESPONSE");
 }
@@ -91,6 +112,32 @@ export async function listRoomBoard(
     counts.reduce((sum, c) => sum + c.count, 0) !== result.totalCount
   )
     invalid();
+  const status = params.get("status");
+  if (
+    !pageFits(result.items, result.totalCount, result.page) ||
+    counts.some((c) => status && c.operationalStatusCode !== status) ||
+    result.items.some(
+      (r) =>
+        (status && r.operationalStatusCode !== status) ||
+        (params.get("floorId") &&
+          r.floor.id !== positiveId(params.get("floorId")!)) ||
+        (params.get("areaId") &&
+          r.area?.id !== positiveId(params.get("areaId")!)) ||
+        (params.get("roomTypeId") &&
+          r.roomType.id !== positiveId(params.get("roomTypeId")!)),
+    )
+  )
+    invalid();
+  const pageCounts = new Map<string, number>();
+  for (const room of result.items)
+    pageCounts.set(
+      room.operationalStatusCode,
+      (pageCounts.get(room.operationalStatusCode) || 0) + 1,
+    );
+  for (const [code, n] of pageCounts) {
+    if ((counts.find((c) => c.operationalStatusCode === code)?.count || 0) < n)
+      invalid();
+  }
   return result;
 }
 function validRoom(
@@ -129,7 +176,10 @@ export async function readRoomDetail(
     !validRoom(data.room, branchId, roomId) ||
     !text(data.description) ||
     !e ||
-    typeof e.availability !== "string" ||
+    !["RECORDED", "NOT_RECORDED", "OUT_OF_SYNC"].includes(e.availability) ||
+    (e.availability === "RECORDED"
+      ? e.recordedAtUtc === null || e.source === null
+      : e.reason !== null || e.recordedAtUtc !== null || e.source !== null) ||
     !text(e.reason) ||
     !optionalUtc(e.recordedAtUtc) ||
     (e.source !== null && !source(e.source)) ||
@@ -142,6 +192,11 @@ export async function readRoomDetail(
         !utc(b.blockedAtUtc) ||
         !optionalUtc(b.expectedReleaseAtUtc),
     )
+  )
+    invalid();
+  if (
+    new Set(data.unreleasedBlocks.map((b) => b.id)).size !==
+    data.unreleasedBlocks.length
   )
     invalid();
   return data;
@@ -179,6 +234,7 @@ export async function readRoomHistory(
     )
   )
     invalid();
+  if (!pageFits(data.items, data.totalCount, page)) invalid();
   return data;
 }
 export function roomBoardError(error: unknown): string {

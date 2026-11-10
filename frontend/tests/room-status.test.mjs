@@ -154,3 +154,129 @@ test("401/403/409/400/503 propagate without fallback and have user messages", as
     assert.equal(calls, 1);
   }
 });
+
+test("rejects records contradicting filters, counters or remaining page size", async () => {
+  for (const [params, data] of [
+    [{ floorId: "9" }, board],
+    [{ areaId: "9" }, board],
+    [{ roomTypeId: "9" }, board],
+    [{ status: "READY" }, board],
+    [{}, { ...board, totalCount: 0, statusCounts: [] }],
+    [{}, { ...board, items: [room, room] }],
+    [
+      {},
+      {
+        ...board,
+        statusCounts: [{ operationalStatusCode: "READY", count: 21 }],
+      },
+    ],
+    [
+      { page: "2" },
+      {
+        ...board,
+        page: 2,
+        totalCount: 20,
+        statusCounts: [{ operationalStatusCode: "DIRTY", count: 20 }],
+      },
+    ],
+  ]) {
+    globalThis.fetch = async () => Response.json(data);
+    await assert.rejects(
+      listRoomBoard(new URLSearchParams({ branchId: "7", ...params })),
+      /INVALID_ROOM_RESPONSE/,
+    );
+  }
+});
+
+test("history rejects duplicate or impossible page records", async () => {
+  for (const bad of [
+    { ...history, totalCount: 0 },
+    { ...history, totalCount: 2, items: [history.items[0], history.items[0]] },
+    { ...history, page: 2, totalCount: 20 },
+  ]) {
+    globalThis.fetch = async () => Response.json(bad);
+    await assert.rejects(
+      readRoomHistory("7", "11", bad.page),
+      /INVALID_ROOM_RESPONSE/,
+    );
+  }
+});
+
+test("detail rejects impossible UTC dates, duplicate blocks and contradictory evidence", async () => {
+  for (const bad of [
+    {
+      ...detail,
+      unreleasedBlocks: [
+        { ...detail.unreleasedBlocks[0], blockedAtUtc: "2026-02-30T00:00:00Z" },
+      ],
+    },
+    {
+      ...detail,
+      unreleasedBlocks: [{ ...detail.unreleasedBlocks[0], blockedAtUtc: "1Z" }],
+    },
+    {
+      ...detail,
+      unreleasedBlocks: [
+        detail.unreleasedBlocks[0],
+        detail.unreleasedBlocks[0],
+      ],
+    },
+    {
+      ...detail,
+      currentStatusEvidence: {
+        ...detail.currentStatusEvidence,
+        availability: "NOT_RECORDED",
+      },
+    },
+    {
+      ...detail,
+      currentStatusEvidence: {
+        ...detail.currentStatusEvidence,
+        recordedAtUtc: null,
+      },
+    },
+    {
+      ...detail,
+      currentStatusEvidence: {
+        ...detail.currentStatusEvidence,
+        source: { type: "INCIDENT", id: 9, availability: "VERIFIED_SAME_ROOM" },
+      },
+    },
+    {
+      ...detail,
+      currentStatusEvidence: {
+        ...detail.currentStatusEvidence,
+        source: {
+          type: "INSPECTION",
+          id: null,
+          availability: "VERIFIED_SAME_ROOM",
+        },
+      },
+    },
+  ]) {
+    globalThis.fetch = async () => Response.json(bad);
+    await assert.rejects(readRoomDetail("7", "11"), /INVALID_ROOM_RESPONSE/);
+  }
+});
+
+test("empty out-of-range history pages and unavailable evidence remain valid", async () => {
+  globalThis.fetch = async () =>
+    Response.json({ ...history, page: 2, items: [] });
+  assert.deepEqual((await readRoomHistory("7", "11", 2)).items, []);
+  for (const availability of ["NOT_RECORDED", "OUT_OF_SYNC"]) {
+    globalThis.fetch = async () =>
+      Response.json({
+        ...detail,
+        currentStatusEvidence: {
+          availability,
+          reason: null,
+          recordedAtUtc: null,
+          source: null,
+        },
+      });
+    assert.equal(
+      (await readRoomDetail("7", "11")).currentStatusEvidence.availability,
+      availability,
+    );
+  }
+});

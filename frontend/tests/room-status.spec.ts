@@ -1,4 +1,4 @@
-﻿import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { board, room, detail, history } from "./room-status-fixtures.mjs";
 // Intercepted fixtures test UI behavior only, not live SQL/HTTPS.
 test("board filters, paginates and opens room detail/history", async ({
@@ -121,4 +121,72 @@ test("detail with another room identity is rejected before rendering", async ({
   await expect(
     page.getByRole("region", { name: "Chi tiết trạng thái phòng" }),
   ).toHaveCount(0);
+});
+
+test("returning to the same URL does not reveal cached room data while reauthorizing", async ({
+  page,
+}) => {
+  let leftBoard = false;
+  let returning = false;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/rooms?**", async (route) => {
+    if (!leftBoard) return route.fulfill({ json: board });
+    returning = true;
+    await pending;
+    await route
+      .fulfill({ status: 403, json: { title: "PERMISSION_DENIED" } })
+      .catch(() => {});
+  });
+  await page.route("**/api/rooms/11**", async (route) => {
+    leftBoard = true;
+    await pending;
+    await route
+      .fulfill({ status: 403, json: { title: "PERMISSION_DENIED" } })
+      .catch(() => {});
+  });
+  await page.goto("/rooms/status?branchId=7");
+  await expect(
+    page.getByRole("link", { name: "A101", exact: true }),
+  ).toBeVisible();
+  await page.getByRole("link", { name: "A101", exact: true }).click();
+  await expect(page.getByRole("status")).toBeVisible();
+  await page.goBack();
+  await expect.poll(() => returning).toBe(true);
+  try {
+    await expect(
+      page.getByRole("link", { name: "A101", exact: true }),
+    ).toHaveCount(0);
+    await expect(page.getByRole("status")).toBeVisible();
+  } finally {
+    release();
+  }
+  await expect(page.getByRole("alert")).toBeVisible();
+});
+
+test("explicit retry recovers from unavailable API without retained room data", async ({
+  page,
+}) => {
+  let available = false;
+  await page.route("**/api/rooms?**", (route) =>
+    available
+      ? route.fulfill({ json: board })
+      : route.fulfill({
+          status: 503,
+          json: { title: "ROOM_DIRECTORY_UNAVAILABLE" },
+        }),
+  );
+  await page.goto("/rooms/status?branchId=7");
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(
+    page.getByRole("link", { name: "A101", exact: true }),
+  ).toHaveCount(0);
+  available = true;
+  await page.getByRole("button", { name: "Thử lại" }).click();
+  await expect(
+    page.getByRole("link", { name: "A101", exact: true }),
+  ).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
 });
