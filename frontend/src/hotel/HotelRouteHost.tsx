@@ -1,3 +1,4 @@
+import { StructureDependencyReview } from "../structure-deactivation/StructureDependencyReview";
 import { Link, Route, Routes, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { AuthRouteHost } from "../auth/AuthRouteHost";
@@ -50,6 +51,14 @@ export function HotelRouteHost() {
       <Route
         path="/branches/:branchId"
         element={<HotelRoute screen="structure" />}
+      />
+      <Route
+        path="/floors/:id/deactivation-review"
+        element={<StructureDependencyReview kind="floor" />}
+      />
+      <Route
+        path="/areas/:id/deactivation-review"
+        element={<StructureDependencyReview kind="area" />}
       />
       <Route path="/floors" element={<HotelRoute screen="floors" />} />
       <Route path="/areas" element={<HotelRoute screen="areas" />} />
