@@ -66,6 +66,11 @@ export function ScheduledWorkdayPanel({
     />
   );
 }
+type Review = {
+  operation: "start" | "end";
+  shift: OwnShift | undefined;
+  day: OwnWorkday | null | undefined;
+};
 function Bound({
   branchId,
   dispatchEnabled,
@@ -96,12 +101,19 @@ function Bound({
     [message, setMessage] = useState(""),
     [sessionInvalid, setSessionInvalid] = useState(false),
     [locked, setLocked] = useState(false);
+  const [review, setReview] = useState<Review | null>(null);
+  const reviewed = useRef<Review | null>(null);
+  function clearReview() {
+    reviewed.current = null;
+    setReview(null);
+  }
   const mounted = useRef(false),
     busy = useRef(false),
     uncertain = useRef(false),
     invalid = useRef(false),
     controller = useRef<AbortController | null>(null);
   function invalidateSession() {
+    clearReview();
     invalid.current = true;
     invalidate();
     busy.current = true;
@@ -121,6 +133,7 @@ function Bound({
     };
   }, []);
   useEffect(() => {
+    clearReview();
     const abort = new AbortController();
     let active = true;
     setShifts(null);
@@ -165,7 +178,25 @@ function Bound({
     safeId(day.shiftAssignmentId) &&
     day.openInterval === null &&
     strongWorkdayTag(`"${day.rowVersion}"`);
-  async function mutate(operation: "start" | "end") {
+  function prepare(operation: "start" | "end") {
+    if (
+      !dispatchEnabled ||
+      busy.current ||
+      uncertain.current ||
+      invalid.current ||
+      !current() ||
+      (operation === "start" ? !startAllowed : !endAllowed)
+    )
+      return;
+    const next = { operation, shift: selected, day };
+    reviewed.current = next;
+    setReview(next);
+    setMessage("");
+  }
+  async function confirm() {
+    const snapshot = reviewed.current;
+    if (!snapshot) return;
+    const operation = snapshot.operation;
     if (
       !dispatchEnabled ||
       busy.current ||
@@ -173,9 +204,12 @@ function Bound({
       invalid.current ||
       !mounted.current ||
       !current() ||
-      (operation === "start" ? !startAllowed : !endAllowed)
+      (operation === "start"
+        ? !startAllowed || selected !== snapshot.shift || day !== snapshot.day
+        : !endAllowed || day !== snapshot.day)
     )
       return;
+    clearReview();
     busy.current = true;
     setPending(true);
     setMessage("");
@@ -184,15 +218,15 @@ function Bound({
       operation === "start"
         ? await write.start(
             branchId,
-            selected!.shiftAssignmentId,
+            snapshot.shift!.shiftAssignmentId,
             () => mounted.current && current() && !invalid.current,
             controller.current.signal,
           )
         : await write.end(
             branchId,
-            day!.workdayId,
-            day!.shiftAssignmentId!,
-            `"${day!.rowVersion}"`,
+            snapshot.day!.workdayId,
+            snapshot.day!.shiftAssignmentId!,
+            `"${snapshot.day!.rowVersion}"`,
             () => mounted.current && current() && !invalid.current,
             controller.current.signal,
           );
@@ -252,7 +286,10 @@ function Bound({
               aria-label="Scheduled shift"
               value={selection}
               disabled={pending || locked}
-              onChange={(e) => setSelection(e.target.value)}
+              onChange={(e) => {
+                clearReview();
+                setSelection(e.target.value);
+              }}
             >
               <option value="">Choose shift</option>
               {shifts.map((s) => (
@@ -289,19 +326,66 @@ function Bound({
       </section>
       <button
         disabled={!dispatchEnabled || !startAllowed || pending || locked}
-        onClick={() => void mutate("start")}
+        onClick={() => prepare("start")}
       >
         Start scheduled workday
       </button>
       <button
         disabled={!dispatchEnabled || !endAllowed || pending || locked}
-        onClick={() => void mutate("end")}
+        onClick={() => prepare("end")}
       >
         End workday
       </button>
+      {review && (
+        <section aria-label="Review scheduled workday">
+          <h2>
+            {review.operation === "start" ? "Review start" : "Review end"}
+          </h2>
+          <p>
+            Branch {branchId}; Department{" "}
+            {review.operation === "start"
+              ? review.shift!.departmentId
+              : review.day!.departmentId}
+          </p>
+          {review.operation === "start" ? (
+            <p>
+              Assignment {review.shift!.shiftAssignmentId}; Date{" "}
+              {review.shift!.shiftDate}; Scheduled{" "}
+              {review.shift!.scheduledStartAtUtc} to{" "}
+              {review.shift!.scheduledEndAtUtc}
+            </p>
+          ) : (
+            <p>
+              Workday {review.day!.workdayId}; Date {review.day!.workDate};
+              Started {review.day!.startedAtUtc}
+            </p>
+          )}
+          <p>
+            Actual time is determined by the server. This does not reassign work
+            or close task intervals.
+          </p>
+          <button
+            disabled={pending || locked || !dispatchEnabled}
+            onClick={() => void confirm()}
+          >
+            {review.operation === "start"
+              ? "Confirm scheduled start"
+              : "Confirm workday end"}
+          </button>
+          <button disabled={pending} onClick={clearReview}>
+            Cancel review
+          </button>
+        </section>
+      )}
       {pending && <p role="status">Submitting once...</p>}
       {message && <p role="status">{message}</p>}
-      <button disabled={pending} onClick={() => setRefresh((n) => n + 1)}>
+      <button
+        disabled={pending}
+        onClick={() => {
+          clearReview();
+          setRefresh((n) => n + 1);
+        }}
+      >
         Refresh snapshot
       </button>
       <button disabled={pending} onClick={revalidate}>
