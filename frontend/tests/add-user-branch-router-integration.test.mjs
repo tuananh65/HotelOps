@@ -443,18 +443,21 @@ for (const [code, message] of [
   ["OPERATIONS_MANAGER_SCOPE_CONFLICT", "Operations Manager scope constraint"],
 ])
   test(`known conflict ${code} remains rejected without repair`, async () => {
-    await withMembership({ posts: [problem(409, { code })] }, async (p) => {
-      await ready(p);
-      await review(p);
-      await confirm(p);
-      await p.getByRole("alert").waitFor();
-      assert.ok((await body(p)).includes(message));
-      assert.equal((await posts(p)).length, 1);
-      assert.equal(
-        await p.getByRole("status", { name: "Confirmed membership" }).count(),
-        0,
-      );
-    });
+    await withMembership(
+      { posts: [problem(409, { code, title: code })] },
+      async (p) => {
+        await ready(p);
+        await review(p);
+        await confirm(p);
+        await p.getByRole("alert").waitFor();
+        assert.ok((await body(p)).includes(message));
+        assert.equal((await posts(p)).length, 1);
+        assert.equal(
+          await p.getByRole("status", { name: "Confirmed membership" }).count(),
+          0,
+        );
+      },
+    );
   });
 for (const [status, code] of [
   [400, "BRANCH_UNAVAILABLE"],
@@ -765,4 +768,28 @@ test("decimal parser rejects newline and whitespace rather than normalizing sele
     assert.deepEqual(values, Array(8).fill(null));
     assert.equal((await posts(p)).length, 0);
   });
+});
+
+test("contradictory 409 identifiers lock replay without exposing private response", async () => {
+  await withMembership(
+    {
+      posts: [
+        problem(409, { code: "MEMBERSHIP_EXISTS", title: "TARGET_NOT_ACTIVE" }),
+      ],
+    },
+    async (p) => {
+      await ready(p);
+      await review(p);
+      await confirm(p);
+      await p.getByRole("alert").waitFor();
+      assert.ok((await body(p)).includes(unknown));
+      assert.equal((await posts(p)).length, 1);
+      assert.equal(
+        await p.getByRole("status", { name: "Confirmed membership" }).count(),
+        0,
+      );
+      assert.equal((await body(p)).includes(secret), false);
+      assert.equal((await body(p)).includes(token), false);
+    },
+  );
 });

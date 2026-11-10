@@ -568,3 +568,34 @@ test("production module has no mock/auth-state/storage/logging dependencies", as
     else delete globalThis.localStorage;
   }
 });
+
+for (const value of [
+  { code: "MEMBERSHIP_EXISTS", title: "TARGET_NOT_ACTIVE" },
+  { code: "MEMBERSHIP_EXISTS", title: "UNKNOWN" },
+  { code: "UNKNOWN", title: "MEMBERSHIP_EXISTS" },
+  { code: "MEMBERSHIP_EXISTS", title: null },
+  { code: [], title: "MEMBERSHIP_EXISTS" },
+]) {
+  test(`contradictory conflict identifiers are indeterminate: ${JSON.stringify(value)}`, async () => {
+    const h = harness({
+      post: () =>
+        response(
+          {
+            ...value,
+            status: 409,
+            detail: privateValue,
+            traceId: privateValue,
+          },
+          409,
+        ),
+    });
+    const result = await h.run();
+    assert.deepEqual(result, {
+      outcome: "OUTCOME_UNKNOWN",
+      error: { kind: "http", reason: "UNEXPECTED_HTTP", status: 409 },
+    });
+    assert.equal(h.calls.filter((c) => c.method === "POST").length, 1);
+    assert.equal(h.calls.length, 2);
+    assert.equal(JSON.stringify(result).includes(privateValue), false);
+  });
+}
