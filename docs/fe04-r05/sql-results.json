@@ -1,0 +1,110 @@
+{
+  "task": "FE04-R05",
+  "target": "HotelOps_Canonical_FE04_R05_20261110_Fresh",
+  "fixtureOnly": true,
+  "sharedWrites": 0,
+  "results": [
+    {
+      "name": "install exact R04 candidate and R03 substrate",
+      "status": "PASS"
+    },
+    {
+      "name": "least privileged direct DML denied and principal non-owner",
+      "status": "PASS"
+    },
+    {
+      "name": "FE05 reader principal cannot capture or mutate",
+      "status": "PASS"
+    },
+    {
+      "name": "single cleaner actual capture participant and FE05-signature reader",
+      "status": "PASS"
+    },
+    {
+      "name": "immutable trigger UPDATE",
+      "status": "PASS"
+    },
+    {
+      "name": "immutable trigger DELETE",
+      "status": "PASS"
+    },
+    {
+      "name": "FK rejects nonexistent source",
+      "status": "PASS"
+    },
+    {
+      "name": "reassignment retains original cleaner and completion revision",
+      "status": "PASS"
+    },
+    {
+      "name": "multiple assignment contributors fail closed",
+      "status": "PASS"
+    },
+    {
+      "name": "multiple progress contributors fail closed",
+      "status": "PASS"
+    },
+    {
+      "name": "reader rejects branch",
+      "status": "PASS"
+    },
+    {
+      "name": "reader rejects inspection",
+      "status": "PASS"
+    },
+    {
+      "name": "reader rejects cycle",
+      "status": "PASS"
+    },
+    {
+      "name": "reader rejects source",
+      "status": "PASS"
+    },
+    {
+      "name": "reader rejects revoked",
+      "status": "PASS"
+    },
+    {
+      "name": "reader rejects inactive",
+      "status": "PASS"
+    },
+    {
+      "name": "capture participant rollback on audit constraint fault",
+      "status": "PASS"
+    },
+    {
+      "name": "capture participant rollback on notification constraint fault",
+      "status": "PASS"
+    },
+    {
+      "name": "procedure requires caller transaction",
+      "status": "PASS"
+    },
+    {
+      "name": "capture refuses revoked cleaner eligibility",
+      "status": "PASS"
+    },
+    {
+      "name": "missing completion progress denied by owner procedure",
+      "status": "PASS"
+    },
+    {
+      "name": "duplicate capture cannot overwrite committed original",
+      "status": "PASS"
+    },
+    {
+      "name": "concurrent capture serializes and duplicate loses after commit",
+      "status": "PASS"
+    },
+    {
+      "name": "UC034 full public completion audit/notification/concurrent commands",
+      "status": "NOT_RUN",
+      "reason": "Exact FS015/FS016 database-name gates reject fresh R05. No gate relaxed; participant transaction tests are separate evidence."
+    },
+    {
+      "name": "actual FE05-owned authorization caller and HTTPS",
+      "status": "NOT_RUN",
+      "reason": "Real signature exercised by controlled backend caller; no FE05 source/authorization pipeline integration or HTTP acceptance claimed."
+    }
+  ]
+}

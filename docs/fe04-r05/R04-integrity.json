@@ -1,0 +1,30 @@
+﻿[
+    {
+        "path":  "docs/fe04-r04/RESULT.md",
+        "sha256":  "7B689E6645C6E5A5B555124DFF9A00552BD527FBC50D00D6E48965EA5C9327B7"
+    },
+    {
+        "path":  "scripts/database/release/fe04-cleaner-r04/01_CleanerAttributionCandidate.sql",
+        "sha256":  "B68936FD5BF07267C3C45A3D9F609A0F333078E8E8EDB658B83C186A53B91ABD"
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningClosureBoundary.cs",
+        "sha256":  "6D8CA0E5B7622CD064548A8EC4E8099A96D5E596A4D94EA008A61C41D7B808FE"
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionContract.cs",
+        "sha256":  "E5F84CCCA603B3302C6450127706D32A56375B1DBA5DF792EFDFBB4F36DACB44"
+    },
+    {
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionSource.cs",
+        "sha256":  "AF51E954A507636A2110888066250996DB1282395F63ED0A84CFE9330E9C88FD"
+    },
+    {
+        "path":  "tests/HotelOps.Dev1.RegressionTests/CleanerAttributionSqlTests.cs",
+        "sha256":  "119A2BB4742F34439DCB4FB18F960E3E4FB21D77AA02EB9553C1F4888440DABE"
+    },
+    {
+        "path":  "tests/HotelOps.Dev1.RegressionTests/CleanerAttributionTests.cs",
+        "sha256":  "D6FA17BC4F6429CE3642A13097A18F84C71F40DDBB1A4A154BDB4A1C568F376E"
+    }
+]

@@ -161,6 +161,7 @@ public sealed partial class RoomTypeCreationService
                 if (reason == null)
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='PENDING_INSPECTION',actual_end_at={now},completion_note={note} WHERE cleaning_task_id={task}", inner);
                 else await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ON_HOLD' WHERE cleaning_task_id={task}", inner);
+                if (reason == null) await CaptureCleanerAttribution(task, owner.AssignmentId, actor, log.ProgressId, inner);
                 var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == row.RoomId && x.ReleasedAt == null, inner);
                 var readiness = reason == null ? "PENDING_INSPECTION" : "PENDING_CLEANING";
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{readiness},{blocked},{actor},{now})", inner);
