@@ -1,0 +1,77 @@
+.inspection-app {
+  max-width: 1100px;
+  margin: 24px auto;
+  padding: 20px;
+  font: 16px/1.5 system-ui;
+  color: #162c42;
+  background: #fff;
+}
+.inspection-app nav {
+  display: flex;
+  gap: 24px;
+  border-bottom: 2px solid #137c83;
+  padding-bottom: 14px;
+}
+.inspection-app label {
+  display: flex;
+  flex-direction: column;
+  margin: 12px 0;
+  max-width: 640px;
+}
+.inspection-app input,
+.inspection-app textarea,
+.inspection-app select {
+  font: inherit;
+  padding: 8px;
+  border: 1px solid #74889c;
+  border-radius: 4px;
+}
+.inspection-app button {
+  font: inherit;
+  margin: 8px 8px 8px 0;
+  padding: 8px 16px;
+  border: 1px solid #137c83;
+  border-radius: 4px;
+  cursor: pointer;
+  background: #edf7f7;
+  color: #113c46;
+}
+.inspection-app button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.inspection-app fieldset,
+.inspection-app article {
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid #b7c7d6;
+  border-radius: 6px;
+}
+.inspection-app [role="alert"] {
+  padding: 12px;
+  background: #fff0ed;
+  border-left: 4px solid #a33820;
+}
+.inspection-app table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.inspection-app td,
+.inspection-app th {
+  padding: 10px;
+  text-align: left;
+  border-bottom: 1px solid #c5d1dc;
+}
+@media (max-width: 700px) {
+  .inspection-app {
+    padding: 10px;
+    margin: 0;
+  }
+  .inspection-app nav {
+    flex-wrap: wrap;
+  }
+  .inspection-app table {
+    display: block;
+    overflow: auto;
+  }
+}

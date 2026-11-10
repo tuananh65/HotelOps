@@ -1,0 +1,262 @@
+[
+  {
+    "path": "frontend/playwright.inspection.config.ts",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/api.ts",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/ExecutionPage.tsx",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/HistoryPage.tsx",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/InspectionBoundary.tsx",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "DEFERRED_MISSING_DEV3_AUTH_PROVIDER"
+  },
+  {
+    "path": "frontend/src/inspection/shared.tsx",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/inspection.css",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/inspection-api.test.mjs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/inspection.browser.spec.ts",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/inspection.live.mjs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionLive/InspectionLive.csproj",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionLive/Program.cs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionLive/Prepare-Isolated.ps1",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionLive/README.md",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/InspectionReadsController.cs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/InspectionReadDtos.cs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/InspectionReadsService.cs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/InspectionDirectory.tsx",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/inspection/reads.ts",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/inspection-reads.test.mjs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/inspection-reads.browser.spec.ts",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/inspection-reads.live.mjs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionReadLive/InspectionReadLive.csproj",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionReadLive/Program.cs",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/InspectionReadLive/README.md",
+    "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "docs/fe05/FE05_INT001_LIVE_REPORT.md",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "docs/fe05/FE05_UI002_COLLECTION_API.md",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/ChecklistLive/ChecklistLive.csproj",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/ChecklistLive/Program.cs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "scripts/verification/ChecklistLive/README.md",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "APPLY_VERIFIED_COLLECTION_ACTION"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/ChecklistCollectionDtos.cs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistCollectionService.cs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "tests/HotelOps.Checklist.CollectionTests/CollectionTests.cs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "tests/HotelOps.Checklist.CollectionTests/HotelOps.Checklist.CollectionTests.csproj",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/docs/FE05_UI001.md",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/docs/FE05_UI003.md",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/playwright.fe05.config.ts",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/api.ts",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistCollection.tsx",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistForm.tsx",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/checklists.css",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistWorkspace.tsx",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/collection.ts",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/model.ts",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/fe05-checklists.spec.ts",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/fe05-checklists.test.mjs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/fe05-collection.test.mjs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/fe05-live.mjs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  },
+  {
+    "path": "frontend/tests/fe05-live-resume.mjs",
+    "source": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "action": "ADD_MISSING"
+  }
+]

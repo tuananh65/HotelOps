@@ -1,0 +1,56 @@
+{
+  "task": "FAST018",
+  "database": "HotelOps_Canonical_20261110_140204_0ad4ee2e_Fresh",
+  "owner": "0fa5d44c-2119-4e0b-8132-47332077f7e9",
+  "httpInterception": false,
+  "signInScreenTested": false,
+  "cases": [
+    {
+      "name": "Anonymous queue 401",
+      "result": "PASS"
+    },
+    {
+      "name": "Real SQL login secure cookie session",
+      "result": "PASS"
+    },
+    {
+      "name": "Actual queue options version and cycle",
+      "result": "FAIL",
+      "error": "The expression evaluated to a falsy value:\n\n  assert.ok(q.pending.length&&q.assigned.length)\n"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 200
+    }
+  ],
+  "success": false,
+  "error": "The expression evaluated to a falsy value:\n\n  assert.ok(q.pending.length&&q.assigned.length)\n"
+}

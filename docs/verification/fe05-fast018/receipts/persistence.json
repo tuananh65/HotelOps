@@ -1,0 +1,1 @@
+{"inspections":4,"bindings":2,"audits":13,"assigned":1,"inspectionAudits":2,"bindingAudits":2,"auditKinds":[{"entity_type":"inspection_supervisor_bindings","action":"CREATE","records":2},{"entity_type":"room_inspections","action":"CREATE","records":2},{"entity_type":"users","action":"LOGIN","records":4},{"entity_type":"users","action":"UPDATE","records":5}]}

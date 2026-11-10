@@ -25,7 +25,7 @@ if(args.Length == 1 && args[0] == "decision08-unit") { await InspectionDecision0
 if(args.Length == 1 && args[0] == "composition-unit") { await InspectionCompositionChecks.RunAsync(); return; }
 if(args.Length == 1 && args[0] == "issuer-unit") { InspectionIssuerUnitChecks.Run(); return; }
 if(args.Length == 1 && args[0] == "authority-unit") { await InspectionAuthorityUnitChecks.RunAsync(); return; }
-if (args.Length != 3 || args[0] is not ("serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection" or "issuer" or "issuer-leastpriv" or "composition-sql" or "decision08-sql" or "decision08-hook-sql" or "responsibility-sql" or "r05-sql" or "closure-sql" or "approve-sql" or "reinspect-sql" or "fast013-sql" or "fast014-persist-sql" or "fast015-workflow-sql" or "fast016-fixed-sql" or "fast016-notfixed-sql" or "fast016-schema-sql" or "fast017-assignment-sql")) throw new ArgumentException("mode environment-receipt output-directory");
+if (args.Length != 3 || args[0] is not ("fast018-serve" or "serve" or "verify" or "probe" or "resume" or "sql" or "invalidate" or "sql-rollback" or "seed" or "preparation" or "authority" or "authority-concurrency" or "authority-selection" or "issuer" or "issuer-leastpriv" or "composition-sql" or "decision08-sql" or "decision08-hook-sql" or "responsibility-sql" or "r05-sql" or "closure-sql" or "approve-sql" or "reinspect-sql" or "fast013-sql" or "fast014-persist-sql" or "fast015-workflow-sql" or "fast016-fixed-sql" or "fast016-notfixed-sql" or "fast016-schema-sql" or "fast017-assignment-sql")) throw new ArgumentException("mode environment-receipt output-directory");
 using var env = JsonDocument.Parse(await File.ReadAllTextAsync(args[1]));
 var e = env.RootElement; var name = e.GetProperty("database").GetString()!; var owner = e.GetProperty("owner").GetString()!;
 if (!e.GetProperty("success").GetBoolean() || !e.GetProperty("createdByThisRun").GetBoolean()
@@ -155,7 +155,7 @@ if(args[0]=="verify"){
  if(states.Length!=2||states[0]!="PENDING_CONCLUSION"||states[1]!="FAILED"||reworks!=0||audits!=0)throw new InvalidOperationException("Public fail-closed behavior violated");
  await Write("persistence.json",new{success=true,database=name,owner,states,reworks,audits,secondInspectionIsCoreOnlyFixture=true,authoritativeHandoff=false});Console.WriteLine("PASS API mutations remain fail-closed; no rework or conclusion audit committed");return;
 }string password; long typeId;
-if(args[0]=="resume")
+if(args[0] is "resume" or "fast018-serve")
 {
     using var prior=JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(Path.GetFullPath(args[1]))!,"runtime.private.json")));
     password=prior.RootElement.GetProperty("password").GetString()!;
@@ -219,7 +219,11 @@ await Write("runtime.private.json",new{branch,foreign,typeId,password,inspection
 await Write("runtime.json",new{database=name,owner,branch,foreign,typeId,httpsApi="https://127.0.0.1:7447",httpsFrontend="https://127.0.0.1:7448",certificateThumbprint=cert.Thumbprint,syntheticGrant="Existing catalog INSPECTION_PERFORM/VIEW grants; no permission changes",masterDataGrantedToHK=false});
 await Guard();
 var start=new ProcessStartInfo("dotnet"){WorkingDirectory=Path.Combine(backend,"src/HotelOps.Api"),UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
-start.ArgumentList.Add(Path.Combine(backend,"src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll"));
+if(args[0]=="fast018-serve"){
+ start.ArgumentList.Add(Path.Combine(backend,"scripts/verification/AssignmentIntegrationHost/bin/Debug/net10.0/AssignmentIntegrationHost.dll"));
+ start.Environment["ASPNETCORE_HOSTINGSTARTUPASSEMBLIES"]="AssignmentIntegrationHost";
+ start.Environment["FE05_OWNED_RECEIPT"]=Path.GetFullPath(args[1]);
+}else start.ArgumentList.Add(Path.Combine(backend,"src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll"));
 start.Environment["ASPNETCORE_ENVIRONMENT"]="Development";start.Environment["DOTNET_ENVIRONMENT"]="Development";
 start.Environment["ASPNETCORE_URLS"]="https://127.0.0.1:7447";start.Environment["ConnectionStrings__HotelOpsDb"]=connection;
 start.Environment["Kestrel__Certificates__Default__Path"]=pfx;start.Environment["Kestrel__Certificates__Default__Password"]=certPassword;

@@ -1,0 +1,9 @@
+  Determining projects to restore...
+  Restored D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST018\tests\HotelOps.Checklist.CollectionTests\HotelOps.Checklist.CollectionTests.csproj (in 1.74 sec).
+  1 of 2 projects are up-to-date for restore.
+  HotelOps.Api -> D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST018\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Checklist.CollectionTests -> D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST018\tests\HotelOps.Checklist.CollectionTests\bin\Debug\net10.0\HotelOps.Checklist.CollectionTests.dll
+Test run for D:\SEP490\Projects\HotelOps-DEV1-FE05-FAST018\tests\HotelOps.Checklist.CollectionTests\bin\Debug\net10.0\HotelOps.Checklist.CollectionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    28, Skipped:     0, Total:    28, Duration: 23 s - HotelOps.Checklist.CollectionTests.dll (net10.0)

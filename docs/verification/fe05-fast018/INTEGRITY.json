@@ -1,0 +1,22 @@
+{
+  "baseline": "6fcfe5529efeb027d379a4e1c1fe02cdfbfb1a7e",
+  "importedPublishedContentMatches": 51,
+  "deferred": [
+    {
+      "path": "frontend/src/inspection/InspectionBoundary.tsx",
+      "source": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+      "action": "DEFERRED_MISSING_DEV3_AUTH_PROVIDER"
+    }
+  ],
+  "trackedChanges": [
+    "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+    "tests/HotelOps.Inspection.WriteTests/Program.cs"
+  ],
+  "protectedSourceChanged": false,
+  "credentialPatternMatches": [],
+  "untrackedArtifactMatches": [],
+  "authorityProductionEnabled": false,
+  "fe04R05": "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+  "checklistSource": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+  "executionSource": "3502ef74e7d8ce7172823c4fe750689b4095259c"
+}

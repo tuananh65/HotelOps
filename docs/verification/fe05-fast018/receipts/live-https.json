@@ -1,0 +1,182 @@
+{
+  "task": "FAST018",
+  "database": "HotelOps_Canonical_20261110_140204_0ad4ee2e_Fresh",
+  "owner": "0fa5d44c-2119-4e0b-8132-47332077f7e9",
+  "httpInterception": false,
+  "signInScreenTested": false,
+  "cases": [
+    {
+      "name": "Anonymous queue 401",
+      "result": "PASS"
+    },
+    {
+      "name": "Real SQL login secure cookie session",
+      "result": "PASS"
+    },
+    {
+      "name": "Actual queue options version and cycle",
+      "result": "PASS"
+    },
+    {
+      "name": "Missing CSRF rejected",
+      "result": "PASS"
+    },
+    {
+      "name": "UI Review Confirm actual HTTP notification-closed no retry",
+      "result": "PASS"
+    },
+    {
+      "name": "Stale task rejected through real preflight",
+      "result": "PASS"
+    },
+    {
+      "name": "Assigned navigation latest execution detail",
+      "result": "PASS"
+    },
+    {
+      "name": "HK checklist read denied; execution lookups and paginated collections allowed",
+      "result": "PASS"
+    },
+    {
+      "name": "Wrong branch queue and options forbidden",
+      "result": "PASS"
+    },
+    {
+      "name": "Real denied user no queue or options authority",
+      "result": "PASS"
+    }
+  ],
+  "http": [
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate/2",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate/2",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspection-assignment-candidate/2",
+      "status": 400
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspection-assignment-candidate/2",
+      "status": 503
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/branches/1/inspection-assignment-candidate/2",
+      "status": 412
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/4/execution",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-checklists?page=1&pageSize=1",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-checklists?search=NO_MATCH&page=1&pageSize=1",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-severities",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspections/assigned?page=1&pageSize=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-tasks?page=1&pageSize=1",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspection-assignment-candidate",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/2/inspection-assignment-candidate/2",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/csrf",
+      "status": 200
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate",
+      "status": 403
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/inspection-assignment-candidate/2",
+      "status": 403
+    }
+  ],
+  "success": true
+}

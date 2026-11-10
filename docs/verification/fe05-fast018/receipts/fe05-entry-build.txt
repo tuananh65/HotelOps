@@ -1,0 +1,17 @@
+node.exe : npm notice run hotelops@0.1.0 npx
+At line:1 char:1
++ & "C:\Program Files\nodejs/node.exe" "C:\Users\Hax\AppData\Roaming\np ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (npm notice run hotelops@0.1.0 npx:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+npm notice run vite build --config vite.fe05.config.ts
+vite v6.4.3 building for production...
+transforming...
+✓ 57 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/fe05/fe05.html                   0.30 kB │ gzip:   0.23 kB
+dist/fe05/assets/fe05-1ueA1psc.css    2.52 kB │ gzip:   0.83 kB
+dist/fe05/assets/fe05-B7a8z3V_.js   320.36 kB │ gzip: 100.28 kB
+✓ built in 1.42s
