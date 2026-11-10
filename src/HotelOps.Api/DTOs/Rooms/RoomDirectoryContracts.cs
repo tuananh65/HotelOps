@@ -53,7 +53,7 @@ public sealed record RoomDirectoryItemDto(long Id, long BranchId, string RoomNum
     RoomDirectoryFloorDto Floor, RoomDirectoryAreaDto? Area, RoomDirectoryTypeDto RoomType,
     string OperationalStatusCode, bool IsActive);
 public sealed record RoomDirectoryResponse(IReadOnlyList<RoomDirectoryItemDto> Items,
-    int Page, int PageSize, long TotalCount);
+    int Page, int PageSize, long TotalCount, IReadOnlyList<RoomStatusCountDto>? StatusCounts = null);
 
 public sealed record RoomStatusSourceDto(string? Type, long? Id, string Availability);
 public sealed record RoomStatusEventDto(long Id, string? FromStatusCode, string ToStatusCode,
@@ -61,6 +61,13 @@ public sealed record RoomStatusEventDto(long Id, string? FromStatusCode, string 
 public sealed record RoomCurrentStatusEvidenceDto(string Availability, string? Reason,
     DateTime? RecordedAtUtc, RoomStatusSourceDto? Source);
 public sealed record RoomDirectoryDetailDto(RoomDirectoryItemDto Room, string? Description,
-    RoomCurrentStatusEvidenceDto CurrentStatusEvidence, string? HistoryUrl = null);
+    RoomCurrentStatusEvidenceDto CurrentStatusEvidence, string? HistoryUrl = null,
+    IReadOnlyList<RoomUnreleasedBlockDto>? UnreleasedBlocks = null);
 public sealed record RoomDirectoryHistoryDto(IReadOnlyList<RoomStatusEventDto> Items, int Page,
     int PageSize, long TotalCount, string Coverage = "RECORDED_STATUS_EVENTS_ONLY");
+
+// Counts describe persisted operational codes, not derived readiness.
+public sealed record RoomStatusCountDto(string OperationalStatusCode, long Count);
+// Unreleased is recorded source state; it does not assert effective readiness or incident access.
+public sealed record RoomUnreleasedBlockDto(long Id, string Reason, DateTime BlockedAtUtc,
+    DateTime? ExpectedReleaseAtUtc);

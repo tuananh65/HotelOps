@@ -1,0 +1,12 @@
+﻿{
+    "rooms":  4,
+    "lease_verified":  true,
+    "inspections":  0,
+    "recorded_blocks":  1,
+    "utc":  "2026-11-10T07:08:12.2610306+00:00",
+    "users":  2,
+    "recorded_history":  1,
+    "cleaning_tasks":  0,
+    "status":  "PASS",
+    "unrevoked_sessions":  0
+}

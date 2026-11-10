@@ -97,7 +97,13 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                         var sources = await Sources([last], requestedRoom, ct);
                         evidence = new("RECORDED",last.Reason,DateTime.SpecifyKind(last.At,DateTimeKind.Utc),sources[last.Id]);
                     }
-                    detail = new(selected.Value,selected.Description,evidence);
+                    var blocks = await RoomOperationalReadQueries.UnreleasedBlocks(db.RoomBlocks.AsNoTracking(), requestedRoom)
+                        .TagWith("UC027:UnreleasedBlocks").ToArrayAsync(ct);
+                    detail = new(selected.Value,selected.Description,evidence,UnreleasedBlocks:blocks.Select(b => b with
+                    {
+                        BlockedAtUtc = DateTime.SpecifyKind(b.BlockedAtUtc, DateTimeKind.Utc),
+                        ExpectedReleaseAtUtc = b.ExpectedReleaseAtUtc is { } at ? DateTime.SpecifyKind(at, DateTimeKind.Utc) : null
+                    }).ToArray());
                 }
                 if (!await HasSessionAsync(authenticatedSession, actor, ct)) return new(RoomDirectoryStatus.SessionInvalid);
                 access = await Access(); if (!access.IsGranted) return Denied(access);
@@ -113,6 +119,8 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
             if (!string.IsNullOrEmpty(search)) rooms = rooms.Where(r => r.RoomNumber.Contains(search));
 
             var total = await rooms.TagWith("UC023:Count").LongCountAsync(ct);
+            var counts = await RoomOperationalReadQueries.StatusCounts(rooms)
+                .TagWith("UC027:FilteredStatusCounts").ToArrayAsync(ct);
             var sorted = Sort(rooms,query);
             var items = await sorted
                 .Skip(checked((query.Page - 1) * query.PageSize)).Take(query.PageSize)
@@ -130,7 +138,7 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
             access = await Access();
             if (!access.IsGranted) return Denied(access);
             await tx.CommitAsync(ct);
-            return new(RoomDirectoryStatus.Success, new(items, query.Page, query.PageSize, total));
+            return new(RoomDirectoryStatus.Success, new(items, query.Page, query.PageSize, total, counts));
         }
         catch (DbException error) when (ct.IsCancellationRequested)
         {
