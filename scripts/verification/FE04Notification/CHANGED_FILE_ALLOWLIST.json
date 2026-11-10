@@ -1,7 +1,7 @@
 ﻿{
     "baseDevelop":  "bc0110e97ffcb1e32f907302cf16ee45bcc5bb0c",
     "selfExcludedFromHash":  "scripts/verification/FE04Notification/CHANGED_FILE_ALLOWLIST.json",
-    "exactChangedFileCount":  86,
+    "exactChangedFileCount":  100,
     "schemaSourceCommit":  "9cda7997416281c1af41e69704ed3bbda1d36eb9",
     "files":  [
                   {
@@ -120,6 +120,51 @@
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
+                      "path":  "scripts/verification/FE04NotificationRuntime/APPROVAL_PACKAGE.json",
+                      "sha256":  "D274F4B2B9150ED6D42F4F708FAA52F1DD01FA0F8845D501C96CCCE0E6910DC4",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/APPROVAL_PACKAGE.md",
+                      "sha256":  "C1875D562ED3A150E0C3508AA2A1D4A144AB63B81B9914A0D66594C30EA7C5D0",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/FE04NotificationRuntime.csproj",
+                      "sha256":  "40803EDC4DDDED2A778CA14B3F6FE9D2F9C33968F4517B8E63D18D0461068B92",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/Invoke-Preflight.ps1",
+                      "sha256":  "067E55C9118950D2421C5B4C1A9403282A718FBD8F411CF44419353308225BAD",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/New-ApprovalPackage.ps1",
+                      "sha256":  "C5D09326BC0F514F4D787220CCDD6B731690706B7AB065A2200FA1A1C3974F1D",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/PERMISSION_CONTRACT.json",
+                      "sha256":  "01B20124CC67FE4522320096A1618F0B58712A1D7EA1C291F31B9B64BF96637B",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/Program.cs",
+                      "sha256":  "637710C2919194A8D3698CDDCD0F61E3504C8B30EB6D37850BBF1EAC333CD8C7",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/RESULT.md",
+                      "sha256":  "5D7B42FB3807CE31B7B1367AD426C7C7182745C21FA0E54FCE0FB6EF2C65135E",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04NotificationRuntime/Test-Launcher.ps1",
+                      "sha256":  "ABB9EBD99D4FEC52A198D1BA09D38C3CDCA29B65D69339E76D7116FC1E8AB1CE",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
                       "path":  "scripts/verification/Schema002CorrectionFix02/01_EvidenceFlow.proposed.patch",
                       "sha256":  "5263A10DAB86D7E0AE2D0DD6389BDE19311A4D95E46664642F88E8B5A8F0471B",
                       "kind":  "DEV2_PIN006_EXACT_IMPORT"
@@ -228,6 +273,26 @@
                       "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
                       "sha256":  "07E00501828B7B6C6EB3CBD7096E5FC19942192F751DE38F0005AE9DC82EF3B2",
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04AcceptanceTransaction.cs",
+                      "sha256":  "7AF7014798019735B1735E7E0749AEA0086FB95E4B36F9C36BC52C2B5FE03CAD",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04CleaningSourceAuthority.cs",
+                      "sha256":  "3959064C806AF851C583D2D746D7ABBA836937B489F583FCABA127749A8CF532",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationApproval.cs",
+                      "sha256":  "CD5435AB4B09AB5B368814C320EBCB19E6FFB0E319EE6B98145C843864F91366",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+                      "sha256":  "66ADEBD4522F7A2305C1A473AF728061E4C02287A90FFC2DE80D8BB32EE7D2D0",
+                      "kind":  "DEV1_FE04_FINAL002"
                   },
                   {
                       "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningAssignmentCandidateService.cs",
@@ -380,6 +445,11 @@
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
                   },
                   {
+                      "path":  "tests/HotelOps.Dev1.RegressionTests/Fe04NotificationRuntimeTests.cs",
+                      "sha256":  "9623F73176CE8EE5055E5B45C8CB2D0CF593E2AAF6FB74494FC593D27D3BF888",
+                      "kind":  "DEV1_FE04_FINAL002"
+                  },
+                  {
                       "path":  "tests/HotelOps.Notification.Cleaning.NoSql/CleaningSqlProbe.cs",
                       "sha256":  "8658E85162945831A615FFB9AFE61DFB17DDFD01AB15EA223E22D7169D4009FB",
                       "kind":  "DEV2_PACKAGE_IMPORT"
@@ -430,5 +500,6 @@
                       "kind":  "DEV2_PIN006_EXACT_IMPORT"
                   }
               ],
-    "publishedDev2Head":  "d60022b487b5b59e84d6551a0ee5162c9fd32164"
+    "publishedDev2Head":  "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+    "final002ApprovalArtifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C"
 }
