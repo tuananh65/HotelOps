@@ -1,0 +1,1 @@
+﻿{"command":"dotnet test HotelOps.slnx --no-build --nologo","exitCode":0,"functionalAssertionsCredited":0,"reason":"API-only solution; focused console receipts reported separately"}

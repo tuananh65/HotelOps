@@ -16,6 +16,9 @@ namespace HotelOps.Api.Services.HotelStructure;
 // ASCII fields and UTF-16LE reason hex have an independently reproducible SQL encoding.
 internal sealed record InspectionIssuerOperation(Guid Id, string UseCase, byte[] Fingerprint, string Canonical)
 {
+    // UC044 request identity candidate only; no passed-event or issuer activation is implied.
+    internal static InspectionIssuerOperation Approve(Guid id,long actor,long branch,long inspection,string tag)
+        => Create(id,"UC044",actor,branch,inspection,tag,null);
     internal static InspectionIssuerOperation Reject(Guid id,long actor,long branch,long inspection,string tag,RejectInspectionInput input)
         => Create(id,"UC045",actor,branch,inspection,tag,input.Reason,
             input.Confirmed is null ? "null" : input.Confirmed.Value ? "1" : "0");

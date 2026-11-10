@@ -1,0 +1,10 @@
+﻿{
+  "verifiedOn": "2026-11-10",
+  "command": "dotnet run --project tests/HotelOps.Inspection.WriteTests -- approve-reinspect-unit",
+  "exitCode": 0,
+  "checksPassed": 33,
+  "checksTotal": 33,
+  "scope": "New UC047 per-defect completeness/source identity/revision cases, UC044 canonical identity and closed mandatory gates. Console checks, not xUnit or live SQL.",
+  "productionAuthorityAccepted": false,
+  "historicalSuitesRerun": false
+}

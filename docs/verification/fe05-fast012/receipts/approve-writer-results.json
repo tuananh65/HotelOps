@@ -1,0 +1,60 @@
+{
+  "success": true,
+  "sqlServer": true,
+  "realSessionValidation": true,
+  "physicalCallerTransaction": true,
+  "allCasesExplicitRollback": true,
+  "productionAuthority": false,
+  "cases": [
+    {
+      "name": "Approve PASSED/task COMPLETED/audit stays in caller transaction; rollback restores all",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Second Approve with original revision rejected before another audit",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Mandatory FAIL rejected without domain writes",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Stale revision rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Wrong branch rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Unauthorized grant rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Retired assigned checklist retained by writer",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Changed current cycle rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Revoked actual session rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    },
+    {
+      "name": "Cleaner inspector SOD rejected",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}

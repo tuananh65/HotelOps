@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "componentOnly": true,
+  "positiveCases": "NOT_RUN",
+  "blockedBy": "REINSPECTION_REMEDIATION_SCHEMA_REQUIRED",
+  "allCasesExplicitRollback": true,
+  "cases": [
+    {
+      "name": "UC047 missing remediation schema fails closed before source loading or fixture mutation",
+      "result": "PASS",
+      "rollbackVerified": true
+    }
+  ]
+}
