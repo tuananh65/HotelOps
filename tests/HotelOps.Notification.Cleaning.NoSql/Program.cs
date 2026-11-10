@@ -135,3 +135,4 @@ Check(CleaningNotificationErrors.Classify(new OperationCanceledException())==Cle
 Check(CleaningNotificationErrors.Classify(new NotificationDeliveryTransientException("fixture"))==CleaningNotificationFailure.Unavailable,"Infrastructure failure does not become authorization denial");
 await Deny<InvalidOperationException>(()=>Task.Run(()=>CleaningSqlProbe.RequireLease("missing/SQL_TRIAL_EXCLUSIVE.lock")),"SQL harness lease missing rejects before config/SQL");
 Console.WriteLine(JsonSerializer.Serialize(new{pass=true,tests=checks.Count,checks,sqlConnections=0,qualification="Actual new profile, participant, EF commit interception, wiring and closed runtime tests; graph/auth/store/provider are explicit test doubles in positive orchestration checks. SQL persistence, delivery/inbox positives and concurrency NOT_RUN."}));
+await Owner007Checks.RunAsync();
