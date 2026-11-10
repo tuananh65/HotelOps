@@ -46,6 +46,7 @@ export const history = {
   items: [
     {
       id: 14,
+      changedByUserId: 8,
       fromStatusCode: "OCCUPIED",
       toStatusCode: "DIRTY",
       changedAtUtc: "2026-11-10T00:00:00Z",

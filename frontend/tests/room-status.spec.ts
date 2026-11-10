@@ -190,3 +190,23 @@ test("explicit retry recovers from unavailable API without retained room data", 
   ).toBeVisible();
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
+
+for (const changedByUserId of [8, null])
+  test(`history shows recorded attribution ${changedByUserId} without current-user fallback`, async ({
+    page,
+  }) => {
+    await page.route("**/api/rooms/11?**", (r) => r.fulfill({ json: detail }));
+    await page.route("**/api/rooms/11/history?**", (r) =>
+      r.fulfill({
+        json: { ...history, items: [{ ...history.items[0], changedByUserId }] },
+      }),
+    );
+    await page.goto("/rooms/status?branchId=7&roomId=11");
+    const section = page.getByRole("region", {
+      name: "Lịch sử trạng thái",
+      exact: true,
+    });
+    await expect(section).toContainText(
+      `Người thay đổi (ID): ${changedByUserId ?? "Chưa ghi nhận"}`,
+    );
+  });

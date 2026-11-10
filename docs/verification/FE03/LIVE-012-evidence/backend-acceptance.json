@@ -1,0 +1,149 @@
+﻿{
+    "https_attempted":  true,
+    "checks":  [
+                   {
+                       "pass":  true,
+                       "name":  "Runtime binary hash/source",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Listener identity",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Frozen binary process path",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Exact database GUID owner and lease markers",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Restricted SQL identity",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Allowed CSRF",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Allowed login",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Same-room history HTTP room=1 page=1",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "SQL attribution ordering page room=1 page=1",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Same-room history HTTP room=1 page=2",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "SQL attribution ordering page room=1 page=2",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Same-room history HTTP room=2 page=1",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "SQL attribution ordering page room=2 page=1",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Same-room history HTTP room=2 page=2",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "SQL attribution ordering page room=2 page=2",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Recorded actor persisted ID verified",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Null actor preserved without inference",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Multiple same-room ordering rows verified",
+                       "http_status":  0
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Cross-branch isolation /api/rooms/4/history?branchId=1",
+                       "http_status":  404
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Cross-branch isolation /api/rooms/4/history?branchId=2",
+                       "http_status":  403
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Cross-branch isolation /api/rooms?branchId=2",
+                       "http_status":  403
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Allowed logout",
+                       "http_status":  204
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Denied CSRF",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Denied login",
+                       "http_status":  200
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Denied history denied without room facts",
+                       "http_status":  403
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Denied logout",
+                       "http_status":  204
+                   },
+                   {
+                       "pass":  true,
+                       "name":  "Anonymous history denied without room facts",
+                       "http_status":  401
+                   }
+               ],
+    "expected_application_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "utc":  "2026-11-10T08:46:40.1027751+00:00",
+    "tls_validation_configured":  true,
+    "business_writes":  0,
+    "task":  "FE03-NEXT-010",
+    "available_runtime_sha":  "717715fa0f9fa51ba467592f1dd01ea06e8ce568",
+    "status":  "PASS",
+    "stage":  "LIVE_HTTPS",
+    "sql_attempted":  true
+}
