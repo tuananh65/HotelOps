@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable><TreatWarningsAsErrors>true</TreatWarningsAsErrors><EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <!-- Pass HotelOpsRoot explicitly: preserved evidence workspace, not a production schema checkout. -->
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="$(HotelOpsRoot)/.n01sql09/consumer/src/HotelOps.Api/HotelOps.Api.csproj" />
+    <Reference Include="Microsoft.SqlServer.TransactSql.ScriptDom"><HintPath>$(ScriptDomPath)</HintPath><Private>true</Private></Reference>
+    <Compile Include="ActualEvidence.cs" /><Compile Include="OfflineEvidence.cs" /><Compile Include="NamedIndexEvidence.cs" /><Compile Include="Schema002NamedIndexProbes.cs" /><Compile Include="Schema002Probes.proposed.cs" /><Compile Include="OfflineTests.cs" />
+    <Compile Include="$(HotelOpsRoot)/.fe04schema002/worktree/scripts/verification/Fe04Schema002/Schema002Protocol.cs" Link="Baseline/Schema002Protocol.cs" />
+    <Compile Include="$(HotelOpsRoot)/.fe04schema002/worktree/scripts/verification/Fe04Schema002/Schema002Executor.cs" Link="Baseline/Schema002Executor.cs" />
+    <Compile Include="$(HotelOpsRoot)/.fe04schema002/worktree/scripts/verification/Fe04Schema002/SqlReview.cs" Link="Baseline/SqlReview.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,98 @@
+diff --git a/scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs b/scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs
+index 64a0b9d..7ac7a43 100644
+--- a/scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs
++++ b/scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs
+@@ -10,7 +10,8 @@ public sealed record NamedIndexContract(string ProbeId,string TargetTable,string
+ public sealed record NamedIndexCapture(string ProbeId,string TargetTable,string ExpectedIndexName,string ExecutionResult,
+     int? ErrorNumber,string? ErrorMessage,string? ErrorProcedure,int? ErrorLine,int XactStateAtCatch,int TransactionsAtCatch);
+ public sealed record NamedIndexOutcome(NamedIndexCapture Capture,IReadOnlyList<ProviderError> ProviderErrors,
+-    bool RolledBack,int TransactionsAfter,string BeforeProtectedHash,string AfterProtectedHash,string FixtureOwnershipReceiptSha256);
++    bool RolledBack,int TransactionsAfter,string BeforeProtectedHash,string AfterProtectedHash,string FixtureOwnershipReceiptSha256,
++    EvidenceEnvelope? FixtureReceipt=null,EvidenceEnvelope? ProviderEvidence=null,Guid ExecutionId=default);
+ 
+ public static class NamedIndexEvidence
+ {
+@@ -74,22 +75,24 @@ public static class NamedIndexEvidence
+         catch(Exception error)when(error is JsonException or KeyNotFoundException or FormatException or ArgumentException or InvalidOperationException)
+         {throw new InvalidOperationException("INVALID_OR_AMBIGUOUS_OWNED_DUPLICATE_FIXTURE",error);}
+     }
+-    public static void Require(NamedIndexContract expected,NamedIndexOutcome observed)
++    public static void Require(NamedIndexContract expected,NamedIndexOutcome observed,IActualEvidenceTrust? trust=null)
+     {
+         RequireContract(expected);
+         if(observed is null||observed.Capture is null)throw new InvalidOperationException("SQL_CAPTURE_MISSING");
++        ActualEvidence.RequireFixture(expected,observed.FixtureReceipt,trust);
++        if(!string.Equals(observed.FixtureOwnershipReceiptSha256,ActualEvidence.Hash(observed.FixtureReceipt!.PayloadJson),StringComparison.OrdinalIgnoreCase))
++            throw new InvalidOperationException("ACTUAL_FIXTURE_IDENTITY_NOT_PROVEN");
+         var c=observed.Capture;
+         if(c.ProbeId!=expected.ProbeId||c.TargetTable!=expected.TargetTable||c.ExpectedIndexName!=expected.ExpectedIndexName||
+            c.ExecutionResult!="ERROR_CAPTURED"||c.ErrorNumber!=expected.ExpectedErrorNumber||string.IsNullOrWhiteSpace(c.ErrorMessage)||
+            c.ErrorProcedure is not null||c.ErrorLine is null or <=0||c.TransactionsAtCatch!=1||c.XactStateAtCatch is not (-1 or 1))
+             throw new InvalidOperationException("COMPLETE_EXPECTED_SQL_CAPTURE_REQUIRED");
+-        var root=RequireOneDuplicate(observed.ProviderErrors);
++        var root=RequireOneDuplicate(ActualEvidence.RequireProvider(expected,observed,trust));
+         if(root.Number!=c.ErrorNumber||root.Message!=c.ErrorMessage||!TryNative(root.Number,root.Message,out var table,out var index)||
+            table!=expected.TargetTable||index!=expected.ExpectedIndexName)
+             throw new InvalidOperationException("INTENDED_UNIQUE_INDEX_TABLE_NOT_PROVEN");
+         if(!observed.RolledBack||observed.TransactionsAfter!=0||!IsHash(observed.BeforeProtectedHash)||!IsHash(observed.AfterProtectedHash)||
+-           !StringComparer.OrdinalIgnoreCase.Equals(observed.BeforeProtectedHash,observed.AfterProtectedHash)||
+-           observed.FixtureOwnershipReceiptSha256!=expected.FixtureOwnershipReceiptSha256)
++           !StringComparer.OrdinalIgnoreCase.Equals(observed.BeforeProtectedHash,observed.AfterProtectedHash))
+             throw new InvalidOperationException("OWNED_FIXTURE_ROLLBACK_PRESERVATION_NOT_PROVEN");
+     }
+     // Retain existing SQL09 signature and its known valid index-only test messages.
+diff --git a/scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs b/scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs
+index 38660ab..5c83c84 100644
+--- a/scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs
++++ b/scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs
+@@ -5,14 +5,14 @@ using HotelOps.Sql09;
+ namespace HotelOps.Schema002;
+ 
+ public sealed record NamedIndexProbeReceipt(ProbeReceipt Original,NamedIndexOutcome Evidence,
+-    IReadOnlyList<ProbeReceipt> SingleRowSourceChecks,string Validation);
++    IReadOnlyList<ProbeReceipt> SingleRowSourceChecks,string Validation,FixtureReceiptVerification FixtureVerification);
+ 
+ // Proposed partial extension, compiled against original executor helpers. No alternate graph.
+ public sealed partial class Schema002Executor
+ {
+     public async Task<NamedIndexProbeReceipt> ProbeNamedIndexAsync(ExecutionScope scope,PublicationProbe probe,
+         NamedIndexContract expected,string captureScriptPath,string artifactPath,string approvedArtifactHash,
+-        string installReceiptPath,string approvedInstallReceiptHash,CancellationToken ct)
++        string installReceiptPath,string approvedInstallReceiptHash,CancellationToken ct,INamedIndexActualEvidenceSource? actualEvidence=null)
+     {
+         NamedIndexEvidence.RequireContract(expected);
+         if(probe.CaseId!=expected.ProbeId||probe.OwnedFixtureId!=expected.FixtureId||!scope.OwnedFixtureIds.Contains(expected.FixtureId)||probe.ExpectedSqlError!=expected.ExpectedErrorNumber||
+@@ -22,6 +22,11 @@ public sealed partial class Schema002Executor
+         if(!StringComparer.OrdinalIgnoreCase.Equals(Hashes.Bytes(captureBytes),expected.CaptureSqlSha256))throw new InvalidOperationException("CAPTURE_SCRIPT_HASH_MISMATCH");
+         var planHash=Hashes.Utf8(JsonSerializer.Serialize(new{expected,probe}));
+         await authorization.RequireAsync(scope,"NAMED_INDEX_PLAN:"+probe.CaseId,planHash,approvedInstallReceiptHash,ct);
++        var actualFixture=actualEvidence?.FixtureOwnership;
++        var actualTrust=actualEvidence?.Trust;
++        var fixtureVerification=ActualEvidence.RequireFixture(expected,actualFixture,actualTrust);
++        if(actualEvidence is null)throw new InvalidOperationException("ACTUAL_EVIDENCE_SOURCE_NOT_ACCEPTED");
++        var executionId=Guid.NewGuid();
+         // Each row must pass real FK/CHECK/source trigger independently. A duplicate index
+         // can reject before a trigger runs; index failure alone cannot prove valid sources.
+         // Same accepted exclusive lease/no competing writers must span every phase.
+@@ -80,11 +85,17 @@ public sealed partial class Schema002Executor
+         var after=await PreservationAsync(c,verify,ct);CatalogProtocol.RequirePreserved(before,after);
+         await verify.RollbackAsync(ct);
+         var observed=capture??throw new InvalidOperationException("SQL_ERROR_CAPTURE_MISSING");
+-        var providerErrors=observed.ErrorNumber.HasValue&&observed.ErrorMessage is not null?new[]{new ProviderError(observed.ErrorNumber.Value,observed.ErrorMessage)}:[];
++        // SQL TRY/CATCH returns a row and ordinarily suppresses SqlException.Errors.
++        // No independent observer is currently accepted. Missing evidence blocks acceptance;
++        // never synthesize it from ERROR_NUMBER()/ERROR_MESSAGE().
++        var providerEnvelope=await actualEvidence.ReadProviderErrorsAsync(executionId,ct);
++        var providerErrors=providerEnvelope is null?Array.Empty<ProviderError>():
++            JsonSerializer.Deserialize<ProviderCollectionReceipt>(providerEnvelope.PayloadJson)?.Errors??Array.Empty<ProviderError>();
+         var evidence=new NamedIndexOutcome(observed,providerErrors,rolledBack,transactionsAfter,
+-            Hashes.Utf8(JsonSerializer.Serialize(before)),Hashes.Utf8(JsonSerializer.Serialize(after)),expected.FixtureOwnershipReceiptSha256);
+-        try{NamedIndexEvidence.Require(expected,evidence);}
++            Hashes.Utf8(JsonSerializer.Serialize(before)),Hashes.Utf8(JsonSerializer.Serialize(after)),ActualEvidence.Hash(actualFixture!.PayloadJson),
++            actualFixture,providerEnvelope,executionId);
++        try{NamedIndexEvidence.Require(expected,evidence,actualTrust);}
+         catch(Exception error){error.Data["NamedIndexOutcomeJson"]=JsonSerializer.Serialize(evidence);throw;}
+-        return new(new(probe.CaseId,probe.OwnedFixtureId,"PASS",observed.ErrorNumber,true,true),evidence,checkedRows,"EXACT_NAMED_INDEX_TABLE_SCENARIO_ROLLBACK_VERIFIED");
++        return new(new(probe.CaseId,probe.OwnedFixtureId,"PASS",observed.ErrorNumber,true,true),evidence,checkedRows,"EXACT_NAMED_INDEX_TABLE_SCENARIO_ROLLBACK_VERIFIED",fixtureVerification);
+     }
+ }

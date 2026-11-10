@@ -1,7 +1,7 @@
 ﻿{
     "baseDevelop":  "bc0110e97ffcb1e32f907302cf16ee45bcc5bb0c",
     "selfExcludedFromHash":  "scripts/verification/FE04Notification/CHANGED_FILE_ALLOWLIST.json",
-    "exactChangedFileCount":  65,
+    "exactChangedFileCount":  86,
     "schemaSourceCommit":  "9cda7997416281c1af41e69704ed3bbda1d36eb9",
     "files":  [
                   {
@@ -23,6 +23,11 @@
                       "path":  "scripts/database/notifications/N01Implement06/02_RollbackCandidate.sql",
                       "sha256":  "6EA1BB756E27B643716A8632E7B529B8C24477F343938585B7C4DB293204E24D",
                       "kind":  "DEV2_PACKAGE_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/database/notifications/NotifWriter004A/ENVNOTIF001_RestrictedWriter_Provision.sql",
+                      "sha256":  "C4BCE5962864582EC230021EC93F3DE09BA5E91656192F470F878A5CCC10A98C",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
                   },
                   {
                       "path":  "scripts/database/notifications/Schema002/AcceptanceCases.json",
@@ -80,11 +85,6 @@
                       "kind":  "DEV2_SCHEMA002_IMPORT"
                   },
                   {
-                      "path":  "scripts/verification/FE04Notification/CHANGED_FILE_ALLOWLIST.json",
-                      "sha256":  null,
-                      "kind":  "DEV1_COMPOSITION_VERIFICATION"
-                  },
-                  {
                       "path":  "scripts/verification/FE04Notification/DEV2_IMPORT_PROVENANCE.json",
                       "sha256":  "72461EEED5A6CFDA529AD39A41AE9655F282D2D7C1A858AFD64A00E0C7258A5B",
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
@@ -93,6 +93,16 @@
                       "path":  "scripts/verification/FE04Notification/INTEGRATION_HANDOFF.md",
                       "sha256":  "D280EDF8DD0B8272A91809C52B3B2BD19B13130F794B411593D6EE35D2DF77BF",
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04Notification/PIN006_RESULT.md",
+                      "sha256":  "54624A3BA827CA24C68FC3F6524BB4802E8C20B8FE38A9277A87DFCF16BCFE1D",
+                      "kind":  "DEV1_PIN006_VERIFICATION"
+                  },
+                  {
+                      "path":  "scripts/verification/FE04Notification/PIN006_SOURCE_PIN.json",
+                      "sha256":  "50034A9108CD7D456B3BF3D15EE71DC1BD596584F9631D62E71292954ED22748",
+                      "kind":  "DEV1_PIN006_VERIFICATION"
                   },
                   {
                       "path":  "scripts/verification/FE04Notification/SCHEMA002_SOURCE_PIN.json",
@@ -108,6 +118,81 @@
                       "path":  "scripts/verification/FE04Notification/SQL_ACCEPTANCE_NOT_RUN.json",
                       "sha256":  "F35AAA30E955899D0F26617995083C539083F2729B99AB4E78831D80B2B5B330",
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/01_EvidenceFlow.proposed.patch",
+                      "sha256":  "5263A10DAB86D7E0AE2D0DD6389BDE19311A4D95E46664642F88E8B5A8F0471B",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/14_NamedIndexProbe.sql",
+                      "sha256":  "302E516B1D71B87DA4036A1CD1564AEEA851FBD7F3BB1EC1EBF7A872F61D38AD",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/ActualEvidence.cs",
+                      "sha256":  "2B823C1EA949AA059C888F078BF1C21435E9F17E4BA2A1F366FB344D67FA20C5",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/baseline/Correction01/NamedIndexEvidence.cs",
+                      "sha256":  "7E491EC4B5D9410D183A4B3D14492A8CC3F021F722EEF22A1CB16F3E7AD5A2C1",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/baseline/Correction01/Schema002NamedIndexProbes.cs",
+                      "sha256":  "5A66BC77B072AF20B5EE27E3F87879DE625838F2DDEAA9118CA9078127831C96",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/baseline/Correction01/Schema002Probes.proposed.cs",
+                      "sha256":  "70314F88C0BFB042BC5AB00272F0644802640EA64DE4D11574543C4BC92F2637",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexContract.json",
+                      "sha256":  "D5AADCDD341BA46CA57AD0B9FCF5C557D6FBA78E7BFE1ECA343AAAEEB1A6BDE4",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexCorrection.NoSql.csproj",
+                      "sha256":  "7BA12A43B94C164026A7EFEA0481CAD27A750CB973005543F37D60BBCB332D2C",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs",
+                      "sha256":  "003525428F3AD130FBDA43112795AA6E078CC75EC716EECEBAEEF011797EFEBF",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/OfflineEvidence.cs",
+                      "sha256":  "7CA32F57D753AE66626A7497B7DEB90B2A038FF9AFD04DFB1CFB1005C5E1204E",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/OfflineTests.cs",
+                      "sha256":  "E38581F37F2C8DCBBE05093A9378BB0C0FCDDF0620707FCDE0B7D1122E6EAE7C",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/README.md",
+                      "sha256":  "A647D01B2E187BF0E9FD8C575D359CD7FD06E1E18CC14CAF7BF6BCC77ECD766C",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs",
+                      "sha256":  "1D9011F6A326DB7AD0BCC05195D506F7DF3B894643505AFF189EEBC6916B9F89",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/Schema002Probes.proposed.cs",
+                      "sha256":  "70314F88C0BFB042BC5AB00272F0644802640EA64DE4D11574543C4BC92F2637",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/SQL09LegacyCompatibility.NoSql.csproj",
+                      "sha256":  "876063D03DBDD4EAE6BD5C3CB12FA5DC1EA4A0BC7DF2B6673EC5C114F6FDE9CA",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
                   },
                   {
                       "path":  "src/HotelOps.Api/Data/HotelOpsDbContext.Notifications.cs",
@@ -285,6 +370,11 @@
                       "kind":  "DEV2_PACKAGE_IMPORT"
                   },
                   {
+                      "path":  "src/HotelOps.Api/Services/Notifications/NotifWriter004AContract.cs",
+                      "sha256":  "B09D16168882F4D3D9EF1C6A065771552B04B4CA07CAA3734645753B58B434BF",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
                       "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningNotificationConsumerCompositionTests.cs",
                       "sha256":  "EDDE4237D21D0EA261C84E8847A3024B4C80F71F6A45E761F2ADEA90A2940892",
                       "kind":  "DEV1_COMPOSITION_VERIFICATION"
@@ -328,6 +418,17 @@
                       "path":  "tests/HotelOps.Notification.N01.NoSql/Program.cs",
                       "sha256":  "82634D75CFEDDEE3D9C2E8266C3EA065F30E63AB73B135B2436A05E92E8F99B9",
                       "kind":  "DEV2_PACKAGE_IMPORT"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Notification.Writer004A.NoSql/HotelOps.Notification.Writer004A.NoSql.csproj",
+                      "sha256":  "4DAC973890CADAC54283BF1BBDDF9FFA42BB024CF80292454CDA24583ED9BBF8",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Notification.Writer004A.NoSql/Program.cs",
+                      "sha256":  "8331C3A6FB33EA24AE96E0A2B875C8029F516CC28280ECDB22B6C469CA9FA45A",
+                      "kind":  "DEV2_PIN006_EXACT_IMPORT"
                   }
-              ]
+              ],
+    "publishedDev2Head":  "d60022b487b5b59e84d6551a0ee5162c9fd32164"
 }

@@ -1,0 +1,123 @@
+﻿{
+    "fetchedHead":  "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+    "writer004A":  "05b553b4079fb373087f5a4edcd6738a3a8f0070",
+    "previousConsumer":  "18af2155f9b98904bc63880cad60614642dcc802",
+    "runtimeActivation":  false,
+    "schemaExecutionApproved":  false,
+    "files":  [
+                  {
+                      "path":  "scripts/database/notifications/NotifWriter004A/ENVNOTIF001_RestrictedWriter_Provision.sql",
+                      "sha256":  "C4BCE5962864582EC230021EC93F3DE09BA5E91656192F470F878A5CCC10A98C",
+                      "gitBlob":  "3f3ce7ef9a14afacff835feea2608bf3bcfb5049",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/01_EvidenceFlow.proposed.patch",
+                      "sha256":  "5263A10DAB86D7E0AE2D0DD6389BDE19311A4D95E46664642F88E8B5A8F0471B",
+                      "gitBlob":  "48e9767bcba8b784013bf7ec3d25af5008edac81",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/14_NamedIndexProbe.sql",
+                      "sha256":  "302E516B1D71B87DA4036A1CD1564AEEA851FBD7F3BB1EC1EBF7A872F61D38AD",
+                      "gitBlob":  "08dd4118165912cb3eb1a78c9cbcb8f61a762d34",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/ActualEvidence.cs",
+                      "sha256":  "2B823C1EA949AA059C888F078BF1C21435E9F17E4BA2A1F366FB344D67FA20C5",
+                      "gitBlob":  "a76eef0304fe08acd75b559b44667d248bb40c10",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexContract.json",
+                      "sha256":  "D5AADCDD341BA46CA57AD0B9FCF5C557D6FBA78E7BFE1ECA343AAAEEB1A6BDE4",
+                      "gitBlob":  "47a8003e20bfd6d612c438302a14a91b89f7869d",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexCorrection.NoSql.csproj",
+                      "sha256":  "7BA12A43B94C164026A7EFEA0481CAD27A750CB973005543F37D60BBCB332D2C",
+                      "gitBlob":  "6372a84de7e558cb57bcff9499d1bb889739304b",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexEvidence.cs",
+                      "sha256":  "003525428F3AD130FBDA43112795AA6E078CC75EC716EECEBAEEF011797EFEBF",
+                      "gitBlob":  "7ac7a4307247006a1e2e8ab96cc8ebaecd64b9e6",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/OfflineEvidence.cs",
+                      "sha256":  "7CA32F57D753AE66626A7497B7DEB90B2A038FF9AFD04DFB1CFB1005C5E1204E",
+                      "gitBlob":  "9d1c49392192a4676230538ce19de20a68f315e6",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/OfflineTests.cs",
+                      "sha256":  "E38581F37F2C8DCBBE05093A9378BB0C0FCDDF0620707FCDE0B7D1122E6EAE7C",
+                      "gitBlob":  "bcfe6cfe64a45551f42a9d079430b5fd7d6a27fa",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/README.md",
+                      "sha256":  "A647D01B2E187BF0E9FD8C575D359CD7FD06E1E18CC14CAF7BF6BCC77ECD766C",
+                      "gitBlob":  "c55356632968715d8f34fc181860a2a800a0a4f0",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/SQL09LegacyCompatibility.NoSql.csproj",
+                      "sha256":  "876063D03DBDD4EAE6BD5C3CB12FA5DC1EA4A0BC7DF2B6673EC5C114F6FDE9CA",
+                      "gitBlob":  "8a202f0d22ae51a8c010ab608765978285ef9c7b",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/Schema002NamedIndexProbes.cs",
+                      "sha256":  "1D9011F6A326DB7AD0BCC05195D506F7DF3B894643505AFF189EEBC6916B9F89",
+                      "gitBlob":  "5c83c84a17e8f5a35e0a10e1e7cd05cad998b1fe",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/Schema002Probes.proposed.cs",
+                      "sha256":  "70314F88C0BFB042BC5AB00272F0644802640EA64DE4D11574543C4BC92F2637",
+                      "gitBlob":  "15b31c9ad9a3201d7837d108366e96428760dd83",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/baseline/Correction01/NamedIndexEvidence.cs",
+                      "sha256":  "7E491EC4B5D9410D183A4B3D14492A8CC3F021F722EEF22A1CB16F3E7AD5A2C1",
+                      "gitBlob":  "64a0b9dd7a0b851194b5a41fc1a9c39932624818",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/baseline/Correction01/Schema002NamedIndexProbes.cs",
+                      "sha256":  "5A66BC77B072AF20B5EE27E3F87879DE625838F2DDEAA9118CA9078127831C96",
+                      "gitBlob":  "38660aba58d84134c56106c06311953c1e175eaf",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "scripts/verification/Schema002CorrectionFix02/baseline/Correction01/Schema002Probes.proposed.cs",
+                      "sha256":  "70314F88C0BFB042BC5AB00272F0644802640EA64DE4D11574543C4BC92F2637",
+                      "gitBlob":  "15b31c9ad9a3201d7837d108366e96428760dd83",
+                      "mode":  "REVIEW_ONLY"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Notifications/NotifWriter004AContract.cs",
+                      "sha256":  "B09D16168882F4D3D9EF1C6A065771552B04B4CA07CAA3734645753B58B434BF",
+                      "gitBlob":  "ad6145c7e3485a2c5093d201fd59dc2c47bf4b3f",
+                      "mode":  "PASSIVE_CONTRACT"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Notification.Writer004A.NoSql/HotelOps.Notification.Writer004A.NoSql.csproj",
+                      "sha256":  "4DAC973890CADAC54283BF1BBDDF9FFA42BB024CF80292454CDA24583ED9BBF8",
+                      "gitBlob":  "89ad2f44e5672a7c0887074bdaafccfa18bb8ad2",
+                      "mode":  "OFFLINE_TEST"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Notification.Writer004A.NoSql/Program.cs",
+                      "sha256":  "8331C3A6FB33EA24AE96E0A2B875C8029F516CC28280ECDB22B6C469CA9FA45A",
+                      "gitBlob":  "9ee167e7c0f649f4b25bc321bb1bb7357ac67084",
+                      "mode":  "OFFLINE_TEST"
+                  }
+              ]
+}

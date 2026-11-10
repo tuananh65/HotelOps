@@ -1,0 +1,83 @@
+{
+  "version": "SCHEMA002_CORRECTION_REVIEW_FIX_02",
+  "baselineIdentity": "bdfbf02f3700f6a28abd18c19f7c368ce876f593fbe18d27f240586951ee2a9a",
+  "status": "OWNER_REVIEW_PENDING_NOT_AUTHORIZED",
+  "originalProbeIds": [
+    "n01-duplicate-event",
+    "legacy-duplicate-assignment",
+    "legacy-cross-family-duplicate"
+  ],
+  "probes": [
+    {
+      "ProbeId": "n01-duplicate-event",
+      "TargetTable": "dbo.notification_publications",
+      "ExpectedIndex": "UX_n01_operation_event_v1",
+      "IndexedColumns": [
+        "actor_user_id",
+        "operation_key",
+        "event_type"
+      ],
+      "Filter": "inspection_id IS NOT NULL",
+      "IsUniqueConstraint": false,
+      "ExpectedError": 2601,
+      "OriginalSource": "scripts/verification/Fe04Schema002/Schema002Probes.cs",
+      "OriginalPlan": "scripts/database/notifications/Fe04Schema002/13_SchemaProbePlan.json",
+      "OriginalFixture": "Same actor/operation/event distinct publication IDs and distinct valid occurrence identities where feasible; owner isolates intended unique index path; expect2601/2627",
+      "CorrectedFixture": "Same actor/operation/event, two distinct owner-approved persisted inspection/cycle sources, distinct publications and occurrence keys; requested event also distinct exact Rework IDs. Schema-only component scenario, not FE05 canonical business acceptance. Owner must approve this isolation; otherwise BLOCKED.",
+      "AssertionWeakness": "Only SqlException.Number survives; unrelated PK/occurrence/assignment uniqueness can satisfy generic2601/2627",
+      "RequiredAssertion": "Native structured error class + exact parsed target/index, all provider errors consistent, correct bound isolated fixture, completed rollback and identical protected graph digests",
+      "SQL": "NOT_RUN",
+      "OwnerApproval": "PENDING"
+    },
+    {
+      "ProbeId": "legacy-duplicate-assignment",
+      "TargetTable": "dbo.notification_publications",
+      "ExpectedIndex": "UX_fs009_publication_operation",
+      "IndexedColumns": [
+        "actor_user_id",
+        "operation_key"
+      ],
+      "Filter": "event_type<>'inspection.failed' AND event_type<>'cleaning.rework.requested'",
+      "IsUniqueConstraint": false,
+      "ExpectedError": 2601,
+      "OriginalSource": "scripts/verification/Fe04Schema002/Schema002Probes.cs",
+      "OriginalPlan": "scripts/database/notifications/Fe04Schema002/13_SchemaProbePlan.json",
+      "OriginalFixture": "Two valid owned assignment publications with same operation; expect2601/2627",
+      "CorrectedFixture": "Same actor/operation, distinct valid ACTIVE assignments/tasks/publications, null or distinct occurrence keys; avoid assignment unique index collision.",
+      "AssertionWeakness": "Only SqlException.Number survives; unrelated PK/occurrence/assignment uniqueness can satisfy generic2601/2627",
+      "RequiredAssertion": "Native structured error class + exact parsed target/index, all provider errors consistent, correct bound isolated fixture, completed rollback and identical protected graph digests",
+      "SQL": "NOT_RUN",
+      "OwnerApproval": "PENDING"
+    },
+    {
+      "ProbeId": "legacy-cross-family-duplicate",
+      "TargetTable": "dbo.notification_publications",
+      "ExpectedIndex": "UX_fs009_publication_operation",
+      "IndexedColumns": [
+        "actor_user_id",
+        "operation_key"
+      ],
+      "Filter": "event_type<>'inspection.failed' AND event_type<>'cleaning.rework.requested'",
+      "IsUniqueConstraint": false,
+      "ExpectedError": 2601,
+      "OriginalSource": "scripts/verification/Fe04Schema002/Schema002Probes.cs",
+      "OriginalPlan": "scripts/database/notifications/Fe04Schema002/13_SchemaProbePlan.json",
+      "OriginalFixture": "Valid closure and REWORK_SUBMITTED source fixture sharing legacy operation; distinct occurrence/publication IDs; expect2601/2627",
+      "CorrectedFixture": "Same actor/operation, exactly one BLOCKER or COMPLETED and one REWORK_SUBMITTED with valid distinct source cycles, publications and occurrence keys; avoid other uniqueness collisions.",
+      "AssertionWeakness": "Only SqlException.Number survives; unrelated PK/occurrence/assignment uniqueness can satisfy generic2601/2627",
+      "RequiredAssertion": "Native structured error class + exact parsed target/index, all provider errors consistent, correct bound isolated fixture, completed rollback and identical protected graph digests",
+      "SQL": "NOT_RUN",
+      "OwnerApproval": "PENDING"
+    }
+  ],
+  "languagePolicy": "Exact supported SQL Server English2601/2627 templates only; unsupported/localized/truncated/ambiguous text fails closed",
+  "identifierPolicy": "SQL single-quoted tokens and bracket/double-quoted identifiers; exact ordinal case-sensitive normalized schema.table and index components. No Unicode folding, case folding, prefix/suffix or key-value substring matches",
+  "expectedErrorPolicy": "Both reviewed objects are CREATE UNIQUE INDEX, not UNIQUE constraints: rich probes require2601. Legacy API may parse2627 UNIQUE KEY messages only as necessary index-only evidence, never full probe acceptance",
+  "capture": "ERROR_NUMBER/MESSAGE/PROCEDURE/LINE, XACT_STATE, @@TRANCOUNT, original probe/table/index labels; native parsed names are actual evidence, labels alone never count",
+  "fixturePolicy": "Two owned rows, same actor/operation with isolated non-target unique keys; both independently pass original insert/source/FK/CHECK then rollback under one continuous central exclusive lease/no competing writer before duplicate batch",
+  "transactionPolicy": "C# owns one Serializable transaction per phase; SQL TRY/CATCH returns diagnostics even doomed; C# full rollback with CancellationToken.None, verify @@TRANCOUNT0 and preserved3 graph counts/digests in fresh transaction.1205/cleanup failure never PASS",
+  "authorization": "Existing external schema/runtime owner authorization before any connection, actual baseline/source/assembly/artifact/receipt/fixture/capture-script hashes; no keys/fixtures/runtime approval supplied",
+  "execution": "NOT_RUN",
+  "actualFixtureEvidence": "Mandatory independently supplied signed receipt; hash computed from raw bytes, expected/actual/provenance separate; missing => NOT_VERIFIED",
+  "actualProviderEvidence": "Mandatory independent SqlException.Errors observer envelope bound to execution/capture; missing => NOT_AVAILABLE; SQL TRY/CATCH alone insufficient"
+}
