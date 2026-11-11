@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   InspectionAssignmentClient,
   assignmentError,
@@ -8,24 +8,29 @@ import {
 const api = new InspectionAssignmentClient();
 export function InspectionAssignmentCandidate({
   branchId,
+  roomId,
   onOpenInspection,
 }: {
   branchId: number;
+  roomId?: number;
   onOpenInspection: (id: number) => void;
 }) {
   return (
     <Assignment
-      key={branchId}
+      key={branchId + ":" + (roomId ?? "all")}
       branchId={branchId}
+      roomId={roomId}
       onOpenInspection={onOpenInspection}
     />
   );
 }
 function Assignment({
   branchId,
+  roomId,
   onOpenInspection,
 }: {
   branchId: number;
+  roomId?: number;
   onOpenInspection: (id: number) => void;
 }) {
   const [queue, setQueue] = useState<AssignmentQueue>({
@@ -42,12 +47,14 @@ function Assignment({
     [review, setReview] = useState(false),
     [confirmed, setConfirmed] = useState(false),
     [blocked, setBlocked] = useState(false);
+  const optionsRequest = useRef<AbortController | null>(null);
+  useEffect(() => () => optionsRequest.current?.abort(), []);
   useEffect(() => {
     const c = new AbortController();
     setBusy(true);
     api
-      .queue(branchId, c.signal)
-      .then(setQueue)
+      .queue(branchId, c.signal, roomId)
+      .then(value => { if (!c.signal.aborted) setQueue(value); })
       .catch((e) => {
         if (!c.signal.aborted) setError(assignmentError(e));
       })
@@ -55,22 +62,36 @@ function Assignment({
         if (!c.signal.aborted) setBusy(false);
       });
     return () => c.abort();
-  }, [branchId]);
+  }, [branchId, roomId]);
   async function open(task: number) {
+    optionsRequest.current?.abort();
+    const request = new AbortController();
+    optionsRequest.current = request;
     setBusy(true);
     setError("");
     setReview(false);
     setConfirmed(false);
+    setSource(null);
+    setInspector("");
+    setSupervisor("");
+    setDue("");
+    setReason("");
+    setBlocked(true);
     try {
-      setSource(await api.options(branchId, task));
+      const selected = queue.pending.find(t => t.taskId === task);
+      if (!selected) return;
+      const fresh = await api.options(branchId, task, request.signal, roomId ?? selected.roomId);
+      if (request.signal.aborted) return;
+      setSource(fresh);
       setInspector("");
       setSupervisor("");
       setBlocked(false);
     } catch (e) {
+      if (request.signal.aborted) return;
       setError(assignmentError(e));
       setBlocked(true);
     } finally {
-      setBusy(false);
+      if (!request.signal.aborted) setBusy(false);
     }
   }
   async function confirm() {

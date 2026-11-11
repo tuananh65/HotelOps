@@ -41,18 +41,23 @@ export class InspectionAssignmentClient {
     if (!id(branch)) throw new ApiError(400, "BRANCH_REQUIRED");
     return `/branches/${branch}/inspection-assignment-candidate`;
   }
-  async queue(branch: number, signal?: AbortSignal): Promise<AssignmentQueue> {
-    const q = object(await getJson(this.path(branch), signal));
+  private roomQuery(room?: number) {
+    if (room !== undefined && !id(room)) throw new ApiError(400, "ROOM_REQUIRED");
+    return room === undefined ? "" : `?roomId=${room}`;
+  }
+  async queue(branch: number, signal?: AbortSignal, room?: number): Promise<AssignmentQueue> {
+    const q = object(await getJson(this.path(branch) + this.roomQuery(room), signal));
     if (
       !Array.isArray(q.pending) ||
       !Array.isArray(q.assigned) ||
       q.pending.some((p) => {
         const x = object(p);
-        return !id(x.taskId) || !id(x.roomId);
+        return !id(x.taskId) || !id(x.roomId) || (room !== undefined && x.roomId !== room);
       }) ||
       q.assigned.some((p) => {
         const x = object(p);
         return (
+          (room !== undefined && x.roomId !== room) ||
           !id(x.inspectionId) ||
           !id(x.roomId) ||
           !id(x.checklistVersionId) ||
@@ -67,11 +72,13 @@ export class InspectionAssignmentClient {
     branch: number,
     task: number,
     signal?: AbortSignal,
+    room?: number,
   ): Promise<AssignmentOptions> {
     if (!id(task)) throw new ApiError(400, "TASK_REQUIRED");
-    const x = object(await getJson(this.path(branch) + `/${task}`, signal));
+    const x = object(await getJson(this.path(branch) + `/${task}` + this.roomQuery(room), signal));
     if (
       x.taskId !== task ||
+      (room !== undefined && x.roomId !== room) ||
       !id(x.roomId) ||
       !id(x.checklistVersionId) ||
       !strongTag(x.taskRevision) ||
@@ -111,7 +118,7 @@ export class InspectionAssignmentClient {
       /[\r\n]/.test(csrf.csrfToken)
     )
       throw new ApiError(502, "INVALID_CSRF_RESPONSE");
-    await send(this.path(branch) + `/${source.taskId}`, signal, {
+    await send(this.path(branch) + `/${source.taskId}` + this.roomQuery(source.roomId), signal, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -137,6 +144,7 @@ export function assignmentError(e: unknown) {
     if (e.status === 401) return "Your session expired. Sign in again.";
     if (e.status === 403)
       return "You cannot assign inspections in this branch.";
+    if (e.status === 404) return "The room or task is no longer available in this branch.";
     if (e.status === 503)
       return "Assignment is unavailable until mandatory notification is accepted.";
     if (e.status === 412 || e.status === 409)

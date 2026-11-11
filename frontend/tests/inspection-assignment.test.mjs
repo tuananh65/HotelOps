@@ -202,3 +202,19 @@ for (const value of [
       );
     },
   );
+
+const { parseAssignmentContext } = await import(compile("src/features/inspectionAssignment/navigation.ts", "navigation.mjs"));
+for (const search of ["", "?roomId=3", "?branchId=", "?branchId=0", "?branchId=-1", "?branchId=1.5", "?branchId=1e2", "?branchId=01", "?branchId=9007199254740992", "?branchId=1&branchId=2", "?branchId=1&roomId=", "?branchId=1&roomId=0", "?branchId=1&roomId=3&roomId=3", "?branchId=1&taskId=2"])
+  test("reject navigation " + search, () => assert.equal(parseAssignmentContext(search), null));
+test("parse branch and optional room", () => {
+  assert.deepEqual(parseAssignmentContext("?branchId=1"), { branchId: 1, roomId: undefined });
+  assert.deepEqual(parseAssignmentContext("?branchId=1&roomId=3"), { branchId: 1, roomId: 3 });
+});
+test("room context reaches server and mismatched options fail closed", async () => {
+  await intercept(async url => { assert.ok(url.endsWith("/2?roomId=9")); return response(options); },
+    async () => assert.rejects(api.options(1, 2, undefined, 9), e => e.status === 502));
+});
+test("room queue cannot leak mismatched pending results", async () => {
+  await intercept(async url => { assert.ok(url.endsWith("?roomId=9")); return response({pending:[{taskId:2,roomId:3}],assigned:[]}); },
+    async () => assert.rejects(api.queue(1, undefined, 9), e => e.status === 502));
+});

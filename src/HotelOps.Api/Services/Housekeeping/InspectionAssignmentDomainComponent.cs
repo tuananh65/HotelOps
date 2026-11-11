@@ -73,25 +73,28 @@ public sealed partial class RoomTypeCreationService
         source.VersionId=await db.InspectionChecklistVersions.AsNoTracking().Where(v=>v.ChecklistId==checklist&&v.Status=="PUBLISHED"&&(v.EffectiveAt==null||v.EffectiveAt<=now)&&v.InspectionChecklistItems.Any(c=>c.IsActive)).OrderByDescending(v=>v.VersionNo).Select(v=>v.VersionId).FirstOrDefaultAsync(ct);
         return source.VersionId==0?new(RoomTypeBatchStatus.InvalidReference):new(RoomTypeBatchStatus.Success,source);
     }
-    internal Task<RoomTypeBatchResult> ReadInspectionAssignmentOptionsAsync(SessionReference ticket,long sid,long branch,long task,CancellationToken ct)
+    internal Task<RoomTypeBatchResult> ReadInspectionAssignmentOptionsAsync(SessionReference ticket,long sid,long branch,long task,CancellationToken ct,long? roomId=null)
         =>BatchAsync(ticket,sid,branch,async(_,token)=>{
+            var context=await ValidateAssignmentRoomAsync(branch,roomId,token);if(context!=RoomTypeBatchStatus.Success)return new(context);
             var read=await ReadInspectionAssignmentSource(branch,task,token);if(read.Status!=RoomTypeBatchStatus.Success)return read;
             var source=(AssignmentSource)read.Value!;
+            if(roomId.HasValue && source.RoomId!=roomId.Value)return new(RoomTypeBatchStatus.NotFound);
             var people=await db.Users.AsNoTracking().Where(u=>u.UserBranchAccessUsers.Any(a=>a.BranchId==branch&&a.RevokedAt==null)).OrderBy(u=>u.UserId).Select(u=>new InspectionAssignmentPerson(u.UserId,u.FullName)).ToArrayAsync(token);
             var eligible=new List<InspectionAssignmentPerson>();var supervisors=new List<InspectionAssignmentPerson>();
             foreach(var p in people)if(await EligibleInspector(p.UserId,branch,token)){supervisors.Add(p);if(!await InspectorCleaningConflict(task,p.UserId,token))eligible.Add(p);}
             return new(RoomTypeBatchStatus.Success,new InspectionAssignmentOptions(task,source.RoomId,WorkflowTag(source.TaskRevision),WorkflowTag(source.CycleRevision),source.VersionId,eligible,supervisors,false),WorkflowTag(source.TaskRevision));
         },ct,requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM");
-    internal Task<RoomTypeBatchResult> ReadInspectionAssignmentQueueAsync(SessionReference ticket,long sid,long branch,CancellationToken ct)
+    internal Task<RoomTypeBatchResult> ReadInspectionAssignmentQueueAsync(SessionReference ticket,long sid,long branch,CancellationToken ct,long? roomId=null)
         =>BatchAsync(ticket,sid,branch,async(_,token)=>{
             // Existing committed UC041 collection contract uses INSPECTION_VIEW; assigned-self uses PERFORM.
             // This compound candidate requires their intersection, never a new broad read grant.
             if(!(await permissions.EvaluateBranchAsync("INSPECTION_VIEW",branch,token)).IsGranted)return new(RoomTypeBatchStatus.Forbidden);
+            var context=await ValidateAssignmentRoomAsync(branch,roomId,token);if(context!=RoomTypeBatchStatus.Success)return new(context);
             var pending=await db.Database.SqlQuery<AssignmentQueueRow>($"""
                 SELECT t.cleaning_task_id AS TaskId,r.room_id AS RoomId FROM dbo.cleaning_tasks t
                 JOIN dbo.rooms r ON r.room_id=t.room_id JOIN dbo.floors f ON f.floor_id=r.floor_id LEFT JOIN dbo.areas a ON a.area_id=r.area_id
                 JOIN dbo.room_cleaning_cycle_state c ON c.room_id=r.room_id AND c.cleaning_task_id=t.cleaning_task_id
-                WHERE r.branch_id={branch} AND r.is_active=1 AND f.is_active=1 AND (r.area_id IS NULL OR a.is_active=1) AND t.workflow_status='PENDING_INSPECTION'
+                WHERE r.branch_id={branch} AND ({roomId} IS NULL OR r.room_id={roomId}) AND r.is_active=1 AND f.is_active=1 AND (r.area_id IS NULL OR a.is_active=1) AND t.workflow_status='PENDING_INSPECTION'
                   AND NOT EXISTS(SELECT 1 FROM dbo.room_inspections i WHERE i.cleaning_task_id=t.cleaning_task_id AND i.status NOT IN('COMPLETED','CANCELLED'))
                 ORDER BY t.cleaning_task_id
                 """).ToArrayAsync(token);
@@ -99,19 +102,28 @@ public sealed partial class RoomTypeCreationService
                 SELECT i.inspection_id AS InspectionId,i.room_id AS RoomId,i.version_id AS VersionId,i.row_version AS Revision
                 FROM dbo.room_inspections i JOIN dbo.rooms r ON r.room_id=i.room_id
                 JOIN dbo.room_cleaning_cycle_state c ON c.room_id=i.room_id AND c.cleaning_task_id=i.cleaning_task_id
-                WHERE r.branch_id={branch} AND r.is_active=1 AND i.inspector_user_id={ticket.UserId}
+                WHERE r.branch_id={branch} AND ({roomId} IS NULL OR r.room_id={roomId}) AND r.is_active=1 AND i.inspector_user_id={ticket.UserId}
                   AND i.workflow_status IN('ASSIGNED','INSPECTING','PENDING_CONCLUSION') ORDER BY i.inspection_id
                 """).ToArrayAsync(token);
             return new(RoomTypeBatchStatus.Success,new InspectionAssignmentQueue(pending.Select(p=>new InspectionAssignmentTask(p.TaskId,p.RoomId)).ToArray(),assigned.Select(i=>new InspectionAssignedItem(i.InspectionId,i.RoomId,i.VersionId,WorkflowTag(i.Revision))).ToArray()));
         },ct,requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM");
-    internal async Task<RoomTypeBatchResult> PreflightInspectionAssignmentAsync(SessionReference ticket,long sid,long branch,long task,string tag,InspectionAssignmentCandidateRequest input,CancellationToken ct)
+    internal async Task<RoomTypeBatchResult> PreflightInspectionAssignmentAsync(SessionReference ticket,long sid,long branch,long task,string tag,InspectionAssignmentCandidateRequest input,CancellationToken ct,long? roomId=null)
     {
-        var read=await ReadInspectionAssignmentOptionsAsync(ticket,sid,branch,task,ct);if(read.Status!=RoomTypeBatchStatus.Success)return read;
+        var read=await ReadInspectionAssignmentOptionsAsync(ticket,sid,branch,task,ct,roomId);if(read.Status!=RoomTypeBatchStatus.Success)return read;
         var s=(InspectionAssignmentOptions)read.Value!;
         if(!input.Confirmed||!s.Inspectors.Any(p=>p.UserId==input.InspectorId)||!s.ResponsibleSupervisors.Any(p=>p.UserId==input.ResponsibleSupervisorId))return new(RoomTypeBatchStatus.InvalidReference);
         WorkflowReason(input.Reason);WorkflowDue(input.DueAt,clock.GetUtcNow().UtcDateTime);
         if(tag!=s.TaskRevision||input.CycleRevision!=s.CycleRevision||input.ChecklistVersionId!=s.ChecklistVersionId)return new(RoomTypeBatchStatus.Stale);
         return new(RoomTypeBatchStatus.Unavailable);
+    }
+    // Called only inside BatchAsync after session and branch permission validation.
+    private async Task<RoomTypeBatchStatus> ValidateAssignmentRoomAsync(long branch,long? roomId,CancellationToken ct)
+    {
+        if(branch<=0 || roomId is <=0)return RoomTypeBatchStatus.InvalidReference;
+        if(roomId is null)return RoomTypeBatchStatus.Success;
+        var room=await db.Rooms.AsNoTracking().Where(r=>r.RoomId==roomId.Value && r.BranchId==branch)
+            .Select(r=>new { Active=r.IsActive && r.Floor.IsActive && (r.AreaId==null || r.Area!.IsActive) }).SingleOrDefaultAsync(ct);
+        return room is null ? RoomTypeBatchStatus.NotFound : room.Active ? RoomTypeBatchStatus.Success : RoomTypeBatchStatus.Inactive;
     }
     private sealed class AssignmentQueueRow{public long TaskId{get;set;}public long RoomId{get;set;}}
     private sealed class AssignedQueueRow{public long InspectionId{get;set;}public long RoomId{get;set;}public long VersionId{get;set;}public byte[] Revision{get;set;}=[];}

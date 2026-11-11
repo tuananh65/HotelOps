@@ -9,14 +9,18 @@ namespace HotelOps.Api.Controllers;
 [Route("api/branches/{branchId:long}/inspection-assignment-candidate")]
 public sealed class InspectionAssignmentCandidateController(RoomTypeCreationService service):ControllerBase
 {
-    [HttpGet]public Task<IActionResult> Queue(long branchId,CancellationToken ct)=>Run(t=>service.ReadInspectionAssignmentQueueAsync(t.Item1,t.Item2,branchId,ct));
-    [HttpGet("{taskId:long}")]public Task<IActionResult> Options(long branchId,long taskId,CancellationToken ct)=>Run(t=>service.ReadInspectionAssignmentOptionsAsync(t.Item1,t.Item2,branchId,taskId,ct));
-    [HttpPost("{taskId:long}")]public Task<IActionResult> Confirm(long branchId,long taskId,[FromBody] InspectionAssignmentCandidateRequest input,CancellationToken ct)
+    [HttpGet]public Task<IActionResult> Queue(long branchId,CancellationToken ct,[FromQuery] long? roomId=null)=>Run(t=>service.ReadInspectionAssignmentQueueAsync(t.Item1,t.Item2,branchId,ct,roomId));
+    [HttpGet("{taskId:long}")]public Task<IActionResult> Options(long branchId,long taskId,CancellationToken ct,[FromQuery] long? roomId=null)=>Run(t=>service.ReadInspectionAssignmentOptionsAsync(t.Item1,t.Item2,branchId,taskId,ct,roomId));
+    [HttpPost("{taskId:long}")]public Task<IActionResult> Confirm(long branchId,long taskId,[FromBody] InspectionAssignmentCandidateRequest input,CancellationToken ct,[FromQuery] long? roomId=null)
     {
         if(!Request.Headers.ContainsKey("If-Match"))return Task.FromResult<IActionResult>(Problem(statusCode:428,title:"IF_MATCH_REQUIRED"));
-        return Run(t=>service.PreflightInspectionAssignmentAsync(t.Item1,t.Item2,branchId,taskId,Request.Headers.IfMatch.ToString(),input,ct));
+        return Run(t=>service.PreflightInspectionAssignmentAsync(t.Item1,t.Item2,branchId,taskId,Request.Headers.IfMatch.ToString(),input,ct,roomId));
     }
     private async Task<IActionResult> Run(Func<(SessionReference,long),Task<RoomTypeBatchResult>> call){
+        if(Request.Query.TryGetValue("roomId",out var rooms) && (rooms.Count!=1 ||
+            !long.TryParse(rooms[0],System.Globalization.NumberStyles.None,System.Globalization.CultureInfo.InvariantCulture,out var room) ||
+            room<=0 || room>9007199254740991 || rooms[0]!=room.ToString(System.Globalization.CultureInfo.InvariantCulture)))
+            return Problem(statusCode:400,title:"INVALID_ROOM_CONTEXT");
         if(!Request.IsHttps)return Problem(statusCode:400,title:"HTTPS_REQUIRED");
         if(!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid))return Problem(statusCode:401,title:"SESSION_INVALID");
         RoomTypeBatchResult r;try{r=await call((ticket!,sid));}catch(System.ComponentModel.DataAnnotations.ValidationException){return Problem(statusCode:400,title:"INVALID_REQUEST");}if(r.Status==RoomTypeBatchStatus.Success){Response.Headers.ETag=r.ETag;return Ok(r.Value);}
