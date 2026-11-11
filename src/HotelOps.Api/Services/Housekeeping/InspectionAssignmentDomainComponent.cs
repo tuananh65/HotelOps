@@ -106,6 +106,8 @@ public sealed partial class RoomTypeCreationService
         },ct,requireRoomTypeSchema:false,permissionCode:"INSPECTION_PERFORM");
     internal async Task<RoomTypeBatchResult> PreflightInspectionAssignmentAsync(SessionReference ticket,long sid,long branch,long task,string tag,InspectionAssignmentCandidateRequest input,CancellationToken ct)
     {
+        // Optional candidate transport only. Never substitutes for a persisted Inspection ID.
+        if(input.OperationId==Guid.Empty)return new(RoomTypeBatchStatus.InvalidReference);
         var read=await ReadInspectionAssignmentOptionsAsync(ticket,sid,branch,task,ct);if(read.Status!=RoomTypeBatchStatus.Success)return read;
         var s=(InspectionAssignmentOptions)read.Value!;
         if(!input.Confirmed||!s.Inspectors.Any(p=>p.UserId==input.InspectorId)||!s.ResponsibleSupervisors.Any(p=>p.UserId==input.ResponsibleSupervisorId))return new(RoomTypeBatchStatus.InvalidReference);

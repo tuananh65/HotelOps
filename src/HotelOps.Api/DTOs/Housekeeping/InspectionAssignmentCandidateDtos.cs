@@ -1,7 +1,7 @@
 namespace HotelOps.Api.DTOs.Housekeeping;
 public sealed record InspectionAssignmentExpectation(string TaskRevision,string CycleRevision,long ChecklistVersionId);
 public sealed record InspectionAssignmentCandidateRequest(long InspectorId,long ResponsibleSupervisorId,DateTime DueAt,string Reason,
-    string CycleRevision,long ChecklistVersionId,bool Confirmed);
+    string CycleRevision,long ChecklistVersionId,bool Confirmed,Guid? OperationId=null);
 public sealed record InspectionAssignmentPerson(long UserId,string FullName);
 public sealed record InspectionAssignmentOptions(long TaskId,long RoomId,string TaskRevision,string CycleRevision,long ChecklistVersionId,
     IReadOnlyList<InspectionAssignmentPerson> Inspectors,IReadOnlyList<InspectionAssignmentPerson> ResponsibleSupervisors,bool ProductionMutationAvailable);

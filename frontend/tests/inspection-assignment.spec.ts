@@ -29,6 +29,10 @@ for (const failure of [503, 412, "unknown"] as const)
             posts++;
             expect(req.headers()["if-match"]).toBe(options.taskRevision);
             expect(req.postDataJSON().responsibleSupervisorId).toBe(6);
+            expect(req.postDataJSON().operationId).toMatch(
+              /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+            );
+            expect(req.postDataJSON()).not.toHaveProperty("inspectionId");
             if (failure === "unknown") await route.abort("failed");
             else
               await route.fulfill({
@@ -56,8 +60,12 @@ for (const failure of [503, 412, "unknown"] as const)
       );
       await page.goto("/tests/fixtures/inspection-assignment.html");
       await page.getByRole("button", { name: "Room #3 · Task #2" }).click();
-      await page.getByRole("combobox", {name:"Inspector", exact:true}).selectOption("5");
-      await page.getByRole("combobox", {name:"Responsible supervisor", exact:true}).selectOption("6");
+      await page
+        .getByRole("combobox", { name: "Inspector", exact: true })
+        .selectOption("5");
+      await page
+        .getByRole("combobox", { name: "Responsible supervisor", exact: true })
+        .selectOption("6");
       await page.getByLabel("Due time").fill("2030-01-01T12:00");
       await page
         .getByLabel("Reason", { exact: true })

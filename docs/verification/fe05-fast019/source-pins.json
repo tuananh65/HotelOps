@@ -1,0 +1,62 @@
+﻿[
+    {
+        "name":  "FAST018",
+        "revision":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionAssignmentDomainComponent.cs",
+        "gitBlob":  "edc5350e2356629d410299058ee9152db6ca5b20"
+    },
+    {
+        "name":  "FAST018",
+        "revision":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionApproveComposition.cs",
+        "gitBlob":  "6c4730c5814a254223fac6fb1938c159f33aa42e"
+    },
+    {
+        "name":  "FAST018",
+        "revision":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionApproveDomainWriter.cs",
+        "gitBlob":  "68241b415501fb245d81722cc011a4b785eaaf2a"
+    },
+    {
+        "name":  "FAST018",
+        "revision":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionRoomProjectionAdapter.cs",
+        "gitBlob":  "cb9dad1e0f92c498a235b782290f8180d1a70d87"
+    },
+    {
+        "name":  "FAST018",
+        "revision":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+        "path":  "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
+        "gitBlob":  "c0f14a67041bc735f89c820f48f6410cd98fa466"
+    },
+    {
+        "name":  "FAST018",
+        "revision":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+        "path":  "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
+        "gitBlob":  "8f14a2bb9e9495f1302354c071e553fe6993d1ee"
+    },
+    {
+        "name":  "N01",
+        "revision":  "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+        "path":  "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
+        "gitBlob":  "169014cb45085f00928e9454570e18054ee5d30e"
+    },
+    {
+        "name":  "N01",
+        "revision":  "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+        "path":  "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
+        "gitBlob":  "8f14a2bb9e9495f1302354c071e553fe6993d1ee"
+    },
+    {
+        "name":  "R05",
+        "revision":  "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionSource.cs",
+        "gitBlob":  "d709fd988b49254b6031b57f0d37603b63421e74"
+    },
+    {
+        "name":  "R05",
+        "revision":  "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+        "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionContract.cs",
+        "gitBlob":  "86f2bf73fa1ce3925116f9bcfedbbf211ebcf455"
+    }
+]

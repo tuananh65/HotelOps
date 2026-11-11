@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   InspectionAssignmentClient,
   assignmentError,
@@ -28,6 +28,7 @@ function Assignment({
   branchId: number;
   onOpenInspection: (id: number) => void;
 }) {
+  const operationId = useRef<string | undefined>(undefined);
   const [queue, setQueue] = useState<AssignmentQueue>({
       pending: [],
       assigned: [],
@@ -57,6 +58,7 @@ function Assignment({
     return () => c.abort();
   }, [branchId]);
   async function open(task: number) {
+    operationId.current = undefined;
     setBusy(true);
     setError("");
     setReview(false);
@@ -85,6 +87,8 @@ function Assignment({
         new Date(due).toISOString(),
         reason,
         true,
+        undefined,
+        operationId.current,
       );
     } catch (e) {
       setError(assignmentError(e));
@@ -168,6 +172,8 @@ function Assignment({
           <button
             disabled={!valid || busy || blocked}
             onClick={() => {
+              // Retain the same UUID for repeated review of this immutable source/input.
+              operationId.current ??= crypto.randomUUID();
               setReview(true);
               setConfirmed(false);
             }}

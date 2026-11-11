@@ -92,8 +92,14 @@ export class InspectionAssignmentClient {
     reason: string,
     confirmed: boolean,
     signal?: AbortSignal,
+    operationId?: string,
   ): Promise<never> {
     if (
+      (operationId !== undefined &&
+        (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          operationId,
+        ) ||
+          operationId === "00000000-0000-0000-0000-000000000000")) ||
       !confirmed ||
       !source.inspectors.some((p) => p.userId === inspectorId) ||
       !source.responsibleSupervisors.some((p) => p.userId === supervisorId) ||
@@ -119,6 +125,8 @@ export class InspectionAssignmentClient {
         "If-Match": source.taskRevision,
       },
       body: JSON.stringify({
+        // Existing UUID operation-key convention; no reservation or replay authority.
+        operationId,
         inspectorId,
         responsibleSupervisorId: supervisorId,
         dueAt,

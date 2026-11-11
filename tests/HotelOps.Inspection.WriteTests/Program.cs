@@ -10,6 +10,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
+// Source-only contract lane: never enters the database fixture/SQL modes below.
+if(args.Length==1&&args[0]=="fast019-unit"){await InspectionContractBlockerChecks.RunAsync();return;}
 if(args.Length==2&&args[0]=="fast017-unit"){await InspectionAssignmentPlanChecks.RunAsync(args[1]);return;}
 if(args.Length == 2 && args[0] == "fast014-unit") { await InspectionFast014Checks.RunAsync(args[1]); return; }
 #if ACCEPT010_REFERENCE

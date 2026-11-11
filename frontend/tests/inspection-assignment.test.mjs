@@ -38,6 +38,7 @@ const { InspectionAssignmentClient } = await import(
   )
 );
 const api = new InspectionAssignmentClient();
+const operationId = "20261111-0000-4000-8000-000000000019";
 const options = {
   taskId: 2,
   roomId: 3,
@@ -107,6 +108,7 @@ for (const status of [401, 403, 412, 409, 503])
           assert.equal(body.responsibleSupervisorId, 6);
           assert.equal(body.cycleRevision, options.cycleRevision);
           assert.equal(body.checklistVersionId, 4);
+          assert.equal(body.operationId, operationId);
           return response({ title: "DENIED" }, status);
         },
         async () => {
@@ -119,10 +121,72 @@ for (const status of [401, 403, 412, 409, 503])
               "2030-01-01T00:00:00Z",
               "assign",
               true,
+              undefined,
+              operationId,
             ),
             (e) => e.status === status,
           );
           assert.equal(count, 1);
+        },
+      );
+    },
+  );
+
+test("explicit retry carries the same operation UUID and body; no automatic retry", async () => {
+  const bodies = [];
+  await intercept(
+    async (url, init) => {
+      if (url.endsWith("/csrf"))
+        return response({ headerName: "X-CSRF-TOKEN", csrfToken: "synthetic" });
+      bodies.push(init.body);
+      throw Error("lost response");
+    },
+    async () => {
+      for (let attempt = 0; attempt < 2; attempt++)
+        await assert.rejects(
+          api.confirm(
+            1,
+            options,
+            5,
+            6,
+            "2030-01-01T00:00:00Z",
+            "assign",
+            true,
+            undefined,
+            operationId,
+          ),
+        );
+      assert.equal(bodies.length, 2);
+      assert.equal(bodies[0], bodies[1]);
+      assert.equal(JSON.parse(bodies[0]).operationId, operationId);
+      assert.equal("inspectionId" in JSON.parse(bodies[0]), false);
+    },
+  );
+});
+
+for (const key of ["", "not-a-uuid", "00000000-0000-0000-0000-000000000000"])
+  test(
+    "invalid candidate operation identity rejected before transport: " + key,
+    async () => {
+      await intercept(
+        async () => {
+          throw Error("unexpected fetch");
+        },
+        async () => {
+          await assert.rejects(
+            api.confirm(
+              1,
+              options,
+              5,
+              6,
+              "2030-01-01T00:00:00Z",
+              "assign",
+              true,
+              undefined,
+              key,
+            ),
+            (e) => e.status === 400,
+          );
         },
       );
     },

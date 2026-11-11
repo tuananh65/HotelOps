@@ -1,0 +1,119 @@
+﻿{
+    "task":  "FE05-FAST019",
+    "branch":  "feature/dev1-fe05-contract-blockers",
+    "baseline":  "940b26b06f4bd19c457cdfea71a81a6d2c59ae19",
+    "hashBasis":  "Physical working-tree bytes; manifest excluded; Git text normalization may differ",
+    "sourceContractReady":  false,
+    "files":  [
+                  {
+                      "path":  "docs/verification/fe05-fast019/backend-build.log",
+                      "sha256":  "AAF8F3B3EC126E4AE307907B726729CFF03D8CF06EDE8C40EB71241E2B151D80",
+                      "bytes":  3014
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/browser-candidate.log",
+                      "sha256":  "395FB5507E6EB9020E4EBCA9535A95366208C3D9D628AE8865FAB1AC02F654CA",
+                      "bytes":  2798
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/DEV2_G04_HANDOFF.md",
+                      "sha256":  "CE065368517BAD4FABB5338FE09E49CC18A5A91AD3F91573B25897A7FF247CB2",
+                      "bytes":  21165
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/focused-contract.log",
+                      "sha256":  "6E0CE717D504A41BEB8EA35D0478889E733FA9515C1D9943AFE77B6593688975",
+                      "bytes":  4656
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/frontend-build.log",
+                      "sha256":  "1BB6D3FEB7001FF2E70878DF7FA0D282587439DA2F5DF47019B3696B3E6686D8",
+                      "bytes":  2310
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/frontend-fe05-build.log",
+                      "sha256":  "DF361C482575301594B5DCAB58AAB5D6D9595242BD23A3BCABAC5C3D8A08242D",
+                      "bytes":  1550
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/frontend-focused.log",
+                      "sha256":  "BEC95865E3CD169364E64826546E2068E621BD6C7532762C44FC1AECCC47B1AC",
+                      "bytes":  4572
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/frontend-format.log",
+                      "sha256":  "0009B7D42D607446D8CA5B2C72C08C9E0F771CBA994147C4D59B440A99D0152C",
+                      "bytes":  1620
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/frontend-install.log",
+                      "sha256":  "4A4B5699B342F3F0CC82330FC49A3E88673A3217AAE5142E579284FB259BBB02",
+                      "bytes":  3678
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/n01-nosql.log",
+                      "sha256":  "5B8108A2B792B60FC2E092ABDA39D3C3A8CD32F5C874ED716C31A99464E8A0A6",
+                      "bytes":  20776
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/n01-nosql-initial-no-restore.log",
+                      "sha256":  "B486F56EA98AA44F0DA897509B425F210B1B6B22E5C8813919A2B79885D16C05",
+                      "bytes":  1662
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/REPORT.md",
+                      "sha256":  "6E7E39347F11CC04774CC9E66462B62CF7D82338A4E92C42C37B528F7FA4EE43",
+                      "bytes":  8043
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/solution-test.log",
+                      "sha256":  "C1E97067C5F479A44A6F57297A0A8F87A59D181C3C529910F8BF059094BC3ABB",
+                      "bytes":  13
+                  },
+                  {
+                      "path":  "docs/verification/fe05-fast019/source-pins.json",
+                      "sha256":  "768FD0B7ECA82E7D60CAECB2EF494895741292E6B720A7F95FD0D35388FD2DA7",
+                      "bytes":  2639
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionAssignment/client.ts",
+                      "sha256":  "F4F8DBB9BF081C00E22AB0A64AAE9521342A2AC4E2AE8FB4339E259265901CAA",
+                      "bytes":  5385
+                  },
+                  {
+                      "path":  "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+                      "sha256":  "8BA09CBE440225AEEBB1C0FEE97F7F7053AE10B8C08AED80978AD2C4992FEEDF",
+                      "bytes":  6370
+                  },
+                  {
+                      "path":  "frontend/tests/inspection-assignment.spec.ts",
+                      "sha256":  "374973CAA0F328C834AE037CC6582801AEDA38C4528698787BB05DDB1689D723",
+                      "bytes":  4007
+                  },
+                  {
+                      "path":  "frontend/tests/inspection-assignment.test.mjs",
+                      "sha256":  "F81B31D7EA7F5BCEA40129F94938B9EE0F5EA1E552EC44069D939981868A58C7",
+                      "bytes":  7629
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/DTOs/Housekeeping/InspectionAssignmentCandidateDtos.cs",
+                      "sha256":  "62977DC5F4525F871A1207770B760DE7F62EA6D2BE03792B241FFD8469E6B38B",
+                      "bytes":  1417
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/InspectionAssignmentDomainComponent.cs",
+                      "sha256":  "1ED1D2E0662953137FB010A71F83F44B04AD7C013CD5D636D86DCB539EE1CAE9",
+                      "bytes":  13559
+                  },
+                  {
+                      "path":  "tests/HotelOps.Inspection.WriteTests/InspectionContractBlockerChecks.cs",
+                      "sha256":  "44247D76E2C24783D4389202E9ED4CC0F877CB08B16613E1E56E700E9366894E",
+                      "bytes":  3969
+                  },
+                  {
+                      "path":  "tests/HotelOps.Inspection.WriteTests/Program.cs",
+                      "sha256":  "D1FF62E0D7ADDE070F102614B6C73423BDA693CDC1A7754E9A6B2044AD110310",
+                      "bytes":  32749
+                  }
+              ]
+}
