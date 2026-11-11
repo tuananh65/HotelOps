@@ -124,7 +124,7 @@
     },
     {
       "path": "frontend/tests/shared-auth-host.test.mjs",
-      "sha256": "5D5359B8C824851159A587DD53526A1B87DA7FF75F0E5D9FD59D9586C8DB62A5"
+      "sha256": "EB488D8DF3C014C93A28A5360E593B3EE610FFD33E402C393D7A6017C6E1E4D9"
     },
     {
       "path": "frontend/src/auth/AuthRouteHost.tsx",
@@ -132,7 +132,7 @@
     },
     {
       "path": "frontend/src/shared-host/LoginRoute.tsx",
-      "sha256": "DEF97A6E0F8B8322E661C735D88CC75C7F77341E465D7052D393D8309F5C7F96"
+      "sha256": "7412E58C6B3379E8A787904EDDD37CCD43BEF39FCD723A91768994889DA027B4"
     }
   ],
   "documentation": [
@@ -262,8 +262,8 @@
     }
   ],
   "verification": {
-    "tests": 155,
-    "pass": 155,
+    "tests": 163,
+    "pass": 163,
     "fail": 0,
     "cancelled": 0,
     "skipped": 0,
@@ -273,5 +273,13 @@
     "formatExit": 0,
     "diffExit": 0
   },
-  "productionActivation": false
+  "productionActivation": false,
+  "lifecycleRevision": {
+    "task": "SHARED-ROUTER-031",
+    "previousHead": "9437eee1f585fff2ecdc5e78ebab7b7028ca1a46",
+    "newCases": 8,
+    "returnUrlCases": 53,
+    "initialRun": "48 PASS, 4 locator timeouts, exit 1; reactive loading corrected; final full rerun required",
+    "mergeGate": "PL and FE03/DEV1 review plus controlled HTTPS/session smoke pending"
+  }
 }

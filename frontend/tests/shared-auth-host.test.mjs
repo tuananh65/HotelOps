@@ -87,7 +87,7 @@ const bundle = await build({
     resolveDir: process.cwd(),
     contents: `
 import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import React,{StrictMode}from'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./src/auth/AuthProvider';import{SharedAuthHost}from'./src/shared-host/SharedAuthHost';
-let snapshot={status:'INITIALIZING',session:null,pending:null,error:null};const listeners=new Set();const session={user:{id:'7',username:'staff',name:'Staff'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:false};window.calls=[];window.fetch=async(url)=>{window.calls.push(String(url));if(window.realAuth){const response=window.realReplies[String(url)]?.shift();if(!response)throw Error("Unexpected offline request");return new Response(response.status===204?null:JSON.stringify(response.body),{status:response.status,headers:{"Content-Type":"application/json"}})}return new Response('{}',{status:503})};function set(status){snapshot={status,session:['AUTHENTICATED','RESTRICTED'].includes(status)?{...session,mustChangePassword:status==='RESTRICTED'}:null,pending:null,error:null};listeners.forEach(f=>f())}const store={subscribe(f){listeners.add(f);return()=>listeners.delete(f)},getSnapshot:()=>snapshot,initialize:async()=>({ok:false,error:{kind:'network'}}),revalidate:async()=>{window.revalidationCalls=(window.revalidationCalls??0)+1;if(window.revalidationMode==="fail"){set("ERROR_UNAVAILABLE");return{ok:false,error:{kind:"network"}}}if(window.revalidationMode==="defer")await new Promise(r=>window.finishRevalidation=r);set('AUTHENTICATED');return{ok:true,data:session}},login:async()=>{set('AUTHENTICATED');return{ok:true,data:session}},logout:async()=>{set('ANONYMOUS');return{ok:true}},changePassword:async()=>{set('AUTHENTICATED');return{ok:true,data:session}}};window.fixture={set,navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};const host=<SharedAuthHost/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={window.realAuth?window.realStore??(window.realStore=createAuthStore(createAuthApi(window.fetch))):store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
+let snapshot={status:'INITIALIZING',session:null,pending:null,error:null};const listeners=new Set();const session={user:{id:'7',username:'staff',name:'Staff'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:false};window.calls=[];window.fetch=async(url)=>{window.calls.push(String(url));if(window.realAuth){const response=window.realReplies[String(url)]?.shift();if(!response)throw Error("Unexpected offline request");if(response.deferred)await new Promise(r=>window.finishRealRevalidation=r);return new Response(response.status===204?null:JSON.stringify(response.body),{status:response.status,headers:{"Content-Type":"application/json"}})}return new Response('{}',{status:503})};function set(status){snapshot={status,session:['AUTHENTICATED','RESTRICTED'].includes(status)?{...session,mustChangePassword:status==='RESTRICTED'}:null,pending:null,error:null};listeners.forEach(f=>f())}const store={subscribe(f){listeners.add(f);return()=>listeners.delete(f)},getSnapshot:()=>snapshot,initialize:async()=>({ok:false,error:{kind:'network'}}),revalidate:async()=>{window.revalidationCalls=(window.revalidationCalls??0)+1;if(window.revalidationMode==="fail"){set("ERROR_UNAVAILABLE");return{ok:false,error:{kind:"network"}}}if(window.revalidationMode==="defer")await new Promise(r=>window.finishRevalidation=r);set('AUTHENTICATED');return{ok:true,data:snapshot.session}},login:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}},logout:async()=>{set('ANONYMOUS');return{ok:true}},changePassword:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}}};window.fixture={set,navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};const host=<SharedAuthHost/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={window.realAuth?window.realStore??(window.realStore=createAuthStore(createAuthApi(window.fetch))):store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
 `,
   },
   bundle: true,
@@ -337,5 +337,130 @@ test("real restricted session cannot restore business destination", async () => 
   const p = await realLoginPage(r);
   await p.waitForURL(origin + "/change-password");
   assert.equal(await p.getByRole("navigation").count(), 0);
+  await p.close();
+});
+
+function loginUrl(destination) {
+  return "/login?" + new URLSearchParams({ returnTo: destination });
+}
+async function signIn(p) {
+  await p.getByLabel("Username or email").fill("staff");
+  await p.getByLabel("Password", { exact: true }).fill("synthetic");
+  await p.getByRole("button", { name: "Sign in", exact: true }).click();
+}
+test("031 query A to B before login uses B", async () => {
+  const p = await pageAt(loginUrl("/profile"), "ANONYMOUS");
+  await p.evaluate(
+    (path) => window.fixture.navigate(path),
+    loginUrl("/rework?branchId=7"),
+  );
+  await signIn(p);
+  await p.waitForURL(origin + "/rework?branchId=7");
+  assert.equal(await p.evaluate(() => window.revalidationCalls), 1);
+  await p.close();
+});
+for (const next of [
+  "/rework?branchId=7",
+  "https://evil.test",
+  "/incidents/new?branchId=7",
+  "/inspections/assignment?branchId=7",
+])
+  test("031 pending old GET cannot restore A after query " + next, async () => {
+    const p = await pageAt(loginUrl("/profile"), "ANONYMOUS");
+    await p.evaluate(() => (window.revalidationMode = "defer"));
+    await signIn(p);
+    await p.waitForFunction(() => !!window.finishRevalidation);
+    await p.evaluate((path) => {
+      window.oldFinish = window.finishRevalidation;
+      window.fixture.navigate(path);
+    }, loginUrl(next));
+    await p.getByText("Checking your session...").waitFor();
+    await p.evaluate(() => window.oldFinish());
+    await p.waitForFunction(() => window.revalidationCalls === 2);
+    assert.equal(new URL(p.url()).pathname, "/login");
+    assert.equal(await p.getByRole("navigation").count(), 0);
+    await p.evaluate(() => window.finishRevalidation());
+    await p.waitForURL(
+      origin + (next.startsWith("/rework") ? next : "/rooms/status"),
+    );
+    await p.close();
+  });
+test("031 real same-account session replacement invalidates old GET without replaying login", async () => {
+  const r = repliesAfterLogin({
+    status: 200,
+    body: realSession,
+    deferred: true,
+  });
+  r["/api/auth/change-password"] = [
+    {
+      status: 200,
+      body: { ...realSession, csrfToken: "REPLACEMENT-SYNTHETIC" },
+    },
+  ];
+  const p = await realLoginPage(r);
+  await p.waitForFunction(() => !!window.finishRealRevalidation);
+  await p.evaluate(async () => {
+    await window.realStore.changePassword({
+      currentPassword: "synthetic-old",
+      newPassword: "synthetic-new",
+      confirmNewPassword: "synthetic-new",
+    });
+    window.finishRealRevalidation();
+  });
+  await p.getByRole("button", { name: "Check session" }).waitFor();
+  assert.equal(new URL(p.url()).pathname, "/login");
+  assert.equal(
+    (await p.evaluate(() => window.calls)).filter(
+      (x) => x === "/api/auth/login",
+    ).length,
+    1,
+  );
+  assert.equal(await p.getByRole("navigation").count(), 0);
+  await p.close();
+});
+test("031 real logout during pending revalidation cannot restore protected destination", async () => {
+  const r = repliesAfterLogin({
+    status: 200,
+    body: realSession,
+    deferred: true,
+  });
+  r["/api/auth/logout"] = [{ status: 204 }];
+  const p = await realLoginPage(r);
+  await p.waitForFunction(() => !!window.finishRealRevalidation);
+  await p.evaluate(async () => {
+    await window.realStore.logout();
+    window.finishRealRevalidation();
+  });
+  await p.getByRole("button", { name: "Check session" }).waitFor();
+  assert.equal(new URL(p.url()).pathname, "/login");
+  assert.equal(await p.getByRole("navigation").count(), 0);
+  assert.equal(
+    (await p.evaluate(() => window.calls)).filter(
+      (x) => x === "/api/auth/login",
+    ).length,
+    1,
+  );
+  await p.close();
+});
+
+test("031 real store navigation change requires a fresh GET for current query", async () => {
+  const replies = repliesAfterLogin({
+    status: 200,
+    body: realSession,
+    deferred: true,
+  });
+  replies["/api/auth/session"].push({ status: 200, body: realSession });
+  const p = await realLoginPage(replies);
+  await p.waitForFunction(() => !!window.finishRealRevalidation);
+  await p.evaluate(
+    (path) => window.fixture.navigate(path),
+    loginUrl("/profile?branchId=7&roomId=11"),
+  );
+  await p.getByText("Checking your session...").waitFor();
+  await p.evaluate(() => window.finishRealRevalidation());
+  await p.waitForURL(origin + "/profile?branchId=7&roomId=11");
+  const calls = await p.evaluate(() => window.calls);
+  assert.equal(calls.filter((x) => x === "/api/auth/session").length, 3);
+  assert.equal(calls.filter((x) => x === "/api/auth/login").length, 1);
   await p.close();
 });

@@ -26,3 +26,11 @@ IMPLEMENTATION_STATUS: IMPLEMENTED_SOURCE_ONLY, SOURCE_REVIEW_PENDING.
 PRODUCTION_ACTIVATION: OFF. UC041/UC049 capabilities OFF.
 Task implementation/verification: 100%; PR review/merge pending. No new whole-UC completion credit; live/business acceptance is unchanged.
 Next: review PR into develop. Do not merge/deploy or enable owner features automatically. Production activation, destination owner safety reviews and live acceptance remain separate gates.
+
+## SHARED-ROUTER-031 ? return-URL lifecycle correction
+LoginNavigation is keyed by location key/path/query. Search-only navigation resets requested destination, attempt, target and loading state. Unmounted navigation callbacks cannot redirect. New navigation waits for any older revalidation to settle and then issues a fresh GET; it does not reuse the old flight as destination validation. Attempt generation drops superseded recovery callbacks. Redirect admission compares the exact public session snapshot rather than only user ID/expiry, covering same-account session replacement. Loading uses reactive state. No login POST is retried.
+
+Eight additional browser regressions: A-to-B before login; pending GET switch to B; invalid destination; UC049 OFF; UC041 OFF; real-store same-account replacement; logout; and real-store query change requiring a third session GET (bootstrap, old revalidation, current revalidation). One login POST is retained in real-store race cases.
+Final receipts: 163/163 (53 host, 94 Auth, 16 Room), no failures/cancellations; typecheck/build/scoped formatting/diff-check exit 0. Earlier development run: 48 PASS / 4 locator timeouts, exit 1, due non-reactive loading exposed by deferred fixture; corrected and rerun. See local ignored .test-output/shared031-final.txt for final output. No live HTTPS/SQL or operational runtime acceptance claimed.
+
+Only two functional files changed: LoginRoute.tsx and shared-auth-host.test.mjs; this handoff and manifest updated as evidence. All other PR source is unchanged. UC041/049 remain OFF. AuthProvider in main is an active router cutover when deployed: FE03/DEV1 owner review and controlled HTTPS/session smoke remain separate pending integration gates. No automatic merge/deploy.
