@@ -120,6 +120,9 @@ Draft PR URL: **NOT_CREATED / BLOCKED** tại thời điểm ghi report.
 
 GitHub CLI không có; host-only và repository-scoped git credential helper không trả credential cho REST.
 Public GitHub API đọc được PR #40, nhưng không cấp quyền tạo PR.
+Đã kiểm tra không có open PR trùng head, rồi gửi yêu cầu tạo đúng R05 base/head với draft=true;
+GitHub POST /pulls trả HTTP 401, nên xác minh Draft PR NOT_CREATED. Git push vẫn thành công;
+không suy từ Git transport authentication rằng REST API đã được cấp quyền.
 User đã chọn cài/kết nối GitHub; trạng thái plugin kiểm tra gần nhất vẫn installed=false.
 Đã dùng [plugin-management skill](C:/Users/Hax/.codex/plugins/cache/openai-curated-remote/plugin-management/0.1.0/skills/plugin-management/SKILL.md)
 để tìm/đề xuất GitHub. Không tự coi lựa chọn text là kết nối thành công; cần hoàn tất installation/
