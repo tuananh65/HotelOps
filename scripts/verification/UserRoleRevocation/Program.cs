@@ -72,10 +72,20 @@ Check(UserRoleRevocationService.ValidateResponsibilities(["BLOCKER"],["UNKNOWN"]
 Check(UserRoleRevocationService.ValidateResponsibilities([],[],[],UserRoleRevocationService.PendingResponsibilityWriters.ToArray())==RevokeRoleStatus.ResponsibilitiesUnresolved,"current writer matrix cannot authorize release");
 try{((IList<string>)UserRoleRevocationService.PendingResponsibilityWriters).Clear();throw new Exception("mutable writer debt");}catch(NotSupportedException){Check(true,"external writer evidence cannot be cleared by caller");}
 var source=File.ReadAllText("src/HotelOps.Api/Services/Users/UserRoleRevocationService.cs");
-Check(source.Contains("IntegratedDeactivationResponsibilityQueries(db).ReadAsync(targetId, ct)"),"orchestration uses existing target-wide predicates (source assertion)");
+Check(source.Contains("responsibilities.ReadAsync(targetId, afterMutation, ct)"),"orchestration uses transaction-bound target-wide predicates (source assertion)");
 Check(source.IndexOf("await Responsibilities() is { } changedWork",StringComparison.Ordinal)<source.IndexOf(".ExecuteUpdateAsync",StringComparison.Ordinal),"prewrite responsibility reread precedes conditional mutation (source assertion)");
-Check(source.IndexOf("await Responsibilities() is { } finalWork",StringComparison.Ordinal)<source.IndexOf("await tx.CommitAsync",StringComparison.Ordinal),"final responsibility reread precedes commit (source assertion)");
+Check(source.IndexOf("await Responsibilities(afterMutation: true) is { } finalWork",StringComparison.Ordinal)<source.IndexOf("await tx.CommitAsync",StringComparison.Ordinal),"final responsibility reread precedes commit (source assertion)");
 actor.Value=new(7,70,false);
 Check((await service.RevokeAsync(ticket,70,8,18,new byte[8],default)).Status==RevokeRoleStatus.ReleaseAcceptanceRequired && connection.State==ConnectionState.Closed,"clear classifier cannot bypass service release gate");
+ResponsibilityIntegrationChecks.Run(Check);
+var integrationType = typeof(UserRoleRevocationService).Assembly.GetType("HotelOps.Api.Services.Users.TransactionalUserResponsibilities")!;
+var integration = Activator.CreateInstance(integrationType, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic,
+    null, new object?[] { db, null }, null)!;
+var read = integrationType.GetMethod("ReadAsync", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+try { await (Task)read.Invoke(integration, new object[] { 8L, false, CancellationToken.None })!; throw new Exception("owner transaction missing"); }
+catch (InvalidOperationException) { Check(true, "concrete integration refuses reads without owner transaction"); }
+try { await (Task)read.Invoke(integration, new object[] { 8L, false, new CancellationToken(true) })!; throw new Exception("cancellation ignored"); }
+catch (OperationCanceledException) { Check(true, "concrete integration honors cancellation before reads"); }
+Check(connection.State == ConnectionState.Closed && !db.ChangeTracker.Entries().Any(), "transaction/cancellation guard failures open no SQL and leave no tracked changes");
 Console.WriteLine($"{count}/{count} focused checks PASS. SQL mutation/success/rollback NOT_RUN.");
 sealed class Actor:ICurrentUserAccessor {public CurrentUserInfo Value;public bool TryGetCurrentUser(out CurrentUserInfo value){value=Value;return true;}}
