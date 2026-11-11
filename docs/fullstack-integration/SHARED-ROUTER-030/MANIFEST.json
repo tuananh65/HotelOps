@@ -1,0 +1,277 @@
+{
+  "base": "6143218925fddb2e9927a5d053ae43041940ae41",
+  "branch": "feature/dev3-shared-auth-host-030",
+  "files": [
+    {
+      "path": "frontend/src/auth/AuthProvider.tsx",
+      "sha256": "4A95E5A24DB18E440F6200D3B23F9F85B4B9E306A5BA879BD3AF7BD6EAAE9DE7"
+    },
+    {
+      "path": "frontend/src/auth/authApi.ts",
+      "sha256": "8ACE6189E6CF3C7AA07DFB8960DE13C3C9BAB7DDF4B2F2CE13D4A41EC88A7B10"
+    },
+    {
+      "path": "frontend/src/auth/authStore.ts",
+      "sha256": "CD510BA52C12F313EF56498C11FBF3B68B61C594B5020EDFF56EDF2B01CB82EE"
+    },
+    {
+      "path": "frontend/src/auth/contracts.ts",
+      "sha256": "2164F3781BEFFD2069392A45E237D19F66669EE6EEF3A6E69768B9156F4022C8"
+    },
+    {
+      "path": "frontend/src/auth/http.ts",
+      "sha256": "8685A418FEDDC2A1330EF46D988C4022AD66569F94735A6B92E352835051337D"
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+      "sha256": "84F42ED1C001F37665994EA1FB0905E90F182AFAB4B69D2204813BE279C20634"
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+      "sha256": "5A72F0250288E71348AA0DB27DF6F6FADA4496DCAF6AF659F602C1421E00A679"
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/client.ts",
+      "sha256": "48B071182ABF384048E73B5C157CE251CA582BDC958F5C03D07CF72C12383EB5"
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/navigation.ts",
+      "sha256": "4976E78130AD7AFEE9B4F4D98FA1AAC0D9F4050B3A7DCF76D748171AF1DEE78F"
+    },
+    {
+      "path": "frontend/src/features/inspectionReinspection/candidateClient.ts",
+      "sha256": "1EBC605BDE8E00A7650FC653D7F25576F2FC1C525D0556AC79890EEBA54DBF8F"
+    },
+    {
+      "path": "frontend/src/incidents/ReportIncidentRoute.tsx",
+      "sha256": "1857B0A9284712860F77B12E698FAF2555E09FDE059ABE4FC6005B449F538395"
+    },
+    {
+      "path": "frontend/src/incidents/api.ts",
+      "sha256": "F8B12636DEF6BD73DB183F821A8302D3ACB6F4A05EF56DB1F12E1A7746FB13BA"
+    },
+    {
+      "path": "frontend/src/incidents/navigation.ts",
+      "sha256": "A67B1967941D9945A5522B37BCB7E115A37B3F2EB6E9DA5F36F934CE7DCB752C"
+    },
+    {
+      "path": "frontend/src/inspection/ExecutionPage.tsx",
+      "sha256": "D75811A0AAC1F96704FE644F0487032BF502FA23C7E3C17C0D4F0A19C6B343F0"
+    },
+    {
+      "path": "frontend/src/inspection/InspectionDirectory.tsx",
+      "sha256": "EF7FB85BA632ABE2708B1CBEC6F57EDDE67F968C9FACD5C36E6CB79CAF66B8FB"
+    },
+    {
+      "path": "frontend/src/inspection/api.ts",
+      "sha256": "1EA6B0204FF75EE4E8E17BF89E4FBA5654E5082361429456322725A03176A9A8"
+    },
+    {
+      "path": "frontend/src/inspection/reads.ts",
+      "sha256": "FE0448499E20EF8C0F17331ED55BF2572B7431E517C8553D0769A685EC262D09"
+    },
+    {
+      "path": "frontend/src/inspection/shared.tsx",
+      "sha256": "A3651CD15DC9B4D3F6CFA4533B91104BF23627A183616B1E0E9BCA7A8FE249DE"
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "sha256": "218A0F4C597039D15FB5FB2237A6B85F2BA524BF774847D85286BD0813982355"
+    },
+    {
+      "path": "frontend/src/screens/auth/ChangePasswordScreen.tsx",
+      "sha256": "1050146ADD680B62DFBBEC2314DB2B428DDD0416FC37611CEFE240A2CACAE6DB"
+    },
+    {
+      "path": "frontend/src/screens/auth/ForgotPasswordScreen.tsx",
+      "sha256": "E812BE7E324C5E758DABA379C6A6A2E750009B169AE88D48036D0A5C431525AA"
+    },
+    {
+      "path": "frontend/src/screens/auth/ProfileScreen.tsx",
+      "sha256": "2C91895EFE981337CA7DACAFA30F587FD5C457E72E35406186F09435988BFFD4"
+    },
+    {
+      "path": "frontend/src/screens/auth/SignInScreen.tsx",
+      "sha256": "1C5716AA0C4EEA322844BBDC7000B743D486645A8430FF9F79BC6E7ECCCFF89B"
+    },
+    {
+      "path": "frontend/src/screens/maintenance/ReportIncidentScreen.tsx",
+      "sha256": "88D1E88BD9C98CE01A3A13F7B4454BBEA6A8118E39E3180AC3BA93794D6EFE3C"
+    },
+    {
+      "path": "frontend/src/shared-host/AuthForms.tsx",
+      "sha256": "DD3A45DF5FDA81953C4B17E670611932E5FFE358CE09D4AA8ABFF7A604CDAFCA"
+    },
+    {
+      "path": "frontend/src/shared-host/OperationsRoutes.tsx",
+      "sha256": "CE631AD53A3B0323D66A5E026881693178CE8F07363A8C59160EB4751F2BF28E"
+    },
+    {
+      "path": "frontend/src/shared-host/SharedAuthHost.tsx",
+      "sha256": "EB53DBB65342E22D567B24BB620053CCBFBDEF2C301C5126156466FCA0BDD4A0"
+    },
+    {
+      "path": "frontend/src/shared-host/returnUrl.ts",
+      "sha256": "6C8F2AA8D4E9E3EA92594435A1B6E836E95520F9528B99AFD1764D755D16807A"
+    },
+    {
+      "path": "frontend/tests/auth-http.test.mjs",
+      "sha256": "8F36166D2F7AD3559B731A0E81F5BD95F54BD0EC56328005EAC539A790793F0B"
+    },
+    {
+      "path": "frontend/tests/auth-state.test.mjs",
+      "sha256": "CB9C059D2BDA3445C0D8B52374FC4473116AC890E44EDD7E9D83532DB049DB11"
+    },
+    {
+      "path": "frontend/tests/shared-auth-host.test.mjs",
+      "sha256": "5D5359B8C824851159A587DD53526A1B87DA7FF75F0E5D9FD59D9586C8DB62A5"
+    },
+    {
+      "path": "frontend/src/auth/AuthRouteHost.tsx",
+      "sha256": "076DB518EE5EE5DF3A5FCDD2FAB82996FCC705C2DE9B42C17C1250116C3191BB"
+    },
+    {
+      "path": "frontend/src/shared-host/LoginRoute.tsx",
+      "sha256": "DEF97A6E0F8B8322E661C735D88CC75C7F77341E465D7052D393D8309F5C7F96"
+    }
+  ],
+  "documentation": [
+    "docs/fullstack-integration/SHARED-ROUTER-030/HANDOFF.md",
+    "docs/fullstack-integration/SHARED-ROUTER-030/MANIFEST.json"
+  ],
+  "unchangedImports": [
+    {
+      "path": "frontend/src/auth/AuthProvider.tsx",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/auth/authApi.ts",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/auth/authStore.ts",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/auth/contracts.ts",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/auth/http.ts",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/client.ts",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/navigation.ts",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/features/inspectionReinspection/candidateClient.ts",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/incidents/ReportIncidentRoute.tsx",
+      "ref": "1536f7265781ec139e4e952fe0fe89cfe95c4880",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/incidents/api.ts",
+      "ref": "1536f7265781ec139e4e952fe0fe89cfe95c4880",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/incidents/navigation.ts",
+      "ref": "1536f7265781ec139e4e952fe0fe89cfe95c4880",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/inspection/ExecutionPage.tsx",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/inspection/InspectionDirectory.tsx",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/inspection/api.ts",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/inspection/reads.ts",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/inspection/shared.tsx",
+      "ref": "104dcdf55fde2b924509032f920a3266157f5fdc",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/screens/auth/ChangePasswordScreen.tsx",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/screens/auth/ForgotPasswordScreen.tsx",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/screens/auth/ProfileScreen.tsx",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/src/screens/maintenance/ReportIncidentScreen.tsx",
+      "ref": "1536f7265781ec139e4e952fe0fe89cfe95c4880",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/tests/auth-http.test.mjs",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    },
+    {
+      "path": "frontend/tests/auth-state.test.mjs",
+      "ref": "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+      "byteIdentical": true
+    }
+  ],
+  "verification": {
+    "tests": 155,
+    "pass": 155,
+    "fail": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "testExit": 0,
+    "typecheckExit": 0,
+    "buildExit": 0,
+    "formatExit": 0,
+    "diffExit": 0
+  },
+  "productionActivation": false
+}
