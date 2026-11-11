@@ -78,6 +78,7 @@ Check(source.IndexOf("await Responsibilities(afterMutation: true) is { } finalWo
 actor.Value=new(7,70,false);
 Check((await service.RevokeAsync(ticket,70,8,18,new byte[8],default)).Status==RevokeRoleStatus.ReleaseAcceptanceRequired && connection.State==ConnectionState.Closed,"clear classifier cannot bypass service release gate");
 ResponsibilityIntegrationChecks.Run(Check);
+WorkdayResponsibilityChecks.Run(Check);
 var integrationType = typeof(UserRoleRevocationService).Assembly.GetType("HotelOps.Api.Services.Users.TransactionalUserResponsibilities")!;
 var integration = Activator.CreateInstance(integrationType, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic,
     null, new object?[] { db, null }, null)!;
