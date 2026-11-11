@@ -1,0 +1,145 @@
+{
+  "task": "DEV3-FASTTRACK-035R",
+  "base": "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+  "branch": "feature/dev3-uc139-trial-package",
+  "files": [
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/Program.cs",
+      "gitLfSha256": "6A38CB4E4652C95DB5A526B57B1AD02191FD4E9763D20C23B9CA8F740A075F07"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/ScheduledWorkdayTrialHost.csproj",
+      "gitLfSha256": "C205E72BD567A9F8B8416430EA313557A4DF775F2890CE594BBAA5780E3DB366"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/TrialConfiguration.cs",
+      "gitLfSha256": "7DC78D63E177D9BEF00EDC01EBC18DD44FDA70CB37FC0DDC937F841CC81A9B9C"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/TrialArtifacts.cs",
+      "gitLfSha256": "F033209B19903FA973D33A6EBFED8FADDA85D80D86DF4988F4AD71ACD237121F"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/TrialHost.cs",
+      "gitLfSha256": "05972DAC104A1DA17C4C2FEE7E6C68C7529B6D878BEE483B6171F9AE4E1D12F8"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/TrialScheduledController.cs",
+      "gitLfSha256": "6282367FED609FA581FD12DC91ACA2C3EF58E68F99BD6318738FAABEF71308C4"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/TrialSelfTests.cs",
+      "gitLfSha256": "B244632D6C6844003A97B670D39D8092057F8708E4CEF8E437EB044F1F868DC2"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/.gitattributes",
+      "gitLfSha256": "C15B011279499ABFFA8FD3D1914633B443AFB1A5E0BF4EBC500E9EF280EBB78D"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/01-install-candidate.sql",
+      "gitLfSha256": "93A4230814C2A5628A479EF5BB7F0EE364523561941DC359DE1FFD06D5EF61BA"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/02-verify-read-only.sql",
+      "gitLfSha256": "77D50A30545967036D08DDB0DF348D392D7276F603E077F0E31FEA49ED2AAD41"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/03-rollback-empty-candidate.sql",
+      "gitLfSha256": "71306019236C491E44557A8D2789E536339CC327474D7D612D9E0DCF483EE230"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/04-fixtures-candidate.sql",
+      "gitLfSha256": "FC46C15E5C1129103F21EB96D70C9A7EA2CAFE3EF30CD711D80B68A4D48A8493"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/05-verify-fixtures-read-only.sql",
+      "gitLfSha256": "B6B94E0AD7FC7630F059E45849B6BD70B34657926A6CBFC8218CF35ACFB63430"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayTrialHost/candidate/package.json",
+      "gitLfSha256": "1CC2724F95EB91FED1604B26C1C5E9F51CCA0B7ECF889AACBABF43CD34CC417C"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/Program.cs",
+      "gitLfSha256": "030460AA251289E96DE6FFB7CF6B986A5827AF544E5BB16F6C5E4C32B143D7CE"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/ScheduledWorkdayAcceptance.csproj",
+      "gitLfSha256": "7755FA51A606E3C0EA00DDB5A001B67FB79C87773027A97E292E1E5C1AF57191"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/receipt.template.json",
+      "gitLfSha256": "847F7428B846DA87043E1C364BB51B6C0BB35BA241A73F673761CF5058EF7D6F"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/test-guards.mjs",
+      "gitLfSha256": "0D2337EC707999132B9119155D2471CDDCF5DE0F8D88DDB62D616C5F009AD150"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/README.md",
+      "gitLfSha256": "F286342344373989EA2AD4C9A3EE336B05BF9C5857A6D3EBE6E0086173178466"
+    },
+    {
+      "path": "docs/fullstack-integration/DEV3-FASTTRACK-035R/HANDOFF.md",
+      "gitLfSha256": "88C1498935CDEEB90F9861827AE0FBDEAA6E3DA69276E7E1948036B5A0F29A8E"
+    },
+    {
+      "path": "docs/fullstack-integration/DEV3-FASTTRACK-035R/NOTIFICATION_HANDOFF.md",
+      "gitLfSha256": "2562416DD87F8E65BD858F9840480C8571EACF93DC80F884938EF02EEF690751"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "src/HotelOps.Api/Program.cs",
+      "sha256": "9FD31CCBF043FE49019B93AEE399268F94FA09CDD7B5C312B12B6D6B0A78F510"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+      "sha256": "1890559D3578CE136A758A4C625D8F2D242951FF596138D969B03D07E1616380"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/WorkdayReadsController.cs",
+      "sha256": "69FFEB8AF075222CAA33F102A8955B9F18A732CC4F0EA578F841E19DBD32CDEC"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+      "sha256": "1DDD3F6A992618166E2633D49DCFA4B523A36FC870B5D089ED76DDA0D75A8CB3"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+      "sha256": "1F1C58C00D25F1C751D821F17B1246ADB2D025DDDFE75022592322EA9D3E3811"
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+      "sha256": "66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/ShiftPlanSaveService.cs",
+      "sha256": "2B046A71E2421E4D838DCB4FE0CD7245BB69EF1C32CE0C6CD6B8CB6A72BE543A"
+    }
+  ],
+  "packageSha256": "1CC2724F95EB91FED1604B26C1C5E9F51CCA0B7ECF889AACBABF43CD34CC417C",
+  "approval": "CANDIDATE_NOT_APPROVED",
+  "verification": {
+    "hostChecks": 44,
+    "runnerGuards": 9,
+    "scheduledChecks": 51,
+    "buildExit": 0,
+    "buildWarnings": 0,
+    "solutionTestExit": 0,
+    "solutionTestProjects": 0,
+    "literalSecretFindings": 0,
+    "broadScanReview": "Existing runner password assignment reads environment variable; not a literal credential",
+    "sqlExecution": "NOT_RUN",
+    "httpsExecution": "NOT_RUN",
+    "productionActivation": false
+  },
+  "remaining": [
+    "OWNER_DISPOSABLE_DB_GUID_AND_MARKER",
+    "ARTIFACT_DDL_FIXTURE_APPROVAL",
+    "DEDICATED_IDENTITY_GRANTS_AND_THREE_APPROVED_SHIFTS",
+    "RESTRICTED_SQL_IDENTITY_AND_METADATA_RIGHTS",
+    "TRUSTED_SQL_TLS_AND_HTTPS_CERTIFICATE",
+    "EXCLUSIVE_FRESH_LEASE_AND_FAULT_APPROVAL"
+  ]
+}
