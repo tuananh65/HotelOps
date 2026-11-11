@@ -1,3 +1,4 @@
+import { ShiftPlanApiError, type SavePlanAdapter } from "./shiftPlanApi";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import {
@@ -11,10 +12,12 @@ import {
 /** Unmounted internal-preview presentation. An adapter must authorize all server resources; a logged-in UI is never that authority. */
 export function ShiftPlanPreviewPanel({
   adapter,
+  saveAdapter,
 }: {
   adapter?: PreviewAdapter;
+  saveAdapter?: SavePlanAdapter;
 }) {
-  const { state } = useAuth();
+  const { state, actions } = useAuth();
   if (
     state.status !== "AUTHENTICATED" ||
     !state.session ||
@@ -24,8 +27,10 @@ export function ShiftPlanPreviewPanel({
     return <p role="alert">Confirmed unrestricted session required.</p>;
   return (
     <Bound
-      key={`${identityKey(state.session)}:${adapter ? identityKey(adapter) : 0}`}
+      key={`${identityKey(state.session)}:${adapter ? identityKey(adapter) : 0}:${saveAdapter ? identityKey(saveAdapter) : 0}`}
       adapter={adapter}
+      saveAdapter={saveAdapter}
+      recover={() => void actions.revalidate()}
     />
   );
 }
@@ -35,7 +40,15 @@ function identityKey(o: object) {
   if (!keys.has(o)) keys.set(o, ++serial);
   return keys.get(o)!;
 }
-function Bound({ adapter }: { adapter?: PreviewAdapter }) {
+function Bound({
+  adapter,
+  saveAdapter,
+  recover,
+}: {
+  adapter?: PreviewAdapter;
+  saveAdapter?: SavePlanAdapter;
+  recover: () => void;
+}) {
   const [drafts, setDrafts] = useState<readonly ShiftDraft[]>([]),
     [fields, setFields] = useState({
       employeeId: "",
@@ -47,6 +60,9 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
   const [preview, setPreview] = useState<Preview | null>(null),
     [message, setMessage] = useState(""),
     [pending, setPending] = useState(false);
+  const [saveReview, setSaveReview] = useState(false),
+    [sessionBlocked, setSessionBlocked] = useState(false);
+  const saveAttempted = useRef(false);
   const epoch = useRef(0),
     alive = useRef(true),
     busy = useRef(false),
@@ -69,6 +85,7 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
     setPreview(null);
   }, [adapter]);
   function invalidate() {
+    setSaveReview(false);
     epoch.current++;
     abort.current?.abort();
     busy.current = false;
@@ -77,7 +94,7 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
     setMessage("");
   }
   async function run() {
-    if (!adapter || busy.current) return;
+    if (!adapter || busy.current || sessionBlocked) return;
     const snapshot = draftSnapshot(drafts);
     if (!snapshot) {
       setMessage("Add valid drafts before preview.");
@@ -104,10 +121,71 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
         setMessage(
           "Preview unavailable: invalid server result. No permission to save.",
         );
-    } catch {
-      if (current()) setMessage("Preview unavailable. No automatic retry.");
+    } catch (error) {
+      if (current()) {
+        if (error instanceof ShiftPlanApiError && error.status === 401) {
+          setSessionBlocked(true);
+          setDrafts([]);
+          setPreview(null);
+        }
+        setMessage("Preview unavailable. No automatic retry.");
+      }
     } finally {
       if (current()) {
+        busy.current = false;
+        setPending(false);
+      }
+    }
+  }
+  async function savePlan() {
+    if (
+      !saveAdapter ||
+      !preview ||
+      preview.rows.some((r) => r.issues.length) ||
+      busy.current ||
+      saveAttempted.current ||
+      sessionBlocked
+    )
+      return;
+    const snapshot = draftSnapshot(drafts);
+    if (!snapshot) return;
+    saveAttempted.current = true;
+    busy.current = true;
+    setPending(true);
+    setSaveReview(false);
+    const generation = ++epoch.current;
+    const controller = new AbortController();
+    abort.current = controller;
+    try {
+      const result = await saveAdapter(snapshot, controller.signal);
+      if (
+        !alive.current ||
+        generation !== epoch.current ||
+        controller.signal.aborted
+      )
+        return;
+      setPreview(null);
+      setDrafts([]);
+      if (result.ok)
+        setMessage("Shift plan saved; employee notifications staged.");
+      else {
+        if (result.status === 401) setSessionBlocked(true);
+        setMessage(
+          result.outcome === "OUTCOME_UNKNOWN"
+            ? "Save outcome unknown. Do not replay; verify with an authorized owner."
+            : "Shift plan was not confirmed. No automatic retry.",
+        );
+      }
+    } catch {
+      if (alive.current && generation === epoch.current) {
+        setPreview(null);
+        setDrafts([]);
+        setMessage(
+          "Save outcome unknown. Do not replay; verify with an authorized owner.",
+        );
+      }
+    } finally {
+      if (alive.current && generation === epoch.current) {
         busy.current = false;
         setPending(false);
       }
@@ -117,8 +195,8 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
     <section aria-label="Shift plan preview">
       <h1>Plan shift assignments</h1>
       <p>
-        Diagnostic preview only. Every resource requires server authorization.
-        No roster has been saved.
+        Diagnostic preview only. Every resource requires server authorization. A
+        preview does not save a roster.
       </p>
       {!adapter && (
         <p role="alert">
@@ -136,6 +214,7 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
             templateId: Number(fields.templateId),
             shiftDate: fields.shiftDate,
           };
+          if (sessionBlocked || saveAttempted.current) return;
           if (!draftSnapshot([draft]) || drafts.length >= 500) {
             setMessage(
               "Use positive safe IDs and a real calendar date; maximum 500 drafts.",
@@ -158,6 +237,7 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
           <label key={name}>
             {name}
             <input
+              disabled={sessionBlocked || saveAttempted.current}
               aria-label={name}
               value={fields[name]}
               onChange={(e) => {
@@ -175,6 +255,7 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
             Employee {d.employeeId}; Branch {d.branchId}; Department{" "}
             {d.departmentId}; Template {d.templateId}; Date {d.shiftDate}
             <button
+              disabled={sessionBlocked || saveAttempted.current}
               onClick={() => {
                 invalidate();
                 setDrafts((v) => v.filter((_, n) => n !== i));
@@ -186,13 +267,39 @@ function Bound({ adapter }: { adapter?: PreviewAdapter }) {
         ))}
       </ol>
       <button
-        disabled={!adapter || !drafts.length || pending}
+        disabled={
+          !adapter ||
+          !drafts.length ||
+          pending ||
+          sessionBlocked ||
+          saveAttempted.current
+        }
         onClick={() => void run()}
       >
         Preview assignments
       </button>
       {pending && <p role="status">Loading preview...</p>}
       {message && <p role="alert">{message}</p>}
+      {sessionBlocked && <button onClick={recover}>Check session</button>}
+      {saveAdapter &&
+        preview &&
+        !sessionBlocked &&
+        !saveAttempted.current &&
+        preview.rows.every((r) => r.issues.length === 0) && (
+          <>
+            <button disabled={pending} onClick={() => setSaveReview(true)}>
+              Review save
+            </button>
+            {saveReview && (
+              <>
+                <p>Confirm this new plan. Server revalidation is mandatory.</p>
+                <button disabled={pending} onClick={() => void savePlan()}>
+                  Confirm save plan
+                </button>
+              </>
+            )}
+          </>
+        )}
       {preview && (
         <section aria-label="Preview results">
           <p role="status">
