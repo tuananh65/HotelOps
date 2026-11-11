@@ -1,4 +1,5 @@
 import { RoleCatalogRoute } from "../roles/RoleCatalogRoute";
+import { CredentialResetRoute } from "../users/CredentialResetRoute";
 import { useRef } from "react";
 import { Link, Navigate, Route, Routes } from "react-router-dom";
 import ForgotPasswordScreen from "../screens/auth/ForgotPasswordScreen";
@@ -140,6 +141,10 @@ export function AuthRouteHost() {
       <Route path="/dev/*" element={<PrototypeUnavailable />} />
       <Route path="/users/new" element={<CreateUserFlowBoundary />} />
       <Route path="/users/:id/edit" element={<UpdateUserFlowBoundary />} />
+      <Route
+        path="/users/:id/reset-credential"
+        element={<CredentialResetRoute />}
+      />
       <Route
         path="/users/:id/activate"
         element={<ActivateUserFlowBoundary />}
