@@ -1,0 +1,21 @@
+﻿{
+    "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+    "stagedWhitespaceExit":  0,
+    "workingWhitespaceExit":  0,
+    "sourceWorkingIndexMatchExit":  0,
+    "original24UnchangedExit":  0,
+    "unmergedPaths":  0,
+    "stagedIntegrationPathCount":  111,
+    "functionalPathCount":  24,
+    "changedContentSecretScanFindings":  [
+
+                                         ],
+    "evidenceTrailingWhitespacePaths":  [
+
+                                        ],
+    "secretScanQualification":  "high-confidence pattern review of added lines vs both parents and current nonignored evidence; no secret values printed; historical archive retained unchanged",
+    "protectedSourceChanges":  [
+
+                               ],
+    "ownership":  "111 upstream integration paths; original DEV2 24 blobs unchanged; no production source fixes"
+}

@@ -1,0 +1,9 @@
+﻿{
+    "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --test tests/secure-shift-plan-browser.test.mjs",
+    "workingDirectory":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps-PR25-UC138-d664e1f16d1d4ba589b4b8da004f0385",
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "exitCode":  1,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/upstream-00bdc481/frontend-secure-shift-plan-browser_first_failure.txt",
+    "sqlExecution":  "NOT_RUN",
+    "httpExecution":  "offline browser interception/mock fetch only"
+}

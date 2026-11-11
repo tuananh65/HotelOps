@@ -1,0 +1,34 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\RoomLifecycleCandidate\RoomLifecycleCandidate.Verification.csproj]
+<WORKTREE>\scripts\verification\RoomLifecycleCandidate\RoomLifecycleCandidate.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\RoomLifecycleCandidate\RoomLifecycleCandidate.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS deactivation intent Inactive
+PASS reactivation never plans Ready
+PASS status history and audit atomic obligation explicit
+PASS reactivation invalid parent denied
+PASS reactivation invalid parent denied
+PASS reactivation invalid parent denied
+PASS reactivation invalid parent denied
+PASS duplicate state transition denied
+PASS duplicate state transition denied
+PASS reason confirmation validation
+PASS reason confirmation validation
+PASS reason confirmation validation
+PASS reason confirmation validation
+PASS reason snapshot normalization
+PASS client status overpost denied
+PASS room candidate absent from actual MVC discovery
+PASS Workday writes remain inactive
+PASS both direct operations fail closed before SQL
+PASS both direct operations fail closed before SQL
+PASS no DB connection/mutation/history/audit before release
+PASS actor mismatch denied
+PASS restricted denied
+PASS concurrent opposite operations cannot bypass release
+PASS immutable dependency/status/SQL release gates
+PASS HTTPS required
+PASS cookie required
+PASS If-Match required
+PASS User rowversion cannot replace Room ETag
+PASS valid candidate request stays unavailable
+29/29 checks PASS. SQL/status mapping/rollback NOT_RUN.

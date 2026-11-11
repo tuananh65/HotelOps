@@ -67,15 +67,23 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
         {
             var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct), DateTimeKind.Utc);
             var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
-            var shifts = await db.ShiftAssignments.AsNoTracking().Where(a => a.UserId == actor.UserId
+            var shifts = await ScheduledWorkdayClaims.Unclaimed(db.ShiftAssignments.AsNoTracking(), db.Workdays.AsNoTracking()).Where(a => a.UserId == actor.UserId
                     && a.AssignmentStatus == "ASSIGNED" && a.AssignedAt <= now && a.Shift.BranchId == branchId
                     && a.Shift.Status == "PLANNED" && a.Shift.ShiftDate == today
                     && a.Shift.ScheduledEndAt >= a.Shift.ScheduledStartAt
                     && a.Shift.ShiftTemplate.BranchId == branchId && a.Shift.ShiftTemplate.IsActive
                     && a.Shift.Department.BranchId == branchId && a.Shift.Department.IsActive)
                 .OrderBy(a => a.Shift.ScheduledStartAt).ThenBy(a => a.ShiftAssignmentId)
-                .Select(a => new { a.ShiftAssignmentId, a.ShiftId, a.Shift.BranchId, a.Shift.DepartmentId,
-                    a.Shift.ShiftDate, a.Shift.ScheduledStartAt, a.Shift.ScheduledEndAt }).ToArrayAsync(ct);
+                .Select(a => new
+                {
+                    a.ShiftAssignmentId,
+                    a.ShiftId,
+                    a.Shift.BranchId,
+                    a.Shift.DepartmentId,
+                    a.Shift.ShiftDate,
+                    a.Shift.ScheduledStartAt,
+                    a.Shift.ScheduledEndAt
+                }).ToArrayAsync(ct);
             return new(200, shifts.Select(s => new OwnEligibleShift(s.ShiftAssignmentId, s.ShiftId, s.BranchId,
                 s.DepartmentId, s.ShiftDate, Utc(s.ScheduledStartAt), Utc(s.ScheduledEndAt))).ToArray());
         }, ct);

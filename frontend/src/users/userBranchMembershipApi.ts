@@ -60,6 +60,13 @@ function httpError(status: number, value: unknown): UserBranchMembershipError {
       reason = "USER_NOT_FOUND";
       break;
     case 409:
+      // Conflicting or malformed identifiers cannot prove a rejected mutation.
+      if (
+        Object.hasOwn(p, "code") &&
+        Object.hasOwn(p, "title") &&
+        p.code !== p.title
+      )
+        break;
       if (matches("TARGET_NOT_ACTIVE")) reason = "TARGET_NOT_ACTIVE";
       else if (matches("MEMBERSHIP_EXISTS")) reason = "MEMBERSHIP_EXISTS";
       else if (matches("EXISTING_ROLE_PATH_CONFLICT"))

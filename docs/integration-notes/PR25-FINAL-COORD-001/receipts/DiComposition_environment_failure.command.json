@@ -1,0 +1,9 @@
+﻿{
+    "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "exitCode":  1,
+    "exitCodeScope":  "unified shell session interrupted after unhandled environment guard exception; child exit not captured",
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_environment_failure.txt",
+    "sqlExecution":  "NOT_RUN",
+    "cause":  "Probe defaulted to Production; actual cookie infrastructure correctly rejects non-Windows-Development"
+}

@@ -778,3 +778,108 @@ for (const result of [
       },
     );
   });
+
+test("UC023 directory rows open scoped detail and recorded history without entering IDs", async () => {
+  await withHotel("/rooms?branchId=1", {}, async (p) => {
+    await load(p);
+    const results = p.getByRole("region", {
+      name: "Room directory results",
+      exact: true,
+    });
+    await results.getByRole("table").waitFor();
+    assert.equal(await results.getByRole("row").count(), 2);
+    await results
+      .getByRole("link", { name: "Read room 101 in branch 1", exact: true })
+      .click();
+    assert.equal(await p.locator('input[name="recordId"]').inputValue(), "15");
+    await load(p);
+    assert.ok(
+      (await calls(p)).some((c) => c.url === "/api/rooms/15?branchId=1"),
+    );
+    await p.getByRole("link", { name: "Rooms", exact: true }).click();
+    await load(p);
+    await p
+      .getByRole("link", {
+        name: "Read history for room 101 in branch 1",
+        exact: true,
+      })
+      .click();
+    assert.equal(
+      await p
+        .getByRole("combobox", { name: "Action", exact: true })
+        .inputValue(),
+      "history",
+    );
+    await load(p);
+    assert.ok(
+      (await calls(p)).some(
+        (c) => c.url === "/api/rooms/15/history?branchId=1&page=1&pageSize=20",
+      ),
+    );
+    assert.equal((await writes(p)).length, 0);
+  });
+});
+
+test("UC023 global rows use each server branch and render nullable area and inactive status", async () => {
+  const other = {
+    ...rooms.items[0],
+    id: 16,
+    branchId: 2,
+    area: null,
+    isActive: false,
+  };
+  await withHotel(
+    "/rooms?branchId=1",
+    {
+      responses: {
+        "GET /api/rooms": [
+          { body: { ...rooms, items: [rooms.items[0], other], totalCount: 2 } },
+        ],
+      },
+    },
+    async (p) => {
+      await p.getByRole("checkbox", { name: /All branches/ }).check();
+      await load(p);
+      const link = p.getByRole("link", {
+        name: "Read room 101 in branch 2",
+        exact: true,
+      });
+      assert.equal(await link.getAttribute("href"), "/rooms/16?branchId=2");
+      const row = p.getByRole("row").filter({ has: link });
+      assert.ok((await row.innerText()).includes("No area"));
+      assert.ok((await row.innerText()).includes("No"));
+      assert.equal((await writes(p)).length, 0);
+    },
+  );
+});
+
+test("UC023 empty results have no detail links and changing branch hides previous rows", async () => {
+  await withHotel(
+    "/rooms?branchId=1",
+    {
+      responses: {
+        "GET /api/rooms": [
+          { body: rooms },
+          { body: { ...rooms, items: [], totalCount: 0 } },
+        ],
+      },
+    },
+    async (p) => {
+      await load(p);
+      await p
+        .getByRole("link", { name: "Read room 101 in branch 1", exact: true })
+        .waitFor();
+      await p.locator('input[name="branchId"]').fill("2");
+      assert.equal(
+        await p
+          .getByRole("region", { name: "Room directory results", exact: true })
+          .count(),
+        0,
+      );
+      await load(p);
+      await p.getByText("No rooms on this page.", { exact: true }).waitFor();
+      assert.equal(await p.getByRole("table").count(), 0);
+      assert.equal((await writes(p)).length, 0);
+    },
+  );
+});

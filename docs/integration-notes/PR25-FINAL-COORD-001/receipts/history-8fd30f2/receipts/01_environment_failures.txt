@@ -1,0 +1,23 @@
+Working directory: C:/Users/Admin/Documents/GitHub/HotelOps_DEV2_PR25_FINAL_COORD_001
+Source HEAD: 2140522457e89b974cf2d65c64515ec15d733fa9
+Source tree: 33ae51a1dbc228dc0338768ecbe9cd959dec0939
+Command: git fetch origin
+Exit code: 1
+Output:
+error: cannot open 'C:/Users/Admin/Documents/GitHub/HotelOps/.git/worktrees/HotelOps_DEV2_PR25_FINAL_COORD_001/FETCH_HEAD': Permission denied
+
+Command: git ls-remote origin refs/heads/feature/dev2-dev3-master001-responsibility-readers refs/heads/integration/fullstack-base
+Exit code: 128
+Output:
+fatal: unable to access 'https://github.com/tuananh65/HotelOps.git/': Failed to connect to github.com:443 after 20 ms: Could not connect to server
+
+Command: git diff --check
+Exit code: 0
+Output: empty
+Command: git diff --check origin/integration/fullstack-base...HEAD
+Exit code: 0
+Output: empty
+SQL execution: NOT_RUN
+Build/test counts and exit codes: NOT_RUN / N/A
+
+POST-SYNC UPDATE (2026-11-11 Asia/Saigon): Host prepared normal merge. Integration parent 8fd30f2f12e9dae102de2826e0be20e99e6a14ad; staged tree 14f4595c0edeb1f6349d636ec1a08a22a287f569; zero conflicts. Earlier fetch restrictions do not block offline source verification now. Build exit 0 (2 NU1900 warnings); required suites 350 PASS, extra regressions 169 PASS, DI rerun 16 PASS. No sandbox fetch/merge/commit/push; no SQL. Original receipt and all nine fallback files preserved byte-for-byte in receipts/fallback-history/.

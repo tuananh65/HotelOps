@@ -46,7 +46,12 @@ const response = (body, status = 200, headers = {}) =>
   });
 const csrf = () =>
   response({ csrfToken: "csrf-request-token", headerName: "X-CSRF-TOKEN" });
-const created = () => response(payload(), 201, { Location: "/api/users/42" });
+const created = (options) => {
+  const value = payload();
+  if (options?.body)
+    value.user = { ...value.user, ...JSON.parse(options.body) };
+  return response(value, 201, { Location: "/api/users/42" });
+};
 function harness(post = created, bootstrap = csrf) {
   const calls = [];
   const api = createCreateUserApi(async (url, options) => {
@@ -604,4 +609,45 @@ test("concurrent attempts cannot share a bootstrap token", async () => {
     ["second-token", "first-token"],
   );
   assert.equal(calls.length, 4);
+});
+
+for (const [field, wrong] of Object.entries({
+  employeeCode: "OTHER",
+  username: "another",
+  fullName: "Other person",
+  email: "other@example.test",
+  phone: "123",
+  branchId: 99,
+  departmentId: 99,
+  roleCode: "RECEPTION",
+})) {
+  test(`201 mismatched ${field} never hands off credential`, async () => {
+    const value = payload();
+    value.user[field] = wrong;
+    const { api, calls } = harness(() =>
+      response(value, 201, { Location: "/api/users/42" }),
+    );
+    const result = await api.createUser(input());
+    assert.deepEqual(result, {
+      outcome: "OUTCOME_UNKNOWN",
+      error: { reason: "INVALID_RESPONSE", status: 201 },
+    });
+    assert.equal(calls.filter((c) => c.method === "POST").length, 1);
+    assert.ok(!JSON.stringify(result).includes(secret));
+    assert.ok(!JSON.stringify(result).includes("csrf-request-token"));
+  });
+}
+test("matching success remains correlated to pre-await request snapshot", async () => {
+  const wait = deferred(),
+    value = input();
+  const { api, calls } = harness(created, () => wait.promise);
+  const attempt = api.createUser(value);
+  value.username = "changed";
+  value.branchId = 99;
+  wait.resolve(csrf());
+  const result = await attempt;
+  assert.equal(result.outcome, "CONFIRMED_CREATED");
+  assert.equal(result.data.user.username, "staff");
+  assert.equal(result.data.user.branchId, 1);
+  assert.equal(calls.filter((c) => c.method === "POST").length, 1);
 });

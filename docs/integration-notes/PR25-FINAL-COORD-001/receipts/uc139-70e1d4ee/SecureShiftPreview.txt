@@ -1,0 +1,63 @@
+<WORKTREE>\scripts\verification\SecureShiftPreview\SecureShiftPreview.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\SecureShiftPreview\SecureShiftPreview.Verification.csproj]
+<WORKTREE>\scripts\verification\SecureShiftPreview\SecureShiftPreview.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS real evaluator+resolver permits authorized BRANCH
+PASS no version/save authority
+PASS real evaluator+resolver permits authorized ALL
+PASS no version/save authority
+PASS deny own
+PASS no preview facts before complete admission own
+PASS deny crossGrant
+PASS no preview facts before complete admission crossGrant
+PASS deny expired
+PASS no preview facts before complete admission expired
+PASS deny revoked
+PASS no preview facts before complete admission revoked
+PASS deny inactiveRole
+PASS no preview facts before complete admission inactiveRole
+PASS deny inactiveUser
+PASS no preview facts before complete admission inactiveUser
+PASS deny inactiveBranch
+PASS no preview facts before complete admission inactiveBranch
+PASS deny wrongActorScope
+PASS no preview facts before complete admission wrongActorScope
+PASS deny wrongEmployee
+PASS no preview facts before complete admission wrongEmployee
+PASS deny wrongTemplate
+PASS no preview facts before complete admission wrongTemplate
+PASS deny invalidSession
+PASS no preview facts before complete admission invalidSession
+PASS deny restricted
+PASS no preview facts before complete admission restricted
+PASS mixed scope denies entire request without partial roster
+PASS hidden cross-scope overlap is unavailable, no timing/grant detail
+PASS visible employee overlap
+PASS proposed overlap conflicts
+PASS final session invalidation discards all preview rows
+PASS permission store unavailable fails closed
+PASS empty input rejected
+PASS 501 rejected
+PASS malicious ID rejected
+PASS 500 technical bound
+PASS strict root DTO
+PASS strict nested DTO
+PASS public preview route stays production OFF
+PASS HTTPS guard
+PASS cookie guard
+PASS read-only POST requires CSRF
+PASS save remains immutable pre-SQL gated
+PASS no shifts/audit/notification before release
+PASS save session replacement denied
+PASS save empty plan rejected
+PASS save release evidence immutable
+PASS unbound ALL still requires server resource membership
+PASS SHIFT_VIEW cannot replace SHIFT_MANAGE
+PASS employee department replacement discards protected result
+PASS unbound ALL never bypasses actor branch/department membership
+PASS production scope EF translation includes primary_branch_id (offline only)
+PASS production scope EF translation includes department_id (offline only)
+PASS production scope EF translation includes revoked_at (offline only)
+PASS production scope EF translation includes granted_at (offline only)
+PASS production scope EF translation includes employment_status (offline only)
+RESULT 58/58 PASS; SQL/HTTPS and public activation NOT_RUN.

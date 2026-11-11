@@ -1,0 +1,17 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\UserAccountDeactivation\UserAccountDeactivation.Verification.csproj]
+<WORKTREE>\scripts\verification\UserAccountDeactivation\UserAccountDeactivation.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\UserAccountDeactivation\UserAccountDeactivation.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS: strict deactivation body rejects {}
+PASS: strict deactivation body rejects []
+PASS: strict deactivation body rejects null
+PASS: strict deactivation body rejects {"reason":null}
+PASS: strict deactivation body rejects {"reason":true}
+PASS: strict deactivation body rejects {"reason":"         123456789       "}
+PASS: strict deactivation body rejects {"Reason":"valid reason text"}
+PASS: strict deactivation body rejects {"reason":"valid reason text","actorId":1}
+PASS: strict deactivation body rejects {"reason":"valid reason text","reason":"duplicate reason"}
+PASS: reason trims and accepts exact ten-character boundary
+PASS: direct service input cannot bypass trimmed reason
+PASS: no Deactivate controller registered in API assembly
+PASS: 12 independent checks; SQL NOT RUN

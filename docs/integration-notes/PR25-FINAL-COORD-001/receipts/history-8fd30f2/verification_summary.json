@@ -1,0 +1,235 @@
+﻿{
+    "source":  {
+                   "featureHead":  "2140522457e89b974cf2d65c64515ec15d733fa9",
+                   "integrationParent":  "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+                   "postSyncSourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                   "headTreeSelfCheck":  "33ae51a1dbc228dc0338768ecbe9cd959dec0939",
+                   "algorithm":  "Git tree SHA1 reconstructed from stage-0 index mode/path/blob IDs; self-checked against HEAD tree; no Git metadata writes"
+               },
+    "build":  {
+                  "command":  "dotnet build HotelOps.slnx --nologo",
+                  "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                  "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                  "exitCode":  0,
+                  "warnings":  2,
+                  "warningCodes":  [
+                                       "NU1900"
+                                   ],
+                  "errors":  0,
+                  "restore":  "Restored API project; vulnerability metadata unavailable",
+                  "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/02_build.txt",
+                  "sqlExecution":  "NOT_RUN"
+              },
+    "successfulRuns":  [
+                           {
+                               "suite":  "03_dev2_nosql",
+                               "command":  "dotnet run --project tests/HotelOps.Dev3Unblock.NoSql/HotelOps.Dev3Unblock.NoSql.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  92,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/03_dev2_nosql.txt",
+                               "outputSha256":  "2e5de4d9c017694be0a4452cf1760bbd0f4adfd84c15584c96f9d385befd2305"
+                           },
+                           {
+                               "suite":  "04_boundary",
+                               "command":  "dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj --filter FullyQualifiedName~BoundaryTests --nologo",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  67,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/04_boundary.txt",
+                               "outputSha256":  "0daaea3acde927a11bf0c0d2b07ad7cd48d5ede00106b9860be93dfdd3f0179e"
+                           },
+                           {
+                               "suite":  "UserAccountDeactivation",
+                               "command":  "dotnet run --project scripts/verification/UserAccountDeactivation/UserAccountDeactivation.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  12,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/UserAccountDeactivation.txt",
+                               "outputSha256":  "d21160955566410fd58e009e9848b1ca4c221b4cb837e08c10dcb4d04269e1b7"
+                           },
+                           {
+                               "suite":  "UserRoleRevocation",
+                               "command":  "dotnet run --project scripts/verification/UserRoleRevocation/UserRoleRevocation.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  54,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/UserRoleRevocation.txt",
+                               "outputSha256":  "184775918c5deadbb68e75fe41230fa807126a386bf9b740f519c5199090224f"
+                           },
+                           {
+                               "suite":  "RoomLifecycleCandidate",
+                               "command":  "dotnet run --project scripts/verification/RoomLifecycleCandidate/RoomLifecycleCandidate.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  29,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/RoomLifecycleCandidate.txt",
+                               "outputSha256":  "1874f2984b2e45ffa977c951863accb2db0c0ea40add486438032854a6a4ab16"
+                           },
+                           {
+                               "suite":  "DepartmentDeactivationCandidate",
+                               "command":  "dotnet run --project scripts/verification/DepartmentDeactivationCandidate/DepartmentDeactivationCandidate.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  25,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DepartmentDeactivationCandidate.txt",
+                               "outputSha256":  "8092b1956c76dd7f16f1baf88a795c8f62e80728d307b1e81b0ed14f9939c6bf"
+                           },
+                           {
+                               "suite":  "StructureDeactivationPreview",
+                               "command":  "dotnet run --project scripts/verification/StructureDeactivationPreview/StructureDeactivationPreview.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  27,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/StructureDeactivationPreview.txt",
+                               "outputSha256":  "ac3119017edacbb590b180418ad6e01a563c77e833188549f41ebc3b4b2e6ee2"
+                           },
+                           {
+                               "suite":  "WorkdayReadRouting",
+                               "command":  "dotnet run --project scripts/verification/WorkdayReadRouting/WorkdayReadRouting.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  44,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/WorkdayReadRouting.txt",
+                               "outputSha256":  "82dce6fa2f1115da574dd6463d89ad38d0b71e315aada5af059055611c41a9f5"
+                           },
+                           {
+                               "suite":  "DepartmentChange",
+                               "command":  "dotnet run --project scripts/verification/DepartmentChange/DepartmentChange.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  45,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DepartmentChange.txt",
+                               "outputSha256":  "06e53cce6ffbaa3d6c3949d7eca188809be7706f6fe6690f346af2dc867e2e13"
+                           },
+                           {
+                               "suite":  "ShiftSchedulePlanning",
+                               "command":  "dotnet run --project scripts/verification/ShiftSchedulePlanning/ShiftSchedulePlanning.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  24,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/ShiftSchedulePlanning.txt",
+                               "outputSha256":  "70ce352aa8b0695a3d2b26169c30379cc80aa144fbc5f16ded39ad4db847b25c"
+                           },
+                           {
+                               "suite":  "ShiftPlanPreview",
+                               "command":  "dotnet run --project scripts/verification/ShiftPlanPreview/ShiftPlanPreview.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  57,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/ShiftPlanPreview.txt",
+                               "outputSha256":  "4395ce14a7ac4ddaa0426c119cde1d3022ee8dc71615d981fb7f747a825411fa"
+                           },
+                           {
+                               "suite":  "ScheduledWorkday",
+                               "command":  "dotnet run --project scripts/verification/ScheduledWorkday/ScheduledWorkday.Verification.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  43,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/ScheduledWorkday.txt",
+                               "outputSha256":  "82f276711c59a199597892bcd2b3c1e8892b67f4027df7a69a8c9444d385c8d6"
+                           },
+                           {
+                               "suite":  "DiComposition_verified",
+                               "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+                               "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                               "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+                               "exitCode":  0,
+                               "pass":  16,
+                               "fail":  0,
+                               "skip":  0,
+                               "sqlExecution":  "NOT_RUN",
+                               "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_verified.txt",
+                               "outputSha256":  "848d92ab44df9df705869a76606c8240a90b8791b36f43a0fc6fda69c1a1b2d0"
+                           }
+                       ],
+    "requiredPass":  350,
+    "additionalExistingPass":  169,
+    "diPass":  16,
+    "totalPass":  535,
+    "finalFail":  0,
+    "finalSkip":  0,
+    "priorProbeFailures":  [
+                               {
+                                   "attempt":  "DiComposition_first_failure",
+                                   "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+                                   "exitCode":  1,
+                                   "exitCodeScope":  null,
+                                   "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_first_failure.txt",
+                                   "sha256":  "e6a73b61804d61b3e06a8ce4583d97d394ab343de72a025dcd7f4a9a0d0b68cf",
+                                   "sqlExecution":  "NOT_RUN"
+                               },
+                               {
+                                   "attempt":  "DiComposition_environment_failure",
+                                   "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+                                   "exitCode":  1,
+                                   "exitCodeScope":  "unified shell session interrupted after unhandled environment guard exception; child exit not captured",
+                                   "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_environment_failure.txt",
+                                   "sha256":  "fd8115841d7818f353d0c621c876bf63454b29bcfe0db0aad6bbc32332cc17a6",
+                                   "sqlExecution":  "NOT_RUN"
+                               },
+                               {
+                                   "attempt":  "DiComposition_eventlog_failure",
+                                   "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+                                   "exitCode":  1,
+                                   "exitCodeScope":  null,
+                                   "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_eventlog_failure.txt",
+                                   "sha256":  "f7d881bf48aa234ca24ab60c7ec273541c4ee277317acbda1e08ff1fcf295251",
+                                   "sqlExecution":  "NOT_RUN"
+                               }
+                           ],
+    "solutionTest":  "exit 0, zero discovered tests, excluded from PASS count",
+    "warningLimitations":  [
+                               "NU1900 vulnerability metadata unavailable",
+                               "3 existing EF20602 RoomTypeBranchV1 index warnings"
+                           ],
+    "sqlAcceptance19":  "NOT_RUN"
+}

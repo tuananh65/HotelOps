@@ -1,0 +1,13 @@
+  Determining projects to restore...
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\tests\HotelOps.Dev1.RegressionTests\HotelOps.Dev1.RegressionTests.csproj]
+<WORKTREE>\tests\HotelOps.Dev1.RegressionTests\HotelOps.Dev1.RegressionTests.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+  Restored <WORKTREE>\tests\HotelOps.Dev1.RegressionTests\HotelOps.Dev1.RegressionTests.csproj (in 5.7 sec).
+  1 of 2 projects are up-to-date for restore.
+<WORKTREE>\tests\HotelOps.Dev1.RegressionTests\HotelOps.Dev1.RegressionTests.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+  HotelOps.Api -> <WORKTREE>\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Dev1.RegressionTests -> <WORKTREE>\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll
+Test run for <WORKTREE>\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:    67, Skipped:     0, Total:    67, Duration: 424 ms - HotelOps.Dev1.RegressionTests.dll (net10.0)

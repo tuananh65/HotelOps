@@ -710,3 +710,42 @@ test("revealed credential disappears during pending revalidation and never retur
     },
   );
 });
+
+for (const [field, wrong] of Object.entries({
+  username: "other-account",
+  branchId: 99,
+  departmentId: 99,
+  roleCode: "RECEPTION",
+}))
+  test(`201 mismatched ${field} locks flow without revealing or copying credential`, async () => {
+    const reply = created();
+    reply.body.user[field] = wrong;
+    await withFlow({ posts: [reply] }, async (page) => {
+      await fill(page);
+      await submit(page);
+      assert.ok((await visible(page)).includes(unknown));
+      assert.ok(!(await visible(page)).includes(secret));
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Reveal password", exact: true })
+          .count(),
+        0,
+      );
+      assert.equal(
+        await page
+          .getByRole("button", { name: "Create account", exact: true })
+          .count(),
+        0,
+      );
+      assert.deepEqual(await page.evaluate(() => window.clipboardWrites), []);
+      assert.equal((await calls(page, "/api/users")).length, 1);
+      await page.evaluate(() =>
+        document
+          .querySelector("form")
+          ?.dispatchEvent(
+            new Event("submit", { bubbles: true, cancelable: true }),
+          ),
+      );
+      assert.equal((await calls(page, "/api/users")).length, 1);
+    });
+  });

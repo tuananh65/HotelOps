@@ -11,6 +11,20 @@ namespace HotelOps.Api.Services.WorkTime;
 /// </summary>
 public sealed class ShiftAssignmentConflictReader(HotelOpsDbContext db)
 {
+    /// <summary>Plan from a trusted active template, then use the existing global employee overlap query.</summary>
+    public Task<bool> HasOverlapAsync(long employeeId, long branchId,
+        HotelOps.Api.Entities.ShiftTemplate template, DateOnly date, TimeZoneInfo timezone,
+        long? excludeAssignmentId, CancellationToken ct)
+    {
+        ct.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(template);
+        if (employeeId <= 0 || branchId <= 0 || template.ShiftTemplateId <= 0
+            || template.BranchId != branchId || !template.IsActive)
+            throw new ArgumentException("An eligible active template from the target branch is required.");
+        var plan = ShiftSchedulePlanner.Plan(date, template.StartTime, template.EndTime,
+            template.CrossesMidnight, timezone);
+        return HasOverlapAsync(employeeId, plan.StartUtc, plan.EndUtc, excludeAssignmentId, ct);
+    }
     public async Task<bool> HasOverlapAsync(long employeeId, DateTimeOffset startUtc,
         DateTimeOffset endUtc, long? excludeAssignmentId, CancellationToken ct)
     {

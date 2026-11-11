@@ -1,0 +1,79 @@
+✔ exact immutable draft allowlist detached from caller (2.4697ms)
+✔ reject invalid employeeId0 (0.1662ms)
+✔ reject invalid employeeId-1 (0.0932ms)
+✔ reject invalid employeeId1.5 (0.0844ms)
+✔ reject invalid employeeId9007199254740992 (0.1304ms)
+X [ERROR] Could not resolve "src/hotel/main.tsx"
+
+✔ reject invalid branchId0 (0.1167ms)
+✔ reject invalid branchId-1 (0.1118ms)
+✔ reject invalid branchId1.5 (0.0919ms)
+✔ reject invalid branchId9007199254740992 (0.1239ms)
+✔ reject invalid departmentId0 (0.2017ms)
+✔ reject invalid departmentId-1 (0.2037ms)
+✔ reject invalid departmentId1.5 (0.0704ms)
+✔ reject invalid departmentId9007199254740992 (0.0469ms)
+✔ reject invalid templateId0 (0.0435ms)
+✔ reject invalid templateId-1 (0.0364ms)
+✔ reject invalid templateId1.5 (0.043ms)
+✔ reject invalid templateId9007199254740992 (0.0384ms)
+✔ reject impossible date 0000-01-01 (0.078ms)
+✔ reject impossible date 2027-02-29 (0.0434ms)
+✔ reject impossible date 2028-02-30 (0.0428ms)
+✔ reject impossible date 2026-13-01 (0.034ms)
+✔ reject impossible date 2026-11-31 (0.0366ms)
+✔ reject impossible date 2026-1-01 (0.0456ms)
+✔ batch bound and leap year (1.1327ms)
+✔ clear overnight server interval still requires revalidation and strips raw fields (0.3031ms)
+✔ existing internal numeric issue 0 (0.0881ms)
+✔ existing internal numeric issue 1 (0.0524ms)
+✔ existing internal numeric issue 2 (0.0437ms)
+✔ existing internal numeric issue 3 (0.0501ms)
+✔ existing internal numeric issue 4 (0.0556ms)
+✔ existing internal numeric issue 5 (0.0413ms)
+✔ existing internal numeric issue 6 (0.069ms)
+✔ existing internal numeric issue 7 (0.0413ms)
+✔ existing internal numeric issue 8 (0.0648ms)
+✔ existing internal numeric issue 9 (0.0481ms)
+✔ reject malformed preview null (0.0955ms)
+✔ reject malformed preview {} (0.0322ms)
+✔ reject malformed preview {"rows":[],"requiresServerRevalidation":true} (0.0363ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T16:00:00+00:00","endUtc":"2028-03-01T00:00:00+00:00","issues":[]}],"requiresServerRevalidation":false} (0.0275ms)
+✔ reject malformed preview {"rows":[{"index":1,"startUtc":"2028-02-29T16:00:00+00:00","endUtc":"2028-03-01T00:00:00+00:00","issues":[]}],"requiresServerRevalidation":true} (0.028ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T16:00:00+00:00","endUtc":"2028-03-01T00:00:00+00:00","issues":[10]}],"requiresServerRevalidation":true} (0.0291ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T16:00:00+00:00","endUtc":"2028-03-01T00:00:00+00:00","issues":["ExistingOverlap"]}],"requiresServerRevalidation":true} (0.0312ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T16:00:00+00:00","endUtc":"2028-03-01T00:00:00+00:00","issues":[7,7]}],"requiresServerRevalidation":true} (0.0313ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":null,"endUtc":"2028-03-01T00:00:00+00:00","issues":[]}],"requiresServerRevalidation":true} (0.0342ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":null,"endUtc":null,"issues":[]}],"requiresServerRevalidation":true} (0.0471ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T16:00:00+00:00","endUtc":"2028-02-29T16:00:00+00:00","issues":[]}],"requiresServerRevalidation":true} (0.0927ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-30T00:00:00Z","endUtc":"2028-03-01T00:00:00+00:00","issues":[]}],"requiresServerRevalidation":true} (0.0442ms)
+✔ reject malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T24:00:00Z","endUtc":"2028-03-01T00:00:00+00:00","issues":[]}],"requiresServerRevalidation":true} (0.0619ms)
+✖ production entry does not import preview or prototype ShiftManagement (18.497ms)
+ℹ tests 49
+ℹ suites 0
+ℹ pass 48
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 142.5517
+
+✖ failing tests:
+
+test at tests\shift-plan-preview.test.mjs:92:1
+✖ production entry does not import preview or prototype ShiftManagement (18.497ms)
+  Error: Build failed with 1 error:
+  error: Could not resolve "src/hotel/main.tsx"
+      at failureErrorWithLog (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:1467:15)
+      at C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:926:25
+      at C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:878:52
+      at buildResponseToResult (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:924:7)
+      at C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:951:16
+      at responseCallbacks.<computed> (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:603:9)
+      at handleIncomingPacket (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:658:12)
+      at Socket.readFromStdout (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:581:7)
+      at Socket.emit (node:events:514:20)
+      at addChunk (node:internal/streams/readable:605:12) {
+    errors: [ { detail: undefined, id: '', location: null, notes: [], pluginName: '', text: 'Could not resolve "src/hotel/main.tsx"' } ],
+    warnings: []
+  }

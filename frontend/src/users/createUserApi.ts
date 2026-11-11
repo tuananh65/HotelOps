@@ -101,7 +101,10 @@ function timestamp(v: unknown): v is string {
   );
 }
 
-function decode(v: unknown): CreateUserResponse | undefined {
+function decode(
+  v: unknown,
+  request: CreateUserRequest,
+): CreateUserResponse | undefined {
   if (!object(v) || !object(v.user) || !object(v.temporaryCredential)) return;
   const u = v.user,
     c = v.temporaryCredential;
@@ -116,6 +119,9 @@ function decode(v: unknown): CreateUserResponse | undefined {
     !id(u.departmentId) ||
     !role(u.roleCode) ||
     u.accountStatus !== "ACTIVE" ||
+    fields.some(
+      (field) => u[field] !== request[field as keyof CreateUserRequest],
+    ) ||
     typeof c.password !== "string" ||
     c.password.trim().length === 0 ||
     !timestamp(c.expiresAtUtc)
@@ -270,7 +276,7 @@ export function createCreateUserApi(
             error: { reason: "CANCELLED", status },
           };
         if (status === 201) {
-          const data = decode(value);
+          const data = decode(value, request);
           const location = response.headers.get("Location");
           if (data && location === `/api/users/${data.user.id}`)
             return {
