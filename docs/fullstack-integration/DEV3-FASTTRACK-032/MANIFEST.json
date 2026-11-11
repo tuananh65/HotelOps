@@ -1,0 +1,126 @@
+{
+  "task": "DEV3-FASTTRACK-032",
+  "base": "00bdc481cb224d7117a79c95669abc7016f51ba4",
+  "files": [
+    {
+      "path": "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+      "sha256": "DD32A2BC74C05D7F29EF12A71019C496FF14F117C2A174A5CB484B729F271B66"
+    },
+    {
+      "path": "frontend/tests/scheduled-workday-browser.test.mjs",
+      "sha256": "AA98B9304A8AFCBF4818A40180D744D768A04415313879BD147CF6B2A0A1103E"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/ScheduledWorkdayClaims.cs",
+      "sha256": "434EE272D46A9EB5577BE3566C952C202EE029DF6BCEC937E40940EB2B0118E9"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+      "sha256": "1F1C58C00D25F1C751D821F17B1246ADB2D025DDDFE75022592322EA9D3E3811"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+      "sha256": "1DDD3F6A992618166E2633D49DCFA4B523A36FC870B5D089ED76DDA0D75A8CB3"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkday/Program.cs",
+      "sha256": "13414A6B4891B67DE71B1C34640556E3C67507F07BE178E4F930FA86D2DDFCC7"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/Program.cs",
+      "sha256": "34C6D1764815A253E34BB41655172CF8CACFBCC9F82435CB0B60FD3A3766483C"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/README.md",
+      "sha256": "F1DC610FF295D1342F24208CF06B1EB7613FDAA2D8DAE30F9D5E56A156A6BFEF"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/receipt.template.json",
+      "sha256": "537588ECF0B005D1B51189C7F81649DF298FFF287759B7DBD87EC22779AFF890"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/ScheduledWorkdayAcceptance.csproj",
+      "sha256": "720478BD353C02A24462E2FE4F00BD713CC9ABD45A42AE42F904BDF140B13A50"
+    },
+    {
+      "path": "scripts/verification/ScheduledWorkdayAcceptance/test-guards.mjs",
+      "sha256": "AFD7C8365DAE221E053F913A039091D0C0B874E07D51E8BCE60DB4422F484793"
+    },
+    {
+      "path": "docs/fullstack-integration/DEV3-FASTTRACK-032/HANDOFF.md",
+      "sha256": "5D522054797BAD297892C94FAB57A819A43D0B324A4C94B35EFEE2FE7B37489E"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+      "workingSha256": "2B042265B357D52E8D475748018C1E569356F054717FB5A6F0D704F57013627C",
+      "gitBlobSha256": "1890559D3578CE136A758A4C625D8F2D242951FF596138D969B03D07E1616380",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "src/HotelOps.Api/Program.cs",
+      "workingSha256": "5D58BB323811A36BC8ACD9AEBBD9847B2818202FED49521B927B4E4633988584",
+      "gitBlobSha256": "9FD31CCBF043FE49019B93AEE399268F94FA09CDD7B5C312B12B6D6B0A78F510",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+      "workingSha256": "FBA0FE330B5C32A7D66D6112C23A5E003FD9DEB49097630A47D2C42373276BBD",
+      "gitBlobSha256": "F2B782C601A25ADBDD78186BA81DBFF1E9D39BAC3664A884692F2AADB01716FD",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+      "workingSha256": "3D89708EF9D1C052F9C5F12135A8C7D62AD27C42F9F368F0F579173834DDF65C",
+      "gitBlobSha256": "66C9C75FB3CF5CF1D53173E4725950BB127F5C119C8F952C81005ADE171A22D9",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "frontend/src/hotel/HotelRouteHost.tsx",
+      "workingSha256": "705FF37FA55044C153C839E45C4E61E3915F60707E65B46730A338374470B161",
+      "gitBlobSha256": "DB23416B11528144170E2287F0F62D593FD9BA97A24DB81FD02B1632125AA93C",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "frontend/src/workday/WorkdayRoute.tsx",
+      "workingSha256": "B7C98240D6453EB9DF34C943CCD0E9471A8ECE1B15AE8131DF8178AAE1C21C69",
+      "gitBlobSha256": "21D048672BD64C0DD72228C1D3A06210F1099B52003C9C3603DCE6F72106EDC3",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "frontend/src/workday/readFeature.ts",
+      "workingSha256": "B9CDD67E46800E1A2B7B45E651E05F3C9CBE171A169F9354B75483A5CF1493DC",
+      "gitBlobSha256": "1D48027DED65656C753A89E9077685AFF26AA6E34A33CC364BF82151E6D8E43E",
+      "note": "unchanged with checkout CRLF normalization"
+    },
+    {
+      "path": "frontend/src/workday/scheduledWorkdayApi.ts",
+      "workingSha256": "80E90538488D373699D6D410C883AA2E3116BCC80332D2F0752653651ADA79A2",
+      "gitBlobSha256": "835F19DDCA01BACA66A1C5968A5BB4CF8E6C9115005DFD5E925DE485C633CCCB",
+      "note": "unchanged with checkout CRLF normalization"
+    }
+  ],
+  "receipts": {
+    "frontendPass": 250,
+    "frontendExit": 0,
+    "scheduledPass": 51,
+    "scheduledExit": 0,
+    "newClaimBehavior": 7,
+    "newSqlTranslationOnly": 1,
+    "sourceAssertions": 27,
+    "routingPass": 44,
+    "routingExit": 0,
+    "guardPass": 5,
+    "guardExit": 0,
+    "backendBuildExit": 0,
+    "runnerBuildExit": 0,
+    "typecheckExit": 0,
+    "frontendBuildExit": 0,
+    "formatExit": 0,
+    "dotnetTestExit": 0,
+    "dotnetTestProjectCount": 0
+  },
+  "sqlHttps": "NOT_RUN",
+  "releaseActivation": false
+}

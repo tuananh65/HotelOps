@@ -2,7 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { createWorkdayApi } from "./workdayApi";
 import { createScheduledWorkdayApi } from "./scheduledWorkdayApi";
-import { scheduledMessage, strongWorkdayTag } from "./scheduledContracts";
+import {
+  scheduledMessage,
+  strongWorkdayTag,
+  type ScheduledWorkdayResponse,
+} from "./scheduledContracts";
 import { safeId, type OwnShift, type OwnWorkday } from "./contracts";
 const keys = new WeakMap<object, number>();
 let generation = 0;
@@ -101,6 +105,7 @@ function Bound({
     [message, setMessage] = useState(""),
     [sessionInvalid, setSessionInvalid] = useState(false),
     [locked, setLocked] = useState(false);
+  const [receipt, setReceipt] = useState<ScheduledWorkdayResponse | null>(null);
   const [review, setReview] = useState<Review | null>(null);
   const reviewed = useRef<Review | null>(null);
   function clearReview() {
@@ -113,6 +118,7 @@ function Bound({
     invalid = useRef(false),
     controller = useRef<AbortController | null>(null);
   function invalidateSession() {
+    setReceipt(null);
     clearReview();
     invalid.current = true;
     invalidate();
@@ -237,6 +243,7 @@ function Bound({
     }
     setPending(false);
     if (result.outcome === "CONFIRMED") {
+      setReceipt(result.data);
       setDay(undefined);
       setMessage(
         `${operation === "start" ? "Start" : "End"} confirmed. Refreshing authoritative snapshot.`,
@@ -270,6 +277,28 @@ function Bound({
       </p>
       {!dispatchEnabled && (
         <p>Mutation dispatch disabled pending runtime approval.</p>
+      )}
+      {receipt && (
+        <section aria-label="Confirmed workday result">
+          <h2>Recorded workday</h2>
+          <p>
+            Workday {receipt.workdayId}: {receipt.status}
+          </p>
+          <p>
+            Server start:{" "}
+            <time dateTime={receipt.startedAtUtc}>{receipt.startedAtUtc}</time>
+          </p>
+          {receipt.endedAtUtc && (
+            <p>
+              Server end:{" "}
+              <time dateTime={receipt.endedAtUtc}>{receipt.endedAtUtc}</time>
+            </p>
+          )}
+          <p>
+            Assignment {receipt.shiftAssignmentId}; Branch {receipt.branchId}.
+            This is not task effort or payroll time.
+          </p>
+        </section>
       )}
       <section aria-label="Assigned shifts">
         <h2>Assigned shifts</h2>
