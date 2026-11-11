@@ -1,0 +1,219 @@
+{
+  "baseline": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+  "implementationCommit": "4733f6318be79d3deb07fde0fa19b325fde9ea6c",
+  "excludes": [
+    "CHANGED_FILES_SHA256.json (self hash)",
+    "External post-commit publication receipt"
+  ],
+  "files": [
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/01_PINNED_SOURCES.md",
+      "sha256": "5f84fd08f8b48816caa878485e5e02889bc3879eb254ef554f801da4b4f2e968"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/02_D05_EXACT_GUID_HOOK.md",
+      "sha256": "9e0b00d24d2c40c37a613247de399b6beedea42835dc4d6ed34333ac7f3c2143"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/03_D08_WRITER004A_SUCCESSOR.md",
+      "sha256": "cf44fbf7559febf8e90b8a6a1ae0fee18eb3a8ca875bcbf57432b445df2d8e69"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/04_D03_56_PERMISSION_REVIEW.md",
+      "sha256": "4ac5ff9c2d602f20bffedce225e210859decf611f8b5372ada148f9a192ba920"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/05_NATIVE_FS013_COMPATIBILITY.md",
+      "sha256": "4ee6026597b23bd35166d5d4b94b8312c76923282d9335db6da7a9c0be431df9"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/06_FOCUSED_TEST_RECEIPTS.md",
+      "sha256": "62878a64902b6cee59445e62b60b08d3c6c29965709c48e8076bbd283ee6349f"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/07_SECURITY_RUNTIME_OWNER_REQUESTS.md",
+      "sha256": "24e829c7b67a3142834ed16ca043e2d34a17a7fca26c8246cf9bdce67c557c3f"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/08_SOURCE_GIT_PUBLICATION.md",
+      "sha256": "9ae3e8b3f8ec7de8a1d4953afcb754b31ef97ae6a6bfcc36d50ac461abbb5a67"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/09_FINAL_VERDICT.md",
+      "sha256": "82377c9c156da29d23243c9d9ed1caf50dea1d519aa07fd8f301b3decc2fc872"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D03_NarrowedPermissions.review.sql",
+      "sha256": "a05e00f74b309bc4fd70491c0cbd628a937f0a5af4e7b7700f896a2bf7c7ffc0"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D03_PERMISSION_MATRIX_56.json",
+      "sha256": "e2481e405a13547caa29f9e5ea455d42cab2492fa4a62155d81a45c759059785"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D03_PERMISSION_NARROWING.json",
+      "sha256": "638abf8e55776dab691b8671481faea01dc10638c797d5cb6f77167d8716c6c3"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D03_SOURCE_EVIDENCE.json",
+      "sha256": "f4f541d184743f159df5ff7ceade0536612e8323a7212e3ae1434dd6dd1649e1"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D05_TARGET_HOOK_CONTRACT.json",
+      "sha256": "2c30fe545be672344e28239b683d20a30f645495f730e67b0aa9d68f398c47cb"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/D08_SUCCESSOR_CONTRACT.json",
+      "sha256": "3875f11b64de44c43583defebb8c7d6e169d33acb3e0277f8ca7e65da19c9a3e"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/DEV1_SECURITY_RUNTIME_HANDOFF.md",
+      "sha256": "9003dcf62a4c84f6df9a6de2c741bbb7cd19b45acb23474835bf718e712eebfd"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/FINAL_READINESS.json",
+      "sha256": "3ec02a7653f83161640388043123fd33111c2fbb9eda33c70b8866ef21ebd785"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/FOCUSED_TEST_RECEIPTS.json",
+      "sha256": "190d2a6dcbc7323036f6928a1397a147275f7e028a75e274599badbcb86f4d92"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/HOST_CONTINUE.sh",
+      "sha256": "13dbdef08c26caf8f2dc52f301df9a63984ada78766f67cd5bca0531fe22d7f5"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/OWNER_DECISIONS.json",
+      "sha256": "14d5ea7e0bcd2b8fe3a75d2fdbb9ed830d476c0893e79c50c391d3fbd667c188"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/PROTECTION_VERIFICATION.json",
+      "sha256": "99ff59efa86c0839898125c362a270631b25cdc50a7322a01816683c971b48ae"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/SOURCE_PINS.json",
+      "sha256": "8220adc0554c24ecbcfed62442a88322ea379da87550c3b938604e471eda99c4"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/SOURCE_PUBLICATION_RECEIPT.json",
+      "sha256": "fb1c2199d445a55761c9ea2fa096a270f0323d8c4d17f3439e3b79637a475274"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/build.json",
+      "sha256": "bffadb2937466d82e08e893f856d1e139218fd9e0a15128bcc5e2c929632d88c"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/build.log.json",
+      "sha256": "f8e693935ff95cf8beab6dc44f497f6015af426861e7d861ca52bfbc15cfecd7"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning-final.json",
+      "sha256": "6f7dbcd64da3254577e2aac15051a13dea523d3480639fbdf9c7df3cf606ea08"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning-final.log.json",
+      "sha256": "668f5c60173329a55eb0528f12ed828cf21977c30b903008195761307c1bbd0d"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning-rerun.json",
+      "sha256": "bd4f2910c7321d911d0ebf9d125052144f8d0efe5d37e535bd8f473c7a2c3ddd"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning-rerun.log.json",
+      "sha256": "6dbd000c712b966446bde9489d158b42e868c0b527005452d75a4317a08f154c"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning-sealed.json",
+      "sha256": "4adc374f2ddcdd99b57e96e37c43f51685c8b9b447f8147966abceca487cb952"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning-sealed.log.json",
+      "sha256": "668f5c60173329a55eb0528f12ed828cf21977c30b903008195761307c1bbd0d"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning.json",
+      "sha256": "72299004868fecb5eaf07b1ac442b7ae0f0f67124bcdce073410d46614f5e409"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/cleaning.log.json",
+      "sha256": "5f683bde5c98cca17cacf03c2ad10b4bee7be5a487fd3f914115c065181e856b"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/consumer-compatibility.json",
+      "sha256": "a15c954ba7a7f1fa0a20d8015162807feb3fb70fee7d4844286c6cf003bbfa35"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/consumer-compatibility.log.json",
+      "sha256": "a4b608d2d476856bf0267b768fa90e52fb514f626d17161bcc42bde7fa9832a8"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/d03-final.json",
+      "sha256": "0fdbcb1e85561970da6fdfb56021c7fff1af5eec4d84d4e2b9fae8005257ebe3"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/d03-final.log.json",
+      "sha256": "016cfd0597c1e08124050495e9de6b7c8a0d8866cb1037e103c0d1d2e217a67a"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/d03.json",
+      "sha256": "1af9a192d95d226ebfbc90e4d54209d07791584694527f705c0b5576d8ca60d5"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/d03.log.json",
+      "sha256": "016cfd0597c1e08124050495e9de6b7c8a0d8866cb1037e103c0d1d2e217a67a"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/fs013.json",
+      "sha256": "bf23ea6deb42e96136f3a1bde6dd8e966ecc97639aa1c51863618d2c49c984d5"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/fs013.log.json",
+      "sha256": "f66c35743ef097ad4d4fc1708a5c2585901f2c7f24e5a91b29983fc79f2c778f"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/solution-test.json",
+      "sha256": "0960014b70d98b5a77ecbba5b9bf6285147dcca41fa38ab7a0333f31870890d4"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/solution-test.log.json",
+      "sha256": "217898ef864eb23380c6164226fb07389b7fd8b683bd4c9974edbaabc344697b"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/writer004a.json",
+      "sha256": "54e0ce72be5d67dd364f0ebc9944fda58ca0dbab5b174593e3263bd56401a569"
+    },
+    {
+      "path": "docs/integration-notes/DEV2-FE04-NOTIF-OWNER-DECISION-007/receipts/writer004a.log.json",
+      "sha256": "6738b5700674e064c3c41204ad2efa665bc11110137743a6dd595439fd66d686"
+    },
+    {
+      "path": "scripts/verification/NotifOwner007/review-permissions.cjs",
+      "sha256": "cc4c0208ad62f0048e0d5285ef3119c5cc854d6f62e90c359094df6d857aecdd"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+      "sha256": "8225d80b239a1442ccfc59495115f8dc420059991eee13e86908728ec4d67e00"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CleaningCommonTargetAdmission.cs",
+      "sha256": "3851963a76d3dcb3a638a6891cdf0ca521a30b136b5da5b74d0a6a41397503c5"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+      "sha256": "53490905f1e3f57a6bb46df65ffc03a5fd37e766915d0ac331b538e1ffdc97aa"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/NotifWriter004BContract.cs",
+      "sha256": "275405cda957567eac910eba5ecf0ff630129afa0242a3e510ec78290665b4ac"
+    },
+    {
+      "path": "tests/HotelOps.Notification.Cleaning.NoSql/Owner007Checks.cs",
+      "sha256": "1bd16d832ed7f0b30e8e39e852d1bdc5b4fd45f383cbd3a3be5105845f196785"
+    },
+    {
+      "path": "tests/HotelOps.Notification.Cleaning.NoSql/Program.cs",
+      "sha256": "1aa21931d2459e9de5a433d2205a05fd0f5dccdbb2ed7d1ddcc8739276e81ea5"
+    }
+  ],
+  "sourceIdentitySha256": "22faadb7dd2bb2c44c94ebf036518c7f2ccd8de63b64c6573958399cebe43817"
+}

@@ -18,12 +18,15 @@ public interface ICleaningNotificationRuntime
 
 // Existing FS013 intents/inbox, not another worker, queue or publisher. Explicit invocation only.
 public sealed class CleaningNotificationRuntime(HotelOpsDbContext db,ICleaningAssignmentStore store,
-    ICleaningNotificationActivation activation,ICleaningActorAuthority authority,TimeProvider clock):ICleaningNotificationRuntime
+    ICleaningNotificationActivation activation,ICleaningActorAuthority authority,TimeProvider clock,ICleaningCommonTargetAdmission? commonTarget=null):ICleaningNotificationRuntime
 {
     private const string Title="Cleaning task assigned",Message="A cleaning task has been assigned to you.";
-    private void RequireClean()
+    private async Task RequireClean(string use,CancellationToken ct)
     {if(db.Database.CurrentTransaction is not null||db.ChangeTracker.Entries().Any())throw new InvalidOperationException("Clean runtime context required.");
-     IntegrationSqlGuard.ValidateConnectionString(db.Database.GetDbConnection().ConnectionString,requirePassword:false);}
+     var connection=db.Database.GetDbConnection();
+     if(connection.DataSource==IntegrationSqlGuard.Server&&connection.Database==IntegrationSqlGuard.Database)
+         IntegrationSqlGuard.ValidateConnectionString(connection.ConnectionString,requirePassword:false);
+     else {if(commonTarget is null)throw new NotificationContractUnavailableException();await commonTarget.RequireRuntimeCleanAsync(db,use,ct);}}
     private async Task LockScopeAsync(long user,IEnumerable<long> branches,CancellationToken ct)
     {
         await new UserEligibilityLock(db).LockAsync([user],ct);
@@ -33,7 +36,7 @@ public sealed class CleaningNotificationRuntime(HotelOpsDbContext db,ICleaningAs
     }
     public async Task<int> RunContainedBatchAsync(CancellationToken ct)
     {
-        await activation.RequireAsync(CleaningNotificationCapability.ContainedDelivery,ct);RequireClean();
+        await activation.RequireAsync(CleaningNotificationCapability.ContainedDelivery,ct);await RequireClean("CONTAINED_DELIVERY",ct);
         // No startup or timer calls this method. Gate must include current lease, fixtures and target approval.
         List<IntentRow> ids;
         await using(var scan=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct))
@@ -109,7 +112,7 @@ public sealed class CleaningNotificationRuntime(HotelOpsDbContext db,ICleaningAs
     public async Task<CleaningInboxPage> ListAsync(long user,int page,int size,CancellationToken ct)
     {
         if(user<=0||page<1||size is <1 or >100||page>int.MaxValue/size)throw new ArgumentException("Invalid inbox page.");
-        await activation.RequireAsync(CleaningNotificationCapability.Inbox,ct);RequireClean();
+        await activation.RequireAsync(CleaningNotificationCapability.Inbox,ct);await RequireClean("INBOX_READ",ct);
         var hints=await ReadHintsAsync(user,null,ct);
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         await store.EnsureAsync(ct);await new UserEligibilityLock(db).LockAsync([user],ct);await authority.RequireViewerAsync(user,ct);
@@ -122,7 +125,7 @@ public sealed class CleaningNotificationRuntime(HotelOpsDbContext db,ICleaningAs
     }
     public async Task<CleaningInboxItem?> GetAsync(long user,Guid publication,CancellationToken ct)
     {
-        await activation.RequireAsync(CleaningNotificationCapability.Inbox,ct);RequireClean();
+        await activation.RequireAsync(CleaningNotificationCapability.Inbox,ct);await RequireClean("INBOX_READ",ct);
         if(user<=0||publication==Guid.Empty)throw new ArgumentException("Invalid inbox identity.");
         var hints=await ReadHintsAsync(user,publication,ct);
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
@@ -136,7 +139,7 @@ public sealed class CleaningNotificationRuntime(HotelOpsDbContext db,ICleaningAs
     {
         byte[] version;try{version=Convert.FromBase64String(request.ExpectedRowVersion);}catch(Exception e)when(e is FormatException or ArgumentNullException){throw new ArgumentException("Invalid version.");}
         if(version.Length!=8||user<=0||publication==Guid.Empty)throw new ArgumentException("Invalid read command.");
-        await activation.RequireAsync(CleaningNotificationCapability.Inbox,ct);RequireClean();
+        await activation.RequireAsync(CleaningNotificationCapability.Inbox,ct);await RequireClean("INBOX_WRITE",ct);
         var hints=await ReadHintsAsync(user,publication,ct);
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         await store.EnsureAsync(ct);await new UserEligibilityLock(db).LockAsync([user],ct);await authority.RequireViewerAsync(user,ct);

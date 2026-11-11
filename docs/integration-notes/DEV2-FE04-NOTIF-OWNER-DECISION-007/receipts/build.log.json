@@ -1,0 +1,5 @@
+{
+  "encoding": "UTF8_JSON_STRING_PRESERVES_ORIGINAL_CRLF",
+  "originalLogSha256": "309e94f2c586bb0aa4ace023de2c95ac4ca1a5004d166b2a93b0fb8dee0fc233",
+  "text": "  Determining projects to restore...\r\n  All projects are up-to-date for restore.\r\n  HotelOps.Api -> C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\worktree\\src\\HotelOps.Api\\bin\\Debug\\net10.0\\HotelOps.Api.dll\r\n\r\nBuild succeeded.\r\n    0 Warning(s)\r\n    0 Error(s)\r\n\r\nTime Elapsed 00:00:01.71\r\n\nSTDERR:\n"
+}

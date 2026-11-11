@@ -1,0 +1,31 @@
+{
+  "pass": true,
+  "utc": "2026-11-10T16:26:18.064Z",
+  "protectedFilesVerified": 16274,
+  "referenceFilesVerified": 1729,
+  "consumerOwnerFilesVerified": 1727,
+  "allowedOverlays": [
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+      "sha256": "8225d80b239a1442ccfc59495115f8dc420059991eee13e86908728ec4d67e00"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+      "sha256": "53490905f1e3f57a6bb46df65ffc03a5fd37e766915d0ac331b538e1ffdc97aa"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/CleaningCommonTargetAdmission.cs",
+      "sha256": "3851963a76d3dcb3a638a6891cdf0ca521a30b136b5da5b74d0a6a41397503c5"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Notifications/NotifWriter004BContract.cs",
+      "sha256": "275405cda957567eac910eba5ecf0ff630129afa0242a3e510ec78290665b4ac"
+    }
+  ],
+  "rootHeadIndexDirtyFilesAndWorktreesUnchanged": true,
+  "pr25AndMasterP1Unchanged": true,
+  "otherBaselineFilesUnchanged": true,
+  "historicalStoreGuardQueryByteIdentical": true,
+  "originalWriter004AByteIdentical": true,
+  "sqlConnections": 0
+}

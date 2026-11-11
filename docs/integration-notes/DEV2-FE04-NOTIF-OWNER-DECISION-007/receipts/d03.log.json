@@ -1,0 +1,5 @@
+{
+  "encoding": "UTF8_JSON_STRING_PRESERVES_ORIGINAL_CRLF",
+  "originalLogSha256": "c4b1e6b2662f8e5913d73b974feebc5bdee66e3a1c120bdbf26bf6eeb95def36",
+  "text": "{\"suite\":\"D03\",\"passed\":56,\"failed\":0,\"coverage\":56,\"deniesPreserved\":13,\"groups\":{\"NOTIFICATION_RUNTIME_REQUIRED\":[1,2,3,4,5,6,7,8,9,10,11,12,14,15,16,17,18,19,20,21,22,23],\"UNRESOLVED_OWNER_DECISION\":[13,25,27,31,35,38,42],\"NATIVE_UC029_REQUIRED\":[24,26,28,29,30,32,33,34,36,37,39,40,41,43,44],\"DELIVERY_INBOX_ONLY\":[45,46,47,48,49,50,51,52,55,56],\"REDUNDANT_OR_OVERBROAD\":[53,54]},\"checks\":[\"Exact original ordinal/content/principal retained\",\"56 individually source-cited consumers\",\"13 DENYs retained\",\"Native EXECUTE separated from C# reads\",\"Delivery-only profile separated\",\"Unproven retry/claim columns omitted\",\"No executable permission statements\",\"No dynamic SQL/EXECUTE AS in extracted two native bodies\"],\"sqlConnections\":0,\"qualification\":\"Source analysis; actual ownership/effective rights/runtime NOT_RUN\"}\n\nSTDERR:\n"
+}

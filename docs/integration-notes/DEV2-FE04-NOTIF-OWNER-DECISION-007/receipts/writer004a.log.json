@@ -1,0 +1,5 @@
+{
+  "encoding": "UTF8_JSON_STRING_PRESERVES_ORIGINAL_CRLF",
+  "originalLogSha256": "03ad38f53bf39cb2b28e27248ad760033cb9eebba51ea0ea3f9f409e96a66f5c",
+  "text": "NOSQL_PASS W01_exact_target_structural_only\r\nNOSQL_PASS W02_wrong_database\r\nNOSQL_PASS W03_wrong_actual_GUID\r\nNOSQL_PASS W04_wrong_writer\r\nNOSQL_PASS W05_expired_extended_or_missing_lease\r\nNOSQL_PASS W06_transaction\r\nNOSQL_PASS W07_static_existing_DENY\r\nNOSQL_PASS W08_legacy_guard_not_widened\r\nNOSQL_PASS W09_wrong_owner\r\nNOSQL_PASS W10_wrong_server\r\nNOSQL_PASS W11_privileged_fallback\r\nNOSQL_PASS W12_module_context_source\r\nNOSQL_PASS W13_missing_auth_mapping_contract\r\nNOSQL_PASS W14_no_credential_or_grant_in_new_writer_source\r\nNOSQL_PASS Checks=14; SQL connections=0; production contract=BLOCKED; synthetic predicate tests are not owner acceptance\r\n\nSTDERR:\n"
+}

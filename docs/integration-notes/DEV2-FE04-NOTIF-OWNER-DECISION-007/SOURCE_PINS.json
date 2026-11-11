@@ -1,0 +1,74 @@
+{
+  "baseline": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+  "fe04Reference": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+  "implementationCommit": "4733f6318be79d3deb07fde0fa19b325fde9ea6c",
+  "branch": "feature/dev2-fe04-notif-owner007",
+  "remoteFreshnessAtSourceDiscovery": "FETCHED_EXACT_OBJECTS",
+  "exactObjectFetch": {
+    "args": [
+      "--git-dir=C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\repository.git",
+      "fetch",
+      "--no-tags",
+      "origin",
+      "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+      "54d75a634005afb8d42704f761a820ed16b1b9d4"
+    ],
+    "status": 0,
+    "stdout": "",
+    "stderr": "From https://github.com/tuananh65/HotelOps\n * branch            d60022b487b5b59e84d6551a0ee5162c9fd32164 -> FETCH_HEAD\n * branch            54d75a634005afb8d42704f761a820ed16b1b9d4 -> FETCH_HEAD\n"
+  },
+  "ancestry": {
+    "dev2InFe04": {
+      "args": [
+        "merge-base",
+        "--is-ancestor",
+        "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+        "54d75a634005afb8d42704f761a820ed16b1b9d4"
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": ""
+    },
+    "fe04InDev2": {
+      "args": [
+        "merge-base",
+        "--is-ancestor",
+        "54d75a634005afb8d42704f761a820ed16b1b9d4",
+        "d60022b487b5b59e84d6551a0ee5162c9fd32164"
+      ],
+      "status": 1,
+      "stdout": "",
+      "stderr": ""
+    }
+  },
+  "pinsDiverge": true,
+  "referenceFilesByteVerified": 1729,
+  "referenceArchiveSha256": "beba75bec5bb8b4ba8fe8ba1555a4999d08e3201b18f6579b5b99a471abe80e8",
+  "consumerComposition": {
+    "base": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "consumer": "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\consumer",
+    "overlaidDev2Paths": [
+      {
+        "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+        "sha256": "8225d80b239a1442ccfc59495115f8dc420059991eee13e86908728ec4d67e00"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+        "sha256": "53490905f1e3f57a6bb46df65ffc03a5fd37e766915d0ac331b538e1ffdc97aa"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Notifications/CleaningCommonTargetAdmission.cs",
+        "sha256": "3851963a76d3dcb3a638a6891cdf0ca521a30b136b5da5b74d0a6a41397503c5"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Notifications/NotifWriter004BContract.cs",
+        "sha256": "275405cda957567eac910eba5ecf0ff630129afa0242a3e510ec78290665b4ac"
+      }
+    ],
+    "ownerDomainSourceChanged": false,
+    "referenceSourceChanged": false
+  },
+  "baselineToReferenceNameStatus": "M\tscripts/verification/FE04Notification/CHANGED_FILE_ALLOWLIST.json\nM\tscripts/verification/FE04Notification/INTEGRATION_HANDOFF.md\nA\tscripts/verification/FE04Notification/PIN006_RESULT.md\nA\tscripts/verification/FE04Notification/PIN006_SOURCE_PIN.json\nA\tscripts/verification/FE04Notification/SCHEMA002_SOURCE_PIN.json\nM\tscripts/verification/FE04Notification/SQL_ACCEPTANCE_NOT_RUN.json\nA\tscripts/verification/FE04Notification/SQL_ACCEPT_001_RESULT.md\nA\tscripts/verification/FE04NotificationRuntime/APPROVAL_PACKAGE.json\nA\tscripts/verification/FE04NotificationRuntime/APPROVAL_PACKAGE.md\nA\tscripts/verification/FE04NotificationRuntime/FE04NotificationRuntime.csproj\nA\tscripts/verification/FE04NotificationRuntime/Invoke-Preflight.ps1\nA\tscripts/verification/FE04NotificationRuntime/New-ApprovalPackage.ps1\nA\tscripts/verification/FE04NotificationRuntime/PERMISSION_CONTRACT.json\nA\tscripts/verification/FE04NotificationRuntime/Program.cs\nA\tscripts/verification/FE04NotificationRuntime/RESULT.md\nA\tscripts/verification/FE04NotificationRuntime/Test-Launcher.ps1\nA\tsrc/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04AcceptanceTransaction.cs\nA\tsrc/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04CleaningSourceAuthority.cs\nA\tsrc/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationApproval.cs\nA\tsrc/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs\nA\ttests/HotelOps.Dev1.RegressionTests/Fe04NotificationRuntimeTests.cs\n",
+  "sourcePublished": false,
+  "remoteBranchTip": "UNKNOWN_CONNECTIVITY_BLOCKED"
+}

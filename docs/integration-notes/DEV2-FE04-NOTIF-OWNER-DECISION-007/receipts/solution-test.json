@@ -1,0 +1,16 @@
+{
+  "suite": "solution-test",
+  "command": [
+    "dotnet",
+    "test",
+    "HotelOps.slnx",
+    "-p:NuGetAudit=false"
+  ],
+  "cwd": "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\.fe04notifowner007\\worktree",
+  "exitCode": 0,
+  "utc": "2026-11-10T16:18:14.129Z",
+  "logSha256": "09bedbd7c7042350f7a4b73a0afc78896587414bfa2f716bcac04cbc969e29df",
+  "sqlConnections": 0,
+  "sourceBaseline": "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+  "qualification": "Source worktree delta; exact files recorded in CHANGED_FILES_SHA256.json. Only offline runners permitted."
+}

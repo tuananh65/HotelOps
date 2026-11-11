@@ -13,13 +13,18 @@ public interface ICleaningAssignmentStore
     Task<bool> CanReadAsync(CleaningAssignmentState source,long user,CancellationToken ct);
     Task InsertAsync(CleaningAssignmentCommand command,CleaningAssignmentEvent payload,CleaningAssignmentReceipt receipt,CancellationToken ct);
 }
-public sealed class CleaningAssignmentStore(HotelOpsDbContext db,TimeProvider clock):ICleaningAssignmentStore
+public sealed class CleaningAssignmentStore(HotelOpsDbContext db,TimeProvider clock,ICleaningCommonTargetAdmission? commonTarget=null):ICleaningAssignmentStore
 {
     public async Task EnsureAsync(CancellationToken ct)
     {
         Fe05CallerTransaction.Require(db);
         var c=db.Database.GetDbConnection();
-        if(c.DataSource!=IntegrationSqlGuard.Server||c.Database!=IntegrationSqlGuard.Database)throw new NotificationContractUnavailableException();
+        if(c.DataSource!=IntegrationSqlGuard.Server||c.Database!=IntegrationSqlGuard.Database)
+        {
+            if(commonTarget is null)throw new NotificationContractUnavailableException();
+            await commonTarget.RequireStoreAsync(db,ct);
+            return; // Accepted observer verifies exact GUID/principal/catalog/source/transaction; no new connection.
+        }
         var ok=await db.Database.SqlQuery<int>($"""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='KIENPC'
               AND DB_NAME()='HotelOps_DEV2_FullStack_Trial' AND ORIGINAL_LOGIN()='HotelOps_DEV2_FullStack_Runtime'
@@ -110,6 +115,10 @@ public sealed class CleaningAssignmentStore(HotelOpsDbContext db,TimeProvider cl
     }
     public async Task InsertAsync(CleaningAssignmentCommand c,CleaningAssignmentEvent payload,CleaningAssignmentReceipt receipt,CancellationToken ct)
     {
+        // Common target is native UC029 + receipt verification only; never widen direct EF staging.
+        var connection=db.Database.GetDbConnection();
+        if(connection.DataSource!=IntegrationSqlGuard.Server||connection.Database!=IntegrationSqlGuard.Database)
+            throw new NotificationContractUnavailableException();
         // Same row shapes as DEV1 StageAsync. Caller supplies its own exact domain result.
         // No N01 metadata is written, no second reservation, no C04 intent, no SaveChanges/commit.
         await db.Database.ExecuteSqlInterpolatedAsync($"""

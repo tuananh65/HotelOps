@@ -1,0 +1,36 @@
+{
+  "status": "PENDING_NOT_ACCEPTED",
+  "decisions": [
+    {
+      "id": "D03",
+      "owner": "SecurityOwner + NotificationOwner + DEV1 FS013",
+      "required": "Accept exact object/column profiles in D03_PERMISSION_NARROWING.json and exact SQL. Preserve13 DENYs, hold room_types and scoped metadata, omit unproven claim_id/claimed_until. Confirm SQL session side effects and static dbo ownership chain/module hashes."
+    },
+    {
+      "id": "D05",
+      "owner": "SecurityOwner + SchemaOwner + RuntimeOwner; DEV1 minimal accepted composition adapter",
+      "required": "Implement/accept INotifOwner007RuntimeAuthority on existing caller connection/transaction only: actual sys.database_recovery_status.database_guid, SID/restricted effective rights, source revision/current command authority, catalog/index/trigger/module hashes, current central exclusive lease and revocation before/after observation. No alternate connection/elevation. Wire optional hook explicitly in isolated acceptance composition only."
+    },
+    {
+      "id": "D08",
+      "owner": "RuntimeOwner + all five existing FE04 approving owners",
+      "required": "Issue fresh signed successor lease with independent HardExpiry, new/retired lease IDs and epoch, actual login/user SID mapping, accepted final composed source/script/policy/catalog/module hashes, explicit approval reference and permitted uses. Supply OS-protected independent owner trust resolver and real central lease validator; no configuration self-issuance."
+    },
+    {
+      "id": "NATIVE_TARGET",
+      "owner": "DEV1 FS013 + SchemaOwner",
+      "required": "Native source 10_SqlWriteBoundary.sql hardcodes HotelOps_Canonical_20261106_f130001_Fresh. Accept exact separately reviewed ENVNOTIF target module definition/hash or establish authoritative target decision. No retargeting or installer execution performed."
+    },
+    {
+      "id": "FE04_V1_ADAPTER",
+      "owner": "DEV1 acceptance/runtime adapter owner",
+      "required": "Existing Fe04NotificationApproval V1 remains tied to Writer004A HardExpiry. Accept a minimal version-aware successor adapter; keep old contract immutable. No full FE04 domain recomposition requested."
+    }
+  ],
+  "realLease": "OWNER_REQUIRED",
+  "principalSid": "OWNER_REQUIRED",
+  "trustedKeys": "OWNER_REQUIRED",
+  "scopedObserver": "OWNER_REQUIRED",
+  "schemaExecution": "NOT_AUTHORIZED",
+  "runtimeAcceptance": "NOT_RUN"
+}

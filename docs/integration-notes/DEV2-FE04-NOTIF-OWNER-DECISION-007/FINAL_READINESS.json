@@ -1,0 +1,31 @@
+{
+  "checkpoint": "FE04-NOTIF-OWNER-DECISION-007",
+  "D03": "READY_FOR_OWNER_APPROVAL",
+  "D05": "READY_FOR_OWNER_APPROVAL",
+  "D08": "READY_FOR_OWNER_APPROVAL",
+  "meaning": "Source candidates/proposal ready for named owners to review, no owner acceptance inferred.",
+  "implementationCommit": "4733f6318be79d3deb07fde0fa19b325fde9ea6c",
+  "branch": "feature/dev2-fe04-notif-owner007",
+  "sourcePublished": false,
+  "remoteCommit": null,
+  "publication": "BLOCKED_GITHUB_CONNECTIVITY",
+  "runtimeAccepted": false,
+  "mainMergeReady": false,
+  "ownerDecisions": [
+    "D03",
+    "D05",
+    "D08",
+    "NATIVE_TARGET",
+    "FE04_V1_ADAPTER"
+  ],
+  "SQL_CONNECTIONS": 0,
+  "SQL_MUTATIONS_EXECUTED": false,
+  "SQL_DDL_EXECUTED": false,
+  "PERMISSIONS_GRANTED": false,
+  "PERMISSION_STATEMENTS_EXECUTED": false,
+  "WORKER_ENABLED": false,
+  "PRODUCER_ENABLED": false,
+  "RETRY_ENABLED": false,
+  "MERGED": false,
+  "DEPLOYED": false
+}

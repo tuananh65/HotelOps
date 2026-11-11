@@ -1,0 +1,2915 @@
+{
+  "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+  "contractPath": "scripts/verification/FE04NotificationRuntime/PERMISSION_CONTRACT.json",
+  "originalContractSha256": "53365f9a4815916365e8a43467d2562938d5d27270d1bfbb29edd8b430a9b645",
+  "entries": [
+    {
+      "originalOrdinal": 1,
+      "jsonPointer": "/entries/0",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.users",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "users",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "SQL session eligibility and employment/account state in users; no separate employee table in these 56 entries.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "SQL session eligibility and employment/account state in users; no separate employee table in these 56 entries. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+          "sha256": "b29765a2e68d5208d598878bef553e4bd4d0d62e3ba59b7189db89e8e61aeb68",
+          "token": "dbo.users",
+          "hits": [
+            {
+              "line": 96,
+              "text": "=> (await db.Users.FromSqlInterpolated($\"SELECT * FROM dbo.users WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {userId}\")"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 2,
+      "jsonPointer": "/entries/1",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.user_sessions",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "user_sessions",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Real session lookup/revocation validation, not native procedure authorization. Session creation/logout UPDATE rights are outside this proposal.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Real session lookup/revocation validation, not native procedure authorization. Session creation/logout UPDATE rights are outside this proposal. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+          "sha256": "b29765a2e68d5208d598878bef553e4bd4d0d62e3ba59b7189db89e8e61aeb68",
+          "token": "dbo.user_sessions",
+          "hits": [
+            {
+              "line": 101,
+              "text": "$\"SELECT * FROM dbo.user_sessions WITH (UPDLOCK, HOLDLOCK) WHERE user_id = {ticket.UserId} AND session_key_hash = {ticket.KeyHash}\")"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 3,
+      "jsonPointer": "/entries/2",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.user_branch_access",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "user_branch_access",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Actor/recipient branch membership read; ordinary procedure ownership chain cannot cover this EF query.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Actor/recipient branch membership read; ordinary procedure ownership chain cannot cover this EF query. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "db.UserBranchAccesses",
+          "hits": [
+            {
+              "line": 106,
+              "text": "await db.UserBranchAccesses.AsNoTracking().AnyAsync(a=>a.UserId==user&&a.BranchId==s.BranchId&&a.RevokedAt==null&&a.GrantedAt<=now,ct)&&"
+            },
+            {
+              "line": 108,
+              "text": "db.UserRoles.AsNoTracking(),db.RolePermissions.AsNoTracking(),db.UserBranchAccesses.AsNoTracking(),user,now)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 4,
+      "jsonPointer": "/entries/3",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.user_roles",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "user_roles",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Permission assignment path and actor/recipient role eligibility.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Permission assignment path and actor/recipient role eligibility. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Security/Authorization/PermissionDataSource.cs",
+          "sha256": "edbcb1e0de26fef622a426d57bec206995c9d4bf78005799450853072a2536d4",
+          "token": "db.UserRoles",
+          "hits": [
+            {
+              "line": 30,
+              "text": "await (from assignment in db.UserRoles.AsNoTracking()"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 5,
+      "jsonPointer": "/entries/4",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.roles",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "roles",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Role navigation participates in generated recipient permission SQL.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Role navigation participates in generated recipient permission SQL. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
+          "sha256": "16c6aa47fda12ebebba04ce9a4113951e9648b667aac08c7a183e12605fcaad2",
+          "token": "r.Role.IsActive",
+          "hits": [
+            {
+              "line": 19,
+              "text": "roles.Any(r => r.UserId == recipientUserId && r.IsActive && r.Role.IsActive && r.AssignedAt <= now &&"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 6,
+      "jsonPointer": "/entries/5",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.role_permissions",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "role_permissions",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Recipient CLEANING_VIEW grant path.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Recipient CLEANING_VIEW grant path. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "db.RolePermissions",
+          "hits": [
+            {
+              "line": 108,
+              "text": "db.UserRoles.AsNoTracking(),db.RolePermissions.AsNoTracking(),db.UserBranchAccesses.AsNoTracking(),user,now)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 7,
+      "jsonPointer": "/entries/6",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.permissions",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "permissions",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Permission navigation emitted in recipient query.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Permission navigation emitted in recipient query. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
+          "sha256": "16c6aa47fda12ebebba04ce9a4113951e9648b667aac08c7a183e12605fcaad2",
+          "token": "p.Permission.PermissionCode",
+          "hits": [
+            {
+              "line": 22,
+              "text": "permissions.Any(p => p.RoleId == r.RoleId && p.Permission.PermissionCode == \"CLEANING_VIEW\" &&"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 8,
+      "jsonPointer": "/entries/7",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.branches",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "branches",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Direct branch active-state lock/read and source context.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Direct branch active-state lock/read and source context. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationAuthority.cs",
+          "sha256": "c794733d598c6f7000d97abb180d0917e1cb8613811cc12a46cba7720586244e",
+          "token": "dbo.branches",
+          "hits": [
+            {
+              "line": 31,
+              "text": "if(!await db.Branches.FromSqlInterpolated($\"SELECT * FROM dbo.branches WITH(UPDLOCK,HOLDLOCK) WHERE branch_id={c.BranchId}\")"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 9,
+      "jsonPointer": "/entries/8",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.departments",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "departments",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Assignee eligibility traverses department and branch, outside native proc.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Assignee eligibility traverses department and branch, outside native proc. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+          "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+          "token": "u.Department.IsActive",
+          "hits": [
+            {
+              "line": 14,
+              "text": "&& u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == \"HK\""
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 10,
+      "jsonPointer": "/entries/9",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.rooms",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "rooms",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Persisted assignment source/room branch and graph audit consistency.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Persisted assignment source/room branch and graph audit consistency. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "JOIN dbo.rooms",
+          "hits": [
+            {
+              "line": 64,
+              "text": "JOIN dbo.rooms r WITH(HOLDLOCK) ON r.room_id=t.room_id"
+            },
+            {
+              "line": 81,
+              "text": "JOIN dbo.rooms r WITH(HOLDLOCK) ON r.room_id=t.room_id"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 11,
+      "jsonPointer": "/entries/10",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.floors",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "floors",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Persisted room/floor activity and branch consistency.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Persisted room/floor activity and branch consistency. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "JOIN dbo.floors",
+          "hits": [
+            {
+              "line": 65,
+              "text": "JOIN dbo.floors f WITH(HOLDLOCK) ON f.floor_id=r.floor_id"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 12,
+      "jsonPointer": "/entries/11",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.areas",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "areas",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Optional room area must belong to same branch/floor and be active.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Optional room area must belong to same branch/floor and be active. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "dbo.areas",
+          "hits": [
+            {
+              "line": 60,
+              "text": "AND (r.area_id IS NULL OR EXISTS(SELECT 1 FROM dbo.areas ar WITH(HOLDLOCK)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 13,
+      "jsonPointer": "/entries/12",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.room_types",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "room_types",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Room-type eligibility/planning navigation; exact native acceptance path must confirm this extra read before grant.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "HOLD_UNTIL_NATIVE_CALL_PATH_CONFIRMED",
+      "proposedReason": "Room-type eligibility/planning navigation; exact native acceptance path must confirm this extra read before grant. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+          "sha256": "fe1e09b584fc12917149c3d50d681f85c61fd3b83f7bd014e772f88907014fb4",
+          "token": "RoomType",
+          "hits": [
+            {
+              "line": 11,
+              "text": "public sealed partial class RoomTypeCreationService"
+            },
+            {
+              "line": 13,
+              "text": "public Task<RoomTypeBatchResult> HousekeepingPlanningAsync(SessionReference ticket, long sid, long branch,"
+            },
+            {
+              "line": 27,
+              "text": "if (roomQuery == null) return new(RoomTypeBatchStatus.SchemaRequired);"
+            },
+            {
+              "line": 32,
+              "text": "if (task == null) return new(RoomTypeBatchStatus.NotFound);"
+            },
+            {
+              "line": 34,
+              "text": "if (!active) return new(RoomTypeBatchStatus.Inactive);"
+            },
+            {
+              "line": 65,
+              "text": "if (inspection && await RoomTypeSchema.ReadAsync(db, token) == RoomTypeContract.BranchV1)"
+            },
+            {
+              "line": 67,
+              "text": "var typeId = await db.Rooms.Where(r => r.RoomId == task.RoomId).Select(r => r.RoomTypeId).SingleAsync(token);"
+            },
+            {
+              "line": 68,
+              "text": "var checklistId = await db.BranchRoomTypes.Where(t => t.RoomTypeId == typeId && t.IsActive && (t.BranchId == null || t.BranchId == branch)).Select(t => t.DefaultChecklistId).SingleOrDefaultAsync(token);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 14,
+      "jsonPointer": "/entries/13",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.shift_assignments",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "shift_assignments",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Housekeeper current shift eligibility before native mutation.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Housekeeper current shift eligibility before native mutation. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+          "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+          "token": "db.ShiftAssignments",
+          "hits": [
+            {
+              "line": 17,
+              "text": "&& db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == \"ASSIGNED\" && a.Shift.Status == \"PLANNED\""
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 15,
+      "jsonPointer": "/entries/14",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.work_shifts",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "work_shifts",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Shift navigation for current branch/department and planned time interval.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Shift navigation for current branch/department and planned time interval. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+          "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+          "token": "a.Shift.Status",
+          "hits": [
+            {
+              "line": 17,
+              "text": "&& db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == \"ASSIGNED\" && a.Shift.Status == \"PLANNED\""
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 16,
+      "jsonPointer": "/entries/15",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.shift_templates",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "shift_templates",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Shift template navigation checks active and branch.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Shift template navigation checks active and branch. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+          "sha256": "320075af8132df92e0fce4a5f5a46f4abb8c9d23f83c1ae2b0afe844611aa7e5",
+          "token": "a.Shift.ShiftTemplate.IsActive",
+          "hits": [
+            {
+              "line": 18,
+              "text": "&& a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 17,
+      "jsonPointer": "/entries/16",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.cleaning_tasks",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "cleaning_tasks",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Actual caller source/revision/current workflow verification, independent of native proc reads.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Actual caller source/revision/current workflow verification, independent of native proc reads. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "JOIN dbo.cleaning_tasks",
+          "hits": [
+            {
+              "line": 63,
+              "text": "JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=a.cleaning_task_id"
+            },
+            {
+              "line": 80,
+              "text": "JOIN dbo.cleaning_tasks t WITH(HOLDLOCK) ON t.cleaning_task_id=ca.cleaning_task_id"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 18,
+      "jsonPointer": "/entries/17",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "cleaning_assignments",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Persisted assignment source/current assignee and replay verification.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Persisted assignment source/current assignee and replay verification. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "FROM dbo.cleaning_assignments",
+          "hits": [
+            {
+              "line": 57,
+              "text": "(SELECT COUNT(*) FROM dbo.cleaning_assignments other WITH(HOLDLOCK) WHERE other.cleaning_task_id=t.cleaning_task_id"
+            },
+            {
+              "line": 62,
+              "text": "FROM dbo.cleaning_assignments a WITH(HOLDLOCK)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 19,
+      "jsonPointer": "/entries/18",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.room_cleaning_cycle_state",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "room_cleaning_cycle_state",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Current persisted room cleaning cycle in source verification.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Current persisted room cleaning cycle in source verification. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "dbo.room_cleaning_cycle_state",
+          "hits": [
+            {
+              "line": 67,
+              "text": "LEFT JOIN dbo.room_cleaning_cycle_state c WITH(HOLDLOCK) ON c.room_id=r.room_id"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 20,
+      "jsonPointer": "/entries/19",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.audit_logs",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "audit_logs",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Graph source audit evidence read, while native proc creates audit. No grant for direct audit inserts proposed.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Graph source audit evidence read, while native proc creates audit. No grant for direct audit inserts proposed. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "dbo.audit_logs",
+          "hits": [
+            {
+              "line": 78,
+              "text": "CONVERT(bit,CASE WHEN EXISTS(SELECT 1 FROM dbo.audit_logs a WITH(HOLDLOCK)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 21,
+      "jsonPointer": "/entries/20",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_operation_reservations",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Operation immutable fingerprint/result/completed replay and range lock.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Operation immutable fingerprint/result/completed replay and range lock. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "FROM dbo.notification_operation_reservations",
+          "hits": [
+            {
+              "line": 47,
+              "text": "FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK)"
+            },
+            {
+              "line": 87,
+              "text": "FROM dbo.notification_operation_reservations o WITH(HOLDLOCK)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 22,
+      "jsonPointer": "/entries/21",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_publications",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Single existing operation publication and immutable payload/source revision.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Single existing operation publication and immutable payload/source revision. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "FROM dbo.notification_publications",
+          "hits": [
+            {
+              "line": 76,
+              "text": "(SELECT COUNT(*) FROM dbo.notification_publications px WITH(HOLDLOCK)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 23,
+      "jsonPointer": "/entries/22",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029_SOURCE_READ",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029_SOURCE_READ",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "NOTIFICATION_RUNTIME_REQUIRED",
+      "profile": "APP_AUTH_SOURCE_READ",
+      "actualConsumer": "Native receipt mandatory recipient/channel cardinality; SELECT not solely delivery.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_APP_READ_SEPARATE_FROM_EXECUTE_ONLY",
+      "proposedReason": "Native receipt mandatory recipient/channel cardinality; SELECT not solely delivery. Required direct C# read must not be removed just because module-internal reads can chain.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+          "sha256": "23d459a5211b5aa9307b5ff02a7c1dc3919c18321efc5f34461e1ca9c95932f1",
+          "token": "FROM dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 94,
+              "text": "SELECT user_id AS Value FROM dbo.notification_delivery_intents WITH(HOLDLOCK)"
+            },
+            {
+              "line": 97,
+              "text": "var inApp=await db.Database.SqlQuery<int>($\"SELECT COUNT(*) AS Value FROM dbo.notification_delivery_intents WITH(HOLDLOCK) WHERE publication_id={r.PublicationId} AND delivery_channel='IN_APP'\").SingleAsync(ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 24,
+      "jsonPointer": "/entries/23",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029",
+      "original": {
+        "Object": "dbo.fs013_assign_with_evidence",
+        "Permission": "EXECUTE",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "fs013_assign_with_evidence",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "NATIVE_EXECUTION",
+      "actualConsumer": "Native assignment caller",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_SCOPED_EXECUTE",
+      "proposedReason": "Object-scoped EXECUTE; underlying table reads do not imply direct SELECT.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs",
+          "sha256": "d05d90a4130eafd4413c6dc0a7166bb3ca0741e8fc251775ab47b98d3a1a03e2",
+          "token": "fs013_assign_with_evidence",
+          "hits": [
+            {
+              "line": 35,
+              "text": "if (scope.Phase == \"FS013\" && await db.Database.SqlQuery<int>($\"SELECT CASE WHEN OBJECT_ID('dbo.fs013_assign_with_evidence','P') IS NOT NULL AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.FS013.SqlBoundary' AND CONVERT(nvarchar(100),value)='V1') THEN 1 ELSE 0 END AS [Value]\").SingleAsync(ct) != 1) return false;"
+            },
+            {
+              "line": 49,
+              "text": "? await db.Database.SqlQuery<string>($\"EXEC dbo.fs013_assign_with_evidence @actor={actor},@branch={branch},@task={task},@assignee={assignee},@operation={operation},@fingerprint={fingerprint},@expected={revision},@assignedAt={assignedAt},@dueAt={dueAt},@reason={reason}\").ToArrayAsync(ct)"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 25,
+      "jsonPointer": "/entries/24",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "PREFLIGHT_METADATA",
+      "original": {
+        "Object": "dbo.fs013_assign_with_evidence",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "fs013_assign_with_evidence",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "PREFLIGHT_METADATA",
+      "actualConsumer": "Catalog/module hashing preflight; no native domain data access.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "proposedReason": "Object metadata visibility proposal is not proof that restricted actual-GUID/principal/TLS/catalog observation will succeed. Owner must accept exact observer and minimal metadata visibility, no server-wide elevation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+          "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+          "token": "sys.",
+          "hits": [
+            {
+              "line": 47,
+              "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+            },
+            {
+              "line": 94,
+              "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+            },
+            {
+              "line": 110,
+              "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+            },
+            {
+              "line": 171,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+            },
+            {
+              "line": 173,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+            },
+            {
+              "line": 182,
+              "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+            },
+            {
+              "line": 183,
+              "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+            },
+            {
+              "line": 184,
+              "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 26,
+      "jsonPointer": "/entries/25",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "NATIVE_UC029",
+      "original": {
+        "Object": "dbo.fs009_verify_assignment_guard",
+        "Permission": "EXECUTE",
+        "Column": null,
+        "Allowed": true,
+        "phase": "NATIVE_UC029",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "fs009_verify_assignment_guard",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "NATIVE_EXECUTION",
+      "actualConsumer": "Commit verifier directly invokes fs009, in addition to nested native use",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "RETAIN_SCOPED_EXECUTE",
+      "proposedReason": "Object-scoped EXECUTE; underlying table reads do not imply direct SELECT.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CandidateCommitGuard.cs",
+          "sha256": "cdaf6d1f6ee031eeb04570a4e760bb13c104fd3f2eef84b80c1a56f4400d1d3b",
+          "token": "fs009_verify_assignment_guard",
+          "hits": [
+            {
+              "line": 46,
+              "text": "command.CommandText = \"EXEC dbo.fs009_verify_assignment_guard @actor,@operation\";"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 27,
+      "jsonPointer": "/entries/26",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "PREFLIGHT_METADATA",
+      "original": {
+        "Object": "dbo.fs009_verify_assignment_guard",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "fs009_verify_assignment_guard",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "PREFLIGHT_METADATA",
+      "actualConsumer": "Catalog/module hashing preflight; no native domain data access.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "proposedReason": "Object metadata visibility proposal is not proof that restricted actual-GUID/principal/TLS/catalog observation will succeed. Owner must accept exact observer and minimal metadata visibility, no server-wide elevation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+          "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+          "token": "sys.",
+          "hits": [
+            {
+              "line": 47,
+              "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+            },
+            {
+              "line": 94,
+              "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+            },
+            {
+              "line": 110,
+              "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+            },
+            {
+              "line": 171,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+            },
+            {
+              "line": 173,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+            },
+            {
+              "line": 182,
+              "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+            },
+            {
+              "line": 183,
+              "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+            },
+            {
+              "line": 184,
+              "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 28,
+      "jsonPointer": "/entries/27",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_operation_reservations",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_operation_reservations",
+          "hits": [
+            {
+              "line": 25,
+              "text": "IF EXISTS(SELECT 1 FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id=@actor AND operation_key=@operation) THROW 51946,'Operation already reserved; use authorized durable replay',1;"
+            },
+            {
+              "line": 37,
+              "text": "INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at) VALUES(@actor,@operation,1,@fingerprint,1,@result,@assignedAt);"
+            },
+            {
+              "line": 59,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 29,
+      "jsonPointer": "/entries/28",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_operation_reservations",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_operation_reservations",
+          "hits": [
+            {
+              "line": 25,
+              "text": "IF EXISTS(SELECT 1 FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id=@actor AND operation_key=@operation) THROW 51946,'Operation already reserved; use authorized durable replay',1;"
+            },
+            {
+              "line": 37,
+              "text": "INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at) VALUES(@actor,@operation,1,@fingerprint,1,@result,@assignedAt);"
+            },
+            {
+              "line": 59,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 30,
+      "jsonPointer": "/entries/29",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_operation_reservations",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_operation_reservations",
+          "hits": [
+            {
+              "line": 25,
+              "text": "IF EXISTS(SELECT 1 FROM dbo.notification_operation_reservations WITH(UPDLOCK,HOLDLOCK) WHERE actor_user_id=@actor AND operation_key=@operation) THROW 51946,'Operation already reserved; use authorized durable replay',1;"
+            },
+            {
+              "line": 37,
+              "text": "INSERT dbo.notification_operation_reservations(actor_user_id,operation_key,fingerprint_version,fingerprint,completed,result_json,created_at) VALUES(@actor,@operation,1,@fingerprint,1,@result,@assignedAt);"
+            },
+            {
+              "line": 59,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 31,
+      "jsonPointer": "/entries/30",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "PREFLIGHT_METADATA",
+      "original": {
+        "Object": "dbo.notification_operation_reservations",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_operation_reservations",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "PREFLIGHT_METADATA",
+      "actualConsumer": "Catalog/module hashing preflight; no native domain data access.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "proposedReason": "Object metadata visibility proposal is not proof that restricted actual-GUID/principal/TLS/catalog observation will succeed. Owner must accept exact observer and minimal metadata visibility, no server-wide elevation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+          "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+          "token": "sys.",
+          "hits": [
+            {
+              "line": 47,
+              "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+            },
+            {
+              "line": 94,
+              "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+            },
+            {
+              "line": 110,
+              "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+            },
+            {
+              "line": 171,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+            },
+            {
+              "line": 173,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+            },
+            {
+              "line": 182,
+              "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+            },
+            {
+              "line": 183,
+              "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+            },
+            {
+              "line": 184,
+              "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 32,
+      "jsonPointer": "/entries/31",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_publications",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_publications",
+          "hits": [
+            {
+              "line": 38,
+              "text": "INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,created_at) VALUES(@publication,@actor,@operation,'CLEANING_TASK_ASSIGNED',1,@assignment,@revision,@payload,@assignedAt);"
+            },
+            {
+              "line": 60,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_publications TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 33,
+      "jsonPointer": "/entries/32",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_publications",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_publications",
+          "hits": [
+            {
+              "line": 38,
+              "text": "INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,created_at) VALUES(@publication,@actor,@operation,'CLEANING_TASK_ASSIGNED',1,@assignment,@revision,@payload,@assignedAt);"
+            },
+            {
+              "line": 60,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_publications TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 34,
+      "jsonPointer": "/entries/33",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_publications",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_publications",
+          "hits": [
+            {
+              "line": 38,
+              "text": "INSERT dbo.notification_publications(publication_id,actor_user_id,operation_key,event_type,schema_version,assignment_id,source_revision,payload_json,created_at) VALUES(@publication,@actor,@operation,'CLEANING_TASK_ASSIGNED',1,@assignment,@revision,@payload,@assignedAt);"
+            },
+            {
+              "line": 60,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.notification_publications TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 35,
+      "jsonPointer": "/entries/34",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "PREFLIGHT_METADATA",
+      "original": {
+        "Object": "dbo.notification_publications",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_publications",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "PREFLIGHT_METADATA",
+      "actualConsumer": "Catalog/module hashing preflight; no native domain data access.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "proposedReason": "Object metadata visibility proposal is not proof that restricted actual-GUID/principal/TLS/catalog observation will succeed. Owner must accept exact observer and minimal metadata visibility, no server-wide elevation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+          "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+          "token": "sys.",
+          "hits": [
+            {
+              "line": 47,
+              "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+            },
+            {
+              "line": 94,
+              "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+            },
+            {
+              "line": 110,
+              "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+            },
+            {
+              "line": 171,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+            },
+            {
+              "line": 173,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+            },
+            {
+              "line": 182,
+              "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+            },
+            {
+              "line": 183,
+              "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+            },
+            {
+              "line": 184,
+              "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 36,
+      "jsonPointer": "/entries/35",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_delivery_intents",
+          "hits": [
+            {
+              "line": 39,
+              "text": "INSERT dbo.notification_delivery_intents(publication_id,user_id,delivery_channel,next_attempt_at) VALUES(@publication,@assignee,'IN_APP',@assignedAt);"
+            },
+            {
+              "line": 61,
+              "text": "DENY INSERT,DELETE ON dbo.notification_delivery_intents TO fs013_app;"
+            },
+            {
+              "line": 62,
+              "text": "GRANT UPDATE(status,attempt_count,next_attempt_at,claim_id,claimed_until,failure_code,inbox_notification_id) ON dbo.notification_delivery_intents TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 37,
+      "jsonPointer": "/entries/36",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "notification_delivery_intents",
+          "hits": [
+            {
+              "line": 39,
+              "text": "INSERT dbo.notification_delivery_intents(publication_id,user_id,delivery_channel,next_attempt_at) VALUES(@publication,@assignee,'IN_APP',@assignedAt);"
+            },
+            {
+              "line": 61,
+              "text": "DENY INSERT,DELETE ON dbo.notification_delivery_intents TO fs013_app;"
+            },
+            {
+              "line": 62,
+              "text": "GRANT UPDATE(status,attempt_count,next_attempt_at,claim_id,claimed_until,failure_code,inbox_notification_id) ON dbo.notification_delivery_intents TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 38,
+      "jsonPointer": "/entries/37",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "PREFLIGHT_METADATA",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "PREFLIGHT_METADATA",
+      "actualConsumer": "Catalog/module hashing preflight; no native domain data access.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "proposedReason": "Object metadata visibility proposal is not proof that restricted actual-GUID/principal/TLS/catalog observation will succeed. Owner must accept exact observer and minimal metadata visibility, no server-wide elevation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+          "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+          "token": "sys.",
+          "hits": [
+            {
+              "line": 47,
+              "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+            },
+            {
+              "line": 94,
+              "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+            },
+            {
+              "line": 110,
+              "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+            },
+            {
+              "line": 171,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+            },
+            {
+              "line": 173,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+            },
+            {
+              "line": 182,
+              "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+            },
+            {
+              "line": 183,
+              "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+            },
+            {
+              "line": 184,
+              "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 39,
+      "jsonPointer": "/entries/38",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "cleaning_assignments",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "cleaning_assignments",
+          "hits": [
+            {
+              "line": 24,
+              "text": "IF EXISTS(SELECT 1 FROM dbo.cleaning_assignments WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id=@task AND assignment_status='ACTIVE' AND ended_at IS NULL) THROW 51945,'Active assignment exists',1;"
+            },
+            {
+              "line": 26,
+              "text": "INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason)"
+            },
+            {
+              "line": 48,
+              "text": "AS UPDATE dbo.cleaning_assignments SET reason=N'FS013_UNAPPROVED_WRITER_PROBE';"
+            },
+            {
+              "line": 58,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.cleaning_assignments TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 40,
+      "jsonPointer": "/entries/39",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "cleaning_assignments",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "cleaning_assignments",
+          "hits": [
+            {
+              "line": 24,
+              "text": "IF EXISTS(SELECT 1 FROM dbo.cleaning_assignments WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id=@task AND assignment_status='ACTIVE' AND ended_at IS NULL) THROW 51945,'Active assignment exists',1;"
+            },
+            {
+              "line": 26,
+              "text": "INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason)"
+            },
+            {
+              "line": 48,
+              "text": "AS UPDATE dbo.cleaning_assignments SET reason=N'FS013_UNAPPROVED_WRITER_PROBE';"
+            },
+            {
+              "line": 58,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.cleaning_assignments TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 41,
+      "jsonPointer": "/entries/40",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "cleaning_assignments",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "cleaning_assignments",
+          "hits": [
+            {
+              "line": 24,
+              "text": "IF EXISTS(SELECT 1 FROM dbo.cleaning_assignments WITH(UPDLOCK,HOLDLOCK) WHERE cleaning_task_id=@task AND assignment_status='ACTIVE' AND ended_at IS NULL) THROW 51945,'Active assignment exists',1;"
+            },
+            {
+              "line": 26,
+              "text": "INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status,reason)"
+            },
+            {
+              "line": 48,
+              "text": "AS UPDATE dbo.cleaning_assignments SET reason=N'FS013_UNAPPROVED_WRITER_PROBE';"
+            },
+            {
+              "line": 58,
+              "text": "DENY INSERT,UPDATE,DELETE ON dbo.cleaning_assignments TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 42,
+      "jsonPointer": "/entries/41",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "PREFLIGHT_METADATA",
+      "original": {
+        "Object": "dbo.cleaning_assignments",
+        "Permission": "VIEW DEFINITION",
+        "Column": null,
+        "Allowed": true,
+        "phase": "PREFLIGHT_METADATA",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "cleaning_assignments",
+      "classification": "UNRESOLVED_OWNER_DECISION",
+      "profile": "PREFLIGHT_METADATA",
+      "actualConsumer": "Catalog/module hashing preflight; no native domain data access.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "SEPARATE_SCOPED_METADATA_OBSERVER_APPROVAL",
+      "proposedReason": "Object metadata visibility proposal is not proof that restricted actual-GUID/principal/TLS/catalog observation will succeed. Owner must accept exact observer and minimal metadata visibility, no server-wide elevation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+          "sha256": "66adebd4522f7a2305c1a473af728061e4c02287a90ffc2de80d8bb32ee7d2d0",
+          "token": "sys.",
+          "hits": [
+            {
+              "line": 47,
+              "text": "command.CommandText = \"DECLARE @r int; EXEC @r=sys.sp_getapplock @Resource=@resource,@LockMode='Exclusive',@LockOwner='Session',@LockTimeout=0; SELECT @r;\";"
+            },
+            {
+              "line": 94,
+              "text": "CASE WHEN EXISTS(SELECT 1 FROM sys.database_permissions"
+            },
+            {
+              "line": 110,
+              "text": "FROM sys.sql_modules WHERE object_id=OBJECT_ID(@module)"
+            },
+            {
+              "line": 171,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_principals dp JOIN sys.server_principals sp ON sp.sid=dp.sid"
+            },
+            {
+              "line": 173,
+              "text": "AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid=@guid)"
+            },
+            {
+              "line": 182,
+              "text": "AND NOT EXISTS(SELECT 1 FROM sys.database_role_members WHERE member_principal_id=USER_ID())"
+            },
+            {
+              "line": 183,
+              "text": "AND EXISTS(SELECT 1 FROM sys.dm_exec_connections WHERE session_id=@@SPID AND encrypt_option='TRUE' AND auth_scheme='SQL')"
+            },
+            {
+              "line": 184,
+              "text": "AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name=N'HotelOps.NotificationSchemaOwner'"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 43,
+      "jsonPointer": "/entries/42",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.audit_logs",
+        "Permission": "UPDATE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "audit_logs",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "audit_logs",
+          "hits": [
+            {
+              "line": 34,
+              "text": "INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,occurred_at)"
+            },
+            {
+              "line": 63,
+              "text": "DENY UPDATE,DELETE ON dbo.audit_logs TO fs013_app;"
+            },
+            {
+              "line": 64,
+              "text": "GRANT INSERT ON dbo.audit_logs TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 44,
+      "jsonPointer": "/entries/43",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "RETAIN_EXPLICIT_DENY",
+      "original": {
+        "Object": "dbo.audit_logs",
+        "Permission": "DELETE",
+        "Column": null,
+        "Allowed": false,
+        "phase": "RETAIN_EXPLICIT_DENY",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "audit_logs",
+      "classification": "NATIVE_UC029_REQUIRED",
+      "profile": "ALL_PROFILES_PROTECTIVE_DENY",
+      "actualConsumer": "Restricted principal boundary; not a requested access grant.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "Exact original DENY preserved; no removal.",
+      "proposedDecision": "RETAIN_DENY",
+      "proposedReason": "Preserve direct caller DML prohibition. Static same-owner dbo module may perform its owned DML; no DENY removal or direct EF fallback.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "scripts/database/release/fs013-candidate/10_SqlWriteBoundary.sql",
+          "sha256": "4205545dfd9bc828e819870135ce600442a523511fb2fca329afe3cfc0f3c796",
+          "token": "audit_logs",
+          "hits": [
+            {
+              "line": 34,
+              "text": "INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,changed_fields,occurred_at)"
+            },
+            {
+              "line": 63,
+              "text": "DENY UPDATE,DELETE ON dbo.audit_logs TO fs013_app;"
+            },
+            {
+              "line": 64,
+              "text": "GRANT INSERT ON dbo.audit_logs TO fs013_app;"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 45,
+      "jsonPointer": "/entries/44",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notifications",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notifications",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Inbox delivery/query/read state.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "db.Notifications",
+          "hits": [
+            {
+              "line": 84,
+              "text": "db.Notifications.Add(notice);await db.SaveChangesAsync(ct);"
+            },
+            {
+              "line": 175,
+              "text": "var notice=await db.Notifications.AsNoTracking().SingleOrDefaultAsync(n=>n.NotificationId==row.NotificationId,ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 46,
+      "jsonPointer": "/entries/45",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notifications",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notifications",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Inbox delivery/query/read state.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "db.Notifications",
+          "hits": [
+            {
+              "line": 84,
+              "text": "db.Notifications.Add(notice);await db.SaveChangesAsync(ct);"
+            },
+            {
+              "line": 175,
+              "text": "var notice=await db.Notifications.AsNoTracking().SingleOrDefaultAsync(n=>n.NotificationId==row.NotificationId,ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 47,
+      "jsonPointer": "/entries/46",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_recipients",
+        "Permission": "SELECT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_recipients",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Inbox delivery/query/read state.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "db.NotificationRecipients",
+          "hits": [
+            {
+              "line": 85,
+              "text": "db.NotificationRecipients.Add(new(){NotificationId=notice.NotificationId,UserId=row.UserId,DeliveryChannel=\"IN_APP\",DeliveryStatus=\"DELIVERED\",DeliveredAt=now});"
+            },
+            {
+              "line": 150,
+              "text": "affected=await db.NotificationRecipients.Where(r=>r.NotificationId==item.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\")"
+            },
+            {
+              "line": 178,
+              "text": "var recipient=await db.NotificationRecipients.AsNoTracking().SingleOrDefaultAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\"&&r.DeliveryStatus==\"DELIVERED\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 48,
+      "jsonPointer": "/entries/47",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_recipients",
+        "Permission": "INSERT",
+        "Column": null,
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_recipients",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Inbox delivery/query/read state.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "db.NotificationRecipients",
+          "hits": [
+            {
+              "line": 85,
+              "text": "db.NotificationRecipients.Add(new(){NotificationId=notice.NotificationId,UserId=row.UserId,DeliveryChannel=\"IN_APP\",DeliveryStatus=\"DELIVERED\",DeliveredAt=now});"
+            },
+            {
+              "line": 150,
+              "text": "affected=await db.NotificationRecipients.Where(r=>r.NotificationId==item.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\")"
+            },
+            {
+              "line": 178,
+              "text": "var recipient=await db.NotificationRecipients.AsNoTracking().SingleOrDefaultAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\"&&r.DeliveryStatus==\"DELIVERED\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 49,
+      "jsonPointer": "/entries/48",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "INBOX_MARK_READ_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_recipients",
+        "Permission": "UPDATE",
+        "Column": "read_at",
+        "Allowed": true,
+        "phase": "INBOX_MARK_READ_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_recipients",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Inbox delivery/query/read state.",
+      "nativeProcedureReads": false,
+      "nativeProcedureWrites": false,
+      "ownershipChain": "Native procedure chain does not supply independent C# caller access.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "db.NotificationRecipients",
+          "hits": [
+            {
+              "line": 85,
+              "text": "db.NotificationRecipients.Add(new(){NotificationId=notice.NotificationId,UserId=row.UserId,DeliveryChannel=\"IN_APP\",DeliveryStatus=\"DELIVERED\",DeliveredAt=now});"
+            },
+            {
+              "line": 150,
+              "text": "affected=await db.NotificationRecipients.Where(r=>r.NotificationId==item.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\")"
+            },
+            {
+              "line": 178,
+              "text": "var recipient=await db.NotificationRecipients.AsNoTracking().SingleOrDefaultAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==user&&r.DeliveryChannel==\"IN_APP\"&&r.DeliveryStatus==\"DELIVERED\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 50,
+      "jsonPointer": "/entries/49",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "status",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 51,
+      "jsonPointer": "/entries/50",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "attempt_count",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 52,
+      "jsonPointer": "/entries/51",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "next_attempt_at",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 53,
+      "jsonPointer": "/entries/52",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "claim_id",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "REDUNDANT_OR_OVERBROAD",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "OMIT_UNPROVEN_COLUMN_GRANT",
+      "proposedReason": "No write to this column in pinned CleaningNotificationRuntime. Future claims/retry require distinct reviewed implementation and rights.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 54,
+      "jsonPointer": "/entries/53",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "claimed_until",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "REDUNDANT_OR_OVERBROAD",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "OMIT_UNPROVEN_COLUMN_GRANT",
+      "proposedReason": "No write to this column in pinned CleaningNotificationRuntime. Future claims/retry require distinct reviewed implementation and rights.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 55,
+      "jsonPointer": "/entries/54",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "failure_code",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    },
+    {
+      "originalOrdinal": 56,
+      "jsonPointer": "/entries/55",
+      "originalEntryId": null,
+      "originalIdExplanation": "No ID in pinned entry; ordinal/pointer preserve identity without inventing one.",
+      "principal": "HotelOps_DEV2_FullStack_Runtime",
+      "originalReason": null,
+      "originalPhase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+      "original": {
+        "Object": "dbo.notification_delivery_intents",
+        "Permission": "UPDATE",
+        "Column": "inbox_notification_id",
+        "Allowed": true,
+        "phase": "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+        "status": "PENDING"
+      },
+      "permissionForm": "PROPOSED_EXPLICIT_OBJECT_OR_COLUMN; actual inheritance/effective rights NOT_OBSERVED",
+      "schema": "dbo",
+      "object": "notification_delivery_intents",
+      "classification": "DELIVERY_INBOX_ONLY",
+      "profile": "OPTIONAL_DELIVERY_INBOX",
+      "actualConsumer": "Contained intent status/retry/claim handling; some proposed columns not written by this implementation, see exception.",
+      "nativeProcedureReads": true,
+      "nativeProcedureWrites": true,
+      "ownershipChain": "Conditional same-owner static dbo chain covers module-internal access only; actual owner/module hashes/signing/cross-db state require observation.",
+      "existingDeny": "No conflicting DENY proven offline; effective rights owner-required.",
+      "proposedDecision": "EXCLUDE_FROM_NATIVE_PROFILE_REQUIRE_SEPARATE_APPROVAL",
+      "proposedReason": "Only explicit contained delivery or Inbox capability may use this right. No worker, producer or retry activation.",
+      "sourceEvidence": [
+        {
+          "pin": "54d75a634005afb8d42704f761a820ed16b1b9d4",
+          "path": "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+          "sha256": "3f582b7fb4bf46effb2c2472ec2eaf7de2a9124f71428c9b7250010fb52002a3",
+          "token": "UPDATE dbo.notification_delivery_intents",
+          "hits": [
+            {
+              "line": 77,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='TERMINAL',failure_code={reason},attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 88,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET status='DELIVERED',inbox_notification_id={notice.NotificationId},failure_code=NULL,attempt_count=attempt_count+1 WHERE intent_id={row.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 102,
+              "text": "await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET failure_code={code},next_attempt_at={next},attempt_count=attempt_count+1 WHERE intent_id={hint.IntentId} AND status='PENDING'\",ct);"
+            },
+            {
+              "line": 147,
+              "text": "var affected=await db.Database.ExecuteSqlInterpolatedAsync($\"UPDATE dbo.notification_delivery_intents SET next_attempt_at=next_attempt_at WHERE intent_id={row.IntentId} AND user_id={user} AND status='DELIVERED' AND row_version={version}\",ct);"
+            }
+          ]
+        }
+      ],
+      "securityOwnerDecisionRequired": true
+    }
+  ]
+}
