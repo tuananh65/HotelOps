@@ -1,0 +1,31 @@
+{
+  "contract": "UC139_TRIAL_PACKAGE_V1",
+  "approval": "CANDIDATE_NOT_APPROVED",
+  "tables": [
+    "workdays",
+    "work_intervals",
+    "time_correction_requests"
+  ],
+  "files": [
+    {
+      "name": "01-install-candidate.sql",
+      "sha256": "93A4230814C2A5628A479EF5BB7F0EE364523561941DC359DE1FFD06D5EF61BA"
+    },
+    {
+      "name": "02-verify-read-only.sql",
+      "sha256": "77D50A30545967036D08DDB0DF348D392D7276F603E077F0E31FEA49ED2AAD41"
+    },
+    {
+      "name": "03-rollback-empty-candidate.sql",
+      "sha256": "71306019236C491E44557A8D2789E536339CC327474D7D612D9E0DCF483EE230"
+    },
+    {
+      "name": "04-fixtures-candidate.sql",
+      "sha256": "FC46C15E5C1129103F21EB96D70C9A7EA2CAFE3EF30CD711D80B68A4D48A8493"
+    },
+    {
+      "name": "05-verify-fixtures-read-only.sql",
+      "sha256": "B6B94E0AD7FC7630F059E45849B6BD70B34657926A6CBFC8218CF35ACFB63430"
+    }
+  ]
+}

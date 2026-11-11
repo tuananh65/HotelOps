@@ -9,6 +9,7 @@ using HotelOps.Api.Services.WorkTime;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using ScheduledWorkdayTrial;
 
 // No SQL/HTTP connection without --execute, an approved exact receipt and its supplied SHA.
 if (args.Length != 3 || args[0] is not ("--prepare" or "--execute"))
@@ -29,9 +30,13 @@ try
     Check(r.ActorId > 0 && r.BranchId > 0 && r.DeniedBranchId > 0 && r.DeniedBranchId != r.BranchId && new[] { r.AssignmentId, r.RaceAssignmentId, r.RollbackAssignmentId }.All(x => x > 0)
         && new[] { r.AssignmentId, r.RaceAssignmentId, r.RollbackAssignmentId }.Distinct().Count() == 3, "dedicated fixture IDs");
     Check(Hash(await File.ReadAllBytesAsync(r.SchemaArtifact)).Equals(r.SchemaSha256, StringComparison.OrdinalIgnoreCase)
-        && Hash(await File.ReadAllBytesAsync(r.FixtureArtifact)).Equals(r.FixtureSha256, StringComparison.OrdinalIgnoreCase), "accepted prerequisite artifact hashes");
+        && Hash(await File.ReadAllBytesAsync(r.FixtureArtifact)).Equals(r.FixtureSha256, StringComparison.OrdinalIgnoreCase), "prerequisite artifact hashes; approval separately required");
     Check(Uri.TryCreate(r.Origin, UriKind.Absolute, out var origin) && origin.Scheme == "https" && origin.AbsolutePath == "/"
         && origin.Query == "" && origin.Fragment == "" && origin.UserInfo == "", "exact HTTPS origin");
+    var trialPackage = await TrialConfiguration.ReadAsync(args[1], args[2]);
+    trialPackage.Validate(false, DateTimeOffset.UtcNow);
+    TrialArtifacts.ValidatePackage(trialPackage.TrialPackageManifest, trialPackage.TrialPackageSha256, r.SchemaArtifact, r.FixtureArtifact);
+    Check(true, "bound WorkTime trial package closure");
     if (args[0] == "--prepare") { Console.WriteLine("PREPARED_ONLY; SQL/HTTPS/WRITES NOT_RUN; lease and runtime approval required for execute."); return 0; }
     Check(r.ApprovalStatus == "APPROVED" && r.ExclusiveLease && r.TrialHostMutationApproval && r.AuditFaultInjectionApproval
         && r.LeaseStartsUtc <= DateTimeOffset.UtcNow && r.LeaseEndsUtc > DateTimeOffset.UtcNow, "explicit active exclusive lease and trial-only mutation/fault approval");
@@ -42,6 +47,7 @@ try
         && cs.AttachDBFilename == "" && cs.FailoverPartner == "", "exact SQL target; encryption and certificate verification required");
     var remaining = r.LeaseEndsUtc - DateTimeOffset.UtcNow;
     using var timeout = new CancellationTokenSource(remaining < TimeSpan.FromMinutes(4) ? remaining : TimeSpan.FromMinutes(4)); var ct = timeout.Token;
+    await trialPackage.VerifyLiveIdentityAsync(connection, ct);
     await using (var sql = new SqlConnection(connection))
     {
         await sql.OpenAsync(ct); // No trust override or certificate callback.

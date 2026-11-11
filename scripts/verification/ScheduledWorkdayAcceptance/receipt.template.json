@@ -20,5 +20,10 @@
   "deniedBranchId": 0,
   "assignmentId": 0,
   "raceAssignmentId": 0,
-  "rollbackAssignmentId": 0
+  "rollbackAssignmentId": 0,
+  "trialPackageManifest": "REQUIRES_CANDIDATE_PACKAGE_JSON_PATH",
+  "trialPackageSha256": "REQUIRES_OWNER_APPROVED_SHA256",
+  "shiftId": 0,
+  "raceShiftId": 0,
+  "rollbackShiftId": 0
 }
