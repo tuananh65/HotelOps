@@ -1,0 +1,8 @@
+﻿{
+    "command":  "dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj --filter FullyQualifiedName~BoundaryTests --nologo",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "startedUtc":  "2026-11-11T06:18:11.0579395Z",
+    "exitCode":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/04_boundary.txt",
+    "sqlExecution":  "NOT_RUN"
+}

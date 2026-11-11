@@ -1,0 +1,11 @@
+﻿{
+    "command":  "dotnet build HotelOps.slnx --nologo",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "exitCode":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/upstream-00bdc481/02_build.txt",
+    "sqlExecution":  "NOT_RUN",
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "warnings":  2,
+    "errors":  0,
+    "restore":  "completed; NuGet vulnerability endpoint unavailable"
+}

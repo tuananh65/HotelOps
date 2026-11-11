@@ -1,0 +1,14 @@
+  Determining projects to restore...
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\HotelOps.slnx]
+  All projects are up-to-date for restore.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+  HotelOps.Api -> <WORKTREE>\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+
+Build succeeded.
+
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\HotelOps.slnx]
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+    2 Warning(s)
+    0 Error(s)
+
+Time Elapsed 00:00:17.28

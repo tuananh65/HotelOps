@@ -1,0 +1,14 @@
+﻿{
+    "command":  "dotnet build HotelOps.slnx --nologo",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "sourceTree":  "14f4595c0edeb1f6349d636ec1a08a22a287f569",
+    "exitCode":  0,
+    "warnings":  2,
+    "warningCodes":  [
+                         "NU1900"
+                     ],
+    "errors":  0,
+    "restore":  "Restored API project; vulnerability metadata unavailable",
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/02_build.txt",
+    "sqlExecution":  "NOT_RUN"
+}

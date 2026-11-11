@@ -1,0 +1,15 @@
+✔ connected scoped preview renders and Save is absent by default (1294.3529ms)
+✔ Save review/confirm double click has one POST and staged receipt (618.9636ms)
+✔ preview 401 removes results and offers no Save (613.4055ms)
+✔ preview 403 removes results and offers no Save (501.5863ms)
+✔ preview 503 removes results and offers no Save (533.0045ms)
+✔ Save unavailable never claims failure certainty or retries (742.6343ms)
+✔ late Save after session replacement cannot publish receipt (626.8877ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5887.8075

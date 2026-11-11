@@ -218,7 +218,12 @@ function UserReads({ userId }: { userId: number }) {
         {detail.result === null ? (
           <p role="status">Loading account detail...</p>
         ) : detail.result.ok ? (
-          <Account account={detail.result.data} />
+          <>
+            <Account account={detail.result.data} />
+            <Link to={`/users/${userId}/reset-credential`}>
+              Reset credential
+            </Link>
+          </>
         ) : (
           <>
             <p role="alert">{usersReadMessage(detail.result.error)}</p>

@@ -47,7 +47,9 @@ public sealed partial class AssetService
     public async Task<AssetHandoverDto?> CreateHandoverAsync(long assetId, CreateAssetHandoverRequest request, CancellationToken cancellationToken)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
-        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ToUserId, cancellationToken);
+        var users = await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).LockAsync([request.ActorUserId, request.ToUserId], cancellationToken);
+        HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(request.ActorUserId, users);
+        HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(request.ToUserId, users);
         var asset = await LockAssetAsync(assetId, cancellationToken);
         if (asset is null) return null;
         await _dbContext.Entry(asset).ReloadAsync(cancellationToken);
@@ -92,11 +94,13 @@ public sealed partial class AssetService
         if (rejectionReason is null)
         {
             if (discovered.ToUserId is not long receiver) throw new ValidationException("ToUserId is required.");
-            var ids = new[] { discovered.FromUserId, discovered.ToUserId }.Where(x => x.HasValue).Select(x => x!.Value);
+            var ids = new[] { discovered.FromUserId, discovered.ToUserId, (long?)actor }.Where(x => x.HasValue).Select(x => x!.Value);
             var locked = await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).LockAsync(ids, cancellationToken);
             HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(receiver, locked);
+            HotelOps.Api.Services.Users.UserEligibilityLock.RequireEligible(actor, locked);
         }
-        // Accept: sorted custody Users -> Asset -> Handover. Reject: Asset -> Handover.
+        else await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(actor, cancellationToken);
+        // Both paths: sorted relevant Users -> Asset -> Handover. No late new actor lock.
         var asset = await LockAssetAsync(discovered.AssetId, cancellationToken);
         var handover = await _dbContext.AssetHandovers
             .FromSqlInterpolated($"SELECT * FROM asset_handovers WITH (UPDLOCK, HOLDLOCK) WHERE handover_id = {handoverId}")

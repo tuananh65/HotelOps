@@ -1,0 +1,62 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\ShiftPlanPreview\ShiftPlanPreview.Verification.csproj]
+<WORKTREE>\scripts\verification\ShiftPlanPreview\ShiftPlanPreview.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\ShiftPlanPreview\ShiftPlanPreview.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS: valid plan produces diagnostic preview
+PASS: zero issues never authorize save
+PASS: timezone comes from trusted reader
+PASS: preview contains planned interval
+PASS: invalid references never read facts
+PASS: invalid references never read facts
+PASS: invalid references never read facts
+PASS: fail closed diagnostic: scope
+PASS: no raw failure disclosure: scope
+PASS: fail closed diagnostic: timezone
+PASS: no raw failure disclosure: timezone
+PASS: fail closed diagnostic: missing-timezone
+PASS: no raw failure disclosure: missing-timezone
+PASS: fail closed diagnostic: template
+PASS: no raw failure disclosure: template
+PASS: fail closed diagnostic: inactive-template
+PASS: no raw failure disclosure: inactive-template
+PASS: fail closed diagnostic: wrong-template-branch
+PASS: no raw failure disclosure: wrong-template-branch
+PASS: fail closed diagnostic: employee
+PASS: no raw failure disclosure: employee
+PASS: fail closed diagnostic: inactive-employee
+PASS: no raw failure disclosure: inactive-employee
+PASS: fail closed diagnostic: no-access
+PASS: no raw failure disclosure: no-access
+PASS: fail closed diagnostic: department
+PASS: no raw failure disclosure: department
+PASS: fail closed diagnostic: time
+PASS: no raw failure disclosure: time
+PASS: fail closed diagnostic: existing
+PASS: no raw failure disclosure: existing
+PASS: fail closed diagnostic: unavailable
+PASS: no raw failure disclosure: unavailable
+PASS: fail closed diagnostic: timeout
+PASS: no raw failure disclosure: timeout
+PASS: same employee proposed overlap marks both rows
+PASS: employee overlap includes other branch
+PASS: adjacent proposed shifts remain non-overlapping
+PASS: different employees can share time interval
+PASS: empty preview does not query
+PASS: technical batch bound before reads
+PASS: cancellation before reads
+PASS: caller cannot replace plan across awaits
+PASS: cancellation during reader propagates
+PASS: real scope query translates mapped tables and timezone
+PASS: scope predicates translate
+PASS: real template query translates mapped wall-clock fields
+PASS: real employee membership projection translates as EXISTS
+PASS: employee eligibility and current membership predicates translate
+PASS: real clock query retains SQL UTC source
+PASS: translation uses empty unconnected SQL connection
+PASS: translation creates no tracked entities
+PASS: internal presentation retains revalidation marker
+PASS: internal projection uses camel-case row index and UTC interval
+PASS: presentation diagnostic order matches existing internal enum
+PASS: internal enum projection remains numeric, not invented public error codes
+PASS: internal presentation does not invent authority version or identities
+RESULT: 57 PASS. Fake-reader behavior and offline EF translation only; live SQL, HTTP authorization, writes and audit/notification acceptance NOT_RUN.

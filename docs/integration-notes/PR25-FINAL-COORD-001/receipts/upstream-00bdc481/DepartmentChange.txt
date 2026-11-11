@@ -1,0 +1,50 @@
+<WORKTREE>\scripts\verification\DepartmentChange\DepartmentChange.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\DepartmentChange\DepartmentChange.Verification.csproj]
+<WORKTREE>\scripts\verification\DepartmentChange\DepartmentChange.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS role-less employee may move between distinct departments inside primary branch (facts only)
+PASS validation never mutates user or membership
+PASS same destination rejected without mutation
+PASS stale User version
+PASS inactive target
+PASS inactive employment
+PASS deleted target
+PASS primary branch cannot change
+PASS cross-branch destination
+PASS inactive destination
+PASS old department must belong to primary branch
+PASS inactive primary branch
+PASS all active/inactive/expiry role history preserved and denied
+PASS all active/inactive/expiry role history preserved and denied
+PASS all active/inactive/expiry role history preserved and denied
+PASS all active/inactive/expiry role history preserved and denied
+PASS all active/inactive/expiry role history preserved and denied
+PASS all active/inactive/expiry role history preserved and denied
+PASS missing primary membership
+PASS revoked primary membership
+PASS foreign user membership
+PASS future membership
+PASS ambiguous primary history
+PASS exact request field
+PASS unknown request field rejected branchId
+PASS unknown request field rejected userId
+PASS unknown request field rejected roleId
+PASS unknown request field rejected isPrimary
+PASS new controller not publicly mounted
+PASS direct service cannot bypass release
+PASS unreleased call performs no SQL or tracked mutation
+PASS self change denied
+PASS restricted actor denied
+PASS identity replacement denied
+PASS immutable release evidence
+PASS empty reader cannot clear missing writer participation
+PASS open work blocks change
+PASS only conditional PUT mutation contract
+PASS explicit CSRF on mutation
+PASS HTTP rejected before service
+PASS missing cookie rejected
+PASS missing If-Match maps428
+PASS wildcard If-Match rejected
+PASS unreleased HTTP direct invocation fail-closed
+PASS direct controller gate does not open SQL
+RESULT 45/45 PASS; SQL transaction/rollback/HTTPS NOT_RUN.

@@ -1,0 +1,43 @@
+X [ERROR] Cannot read directory "../../../../..": Access is denied.
+
+X [ERROR] Could not resolve "./src/workday/shiftPlanApi.ts"
+
+  Use the relative path "././src/workday/shiftPlanApi.ts" to reference the file "src/workday/shiftPlanApi.ts". Without the leading "./", the path "./src/workday/shiftPlanApi.ts" is being interpreted as a package path instead.
+
+C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:1467
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 2 errors:
+error: Cannot read directory "../../../../..": Access is denied.
+error: Could not resolve "./src/workday/shiftPlanApi.ts"
+    at failureErrorWithLog (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:1467:15)
+    at C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:926:25
+    at C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:878:52
+    at buildResponseToResult (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:924:7)
+    at C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:951:16
+    at responseCallbacks.<computed> (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (C:\Users\Admin\Documents\GitHub\HotelOps_DEV2_FullStack_Integration\frontend\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:514:20)
+    at addChunk (node:internal/streams/readable:605:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v26.13.0
+✖ tests\shift-plan-api.test.mjs (91.1484ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 98.9282
+
+✖ failing tests:
+
+test at tests\shift-plan-api.test.mjs:1:1
+✖ tests\shift-plan-api.test.mjs (91.1484ms)
+  'test failed'

@@ -1,0 +1,17 @@
+﻿{
+    "command":  "\"C:/Program Files/nodejs/node.exe\" --test tests/secure-shift-plan-browser.test.mjs",
+    "commandProvenance":  "Authorized host handoff command; executed by Windows host, not sandbox",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC138-95d870a47f684d9c9ad4425afdbf4950",
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "executionOwner":  "HOST",
+    "exitCode":  0,
+    "exitCodeEvidence":  "host_exit_codes.tsv",
+    "tests":  7,
+    "pass":  7,
+    "fail":  0,
+    "skip":  0,
+    "cancelled":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/upstream-00bdc481/host-frontend/secure-shift-plan-browser.test.txt",
+    "sqlExecution":  "NOT_RUN",
+    "classification":  "Final successful host frontend receipt"
+}

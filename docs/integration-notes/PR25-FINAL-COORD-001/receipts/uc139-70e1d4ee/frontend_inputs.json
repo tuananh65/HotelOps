@@ -1,0 +1,145 @@
+﻿{
+    "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+    "integrationParent":  "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+    "scratchDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC139-57f2cebcdf8b422c9c9918d7975d99ec",
+    "dependencyDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\frontend\\node_modules",
+    "node":  "C:/Program Files/nodejs/node.exe",
+    "test":  "tests/scheduled-workday-browser.test.mjs",
+    "indexedFiles":  [
+                         {
+                             "path":  "frontend/src/auth/AuthProvider.tsx",
+                             "indexGitBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                             "scratchGitBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                             "sha256Worktree":  "4a95e5a24db18e440f6200d3b23f9f85b4b9e306a5ba879bd3af7bd6eaae9de7"
+                         },
+                         {
+                             "path":  "frontend/src/auth/AuthRouteHost.tsx",
+                             "indexGitBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                             "scratchGitBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                             "sha256Worktree":  "b7638b83b592f540e268f1b90fa6cfaec60b43e7ef64856df3165afa918759f6"
+                         },
+                         {
+                             "path":  "frontend/src/auth/authApi.ts",
+                             "indexGitBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                             "scratchGitBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                             "sha256Worktree":  "8ace6189e6cf3c7aa07dfb8960de13c3c9bab7ddf4b2f2ce13d4a41ec88a7b10"
+                         },
+                         {
+                             "path":  "frontend/src/auth/authStore.ts",
+                             "indexGitBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                             "scratchGitBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                             "sha256Worktree":  "cd510ba52c12f313ef56498c11fbf3b68b61c594b5020edff56edf2b01cb82ee"
+                         },
+                         {
+                             "path":  "frontend/src/auth/contracts.ts",
+                             "indexGitBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                             "scratchGitBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                             "sha256Worktree":  "2164f3781beffd2069392a45e237d19f66669ee6eef3a6e69768b9156f4022c8"
+                         },
+                         {
+                             "path":  "frontend/src/auth/http.ts",
+                             "indexGitBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                             "scratchGitBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                             "sha256Worktree":  "8685a418feddc2a1330ef46d988c4022ad66569f94735a6b92e352835051337d"
+                         },
+                         {
+                             "path":  "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+                             "indexGitBlob":  "01a86d430735823000ced8a0d9729fa7fceaee44",
+                             "scratchGitBlob":  "01a86d430735823000ced8a0d9729fa7fceaee44",
+                             "sha256Worktree":  "dd32a2bc74c05d7f29ef12a71019c496ff14f117c2a174a5cb484b729f271b66"
+                         },
+                         {
+                             "path":  "frontend/src/workday/SecureShiftPlanWorkspace.tsx",
+                             "indexGitBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                             "scratchGitBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                             "sha256Worktree":  "81b7e6ab7a19f94cc0fe31fe16e785d7a3ec0d3bf59db26f8920042f179d247e"
+                         },
+                         {
+                             "path":  "frontend/src/workday/ShiftPlanPreviewPanel.tsx",
+                             "indexGitBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                             "scratchGitBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                             "sha256Worktree":  "f8b3e77cf030534e174c07e4bdafc3281a049077298bba16d256291712549856"
+                         },
+                         {
+                             "path":  "frontend/src/workday/WorkdayReadPanel.tsx",
+                             "indexGitBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                             "scratchGitBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                             "sha256Worktree":  "a04736e2a0b4c06947292a665d9b0d5f41b67c0d80da42777c67eb32e9e9a7e9"
+                         },
+                         {
+                             "path":  "frontend/src/workday/WorkdayRoute.tsx",
+                             "indexGitBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                             "scratchGitBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                             "sha256Worktree":  "21d048672bd64c0dd72228c1d3a06210f1099b52003c9c3603dce6f72106edc3"
+                         },
+                         {
+                             "path":  "frontend/src/workday/contracts.ts",
+                             "indexGitBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                             "scratchGitBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                             "sha256Worktree":  "5145d980d6d1e33efb8ec31d88e81fe1c3410c8dba68fe186104711142411842"
+                         },
+                         {
+                             "path":  "frontend/src/workday/readFeature.ts",
+                             "indexGitBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                             "scratchGitBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                             "sha256Worktree":  "1d48027ded65656c753a89e9077685aff26aa6e34a33cc364bf82151e6d8e43e"
+                         },
+                         {
+                             "path":  "frontend/src/workday/scheduledContracts.ts",
+                             "indexGitBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                             "scratchGitBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                             "sha256Worktree":  "829c68c39596e56046f56d18bf1383679fd6bb69043a179baadd2a283a57488c"
+                         },
+                         {
+                             "path":  "frontend/src/workday/scheduledWorkdayApi.ts",
+                             "indexGitBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                             "scratchGitBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                             "sha256Worktree":  "835f19ddca01baca66a1c5968a5bb4cf8e6c9115005dfd5e925de485c633cccb"
+                         },
+                         {
+                             "path":  "frontend/src/workday/shiftPlanApi.ts",
+                             "indexGitBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                             "scratchGitBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                             "sha256Worktree":  "3e0e45bee4d2c6c941a36640a5ab7d4746a53a89d55598f64edc5de3b459c04a"
+                         },
+                         {
+                             "path":  "frontend/src/workday/shiftPlanPreview.ts",
+                             "indexGitBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                             "scratchGitBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                             "sha256Worktree":  "ca33cfb5a65f151d0835b1d8b720680da63519161ebe0bbbc79ecba1f8c2936f"
+                         },
+                         {
+                             "path":  "frontend/src/workday/workdayApi.ts",
+                             "indexGitBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                             "scratchGitBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                             "sha256Worktree":  "43c886be91f47f37129c1749624773ec4dc0a4e3fc25a1da1fd14007747f7743"
+                         },
+                         {
+                             "path":  "frontend/package.json",
+                             "indexGitBlob":  "cf63fcc29086c03e4d250449756fe1362c3295a7",
+                             "scratchGitBlob":  "cf63fcc29086c03e4d250449756fe1362c3295a7",
+                             "sha256Worktree":  "bf1662bcd09fcb0967b40afee2107307797fd47f7c5f826c2dd8ee3e5addadfd"
+                         },
+                         {
+                             "path":  "frontend/tests/workday-fixtures.mjs",
+                             "indexGitBlob":  "3214f0eac726dbb1e9ab64ef84f4458c14cec4a8",
+                             "scratchGitBlob":  "3214f0eac726dbb1e9ab64ef84f4458c14cec4a8",
+                             "sha256Worktree":  "33ccb2a7a06d79798772fadcddd3af921423de580aed8f1cd90f4e32c8e04b0b"
+                         },
+                         {
+                             "path":  "frontend/tests/scheduled-workday-browser.test.mjs",
+                             "indexGitBlob":  "db7faf3ab545aad1bfee34dd9177266d6e0c6266",
+                             "scratchGitBlob":  "db7faf3ab545aad1bfee34dd9177266d6e0c6266",
+                             "sha256Worktree":  "aa98b9304a8afcbf4818a40180d744d768a04415313879bd147cf6b2a0a1103e"
+                         },
+                         {
+                             "path":  "frontend/tsconfig.json",
+                             "indexGitBlob":  "2d791609365cb96af8f38af699c32582fa1313f6",
+                             "scratchGitBlob":  "2d791609365cb96af8f38af699c32582fa1313f6",
+                             "sha256Worktree":  "545322f8604dff8984ae98ca3e9738610cb559f04f49290206850fa8a62c104e"
+                         }
+                     ],
+    "inputMismatchCount":  0,
+    "frontendExecution":  "NOT_RUN_SANDBOX_KNOWN_ESBUILD_RESTRICTION",
+    "qualification":  "Dedicated ignored scratch; exact indexed bytes and assertions; external dependencies read only; no package installation or original worktree edits"
+}

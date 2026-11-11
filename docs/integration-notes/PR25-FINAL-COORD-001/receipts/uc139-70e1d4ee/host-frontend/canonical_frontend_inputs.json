@@ -1,0 +1,2503 @@
+﻿{
+    "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+    "integrationParent":  "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+    "scratchDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC138-95d870a47f684d9c9ad4425afdbf4950",
+    "verifiedFiles":  415,
+    "inputMismatchCount":  0,
+    "verification":  "Independent read-only canonical scratch verification after host execution; raw blob hashes match pinned integration",
+    "hostReportedScratchRepairs":  307,
+    "scratchRepairsQualification":  "Host-reported environment restoration; not independently replayed and not a business source correction",
+    "scratchBackup":  "C:/Users/Admin/Documents/GitHub/HotelOps_PR25_UC139_SCRATCH_BACKUP_20261111_160945",
+    "files":  [
+                  {
+                      "path":  "frontend/.env.example",
+                      "integrationGitBlob":  "0aed400463cea22cf121be6586f301e75128c9ff",
+                      "scratchGitBlob":  "0aed400463cea22cf121be6586f301e75128c9ff",
+                      "sha256Worktree":  "12b1a546a28a4dd4bca7980098c5cb2663a524ec83dcf68cee950b7184b50e47"
+                  },
+                  {
+                      "path":  "frontend/.gitignore",
+                      "integrationGitBlob":  "62ed7e3b235f719089219a50efb3e1c7566a26d4",
+                      "scratchGitBlob":  "62ed7e3b235f719089219a50efb3e1c7566a26d4",
+                      "sha256Worktree":  "d84d8daca6cc1e23076864799525eaa8e786ac97ea18526b67c7da8f1edf731b"
+                  },
+                  {
+                      "path":  "frontend/.prettierignore",
+                      "integrationGitBlob":  "fcbecc0c183d214aa16cb05f7cc85fa89950f0f2",
+                      "scratchGitBlob":  "fcbecc0c183d214aa16cb05f7cc85fa89950f0f2",
+                      "sha256Worktree":  "5caa8fe1a443140d4af87cc75ba4f567b372cc5efb43d8a3196f9587ae4b4a89"
+                  },
+                  {
+                      "path":  "frontend/README.md",
+                      "integrationGitBlob":  "eea180e550be22abc0b41ad20d7372996e05f68d",
+                      "scratchGitBlob":  "eea180e550be22abc0b41ad20d7372996e05f68d",
+                      "sha256Worktree":  "3cee026a2ae39b70e6070bc45f71779703ed0b3ea9e60c884d7e908d96d03d7f"
+                  },
+                  {
+                      "path":  "frontend/docs/design-system.md",
+                      "integrationGitBlob":  "f5f9200055dceeb86d56d7fc253c73a54939e77b",
+                      "scratchGitBlob":  "f5f9200055dceeb86d56d7fc253c73a54939e77b",
+                      "sha256Worktree":  "9fcc536ff3d5dac73415d41567d6a691b02fb2fbf3d128fb68d0769bfe6d7e6c"
+                  },
+                  {
+                      "path":  "frontend/docs/refactor-report.md",
+                      "integrationGitBlob":  "c46bdccba161b0f31cab15b1b58c8e7f403a67c9",
+                      "scratchGitBlob":  "c46bdccba161b0f31cab15b1b58c8e7f403a67c9",
+                      "sha256Worktree":  "a88403c22e6599be785016c6c370a1b61fe1f58826c388e8bd4bb9ddcb3e3a4f"
+                  },
+                  {
+                      "path":  "frontend/docs/requirements/Report-3_Software Requirement Specification.tables.json",
+                      "integrationGitBlob":  "11d82c2ae102fd4e9207ab744ddc8136ecd85ae4",
+                      "scratchGitBlob":  "11d82c2ae102fd4e9207ab744ddc8136ecd85ae4",
+                      "sha256Worktree":  "f2f9befe030198e2846c5dcfe77ad18a9c551593879b96cf8e1c55b9414ccc00"
+                  },
+                  {
+                      "path":  "frontend/docs/requirements/Report-3_Software Requirement Specification.txt",
+                      "integrationGitBlob":  "0fea10278e77d98f7c0821bbefd253c3dfa8ef6b",
+                      "scratchGitBlob":  "0fea10278e77d98f7c0821bbefd253c3dfa8ef6b",
+                      "sha256Worktree":  "26ff9850681217b9cb64626e2d747af45bd0496a8ab047110ba080d5d196ebc8"
+                  },
+                  {
+                      "path":  "frontend/docs/requirements/UC_Screen List.tables.json",
+                      "integrationGitBlob":  "e491f7fd27d31f7aad806f38ff2f8d04614d19f9",
+                      "scratchGitBlob":  "e491f7fd27d31f7aad806f38ff2f8d04614d19f9",
+                      "sha256Worktree":  "0184e974b891b9795515f39a2c8e6d36b2085faf030f0327762c55ac639692f2"
+                  },
+                  {
+                      "path":  "frontend/docs/requirements/UC_Screen List.txt",
+                      "integrationGitBlob":  "acd231746fd310d436160b10ad918cb1b2b12c4f",
+                      "scratchGitBlob":  "acd231746fd310d436160b10ad918cb1b2b12c4f",
+                      "sha256Worktree":  "49023e41c45c49e94e303fb9c917d322cb4da49abbc328a499ada3b38879f466"
+                  },
+                  {
+                      "path":  "frontend/docs/requirements/catalog-full.json",
+                      "integrationGitBlob":  "27cab52f4e58b12b77702173e988793cab9c6faa",
+                      "scratchGitBlob":  "27cab52f4e58b12b77702173e988793cab9c6faa",
+                      "sha256Worktree":  "e238f4f7e0d1ca4935e499128edfcbbcf64905a2e4b26925c9be1aedf2b0c44e"
+                  },
+                  {
+                      "path":  "frontend/docs/screen-manifest.json",
+                      "integrationGitBlob":  "1e726e08f7042cfbf075a5a11dff0ae55d0431ce",
+                      "scratchGitBlob":  "1e726e08f7042cfbf075a5a11dff0ae55d0431ce",
+                      "sha256Worktree":  "a29f18ade9d7db4442b9b43b25e04b2c57daeb0db454a643de4f7d61667cbd9e"
+                  },
+                  {
+                      "path":  "frontend/docs/screen-matrix.md",
+                      "integrationGitBlob":  "e30f871ce3180176ae6bc32d4e0ccc5b17bfa5f3",
+                      "scratchGitBlob":  "e30f871ce3180176ae6bc32d4e0ccc5b17bfa5f3",
+                      "sha256Worktree":  "c3df5d926840eeab4a03d6d57783e09e2db09413dd58d624621f091e854b16b5"
+                  },
+                  {
+                      "path":  "frontend/docs/screen-routes.md",
+                      "integrationGitBlob":  "2b6d8ab5273560a349915fe867ac0c1d20b6d1ca",
+                      "scratchGitBlob":  "2b6d8ab5273560a349915fe867ac0c1d20b6d1ca",
+                      "sha256Worktree":  "f3c8ddb831900dfe526fcef4c91c017a119ba2fa43d7f3693733c85c0c370581"
+                  },
+                  {
+                      "path":  "frontend/docs/translation-inventory.json",
+                      "integrationGitBlob":  "4e709359377cc4721e6b1c5ba1a7297a2d59ed1f",
+                      "scratchGitBlob":  "4e709359377cc4721e6b1c5ba1a7297a2d59ed1f",
+                      "sha256Worktree":  "90c1e15e4f62d6f89902d25dc36a0d1e7cef39ee9bf3277b479db2896692a5c7"
+                  },
+                  {
+                      "path":  "frontend/docs/ui-reference/Screenshot_5-10-2026_152454_ducvuonghotel.com.jpeg",
+                      "integrationGitBlob":  "faafcf8cfe94ef424c5cff8c6c76467e21afd293",
+                      "scratchGitBlob":  "faafcf8cfe94ef424c5cff8c6c76467e21afd293",
+                      "sha256Worktree":  "2bc55865d802e1ecf8aaf9cb19be4b0e0a9771fbaa0ae98b64f76ba39d5e4438"
+                  },
+                  {
+                      "path":  "frontend/docs/ui-reference/Screenshot_5-10-2026_152524_ducvuonghotel.com.jpeg",
+                      "integrationGitBlob":  "f60223defc1dfc7f24d64197d880dcea6957d4fe",
+                      "scratchGitBlob":  "f60223defc1dfc7f24d64197d880dcea6957d4fe",
+                      "sha256Worktree":  "31d9431e1c5a14627db81f390fdb1002e86772f9f2685ab5f543c72d127dc754"
+                  },
+                  {
+                      "path":  "frontend/docs/ui-reference/Screenshot_5-10-2026_152639_ducvuonghotel.com.jpeg",
+                      "integrationGitBlob":  "96e70994485273637ba4661f137f9e52211f7447",
+                      "scratchGitBlob":  "96e70994485273637ba4661f137f9e52211f7447",
+                      "sha256Worktree":  "4f9c337133c44d19c0c01fede3e6701cf9843dfccc659c85a58483e77ca5a471"
+                  },
+                  {
+                      "path":  "frontend/docs/ui-reference/Screenshot_5-10-2026_152655_ducvuonghotel.com.jpeg",
+                      "integrationGitBlob":  "1d49f835f7dc9f6fe0b3aa820327e79b253bc508",
+                      "scratchGitBlob":  "1d49f835f7dc9f6fe0b3aa820327e79b253bc508",
+                      "sha256Worktree":  "fd1e783e1426489b600704666d843d1ec5f0fc33bec0c3dc2d8afb9e4934a3fe"
+                  },
+                  {
+                      "path":  "frontend/docs/ui-reference/Screenshot_5-10-2026_152719_ducvuonghotel.com.jpeg",
+                      "integrationGitBlob":  "2ae38ca052bb760537ab6c7bcabd3012b83c6e93",
+                      "scratchGitBlob":  "2ae38ca052bb760537ab6c7bcabd3012b83c6e93",
+                      "sha256Worktree":  "7017f0f2196b80534e0394cb6f7602f57fc1146bb768ad5fd3d4644427630269"
+                  },
+                  {
+                      "path":  "frontend/docs/ui-reference/Screenshot_5-10-2026_15277_ducvuonghotel.com.jpeg",
+                      "integrationGitBlob":  "451b7479bb5ae7345037613d767dcafc319f0698",
+                      "scratchGitBlob":  "451b7479bb5ae7345037613d767dcafc319f0698",
+                      "sha256Worktree":  "7035ffafa61b21ed9fdfe06b8a4eaa221f40f848ed8172e5e397950716ce452b"
+                  },
+                  {
+                      "path":  "frontend/docs/ux-improvements.md",
+                      "integrationGitBlob":  "d40d48a08822c75eb4876f21e70dcf7415573a3f",
+                      "scratchGitBlob":  "d40d48a08822c75eb4876f21e70dcf7415573a3f",
+                      "sha256Worktree":  "e29dd22039582792cfda9f8df74c57802bc3bc93db4dfad3efedd4e1ba5ed674"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/19-desktop-en.png",
+                      "integrationGitBlob":  "d4f54d631fba537380d568af71886d954982fa66",
+                      "scratchGitBlob":  "d4f54d631fba537380d568af71886d954982fa66",
+                      "sha256Worktree":  "c1c5060eff0bf0502ae42e94b6a7e4dbf39e017cd72bcba5203facec555dddf0"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/19-desktop-vi.png",
+                      "integrationGitBlob":  "d86e5a813758b7d673ccc5214536ea7ac7c1c64a",
+                      "scratchGitBlob":  "d86e5a813758b7d673ccc5214536ea7ac7c1c64a",
+                      "sha256Worktree":  "4d3a3078f5eb618d53305f7b40d4db670b836708e8d3e192d9842ba69b178604"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/19-mobile-en.png",
+                      "integrationGitBlob":  "671cbbe08f71ab652bdf88665539f7bd86f38b65",
+                      "scratchGitBlob":  "671cbbe08f71ab652bdf88665539f7bd86f38b65",
+                      "sha256Worktree":  "35b554966f05f7dcce184a7d1700f38bc0952812421cd7596e9d87a07d7a0586"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/19-mobile-vi.png",
+                      "integrationGitBlob":  "9a339dcfd356b07b5d719618e0e1f2643aa83c56",
+                      "scratchGitBlob":  "9a339dcfd356b07b5d719618e0e1f2643aa83c56",
+                      "sha256Worktree":  "85f7f41ad9aeb0e0dd2693acb39a6cbb93c4467af6148013300a6530bd42e9ca"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/23-desktop-en.png",
+                      "integrationGitBlob":  "7b0a2f517e32baf364c8b30263c0b3064525cf2d",
+                      "scratchGitBlob":  "7b0a2f517e32baf364c8b30263c0b3064525cf2d",
+                      "sha256Worktree":  "250dfa1fe05bcb2ed8ab8f0b827fa6b65d9a9abb18ce9842bb2e9122266a8e9d"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/23-desktop-vi.png",
+                      "integrationGitBlob":  "7b34b1ba8cc10a8c8e3989019123ee62c5e6afc8",
+                      "scratchGitBlob":  "7b34b1ba8cc10a8c8e3989019123ee62c5e6afc8",
+                      "sha256Worktree":  "e4bb547345f080028b5d580f04b0b948553d5066fd9cd1c56749860a6de2d36a"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/24-desktop-en.png",
+                      "integrationGitBlob":  "d195262ae155e8b41a2bc65362d0cee78a5fe304",
+                      "scratchGitBlob":  "d195262ae155e8b41a2bc65362d0cee78a5fe304",
+                      "sha256Worktree":  "4dc2e582415d2267c01580b2f7034a661f4fc37b8d01936e0f392af9877f9ded"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/24-desktop-vi.png",
+                      "integrationGitBlob":  "2817c9371b1acfc54e6b08107a00851240ae8899",
+                      "scratchGitBlob":  "2817c9371b1acfc54e6b08107a00851240ae8899",
+                      "sha256Worktree":  "17b379ac1a9d392f49c646493e269a25a9aa9fb45bc77e2fe0bb6a337d43d64b"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/25-desktop-en.png",
+                      "integrationGitBlob":  "9d4b2cdd95c691cf9ea370282df8bd0b530c5324",
+                      "scratchGitBlob":  "9d4b2cdd95c691cf9ea370282df8bd0b530c5324",
+                      "sha256Worktree":  "2363c5bbe2539d5e28d9b9c0a721158d18cb9e4b59fa8a106f7ba9d719315007"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/27-desktop-en.png",
+                      "integrationGitBlob":  "473d3ba31875e055ababa9fc1e49b289f563af2b",
+                      "scratchGitBlob":  "473d3ba31875e055ababa9fc1e49b289f563af2b",
+                      "sha256Worktree":  "4ebfb2fcad4daded93e1017b84fb4a98e1ddb71642d24ba39a6152f67b70a3f1"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/34-desktop-en.png",
+                      "integrationGitBlob":  "f20536408193b649ebc32e00be4b98494828497e",
+                      "scratchGitBlob":  "f20536408193b649ebc32e00be4b98494828497e",
+                      "sha256Worktree":  "9a47137f1fc91caf704a52df12cb59afaf0ae4196afe34fbbbc47eff195219a9"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/34-desktop-vi.png",
+                      "integrationGitBlob":  "5167aad1dd2e7625ae7fadf111e3ec3180225259",
+                      "scratchGitBlob":  "5167aad1dd2e7625ae7fadf111e3ec3180225259",
+                      "sha256Worktree":  "ea1e7af436c438d111e3bcec0582e482df162db9afd80ca2e3dd778c68a82bd7"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/39-desktop-en.png",
+                      "integrationGitBlob":  "8bbccb798d34560d89d87e2956381adff2e5e4e5",
+                      "scratchGitBlob":  "8bbccb798d34560d89d87e2956381adff2e5e4e5",
+                      "sha256Worktree":  "85e9d3589000663baf337355620924cec20f497e11e8c777958a1ee2bf38cd20"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/39-desktop-vi.png",
+                      "integrationGitBlob":  "e95cdca4ed4ca3516281aface7ecee8541ccb279",
+                      "scratchGitBlob":  "e95cdca4ed4ca3516281aface7ecee8541ccb279",
+                      "sha256Worktree":  "972f9af38ea4c950358c90006e3c8965471d64302c54e2293c6c97f6d449a38f"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/40-desktop-en.png",
+                      "integrationGitBlob":  "73d780a93c4c80b2a1761817e63145fe8467323a",
+                      "scratchGitBlob":  "73d780a93c4c80b2a1761817e63145fe8467323a",
+                      "sha256Worktree":  "fa6f63d56699007af9b2e3a2b698860eebd03fd139bb00c072b5fe4fa1f7db11"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/48-desktop-en.png",
+                      "integrationGitBlob":  "37ecf24ba2c18a67e48b45bf83b2317807830f0a",
+                      "scratchGitBlob":  "37ecf24ba2c18a67e48b45bf83b2317807830f0a",
+                      "sha256Worktree":  "efd8a1b457ed914612d1155855ce5c25a3634fbc8367958d16a453d72ab84551"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/48-desktop-vi.png",
+                      "integrationGitBlob":  "8a46d7ac59e042be38b65d17abe21fe5d896acfa",
+                      "scratchGitBlob":  "8a46d7ac59e042be38b65d17abe21fe5d896acfa",
+                      "sha256Worktree":  "414a1402ef28c1731bab9ad9ba9a46de697ac88a27d48a59a09c2854ef3c1ee6"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/5-desktop-en.png",
+                      "integrationGitBlob":  "a64752da96055be9858ac082dacafe1de4c3b212",
+                      "scratchGitBlob":  "a64752da96055be9858ac082dacafe1de4c3b212",
+                      "sha256Worktree":  "851f6b02b601ee37de1d76acbff0946127fd04adb0de75d64ae4090038f1c0b9"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/5-desktop-vi.png",
+                      "integrationGitBlob":  "0145a305a61bf52a9690fa4d509ec80374d05c97",
+                      "scratchGitBlob":  "0145a305a61bf52a9690fa4d509ec80374d05c97",
+                      "sha256Worktree":  "3f1ddcc4280d2b7b8eed6eb227dacd2982a3b977be65c916c48edaddb003e85a"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/5-mobile-en.png",
+                      "integrationGitBlob":  "09369efde7af22a94239f1c425de1ab4d1258ca3",
+                      "scratchGitBlob":  "09369efde7af22a94239f1c425de1ab4d1258ca3",
+                      "sha256Worktree":  "a6393e2de4151a49241ad2b8391797548dbd4d275cb916caee5744736c66c229"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/5-mobile-vi.png",
+                      "integrationGitBlob":  "d8925db05b3ea17bebcd5e60f935cb479e29c451",
+                      "scratchGitBlob":  "d8925db05b3ea17bebcd5e60f935cb479e29c451",
+                      "sha256Worktree":  "47a5bc1a53f52cf37aee42111d00b0160fe4042a6e51ee5d66644b2f421ee945"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/53-desktop-en.png",
+                      "integrationGitBlob":  "ffd22bf74236affbd2cd43b823cd404b366578df",
+                      "scratchGitBlob":  "ffd22bf74236affbd2cd43b823cd404b366578df",
+                      "sha256Worktree":  "6da5974a53b16043df1b9bfa715e5a33e6be1bcc5dc733b2aa45625ddbe6d70c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/53-desktop-vi.png",
+                      "integrationGitBlob":  "fba8e5bb6cd529fbcee911f52d5fb3876e0de4e3",
+                      "scratchGitBlob":  "fba8e5bb6cd529fbcee911f52d5fb3876e0de4e3",
+                      "sha256Worktree":  "f21b6c9a299f421860cd77163afc7af82fbd489274abcaae8bbefab292727ce1"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/54-desktop-en.png",
+                      "integrationGitBlob":  "bb4f950a7056e76e26b4e532440424f9374a7121",
+                      "scratchGitBlob":  "bb4f950a7056e76e26b4e532440424f9374a7121",
+                      "sha256Worktree":  "b21038060a1d842568a751d488cf5a0b15069de90413fc9859e7e6aef7372113"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/54-desktop-vi.png",
+                      "integrationGitBlob":  "d35ec4889576647cdb7d842641b9747a5072d757",
+                      "scratchGitBlob":  "d35ec4889576647cdb7d842641b9747a5072d757",
+                      "sha256Worktree":  "00d71a3aa5f8badc49546a791d04d5554df2eb4fb1e81c9301a6a949608e2c31"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/66-desktop-en.png",
+                      "integrationGitBlob":  "c2ef5ec1b85be2f54d0a2448c6bdfc5985285b60",
+                      "scratchGitBlob":  "c2ef5ec1b85be2f54d0a2448c6bdfc5985285b60",
+                      "sha256Worktree":  "7029c8a3c93bd619b73ca817ace806bd3487e68c8f77fd5b7c4ff276b2a073e2"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/66-desktop-vi.png",
+                      "integrationGitBlob":  "f6540b9188e6c5487dc280080138a41c5aa0e709",
+                      "scratchGitBlob":  "f6540b9188e6c5487dc280080138a41c5aa0e709",
+                      "sha256Worktree":  "8edd45a5fcb1179772c69a050ceeb6ac7e6e1c5771e24997e7cf6a52537e6879"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/71-desktop-en.png",
+                      "integrationGitBlob":  "0002dbb4462e45a78580ac495ac76d521a9a06f1",
+                      "scratchGitBlob":  "0002dbb4462e45a78580ac495ac76d521a9a06f1",
+                      "sha256Worktree":  "172aa1a6253d4f9803e9136922ddf29c37e7ce28adb22c93a2c198425a0fb5b5"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/71-desktop-vi.png",
+                      "integrationGitBlob":  "dc0eea6fb80c77eb6dffc709f20f45e69fe29159",
+                      "scratchGitBlob":  "dc0eea6fb80c77eb6dffc709f20f45e69fe29159",
+                      "sha256Worktree":  "34c86fb7312016e10e508bd9697a93502b14feee807d9126c0991b3427dda4bb"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/78-desktop-en.png",
+                      "integrationGitBlob":  "d4e5c93a89dc75069b532ba23cd9086e56c0b309",
+                      "scratchGitBlob":  "d4e5c93a89dc75069b532ba23cd9086e56c0b309",
+                      "sha256Worktree":  "cac3a4b64e8193d2b9db7e689c9608778affb6e93ee1a2c4cbe85f1f3d5e6a04"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/78-desktop-vi.png",
+                      "integrationGitBlob":  "915916d6dc93c502d689862ae8a3ee5ee51f8dc3",
+                      "scratchGitBlob":  "915916d6dc93c502d689862ae8a3ee5ee51f8dc3",
+                      "sha256Worktree":  "cd19207526b524b9732a150a804d3097b3922a3f6cc1bd0c2e513228d88b7cbf"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/78-mobile-en.png",
+                      "integrationGitBlob":  "45869aeb87aaa4c9326e6bc8a6a51e0163b95492",
+                      "scratchGitBlob":  "45869aeb87aaa4c9326e6bc8a6a51e0163b95492",
+                      "sha256Worktree":  "25e239d012bb0f12c73aac1637d7cb944ae1504018ee1e884f7e0c3994a2d6d5"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/78-mobile-vi.png",
+                      "integrationGitBlob":  "644556ebb7ea4e122f7e70f02f945d68de9e77d3",
+                      "scratchGitBlob":  "644556ebb7ea4e122f7e70f02f945d68de9e77d3",
+                      "sha256Worktree":  "64f9099bed68addb1187c1edc01bfa2d99e7ba8d7e2899f57a71fc6b7c19cc94"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/79-desktop-en.png",
+                      "integrationGitBlob":  "738cf1115da4c168eda470147c6b61f286e77674",
+                      "scratchGitBlob":  "738cf1115da4c168eda470147c6b61f286e77674",
+                      "sha256Worktree":  "e8682fe3b33a339fe6385ac91c90f711fb00557f94f01e7af7f31dc0294cd2b9"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/79-desktop-vi.png",
+                      "integrationGitBlob":  "9c22efd3b60253e4df7e2bc087392c055ef529df",
+                      "scratchGitBlob":  "9c22efd3b60253e4df7e2bc087392c055ef529df",
+                      "sha256Worktree":  "882d9129005c9c4d304aae4a959a9f644a5b430244a423dc7d37acf74ef3faae"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/8-desktop-en.png",
+                      "integrationGitBlob":  "e0bdb6823bc9f41c8d1c3009e5d40739409a23b7",
+                      "scratchGitBlob":  "e0bdb6823bc9f41c8d1c3009e5d40739409a23b7",
+                      "sha256Worktree":  "866c021cb004a48be272e0611875e3b7f2393f43d76ce74e9532135c98fe7d0f"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/8-desktop-vi.png",
+                      "integrationGitBlob":  "c596c8bafdb19905e51d4867bd6cbfa23e602c67",
+                      "scratchGitBlob":  "c596c8bafdb19905e51d4867bd6cbfa23e602c67",
+                      "sha256Worktree":  "88a7dc198fdf64eb91e10bea8e52480ab41ab408ec67c1f977087eab4504cd5c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/8-mobile-en.png",
+                      "integrationGitBlob":  "eb351aecd2a111fbacecc759e2250e5067d0df79",
+                      "scratchGitBlob":  "eb351aecd2a111fbacecc759e2250e5067d0df79",
+                      "sha256Worktree":  "2a9b4e0396d8cf4cc97cbbcd5dff49ab5e240a28a3c415cc29084b36df7e2a44"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/8-mobile-vi.png",
+                      "integrationGitBlob":  "ed10144474ac26a627595fb98de007901980feee",
+                      "scratchGitBlob":  "ed10144474ac26a627595fb98de007901980feee",
+                      "sha256Worktree":  "3e9329641f0ebe4350cdbded0cc7f676e7921ffd6dfd23f2faabb70878337786"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/desktop-audit.json",
+                      "integrationGitBlob":  "c75a03c6473b7f7361cf33cf286abb5fba7e4726",
+                      "scratchGitBlob":  "c75a03c6473b7f7361cf33cf286abb5fba7e4726",
+                      "sha256Worktree":  "2ed623869afc7344d9c036c2e0a76d3dd152f158ba9dc4bfbcbd52343a61e354"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/directory-desktop.png",
+                      "integrationGitBlob":  "3bd30332f21ab32e43cf94944a1dac445a83bcf7",
+                      "scratchGitBlob":  "3bd30332f21ab32e43cf94944a1dac445a83bcf7",
+                      "sha256Worktree":  "3f141f71926f1ac89a981490ba4ef82705001efd1151ebf2896f9affcf397fba"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/forms-audit.json",
+                      "integrationGitBlob":  "26d1d9147f85f2d4847cf6aa9496fbb540f93e5e",
+                      "scratchGitBlob":  "26d1d9147f85f2d4847cf6aa9496fbb540f93e5e",
+                      "sha256Worktree":  "c19a852cabb9c0a6b0616e49b36c6dd886c79dbe6f9e71ad71664f9fc0610059"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/initial-audit.json",
+                      "integrationGitBlob":  "8c1bf2465c4871702bff1107fc5be4550182a021",
+                      "scratchGitBlob":  "8c1bf2465c4871702bff1107fc5be4550182a021",
+                      "sha256Worktree":  "0f91210402cedbea526f5534ac6fefe84a929b72575801ee468419f7dc04406b"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/content-first/mobile-audit.json",
+                      "integrationGitBlob":  "cb5eaf36273c77a6589b26d9ea24cf71dc4e5e10",
+                      "scratchGitBlob":  "cb5eaf36273c77a6589b26d9ea24cf71dc4e5e10",
+                      "sha256Worktree":  "8c19974862b0ea8d05ea0d434147dfefb3cad1affd5bfd56cb8fbf75bfe1ec83"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/dashboard-desktop.png",
+                      "integrationGitBlob":  "34c614a0b45470416f78550b8a1e84eef2a8e8c7",
+                      "scratchGitBlob":  "34c614a0b45470416f78550b8a1e84eef2a8e8c7",
+                      "sha256Worktree":  "7ec4dc6157caf356e64b30c3bdce09bab5894dc0679fabbeda28f42b1fe95071"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/24-1440-en.png",
+                      "integrationGitBlob":  "d4843281030ff7cb569f8abf1e24946339c52b73",
+                      "scratchGitBlob":  "d4843281030ff7cb569f8abf1e24946339c52b73",
+                      "sha256Worktree":  "ce405d2f8762b2a3b68dbf568c43d321b9fdecbcb8e794e20fbf1fe9adb1baed"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/24-1440-vi.png",
+                      "integrationGitBlob":  "c9d75ec2685d28ecd3024f8c69923714bcef38e3",
+                      "scratchGitBlob":  "c9d75ec2685d28ecd3024f8c69923714bcef38e3",
+                      "sha256Worktree":  "9e8ac84c70948bb9197418c8db742ce177f3ced0ce2780612a0337edeb286d82"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/24-390-en.png",
+                      "integrationGitBlob":  "b660b8679811891c0346af7bb6cb8420afe4d49c",
+                      "scratchGitBlob":  "b660b8679811891c0346af7bb6cb8420afe4d49c",
+                      "sha256Worktree":  "fc3499be5eff491fcf8149db73476fd29be515c64def1f18593a2038e142ec3a"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/24-390-vi.png",
+                      "integrationGitBlob":  "19bddfa2b8c80ec5317f2f129da524595eefd062",
+                      "scratchGitBlob":  "19bddfa2b8c80ec5317f2f129da524595eefd062",
+                      "sha256Worktree":  "3cb3bd455a57c47d9d835fbd14b8ad3716e78d417057ef9a1cc1f3da7bdc3987"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/5-1440-en.png",
+                      "integrationGitBlob":  "03b0ebfe4328764665562b9a5ef4b21e6b4343b8",
+                      "scratchGitBlob":  "03b0ebfe4328764665562b9a5ef4b21e6b4343b8",
+                      "sha256Worktree":  "c4352f181085e99fa0f5cba70f41ae03efc7f10751a7c011fac9d5148fc19f1e"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/5-1440-vi.png",
+                      "integrationGitBlob":  "b6eebb03c51341243defc9277b578f3df264ef2e",
+                      "scratchGitBlob":  "b6eebb03c51341243defc9277b578f3df264ef2e",
+                      "sha256Worktree":  "b25ab580c6c51c1e0587a0ce70353292d4374f7d35d4f5ec50a5b4e3e6262974"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/5-390-en.png",
+                      "integrationGitBlob":  "bba291835bd5c5b61bb4cb211d70a3b6e67c59b4",
+                      "scratchGitBlob":  "bba291835bd5c5b61bb4cb211d70a3b6e67c59b4",
+                      "sha256Worktree":  "8701f1315f837586f5b80910a8693fdbef156c1681d64f2cd6426d6c4aa5ed5a"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/5-390-vi.png",
+                      "integrationGitBlob":  "1aa4567bea34a752fbbddddf2f36e0a684b8ce83",
+                      "scratchGitBlob":  "1aa4567bea34a752fbbddddf2f36e0a684b8ce83",
+                      "sha256Worktree":  "f5fa91cf24a67b308e225c0e4f2ac670ae84e316044bef2da8606a1e815edaa0"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/66-1440-en.png",
+                      "integrationGitBlob":  "26a6052f9321575ed6468795212012723ec52616",
+                      "scratchGitBlob":  "26a6052f9321575ed6468795212012723ec52616",
+                      "sha256Worktree":  "0ab9616516d02d245c7ab2aa42edb8d0e76b6c9b22114810c3edabb551de18a5"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/66-1440-vi.png",
+                      "integrationGitBlob":  "394b6658bf36d3316b6d89daa83b45372b71ed2d",
+                      "scratchGitBlob":  "394b6658bf36d3316b6d89daa83b45372b71ed2d",
+                      "sha256Worktree":  "c8e998b40c2259b7c14609a15a1cbe872e1a95450a910990389deb144f20866e"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/66-390-en.png",
+                      "integrationGitBlob":  "fdca8a7a31a2cecf7451284fad3dea1649a15751",
+                      "scratchGitBlob":  "fdca8a7a31a2cecf7451284fad3dea1649a15751",
+                      "sha256Worktree":  "fa74e9e31651c17af8a8cc4034c6bf79df6a8bb775b3075bda633cbb703896c2"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/66-390-vi.png",
+                      "integrationGitBlob":  "ce47953290d9f4a289d3b0eb52ad43f333be18dd",
+                      "scratchGitBlob":  "ce47953290d9f4a289d3b0eb52ad43f333be18dd",
+                      "sha256Worktree":  "b87ea69b6ea740f112952124e2f8bd64f474688a666116cfb687ffd203740f10"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/8-1440-en.png",
+                      "integrationGitBlob":  "f2eb3eafb51f6914b5b918f7b3fb512c475a983b",
+                      "scratchGitBlob":  "f2eb3eafb51f6914b5b918f7b3fb512c475a983b",
+                      "sha256Worktree":  "310ac8b6adad64923184ce44b0f78518cd3780cf3cca46c83df7a2481f4e99b6"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/8-1440-vi.png",
+                      "integrationGitBlob":  "f7c5903d57c687823687a1b77d95c031b788d9df",
+                      "scratchGitBlob":  "f7c5903d57c687823687a1b77d95c031b788d9df",
+                      "sha256Worktree":  "78507ebad4563ff9ec0f3fad4ab2f7ad40d3f5d69830b23b7640076b8e9ac211"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/8-390-en.png",
+                      "integrationGitBlob":  "cb1784927d4109cb51a5622a0b8da851d1169177",
+                      "scratchGitBlob":  "cb1784927d4109cb51a5622a0b8da851d1169177",
+                      "sha256Worktree":  "f838987c8fbfcf082ac0a5bd974a7b743d002cdf69de4abc50683bbb9e8011a6"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/8-390-vi.png",
+                      "integrationGitBlob":  "789719dad955f88dada70ce735f4ebb6b4e444e5",
+                      "scratchGitBlob":  "789719dad955f88dada70ce735f4ebb6b4e444e5",
+                      "sha256Worktree":  "9f39b054135fc25c22d42402c881278e289f634e1085c81108fdf6f0619a1dc0"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/bright-row-hover.png",
+                      "integrationGitBlob":  "80b7fff99c736ed3f14dd7f6b64c1c58ab623062",
+                      "scratchGitBlob":  "80b7fff99c736ed3f14dd7f6b64c1c58ab623062",
+                      "sha256Worktree":  "2e51ce927d68e4f701378789c89e89033dd0134458a94a324074b1da1da7473c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/compact-date-desktop.png",
+                      "integrationGitBlob":  "10467ff27b101affbffb770ee5f5245d8a1aff06",
+                      "scratchGitBlob":  "10467ff27b101affbffb770ee5f5245d8a1aff06",
+                      "sha256Worktree":  "7f1c062ff1c5509adf37e021a7cc3d78a1e0881e0eaf0f392340a2e0ef79629d"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/navigation-audit.json",
+                      "integrationGitBlob":  "2dd9324a7270c7d98eebe172f2271aaf264870a7",
+                      "scratchGitBlob":  "2dd9324a7270c7d98eebe172f2271aaf264870a7",
+                      "sha256Worktree":  "cfc36504a5f400fde17704442959a4a29370bfb776219cf9db85be2c920c1e40"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/enterprise/ui-audit.json",
+                      "integrationGitBlob":  "ea92d740d69807211d7e90e23fe5eff31a1b78e5",
+                      "scratchGitBlob":  "ea92d740d69807211d7e90e23fe5eff31a1b78e5",
+                      "sha256Worktree":  "a187a122bcdfaef26889b66c278d5d81d7b396ec905922bd5383ab4d5bc0cfc0"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/mock-counts.json",
+                      "integrationGitBlob":  "8b808be61cb979a982987033768a89c585e13321",
+                      "scratchGitBlob":  "8b808be61cb979a982987033768a89c585e13321",
+                      "sha256Worktree":  "ca2d49f0aa2d08310c191009334bbe9906208d3aeb3f2ff62810aa0124e5833c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/production-preview.json",
+                      "integrationGitBlob":  "5c482463ad243821c2c8f0c6b6a0f34a0a40fcd8",
+                      "scratchGitBlob":  "5c482463ad243821c2c8f0c6b6a0f34a0a40fcd8",
+                      "sha256Worktree":  "5f2006a2ac24412a577288431aa7a917101ea6d13d64cc1a7993d204d696906c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/public-dashboard.png",
+                      "integrationGitBlob":  "741b3e310d4bab6d0112b27607ffde07f8329b61",
+                      "scratchGitBlob":  "741b3e310d4bab6d0112b27607ffde07f8329b61",
+                      "sha256Worktree":  "3e22b743c157645a2f0080a62803b49273faeba597f1b4f7aa00b29eab54efc1"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/public-design-system.png",
+                      "integrationGitBlob":  "c26874e815bdb58339e5da52ddf18c0a5c25949c",
+                      "scratchGitBlob":  "c26874e815bdb58339e5da52ddf18c0a5c25949c",
+                      "sha256Worktree":  "d175d5b660aa4c9043c7163e46ab17619c73524f398c1a483c825a621e007d60"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/public-directory.png",
+                      "integrationGitBlob":  "b2c240b4851a485586ca6b665338e9e50f0eeb52",
+                      "scratchGitBlob":  "b2c240b4851a485586ca6b665338e9e50f0eeb52",
+                      "sha256Worktree":  "5198cad2744d49961e0e698225c7d5df268d3962012a2686a06aea2470f6c288"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/public-prototype.md",
+                      "integrationGitBlob":  "e5ae5ba2afd56a555366ae3871d717e63517b6cd",
+                      "scratchGitBlob":  "e5ae5ba2afd56a555366ae3871d717e63517b6cd",
+                      "sha256Worktree":  "9145d18ebab42802d568b4dbe8a8ac44102ba3e7a2ec427969afda93033e6af2"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/public-rooms-mobile.png",
+                      "integrationGitBlob":  "947dcd9f8738cb01bb8f916249ddadf71d9dd47a",
+                      "scratchGitBlob":  "947dcd9f8738cb01bb8f916249ddadf71d9dd47a",
+                      "sha256Worktree":  "7af7192f9207c50413e8e157210dd267fdd455657f7505509ccf8d72b1c72abd"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/readiness-mobile.png",
+                      "integrationGitBlob":  "cd03d4b72ce29f681259dceacd85503ea8711ae2",
+                      "scratchGitBlob":  "cd03d4b72ce29f681259dceacd85503ea8711ae2",
+                      "sha256Worktree":  "ff2a71372562a50d0dd30046a5e1fbc536650ea1799d31d0ed3479f5bd3dea7f"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/refactor-rooms-tablet.png",
+                      "integrationGitBlob":  "982264e71b9ee1dc5ae09d2285f39d9a24bf0a6b",
+                      "scratchGitBlob":  "982264e71b9ee1dc5ae09d2285f39d9a24bf0a6b",
+                      "sha256Worktree":  "4c077c958a9031a9a7f20f09e6e4b3994ab2e4c879f6bf23fd15955f05310f85"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/refactor-users-desktop.png",
+                      "integrationGitBlob":  "d2ea61994ae922910fff82550d2d5e45a9f5b304",
+                      "scratchGitBlob":  "d2ea61994ae922910fff82550d2d5e45a9f5b304",
+                      "sha256Worktree":  "71caa68ce489d9a6bc2d68c8780322d267b1a75bdaa46c31abe6211e802b2d7a"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/refactor-workload-desktop.png",
+                      "integrationGitBlob":  "97ead96c3aebb46f21ff08300bf3b33272aee918",
+                      "scratchGitBlob":  "97ead96c3aebb46f21ff08300bf3b33272aee918",
+                      "sha256Worktree":  "02e2f506da2331b7741394bdf3267c64455d6b257143bb03b3ea0562efd8666f"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/screen-files.json",
+                      "integrationGitBlob":  "0fffd40589d27835bd7d0698b4d0ae79a0c96a84",
+                      "scratchGitBlob":  "0fffd40589d27835bd7d0698b4d0ae79a0c96a84",
+                      "sha256Worktree":  "e35becb1373abd16e9e71cad2b25ee85ae70136cb205e27e6a3a3aec43dee667"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/5-dark.png",
+                      "integrationGitBlob":  "fff9be31f72821ccb51ec2fc686393a01214454d",
+                      "scratchGitBlob":  "fff9be31f72821ccb51ec2fc686393a01214454d",
+                      "sha256Worktree":  "bed9e82245b42d6c7a3da1c8ec39fe31ccffe4797319e024b081463d114d2b8b"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/5-light.png",
+                      "integrationGitBlob":  "a6bdc3854db3e5d0fcd43fe508c03b9b1aca39db",
+                      "scratchGitBlob":  "a6bdc3854db3e5d0fcd43fe508c03b9b1aca39db",
+                      "sha256Worktree":  "8c96ff468a858b8c0b5d78c50e014f98f1aa841a52bff07f7ad24817b788ef84"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/66-dark.png",
+                      "integrationGitBlob":  "f4cb5e9e31766af3ce298395ab5981081d25c6f5",
+                      "scratchGitBlob":  "f4cb5e9e31766af3ce298395ab5981081d25c6f5",
+                      "sha256Worktree":  "4245072cafd41d21514ee0fbffe7585b395846e69c2057f9585b93c13c091497"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/66-light.png",
+                      "integrationGitBlob":  "189d1a6576c876f9109e7717e9366c1750fc6d6c",
+                      "scratchGitBlob":  "189d1a6576c876f9109e7717e9366c1750fc6d6c",
+                      "sha256Worktree":  "250b161e1e61338c0a22f0e527f28a464fc0c714e0e7dad1fd0ac179f6f6357f"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/8-dark.png",
+                      "integrationGitBlob":  "2f1630ff8cedb91ba92097a7f42b376229115d99",
+                      "scratchGitBlob":  "2f1630ff8cedb91ba92097a7f42b376229115d99",
+                      "sha256Worktree":  "6a48a9f8fc4b91d78c89acbcce929e3f8dc02a15b876fc23a5fbce1f39a80a31"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/8-light.png",
+                      "integrationGitBlob":  "4fa69ee6c9a858c1018b0ed3105e6fe7008aa746",
+                      "scratchGitBlob":  "4fa69ee6c9a858c1018b0ed3105e6fe7008aa746",
+                      "sha256Worktree":  "fa0e4ce7ca71761157ad5258ea0745281f616f560e5c6236041c00383d484530"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/audit.json",
+                      "integrationGitBlob":  "728e2f406158af58bb9fbb690142856e86eae192",
+                      "scratchGitBlob":  "728e2f406158af58bb9fbb690142856e86eae192",
+                      "sha256Worktree":  "a0f70806e59b8110a808e8205586dc34d9466ff41d1f7488d8814c73a33501a5"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/dark-surface-audit.json",
+                      "integrationGitBlob":  "0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc",
+                      "scratchGitBlob":  "0637a088a01e8ddab3bf3fa98dbe804cbde1a0dc",
+                      "sha256Worktree":  "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/icon-cards-dashboard.png",
+                      "integrationGitBlob":  "7adaa4250ae98772f8013b45e08ecce4736d71de",
+                      "scratchGitBlob":  "7adaa4250ae98772f8013b45e08ecce4736d71de",
+                      "sha256Worktree":  "203f9caa2e1a3800dc4ab404f3f3130620321347211556c33959bd4c5b10cd4c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/icon-cards-room-readiness.png",
+                      "integrationGitBlob":  "72683b64d0c7c68e33732afa63871592f131c0c0",
+                      "scratchGitBlob":  "72683b64d0c7c68e33732afa63871592f131c0c0",
+                      "sha256Worktree":  "3497248bdf39e57b674970c37ecc4b5afe4bc544eb95e9c427e56f9536021814"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/icon-cards-users.png",
+                      "integrationGitBlob":  "1bf64661011c97b2585025438c50219ad58183ff",
+                      "scratchGitBlob":  "1bf64661011c97b2585025438c50219ad58183ff",
+                      "sha256Worktree":  "d93b7cc559a274e9d22692d52f1e3e3272d6c6288a7c1b0bc473ca7cf81e6833"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/navy-bridge-dashboard.png",
+                      "integrationGitBlob":  "eff3439158bcfabd9fb1963532148d81cb95b637",
+                      "scratchGitBlob":  "eff3439158bcfabd9fb1963532148d81cb95b637",
+                      "sha256Worktree":  "aaf79acc5f0b1010ef0132bb40674c1ce33f5b84ef76950f98862e0e3c676eb1"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/refined-dashboard.png",
+                      "integrationGitBlob":  "ac3280ffc169d18b5eb889a73cac2d7afb94bd46",
+                      "scratchGitBlob":  "ac3280ffc169d18b5eb889a73cac2d7afb94bd46",
+                      "sha256Worktree":  "ecb42997aff4128deca59bc2f0b5bf21f7d02d789d375613c727de0451d70efa"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/refined-room-readiness.png",
+                      "integrationGitBlob":  "ee9c235bc4be1c90ebdf3acb02925e67c1f0099b",
+                      "scratchGitBlob":  "ee9c235bc4be1c90ebdf3acb02925e67c1f0099b",
+                      "sha256Worktree":  "c45cab993c9752dd7daad486961d2e252abe0a8856a3efe675bd023fd3bb12b7"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/refined-users.png",
+                      "integrationGitBlob":  "8ca946cc735933ed8333ec5c45e51c6e7eedce56",
+                      "scratchGitBlob":  "8ca946cc735933ed8333ec5c45e51c6e7eedce56",
+                      "sha256Worktree":  "a9cb569d70cf25ff8dc0160e0f80d52d66bbe01a3b681a84b9361e7cee1c7644"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/related-groups-light.png",
+                      "integrationGitBlob":  "4f0c70c35d40861771f1eb7b988d1f0365262a99",
+                      "scratchGitBlob":  "4f0c70c35d40861771f1eb7b988d1f0365262a99",
+                      "sha256Worktree":  "dcedf4c9af0c2d5f612376e3185f75b0c2749378474f101382adf88f97347928"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/user-dark-review.png",
+                      "integrationGitBlob":  "b37e45b43f49fdeb074ffd288157d15f5411ebd3",
+                      "scratchGitBlob":  "b37e45b43f49fdeb074ffd288157d15f5411ebd3",
+                      "sha256Worktree":  "511f686fd677f98628b33d72ab95051422eff43a724f2a3ca76ff60261172e13"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/users-dark-mobile.png",
+                      "integrationGitBlob":  "8d04f2057a3c01e1565f9b4bd9f74e6c626ed282",
+                      "scratchGitBlob":  "8d04f2057a3c01e1565f9b4bd9f74e6c626ed282",
+                      "sha256Worktree":  "8a78f471008aaa919dbd4a01fef3aecb6beab70c1e21dda375254d373fd157f1"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/themes/vibrant-dashboard.png",
+                      "integrationGitBlob":  "c3a0f021505026cc1621be50b427f9a201cef7ac",
+                      "scratchGitBlob":  "c3a0f021505026cc1621be50b427f9a201cef7ac",
+                      "sha256Worktree":  "9b2c2f29c9a593b9558a061387a543dd7a6dfe902404a1d13117b2445067489f"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/cleaning-detail-after.png",
+                      "integrationGitBlob":  "a4725d30065f2ba4a7a6a49e6f63103dc7e98016",
+                      "scratchGitBlob":  "a4725d30065f2ba4a7a6a49e6f63103dc7e98016",
+                      "sha256Worktree":  "9f7f28b0caec81219942f9a8f71a0274bcb0cd1ce2c5584f6dd9dddbaf157afd"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/cleaning-detail.png",
+                      "integrationGitBlob":  "16f3978fcc0eabcb1cf0030c5866b04771f07e99",
+                      "scratchGitBlob":  "16f3978fcc0eabcb1cf0030c5866b04771f07e99",
+                      "sha256Worktree":  "ebe1141e08f1213506a095780303cbf7a94a1157c85f91d93012d0f38d688844"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/dashboard-after.png",
+                      "integrationGitBlob":  "a3d7567277694bd3898e7622d522174c3696ed3d",
+                      "scratchGitBlob":  "a3d7567277694bd3898e7622d522174c3696ed3d",
+                      "sha256Worktree":  "fafac0628f5874b5d7b51f45e1e0b17587d4260f90656d63e445634435e62954"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/dashboard.png",
+                      "integrationGitBlob":  "9db5ffd0b889f7fdaf6021498abde15a114aa42c",
+                      "scratchGitBlob":  "9db5ffd0b889f7fdaf6021498abde15a114aa42c",
+                      "sha256Worktree":  "3f3ada99b1db04018202f12e1e8e4533d3bbaf0afda8f95b873354f7814de083"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/directory.png",
+                      "integrationGitBlob":  "b2c240b4851a485586ca6b665338e9e50f0eeb52",
+                      "scratchGitBlob":  "b2c240b4851a485586ca6b665338e9e50f0eeb52",
+                      "sha256Worktree":  "5198cad2744d49961e0e698225c7d5df268d3962012a2686a06aea2470f6c288"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/form-after.png",
+                      "integrationGitBlob":  "a24dec3c9660d25e5471eb6b6b1ccea44aa23b4f",
+                      "scratchGitBlob":  "a24dec3c9660d25e5471eb6b6b1ccea44aa23b4f",
+                      "sha256Worktree":  "fafb31e19039e265295592affe2f052862690a3fec697a52907c529d4112f796"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/form.png",
+                      "integrationGitBlob":  "fe1eb6ebc52bfceec4ff5a4a51b2c7b79ca1a857",
+                      "scratchGitBlob":  "fe1eb6ebc52bfceec4ff5a4a51b2c7b79ca1a857",
+                      "sha256Worktree":  "9b9828b6fde40ab9c3c5f0468e3de33f369d1cf41fe5a27dc8a43c935007ef2b"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/mobile-first-screen.json",
+                      "integrationGitBlob":  "3d138761502f35b6d6fe81419861166722bddeb8",
+                      "scratchGitBlob":  "3d138761502f35b6d6fe81419861166722bddeb8",
+                      "sha256Worktree":  "89096d35bddaf54bdccf47af02194c05a730c66ffaacc4bf28397cad6357b667"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/mobile-routes.json",
+                      "integrationGitBlob":  "400422bab4c8d9d96e63bd4db08abdf386a584be",
+                      "scratchGitBlob":  "400422bab4c8d9d96e63bd4db08abdf386a584be",
+                      "sha256Worktree":  "bc0f858229500a0accf3f33de426d11dea38a1be354584f8322232b03797e001"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/observations.json",
+                      "integrationGitBlob":  "02973f4509dc101b659252378c59ce811a3d7adf",
+                      "scratchGitBlob":  "02973f4509dc101b659252378c59ce811a3d7adf",
+                      "sha256Worktree":  "4cf2d60bb1d011b79c67e19390c2a2b559f6452fd85eabaef1c8ba4b997d2055"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-after-en.png",
+                      "integrationGitBlob":  "682ac31016b2e002a4921902ab24381b264247eb",
+                      "scratchGitBlob":  "682ac31016b2e002a4921902ab24381b264247eb",
+                      "sha256Worktree":  "0f33dd8d9d571b4f5e7f28f3ccbaf3106b40ea3ea60858b67909f75501dc7b4c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-after-vi.png",
+                      "integrationGitBlob":  "5d3b0a08f2c81fa8e268565537476d086bfec50c",
+                      "scratchGitBlob":  "5d3b0a08f2c81fa8e268565537476d086bfec50c",
+                      "sha256Worktree":  "159789c067ce0365f7581bd89a48e87aeab192d3cdadb5d7dff506aa0456f2ec"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-after.png",
+                      "integrationGitBlob":  "2221558a64603c5f949a849eeeea5845d5853e39",
+                      "scratchGitBlob":  "2221558a64603c5f949a849eeeea5845d5853e39",
+                      "sha256Worktree":  "adbc3ced421b5354971fbfda77545e2f1b2687583b952279c9f5d958f31cd3a8"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-mobile-after-en.png",
+                      "integrationGitBlob":  "70bc86f5c213e91b6d3638e561636cdfcabab16c",
+                      "scratchGitBlob":  "70bc86f5c213e91b6d3638e561636cdfcabab16c",
+                      "sha256Worktree":  "c8e02d07292fe157eacdb3e176c40f43778cb82f46fd83a1d6229cfd92430256"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-mobile-after-vi.png",
+                      "integrationGitBlob":  "57f8ee884998dcdd2c6c42e6b25321d0a0113810",
+                      "scratchGitBlob":  "57f8ee884998dcdd2c6c42e6b25321d0a0113810",
+                      "sha256Worktree":  "d9fd2a5d673e1f41d17dd2c8ac9839e84d437da6faa4fcc12fd489bff794f999"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-mobile-after.png",
+                      "integrationGitBlob":  "214441b9d77d3eb7751d89830041d62642e48429",
+                      "scratchGitBlob":  "214441b9d77d3eb7751d89830041d62642e48429",
+                      "sha256Worktree":  "c13996e67c4b3f2a615cb07b0752b25fec7b0c35ffbc165a4e71058ab2282f04"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms-mobile.png",
+                      "integrationGitBlob":  "eab121fb619b71e1a217f410ec75682e2933fa22",
+                      "scratchGitBlob":  "eab121fb619b71e1a217f410ec75682e2933fa22",
+                      "sha256Worktree":  "36e1c23186b83a95eaf4de2ae6475565196e0975d66bb7a4374bf69b4e9d4c7c"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/rooms.png",
+                      "integrationGitBlob":  "26ac917ab7da6122d021ecd7828bd9ed6ef81d5c",
+                      "scratchGitBlob":  "26ac917ab7da6122d021ecd7828bd9ed6ef81d5c",
+                      "sha256Worktree":  "32515b250a08451c9ea9b15ccdd8154af5fbf3dde54e31f027f45933cb66ced6"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/ux-review/route-audit.json",
+                      "integrationGitBlob":  "b6555219739bbc0d344a7e7faa23dced93d72522",
+                      "scratchGitBlob":  "b6555219739bbc0d344a7e7faa23dced93d72522",
+                      "sha256Worktree":  "fa17cdde41b0c86ef70ec8af472b3ff7b4dd69ef378707c3a6f869cbb6767609"
+                  },
+                  {
+                      "path":  "frontend/docs/verification/verification.md",
+                      "integrationGitBlob":  "2eb6e3422791ec32ad8139f2e09075e95e6347e2",
+                      "scratchGitBlob":  "2eb6e3422791ec32ad8139f2e09075e95e6347e2",
+                      "sha256Worktree":  "24ee494472067c87d14f51b0b597ba982042fdf41ba8b1188341ef18f9627cb3"
+                  },
+                  {
+                      "path":  "frontend/index.html",
+                      "integrationGitBlob":  "511cdbf84241352f917ce4abe51ac152a520e608",
+                      "scratchGitBlob":  "511cdbf84241352f917ce4abe51ac152a520e608",
+                      "sha256Worktree":  "41e32a37c2287b156f6c388f2153fec1c2ffe4eab7f65257ad2bb0dd2af0dfd0"
+                  },
+                  {
+                      "path":  "frontend/netlify.toml",
+                      "integrationGitBlob":  "ae5f459904ee358213b46786679cba10e49addc6",
+                      "scratchGitBlob":  "ae5f459904ee358213b46786679cba10e49addc6",
+                      "sha256Worktree":  "ed4224a440020aedf381806b7bacb59fec999a4de3a4f92a66600b9fc40d4937"
+                  },
+                  {
+                      "path":  "frontend/package-lock.json",
+                      "integrationGitBlob":  "50ffd55c5d6735e2379d2f3b89239e564c3278ef",
+                      "scratchGitBlob":  "50ffd55c5d6735e2379d2f3b89239e564c3278ef",
+                      "sha256Worktree":  "0be90afc9ec632a4efec24aa60c4ca739de9d485c2d8b05ba21d3a3be45998c0"
+                  },
+                  {
+                      "path":  "frontend/package.json",
+                      "integrationGitBlob":  "cf63fcc29086c03e4d250449756fe1362c3295a7",
+                      "scratchGitBlob":  "cf63fcc29086c03e4d250449756fe1362c3295a7",
+                      "sha256Worktree":  "bf1662bcd09fcb0967b40afee2107307797fd47f7c5f826c2dd8ee3e5addadfd"
+                  },
+                  {
+                      "path":  "frontend/playwright.config.ts",
+                      "integrationGitBlob":  "fb3d18cb22c2899daff17c422a8a47f1499f162f",
+                      "scratchGitBlob":  "fb3d18cb22c2899daff17c422a8a47f1499f162f",
+                      "sha256Worktree":  "381b7d297066a3709d61efbb4e4bbead0bfc26cf5f04360aad3bd364d8a00a8c"
+                  },
+                  {
+                      "path":  "frontend/public/_redirects",
+                      "integrationGitBlob":  "7797f7c6a7356b0d451d11a49925df854c22e978",
+                      "scratchGitBlob":  "7797f7c6a7356b0d451d11a49925df854c22e978",
+                      "sha256Worktree":  "6036983e5fc00f0169c9e939b1816ed771eee00e27f2fcc517b819041460b9ef"
+                  },
+                  {
+                      "path":  "frontend/public/assets/hotel-reference.jpeg",
+                      "integrationGitBlob":  "f60223defc1dfc7f24d64197d880dcea6957d4fe",
+                      "scratchGitBlob":  "f60223defc1dfc7f24d64197d880dcea6957d4fe",
+                      "sha256Worktree":  "31d9431e1c5a14627db81f390fdb1002e86772f9f2685ab5f543c72d127dc754"
+                  },
+                  {
+                      "path":  "frontend/scripts/audit-prototype.mjs",
+                      "integrationGitBlob":  "386e1799629b9bddf2600dc4d6c145d47901aea6",
+                      "scratchGitBlob":  "386e1799629b9bddf2600dc4d6c145d47901aea6",
+                      "sha256Worktree":  "83f274d049489a869aa23f323b5f1155ea5de686b3e7eccb6e5153935f1a0929"
+                  },
+                  {
+                      "path":  "frontend/scripts/build_catalog.py",
+                      "integrationGitBlob":  "9a7475a74e71551b5b81269bebfe48d495d1aafa",
+                      "scratchGitBlob":  "9a7475a74e71551b5b81269bebfe48d495d1aafa",
+                      "sha256Worktree":  "05d6d65b7956d4f6115b9fabdf7d6475bf310100f41ee88509454ce4104b4c28"
+                  },
+                  {
+                      "path":  "frontend/scripts/extract_requirements.py",
+                      "integrationGitBlob":  "cf8b328379146584b08fc054e3b3a9f913aa6589",
+                      "scratchGitBlob":  "cf8b328379146584b08fc054e3b3a9f913aa6589",
+                      "sha256Worktree":  "a7ba59ff7864ad50b8497b86e25773ede8c007354fe58f44d883f1c67681354f"
+                  },
+                  {
+                      "path":  "frontend/scripts/organize-imports.mjs",
+                      "integrationGitBlob":  "4563853374000c7938ad1524b64b126c7371cafa",
+                      "scratchGitBlob":  "4563853374000c7938ad1524b64b126c7371cafa",
+                      "sha256Worktree":  "e407c9ae97e0b620f4ccc2ce54b2bf3acb809cb07566495994c9729cd10ff16c"
+                  },
+                  {
+                      "path":  "frontend/scripts/verify-coverage.mjs",
+                      "integrationGitBlob":  "7838968163b3702e7e97fa26193bb485b78ebc37",
+                      "scratchGitBlob":  "7838968163b3702e7e97fa26193bb485b78ebc37",
+                      "sha256Worktree":  "79f3dafeb833faf8aa4aa94df2e981739e07d0e7ec87da4a1cc8596004242ea6"
+                  },
+                  {
+                      "path":  "frontend/scripts/verify-public-build.mjs",
+                      "integrationGitBlob":  "27e935a1c15546a5fb1a5b465c22723a057d9cac",
+                      "scratchGitBlob":  "27e935a1c15546a5fb1a5b465c22723a057d9cac",
+                      "sha256Worktree":  "947a1d073aa54655273f23ee1e6b384c5a7b3b6b83b4e2946cce0c4060558022"
+                  },
+                  {
+                      "path":  "frontend/scripts/verify-screens.mjs",
+                      "integrationGitBlob":  "0e63315c30774237757bc644bd0a283965dfebf4",
+                      "scratchGitBlob":  "0e63315c30774237757bc644bd0a283965dfebf4",
+                      "sha256Worktree":  "9b7adc65f218b2218cc991a7fc4a511aff7a20c5b27ae1691ca733628432b61c"
+                  },
+                  {
+                      "path":  "frontend/src/auth/AuthProvider.tsx",
+                      "integrationGitBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                      "scratchGitBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                      "sha256Worktree":  "4a95e5a24db18e440f6200d3b23f9f85b4b9e306a5ba879bd3af7bd6eaae9de7"
+                  },
+                  {
+                      "path":  "frontend/src/auth/AuthRouteHost.tsx",
+                      "integrationGitBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                      "scratchGitBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                      "sha256Worktree":  "b7638b83b592f540e268f1b90fa6cfaec60b43e7ef64856df3165afa918759f6"
+                  },
+                  {
+                      "path":  "frontend/src/auth/authApi.ts",
+                      "integrationGitBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                      "scratchGitBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                      "sha256Worktree":  "8ace6189e6cf3c7aa07dfb8960de13c3c9bab7ddf4b2f2ce13d4a41ec88a7b10"
+                  },
+                  {
+                      "path":  "frontend/src/auth/authStore.ts",
+                      "integrationGitBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                      "scratchGitBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                      "sha256Worktree":  "cd510ba52c12f313ef56498c11fbf3b68b61c594b5020edff56edf2b01cb82ee"
+                  },
+                  {
+                      "path":  "frontend/src/auth/contracts.ts",
+                      "integrationGitBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                      "scratchGitBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                      "sha256Worktree":  "2164f3781beffd2069392a45e237d19f66669ee6eef3a6e69768b9156f4022c8"
+                  },
+                  {
+                      "path":  "frontend/src/auth/http.ts",
+                      "integrationGitBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                      "scratchGitBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                      "sha256Worktree":  "8685a418feddc2a1330ef46d988c4022ad66569f94735a6b92e352835051337d"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/BranchMaintenancePanel.tsx",
+                      "integrationGitBlob":  "daf3dfd7355570f9e5ab9630313b187ccc64698b",
+                      "scratchGitBlob":  "daf3dfd7355570f9e5ab9630313b187ccc64698b",
+                      "sha256Worktree":  "84d766f19aada85d10d5f25ee593e7bf2305ea2ddd63bb9f42171dab7bc8be1e"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/BranchMaintenanceRoute.tsx",
+                      "integrationGitBlob":  "1fa2a36fdae1f03f007dd0c1350e5f3277d240a5",
+                      "scratchGitBlob":  "1fa2a36fdae1f03f007dd0c1350e5f3277d240a5",
+                      "sha256Worktree":  "c9398e3744473573c9a5b2e369d2a2a5b2c5c2a4d5169cbad95d9e48e2343a73"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/CreateBranchRoute.tsx",
+                      "integrationGitBlob":  "61ff0329f66da1bb9552e93d4016d9e91bacb649",
+                      "scratchGitBlob":  "61ff0329f66da1bb9552e93d4016d9e91bacb649",
+                      "sha256Worktree":  "4b729706514b77a163bc0205247f18bdad6ac4bdffd6e210979cddfe3cd25132"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/branchMaintenanceApi.ts",
+                      "integrationGitBlob":  "94ce839854b73b4b1a658c6062d7af3f2b4e7969",
+                      "scratchGitBlob":  "94ce839854b73b4b1a658c6062d7af3f2b4e7969",
+                      "sha256Worktree":  "d52397da3422763f7579cce1eff34787dc97f216742097fe4d68ab36272df3ff"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/contracts.ts",
+                      "integrationGitBlob":  "304c89b3bfe5820ba606ad18cf42da82f16066a1",
+                      "scratchGitBlob":  "304c89b3bfe5820ba606ad18cf42da82f16066a1",
+                      "sha256Worktree":  "546ae2835cde40ef83ead4215a5e0eb7d8cca60aab7ab3101ad0b550fd621f95"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/createBranchApi.ts",
+                      "integrationGitBlob":  "db35eb4c8eab536c481f8f34f17757c0849069a6",
+                      "scratchGitBlob":  "db35eb4c8eab536c481f8f34f17757c0849069a6",
+                      "sha256Worktree":  "440ff89066508891673b75e3539409c072c7a25ea377dad0222f29a2587a8d3c"
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/createBranchContracts.ts",
+                      "integrationGitBlob":  "4d5d96e63bfc55f1599f65604d1a7f6852a9f1ce",
+                      "scratchGitBlob":  "4d5d96e63bfc55f1599f65604d1a7f6852a9f1ce",
+                      "sha256Worktree":  "b4c331ab4b77ef08af5393520b54b3e09f8285854481646434aae981731a939f"
+                  },
+                  {
+                      "path":  "frontend/src/catalog.json",
+                      "integrationGitBlob":  "b841c7c1c2ed73995c6a445515d60e3f429a036a",
+                      "scratchGitBlob":  "b841c7c1c2ed73995c6a445515d60e3f429a036a",
+                      "sha256Worktree":  "51c7f3aa95d10dcb4adc4da42a958c56c530bbecbcb89915c0a9b0c3f8845cfc"
+                  },
+                  {
+                      "path":  "frontend/src/components/ScreenBoundary.tsx",
+                      "integrationGitBlob":  "f373b56df2f45d5a63b5c52fca8db5be1d0be588",
+                      "scratchGitBlob":  "f373b56df2f45d5a63b5c52fca8db5be1d0be588",
+                      "sha256Worktree":  "ecfbbce9117b571f7fc2125dea4bf5b862e00f90875f9bd97c779bbbb98f2ad9"
+                  },
+                  {
+                      "path":  "frontend/src/components/StatusChart.tsx",
+                      "integrationGitBlob":  "a2255cd8ae7b11f7224a9f14edc24337b1930940",
+                      "scratchGitBlob":  "a2255cd8ae7b11f7224a9f14edc24337b1930940",
+                      "sha256Worktree":  "a652c0844c7491cf072096d10d4440fdf3e4e31fb6d726d77bcfea2542a28d9e"
+                  },
+                  {
+                      "path":  "frontend/src/components/ThemeToggle.tsx",
+                      "integrationGitBlob":  "e2eac717731bd12a7df8dd5a331871d6b7d4f0c6",
+                      "scratchGitBlob":  "e2eac717731bd12a7df8dd5a331871d6b7d4f0c6",
+                      "sha256Worktree":  "82b5343fa3db27c9d48cb1856ce1821c077bce9813769ef471695170b63b79ef"
+                  },
+                  {
+                      "path":  "frontend/src/domain.ts",
+                      "integrationGitBlob":  "c3149567f17848df04083176d1d73e9839aad172",
+                      "scratchGitBlob":  "c3149567f17848df04083176d1d73e9839aad172",
+                      "sha256Worktree":  "404c107c04d9e77ac4e9d072f6a59991bac45fe7c89bf8767dd7e678bc926414"
+                  },
+                  {
+                      "path":  "frontend/src/evidence.ts",
+                      "integrationGitBlob":  "56c1be84e17262ec50ab245daafdd4d950390bcc",
+                      "scratchGitBlob":  "56c1be84e17262ec50ab245daafdd4d950390bcc",
+                      "sha256Worktree":  "e281484592bc24d0111da4b7230b5a20ab6b9c0f65d1c87d03537e1bf5fbf22d"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/BranchStructureTree.tsx",
+                      "integrationGitBlob":  "c95ee5d33cea44ff872b7ef662e54b36c4f1e854",
+                      "scratchGitBlob":  "c95ee5d33cea44ff872b7ef662e54b36c4f1e854",
+                      "sha256Worktree":  "2aae15b721b26939cd938f478fb57b79fc3d5e4da3c9a4e9936097f7b2dbff0a"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/DepartmentDeactivationCandidate.tsx",
+                      "integrationGitBlob":  "102ffb6f587fb25072af73f0b816e34afcf9ee20",
+                      "scratchGitBlob":  "102ffb6f587fb25072af73f0b816e34afcf9ee20",
+                      "sha256Worktree":  "2c383ad8eae8b7e516e9b0e65498b7237234b05f52b46a118e621976b8dfeecc"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/HotelRouteHost.tsx",
+                      "integrationGitBlob":  "35aa95b5ee366d557e12c38d168354247303000b",
+                      "scratchGitBlob":  "35aa95b5ee366d557e12c38d168354247303000b",
+                      "sha256Worktree":  "db23416b11528144170e2287f0f62d593fd9ba97a24db81fd02b1632125aa93c"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/HotelWorkspace.tsx",
+                      "integrationGitBlob":  "1a59f936e3d9ba9da2af9ae696734bccec1aaf1e",
+                      "scratchGitBlob":  "1a59f936e3d9ba9da2af9ae696734bccec1aaf1e",
+                      "sha256Worktree":  "1b29c12e786ec19920efdf209bba129f8eb013314f6d06b073feca99bb3279da"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/RoomDirectoryResults.tsx",
+                      "integrationGitBlob":  "01bb501f765795095378130789a121a4e89db202",
+                      "scratchGitBlob":  "01bb501f765795095378130789a121a4e89db202",
+                      "sha256Worktree":  "401a78f60865621f809404855498db7ff6aed837ebbc8a8fc151afc07ed56afa"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/RoomLifecycleCandidate.tsx",
+                      "integrationGitBlob":  "500ed5ef4175a2e46001ab115f3773451a73bd81",
+                      "scratchGitBlob":  "500ed5ef4175a2e46001ab115f3773451a73bd81",
+                      "sha256Worktree":  "156f34d346b1aaceb0ebcefa2e44847a989b4192cd3fff3f5ac9887a866e3c62"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/contracts.ts",
+                      "integrationGitBlob":  "4a98f3044e376d372b0e35adfbb34dfddae47f16",
+                      "scratchGitBlob":  "4a98f3044e376d372b0e35adfbb34dfddae47f16",
+                      "sha256Worktree":  "f547df24dc7cca0f5fead578d8f1556cc35304e8c742a97e5f02f8be813c2131"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/departmentDeactivationApi.ts",
+                      "integrationGitBlob":  "601ab77ad8bb62316cf52ebca53bd9f95d0c7cdb",
+                      "scratchGitBlob":  "601ab77ad8bb62316cf52ebca53bd9f95d0c7cdb",
+                      "sha256Worktree":  "34fc5dcbb66e79d004f2d5ce10dec751b255365c4fb024d99f39226c7350558a"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/hotel.css",
+                      "integrationGitBlob":  "d502e8ba2becc1ff2212da6c2148f79a9fc9f566",
+                      "scratchGitBlob":  "d502e8ba2becc1ff2212da6c2148f79a9fc9f566",
+                      "sha256Worktree":  "6fec1f2354346e37b1073632a556579d4329d18ab4ae493203ee04778764c506"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/hotelApi.ts",
+                      "integrationGitBlob":  "3362be1dac9fc104f3297748c61549a607d7a2b0",
+                      "scratchGitBlob":  "3362be1dac9fc104f3297748c61549a607d7a2b0",
+                      "sha256Worktree":  "fb0c7f89f440f01c07532ebe070ddd2147c505b28471145e4fac4d537f049b67"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/main.tsx",
+                      "integrationGitBlob":  "df511371efb1dad1ff3b7516caa85a77a31ac009",
+                      "scratchGitBlob":  "df511371efb1dad1ff3b7516caa85a77a31ac009",
+                      "sha256Worktree":  "696a2e18688fcc65ba04a17cf4509bfca49d5b6598ab5d02f4c1893d5a8f4054"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/operations.ts",
+                      "integrationGitBlob":  "83e2f9b158e6f36e41b54b279ff59295203272ff",
+                      "scratchGitBlob":  "83e2f9b158e6f36e41b54b279ff59295203272ff",
+                      "sha256Worktree":  "545cf44856a064f42f0d257ef890b57080ee340b9a25d59127b7a648d79fce18"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/roomLifecycleApi.ts",
+                      "integrationGitBlob":  "94477cc361be6ac78f318ce5d05d41150d6beab3",
+                      "scratchGitBlob":  "94477cc361be6ac78f318ce5d05d41150d6beab3",
+                      "sha256Worktree":  "5602ec39bb54002dc7963b94a4eb2b14a1f9bfb20a5a871cc05ae20117e67a79"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/structureView.ts",
+                      "integrationGitBlob":  "3d26af7de0eff60cb1f7466f282fed24538e4546",
+                      "scratchGitBlob":  "3d26af7de0eff60cb1f7466f282fed24538e4546",
+                      "sha256Worktree":  "6bc52da14eb2eb97500c694f75de75ef940cb14111baa668679dff2c03eb6dd5"
+                  },
+                  {
+                      "path":  "frontend/src/hotel/useHotelFlow.ts",
+                      "integrationGitBlob":  "a5f8887ed964537e5ab5239261c33dbea44f7849",
+                      "scratchGitBlob":  "a5f8887ed964537e5ab5239261c33dbea44f7849",
+                      "sha256Worktree":  "35756bfb41eff57695e2afbaa4c7ef1b01cc439995ef0ca7fb9b3e3813f86ef2"
+                  },
+                  {
+                      "path":  "frontend/src/i18n.tsx",
+                      "integrationGitBlob":  "c0ad4e6a61ddd6a679a8b4e28e0b6e7c5596b04e",
+                      "scratchGitBlob":  "c0ad4e6a61ddd6a679a8b4e28e0b6e7c5596b04e",
+                      "sha256Worktree":  "37356052fad0502c0f4f6a64574797f21636367412cebbcc7e462ded9ae51065"
+                  },
+                  {
+                      "path":  "frontend/src/insights.tsx",
+                      "integrationGitBlob":  "65494872c50f922f093e474396bc1979eb756efd",
+                      "scratchGitBlob":  "65494872c50f922f093e474396bc1979eb756efd",
+                      "sha256Worktree":  "94415280d80c8d0da6033edf50268a63dc5f3fd08f4f69de5c5c9143c2ba9da4"
+                  },
+                  {
+                      "path":  "frontend/src/layouts/AuthLayout.tsx",
+                      "integrationGitBlob":  "8540c580a192929926e3589f93857627038532ca",
+                      "scratchGitBlob":  "8540c580a192929926e3589f93857627038532ca",
+                      "sha256Worktree":  "40f42da36dbab768591861311122a05487e858987aca64100b19c741caa80e39"
+                  },
+                  {
+                      "path":  "frontend/src/locales/fields.vi.ts",
+                      "integrationGitBlob":  "d88bca788255dc29c390565441ff33f4279ea522",
+                      "scratchGitBlob":  "d88bca788255dc29c390565441ff33f4279ea522",
+                      "sha256Worktree":  "9cd8b63c1cb9dee12d25661415e9ae5366580608fbc41d6c99bb9b8e6c8f0c28"
+                  },
+                  {
+                      "path":  "frontend/src/locales/metrics.vi.ts",
+                      "integrationGitBlob":  "f9aac488ababe3f58b019f8d0eb37d151e3d8b4d",
+                      "scratchGitBlob":  "f9aac488ababe3f58b019f8d0eb37d151e3d8b4d",
+                      "sha256Worktree":  "528ab9c8bbf1f703f97a3c7a676ab9be1e19dbc5dbca3556e89b8674058a1f02"
+                  },
+                  {
+                      "path":  "frontend/src/locales/screen-descriptions.vi.ts",
+                      "integrationGitBlob":  "51236abd6d060ea8ee8528515b73c3884fbcffdc",
+                      "scratchGitBlob":  "51236abd6d060ea8ee8528515b73c3884fbcffdc",
+                      "sha256Worktree":  "b5e3b09161c8f1686226f2beed9932cbea256382a7e90b5bc52d0840bf5d798f"
+                  },
+                  {
+                      "path":  "frontend/src/locales/vi-extra.ts",
+                      "integrationGitBlob":  "c7eec36c1a65acb4241abca9488ace63283d7af4",
+                      "scratchGitBlob":  "c7eec36c1a65acb4241abca9488ace63283d7af4",
+                      "sha256Worktree":  "dfeff928937f4d5d5add67497ad8c36ffabc926a601d0ca99d0f5170bb4b3007"
+                  },
+                  {
+                      "path":  "frontend/src/locales/workflows.vi.ts",
+                      "integrationGitBlob":  "74385d31a39221af1c4446f6bd4001aff3462c18",
+                      "scratchGitBlob":  "74385d31a39221af1c4446f6bd4001aff3462c18",
+                      "sha256Worktree":  "29e69c95c1d5e50b35b8ce00ec19ee8916e17367c7f27b472633eae117ab1319"
+                  },
+                  {
+                      "path":  "frontend/src/main.tsx",
+                      "integrationGitBlob":  "cd9ac7756baa5479ce3853862a82a26692d07ca3",
+                      "scratchGitBlob":  "cd9ac7756baa5479ce3853862a82a26692d07ca3",
+                      "sha256Worktree":  "e0cdaa4d240885cbeedce405e143779c3cd2a429abca207e6973c972df5f2a79"
+                  },
+                  {
+                      "path":  "frontend/src/mocks/createDatabase.ts",
+                      "integrationGitBlob":  "2730afe6b47f933b925012a066805b5f9f2e1cdb",
+                      "scratchGitBlob":  "2730afe6b47f933b925012a066805b5f9f2e1cdb",
+                      "sha256Worktree":  "a82b55da313d4416e2c11ec66c601aca083d85fe72223ba3dcbcfdcb3b0c4294"
+                  },
+                  {
+                      "path":  "frontend/src/mocks/enrichDatabase.ts",
+                      "integrationGitBlob":  "4f759b460a170bee4eda87cda6c64bd44b64646a",
+                      "scratchGitBlob":  "4f759b460a170bee4eda87cda6c64bd44b64646a",
+                      "sha256Worktree":  "a181749c6dc62bf2326dd8265577d38170e45e2e210975ed7f686b68be807783"
+                  },
+                  {
+                      "path":  "frontend/src/mocks/prototypeData.ts",
+                      "integrationGitBlob":  "3ab42ef25c8f888ce6f04863782c35d37bc54d1b",
+                      "scratchGitBlob":  "3ab42ef25c8f888ce6f04863782c35d37bc54d1b",
+                      "sha256Worktree":  "086adac6b198e31a4cbd77a539800a8cf89f8701dbfa325c2b809723aff01d24"
+                  },
+                  {
+                      "path":  "frontend/src/report-engine.ts",
+                      "integrationGitBlob":  "07d55a9072eb10b5137febdac7c9d2e7af7666e6",
+                      "scratchGitBlob":  "07d55a9072eb10b5137febdac7c9d2e7af7666e6",
+                      "sha256Worktree":  "d78c8f038b6056a5e315349dc7fa8df4aee6976d593e5e3b1ddc71d3ec27122b"
+                  },
+                  {
+                      "path":  "frontend/src/report-export.ts",
+                      "integrationGitBlob":  "edda4d1e10f72cf2c5571f3744b48df5cc665dec",
+                      "scratchGitBlob":  "edda4d1e10f72cf2c5571f3744b48df5cc665dec",
+                      "sha256Worktree":  "cc1572b20f3b19b7319e18a74e1088f7504e8c50b901384384b463c695c82974"
+                  },
+                  {
+                      "path":  "frontend/src/roles/CustomRoleForm.tsx",
+                      "integrationGitBlob":  "643cad847440aee460f00f442ece711d434e006a",
+                      "scratchGitBlob":  "643cad847440aee460f00f442ece711d434e006a",
+                      "sha256Worktree":  "df96da3efb1ac3eac7be8eaa094ee1cb27431e02dd16d1215311706b2f72c2eb"
+                  },
+                  {
+                      "path":  "frontend/src/roles/RoleCatalogRoute.tsx",
+                      "integrationGitBlob":  "211e9f8edb8c7822e82c1679acdbce56e4693352",
+                      "scratchGitBlob":  "211e9f8edb8c7822e82c1679acdbce56e4693352",
+                      "sha256Worktree":  "8043c410e07ed8e17ee89af77e95a0e73f1872e79373d0aa4fa04b2abb4623c5"
+                  },
+                  {
+                      "path":  "frontend/src/roles/contracts.ts",
+                      "integrationGitBlob":  "a02500f2f5df9cfed9bd959ee7434f335fbb8620",
+                      "scratchGitBlob":  "a02500f2f5df9cfed9bd959ee7434f335fbb8620",
+                      "sha256Worktree":  "2cd082c91269aa549bb5fcd1f3563d534c67e8c0b71f269e03badb1abbe040ba"
+                  },
+                  {
+                      "path":  "frontend/src/roles/customRoleApi.ts",
+                      "integrationGitBlob":  "4f2313690a9b11e7a3792fac9122ac4f4aade497",
+                      "scratchGitBlob":  "4f2313690a9b11e7a3792fac9122ac4f4aade497",
+                      "sha256Worktree":  "1ee651526c93f6425915876e30a473f02a1a6cc9b524ccb7cf4a73edf6079d73"
+                  },
+                  {
+                      "path":  "frontend/src/roles/roleCatalogApi.ts",
+                      "integrationGitBlob":  "45854235e3228a556ca312164ff8e60d32028558",
+                      "scratchGitBlob":  "45854235e3228a556ca312164ff8e60d32028558",
+                      "sha256Worktree":  "ff4ba7bd7345415343c1b8fc3c458ff756cb5fa6b953529c0122247877d6cfd9"
+                  },
+                  {
+                      "path":  "frontend/src/routes/DesignSystem.tsx",
+                      "integrationGitBlob":  "3966a75460d3012a83d47e9c0365d295faad9222",
+                      "scratchGitBlob":  "3966a75460d3012a83d47e9c0365d295faad9222",
+                      "sha256Worktree":  "60f7df1112b1078fbe6438cc87cdb441d8bac81e22c0482dc8549d970779ce01"
+                  },
+                  {
+                      "path":  "frontend/src/routes/ScreenIndex.tsx",
+                      "integrationGitBlob":  "5a95e5315d8c614e5dbbc81ae1d83a3fc84803dd",
+                      "scratchGitBlob":  "5a95e5315d8c614e5dbbc81ae1d83a3fc84803dd",
+                      "sha256Worktree":  "346baf857ce7ecc674571a636e8a708e519bb21f742d64bc8833d8f6358102e4"
+                  },
+                  {
+                      "path":  "frontend/src/routes/demoPaths.ts",
+                      "integrationGitBlob":  "acce0de5538b3a6f2cce0d9b7eb9097a0fcc53d7",
+                      "scratchGitBlob":  "acce0de5538b3a6f2cce0d9b7eb9097a0fcc53d7",
+                      "sha256Worktree":  "a998ff2c7fdb86a22e4f21b70521ac6d41253e3a8179e2aafa7ea4f16354ba19"
+                  },
+                  {
+                      "path":  "frontend/src/routes/routeConfig.ts",
+                      "integrationGitBlob":  "dd98c9f93560ee37a874ebb9a4bb705424cbfb9d",
+                      "scratchGitBlob":  "dd98c9f93560ee37a874ebb9a4bb705424cbfb9d",
+                      "sha256Worktree":  "58654f2b31f1c0edbfefd99bc0e1801010b2fca83138ef0e7c48731708efde10"
+                  },
+                  {
+                      "path":  "frontend/src/screens/assets/AssetDetailScreen.tsx",
+                      "integrationGitBlob":  "92a6b69e3d18107e881a156aeca9b9af8888dcf7",
+                      "scratchGitBlob":  "92a6b69e3d18107e881a156aeca9b9af8888dcf7",
+                      "sha256Worktree":  "3cb459362b7ced0907ed3cbcbe55b12d7826089170b1044d4107c87622c913ca"
+                  },
+                  {
+                      "path":  "frontend/src/screens/assets/AssetListScreen.tsx",
+                      "integrationGitBlob":  "e9fd1ad0076053026ef969f55d310de179421b83",
+                      "scratchGitBlob":  "e9fd1ad0076053026ef969f55d310de179421b83",
+                      "sha256Worktree":  "c5d00ca4ff85d0d14d3d097ce2d080bc9d01e66e77460b5e325d039193f69440"
+                  },
+                  {
+                      "path":  "frontend/src/screens/assets/AssetMaintenanceHistoryScreen.tsx",
+                      "integrationGitBlob":  "7c55e36979c8c28bc221964d111fcdd74bad2592",
+                      "scratchGitBlob":  "7c55e36979c8c28bc221964d111fcdd74bad2592",
+                      "sha256Worktree":  "cde413def05e3131279e9fe5459493cc8120ee792ea5a3f272fd0c153cb6da29"
+                  },
+                  {
+                      "path":  "frontend/src/screens/audit/AuditLogDetailScreen.tsx",
+                      "integrationGitBlob":  "7c4c4459c048ce48f73eec27dcba78ea67bfe288",
+                      "scratchGitBlob":  "7c4c4459c048ce48f73eec27dcba78ea67bfe288",
+                      "sha256Worktree":  "52e5c29a902c0f36b326968ed1bb31ce1e61678b1434f721c6cc543ef9020f9e"
+                  },
+                  {
+                      "path":  "frontend/src/screens/audit/AuditLogScreen.tsx",
+                      "integrationGitBlob":  "403e7993a65666473ef11dbd64f7b47fbb9145b9",
+                      "scratchGitBlob":  "403e7993a65666473ef11dbd64f7b47fbb9145b9",
+                      "sha256Worktree":  "3bbfb625ed83dbb886957392d7c8509bee836c221e7709d6d27ffbdf9461cb9d"
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/ChangePasswordScreen.tsx",
+                      "integrationGitBlob":  "89572e369cd6645985f81a6d12d1cd9f54e02080",
+                      "scratchGitBlob":  "89572e369cd6645985f81a6d12d1cd9f54e02080",
+                      "sha256Worktree":  "1050146add680b62dfbbec2314db2b428ddd0416fc37611cefe240a2cacae6db"
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/ForgotPasswordScreen.tsx",
+                      "integrationGitBlob":  "1c7af2216843f6dc79e26ed4a452250d67473e7c",
+                      "scratchGitBlob":  "1c7af2216843f6dc79e26ed4a452250d67473e7c",
+                      "sha256Worktree":  "e812be7e324c5e758daba379c6a6a2e750009b169ae88d48036d0a5c431525aa"
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/ProfileScreen.tsx",
+                      "integrationGitBlob":  "ad43941f355e0a2bed8e2528b584f9756397ad58",
+                      "scratchGitBlob":  "ad43941f355e0a2bed8e2528b584f9756397ad58",
+                      "sha256Worktree":  "2c91895efe981337ca7dacafa30f587fd5c457e72e35406186f09435988bffd4"
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/SignInScreen.tsx",
+                      "integrationGitBlob":  "a904eb28c150d1ad9e5233084dddf6897f3f4a18",
+                      "scratchGitBlob":  "a904eb28c150d1ad9e5233084dddf6897f3f4a18",
+                      "sha256Worktree":  "44fd12da125bfe607d0e70786fad5f400ff492a8f3714d91d2d931173880fade"
+                  },
+                  {
+                      "path":  "frontend/src/screens/dashboard/DashboardScreen.tsx",
+                      "integrationGitBlob":  "4627a1cf60e0175049530bfbb6ff89aaa2c9536c",
+                      "scratchGitBlob":  "4627a1cf60e0175049530bfbb6ff89aaa2c9536c",
+                      "sha256Worktree":  "3d64db7e04d3660a080cc4d17a776317e8dd77dd6973546445e45b2712ff0226"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/BranchDetailScreen.tsx",
+                      "integrationGitBlob":  "3ba3920c2430c5957c06fd6da0f4a1304303c5b3",
+                      "scratchGitBlob":  "3ba3920c2430c5957c06fd6da0f4a1304303c5b3",
+                      "sha256Worktree":  "dd32aec6b6772675329395d6fbb46925f0ada0d7870b84f954ada3da9d6eba0c"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/BranchListScreen.tsx",
+                      "integrationGitBlob":  "cee9d993675169f97fd75c3a8f3e8bb874c2e5f5",
+                      "scratchGitBlob":  "cee9d993675169f97fd75c3a8f3e8bb874c2e5f5",
+                      "sha256Worktree":  "0f29ce91292ed3ffe9c9fa9bd3e427fc3b38842df2fab9507cdecacc9668fdd9"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/DepartmentDetailScreen.tsx",
+                      "integrationGitBlob":  "3899c06d10cf82a364847beac314a09c711c1286",
+                      "scratchGitBlob":  "3899c06d10cf82a364847beac314a09c711c1286",
+                      "sha256Worktree":  "d5a76fae64e5381b7d8f5a7f50327b175b7a3f37f7862359051b0c7efbc0ff62"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/DepartmentListScreen.tsx",
+                      "integrationGitBlob":  "7f8535fd489ecb9f378929ac345d12616db8d4e2",
+                      "scratchGitBlob":  "7f8535fd489ecb9f378929ac345d12616db8d4e2",
+                      "sha256Worktree":  "06c370ff05e10adf2604570d6de5028042fa34a861fac1e87813b03dd4fda8fb"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/FloorAreaDetailScreen.tsx",
+                      "integrationGitBlob":  "a2083dac72eedc3289f5d3582d0affb361df7901",
+                      "scratchGitBlob":  "a2083dac72eedc3289f5d3582d0affb361df7901",
+                      "sha256Worktree":  "8d417f75703afb2efc22b794230d089d9d095714fa23dfb69d0f4181c1c441ef"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/FloorAreaListScreen.tsx",
+                      "integrationGitBlob":  "09541c575a8829419cd1514d47aef1a6c73bd9f3",
+                      "scratchGitBlob":  "09541c575a8829419cd1514d47aef1a6c73bd9f3",
+                      "sha256Worktree":  "81cb12c9f1a72261bfe45e86b49ed4bb7591f7b8955793b41cb8680db53bca7e"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomDetailScreen.tsx",
+                      "integrationGitBlob":  "5e7114281e69d59c26e6dce83d425d678e95325f",
+                      "scratchGitBlob":  "5e7114281e69d59c26e6dce83d425d678e95325f",
+                      "sha256Worktree":  "22b8c652ebc3d20e9e18f652852e0e789a947e421ee9af96b044517815ca2ca9"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomListScreen.tsx",
+                      "integrationGitBlob":  "08c232c98510735b2511611d094169f81f5e5d96",
+                      "scratchGitBlob":  "08c232c98510735b2511611d094169f81f5e5d96",
+                      "sha256Worktree":  "bea40b7c63309224a9cb9ef89506c00bf19d5a4900487e614d54f106ed7e13b6"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx",
+                      "integrationGitBlob":  "0abbd5a31a77dc688409e0500453edbfcb7405f8",
+                      "scratchGitBlob":  "0abbd5a31a77dc688409e0500453edbfcb7405f8",
+                      "sha256Worktree":  "048da3071207f9bcad90d14cc77742a94ede13d78b8e172306380d905f814398"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomTypeDetailScreen.tsx",
+                      "integrationGitBlob":  "5e0090072a787521000b05065c680d9ea728499f",
+                      "scratchGitBlob":  "5e0090072a787521000b05065c680d9ea728499f",
+                      "sha256Worktree":  "ea14ad246f503c90799cc3d5a165e2a102c14d730908c97cff16c373ba17f1d3"
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomTypeListScreen.tsx",
+                      "integrationGitBlob":  "94e39f2cf8fbff910104c7068c9b528c87080982",
+                      "scratchGitBlob":  "94e39f2cf8fbff910104c7068c9b528c87080982",
+                      "sha256Worktree":  "68807880c2f15a4abb91f3ef5bb3ffaeef7149d319ec3c035e2da2d4dea24c61"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+                      "integrationGitBlob":  "15a79ea7e07a8aeed9a38cd83c89695b96895e55",
+                      "scratchGitBlob":  "15a79ea7e07a8aeed9a38cd83c89695b96895e55",
+                      "sha256Worktree":  "a7ebd055b7709a8eab46ab4c13fb2974d2ee0935f147ce7087b509c63c4c9962"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+                      "integrationGitBlob":  "4623c3e3a63b94101586efa9b048a79bfba572f7",
+                      "scratchGitBlob":  "4623c3e3a63b94101586efa9b048a79bfba572f7",
+                      "sha256Worktree":  "48115f2ec19d7167077189ee4cc96a445a9cb9de82d2f10b0d1d9867ebd377c4"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+                      "integrationGitBlob":  "645c08935373b9b1730e3507ca179502fd96953a",
+                      "scratchGitBlob":  "645c08935373b9b1730e3507ca179502fd96953a",
+                      "sha256Worktree":  "f7f5148b334f22915ab2dd1e4d001bc4c847ab8cbb9a79cf6da87dea1f6597de"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+                      "integrationGitBlob":  "ac1ea240af45cf3c955b3245d08dfac11f39aca7",
+                      "scratchGitBlob":  "ac1ea240af45cf3c955b3245d08dfac11f39aca7",
+                      "sha256Worktree":  "d857bdfbf6bab4ad126193884e7de39d64cbab331a66afeadcb5c7443f4fce81"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/ReworkTaskDetailScreen.tsx",
+                      "integrationGitBlob":  "bc64acdeeb110e35ce9e7a04c11d5b01ca19ead4",
+                      "scratchGitBlob":  "bc64acdeeb110e35ce9e7a04c11d5b01ca19ead4",
+                      "sha256Worktree":  "c50a5a498d09f2d8697f9c454334ca00d97a5aabb8d3c4c65c9b4459639cc981"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/ReworkTaskListScreen.tsx",
+                      "integrationGitBlob":  "75735147732a85aed10e1581c61d7370ca862230",
+                      "scratchGitBlob":  "75735147732a85aed10e1581c61d7370ca862230",
+                      "sha256Worktree":  "caf416e031b30d8e0bc06f833c83c0e2a532547c86f7fc01e9666dff226d0917"
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/RoomTurnoverHistoryScreen.tsx",
+                      "integrationGitBlob":  "fd32ed59ac0d12d69d4ac6a7a52768aec8f1e97d",
+                      "scratchGitBlob":  "fd32ed59ac0d12d69d4ac6a7a52768aec8f1e97d",
+                      "sha256Worktree":  "c2cf8e111efadab6f7f944be8104dd75e562dba489724ec8c70277e63b39da9a"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+                      "integrationGitBlob":  "a0f7009871f1136a3ac143ca7cef2312ef129e18",
+                      "scratchGitBlob":  "a0f7009871f1136a3ac143ca7cef2312ef129e18",
+                      "sha256Worktree":  "ab2adf4ca87a05a426b29d5c6d46678af450897b09a338212fb49c9c76888a97"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+                      "integrationGitBlob":  "278599e665b856e085e399b96edfd64dd9e2e4df",
+                      "scratchGitBlob":  "278599e665b856e085e399b96edfd64dd9e2e4df",
+                      "sha256Worktree":  "d260c650f289b1569e8369e7a6a5878f503c61426923dec94d1ca4d7dccef48a"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionHistoryScreen.tsx",
+                      "integrationGitBlob":  "40300b1c454ba721d5f200c4dba57b32f568fb29",
+                      "scratchGitBlob":  "40300b1c454ba721d5f200c4dba57b32f568fb29",
+                      "sha256Worktree":  "df4593d4658b6fab45ea13ce2dc9441686112645e6827c2545d9ff2ce88199d9"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionQueueScreen.tsx",
+                      "integrationGitBlob":  "a224aac925f0eae57023d862dec963d77f07e058",
+                      "scratchGitBlob":  "a224aac925f0eae57023d862dec963d77f07e058",
+                      "sha256Worktree":  "9bed08c03f23a43b14b4b6c4a2ce992c39fa248b2858fda671857f57d431ab92"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionResultScreen.tsx",
+                      "integrationGitBlob":  "d19624fedb8b4676823ac80e6d480668f0021bf2",
+                      "scratchGitBlob":  "d19624fedb8b4676823ac80e6d480668f0021bf2",
+                      "sha256Worktree":  "ba8c05a76efb33f7af57b3f550b24f0306c188c92b45a3fb77d7801a38c4d531"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/ReinspectionScreen.tsx",
+                      "integrationGitBlob":  "99fe3096723acee9c67f521987876643748af5f8",
+                      "scratchGitBlob":  "99fe3096723acee9c67f521987876643748af5f8",
+                      "sha256Worktree":  "71759211ec95352d779c99c3932b7c74cda7276f7d1a05471e89c6a81f2caf3f"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/RequestReworkScreen.tsx",
+                      "integrationGitBlob":  "cd40ff9beead5e88e90db5061005244fac0c18b9",
+                      "scratchGitBlob":  "cd40ff9beead5e88e90db5061005244fac0c18b9",
+                      "sha256Worktree":  "5d31b2d61c51c39dfffd67d9a39259bdb72bdb264bf4e855307b6f9d717f7028"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/RoomInspectionScreen.tsx",
+                      "integrationGitBlob":  "e66efd11010eecfa2d0365c3b1bf4f62c153980a",
+                      "scratchGitBlob":  "e66efd11010eecfa2d0365c3b1bf4f62c153980a",
+                      "sha256Worktree":  "331516f91c526fae8dca95bbe38afe3e5b39881fcf5cb3a2e6acfe3e50a53d8e"
+                  },
+                  {
+                      "path":  "frontend/src/screens/internalRequests/InternalRequestDetailScreen.tsx",
+                      "integrationGitBlob":  "852bc1cfeb2c8b74f5f12f0a68db13f05ecac863",
+                      "scratchGitBlob":  "852bc1cfeb2c8b74f5f12f0a68db13f05ecac863",
+                      "sha256Worktree":  "737c56f4a087458de14e2148c482914175053bdfeb134164aa0e56edda1bf884"
+                  },
+                  {
+                      "path":  "frontend/src/screens/internalRequests/InternalRequestListScreen.tsx",
+                      "integrationGitBlob":  "60b26fefa1057b0a68c98f107ce076bad740bd51",
+                      "scratchGitBlob":  "60b26fefa1057b0a68c98f107ce076bad740bd51",
+                      "sha256Worktree":  "cda8b9a05f03c1d91016be2559a36885082bc8ffb9b98cf58bba6e1d786c96a6"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/InventoryDashboardScreen.tsx",
+                      "integrationGitBlob":  "daac52685a0c84873253dfc7351d20f158a9efca",
+                      "scratchGitBlob":  "daac52685a0c84873253dfc7351d20f158a9efca",
+                      "sha256Worktree":  "47fbb4bb2ff694925ca9bc89ad153e02cb1874d6e850427d8f3ca1c5ad322c3f"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/ItemDetailScreen.tsx",
+                      "integrationGitBlob":  "f94caa210648fbb4fe5c481bf17c6e1b15b24f47",
+                      "scratchGitBlob":  "f94caa210648fbb4fe5c481bf17c6e1b15b24f47",
+                      "sha256Worktree":  "7768862fe529f5c9a2d501fc51217a01be19a9fe10871923dc214793e7c25858"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/ItemListScreen.tsx",
+                      "integrationGitBlob":  "2c5e6edd3065af9903153c89ce68c1bdf93989f4",
+                      "scratchGitBlob":  "2c5e6edd3065af9903153c89ce68c1bdf93989f4",
+                      "sha256Worktree":  "6e0f720940686831498523bc296a0c4c6c889daf9678e4cfd7a26285146243e0"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StockBalanceLedgerScreen.tsx",
+                      "integrationGitBlob":  "8c1ee09f5b77ad8eec3a444182f6bda5fb255c0e",
+                      "scratchGitBlob":  "8c1ee09f5b77ad8eec3a444182f6bda5fb255c0e",
+                      "sha256Worktree":  "595788b677d555dd63e8b91db66671eb90d831e819af0adf74179cc4107ab164"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StockTransactionDetailScreen.tsx",
+                      "integrationGitBlob":  "0eb309f7e5a521a3d3c4564d0df366409ed10af7",
+                      "scratchGitBlob":  "0eb309f7e5a521a3d3c4564d0df366409ed10af7",
+                      "sha256Worktree":  "1e42ee8519cdd15e82367a2006706131acb79b849423503f396fb6cdf1e27297"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StockTransactionListScreen.tsx",
+                      "integrationGitBlob":  "27601a7e0709b4e0044e446efadf2de8e2f41af6",
+                      "scratchGitBlob":  "27601a7e0709b4e0044e446efadf2de8e2f41af6",
+                      "sha256Worktree":  "648105284c838330d95d708c63cb93a967778dc5bb4a6d6d60fb466556a6eacc"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StocktakeDetailScreen.tsx",
+                      "integrationGitBlob":  "e8847670bf7c90d90ffab84dcb7a850f249e21e9",
+                      "scratchGitBlob":  "e8847670bf7c90d90ffab84dcb7a850f249e21e9",
+                      "sha256Worktree":  "4318ceeff9d43e4c6b7204ca2b8edafadbcc9fbc15cf3cf610a21bd5812c4a5b"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StocktakeListScreen.tsx",
+                      "integrationGitBlob":  "1853e9f3c4c289f6110bd89c04393b355e68b761",
+                      "scratchGitBlob":  "1853e9f3c4c289f6110bd89c04393b355e68b761",
+                      "sha256Worktree":  "9b77b6b94aaf2f326ea4cda349fdde8e1950316e31f46ccb0e8d9016e3b425e3"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/UnitofMeasurementScreen.tsx",
+                      "integrationGitBlob":  "6879c3fd6e8cb89ff0341bb8a47460e0b54d5acf",
+                      "scratchGitBlob":  "6879c3fd6e8cb89ff0341bb8a47460e0b54d5acf",
+                      "sha256Worktree":  "09fe67bcfcc6925c23c34f79804ed6322f26d99b0aa1c3694eb9bd9698184dd5"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/WarehouseDetailScreen.tsx",
+                      "integrationGitBlob":  "8df0b1674487b0381de589c9bad518dc1541d7ba",
+                      "scratchGitBlob":  "8df0b1674487b0381de589c9bad518dc1541d7ba",
+                      "sha256Worktree":  "23d931cac6035c1093b5833abd48140fa16be2778e83efc2182dc026f6c05fc3"
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/WarehouseListScreen.tsx",
+                      "integrationGitBlob":  "0cea5fc21b1f4760923f90ce4c16ff1cd030f5eb",
+                      "scratchGitBlob":  "0cea5fc21b1f4760923f90ce4c16ff1cd030f5eb",
+                      "sha256Worktree":  "d98c6b90e7c08f9ab17e00d057c1d60359b1942313e0efbb7b8bbcfeb2a60194"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/IncidentDetailScreen.tsx",
+                      "integrationGitBlob":  "3f32fd5429df8fb8768ef4d70ba7822724a2d723",
+                      "scratchGitBlob":  "3f32fd5429df8fb8768ef4d70ba7822724a2d723",
+                      "sha256Worktree":  "4ab44f4bb230403c0759b63b14281fe55dae79db434271799792517c8f687aae"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/IncidentListScreen.tsx",
+                      "integrationGitBlob":  "3f8c2cfabb64d8a216c97c01408da1e2459fb74f",
+                      "scratchGitBlob":  "3f8c2cfabb64d8a216c97c01408da1e2459fb74f",
+                      "sha256Worktree":  "7fc7aabacffd9434e7a03607be5372d5596cde791bb8766c704e03adc52d23e7"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/MaintenanceAssignmentScreen.tsx",
+                      "integrationGitBlob":  "f0238e9a085653060ecb7907e038c026e5cfe50d",
+                      "scratchGitBlob":  "f0238e9a085653060ecb7907e038c026e5cfe50d",
+                      "sha256Worktree":  "904ed82be45391f77b35a8bba556d52def6a35d49e8d76cbe0a0a32c9320758f"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/MaintenanceTaskDetailScreen.tsx",
+                      "integrationGitBlob":  "69e0a7b2b83a3b6ef12dfee7d22e4abf3603be13",
+                      "scratchGitBlob":  "69e0a7b2b83a3b6ef12dfee7d22e4abf3603be13",
+                      "sha256Worktree":  "6d6495206048fe87cccc91febae0b2818a38776124a0a8ba514a60db5ac5a446"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/MaintenanceTaskListScreen.tsx",
+                      "integrationGitBlob":  "8ec930d2d56cbc4d5a32081f3781523af0746b00",
+                      "scratchGitBlob":  "8ec930d2d56cbc4d5a32081f3781523af0746b00",
+                      "sha256Worktree":  "ee8fbd7465ea8b5beb6ed000fb8516902faf8faf92dc0e74c26222c546779d35"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/PreventiveMaintenanceScheduleDetailScreen.tsx",
+                      "integrationGitBlob":  "52f9678d53cffa0fcf22a372a76510f262ed3778",
+                      "scratchGitBlob":  "52f9678d53cffa0fcf22a372a76510f262ed3778",
+                      "sha256Worktree":  "10c30836266f03d339a9692c22c39a7514dd3f9629624accaea772022d9c4113"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/PreventiveMaintenanceScheduleListScreen.tsx",
+                      "integrationGitBlob":  "88c1e122d21e738d92132381a54c1ea2f9115d0e",
+                      "scratchGitBlob":  "88c1e122d21e738d92132381a54c1ea2f9115d0e",
+                      "sha256Worktree":  "fc7056c9815e0f935927c758726831c653a33c3cd14614c0c6b8451545a845c6"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/ReferenceDataScreen.tsx",
+                      "integrationGitBlob":  "b70762e0298e2da1ab56375837778ed4ddc31af4",
+                      "scratchGitBlob":  "b70762e0298e2da1ab56375837778ed4ddc31af4",
+                      "sha256Worktree":  "239982f39c04f1b8f8c3e535d45c762967cf901e59ef8a889fdf0df34c35ec31"
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/ReportIncidentScreen.tsx",
+                      "integrationGitBlob":  "6062e026a6d43f80fd590fd092f1f5615043a805",
+                      "scratchGitBlob":  "6062e026a6d43f80fd590fd092f1f5615043a805",
+                      "sha256Worktree":  "61c93cbda3affa94370c59d48e885f869a29c913e251efa5cf70066cd840eaa4"
+                  },
+                  {
+                      "path":  "frontend/src/screens/materialRequests/MaterialRequestDetailScreen.tsx",
+                      "integrationGitBlob":  "eb5a2e2a9a5662124c4f5cd913f0588d2a6ce3e4",
+                      "scratchGitBlob":  "eb5a2e2a9a5662124c4f5cd913f0588d2a6ce3e4",
+                      "sha256Worktree":  "d3c81fa3733ce0f106eecd6f23efd07ca0edbaba486c92598a981fe31a581c06"
+                  },
+                  {
+                      "path":  "frontend/src/screens/materialRequests/MaterialRequestListScreen.tsx",
+                      "integrationGitBlob":  "ebebc96c21a219b7771813c7446022571c66c837",
+                      "scratchGitBlob":  "ebebc96c21a219b7771813c7446022571c66c837",
+                      "sha256Worktree":  "aba4cfd64bb71e41c7602ffc330b339fd45aeeeb7f5e8e22bd8140b172ffcde8"
+                  },
+                  {
+                      "path":  "frontend/src/screens/notifications/NotificationCenterScreen.tsx",
+                      "integrationGitBlob":  "6ffdff9d15b2f8c9d711d9da42a8b36fbc3e506e",
+                      "scratchGitBlob":  "6ffdff9d15b2f8c9d711d9da42a8b36fbc3e506e",
+                      "sha256Worktree":  "497dd269d9490bacc7987546fc81ff3999cddaca95de2310890c7cdfe4ed33a6"
+                  },
+                  {
+                      "path":  "frontend/src/screens/notifications/NotificationDetailScreen.tsx",
+                      "integrationGitBlob":  "677edf50cbfd9c78cd7f3e4721c4067d7b16b33e",
+                      "scratchGitBlob":  "677edf50cbfd9c78cd7f3e4721c4067d7b16b33e",
+                      "sha256Worktree":  "60ea964d8dfd042d851aedc911b434cefd04eca67e810b024533063b94bff725"
+                  },
+                  {
+                      "path":  "frontend/src/screens/replenishment/ReplenishmentDetailScreen.tsx",
+                      "integrationGitBlob":  "6de33bef70b03d1874a90584bb4834b2d596afd7",
+                      "scratchGitBlob":  "6de33bef70b03d1874a90584bb4834b2d596afd7",
+                      "sha256Worktree":  "d19a883d709b824f5f2b9dd437593aadb30d4a03009e5d93c64bd7397d14a6d9"
+                  },
+                  {
+                      "path":  "frontend/src/screens/replenishment/ReplenishmentListScreen.tsx",
+                      "integrationGitBlob":  "b2b3b4ada9e63fe97fada55193a0fd5b7c819b9c",
+                      "scratchGitBlob":  "b2b3b4ada9e63fe97fada55193a0fd5b7c819b9c",
+                      "sha256Worktree":  "67083fd14633d534101107c867286dc1ecfec1a86a3c0fda6d0b7bce7a403c42"
+                  },
+                  {
+                      "path":  "frontend/src/screens/reports/OperationalReportsScreen.tsx",
+                      "integrationGitBlob":  "c8c7e00b04825e1ac9ecd70b9d6517c3f2a55bad",
+                      "scratchGitBlob":  "c8c7e00b04825e1ac9ecd70b9d6517c3f2a55bad",
+                      "sha256Worktree":  "74c31f01e8884477abd881582bb5067da8a8221459d4ec14e1cf2ae34be8d202"
+                  },
+                  {
+                      "path":  "frontend/src/screens/roles/PermissionMatrixScreen.tsx",
+                      "integrationGitBlob":  "64cb43368234e9c357aa3c2b3688351c77cc8c92",
+                      "scratchGitBlob":  "64cb43368234e9c357aa3c2b3688351c77cc8c92",
+                      "sha256Worktree":  "08d5d8a6e9ef3f0eef8708873f2b61507a50904156ca3e636291516abea0d798"
+                  },
+                  {
+                      "path":  "frontend/src/screens/roles/RoleDetailScreen.tsx",
+                      "integrationGitBlob":  "f690488f1622ff72cda61d547e2cfd3fefa3427f",
+                      "scratchGitBlob":  "f690488f1622ff72cda61d547e2cfd3fefa3427f",
+                      "sha256Worktree":  "66e04a91b9b72e92a2fc9f50cc7212c1c44e3ec3922ad5a3b902791dcf307ce6"
+                  },
+                  {
+                      "path":  "frontend/src/screens/roles/RoleListScreen.tsx",
+                      "integrationGitBlob":  "a1980a928e40e0685d846b647487452bce4b4528",
+                      "scratchGitBlob":  "a1980a928e40e0685d846b647487452bce4b4528",
+                      "sha256Worktree":  "209cb6c69193fac59c9e2881f02158625cffaffe73c40ac3073b1441e1770b7e"
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/OverdueWorkScreen.tsx",
+                      "integrationGitBlob":  "0b6a63189a6d30100c286723cf65e4c6d5eea011",
+                      "scratchGitBlob":  "0b6a63189a6d30100c286723cf65e4c6d5eea011",
+                      "sha256Worktree":  "9d21f4397aa6ae96795b5027618abaa48ef844defad2ccc4189d61218c387c5b"
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/TaskAssignmentScreen.tsx",
+                      "integrationGitBlob":  "3104e72dafbb94cbb583f49286164f250b1690e4",
+                      "scratchGitBlob":  "3104e72dafbb94cbb583f49286164f250b1690e4",
+                      "sha256Worktree":  "1fa92db29f43bfbd7c5c94d4a5d42ea58eb016b9c67f5bc733912cc2257e2d45"
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/TaskDetailScreen.tsx",
+                      "integrationGitBlob":  "9355bbe260e1fb60618150e2fd0b364f9910f87b",
+                      "scratchGitBlob":  "9355bbe260e1fb60618150e2fd0b364f9910f87b",
+                      "sha256Worktree":  "5f77789fe0a970e60996a4188df9bb72d63783cc628b752bb32b5305c1e70c20"
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/TaskListScreen.tsx",
+                      "integrationGitBlob":  "86ac48beab194b8545183c3c263a3365708fd4c9",
+                      "scratchGitBlob":  "86ac48beab194b8545183c3c263a3365708fd4c9",
+                      "sha256Worktree":  "00986b4138f7b4d03ff608d61f247452e4c164181e14931b2291271da009d2e3"
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/WorkloadTimeLogsScreen.tsx",
+                      "integrationGitBlob":  "e8cf2daa9bd3da4866b3984bf75f0085509542db",
+                      "scratchGitBlob":  "e8cf2daa9bd3da4866b3984bf75f0085509542db",
+                      "sha256Worktree":  "f6fc345b513115fbcee33256ef3164a96e202d45e3d91a171f59b7bb669e0827"
+                  },
+                  {
+                      "path":  "frontend/src/screens/users/UserDetailScreen.tsx",
+                      "integrationGitBlob":  "9a7ef871b7eac620addd86fad2003ebe35bd382b",
+                      "scratchGitBlob":  "9a7ef871b7eac620addd86fad2003ebe35bd382b",
+                      "sha256Worktree":  "eda20a758a172046bd1721ceec6734d0146994c4f908a878599194ff88e8a3b3"
+                  },
+                  {
+                      "path":  "frontend/src/screens/users/UserListScreen.tsx",
+                      "integrationGitBlob":  "8ea96b2af273624ac70e58607268fce454240da4",
+                      "scratchGitBlob":  "8ea96b2af273624ac70e58607268fce454240da4",
+                      "sha256Worktree":  "849752b0019cf5f4a81631c86cf4dc327ccc15330f871fb3b0d49e97efc0eca0"
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftDetailScreen.tsx",
+                      "integrationGitBlob":  "729f348eed9218faa2b7e7397f798d04f23e624a",
+                      "scratchGitBlob":  "729f348eed9218faa2b7e7397f798d04f23e624a",
+                      "sha256Worktree":  "4e7bda10cc830eeefcc673a4704c8bc401fe5f8b5f7f791f19eece6698fd563e"
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftHandoverDetailScreen.tsx",
+                      "integrationGitBlob":  "52baa8db4a97c86a1bf0ee237cdb529c2754a08d",
+                      "scratchGitBlob":  "52baa8db4a97c86a1bf0ee237cdb529c2754a08d",
+                      "sha256Worktree":  "74fba71e0f56ca3d6a91d2dc676b296704217ce9bad4239ab639b0684811a19a"
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftHandoverListScreen.tsx",
+                      "integrationGitBlob":  "71584fbb9a91504a9516d2e239b903dc7bc59647",
+                      "scratchGitBlob":  "71584fbb9a91504a9516d2e239b903dc7bc59647",
+                      "sha256Worktree":  "e0d98149c14a586cadbd25ac6663e64852a50100dd18244a4040235a4cc110b1"
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftManagementScreen.tsx",
+                      "integrationGitBlob":  "e27f908876e5d70fb19929c1f64fd867d46a5594",
+                      "scratchGitBlob":  "e27f908876e5d70fb19929c1f64fd867d46a5594",
+                      "sha256Worktree":  "82fb2f7f6f71bb1f4480522bd2349bf64df5bdee49830752da2e8f1ccb9ea220"
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/WorkdayRecordScreen.tsx",
+                      "integrationGitBlob":  "0bd6a093fb823f7d5b1bcece8967251a4f243f05",
+                      "scratchGitBlob":  "0bd6a093fb823f7d5b1bcece8967251a4f243f05",
+                      "sha256Worktree":  "0ba44c241ad264ee315ab4ab9ed8c3186d81f55dfce3b6b56b1a8ad001fe0434"
+                  },
+                  {
+                      "path":  "frontend/src/services.ts",
+                      "integrationGitBlob":  "f7ca98a6447234a0bc12adeed03f313819733218",
+                      "scratchGitBlob":  "f7ca98a6447234a0bc12adeed03f313819733218",
+                      "sha256Worktree":  "b8651a9a5ac80ec16202c4ee9c9f409744596396c6095b8b34305d09a339756b"
+                  },
+                  {
+                      "path":  "frontend/src/services/readModels.ts",
+                      "integrationGitBlob":  "0098d770121ce56ec6cdee7a9b8ad614940be791",
+                      "scratchGitBlob":  "0098d770121ce56ec6cdee7a9b8ad614940be791",
+                      "sha256Worktree":  "3bd87cc0a85cb493fe43b5e16047ef4cec344c09aec23484bd4a094c2e0002cc"
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/StructureDeactivationPanel.tsx",
+                      "integrationGitBlob":  "8b5431ef495d2016945381ed6f88e300dda1f942",
+                      "scratchGitBlob":  "8b5431ef495d2016945381ed6f88e300dda1f942",
+                      "sha256Worktree":  "f5e1adfb42fbac059d11db49baa6bb2c49b5ec1b8fe25dc8b7182c8325bb3017"
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/StructureDependencyReview.tsx",
+                      "integrationGitBlob":  "990d8dad2e0410e173c46229910820d767047251",
+                      "scratchGitBlob":  "990d8dad2e0410e173c46229910820d767047251",
+                      "sha256Worktree":  "a64a4180ab1565c5f87e3bb119c139230aec2911f4a3fb9ba11847f769e3814d"
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/contracts.ts",
+                      "integrationGitBlob":  "428c214168d4ea9a56104bcd60109b2adce9ca87",
+                      "scratchGitBlob":  "428c214168d4ea9a56104bcd60109b2adce9ca87",
+                      "sha256Worktree":  "c07b5f0e7c44a247cd780f65224b106c6bebcaa03cae6800ce65e8afa0003250"
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/deactivationPreviewApi.ts",
+                      "integrationGitBlob":  "3d8ff4ec7c446f1f76b515e5fc3e556ff782159c",
+                      "scratchGitBlob":  "3d8ff4ec7c446f1f76b515e5fc3e556ff782159c",
+                      "sha256Worktree":  "bb8dea8845b79d812e493242335b64bab24802a7cedfbfad82070e730c4232b7"
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/structureDeactivationApi.ts",
+                      "integrationGitBlob":  "526f505d7c03f030f50a1b979b2ebbf6dc01a7f9",
+                      "scratchGitBlob":  "526f505d7c03f030f50a1b979b2ebbf6dc01a7f9",
+                      "sha256Worktree":  "43123231b1a2e3c766ee18f043ce1ac0025d8ded2fdd6aa172f67519bfc85afc"
+                  },
+                  {
+                      "path":  "frontend/src/styles.css",
+                      "integrationGitBlob":  "ce21bf32baf5ff8113e5ade540fa743e2d881144",
+                      "scratchGitBlob":  "ce21bf32baf5ff8113e5ade540fa743e2d881144",
+                      "sha256Worktree":  "fa581eccf07bfd153e2cb9e794005bd92651db711c61e6afb5d80669341b4e2a"
+                  },
+                  {
+                      "path":  "frontend/src/styles/operations.css",
+                      "integrationGitBlob":  "a784964320fae284df6f0aac3a195cb192f3b091",
+                      "scratchGitBlob":  "a784964320fae284df6f0aac3a195cb192f3b091",
+                      "sha256Worktree":  "5133d146f2ebce7c7f4096b826aa7efefed722871ff63dab2d8576cbc8d5bdea"
+                  },
+                  {
+                      "path":  "frontend/src/styles/theme.css",
+                      "integrationGitBlob":  "bd6635ee214f3fee1422ba5d2de501155ccd0557",
+                      "scratchGitBlob":  "bd6635ee214f3fee1422ba5d2de501155ccd0557",
+                      "sha256Worktree":  "475b95e3441a6b83072e890e3f9ed0d24bf5d32a745e4a6aff934a2578b58b38"
+                  },
+                  {
+                      "path":  "frontend/src/styles/tokens.css",
+                      "integrationGitBlob":  "bd6626e93c0e2fbf78d1fa46bbbba081ce3182ab",
+                      "scratchGitBlob":  "bd6626e93c0e2fbf78d1fa46bbbba081ce3182ab",
+                      "sha256Worktree":  "4577c34851981834220f52b051f3ad5db0bdc0de54818b27dd84b3316db00d09"
+                  },
+                  {
+                      "path":  "frontend/src/types/entities.ts",
+                      "integrationGitBlob":  "6c8d4d49a1093829816b1d8ac291c747af3da3e1",
+                      "scratchGitBlob":  "6c8d4d49a1093829816b1d8ac291c747af3da3e1",
+                      "sha256Worktree":  "f1c58088270c2e018a664efc59a0c409dd88c59d1307e8636fff8999db9643fd"
+                  },
+                  {
+                      "path":  "frontend/src/ui.tsx",
+                      "integrationGitBlob":  "d84299387c8f1553e99794c662b44cda73460dc6",
+                      "scratchGitBlob":  "d84299387c8f1553e99794c662b44cda73460dc6",
+                      "sha256Worktree":  "79d74805bdae200c509af8271416e360435c548d3f1a2b3377ec5f8f9f29c4c6"
+                  },
+                  {
+                      "path":  "frontend/src/users/ActivateUserFlowBoundary.tsx",
+                      "integrationGitBlob":  "6d64e2f8f26e6970e734603529956380b9dcbd35",
+                      "scratchGitBlob":  "6d64e2f8f26e6970e734603529956380b9dcbd35",
+                      "sha256Worktree":  "3e900b128d541ebffdee5242814ab43d10378010eaaf1473d266fa9f5467c6e0"
+                  },
+                  {
+                      "path":  "frontend/src/users/ActivateUserPage.tsx",
+                      "integrationGitBlob":  "7719668f8623bfbc2022e5a2c1e8016e145d10e6",
+                      "scratchGitBlob":  "7719668f8623bfbc2022e5a2c1e8016e145d10e6",
+                      "sha256Worktree":  "a12786b9bc7e562a0814b0f69adab670e64a87d611407a26aaf548dbb7c005e9"
+                  },
+                  {
+                      "path":  "frontend/src/users/AddUserBranchFlowBoundary.tsx",
+                      "integrationGitBlob":  "4a1d6a48888957ed986519bc05833e1c3ba89b3f",
+                      "scratchGitBlob":  "4a1d6a48888957ed986519bc05833e1c3ba89b3f",
+                      "sha256Worktree":  "f8745051b113120a387d2aa74ec15d8e338b69f47ea0c9a3bf6418cde5d886c6"
+                  },
+                  {
+                      "path":  "frontend/src/users/AddUserBranchPage.tsx",
+                      "integrationGitBlob":  "332cbd15eeec4721e30fa196af8927077a3934b6",
+                      "scratchGitBlob":  "332cbd15eeec4721e30fa196af8927077a3934b6",
+                      "sha256Worktree":  "38e5fc812ccb1a1e76b174a6b0c22133d00914c0772cfcd41254981e6da61e57"
+                  },
+                  {
+                      "path":  "frontend/src/users/AssignUserRoleFlowBoundary.tsx",
+                      "integrationGitBlob":  "29a3c2934d8646eaa30c3d0af032dc44ad0d3dfc",
+                      "scratchGitBlob":  "29a3c2934d8646eaa30c3d0af032dc44ad0d3dfc",
+                      "sha256Worktree":  "aec07fa6015cc35c40f5159b6dfdb4c07596b212be19fbcd5eb8d9a82f420c80"
+                  },
+                  {
+                      "path":  "frontend/src/users/AssignUserRolePage.tsx",
+                      "integrationGitBlob":  "7a06687673c81715bfcf87a0eb6f09170a7f3c41",
+                      "scratchGitBlob":  "7a06687673c81715bfcf87a0eb6f09170a7f3c41",
+                      "sha256Worktree":  "1c7ef4f4949194c493a22c8e76c494763b8dcfcf320b06cb54b17effd9ac326f"
+                  },
+                  {
+                      "path":  "frontend/src/users/ChangeDepartmentFlow.tsx",
+                      "integrationGitBlob":  "715147efc1849de4fb95884ed198096c4bf3e063",
+                      "scratchGitBlob":  "715147efc1849de4fb95884ed198096c4bf3e063",
+                      "sha256Worktree":  "75e70a93280668edec78e41367f6bb5dad6382c72feb54622ff43d57fbe23994"
+                  },
+                  {
+                      "path":  "frontend/src/users/CreateUserFlowBoundary.tsx",
+                      "integrationGitBlob":  "9424379d55c8e467440c04039f63222e0727e328",
+                      "scratchGitBlob":  "9424379d55c8e467440c04039f63222e0727e328",
+                      "sha256Worktree":  "c2d2bea7824310b81ff72b20c09f2fc46c76ba6c235fd75baf92084f09549e8c"
+                  },
+                  {
+                      "path":  "frontend/src/users/CreateUserPage.tsx",
+                      "integrationGitBlob":  "ad49c8f9fce37ed64c140e65382f6c8fe8cc9bcc",
+                      "scratchGitBlob":  "ad49c8f9fce37ed64c140e65382f6c8fe8cc9bcc",
+                      "sha256Worktree":  "5b46f8f137d23925b78608bb4869189f8d9b372391b5fa4fc74e94eb4a34b5fc"
+                  },
+                  {
+                      "path":  "frontend/src/users/InitialCredentialHandoff.tsx",
+                      "integrationGitBlob":  "dd772fd0b3299796ecf783c09d8b59f0e633611b",
+                      "scratchGitBlob":  "dd772fd0b3299796ecf783c09d8b59f0e633611b",
+                      "sha256Worktree":  "96a0ed50e03b5d723e5dce2a7f63592ee5157e09b4e4c910ce5375c277357c6a"
+                  },
+                  {
+                      "path":  "frontend/src/users/RevokeUserRoleCandidate.tsx",
+                      "integrationGitBlob":  "a6a5fe73ff69122c97973374fc98905b8bd6e309",
+                      "scratchGitBlob":  "a6a5fe73ff69122c97973374fc98905b8bd6e309",
+                      "sha256Worktree":  "0fe9cb34109e57f2a8eed84e40e674a4cb408799efde76146070245f0e89c33a"
+                  },
+                  {
+                      "path":  "frontend/src/users/UpdateUserFlowBoundary.tsx",
+                      "integrationGitBlob":  "1db8646ebaaf3e59b434ed2e78ade172d77cc09e",
+                      "scratchGitBlob":  "1db8646ebaaf3e59b434ed2e78ade172d77cc09e",
+                      "sha256Worktree":  "e1c17bc9b73318c5abb7c9a88d9fb29d4a451816a521024a3106a241f2062a7d"
+                  },
+                  {
+                      "path":  "frontend/src/users/UpdateUserPage.tsx",
+                      "integrationGitBlob":  "9b48a7382c89edb9d3fe2a26b1a5a1474b59d68e",
+                      "scratchGitBlob":  "9b48a7382c89edb9d3fe2a26b1a5a1474b59d68e",
+                      "sha256Worktree":  "f628ab9e9be3693c369d7988bc7773260d56a78d9e36382c81b3ee8f364caf51"
+                  },
+                  {
+                      "path":  "frontend/src/users/UserAccessReviewPage.tsx",
+                      "integrationGitBlob":  "bc37662b42909469163d32b08bcc791f36ef81b2",
+                      "scratchGitBlob":  "bc37662b42909469163d32b08bcc791f36ef81b2",
+                      "sha256Worktree":  "2438ac8fd1be13dd79146809fe835031a45c7e048ca96ea68dab3512c5cd0a9a"
+                  },
+                  {
+                      "path":  "frontend/src/users/UserDirectoryPage.tsx",
+                      "integrationGitBlob":  "185b775378a37ca2c134bd884edcf405980dcc5f",
+                      "scratchGitBlob":  "185b775378a37ca2c134bd884edcf405980dcc5f",
+                      "sha256Worktree":  "5f80c810e8987c997aac4a29f4a3132481882f742bd820efb4ddb3bee8cfc27a"
+                  },
+                  {
+                      "path":  "frontend/src/users/UsersRouteBoundary.tsx",
+                      "integrationGitBlob":  "e9d357138b3eda8ba08104214de0ae9093de3f95",
+                      "scratchGitBlob":  "e9d357138b3eda8ba08104214de0ae9093de3f95",
+                      "sha256Worktree":  "979574054d5d6c9a55e3cefa2a9ebdd83f515c40dff5f99283db5f3185c9a4a3"
+                  },
+                  {
+                      "path":  "frontend/src/users/changeDepartmentApi.ts",
+                      "integrationGitBlob":  "a15846c887f71b44e21184fd751437ad2057ecbb",
+                      "scratchGitBlob":  "a15846c887f71b44e21184fd751437ad2057ecbb",
+                      "sha256Worktree":  "768d1c2ad2c43282bcbb1f9faaa643835fe614400bfcf08eae7c5e7b92df8189"
+                  },
+                  {
+                      "path":  "frontend/src/users/contracts.ts",
+                      "integrationGitBlob":  "bb1478a267c67be69c1992a6ef01a175807dc852",
+                      "scratchGitBlob":  "bb1478a267c67be69c1992a6ef01a175807dc852",
+                      "sha256Worktree":  "48d86c02800e5c7c0463981c3262c74de7c18992357e3a591cba6ca3c2a04ef1"
+                  },
+                  {
+                      "path":  "frontend/src/users/createUserApi.ts",
+                      "integrationGitBlob":  "0ab163141a517112bce373253b378dc675d01b6c",
+                      "scratchGitBlob":  "0ab163141a517112bce373253b378dc675d01b6c",
+                      "sha256Worktree":  "c014909d95bbd9482b61f6e45882689022039d2d6581017852786134f1c92f0a"
+                  },
+                  {
+                      "path":  "frontend/src/users/createUserContracts.ts",
+                      "integrationGitBlob":  "7c514bcf3406924436690cb97884b1c9d8aea712",
+                      "scratchGitBlob":  "7c514bcf3406924436690cb97884b1c9d8aea712",
+                      "sha256Worktree":  "ee94a055ccfd24712e322c20ec14a71c1b82dcc6ef4e96fcd91ad3892bc3e34d"
+                  },
+                  {
+                      "path":  "frontend/src/users/revokeUserRoleApi.ts",
+                      "integrationGitBlob":  "3399415af70da1b33fdaad1ed908499717c2282e",
+                      "scratchGitBlob":  "3399415af70da1b33fdaad1ed908499717c2282e",
+                      "sha256Worktree":  "1a8bd4913e543a63811058451be44109c61c9938bf50777d75cb877280bb10c8"
+                  },
+                  {
+                      "path":  "frontend/src/users/useActivateUser.ts",
+                      "integrationGitBlob":  "b9f133538d4d85e3909d6a800655b9e0a4e997c3",
+                      "scratchGitBlob":  "b9f133538d4d85e3909d6a800655b9e0a4e997c3",
+                      "sha256Worktree":  "ba6d0e6a9c391011cc6cc27c1582235a5d2538f502c2beb85aeada8b1a6f22db"
+                  },
+                  {
+                      "path":  "frontend/src/users/useAddUserBranch.ts",
+                      "integrationGitBlob":  "2ea1d82aee36e074022ff996f1edbf7d64cb90ae",
+                      "scratchGitBlob":  "2ea1d82aee36e074022ff996f1edbf7d64cb90ae",
+                      "sha256Worktree":  "31e6cbdafe167d9516382cf2cd19617b6b5f31d71aa33f4731c1b027400639a8"
+                  },
+                  {
+                      "path":  "frontend/src/users/useAssignUserRole.ts",
+                      "integrationGitBlob":  "38b37fe6890ebef41c6c6fda4d612c31ab546b79",
+                      "scratchGitBlob":  "38b37fe6890ebef41c6c6fda4d612c31ab546b79",
+                      "sha256Worktree":  "d81781836d8567fa21dcb65ee51dc2e2d61642ceddff2ae577ce65c626dd63d8"
+                  },
+                  {
+                      "path":  "frontend/src/users/useCreateUser.ts",
+                      "integrationGitBlob":  "3ff9bf27b5fa9c61cd4e31ae0c238ef9df557e3e",
+                      "scratchGitBlob":  "3ff9bf27b5fa9c61cd4e31ae0c238ef9df557e3e",
+                      "sha256Worktree":  "cbbf1ccab0ee6776e085c9f3027a44ab0acc3c23647d9cf8262e51ce0880d2fa"
+                  },
+                  {
+                      "path":  "frontend/src/users/useUpdateUserProfile.ts",
+                      "integrationGitBlob":  "bc07205781973485bac1162daf8eb8b8d7e024b2",
+                      "scratchGitBlob":  "bc07205781973485bac1162daf8eb8b8d7e024b2",
+                      "sha256Worktree":  "c1848d36d8f869f3f03292ad0f2b8104178a6a500fdbd84cea6be5a4596f9fd0"
+                  },
+                  {
+                      "path":  "frontend/src/users/useUserRead.ts",
+                      "integrationGitBlob":  "1ade0a08fb3e9e94058ab08eb082561e990e65c0",
+                      "scratchGitBlob":  "1ade0a08fb3e9e94058ab08eb082561e990e65c0",
+                      "sha256Worktree":  "726731f2f01dd6ab763dc7f4cc61b1d00b1d96331a8a66bcec2609a1477ac182"
+                  },
+                  {
+                      "path":  "frontend/src/users/userActivationApi.ts",
+                      "integrationGitBlob":  "b11ebd5940285cd1de75c6be30e85f23176885b9",
+                      "scratchGitBlob":  "b11ebd5940285cd1de75c6be30e85f23176885b9",
+                      "sha256Worktree":  "f16aa1372069b793b754ee2dfe1d47fcb9e1b6cf16feae7d7eda40b1eeb84f4a"
+                  },
+                  {
+                      "path":  "frontend/src/users/userActivationContracts.ts",
+                      "integrationGitBlob":  "4b0d83f24041e9a28cf95c63df58bdd13af8fd29",
+                      "scratchGitBlob":  "4b0d83f24041e9a28cf95c63df58bdd13af8fd29",
+                      "sha256Worktree":  "637a6e4e14273bb2169c165d8aff577e5e723c6550b5e623c1367465c788f8a9"
+                  },
+                  {
+                      "path":  "frontend/src/users/userBranchMembershipApi.ts",
+                      "integrationGitBlob":  "560c481dd799fe679ff79e6066df13858e9fa4fd",
+                      "scratchGitBlob":  "560c481dd799fe679ff79e6066df13858e9fa4fd",
+                      "sha256Worktree":  "c0250730b3a2815c2b3708bcb61527e98cda88234013391c7eddff5f035daab4"
+                  },
+                  {
+                      "path":  "frontend/src/users/userBranchMembershipContracts.ts",
+                      "integrationGitBlob":  "198e666f8ae594f55f0877b5983dd082f1675010",
+                      "scratchGitBlob":  "198e666f8ae594f55f0877b5983dd082f1675010",
+                      "sha256Worktree":  "8a635305d793ae59310654a8553230e2504a73f6196ccec0e85d2d0f7d67dde2"
+                  },
+                  {
+                      "path":  "frontend/src/users/userProfileApi.ts",
+                      "integrationGitBlob":  "bfe45d10140f106e89a3605d4bc573f763f7a5e1",
+                      "scratchGitBlob":  "bfe45d10140f106e89a3605d4bc573f763f7a5e1",
+                      "sha256Worktree":  "28b248048b21dd51d5b13505d2379f5f10c5fdf3e0d851fd790b86e079c0ed49"
+                  },
+                  {
+                      "path":  "frontend/src/users/userProfileContracts.ts",
+                      "integrationGitBlob":  "f03a91c0a51716afed86996414efd885fd8fd919",
+                      "scratchGitBlob":  "f03a91c0a51716afed86996414efd885fd8fd919",
+                      "sha256Worktree":  "f29d1b0ef37dcc0a40c31164e2c362fc0cd8e89c52b6ed727455c5dbffdee3a2"
+                  },
+                  {
+                      "path":  "frontend/src/users/userRoleAssignmentApi.ts",
+                      "integrationGitBlob":  "9fe82797e19ebf13eb65230564c72635f13b6da0",
+                      "scratchGitBlob":  "9fe82797e19ebf13eb65230564c72635f13b6da0",
+                      "sha256Worktree":  "eb452ffe35b8fa4fae46d2d5becf84cff7997c796a94a8aadcb345061f3c0b13"
+                  },
+                  {
+                      "path":  "frontend/src/users/userRoleAssignmentContracts.ts",
+                      "integrationGitBlob":  "55846272caa63b41343a55dcea204b5d4737cca4",
+                      "scratchGitBlob":  "55846272caa63b41343a55dcea204b5d4737cca4",
+                      "sha256Worktree":  "c0032796928447356747b112e4600bd59253a0c7831b73e8c739397bfae76c17"
+                  },
+                  {
+                      "path":  "frontend/src/users/usersApi.ts",
+                      "integrationGitBlob":  "2cdeb79ea7e7ca5cf50048bc3ec383fba7074cd5",
+                      "scratchGitBlob":  "2cdeb79ea7e7ca5cf50048bc3ec383fba7074cd5",
+                      "sha256Worktree":  "7c2c26f9deb022eff004a4ac8b0fa5f8c4d4fd6294fe0f1d00b69a331c9c7dee"
+                  },
+                  {
+                      "path":  "frontend/src/vite-env.d.ts",
+                      "integrationGitBlob":  "11f02fe2a0061d6e6e1f271b21da95423b448b32",
+                      "scratchGitBlob":  "11f02fe2a0061d6e6e1f271b21da95423b448b32",
+                      "sha256Worktree":  "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+                  },
+                  {
+                      "path":  "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+                      "integrationGitBlob":  "01a86d430735823000ced8a0d9729fa7fceaee44",
+                      "scratchGitBlob":  "01a86d430735823000ced8a0d9729fa7fceaee44",
+                      "sha256Worktree":  "dd32a2bc74c05d7f29ef12a71019c496ff14f117c2a174a5cb484b729f271b66"
+                  },
+                  {
+                      "path":  "frontend/src/workday/SecureShiftPlanWorkspace.tsx",
+                      "integrationGitBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                      "scratchGitBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                      "sha256Worktree":  "81b7e6ab7a19f94cc0fe31fe16e785d7a3ec0d3bf59db26f8920042f179d247e"
+                  },
+                  {
+                      "path":  "frontend/src/workday/ShiftPlanPreviewPanel.tsx",
+                      "integrationGitBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                      "scratchGitBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                      "sha256Worktree":  "f8b3e77cf030534e174c07e4bdafc3281a049077298bba16d256291712549856"
+                  },
+                  {
+                      "path":  "frontend/src/workday/WorkdayReadPanel.tsx",
+                      "integrationGitBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                      "scratchGitBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                      "sha256Worktree":  "a04736e2a0b4c06947292a665d9b0d5f41b67c0d80da42777c67eb32e9e9a7e9"
+                  },
+                  {
+                      "path":  "frontend/src/workday/WorkdayRoute.tsx",
+                      "integrationGitBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                      "scratchGitBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                      "sha256Worktree":  "21d048672bd64c0dd72228c1d3a06210f1099b52003c9c3603dce6f72106edc3"
+                  },
+                  {
+                      "path":  "frontend/src/workday/contracts.ts",
+                      "integrationGitBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                      "scratchGitBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                      "sha256Worktree":  "5145d980d6d1e33efb8ec31d88e81fe1c3410c8dba68fe186104711142411842"
+                  },
+                  {
+                      "path":  "frontend/src/workday/readFeature.ts",
+                      "integrationGitBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                      "scratchGitBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                      "sha256Worktree":  "1d48027ded65656c753a89e9077685aff26aa6e34a33cc364bf82151e6d8e43e"
+                  },
+                  {
+                      "path":  "frontend/src/workday/scheduledContracts.ts",
+                      "integrationGitBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                      "scratchGitBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                      "sha256Worktree":  "829c68c39596e56046f56d18bf1383679fd6bb69043a179baadd2a283a57488c"
+                  },
+                  {
+                      "path":  "frontend/src/workday/scheduledWorkdayApi.ts",
+                      "integrationGitBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                      "scratchGitBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                      "sha256Worktree":  "835f19ddca01baca66a1c5968a5bb4cf8e6c9115005dfd5e925de485c633cccb"
+                  },
+                  {
+                      "path":  "frontend/src/workday/shiftPlanApi.ts",
+                      "integrationGitBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                      "scratchGitBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                      "sha256Worktree":  "3e0e45bee4d2c6c941a36640a5ab7d4746a53a89d55598f64edc5de3b459c04a"
+                  },
+                  {
+                      "path":  "frontend/src/workday/shiftPlanPreview.ts",
+                      "integrationGitBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                      "scratchGitBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                      "sha256Worktree":  "ca33cfb5a65f151d0835b1d8b720680da63519161ebe0bbbc79ecba1f8c2936f"
+                  },
+                  {
+                      "path":  "frontend/src/workday/workdayApi.ts",
+                      "integrationGitBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                      "scratchGitBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                      "sha256Worktree":  "43c886be91f47f37129c1749624773ec4dc0a4e3fc25a1da1fd14007747f7743"
+                  },
+                  {
+                      "path":  "frontend/tests/activate-user-router-integration.test.mjs",
+                      "integrationGitBlob":  "585b81cb4c2e983bc7b7f3fca8923e2ad54ebcf3",
+                      "scratchGitBlob":  "585b81cb4c2e983bc7b7f3fca8923e2ad54ebcf3",
+                      "sha256Worktree":  "7570ecc9c1c8f03aa71b76c45beb152f743ace34bb9e00bf72bce81a3a47cede"
+                  },
+                  {
+                      "path":  "frontend/tests/add-user-branch-router-integration.test.mjs",
+                      "integrationGitBlob":  "94b7f56e75d8a074a9a7f010f0aaf30736a4dc3a",
+                      "scratchGitBlob":  "94b7f56e75d8a074a9a7f010f0aaf30736a4dc3a",
+                      "sha256Worktree":  "9fa63923f31a86729afd876fc086e5c0603c91c85e7f1873e97619dac7f0a40e"
+                  },
+                  {
+                      "path":  "frontend/tests/assign-user-role-router-integration.test.mjs",
+                      "integrationGitBlob":  "8b680b6cb45bde254306cecdef76c57d343259ad",
+                      "scratchGitBlob":  "8b680b6cb45bde254306cecdef76c57d343259ad",
+                      "sha256Worktree":  "b254b3411c364c5a1a2755ea8a6b6ce124fcd7bdf6a00bfd4d81b116537b0a48"
+                  },
+                  {
+                      "path":  "frontend/tests/auth-change-password-ui.test.mjs",
+                      "integrationGitBlob":  "04b1ffcf930b0369e584d31939d575682decb4c1",
+                      "scratchGitBlob":  "04b1ffcf930b0369e584d31939d575682decb4c1",
+                      "sha256Worktree":  "6be68fa2a859472e9bb924f347777f0a68fe2b782fbf37fb778a49b243307534"
+                  },
+                  {
+                      "path":  "frontend/tests/auth-http.test.mjs",
+                      "integrationGitBlob":  "527d9b387823480a0fe1f35002847bfe78ff8386",
+                      "scratchGitBlob":  "527d9b387823480a0fe1f35002847bfe78ff8386",
+                      "sha256Worktree":  "8f36166d2f7ad3559b731a0e81f5bd95f54bd0ec56328005eac539a790793f0b"
+                  },
+                  {
+                      "path":  "frontend/tests/auth-login-ui.test.mjs",
+                      "integrationGitBlob":  "940324037be74372a2e3dfb1af5c0a9b1c0bd341",
+                      "scratchGitBlob":  "940324037be74372a2e3dfb1af5c0a9b1c0bd341",
+                      "sha256Worktree":  "62ed3784c05f6576c4eb16b37a15eb1fcab9242ee0d7e6d2c761a1e70416c2af"
+                  },
+                  {
+                      "path":  "frontend/tests/auth-profile-logout.test.mjs",
+                      "integrationGitBlob":  "81981fd36184e1eca64f879b322b550ccdf381ef",
+                      "scratchGitBlob":  "81981fd36184e1eca64f879b322b550ccdf381ef",
+                      "sha256Worktree":  "0bbd8a1ae8a2b03ba9b3e89b0e7883858d340214036e789c26497cc30afd3813"
+                  },
+                  {
+                      "path":  "frontend/tests/auth-router-integration.test.mjs",
+                      "integrationGitBlob":  "aa2c193b6c6afd3fc1943fd0e0a0fe21dd375a1b",
+                      "scratchGitBlob":  "aa2c193b6c6afd3fc1943fd0e0a0fe21dd375a1b",
+                      "sha256Worktree":  "5aa15c01a44b8d9fce1ea38d04470b3e42f666ebd7c2715ca2fbc6f331e48b77"
+                  },
+                  {
+                      "path":  "frontend/tests/auth-state.test.mjs",
+                      "integrationGitBlob":  "b35bd24d675c0ede89012c9b9aa18b482d2db3dc",
+                      "scratchGitBlob":  "b35bd24d675c0ede89012c9b9aa18b482d2db3dc",
+                      "sha256Worktree":  "cb9c059d2bda3445c0d8b52374fc4473116ac890e44edd7e9d83532db049db11"
+                  },
+                  {
+                      "path":  "frontend/tests/branch-maintenance-api.test.mjs",
+                      "integrationGitBlob":  "9219f2bcc50b45acc983987b4d1b7d6297d09684",
+                      "scratchGitBlob":  "9219f2bcc50b45acc983987b4d1b7d6297d09684",
+                      "sha256Worktree":  "e12ffeb6551a65f0dec8ee0cdf4849f53aba8d1be50f352ed03f84e2476588a8"
+                  },
+                  {
+                      "path":  "frontend/tests/branch-maintenance-browser.test.mjs",
+                      "integrationGitBlob":  "c3249461ea284558e15147e3dfbfc43df2516f36",
+                      "scratchGitBlob":  "c3249461ea284558e15147e3dfbfc43df2516f36",
+                      "sha256Worktree":  "c4fddff347a8f6a953bcd4edfa5df23d9f151b11f1e4690323368495cb680272"
+                  },
+                  {
+                      "path":  "frontend/tests/browser.spec.ts",
+                      "integrationGitBlob":  "e141f80f7e96efb1584ac765bb73465043c14aca",
+                      "scratchGitBlob":  "e141f80f7e96efb1584ac765bb73465043c14aca",
+                      "sha256Worktree":  "376ff24912730ce27aade559918fff144a693e703a65963192a657556a757895"
+                  },
+                  {
+                      "path":  "frontend/tests/change-department-api.test.mjs",
+                      "integrationGitBlob":  "0e093dfd3603b6537c805d720a8138c317410d9a",
+                      "scratchGitBlob":  "0e093dfd3603b6537c805d720a8138c317410d9a",
+                      "sha256Worktree":  "5fc59c9afc9f69d6d84c86324e47d87c4e6123226f2674d74a8b184e43b8d5da"
+                  },
+                  {
+                      "path":  "frontend/tests/change-department-browser.test.mjs",
+                      "integrationGitBlob":  "3d3a6d0b335ad5d90d7d5616368dbc1e8fb6fe77",
+                      "scratchGitBlob":  "3d3a6d0b335ad5d90d7d5616368dbc1e8fb6fe77",
+                      "sha256Worktree":  "c3a4c239e389125155ad3c8235f795cb3393449458ccec11361f40522b4cb0fe"
+                  },
+                  {
+                      "path":  "frontend/tests/create-branch-api.test.mjs",
+                      "integrationGitBlob":  "d360c2499ec6cdf27dab55f04edda5e5eeb3530f",
+                      "scratchGitBlob":  "d360c2499ec6cdf27dab55f04edda5e5eeb3530f",
+                      "sha256Worktree":  "ca8270dbafe02820475846705e0baf0cc37d656823923b198ab36b73cc52f63c"
+                  },
+                  {
+                      "path":  "frontend/tests/create-branch-browser.test.mjs",
+                      "integrationGitBlob":  "99077aea13f8a2725f24681c1d2319ccbf9eedf5",
+                      "scratchGitBlob":  "99077aea13f8a2725f24681c1d2319ccbf9eedf5",
+                      "sha256Worktree":  "7333604146f8c58984e88fb1e3e72a68fb767253618e8db6ed96af07462dccb2"
+                  },
+                  {
+                      "path":  "frontend/tests/create-user-api.test.mjs",
+                      "integrationGitBlob":  "c116e1ff41e506933edbea4d8543cb9a0f934356",
+                      "scratchGitBlob":  "c116e1ff41e506933edbea4d8543cb9a0f934356",
+                      "sha256Worktree":  "b5b78b7d1ffa02ad7d98b75031e8ac17c5261a103916b539e5ff6a221d5db318"
+                  },
+                  {
+                      "path":  "frontend/tests/create-user-router-integration.test.mjs",
+                      "integrationGitBlob":  "01b311eba2ff29da6058d2238ae3b6dce7067636",
+                      "scratchGitBlob":  "01b311eba2ff29da6058d2238ae3b6dce7067636",
+                      "sha256Worktree":  "462662da1fadae46d937633465a6992d7f5a54bbdf9ada7e8d492192326cbbb4"
+                  },
+                  {
+                      "path":  "frontend/tests/custom-role-api.test.mjs",
+                      "integrationGitBlob":  "68a875cfaee2b6c0f363aa75dbb676003d7cd8df",
+                      "scratchGitBlob":  "68a875cfaee2b6c0f363aa75dbb676003d7cd8df",
+                      "sha256Worktree":  "aebe6399b1243ece2790506e6551563f01a0064c3315f266d4eaf42f33bdcad6"
+                  },
+                  {
+                      "path":  "frontend/tests/custom-role-browser.test.mjs",
+                      "integrationGitBlob":  "78e8cdd3b990e3bac9b80da4a2049cf2d9cfd429",
+                      "scratchGitBlob":  "78e8cdd3b990e3bac9b80da4a2049cf2d9cfd429",
+                      "sha256Worktree":  "7dcf4344c7a03ac8e8755a2e950cd3c16cc1da32bcc57856f770634dc3760d57"
+                  },
+                  {
+                      "path":  "frontend/tests/deactivation-preview-api.test.mjs",
+                      "integrationGitBlob":  "78fd47af8b5082e102707e5db6b419df5562c1cd",
+                      "scratchGitBlob":  "78fd47af8b5082e102707e5db6b419df5562c1cd",
+                      "sha256Worktree":  "fe142084d22200201f8a95b57771386ef517abecc81c85d53dd32525bb25fde0"
+                  },
+                  {
+                      "path":  "frontend/tests/department-deactivation-api.test.mjs",
+                      "integrationGitBlob":  "6d21fe5a6d3df0bb0d16e860bd1dc34401d3edd1",
+                      "scratchGitBlob":  "6d21fe5a6d3df0bb0d16e860bd1dc34401d3edd1",
+                      "sha256Worktree":  "639aa761439640630712734d64b8e2b239109ae408046f31b5ab666704693723"
+                  },
+                  {
+                      "path":  "frontend/tests/department-deactivation-browser.test.mjs",
+                      "integrationGitBlob":  "8541ab4f4c6bfae4f8c3b0ab7afeb053a6d921e7",
+                      "scratchGitBlob":  "8541ab4f4c6bfae4f8c3b0ab7afeb053a6d921e7",
+                      "sha256Worktree":  "a4568072727819829d95825a633b2b88e12d52007ded23a2cec94f2b5e47e465"
+                  },
+                  {
+                      "path":  "frontend/tests/domain.test.mjs",
+                      "integrationGitBlob":  "b8a0cf5dbabca92f50d0ab52092567f8a07069a6",
+                      "scratchGitBlob":  "b8a0cf5dbabca92f50d0ab52092567f8a07069a6",
+                      "sha256Worktree":  "238b31bf37c1d4b74d87d76a8f6c617651b60b72bd40a882f2d5b73750f458a8"
+                  },
+                  {
+                      "path":  "frontend/tests/forgot-password.test.mjs",
+                      "integrationGitBlob":  "50faf46406fd01bb86a4e7fc5af6dc0f4aa9443a",
+                      "scratchGitBlob":  "50faf46406fd01bb86a4e7fc5af6dc0f4aa9443a",
+                      "sha256Worktree":  "865f2fc857f42f4cb2b4ed6a63ef2fe06205511daf7b2d5218de65036db618c4"
+                  },
+                  {
+                      "path":  "frontend/tests/hotel-api.test.mjs",
+                      "integrationGitBlob":  "c85f0ce22b962712a5d6cb9b4106a8eccdb1b4d7",
+                      "scratchGitBlob":  "c85f0ce22b962712a5d6cb9b4106a8eccdb1b4d7",
+                      "sha256Worktree":  "b49a8149594fa674524f8e08b5052371da236a5294dc8c468709c24c32eebaa1"
+                  },
+                  {
+                      "path":  "frontend/tests/hotel-fixtures.mjs",
+                      "integrationGitBlob":  "38227449dac8d678617852f46505e4c27fca8ed9",
+                      "scratchGitBlob":  "38227449dac8d678617852f46505e4c27fca8ed9",
+                      "sha256Worktree":  "00795c8bd457a6f4dfeb95eacc7e61f4defaeea9aa7a0c00f7866f3e7ef44856"
+                  },
+                  {
+                      "path":  "frontend/tests/hotel-router-integration.test.mjs",
+                      "integrationGitBlob":  "d92630560b38f04dfd236f698334e0db26b279b3",
+                      "scratchGitBlob":  "d92630560b38f04dfd236f698334e0db26b279b3",
+                      "sha256Worktree":  "de1a89f415add58accfd1e22d9034659eead0de4f90239188bb9e0e5a5e9063a"
+                  },
+                  {
+                      "path":  "frontend/tests/independent-browser.mjs",
+                      "integrationGitBlob":  "56a68b700d1e24d4165984d65e091fccd05c3b40",
+                      "scratchGitBlob":  "56a68b700d1e24d4165984d65e091fccd05c3b40",
+                      "sha256Worktree":  "605dbaa1b418b3d47a76ea82f6068c51d3a6507c1595fd5958dd1f69381670ac"
+                  },
+                  {
+                      "path":  "frontend/tests/independent-fixtures.mjs",
+                      "integrationGitBlob":  "1f65f9191acafaa48cc08cdd9bd12f5385568be7",
+                      "scratchGitBlob":  "1f65f9191acafaa48cc08cdd9bd12f5385568be7",
+                      "sha256Worktree":  "bf5602dff3db088ceb83294f7b121ee6fb787ef2c256bc0fbbd80dfb775e0683"
+                  },
+                  {
+                      "path":  "frontend/tests/mock-data.test.mjs",
+                      "integrationGitBlob":  "ae7753cf008a5e16dfa4ca8bb8182886e4a34720",
+                      "scratchGitBlob":  "ae7753cf008a5e16dfa4ca8bb8182886e4a34720",
+                      "sha256Worktree":  "19e8091a059b69bc9f3676779ce52bb21ed29039e11f84d145d82684a3a0441d"
+                  },
+                  {
+                      "path":  "frontend/tests/revoke-user-role-api.test.mjs",
+                      "integrationGitBlob":  "c556fd2d4e2f47fbb3269b27ce2d97b27ba1e494",
+                      "scratchGitBlob":  "c556fd2d4e2f47fbb3269b27ce2d97b27ba1e494",
+                      "sha256Worktree":  "5ad312f59f065e1bcd7b43b1ab7f211fa746a1d7f13d8dcb56c44cd326ff49fd"
+                  },
+                  {
+                      "path":  "frontend/tests/revoke-user-role-browser.test.mjs",
+                      "integrationGitBlob":  "3d2fc21a166ff2b357001800c85ec2459171f206",
+                      "scratchGitBlob":  "3d2fc21a166ff2b357001800c85ec2459171f206",
+                      "sha256Worktree":  "f924b37f95e29ebb4d0112126d2c2bb1df4161d37e2cec2f527386b5989e7c01"
+                  },
+                  {
+                      "path":  "frontend/tests/role-catalog-api.test.mjs",
+                      "integrationGitBlob":  "57793ffc6b98ff761e0f0f314e5998bebe01efa0",
+                      "scratchGitBlob":  "57793ffc6b98ff761e0f0f314e5998bebe01efa0",
+                      "sha256Worktree":  "051f46323c3f0110ae27d34c247c161ef78c5a240e0a73815e8823e5aff0b962"
+                  },
+                  {
+                      "path":  "frontend/tests/role-catalog-browser.test.mjs",
+                      "integrationGitBlob":  "b40c248b2761525b03cb79b0443b9e655a69e012",
+                      "scratchGitBlob":  "b40c248b2761525b03cb79b0443b9e655a69e012",
+                      "sha256Worktree":  "bc40eb1b52a4f29027fcaed4238b8bf3f1e586ba1b6c294d0145b470df9ec95f"
+                  },
+                  {
+                      "path":  "frontend/tests/role-catalog-fixtures.mjs",
+                      "integrationGitBlob":  "d4540ae580fb5e7bb473d4864135782f6757ec68",
+                      "scratchGitBlob":  "d4540ae580fb5e7bb473d4864135782f6757ec68",
+                      "sha256Worktree":  "106b1d1ebaca7cf638afd73608a11e1aec2acfeb154a6afa73c34c8b38750d4b"
+                  },
+                  {
+                      "path":  "frontend/tests/room-lifecycle-api.test.mjs",
+                      "integrationGitBlob":  "ea7b297cb353b02f295b760da30281b4bf5ab896",
+                      "scratchGitBlob":  "ea7b297cb353b02f295b760da30281b4bf5ab896",
+                      "sha256Worktree":  "d68e7fb312bc28bd6906a6239112cd434eebcd865fd6a2d59a00062293f127e5"
+                  },
+                  {
+                      "path":  "frontend/tests/room-lifecycle-browser.test.mjs",
+                      "integrationGitBlob":  "f262434f383b7e429548abaa96b0f5f95eb36269",
+                      "scratchGitBlob":  "f262434f383b7e429548abaa96b0f5f95eb36269",
+                      "sha256Worktree":  "e583418231a56ca1514c290320bdf6be804853e405d85eaed8476e057ebb0b42"
+                  },
+                  {
+                      "path":  "frontend/tests/scheduled-workday-api.test.mjs",
+                      "integrationGitBlob":  "85d009cea24b447b3653498b66db65f421976d4d",
+                      "scratchGitBlob":  "85d009cea24b447b3653498b66db65f421976d4d",
+                      "sha256Worktree":  "838760d16df7f86051710436558edc46fce2ec9e995308acac5d7d90cbd3fa2e"
+                  },
+                  {
+                      "path":  "frontend/tests/scheduled-workday-browser.test.mjs",
+                      "integrationGitBlob":  "db7faf3ab545aad1bfee34dd9177266d6e0c6266",
+                      "scratchGitBlob":  "db7faf3ab545aad1bfee34dd9177266d6e0c6266",
+                      "sha256Worktree":  "aa98b9304a8afcbf4818a40180d744d768a04415313879bd147cf6b2a0a1103e"
+                  },
+                  {
+                      "path":  "frontend/tests/secure-shift-plan-browser.test.mjs",
+                      "integrationGitBlob":  "fbc201c68e812745ed9875c4b3a29070ed7d3788",
+                      "scratchGitBlob":  "fbc201c68e812745ed9875c4b3a29070ed7d3788",
+                      "sha256Worktree":  "c259ed60a816b50b5f15fed82edd51b67b3d21f118103b0779a4c26294417cae"
+                  },
+                  {
+                      "path":  "frontend/tests/shift-plan-api.test.mjs",
+                      "integrationGitBlob":  "995c97fc7a1ee8ffd2c6e387e1cad1329f59966a",
+                      "scratchGitBlob":  "995c97fc7a1ee8ffd2c6e387e1cad1329f59966a",
+                      "sha256Worktree":  "6b5d84839788cbe089a69a599a7367cf72559cdaa5bf2add0ef8020d12c6bc1b"
+                  },
+                  {
+                      "path":  "frontend/tests/shift-plan-preview-browser.test.mjs",
+                      "integrationGitBlob":  "e61bf9fa5c65c54ca7fb0da3d19221412664ec0b",
+                      "scratchGitBlob":  "e61bf9fa5c65c54ca7fb0da3d19221412664ec0b",
+                      "sha256Worktree":  "deabb1c76382d2f49b6ae3d62b959d583fa416478780eafea01c499c46ec8175"
+                  },
+                  {
+                      "path":  "frontend/tests/shift-plan-preview.test.mjs",
+                      "integrationGitBlob":  "5178feeb471323ba7dd13818981f5ab62b9c4ed8",
+                      "scratchGitBlob":  "5178feeb471323ba7dd13818981f5ab62b9c4ed8",
+                      "sha256Worktree":  "fb193d90d211cffe2d6591a2c4de7cc353e3119e78a78188d943c91d9f780b87"
+                  },
+                  {
+                      "path":  "frontend/tests/structure-deactivation-api.test.mjs",
+                      "integrationGitBlob":  "7eae1a035aaef262f12532b423dbf19e2fe7cf17",
+                      "scratchGitBlob":  "7eae1a035aaef262f12532b423dbf19e2fe7cf17",
+                      "sha256Worktree":  "149340d2ccba03a869baeab1a6214e54914128d66159704ea72cbeebfb57fcc1"
+                  },
+                  {
+                      "path":  "frontend/tests/structure-deactivation-browser.test.mjs",
+                      "integrationGitBlob":  "77c92c8efd63b4c5d836f1ecfde9a39feb90b781",
+                      "scratchGitBlob":  "77c92c8efd63b4c5d836f1ecfde9a39feb90b781",
+                      "sha256Worktree":  "cdf20835f76390ba350f10b393b3678cbcfb622f1f16869f331d849fc6aeae86"
+                  },
+                  {
+                      "path":  "frontend/tests/structure-dependency-review.test.mjs",
+                      "integrationGitBlob":  "e27667f981e94a101c64dd0bb4346a89885a21e0",
+                      "scratchGitBlob":  "e27667f981e94a101c64dd0bb4346a89885a21e0",
+                      "sha256Worktree":  "b0e726429478e27507c2d06b727bf5c503945babc8ec0b0bcdac0293c062db01"
+                  },
+                  {
+                      "path":  "frontend/tests/structure-tree-api.test.mjs",
+                      "integrationGitBlob":  "6fe1c88190be456c7607ae2d3f5be2430001e6cb",
+                      "scratchGitBlob":  "6fe1c88190be456c7607ae2d3f5be2430001e6cb",
+                      "sha256Worktree":  "489071d9bd65c01622d63f2d13ac9981bec164d3d9d14e09edb882c00ac7139c"
+                  },
+                  {
+                      "path":  "frontend/tests/structure-tree-browser.test.mjs",
+                      "integrationGitBlob":  "3a3a12d2e06f5ab2c1f4ca3de4714e532694f077",
+                      "scratchGitBlob":  "3a3a12d2e06f5ab2c1f4ca3de4714e532694f077",
+                      "sha256Worktree":  "6072dd12a332def5e14163bc677782f16de212de3bae372078606d8fe84c1745"
+                  },
+                  {
+                      "path":  "frontend/tests/update-user-router-integration.test.mjs",
+                      "integrationGitBlob":  "58049498216425e16192bf2f31ec7eea2af977ed",
+                      "scratchGitBlob":  "58049498216425e16192bf2f31ec7eea2af977ed",
+                      "sha256Worktree":  "30238a3f5f19e17bb02d13fd70b3e7cfa4afcd1169f64221403287ae948337a2"
+                  },
+                  {
+                      "path":  "frontend/tests/user-activation-api.test.mjs",
+                      "integrationGitBlob":  "d6b516edac3337107ed1301deab7d6585cb5d4e4",
+                      "scratchGitBlob":  "d6b516edac3337107ed1301deab7d6585cb5d4e4",
+                      "sha256Worktree":  "8526318a90dec5a6c6f327a6c17fc71b137bc76149ab92131c62d430de33ea0f"
+                  },
+                  {
+                      "path":  "frontend/tests/user-branch-membership-api.test.mjs",
+                      "integrationGitBlob":  "32c5ec19bafa9d26710ad5caef60d9906434c18c",
+                      "scratchGitBlob":  "32c5ec19bafa9d26710ad5caef60d9906434c18c",
+                      "sha256Worktree":  "67d9856acda7fb06f85b614da93be1b9065e51966582975aa659371f42778251"
+                  },
+                  {
+                      "path":  "frontend/tests/user-profile-api.test.mjs",
+                      "integrationGitBlob":  "76a7bbb7c1b2a0988b163f020f8a85165d186b76",
+                      "scratchGitBlob":  "76a7bbb7c1b2a0988b163f020f8a85165d186b76",
+                      "sha256Worktree":  "910b1271ca3bfc3f216de16b097bd9f329d7faaeefd8fd572b745c16db3f44a3"
+                  },
+                  {
+                      "path":  "frontend/tests/user-role-assignment-api.test.mjs",
+                      "integrationGitBlob":  "1987c852fb843d0c07d138a513cb3ddef0d14d8c",
+                      "scratchGitBlob":  "1987c852fb843d0c07d138a513cb3ddef0d14d8c",
+                      "sha256Worktree":  "f320d586a57469b94a24a9491e5453b4ec611299c936e7e569794b15813ff1b8"
+                  },
+                  {
+                      "path":  "frontend/tests/users-api.test.mjs",
+                      "integrationGitBlob":  "4f277b607fef5ef776602cfbc2d6039f4a1cf133",
+                      "scratchGitBlob":  "4f277b607fef5ef776602cfbc2d6039f4a1cf133",
+                      "sha256Worktree":  "d7945cafe9ed73d3e3845807254cdef1159af964b687969c5a9eca7852c69c56"
+                  },
+                  {
+                      "path":  "frontend/tests/users-router-integration.test.mjs",
+                      "integrationGitBlob":  "6d0866cfebe35ec0e7c4f486a2615d377e7dc207",
+                      "scratchGitBlob":  "6d0866cfebe35ec0e7c4f486a2615d377e7dc207",
+                      "sha256Worktree":  "a940b9b3d5e2e59542a8865d545b9e1fa365e6051038120c7ea1c83ecb0b5881"
+                  },
+                  {
+                      "path":  "frontend/tests/workday-api.test.mjs",
+                      "integrationGitBlob":  "d736195533eb82e1137b8718a32dad40653f1529",
+                      "scratchGitBlob":  "d736195533eb82e1137b8718a32dad40653f1529",
+                      "sha256Worktree":  "1502a8d839f5e5b6667429d3a9697ec28af5de667b1c372e2de9160836e8cba2"
+                  },
+                  {
+                      "path":  "frontend/tests/workday-browser.test.mjs",
+                      "integrationGitBlob":  "891f5e5ff2e868f090a3030e3b91f99261579c29",
+                      "scratchGitBlob":  "891f5e5ff2e868f090a3030e3b91f99261579c29",
+                      "sha256Worktree":  "b23a8203d13641b200d96e648dd42ab04ede0afe3f7760d61956bba80128b14c"
+                  },
+                  {
+                      "path":  "frontend/tests/workday-fixtures.mjs",
+                      "integrationGitBlob":  "3214f0eac726dbb1e9ab64ef84f4458c14cec4a8",
+                      "scratchGitBlob":  "3214f0eac726dbb1e9ab64ef84f4458c14cec4a8",
+                      "sha256Worktree":  "33ccb2a7a06d79798772fadcddd3af921423de580aed8f1cd90f4e32c8e04b0b"
+                  },
+                  {
+                      "path":  "frontend/tests/workday-router.test.mjs",
+                      "integrationGitBlob":  "3725f301ac162da71cda460e2b3d7cb5b8d6b905",
+                      "scratchGitBlob":  "3725f301ac162da71cda460e2b3d7cb5b8d6b905",
+                      "sha256Worktree":  "52eb8355a713635982e8551b4964878b46fee612b485df9a4c29bac985aaf041"
+                  },
+                  {
+                      "path":  "frontend/tests/workflows.test.mjs",
+                      "integrationGitBlob":  "726ecba3e340db1caa28fbd9b2ca3a17247e65b3",
+                      "scratchGitBlob":  "726ecba3e340db1caa28fbd9b2ca3a17247e65b3",
+                      "sha256Worktree":  "53c037cc7f79dbbb133e31bb48a71d8d8ec4098bc3e7527a6f9db379cf420f1a"
+                  },
+                  {
+                      "path":  "frontend/tsconfig.json",
+                      "integrationGitBlob":  "2d791609365cb96af8f38af699c32582fa1313f6",
+                      "scratchGitBlob":  "2d791609365cb96af8f38af699c32582fa1313f6",
+                      "sha256Worktree":  "545322f8604dff8984ae98ca3e9738610cb559f04f49290206850fa8a62c104e"
+                  },
+                  {
+                      "path":  "frontend/vercel.json",
+                      "integrationGitBlob":  "4de4693f8f722c3858b614cb671a1db63b7a56ed",
+                      "scratchGitBlob":  "4de4693f8f722c3858b614cb671a1db63b7a56ed",
+                      "sha256Worktree":  "5d9e53a93fe4f254f50d98c4936f1e216ac5c4d325ef28f26d123b9315e173f4"
+                  },
+                  {
+                      "path":  "frontend/vite.config.ts",
+                      "integrationGitBlob":  "d0610b15a8985a29e878b17a63da933804d3aed9",
+                      "scratchGitBlob":  "d0610b15a8985a29e878b17a63da933804d3aed9",
+                      "sha256Worktree":  "65c3ad6d04bdd64186bc83b1161f2a027b287fab5d6ef31f6c90d6fe64f250bb"
+                  }
+              ]
+}

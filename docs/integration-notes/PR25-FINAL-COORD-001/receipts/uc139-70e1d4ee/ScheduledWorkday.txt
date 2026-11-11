@@ -1,0 +1,56 @@
+<WORKTREE>\scripts\verification\ScheduledWorkday\ScheduledWorkday.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\ScheduledWorkday\ScheduledWorkday.Verification.csproj]
+<WORKTREE>\scripts\verification\ScheduledWorkday\ScheduledWorkday.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS: mutation controller remains inactive
+PASS: scheduled start POST template
+PASS: end POST route
+PASS: start early identity gate False
+PASS: end early identity gate False
+PASS: start early identity gate True
+PASS: end early identity gate True
+PASS: start payload
+PASS: caller identity body rejected
+PASS: caller identity body rejected
+PASS: explicit no pause-all
+PASS: invalid ETag rejected *
+PASS: invalid ETag rejected W/"AAAAAAAAAAE="
+PASS: invalid ETag rejected "bad"
+PASS: invalid ETag rejected "AAAAAAAAAAF="
+PASS: HTTPS before scheduled service
+PASS: service boundary source: IsolationLevel.Serializable
+PASS: service boundary source: participant.LockUsersAsync([actor.UserId]
+PASS: service boundary source: sessions.ValidateSessionAsync(ticket
+PASS: service boundary source: ticket.UserId != actor.UserId
+PASS: service boundary source: Authorize("ATTENDANCE_RECORD"
+PASS: service boundary source: a.UserId == actor.UserId && a.Shift.BranchId == branchId
+PASS: service boundary source: TIME_STALE
+PASS: service boundary source: MSG31_PAUSE_ALL_REQUIRED
+PASS: service boundary source: UNSCHEDULED_NOTIFICATION_UNAVAILABLE
+PASS: service boundary source: PAUSE_ALL_UNAVAILABLE
+PASS: participant invariant source: new UserEligibilityLock(db).LockAsync
+PASS: participant invariant source: sp_getapplock
+PASS: participant invariant source: RequireLocks(actorUserId)
+PASS: participant invariant source: Working(actorUserId).AnyAsync
+PASS: participant invariant source: assignment.UserId != actorUserId
+PASS: participant invariant source: assignment.AssignmentStatus != "ASSIGNED"
+PASS: participant invariant source: shift.BranchId != branchId
+PASS: participant invariant source: x.IsActive
+PASS: participant invariant source: day.RowVersion.AsSpan().SequenceEqual(expectedRowVersion)
+PASS: participant invariant source: Open(actorUserId).AnyAsync
+PASS: participant invariant source: x.RowVersion == expectedRowVersion
+PASS: participant invariant source: SetProperty(x => x.Status, "ENDED")
+PASS: participant invariant source: "CREATE"
+PASS: participant invariant source: "UPDATE"
+PASS: participant invariant source: db.SaveChangesAsync
+PASS: user-first source ordering
+PASS: transaction disposal/commit boundary source
+PASS: claim behavior: fresh assignments eligible
+PASS: claim behavior: working claim omitted
+PASS: claim behavior: End never releases assignment claim
+PASS: claim behavior: unscheduled history does not consume unrelated assignment
+PASS: claim behavior: inconsistent ownership history fails closed
+PASS: claim behavior: duplicate history does not multiply eligible rows
+PASS: claim behavior: replay after End denied by writer query
+PASS: SQL adapter translates claim anti-join without connection; execution NOT_RUN
+RESULT: 51 PASS. SQL success/race/cancellation/rollback acceptance NOT RUN.

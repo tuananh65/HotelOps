@@ -1,0 +1,35 @@
+✔ real preview transport exact scoped URL, CSRF and strict body (28.8605ms)
+✔ Save default OFF sends no request (0.2697ms)
+✔ Save confirmed only with exact counts (0.869ms)
+✔ preflight 401 never sends POST and preserves status (1.6168ms)
+✔ preflight 403 never sends POST and preserves status (0.7541ms)
+✔ preflight 503 never sends POST and preserves status (0.4422ms)
+✔ preview denied/unavailable 400 sanitized, no retry (0.7991ms)
+✔ preview denied/unavailable 401 sanitized, no retry (0.6074ms)
+✔ preview denied/unavailable 403 sanitized, no retry (0.4489ms)
+✔ preview denied/unavailable 500 sanitized, no retry (0.4839ms)
+✔ preview denied/unavailable 503 sanitized, no retry (0.3923ms)
+✔ malformed preview {"rows":[{"index":0,"startUtc":"2028-02-29T08:00:00Z","endUtc":"2028-02-29T16:00:00Z","issues":[]}],"requiresServerRevalidation":false} (0.3841ms)
+✔ malformed preview {"rows":[],"requiresServerRevalidation":true} (0.2955ms)
+✔ malformed preview {"rows":[{"index":0,"startUtc":null,"endUtc":null,"issues":[99]}],"requiresServerRevalidation":true} (0.4057ms)
+✔ malformed preview {} (0.3123ms)
+✔ invalid or mixed request never dispatched 0 (1.0805ms)
+✔ invalid or mixed request never dispatched 2 (0.1643ms)
+✔ invalid or mixed request never dispatched 1 (0.1285ms)
+✔ invalid or mixed request never dispatched 1 (0.1397ms)
+✔ invalid or mixed request never dispatched 501 (0.1334ms)
+✔ Save network uncertainty has no replay (0.5179ms)
+✔ Save incomplete receipt is unknown {"createdShifts":0,"createdAssignments":1,"notificationCount":1} (0.3965ms)
+✔ Save incomplete receipt is unknown {"createdShifts":1,"createdAssignments":2,"notificationCount":1} (0.3529ms)
+✔ Save incomplete receipt is unknown {"createdShifts":1,"createdAssignments":1,"notificationCount":0} (0.3346ms)
+✔ concurrent preview and Save do not queue or overlap (0.5272ms)
+✔ draft snapshot cannot be replaced while bootstrap awaits (0.3595ms)
+✔ cancelled preflight has no invented status (0.1958ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 176.6546

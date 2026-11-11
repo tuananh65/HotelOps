@@ -1,0 +1,8 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/RoomLifecycleCandidate/RoomLifecycleCandidate.Verification.csproj --no-launch-profile",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "startedUtc":  "2026-11-11T06:18:49.4883550Z",
+    "exitCode":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/RoomLifecycleCandidate.txt",
+    "sqlExecution":  "NOT_RUN"
+}

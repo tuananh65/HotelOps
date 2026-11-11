@@ -29,7 +29,23 @@ using (var doc = JsonDocument.Parse("{\"reason\":\"  1234567890  \"}"))
 Check(!new UserAccountDeactivationRequest("  valid reason text ").IsValid, "direct service input cannot bypass trimmed reason");
 Check(!typeof(UserAccountDeactivationService).Assembly.GetTypes().Any(t => t.Name == "UserAccountDeactivationController"),
     "no Deactivate controller registered in API assembly");
-if (args.Length == 0) { Console.WriteLine($"PASS: {checks.Count} independent checks; SQL NOT RUN"); return; }
+if (args.Length == 0)
+{
+    using var closedConnection = new SqlConnection();
+    using var noSql = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(closedConnection).Options);
+    var ticket = SessionReference.FromProtectedTicket(7, new string('A', 43), false, DateTime.UtcNow);
+    var restrictedTicket = SessionReference.FromProtectedTicket(7, new string('A', 43), true, DateTime.UtcNow);
+    var service = new UserAccountDeactivationService(noSql, null!, new Identity(7, 70), null!, TimeProvider.System);
+    Check((await service.DeactivateAsync(restrictedTicket, 70, 8, new byte[8], new("Valid reason text"), default)).Status == AccountDeactivationStatus.Forbidden,
+        "restricted ticket denied even if current accessor is unrestricted");
+    Check((await service.DeactivateAsync(ticket, 0, 8, new byte[8], new("Valid reason text"), default)).Status == AccountDeactivationStatus.SessionInvalid,
+        "invalid session cannot enter transaction");
+    Check((await service.DeactivateAsync(ticket, 70, 7, new byte[8], new("Valid reason text"), default)).Status == AccountDeactivationStatus.Forbidden,
+        "self deactivation denied before dependency reads");
+    Check(closedConnection.State == System.Data.ConnectionState.Closed && !noSql.ChangeTracker.Entries().Any(),
+        "denied identities do not open SQL or track protected records");
+    Console.WriteLine($"PASS: {checks.Count} independent checks; SQL NOT RUN"); return;
+}
 if ((args.Length != 2 && !(args.Length == 3 && args[2] is "--readiness" or "--gates" or "--returnwork" or "--contracts" or "--writers"))
     || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$") || File.Exists(args[1]))
     throw new ArgumentException("Guarded disposable trial name and NEW receipt required.");

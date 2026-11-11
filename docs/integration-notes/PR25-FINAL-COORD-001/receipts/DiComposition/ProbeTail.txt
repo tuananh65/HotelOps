@@ -1,0 +1,23 @@
+// Probe only: configure an unopened placeholder; do not execute production startup SQL.
+builder.Configuration["ConnectionStrings:HotelOpsDb"] = "Server=invalid;Database=unopened;Integrated Security=true";
+builder.Host.UseDefaultServiceProvider(options => { options.ValidateOnBuild = true; options.ValidateScopes = true; });
+// The sandbox cannot write Windows Event Log. Keep probe diagnostics on console.
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+int checks = 0;
+void Check(bool value, string label) { if (!value) throw new Exception("FAIL " + label); checks++; Console.WriteLine("PASS " + label); }
+foreach (var type in new[] { typeof(HotelOps.Api.Services.Dependencies.Dev2DependencyReader), typeof(HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority), typeof(HotelOps.Api.Services.Notifications.Fe12MaintenanceDependencyAdapter) })
+    Check(builder.Services.Count(d => d.ServiceType == type && d.Lifetime == Microsoft.Extensions.DependencyInjection.ServiceLifetime.Scoped) == 1, "exactly one scoped " + type.Name);
+await using var app = builder.Build();
+Check(true, "actual Program service registrations validate on build");
+await using var scope = app.Services.CreateAsyncScope();
+foreach (var type in new[] { typeof(HotelOps.Api.Services.Dependencies.Dev2DependencyReader), typeof(HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority), typeof(HotelOps.Api.Services.Notifications.Fe12MaintenanceDependencyAdapter), typeof(IAssetService), typeof(IIncidentService), typeof(ICurrentUserAccessor), typeof(IPermissionService), typeof(ISqlSessionService) })
+    Check(scope.ServiceProvider.GetRequiredService(type) != null, "resolve " + type.Name);
+var assets = scope.ServiceProvider.GetRequiredService<IAssetService>();
+var incidents = scope.ServiceProvider.GetRequiredService<IIncidentService>();
+Check(typeof(AssetService).GetFields(System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Single(f => f.FieldType == typeof(HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority)).GetValue(assets) != null, "Asset writer receives trusted placement authority");
+Check(typeof(IncidentService).GetField("_placementAuthority", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(incidents) != null, "Incident writer receives trusted placement authority");
+var db = scope.ServiceProvider.GetRequiredService<HotelOpsDbContext>();
+Check(db.Database.GetDbConnection().State == System.Data.ConnectionState.Closed && !db.ChangeTracker.Entries().Any(), "DI probe opens no SQL and tracks no entities");
+Check(!builder.Services.Any(d => d.ServiceType.Name.Contains("Notification") && typeof(Microsoft.Extensions.Hosting.IHostedService).IsAssignableFrom(d.ImplementationType ?? d.ServiceType)), "no Notification hosted worker registration");
+Console.WriteLine($"RESULT: {checks} PASS; DI only, no production startup validator, SQL, HTTP listener or writes.");

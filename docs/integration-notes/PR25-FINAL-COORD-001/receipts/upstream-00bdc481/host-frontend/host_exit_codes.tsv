@@ -1,0 +1,5 @@
+test_file	exit_code
+shift-plan-api.test.mjs	0
+secure-shift-plan-browser.test.mjs	0
+shift-plan-preview.test.mjs	1
+shift-plan-preview-browser.test.mjs	0

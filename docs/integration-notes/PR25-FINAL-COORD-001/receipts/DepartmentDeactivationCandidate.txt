@@ -1,0 +1,30 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\DepartmentDeactivationCandidate\DepartmentDeactivationCandidate.Verification.csproj]
+<WORKTREE>\scripts\verification\DepartmentDeactivationCandidate\DepartmentDeactivationCandidate.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\DepartmentDeactivationCandidate\DepartmentDeactivationCandidate.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS Department mutation absent from actual MVC discovery
+PASS Workday writes remain inactive
+PASS CSRF metadata retained
+PASS strict existing DTO rejects overposting
+PASS strict existing DTO rejects overposting
+PASS direct service remains fail-closed
+PASS no SQL connection or mutation before acceptance
+PASS reason confirmation guard
+PASS reason confirmation guard
+PASS reason confirmation guard
+PASS reason confirmation guard
+PASS wrong ETag denied
+PASS wrong ETag denied
+PASS positive branch binding required
+PASS actor mismatch denied
+PASS session replacement denied
+PASS restricted denied
+PASS cancellation before SQL
+PASS duplicate direct calls never activate candidate
+PASS immutable dependency/writer/audit/SQL gates
+PASS HTTPS required
+PASS cookie required
+PASS If-Match required
+PASS malformed If-Match rejected
+PASS valid candidate HTTP remains unavailable
+25/25 checks PASS. SQL mutation/dependency/rollback NOT_RUN.
