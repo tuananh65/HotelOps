@@ -1,0 +1,9 @@
+﻿{
+    "command":  "dotnet test HotelOps.slnx",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "exitCode":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/solution_test.txt",
+    "discoveredTests":  0,
+    "qualification":  "Solution contains only API project; not a test PASS",
+    "sqlExecution":  "NOT_RUN"
+}

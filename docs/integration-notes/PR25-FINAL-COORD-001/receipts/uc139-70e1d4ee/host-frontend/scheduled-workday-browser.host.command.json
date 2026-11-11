@@ -1,0 +1,16 @@
+﻿{
+    "command":  "node --test tests/scheduled-workday-browser.test.mjs",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC138-95d870a47f684d9c9ad4425afdbf4950",
+    "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+    "integrationParent":  "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+    "exitCode":  0,
+    "exitCodeProvenance":  "Explicit Windows host attestation in Project Leader request; raw Node receipt contains successful 47-test summary but no process exit line",
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/host-frontend/scheduled-workday-browser.host.txt",
+    "pass":  47,
+    "fail":  0,
+    "skip":  0,
+    "cancelled":  0,
+    "todo":  0,
+    "sqlExecution":  "NOT_RUN",
+    "execution":  "Windows host; reconciled by Codex without rerunning tests"
+}

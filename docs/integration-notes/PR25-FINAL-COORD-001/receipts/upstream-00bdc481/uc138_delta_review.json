@@ -1,0 +1,32 @@
+﻿{
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "previousIntegration":  "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+    "integrationParent":  "00bdc481cb224d7117a79c95669abc7016f51ba4",
+    "upstreamCommits":  2,
+    "changedPaths":  [
+                         "docs/fullstack-integration/DEV3-NEXT-026/CONTRACT_AND_HANDOFF.md",
+                         "frontend/src/workday/SecureShiftPlanWorkspace.tsx",
+                         "frontend/src/workday/ShiftPlanPreviewPanel.tsx",
+                         "frontend/src/workday/shiftPlanApi.ts",
+                         "frontend/tests/secure-shift-plan-browser.test.mjs",
+                         "frontend/tests/shift-plan-api.test.mjs",
+                         "scripts/verification/SecureShiftPreview/Program.cs",
+                         "scripts/verification/SecureShiftPreview/SecureShiftPreview.Verification.csproj",
+                         "src/HotelOps.Api/Controllers/ShiftPlanPreviewController.cs",
+                         "src/HotelOps.Api/Services/WorkTime/SecureShiftPlanPreview.cs",
+                         "src/HotelOps.Api/Services/WorkTime/ShiftPlanSaveService.cs",
+                         "src/HotelOps.Api/Services/WorkTime/SqlSecureShiftPreview.cs"
+                     ],
+    "stagedIntegrationPathCount":  122,
+    "publicPreview":  "NonController; no Program.cs registration",
+    "publicSave":  "NonController plus immutable pre-SQL PendingReleaseGates; 58-check runner verifies direct-call 503 and closed connection",
+    "notification":  "No producer/worker or accepted durable participant registered; Save gates unchanged",
+    "workday":  "WorkdaysController still NonController; 44 routing and 43 scheduled checks passed",
+    "maintenanceAdapter":  "unchanged from original accepted PR25; original24 retained",
+    "sql":  "NOT_RUN",
+    "sourceFixes":  [
+
+                    ],
+    "frontend":  "Final host27+7+12+49=95 PASS, all exits0,0FAIL,0SKIP; prior environment/input failures retained",
+    "hostCommitReady":  true
+}

@@ -1,0 +1,310 @@
+﻿{
+    "source":  {
+                   "featureHead":  "2140522457e89b974cf2d65c64515ec15d733fa9",
+                   "integrationParent":  "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+                   "postSyncSourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                   "headTreeSelfCheck":  "33ae51a1dbc228dc0338768ecbe9cd959dec0939",
+                   "algorithm":  "Read-only Git SHA1 tree reconstruction from stage-0 entries; HEAD tree self-check"
+               },
+    "strategy":  "Targeted UC13913-path regression; eight mandatory offline suites plus47 host browser tests; no historical rerun",
+    "build":  {
+                  "command":  "dotnet build HotelOps.slnx --nologo",
+                  "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                  "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                  "exitCode":  0,
+                  "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/build.txt",
+                  "sqlExecution":  "NOT_RUN",
+                  "warnings":  2,
+                  "errors":  0,
+                  "sha256Worktree":  "046359d84c12185d9afd4a0cdacfd105f0770ba209bfc4ad7bb1b6503eb5ba02"
+              },
+    "successfulBackendRuns":  [
+                                  {
+                                      "suite":  "Dev2NoSql",
+                                      "command":  "dotnet run --project tests/HotelOps.Dev3Unblock.NoSql/HotelOps.Dev3Unblock.NoSql.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  92,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/Dev2NoSql.txt",
+                                      "sha256Worktree":  "2e5de4d9c017694be0a4452cf1760bbd0f4adfd84c15584c96f9d385befd2305",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "BoundaryTests",
+                                      "command":  "dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps.Dev1.RegressionTests.csproj --filter FullyQualifiedName~BoundaryTests --nologo",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  67,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/BoundaryTests.txt",
+                                      "sha256Worktree":  "012c85179d5b740399f2a526d199b654fa29cdf4838f40d673049d9b066fca75",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "WorkdayReadRouting",
+                                      "command":  "dotnet run --project scripts/verification/WorkdayReadRouting/WorkdayReadRouting.Verification.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  44,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/WorkdayReadRouting.txt",
+                                      "sha256Worktree":  "85869db3b473f54dc111423e0ff0fb55ce8c111670a93b90ac6310367fcfea7b",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "ScheduledWorkday",
+                                      "command":  "dotnet run --project scripts/verification/ScheduledWorkday/ScheduledWorkday.Verification.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  51,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/ScheduledWorkday.txt",
+                                      "sha256Worktree":  "62e7cf93629f02922b81cb2fb215703eb2bfbfe6d28fb23462ff9517ee1583a9",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "ShiftSchedulePlanning",
+                                      "command":  "dotnet run --project scripts/verification/ShiftSchedulePlanning/ShiftSchedulePlanning.Verification.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  24,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/ShiftSchedulePlanning.txt",
+                                      "sha256Worktree":  "9b9a6565523f5a50de3a03b7600aac42176c39bd3294cbc1421bd0dda59993ea",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "ShiftPlanPreview",
+                                      "command":  "dotnet run --project scripts/verification/ShiftPlanPreview/ShiftPlanPreview.Verification.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  57,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/ShiftPlanPreview.txt",
+                                      "sha256Worktree":  "4395ce14a7ac4ddaa0426c119cde1d3022ee8dc71615d981fb7f747a825411fa",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "SecureShiftPreview",
+                                      "command":  "dotnet run --project scripts/verification/SecureShiftPreview/SecureShiftPreview.Verification.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  58,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  0,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/SecureShiftPreview.txt",
+                                      "sha256Worktree":  "36854aa4af1d5ab86dec3155362859a7faf048f731e6b2c08af23e04a8f9bf07",
+                                      "sqlExecution":  "NOT_RUN"
+                                  },
+                                  {
+                                      "suite":  "DiComposition",
+                                      "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+                                      "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+                                      "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                      "exitCode":  0,
+                                      "pass":  16,
+                                      "fail":  0,
+                                      "skip":  0,
+                                      "warningCodes":  [
+                                                           "NU1900"
+                                                       ],
+                                      "warningOccurrences":  4,
+                                      "modelWarning20602Occurrences":  3,
+                                      "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/DiComposition.txt",
+                                      "sha256Worktree":  "848d92ab44df9df705869a76606c8240a90b8791b36f43a0fc6fda69c1a1b2d0",
+                                      "sqlExecution":  "NOT_RUN"
+                                  }
+                              ],
+    "backendDiPass":  409,
+    "currentTreePass":  456,
+    "currentTreeFail":  0,
+    "currentTreeSkip":  0,
+    "frontend":  {
+                     "status":  "PASS_HOST_EXECUTED",
+                     "pass":  47,
+                     "fail":  0,
+                     "skip":  0,
+                     "discovered":  47,
+                     "cancelled":  0,
+                     "todo":  0,
+                     "execution":  {
+                                       "command":  "node --test tests/scheduled-workday-browser.test.mjs",
+                                       "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC138-95d870a47f684d9c9ad4425afdbf4950",
+                                       "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                                       "integrationParent":  "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+                                       "exitCode":  0,
+                                       "exitCodeProvenance":  "Explicit Windows host attestation in Project Leader request; raw Node receipt contains successful 47-test summary but no process exit line",
+                                       "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/host-frontend/scheduled-workday-browser.host.txt",
+                                       "pass":  47,
+                                       "fail":  0,
+                                       "skip":  0,
+                                       "cancelled":  0,
+                                       "todo":  0,
+                                       "sqlExecution":  "NOT_RUN",
+                                       "execution":  "Windows host; reconciled by Codex without rerunning tests",
+                                       "sha256Worktree":  "97ee27ccba1f12d50f9d12d01f46302f21684384e1c28ee683d8643896703700"
+                                   },
+                     "canonicalInputs":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/host-frontend/canonical_frontend_inputs.json",
+                     "canonicalGitBlobs":  415,
+                     "hostReportedScratchRepairs":  307,
+                     "qualification":  "Scratch environment preparation only; no tracked source changes; host attested exit0, independently parsed raw receipt and verified415 blobs"
+                 },
+    "hostFrontendRerunRequired":  false,
+    "hostCommitReady":  false,
+    "uc139AcceptanceRuntime":  "NOT_RUN",
+    "acceptanceReview":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/uc139-70e1d4ee/acceptance_safety_review.json",
+    "historical688":  {
+                          "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+                          "status":  "PREVIOUS_TREE_ONLY",
+                          "pass":  688,
+                          "countedInCurrent":  false
+                      },
+    "sqlAcceptance19":  "NOT_RUN",
+    "businessActivation":  "BLOCKED",
+    "hostStageRecheckRequired":  true,
+    "eofRepair":  {
+                      "status":  "PASS_WORKTREE_ONLY",
+                      "filesRepaired":  8,
+                      "backupDirectory":  "C:/Users/Admin/AppData/Local/Temp/HotelOps_PR25_EOF_BACKUP_20261111_163912",
+                      "backupsVerified":  true,
+                      "nonEofContentChanged":  false,
+                      "rawTestReceipts":  "UNCHANGED",
+                      "files":  [
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\01_SOURCE_PINS_AND_MERGE.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\01_SOURCE_PINS_AND_MERGE.md",
+                                        "originalSha256":  "af2def6b97a244bb2e21b2d8b5cd73316f29c40aaf3bc9cf563cbf502ebbcae7",
+                                        "originalBytes":  2147,
+                                        "repairedSha256":  "6b03df57b3afae9019c3f29197d295ac5bc8b2d66268c449745728d49bc22882",
+                                        "removedBytes":  2,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\03_COMBINED_SOURCE_GUARDS.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\03_COMBINED_SOURCE_GUARDS.md",
+                                        "originalSha256":  "5f690964495396377d743c85f33dd71aec01f02eca5da5785c34bd052e9dedc8",
+                                        "originalBytes":  3198,
+                                        "repairedSha256":  "f3d88e08f4c0231fd0cd93762a692e18195eff21d3ae1c5da61f85939735b6bb",
+                                        "removedBytes":  2,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\04_BUILD_AND_338_CHECK_RECEIPTS.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\04_BUILD_AND_338_CHECK_RECEIPTS.md",
+                                        "originalSha256":  "ecf9b8e3e3979c505df960acde9dec6b83e49a086be1ef775ae9ef38a2019ecc",
+                                        "originalBytes":  3068,
+                                        "repairedSha256":  "f902bd299fb2b660a9c9b66bacea6d11fb262505c49ac8e498cdec30b6ad4732",
+                                        "removedBytes":  4,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\06_DEV3_FINAL_REVIEW_REQUEST.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\06_DEV3_FINAL_REVIEW_REQUEST.md",
+                                        "originalSha256":  "d01fddf9169d7fe47c7dcbc634bc4b3eb87bd452868a14ade4aaa898de2b7173",
+                                        "originalBytes":  2271,
+                                        "repairedSha256":  "9235c77034d647331c8529e9175678f852852129cd75785cf8c23b14ae178c90",
+                                        "removedBytes":  2,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\09_PR25_DESCRIPTION.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\09_PR25_DESCRIPTION.md",
+                                        "originalSha256":  "874b089a183e1b37ba612f417bf90ff8c8b14dbbd30a84822108e00f33cbd2fe",
+                                        "originalBytes":  4304,
+                                        "repairedSha256":  "e34d54136d642aca0c9bf114ac051a21a6a6db2bc88dd1e07b54b529e7574043",
+                                        "removedBytes":  8,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\receipts\\history-688-85bd4cfa\\09_PR25_DESCRIPTION.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\receipts\\history-688-85bd4cfa\\09_PR25_DESCRIPTION.md",
+                                        "originalSha256":  "95c409c6e0670f81b3105c3c24817e300b06a724f87804b7985def2f32cec52f",
+                                        "originalBytes":  4402,
+                                        "repairedSha256":  "dcf33f4b4cc31d61bd46b9f1f93674a5fcccb689530fa7d24e6a6a5023908514",
+                                        "removedBytes":  4,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\receipts\\history-frontend-blocked\\09_PR25_DESCRIPTION.md",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\receipts\\history-frontend-blocked\\09_PR25_DESCRIPTION.md",
+                                        "originalSha256":  "08aab2e051ab64d5055ee916afccfa7fef64d11161628763f4f858ea5e05a04a",
+                                        "originalBytes":  4192,
+                                        "repairedSha256":  "79a5d648529b7274045a8a65fcdfed71a6de68688f71ea2ee4e3c324fbb3c4e0",
+                                        "removedBytes":  2,
+                                        "nonEofContentChanged":  false
+                                    },
+                                    {
+                                        "path":  "docs\\integration-notes\\PR25-FINAL-COORD-001\\receipts\\uc139-70e1d4ee\\Finalize-Uc139Evidence.ps1",
+                                        "backup":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps_PR25_EOF_BACKUP_20261111_163912\\receipts\\uc139-70e1d4ee\\Finalize-Uc139Evidence.ps1",
+                                        "originalSha256":  "a6f5a05389baf624de3040eac602dddb133918fc6c6b4c4a243c3006348a6634",
+                                        "originalBytes":  13687,
+                                        "repairedSha256":  "ed38beb0e3f59a0df195bd3abc6ebb92439ef5b631882dbaa92a46d41c33d68a",
+                                        "removedBytes":  2,
+                                        "nonEofContentChanged":  false
+                                    }
+                                ],
+                      "stagedValidation":  "NOT_RUN_PRE_REPAIR_INDEX",
+                      "generator":  "Not rerun; it does not generate the eight repaired file bodies; generator itself changed only at EOF",
+                      "testsRerun":  false,
+                      "strictWhitespaceWorktree":  {
+                                                       "status":  "PASS",
+                                                       "filesChecked":  208,
+                                                       "command":  "git diff --no-index --check -- /dev/null \u003ceach non-exempt evidence path\u003e",
+                                                       "allowedExitCodes":  [
+                                                                                0,
+                                                                                1
+                                                                            ],
+                                                       "exceptions":  "Only existing exact raw receipt paths from source_checks.json",
+                                                       "stagedCheck":  "PENDING_HOST_RESTAGE"
+                                                   }
+                  }
+}

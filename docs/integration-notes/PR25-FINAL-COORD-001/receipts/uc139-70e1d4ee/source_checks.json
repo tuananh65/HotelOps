@@ -1,0 +1,66 @@
+﻿{
+    "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+    "functionalWhitespaceExit":  0,
+    "original24Preserved":  true,
+    "unmergedPaths":  0,
+    "sourceFixes":  [
+
+                    ],
+    "integrationOwnedPaths":  132,
+    "secretPatternFindings":  [
+
+                              ],
+    "strictCurrentEvidenceWhitespaceFailures":  [
+
+                                                ],
+    "rawReceiptWhitespaceExceptions":  [
+                                           {
+                                               "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition.txt",
+                                               "trailingWhitespaceLines":  2,
+                                               "trailingBlankLines":  0,
+                                               "reason":  "Captured raw receipt bytes preserved; not functional code; no whitespace cleanup"
+                                           },
+                                           {
+                                               "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_environment_failure.txt",
+                                               "trailingWhitespaceLines":  3,
+                                               "trailingBlankLines":  0,
+                                               "reason":  "Captured raw receipt bytes preserved; not functional code; no whitespace cleanup"
+                                           },
+                                           {
+                                               "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_eventlog_failure.txt",
+                                               "trailingWhitespaceLines":  60,
+                                               "trailingBlankLines":  0,
+                                               "reason":  "Captured raw receipt bytes preserved; not functional code; no whitespace cleanup"
+                                           },
+                                           {
+                                               "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_final.txt",
+                                               "trailingWhitespaceLines":  60,
+                                               "trailingBlankLines":  0,
+                                               "reason":  "Captured raw receipt bytes preserved; not functional code; no whitespace cleanup"
+                                           },
+                                           {
+                                               "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_first_failure.txt",
+                                               "trailingWhitespaceLines":  2,
+                                               "trailingBlankLines":  0,
+                                               "reason":  "Captured raw receipt bytes preserved; not functional code; no whitespace cleanup"
+                                           },
+                                           {
+                                               "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_rerun.txt",
+                                               "trailingWhitespaceLines":  3,
+                                               "trailingBlankLines":  0,
+                                               "reason":  "Captured raw receipt bytes preserved; not functional code; no whitespace cleanup"
+                                           }
+                                       ],
+    "lineEndingPolicy":  "core.autocrlf=true; raw worktree SHA256 distinct from Git-normalized blob IDs; no attributes changes",
+    "frontend":  "47_PASS_HOST",
+    "sourceGuards":  "PASS_SOURCE_ONLY",
+    "eofRepairWorktree":  {
+                              "filesRepaired":  8,
+                              "strictWhitespace":  "PASS",
+                              "rawReceipts":  "UNCHANGED",
+                              "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+                              "sourceBlobs":  "24_PRESERVED",
+                              "hostStageRecheckRequired":  true,
+                              "stagedEvidence":  "PRE_REPAIR_INDEX_NOT_VALIDATED"
+                          }
+}

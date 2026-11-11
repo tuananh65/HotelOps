@@ -1,0 +1,8 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/UserAccountDeactivation/UserAccountDeactivation.Verification.csproj --no-launch-profile",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "exitCode":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/upstream-00bdc481/UserAccountDeactivation.txt",
+    "sqlExecution":  "NOT_RUN"
+}

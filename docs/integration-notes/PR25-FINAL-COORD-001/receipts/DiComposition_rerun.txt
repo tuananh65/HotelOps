@@ -1,0 +1,18 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj]
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+dotnet.exe : Unhandled exception. System.InvalidOperationException: Configure persistent, encrypted Data Protection 
+keys for this deployment before enabling HotelOps authentication outside Windows Development.
+At line:2 char:179
++ ... -profile'); & dotnet @arguments *> "$receiptRoot/DiComposition_rerun. ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep...ws Development.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+   at HotelOps.Api.Security.HotelOpsCookieInfrastructure.AddHotelOpsCookieInfrastructure(IServiceCollection services, 
+IHostEnvironment environment) in <WORKTREE>\src\HotelOps.Api\Se
+curity\HotelOpsCookieInfrastructure.cs:line 13
+   at Program.<Main>$(String[] args) in <WORKTREE>\docs\integra
+tion-notes\PR25-FINAL-COORD-001\receipts\DiComposition\Program.cs:line 80
+   at Program.<Main>(String[] args)

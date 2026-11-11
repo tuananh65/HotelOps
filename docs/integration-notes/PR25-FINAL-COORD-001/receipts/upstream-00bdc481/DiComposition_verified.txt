@@ -1,0 +1,27 @@
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj]
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS exactly one scoped Dev2DependencyReader
+PASS exactly one scoped Dev2PlacementAuthority
+PASS exactly one scoped Fe12MaintenanceDependencyAdapter
+PASS actual Program service registrations validate on build
+PASS resolve Dev2DependencyReader
+PASS resolve Dev2PlacementAuthority
+PASS resolve Fe12MaintenanceDependencyAdapter
+PASS resolve IAssetService
+PASS resolve IIncidentService
+PASS resolve ICurrentUserAccessor
+PASS resolve IPermissionService
+PASS resolve ISqlSessionService
+PASS Asset writer receives trusted placement authority
+PASS Incident writer receives trusted placement authority
+warn: Microsoft.EntityFrameworkCore.Model.Validation[20602]
+      The index named 'IX_room_types_default_checklist_v1' on the entity type 'RoomTypeBranchV1' specifies properties {'DefaultChecklistId'}, but none of these properties are mapped to a column in any table. This index will not be created in the database.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[20602]
+      The index named 'UX_room_types_branch_code' on the entity type 'RoomTypeBranchV1' specifies properties {'BranchId', 'TypeCode'}, but none of these properties are mapped to a column in any table. This index will not be created in the database.
+warn: Microsoft.EntityFrameworkCore.Model.Validation[20602]
+      The index named 'UX_room_types_legacy_code' on the entity type 'RoomTypeBranchV1' specifies properties {'TypeCode'}, but none of these properties are mapped to a column in any table. This index will not be created in the database.
+PASS DI probe opens no SQL and tracks no entities
+PASS no Notification hosted worker registration
+RESULT: 16 PASS; DI only, no production startup validator, SQL, HTTP listener or writes.

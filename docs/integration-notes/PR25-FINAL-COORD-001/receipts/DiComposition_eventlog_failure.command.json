@@ -1,0 +1,8 @@
+﻿{
+    "command":  "dotnet run --project docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition/DiComposition.csproj --no-launch-profile",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "exitCode":  1,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/DiComposition_eventlog_failure.txt",
+    "sqlExecution":  "NOT_RUN",
+    "qualification":  "actual Program.cs registration prefix; Windows Development; excludes startup schema validator and listener"
+}

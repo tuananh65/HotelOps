@@ -1,0 +1,13 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj]
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\obj\Debug\net10.0\Microsoft.AspNetCore.OpenApi.SourceGenerators\Microsoft.AspNetCore.OpenApi.SourceGenerators.XmlCommentGenerator\OpenApiXmlCommentSupport.generated.cs(597,10): error CS9137: The 'interceptors' feature is not enabled in this namespace. Add '<InterceptorsNamespaces>$(InterceptorsNamespaces);Microsoft.AspNetCore.OpenApi.Generated</InterceptorsNamespaces>' to your project. [<WORKTREE>\docs\integration-notes\PR25-FINAL-COORD-001\receipts\DiComposition\DiComposition.csproj]
+dotnet.exe : 
+At line:2 char:463
++ ... -profile'); & dotnet @arguments *> "$receiptRoot/DiComposition.txt";  ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+The build failed. Fix the build errors and run again.

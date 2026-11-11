@@ -1,0 +1,7 @@
+﻿{
+    "command":  "dotnet run --project scripts/verification/ShiftPlanPreview/ShiftPlanPreview.Verification.csproj --no-launch-profile",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001",
+    "exitCode":  0,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/ShiftPlanPreview.txt",
+    "sqlExecution":  "NOT_RUN"
+}

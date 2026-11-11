@@ -1,0 +1,1410 @@
+﻿{
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "scratchDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC138-95d870a47f684d9c9ad4425afdbf4950",
+    "originalRecordedInputs":  24,
+    "canonicalEntryGitBlob":  "df511371efb1dad1ff3b7516caa85a77a31ac009",
+    "canonicalEntrySha256":  "696a2e18688fcc65ba04a17cf4509bfca49d5b6598ab5d02f4c1893d5a8f4054",
+    "scratchSourceFileCount":  199,
+    "mismatchCount":  180,
+    "files":  [
+                  {
+                      "path":  "frontend/src/catalog.json",
+                      "indexBlob":  "b841c7c1c2ed73995c6a445515d60e3f429a036a",
+                      "scratchBlob":  "32a40fc0e4510b5db509df68312f090aebfc37c0",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/domain.ts",
+                      "indexBlob":  "c3149567f17848df04083176d1d73e9839aad172",
+                      "scratchBlob":  "35508ee0692477aac232ae43b8def0b380c33539",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/evidence.ts",
+                      "indexBlob":  "56c1be84e17262ec50ab245daafdd4d950390bcc",
+                      "scratchBlob":  "052ba8bcb44d2574d45eaf33203537f1aef46265",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/i18n.tsx",
+                      "indexBlob":  "c0ad4e6a61ddd6a679a8b4e28e0b6e7c5596b04e",
+                      "scratchBlob":  "a459ac9c9e49a9c4c5b58707e6d2b92a57a35dde",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/insights.tsx",
+                      "indexBlob":  "65494872c50f922f093e474396bc1979eb756efd",
+                      "scratchBlob":  "a39bd0eae4b01d6d5e60109ea16d430bf451232e",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/main.tsx",
+                      "indexBlob":  "cd9ac7756baa5479ce3853862a82a26692d07ca3",
+                      "scratchBlob":  "a423b704668cb328a0daa47ad24c19579ae042b5",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/report-engine.ts",
+                      "indexBlob":  "07d55a9072eb10b5137febdac7c9d2e7af7666e6",
+                      "scratchBlob":  "150c824fe2c8667db36bf1104fd294ae91f65beb",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/report-export.ts",
+                      "indexBlob":  "edda4d1e10f72cf2c5571f3744b48df5cc665dec",
+                      "scratchBlob":  "9694e41de484561546fdeec12e40058339319de3",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/services.ts",
+                      "indexBlob":  "f7ca98a6447234a0bc12adeed03f313819733218",
+                      "scratchBlob":  "c3a2b2093de76b48d2eb633ec81d93277f63d4fa",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/styles.css",
+                      "indexBlob":  "ce21bf32baf5ff8113e5ade540fa743e2d881144",
+                      "scratchBlob":  "0e5b5eeea9d9512f6ac35f38b8e0f6e930dbeb88",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/ui.tsx",
+                      "indexBlob":  "d84299387c8f1553e99794c662b44cda73460dc6",
+                      "scratchBlob":  "62b2ad223537baa555814097791e7859648b7d6c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/vite-env.d.ts",
+                      "indexBlob":  "11f02fe2a0061d6e6e1f271b21da95423b448b32",
+                      "scratchBlob":  "7d0ff9efa9d6b0fd823a2f371308a9f92c7771c1",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/auth/authApi.ts",
+                      "indexBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                      "scratchBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/auth/AuthProvider.tsx",
+                      "indexBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                      "scratchBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/auth/AuthRouteHost.tsx",
+                      "indexBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                      "scratchBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/auth/authStore.ts",
+                      "indexBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                      "scratchBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/auth/contracts.ts",
+                      "indexBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                      "scratchBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/auth/http.ts",
+                      "indexBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                      "scratchBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/branchMaintenanceApi.ts",
+                      "indexBlob":  "94ce839854b73b4b1a658c6062d7af3f2b4e7969",
+                      "scratchBlob":  "1abd61e7d4d169b6588bb8d75446637ecde8ff32",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/BranchMaintenancePanel.tsx",
+                      "indexBlob":  "daf3dfd7355570f9e5ab9630313b187ccc64698b",
+                      "scratchBlob":  "51d47246df3d4da5ef64c2b1e7cad27655507d22",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/BranchMaintenanceRoute.tsx",
+                      "indexBlob":  "1fa2a36fdae1f03f007dd0c1350e5f3277d240a5",
+                      "scratchBlob":  "bf77fa3fb8b4ce491feea014ec2097e5c0df1bec",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/contracts.ts",
+                      "indexBlob":  "304c89b3bfe5820ba606ad18cf42da82f16066a1",
+                      "scratchBlob":  "0fa9b94244a29fd52401d4c4bd6bfb5c2e628e42",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/createBranchApi.ts",
+                      "indexBlob":  "db35eb4c8eab536c481f8f34f17757c0849069a6",
+                      "scratchBlob":  "4ef4db012aeb36fbf0ccd6a791c940b0be8f7a77",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/createBranchContracts.ts",
+                      "indexBlob":  "4d5d96e63bfc55f1599f65604d1a7f6852a9f1ce",
+                      "scratchBlob":  "d82a53949d582d6892842b7ac28004304cddfa09",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/branch-maintenance/CreateBranchRoute.tsx",
+                      "indexBlob":  "61ff0329f66da1bb9552e93d4016d9e91bacb649",
+                      "scratchBlob":  "6efad9ae2fe0e0a7ffa7a0408f98ecff61084cfd",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/components/ScreenBoundary.tsx",
+                      "indexBlob":  "f373b56df2f45d5a63b5c52fca8db5be1d0be588",
+                      "scratchBlob":  "a7fb99a9b69d137541179e71ee000fce36baa4e0",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/components/StatusChart.tsx",
+                      "indexBlob":  "a2255cd8ae7b11f7224a9f14edc24337b1930940",
+                      "scratchBlob":  "911a2cd1ea507ea67effd06f61aa3bea3da61c46",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/components/ThemeToggle.tsx",
+                      "indexBlob":  "e2eac717731bd12a7df8dd5a331871d6b7d4f0c6",
+                      "scratchBlob":  "145e207dd392b410cf369f3b270e7c0d9b111f15",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/BranchStructureTree.tsx",
+                      "indexBlob":  "c95ee5d33cea44ff872b7ef662e54b36c4f1e854",
+                      "scratchBlob":  "27a80b9e0c94ec4bac57c5d503c78bb18fc0c033",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/contracts.ts",
+                      "indexBlob":  "4a98f3044e376d372b0e35adfbb34dfddae47f16",
+                      "scratchBlob":  "0d81597ee9a63fdfafe616eb62d161bdd4efd315",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/departmentDeactivationApi.ts",
+                      "indexBlob":  "601ab77ad8bb62316cf52ebca53bd9f95d0c7cdb",
+                      "scratchBlob":  "59fd60eb7f18b57e8a869059256d5928f006cf6b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/DepartmentDeactivationCandidate.tsx",
+                      "indexBlob":  "102ffb6f587fb25072af73f0b816e34afcf9ee20",
+                      "scratchBlob":  "bab155dcd84c31d4b42c818e13b4602c415b6bfd",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/hotel.css",
+                      "indexBlob":  "d502e8ba2becc1ff2212da6c2148f79a9fc9f566",
+                      "scratchBlob":  "2e1b4c223573cb41c1d554286e7c48d215b22e1c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/hotelApi.ts",
+                      "indexBlob":  "3362be1dac9fc104f3297748c61549a607d7a2b0",
+                      "scratchBlob":  "bb3af1d04ff9207e643548f3e7b0299af2402b50",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/HotelRouteHost.tsx",
+                      "indexBlob":  "35aa95b5ee366d557e12c38d168354247303000b",
+                      "scratchBlob":  "7688d83f43aa0a5bc55e8b8c824013480765f24c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/HotelWorkspace.tsx",
+                      "indexBlob":  "1a59f936e3d9ba9da2af9ae696734bccec1aaf1e",
+                      "scratchBlob":  "583b93140f6a2afed92caf9fae9f4b66c078344f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/main.tsx",
+                      "indexBlob":  "df511371efb1dad1ff3b7516caa85a77a31ac009",
+                      "scratchBlob":  "df511371efb1dad1ff3b7516caa85a77a31ac009",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/operations.ts",
+                      "indexBlob":  "83e2f9b158e6f36e41b54b279ff59295203272ff",
+                      "scratchBlob":  "484d8c1f966b6468cd0cd092407d405cb4716dc9",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/RoomDirectoryResults.tsx",
+                      "indexBlob":  "01bb501f765795095378130789a121a4e89db202",
+                      "scratchBlob":  "7f7ae2b59e3c607fcb7318606a2df50421a56be2",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/roomLifecycleApi.ts",
+                      "indexBlob":  "94477cc361be6ac78f318ce5d05d41150d6beab3",
+                      "scratchBlob":  "a531a528f0c8c5446d86f303e4af07e146c62f1d",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/RoomLifecycleCandidate.tsx",
+                      "indexBlob":  "500ed5ef4175a2e46001ab115f3773451a73bd81",
+                      "scratchBlob":  "3a69fde1bd424e9e9348f7ab3e0b662d4ef34e8b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/structureView.ts",
+                      "indexBlob":  "3d26af7de0eff60cb1f7466f282fed24538e4546",
+                      "scratchBlob":  "a06e202b9ea80b9a2b5dfd0e2b21fb58c6228723",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/hotel/useHotelFlow.ts",
+                      "indexBlob":  "a5f8887ed964537e5ab5239261c33dbea44f7849",
+                      "scratchBlob":  "8670cdd775dc1238d02b03796e9b41d8ad78d676",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/layouts/AuthLayout.tsx",
+                      "indexBlob":  "8540c580a192929926e3589f93857627038532ca",
+                      "scratchBlob":  "aaf9314bc9c5640ca8cc6eeaba836c89ea33eab0",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/locales/fields.vi.ts",
+                      "indexBlob":  "d88bca788255dc29c390565441ff33f4279ea522",
+                      "scratchBlob":  "994f92aed184d60f933278f57afce7fb35bd8f2f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/locales/metrics.vi.ts",
+                      "indexBlob":  "f9aac488ababe3f58b019f8d0eb37d151e3d8b4d",
+                      "scratchBlob":  "fde44ff09c3e8b51d91e0706f1fc310ed4612070",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/locales/screen-descriptions.vi.ts",
+                      "indexBlob":  "51236abd6d060ea8ee8528515b73c3884fbcffdc",
+                      "scratchBlob":  "e44aa092a754d6298040aa3ca55c1f4dbd81fcaf",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/locales/vi-extra.ts",
+                      "indexBlob":  "c7eec36c1a65acb4241abca9488ace63283d7af4",
+                      "scratchBlob":  "49420dabede9af855c6e8790c27a3020e1715f02",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/locales/workflows.vi.ts",
+                      "indexBlob":  "74385d31a39221af1c4446f6bd4001aff3462c18",
+                      "scratchBlob":  "549abab515f678647b6afac586aefb782520f231",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/mocks/createDatabase.ts",
+                      "indexBlob":  "2730afe6b47f933b925012a066805b5f9f2e1cdb",
+                      "scratchBlob":  "e61ea656217e39be0ebe7a728d1b04f08e130270",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/mocks/enrichDatabase.ts",
+                      "indexBlob":  "4f759b460a170bee4eda87cda6c64bd44b64646a",
+                      "scratchBlob":  "ae59fa2737db8bea769dd5aef316b55b54b08f26",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/mocks/prototypeData.ts",
+                      "indexBlob":  "3ab42ef25c8f888ce6f04863782c35d37bc54d1b",
+                      "scratchBlob":  "27820fcc2e57be4050ea6a288cd6e224ab22d7de",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/roles/contracts.ts",
+                      "indexBlob":  "a02500f2f5df9cfed9bd959ee7434f335fbb8620",
+                      "scratchBlob":  "56143e2d1486a9297a50ad01ddda81de1bd57148",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/roles/customRoleApi.ts",
+                      "indexBlob":  "4f2313690a9b11e7a3792fac9122ac4f4aade497",
+                      "scratchBlob":  "e2306000812419fd155f909840975f0aca9fec6d",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/roles/CustomRoleForm.tsx",
+                      "indexBlob":  "643cad847440aee460f00f442ece711d434e006a",
+                      "scratchBlob":  "4b049c2945910a4b8dd02325d3ebbf134b689b73",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/roles/roleCatalogApi.ts",
+                      "indexBlob":  "45854235e3228a556ca312164ff8e60d32028558",
+                      "scratchBlob":  "35766f3359252cecdfe16611fe034c8b6d709a1c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/roles/RoleCatalogRoute.tsx",
+                      "indexBlob":  "211e9f8edb8c7822e82c1679acdbce56e4693352",
+                      "scratchBlob":  "2c8d9bc5d90698573b16436f9d9cfbceeb746495",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/routes/demoPaths.ts",
+                      "indexBlob":  "acce0de5538b3a6f2cce0d9b7eb9097a0fcc53d7",
+                      "scratchBlob":  "bf5c17c6f1107ca4382338a33acbcdf1ebdba2d6",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/routes/DesignSystem.tsx",
+                      "indexBlob":  "3966a75460d3012a83d47e9c0365d295faad9222",
+                      "scratchBlob":  "b2aaa3f271f4d1331e7a5c3178376665b15c393c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/routes/routeConfig.ts",
+                      "indexBlob":  "dd98c9f93560ee37a874ebb9a4bb705424cbfb9d",
+                      "scratchBlob":  "82f5f0d7114abb7b77efd46aefee8cb822c0864a",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/routes/ScreenIndex.tsx",
+                      "indexBlob":  "5a95e5315d8c614e5dbbc81ae1d83a3fc84803dd",
+                      "scratchBlob":  "8eb5be2681f61a5d86083249ef74b19ebe10a169",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/assets/AssetDetailScreen.tsx",
+                      "indexBlob":  "92a6b69e3d18107e881a156aeca9b9af8888dcf7",
+                      "scratchBlob":  "3e20abd9f5a67f753aa6e28c60434ea6bb38b361",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/assets/AssetListScreen.tsx",
+                      "indexBlob":  "e9fd1ad0076053026ef969f55d310de179421b83",
+                      "scratchBlob":  "5be349a245ff92c50e8162a34b8fbf5642a23d2f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/assets/AssetMaintenanceHistoryScreen.tsx",
+                      "indexBlob":  "7c55e36979c8c28bc221964d111fcdd74bad2592",
+                      "scratchBlob":  "aa5a3badaa4b52693dbca1d53daaa057e9688ffb",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/audit/AuditLogDetailScreen.tsx",
+                      "indexBlob":  "7c4c4459c048ce48f73eec27dcba78ea67bfe288",
+                      "scratchBlob":  "dd2b540767eb64ca092d8bcebe5aa86ef22878ce",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/audit/AuditLogScreen.tsx",
+                      "indexBlob":  "403e7993a65666473ef11dbd64f7b47fbb9145b9",
+                      "scratchBlob":  "075063b9a61792c7e2bea9df51edf4b3d3d36738",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/ChangePasswordScreen.tsx",
+                      "indexBlob":  "89572e369cd6645985f81a6d12d1cd9f54e02080",
+                      "scratchBlob":  "9bce1b34e03181e20e7d10b9238e8c6189965018",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/ForgotPasswordScreen.tsx",
+                      "indexBlob":  "1c7af2216843f6dc79e26ed4a452250d67473e7c",
+                      "scratchBlob":  "54f1369c88592fe8174fb079b53567af17d01867",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/ProfileScreen.tsx",
+                      "indexBlob":  "ad43941f355e0a2bed8e2528b584f9756397ad58",
+                      "scratchBlob":  "a775c3f55fc107f9a5d514e451f90c5d972f93fb",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/auth/SignInScreen.tsx",
+                      "indexBlob":  "a904eb28c150d1ad9e5233084dddf6897f3f4a18",
+                      "scratchBlob":  "6e0957c01d54b678a166a64d0cf8927c5d3e8ccc",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/dashboard/DashboardScreen.tsx",
+                      "indexBlob":  "4627a1cf60e0175049530bfbb6ff89aaa2c9536c",
+                      "scratchBlob":  "19c08ee9624ea25c9467f0ce2788f47ebe287d8c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/BranchDetailScreen.tsx",
+                      "indexBlob":  "3ba3920c2430c5957c06fd6da0f4a1304303c5b3",
+                      "scratchBlob":  "2f972bd17c28d6dba67d913e70300877820565a3",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/BranchListScreen.tsx",
+                      "indexBlob":  "cee9d993675169f97fd75c3a8f3e8bb874c2e5f5",
+                      "scratchBlob":  "b29386ad7dfdd524edc29dcc98afe9910a102445",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/DepartmentDetailScreen.tsx",
+                      "indexBlob":  "3899c06d10cf82a364847beac314a09c711c1286",
+                      "scratchBlob":  "24dc4b9494f8a5dde4082b9fb569e294796f0286",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/DepartmentListScreen.tsx",
+                      "indexBlob":  "7f8535fd489ecb9f378929ac345d12616db8d4e2",
+                      "scratchBlob":  "656924fed9296941612ca11c368208422e9a1320",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/FloorAreaDetailScreen.tsx",
+                      "indexBlob":  "a2083dac72eedc3289f5d3582d0affb361df7901",
+                      "scratchBlob":  "1dc05254d0718bfe1fab961faa8c169e2ffb2e91",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/FloorAreaListScreen.tsx",
+                      "indexBlob":  "09541c575a8829419cd1514d47aef1a6c73bd9f3",
+                      "scratchBlob":  "4d4f5b0ca8efe2b657559b8e90cb34e0e51947bf",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomDetailScreen.tsx",
+                      "indexBlob":  "5e7114281e69d59c26e6dce83d425d678e95325f",
+                      "scratchBlob":  "f4bcb17a581e89037ae21a6b7e955bf0ca231c93",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomListScreen.tsx",
+                      "indexBlob":  "08c232c98510735b2511611d094169f81f5e5d96",
+                      "scratchBlob":  "2c59e32890e16144872a832b62f830711e5bba40",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx",
+                      "indexBlob":  "0abbd5a31a77dc688409e0500453edbfcb7405f8",
+                      "scratchBlob":  "c97782b7e6417beb54fa6e48d47902a2c82ae04b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomTypeDetailScreen.tsx",
+                      "indexBlob":  "5e0090072a787521000b05065c680d9ea728499f",
+                      "scratchBlob":  "01ce23d54900fe23a6d398fc8f92fa588941ce30",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/hotel/RoomTypeListScreen.tsx",
+                      "indexBlob":  "94e39f2cf8fbff910104c7068c9b528c87080982",
+                      "scratchBlob":  "07d2f655b3fbf8171cacf4a90d631d2c9f2634c2",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+                      "indexBlob":  "15a79ea7e07a8aeed9a38cd83c89695b96895e55",
+                      "scratchBlob":  "b3f31fdbe00c645f29d4c33596fdf0a3d3bb78b4",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+                      "indexBlob":  "4623c3e3a63b94101586efa9b048a79bfba572f7",
+                      "scratchBlob":  "444f7820c6ac5c9d336dbd832876de80fc233acd",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+                      "indexBlob":  "645c08935373b9b1730e3507ca179502fd96953a",
+                      "scratchBlob":  "5341990ddfe5a865dd2ca81f5ff008f3b28b411c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+                      "indexBlob":  "ac1ea240af45cf3c955b3245d08dfac11f39aca7",
+                      "scratchBlob":  "2b730065c0336545b4975237ff94f628362d8ead",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/ReworkTaskDetailScreen.tsx",
+                      "indexBlob":  "bc64acdeeb110e35ce9e7a04c11d5b01ca19ead4",
+                      "scratchBlob":  "454129bf60cb7c10ee29d6a2002ff6ca2ba7563c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/ReworkTaskListScreen.tsx",
+                      "indexBlob":  "75735147732a85aed10e1581c61d7370ca862230",
+                      "scratchBlob":  "5765687fd36887aa4e4e4891f268ab1b2e0e3255",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/housekeeping/RoomTurnoverHistoryScreen.tsx",
+                      "indexBlob":  "fd32ed59ac0d12d69d4ac6a7a52768aec8f1e97d",
+                      "scratchBlob":  "cc6204ae6e6ca1e4895d0b26cd0caca97fbbb693",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+                      "indexBlob":  "a0f7009871f1136a3ac143ca7cef2312ef129e18",
+                      "scratchBlob":  "29beb9dfcd287c6122d7f0718a030aa5f31c1429",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+                      "indexBlob":  "278599e665b856e085e399b96edfd64dd9e2e4df",
+                      "scratchBlob":  "83d521ba228e6c0bacfbfeb85b131fe990492d4b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionHistoryScreen.tsx",
+                      "indexBlob":  "40300b1c454ba721d5f200c4dba57b32f568fb29",
+                      "scratchBlob":  "f9ce948ba49e3ae863520d3bb0d9a9b5b4650f5e",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionQueueScreen.tsx",
+                      "indexBlob":  "a224aac925f0eae57023d862dec963d77f07e058",
+                      "scratchBlob":  "c796717afb58e2497d546e69a15c38d616ca0310",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/InspectionResultScreen.tsx",
+                      "indexBlob":  "d19624fedb8b4676823ac80e6d480668f0021bf2",
+                      "scratchBlob":  "188b611c45478c26f5123938e0a177a3c2c9efbc",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/ReinspectionScreen.tsx",
+                      "indexBlob":  "99fe3096723acee9c67f521987876643748af5f8",
+                      "scratchBlob":  "c91748d25fb62d1d030ff151ddd864733ddaa8e7",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/RequestReworkScreen.tsx",
+                      "indexBlob":  "cd40ff9beead5e88e90db5061005244fac0c18b9",
+                      "scratchBlob":  "25d20e077720d89e1a5c827d9c2ccc5468f288d2",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inspections/RoomInspectionScreen.tsx",
+                      "indexBlob":  "e66efd11010eecfa2d0365c3b1bf4f62c153980a",
+                      "scratchBlob":  "9d17c69a7eed35826411da70af3bae48d30a0a7e",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/internalRequests/InternalRequestDetailScreen.tsx",
+                      "indexBlob":  "852bc1cfeb2c8b74f5f12f0a68db13f05ecac863",
+                      "scratchBlob":  "a5024c45b30604bd49adc6d51cd44416ed18af20",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/internalRequests/InternalRequestListScreen.tsx",
+                      "indexBlob":  "60b26fefa1057b0a68c98f107ce076bad740bd51",
+                      "scratchBlob":  "206efe5d734959084a1cb15ce942fc5b21c0e2b5",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/InventoryDashboardScreen.tsx",
+                      "indexBlob":  "daac52685a0c84873253dfc7351d20f158a9efca",
+                      "scratchBlob":  "3b2791590cb7cd85f28f73d1e16f85dc36d7a8d1",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/ItemDetailScreen.tsx",
+                      "indexBlob":  "f94caa210648fbb4fe5c481bf17c6e1b15b24f47",
+                      "scratchBlob":  "3896a852fbe9aba051e29149adb1a684ceda3d06",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/ItemListScreen.tsx",
+                      "indexBlob":  "2c5e6edd3065af9903153c89ce68c1bdf93989f4",
+                      "scratchBlob":  "13c3dbd4bfa2163e166ef9aa40457e7a76189c2d",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StockBalanceLedgerScreen.tsx",
+                      "indexBlob":  "8c1ee09f5b77ad8eec3a444182f6bda5fb255c0e",
+                      "scratchBlob":  "5a744be342b556015c8602f03b0370fab33873a8",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StocktakeDetailScreen.tsx",
+                      "indexBlob":  "e8847670bf7c90d90ffab84dcb7a850f249e21e9",
+                      "scratchBlob":  "c110967ef3863725c7ffa67970bd92343957eaf8",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StocktakeListScreen.tsx",
+                      "indexBlob":  "1853e9f3c4c289f6110bd89c04393b355e68b761",
+                      "scratchBlob":  "b24f440d5bed73b4421b02593e989fdf47cc8a84",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StockTransactionDetailScreen.tsx",
+                      "indexBlob":  "0eb309f7e5a521a3d3c4564d0df366409ed10af7",
+                      "scratchBlob":  "c293451d7ec2033a41c0d30359f22d57ce1a2a8b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/StockTransactionListScreen.tsx",
+                      "indexBlob":  "27601a7e0709b4e0044e446efadf2de8e2f41af6",
+                      "scratchBlob":  "960d175be8943a3d4ec337ba3ad4faba9456f01b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/UnitofMeasurementScreen.tsx",
+                      "indexBlob":  "6879c3fd6e8cb89ff0341bb8a47460e0b54d5acf",
+                      "scratchBlob":  "dab9bd2484582712a7696629aabb3afa3f9de25a",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/WarehouseDetailScreen.tsx",
+                      "indexBlob":  "8df0b1674487b0381de589c9bad518dc1541d7ba",
+                      "scratchBlob":  "e41f1c15d2b99aaf98a286f40bbe824418566b6b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/inventory/WarehouseListScreen.tsx",
+                      "indexBlob":  "0cea5fc21b1f4760923f90ce4c16ff1cd030f5eb",
+                      "scratchBlob":  "df01188615ccf4b367a66c9feeade71f923ea212",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/IncidentDetailScreen.tsx",
+                      "indexBlob":  "3f32fd5429df8fb8768ef4d70ba7822724a2d723",
+                      "scratchBlob":  "d236eff9bbe0c19056e732de79f9f39b00cce010",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/IncidentListScreen.tsx",
+                      "indexBlob":  "3f8c2cfabb64d8a216c97c01408da1e2459fb74f",
+                      "scratchBlob":  "bcac56f9f799313ab3dddcefd2a3d1ce455ff696",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/MaintenanceAssignmentScreen.tsx",
+                      "indexBlob":  "f0238e9a085653060ecb7907e038c026e5cfe50d",
+                      "scratchBlob":  "156eaacf84a071dea0835dc4a7d883e859f487c5",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/MaintenanceTaskDetailScreen.tsx",
+                      "indexBlob":  "69e0a7b2b83a3b6ef12dfee7d22e4abf3603be13",
+                      "scratchBlob":  "2615039d61eedd567b233244384839778318f9ac",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/MaintenanceTaskListScreen.tsx",
+                      "indexBlob":  "8ec930d2d56cbc4d5a32081f3781523af0746b00",
+                      "scratchBlob":  "e65d845223863d8ac6b82bebea461be5a9b07380",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/PreventiveMaintenanceScheduleDetailScreen.tsx",
+                      "indexBlob":  "52f9678d53cffa0fcf22a372a76510f262ed3778",
+                      "scratchBlob":  "efafbe3321386183b4160383bff7f53310c00ce9",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/PreventiveMaintenanceScheduleListScreen.tsx",
+                      "indexBlob":  "88c1e122d21e738d92132381a54c1ea2f9115d0e",
+                      "scratchBlob":  "3c3a9703d6560461ac4d9e3ca054f7141b3bab05",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/ReferenceDataScreen.tsx",
+                      "indexBlob":  "b70762e0298e2da1ab56375837778ed4ddc31af4",
+                      "scratchBlob":  "e48b716fd8cca45555a66895add859918f1f3e8a",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/maintenance/ReportIncidentScreen.tsx",
+                      "indexBlob":  "6062e026a6d43f80fd590fd092f1f5615043a805",
+                      "scratchBlob":  "6a5ccd1947aaf7512ba2c0cd8b0affbcbeda8339",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/materialRequests/MaterialRequestDetailScreen.tsx",
+                      "indexBlob":  "eb5a2e2a9a5662124c4f5cd913f0588d2a6ce3e4",
+                      "scratchBlob":  "91bc9a3e8e8f6d38fcf38c51b5f701a3a9557aff",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/materialRequests/MaterialRequestListScreen.tsx",
+                      "indexBlob":  "ebebc96c21a219b7771813c7446022571c66c837",
+                      "scratchBlob":  "8482528c909aac5ac8396bd945ce89d21b561add",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/notifications/NotificationCenterScreen.tsx",
+                      "indexBlob":  "6ffdff9d15b2f8c9d711d9da42a8b36fbc3e506e",
+                      "scratchBlob":  "5ac6acf444f6d7a66bbbdaf96a60a5967206e19b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/notifications/NotificationDetailScreen.tsx",
+                      "indexBlob":  "677edf50cbfd9c78cd7f3e4721c4067d7b16b33e",
+                      "scratchBlob":  "3c1915e32832567c02390447e10c53cb942bca5d",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/replenishment/ReplenishmentDetailScreen.tsx",
+                      "indexBlob":  "6de33bef70b03d1874a90584bb4834b2d596afd7",
+                      "scratchBlob":  "63a6f0f8f6cb2b9576f6b75e08dbc87e490a2b75",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/replenishment/ReplenishmentListScreen.tsx",
+                      "indexBlob":  "b2b3b4ada9e63fe97fada55193a0fd5b7c819b9c",
+                      "scratchBlob":  "3c6d661d704a33f86e3fda6d0529b721cb33f832",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/reports/OperationalReportsScreen.tsx",
+                      "indexBlob":  "c8c7e00b04825e1ac9ecd70b9d6517c3f2a55bad",
+                      "scratchBlob":  "80627ea0a76120d5bfa5da2fa6c30f4ed1c00ba9",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/roles/PermissionMatrixScreen.tsx",
+                      "indexBlob":  "64cb43368234e9c357aa3c2b3688351c77cc8c92",
+                      "scratchBlob":  "e9c581cc22d8db0d8f603598b31f4b8848388d63",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/roles/RoleDetailScreen.tsx",
+                      "indexBlob":  "f690488f1622ff72cda61d547e2cfd3fefa3427f",
+                      "scratchBlob":  "1ded80b97c2782d990da872d6664cbce7dbeb182",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/roles/RoleListScreen.tsx",
+                      "indexBlob":  "a1980a928e40e0685d846b647487452bce4b4528",
+                      "scratchBlob":  "bfa4a11eeaafecffb4f8a98992c94121366c1bea",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/OverdueWorkScreen.tsx",
+                      "indexBlob":  "0b6a63189a6d30100c286723cf65e4c6d5eea011",
+                      "scratchBlob":  "69a52b7b3fb9ad036e483c3408a5ca5d6648f49e",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/TaskAssignmentScreen.tsx",
+                      "indexBlob":  "3104e72dafbb94cbb583f49286164f250b1690e4",
+                      "scratchBlob":  "b38c588f47a2b32363f07e234debb4b6ed381f02",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/TaskDetailScreen.tsx",
+                      "indexBlob":  "9355bbe260e1fb60618150e2fd0b364f9910f87b",
+                      "scratchBlob":  "afac0c23369ae50d800ba6eece1f6d770584c3e4",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/TaskListScreen.tsx",
+                      "indexBlob":  "86ac48beab194b8545183c3c263a3365708fd4c9",
+                      "scratchBlob":  "8f65d3f132004a729dde2e03bdde076d3abab551",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/tasks/WorkloadTimeLogsScreen.tsx",
+                      "indexBlob":  "e8cf2daa9bd3da4866b3984bf75f0085509542db",
+                      "scratchBlob":  "fc10f041d78a9ad0949296c9ec087c45b2774338",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/users/UserDetailScreen.tsx",
+                      "indexBlob":  "9a7ef871b7eac620addd86fad2003ebe35bd382b",
+                      "scratchBlob":  "1bb1042f1f65e02e393fd0ee6f0a5ee8ce123efb",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/users/UserListScreen.tsx",
+                      "indexBlob":  "8ea96b2af273624ac70e58607268fce454240da4",
+                      "scratchBlob":  "5280a240f2fc7d1315eb7151e59f04010353b435",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftDetailScreen.tsx",
+                      "indexBlob":  "729f348eed9218faa2b7e7397f798d04f23e624a",
+                      "scratchBlob":  "e6df229082a080b1e161b114df1fcd3d906fa22a",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftHandoverDetailScreen.tsx",
+                      "indexBlob":  "52baa8db4a97c86a1bf0ee237cdb529c2754a08d",
+                      "scratchBlob":  "7d798e2ff5e80530367bf0ae4dfe5b28ac85e9d3",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftHandoverListScreen.tsx",
+                      "indexBlob":  "71584fbb9a91504a9516d2e239b903dc7bc59647",
+                      "scratchBlob":  "72e1690597cf07177971d9e8afbff9026af39306",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/ShiftManagementScreen.tsx",
+                      "indexBlob":  "e27f908876e5d70fb19929c1f64fd867d46a5594",
+                      "scratchBlob":  "6d71edef59ad5badde873cc4ede137c8686b8db9",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/screens/workTime/WorkdayRecordScreen.tsx",
+                      "indexBlob":  "0bd6a093fb823f7d5b1bcece8967251a4f243f05",
+                      "scratchBlob":  "b7ae874accb8bd539130ac215b2bf8161e8f1d2c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/services/readModels.ts",
+                      "indexBlob":  "0098d770121ce56ec6cdee7a9b8ad614940be791",
+                      "scratchBlob":  "26fd696a9019f0fc05b1a7a1382ede4b2e3ef932",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/contracts.ts",
+                      "indexBlob":  "428c214168d4ea9a56104bcd60109b2adce9ca87",
+                      "scratchBlob":  "6292401d9e417ccc68012d5c3e3bb01dd27aa403",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/deactivationPreviewApi.ts",
+                      "indexBlob":  "3d8ff4ec7c446f1f76b515e5fc3e556ff782159c",
+                      "scratchBlob":  "252fadba6827200c6fdfc097ac854b34c18a17a0",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/structureDeactivationApi.ts",
+                      "indexBlob":  "526f505d7c03f030f50a1b979b2ebbf6dc01a7f9",
+                      "scratchBlob":  "7b1c65c35ac40051673e8cc6d87c1dd5224c9c59",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/StructureDeactivationPanel.tsx",
+                      "indexBlob":  "8b5431ef495d2016945381ed6f88e300dda1f942",
+                      "scratchBlob":  "74454beb58df0b44d6bbce43fa669527a9509ab3",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/structure-deactivation/StructureDependencyReview.tsx",
+                      "indexBlob":  "990d8dad2e0410e173c46229910820d767047251",
+                      "scratchBlob":  "4d8352569679f9645fde8961dbb357dcde18fef6",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/styles/operations.css",
+                      "indexBlob":  "a784964320fae284df6f0aac3a195cb192f3b091",
+                      "scratchBlob":  "ee889917b5fe9398096e34dc5c9f42b9038bc824",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/styles/theme.css",
+                      "indexBlob":  "bd6635ee214f3fee1422ba5d2de501155ccd0557",
+                      "scratchBlob":  "ad272a65463be31c19a7cac340e2d36e9e32a336",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/styles/tokens.css",
+                      "indexBlob":  "bd6626e93c0e2fbf78d1fa46bbbba081ce3182ab",
+                      "scratchBlob":  "3e5cf63a68000324baa1777eea03ddb3bb103a7f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/types/entities.ts",
+                      "indexBlob":  "6c8d4d49a1093829816b1d8ac291c747af3da3e1",
+                      "scratchBlob":  "cf4d86e1576a2718c9457e6ec624e99cc38826b1",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/ActivateUserFlowBoundary.tsx",
+                      "indexBlob":  "6d64e2f8f26e6970e734603529956380b9dcbd35",
+                      "scratchBlob":  "ce2ead421aaa84658c751da6e20d8f1cbbb4b510",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/ActivateUserPage.tsx",
+                      "indexBlob":  "7719668f8623bfbc2022e5a2c1e8016e145d10e6",
+                      "scratchBlob":  "04f50f5d400c557efc665b319fa4979f144e648f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/AddUserBranchFlowBoundary.tsx",
+                      "indexBlob":  "4a1d6a48888957ed986519bc05833e1c3ba89b3f",
+                      "scratchBlob":  "1b631aef22d00e25deb51da44d0af1ff0298c438",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/AddUserBranchPage.tsx",
+                      "indexBlob":  "332cbd15eeec4721e30fa196af8927077a3934b6",
+                      "scratchBlob":  "5d78ad9d59aef2aa3fad43dd9c0cd6fda003c7f0",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/AssignUserRoleFlowBoundary.tsx",
+                      "indexBlob":  "29a3c2934d8646eaa30c3d0af032dc44ad0d3dfc",
+                      "scratchBlob":  "0dbf62d5961e5fe92696c7064f0eaf086a5f3ee7",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/AssignUserRolePage.tsx",
+                      "indexBlob":  "7a06687673c81715bfcf87a0eb6f09170a7f3c41",
+                      "scratchBlob":  "c4a989851f8e588c36736c898050c0fd23c2c815",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/changeDepartmentApi.ts",
+                      "indexBlob":  "a15846c887f71b44e21184fd751437ad2057ecbb",
+                      "scratchBlob":  "2b2d8a674da295ec3263ab1e346d21abd3baa697",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/ChangeDepartmentFlow.tsx",
+                      "indexBlob":  "715147efc1849de4fb95884ed198096c4bf3e063",
+                      "scratchBlob":  "ae89d9e9a6058ef63ca926679110202f92c37569",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/contracts.ts",
+                      "indexBlob":  "bb1478a267c67be69c1992a6ef01a175807dc852",
+                      "scratchBlob":  "a5cb6b0c6535135a410a98d500d281d69a9b4f98",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/createUserApi.ts",
+                      "indexBlob":  "0ab163141a517112bce373253b378dc675d01b6c",
+                      "scratchBlob":  "7c00f6027407d6c6ad3b4b0d23a511504686595e",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/createUserContracts.ts",
+                      "indexBlob":  "7c514bcf3406924436690cb97884b1c9d8aea712",
+                      "scratchBlob":  "e85df1a76f5e4486500183e173390b29069a2818",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/CreateUserFlowBoundary.tsx",
+                      "indexBlob":  "9424379d55c8e467440c04039f63222e0727e328",
+                      "scratchBlob":  "4cfe6192b2d69df9967466d8f4bbc6b2f7f2466f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/CreateUserPage.tsx",
+                      "indexBlob":  "ad49c8f9fce37ed64c140e65382f6c8fe8cc9bcc",
+                      "scratchBlob":  "59f0a7733f25617cd98ec4d383d8f0db071d709d",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/InitialCredentialHandoff.tsx",
+                      "indexBlob":  "dd772fd0b3299796ecf783c09d8b59f0e633611b",
+                      "scratchBlob":  "8a444c6272e27286b63f4458c924d9d7a10ca141",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/revokeUserRoleApi.ts",
+                      "indexBlob":  "3399415af70da1b33fdaad1ed908499717c2282e",
+                      "scratchBlob":  "2a2be192e7c5ddc882eb2cf4b1975ba3f67d842a",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/RevokeUserRoleCandidate.tsx",
+                      "indexBlob":  "a6a5fe73ff69122c97973374fc98905b8bd6e309",
+                      "scratchBlob":  "d0dc625118d9b74742a9197cadb4dd28d1b4f95b",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/UpdateUserFlowBoundary.tsx",
+                      "indexBlob":  "1db8646ebaaf3e59b434ed2e78ade172d77cc09e",
+                      "scratchBlob":  "78ea6b0c67112f17e1c2b6da498128deca0f37a0",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/UpdateUserPage.tsx",
+                      "indexBlob":  "9b48a7382c89edb9d3fe2a26b1a5a1474b59d68e",
+                      "scratchBlob":  "2c92b7ab8457f27965a7ed0cb3a4b8832fb507af",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/useActivateUser.ts",
+                      "indexBlob":  "b9f133538d4d85e3909d6a800655b9e0a4e997c3",
+                      "scratchBlob":  "d079ed5b8c820f452c61e7e3d585d8297966d27a",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/useAddUserBranch.ts",
+                      "indexBlob":  "2ea1d82aee36e074022ff996f1edbf7d64cb90ae",
+                      "scratchBlob":  "c1c91531e51302178d71eaf1b60de787960cc1f9",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/useAssignUserRole.ts",
+                      "indexBlob":  "38b37fe6890ebef41c6c6fda4d612c31ab546b79",
+                      "scratchBlob":  "3b0f12079851d2dd7557f6a6df9d22423b47921e",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/useCreateUser.ts",
+                      "indexBlob":  "3ff9bf27b5fa9c61cd4e31ae0c238ef9df557e3e",
+                      "scratchBlob":  "e47bff2db48f120ccd0cec0bad914dd2d3e4bc78",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/UserAccessReviewPage.tsx",
+                      "indexBlob":  "bc37662b42909469163d32b08bcc791f36ef81b2",
+                      "scratchBlob":  "75644df4e1f900c208f297962a8e9610966c717f",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userActivationApi.ts",
+                      "indexBlob":  "b11ebd5940285cd1de75c6be30e85f23176885b9",
+                      "scratchBlob":  "553214d48f6ea95ea3768cbe39153f3bdfc3e9b2",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userActivationContracts.ts",
+                      "indexBlob":  "4b0d83f24041e9a28cf95c63df58bdd13af8fd29",
+                      "scratchBlob":  "e4cc0d7654a519da2aeb757105d453a5fd16cce6",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userBranchMembershipApi.ts",
+                      "indexBlob":  "560c481dd799fe679ff79e6066df13858e9fa4fd",
+                      "scratchBlob":  "370c134f8060dfbba777f545105b40b4688a8710",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userBranchMembershipContracts.ts",
+                      "indexBlob":  "198e666f8ae594f55f0877b5983dd082f1675010",
+                      "scratchBlob":  "e7cd8446f0549d28107babf58fbf52620195fec7",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/UserDirectoryPage.tsx",
+                      "indexBlob":  "185b775378a37ca2c134bd884edcf405980dcc5f",
+                      "scratchBlob":  "92b47acb5e0ca9e814615b9fc99ee279c6f4c058",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userProfileApi.ts",
+                      "indexBlob":  "bfe45d10140f106e89a3605d4bc573f763f7a5e1",
+                      "scratchBlob":  "14d0a4e9de6d50239d0eb2a08c566dc89eaed080",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userProfileContracts.ts",
+                      "indexBlob":  "f03a91c0a51716afed86996414efd885fd8fd919",
+                      "scratchBlob":  "78cb5dae672daec3ed4935015296c28442d76e80",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userRoleAssignmentApi.ts",
+                      "indexBlob":  "9fe82797e19ebf13eb65230564c72635f13b6da0",
+                      "scratchBlob":  "5e418e07644c86754659bc982d854b38352303af",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/userRoleAssignmentContracts.ts",
+                      "indexBlob":  "55846272caa63b41343a55dcea204b5d4737cca4",
+                      "scratchBlob":  "0bbf26e846abbaaaff48bd6ed69d0883f6072ba5",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/usersApi.ts",
+                      "indexBlob":  "2cdeb79ea7e7ca5cf50048bc3ec383fba7074cd5",
+                      "scratchBlob":  "f46c58cda0adf48e877b200e7c965088702f464c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/UsersRouteBoundary.tsx",
+                      "indexBlob":  "e9d357138b3eda8ba08104214de0ae9093de3f95",
+                      "scratchBlob":  "ac3a2808833c0a260016bb4873ad698aa768359c",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/useUpdateUserProfile.ts",
+                      "indexBlob":  "bc07205781973485bac1162daf8eb8b8d7e024b2",
+                      "scratchBlob":  "b3d8c81e3b599c6b73f9897177ec53a01848a135",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/users/useUserRead.ts",
+                      "indexBlob":  "1ade0a08fb3e9e94058ab08eb082561e990e65c0",
+                      "scratchBlob":  "54fcd7200f73fecf33e8d4bab94e6ca89d7c97b5",
+                      "matchesIndex":  false,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/contracts.ts",
+                      "indexBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                      "scratchBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/readFeature.ts",
+                      "indexBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                      "scratchBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/scheduledContracts.ts",
+                      "indexBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                      "scratchBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/scheduledWorkdayApi.ts",
+                      "indexBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                      "scratchBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+                      "indexBlob":  "23db2f08e7cfcf93f3335a7e40961e7e08ab1c56",
+                      "scratchBlob":  "23db2f08e7cfcf93f3335a7e40961e7e08ab1c56",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/SecureShiftPlanWorkspace.tsx",
+                      "indexBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                      "scratchBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/shiftPlanApi.ts",
+                      "indexBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                      "scratchBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/shiftPlanPreview.ts",
+                      "indexBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                      "scratchBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/ShiftPlanPreviewPanel.tsx",
+                      "indexBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                      "scratchBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/workdayApi.ts",
+                      "indexBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                      "scratchBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/WorkdayReadPanel.tsx",
+                      "indexBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                      "scratchBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  },
+                  {
+                      "path":  "frontend/src/workday/WorkdayRoute.tsx",
+                      "indexBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                      "scratchBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                      "matchesIndex":  true,
+                      "textMatchesIgnoringEncodingAndLineEndings":  true
+                  }
+              ],
+    "qualification":  "Raw Git blobs compared; additional host-populated files compared as decoded text after BOM/CRLF/terminal newline normalization; canonical production entry must still match byte-for-byte",
+    "normalizedTextMismatchCount":  0,
+    "encodingLineEndingOnlyCount":  180,
+    "originalRecordedInputMismatchCount":  0,
+    "canonicalEntryMatchesIndexByteForByte":  true,
+    "rawDifferencesExplainedByEncodingLineEndings":  true
+}

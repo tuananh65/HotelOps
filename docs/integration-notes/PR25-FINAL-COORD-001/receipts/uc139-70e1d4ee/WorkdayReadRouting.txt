@@ -1,0 +1,49 @@
+<WORKTREE>\scripts\verification\WorkdayReadRouting\WorkdayReadRouting.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\WorkdayReadRouting\WorkdayReadRouting.Verification.csproj]
+<WORKTREE>\scripts\verification\WorkdayReadRouting\WorkdayReadRouting.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS: MVC discovers exactly two Workday read actions
+PASS: legacy WorkdaysController including Start/End remains undiscovered
+PASS: exact route own-shifts
+PASS: GET only own-shifts
+PASS: cookie authentication metadata own-shifts
+PASS: not anonymous own-shifts
+PASS: branch long route constraint own-shifts
+PASS: no caller user ID and cancellation propagated own-shifts
+PASS: exact route current
+PASS: GET only current
+PASS: cookie authentication metadata current
+PASS: not anonymous current
+PASS: branch long route constraint current
+PASS: no caller user ID and cancellation propagated current
+PASS: no other Workday endpoint or mutation exposed
+PASS: no exact read method/route collisions in MVC inventory
+PASS: no-store response metadata
+PASS: long maximum route match
+PASS: long overflow route rejected
+PASS: non-numeric route rejected
+PASS: HTTPS guard prevents service invocation
+PASS: current absent returns 204, not null JSON
+PASS: service status/code preserved 400
+PASS: error has no ETag 400
+PASS: service status/code preserved 401
+PASS: error has no ETag 401
+PASS: service status/code preserved 403
+PASS: error has no ETag 403
+PASS: service status/code preserved 409
+PASS: error has no ETag 409
+PASS: service status/code preserved 412
+PASS: error has no ETag 412
+PASS: service status/code preserved 503
+PASS: error has no ETag 503
+PASS: current DTO forwarded without remapping
+PASS: quoted base64 rowversion ETag matches existing contract
+PASS: shift array DTO forwarded
+PASS: own shifts does not invent ETag
+PASS: camelCase current snapshot DTO compatible with frontend
+PASS: camelCase shifts array compatible with frontend
+PASS: existing service independent permission binding OwnShiftsAsync
+PASS: existing service independent permission binding CurrentAsync
+PASS: controller delegates each read independently
+PASS: no duplicate permission logic in HTTP adapter
+RESULT: 44 PASS; SQL/HTTPS live NOT RUN.

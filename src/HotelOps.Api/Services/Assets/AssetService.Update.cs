@@ -9,6 +9,8 @@ public sealed partial class AssetService
     public async Task<AssetDetailDto?> UpdateAssetAsync(long id, UpdateAssetRequest request, CancellationToken cancellationToken)
     {
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        // User-first coordination with placement and deactivation writers.
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ActorUserId, cancellationToken);
         var asset = await LockAssetAsync(id, cancellationToken);
         if (asset is null) return null;
         RequireOperational(asset);

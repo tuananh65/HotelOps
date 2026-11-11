@@ -1,0 +1,59 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\UserRoleRevocation\UserRoleRevocation.Verification.csproj]
+<WORKTREE>\scripts\verification\UserRoleRevocation\UserRoleRevocation.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\UserRoleRevocation\UserRoleRevocation.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS reject invalid strong User tag
+PASS parse exact 8-byte User version
+PASS candidate absent from actual MVC discovery
+PASS Workday mutations remain inactive
+PASS candidate has DELETE only
+PASS explicit CSRF guard
+PASS valid-shaped direct call cannot bypass immutable release fuse
+PASS no SQL connection/write/track before release acceptance
+PASS concurrent direct calls cannot activate candidate
+PASS self revoke denied
+PASS restricted actor denied
+PASS ticket actor mismatch denied
+PASS session replacement denied
+PASS pre-cancelled call performs no work
+PASS dependency/session/SQL release gates explicit
+PASS no caller can clear release fuse
+PASS valid server assignment facts pass validation only, never release
+PASS inactive/previously revoked conflicts
+PASS expired-at-now conflicts
+PASS future assignment conflicts
+PASS foreign target assignment denied
+PASS cross-branch assignment denied
+PASS unbound privileged assignment denied
+PASS missing exact identity denied
+PASS stale version denied
+PASS multiple/historical path conflicts
+PASS inactive target conflicts
+PASS candidate rejects HTTP before service
+PASS candidate rejects missing cookie identity
+PASS missing If-Match returns428
+PASS invalid If-Match returns400
+PASS nonempty DELETE body rejected
+PASS valid candidate HTTP direct invocation stays release-blocked
+PASS controller preflight never opens SQL while gated
+PASS zero session cannot enter candidate
+PASS complete clear facts pass classification only, not release
+PASS open responsibility blocks revoke
+PASS unknown lifecycle fails closed
+PASS unsupported model fails closed
+PASS empty reader cannot certify writers
+PASS unknown coverage takes precedence over known blocker
+PASS current writer matrix cannot authorize release
+PASS external writer evidence cannot be cleared by caller
+PASS orchestration uses existing target-wide predicates (source assertion)
+PASS prewrite responsibility reread precedes conditional mutation (source assertion)
+PASS final responsibility reread precedes commit (source assertion)
+PASS clear classifier cannot bypass service release gate
+54/54 focused checks PASS. SQL mutation/success/rollback NOT_RUN.

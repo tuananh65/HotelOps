@@ -245,6 +245,8 @@ public sealed class AssetsController(IAssetService service) : ControllerBase
     }
 
     [HttpPost("{id:long}/location")]
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = HotelOps.Api.Security.HotelOpsCookieTicket.Scheme)]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult<AssetDetailDto>> AssignLocation(long id, AssignAssetLocationRequest request, CancellationToken cancellationToken)
     {
         try
@@ -252,6 +254,10 @@ public sealed class AssetsController(IAssetService service) : ControllerBase
             var result = await service.AssignLocationAsync(id, request, cancellationToken);
             if (result is null) return NotFound();
             return Ok(result);
+        }
+        catch (HotelOps.Api.Services.Dependencies.Dev2PlacementDeniedException exception)
+        {
+            return Problem(statusCode: exception.Status, title: "PLACEMENT_AUTHORIZATION_REQUIRED");
         }
         catch (ValidationException exception)
         {
@@ -261,6 +267,8 @@ public sealed class AssetsController(IAssetService service) : ControllerBase
     }
 
     [HttpPost("{id:long}/location-transfers")]
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = HotelOps.Api.Security.HotelOpsCookieTicket.Scheme)]
+    [ValidateAntiForgeryToken]
     public async Task<ActionResult<AssetDetailDto>> TransferLocation(long id, TransferAssetLocationRequest request, CancellationToken cancellationToken)
     {
         try
@@ -268,6 +276,10 @@ public sealed class AssetsController(IAssetService service) : ControllerBase
             var result = await service.TransferLocationAsync(id, request, cancellationToken);
             if (result is null) return NotFound();
             return Ok(result);
+        }
+        catch (HotelOps.Api.Services.Dependencies.Dev2PlacementDeniedException exception)
+        {
+            return Problem(statusCode: exception.Status, title: "PLACEMENT_AUTHORIZATION_REQUIRED");
         }
         catch (ValidationException exception)
         {
