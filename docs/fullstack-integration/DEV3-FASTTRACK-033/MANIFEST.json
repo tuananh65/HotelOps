@@ -1,0 +1,186 @@
+{
+  "task": "DEV3-FASTTRACK-033",
+  "base": "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+  "branch": "feature/dev3-uc009-initial-permissions",
+  "files": [
+    {
+      "path": "docs/fullstack-integration/DEV3-FASTTRACK-033/HANDOFF.md",
+      "sha256": "B73DC130D2B8C251C11335227F040807A81E96554CDA8FAAD7B261FA1E863672"
+    },
+    {
+      "path": "frontend/src/roles/InitialRolePermissionsPanel.tsx",
+      "sha256": "EAA74F552310D4615F178D77518681C8820F365800CD45CB512F2CEE1AF8590E"
+    },
+    {
+      "path": "frontend/src/roles/initialRolePermissionsApi.ts",
+      "sha256": "9E89A475E6B93F881086E35DAC4871FEC16EB4676038531C7888523AD716E879"
+    },
+    {
+      "path": "frontend/tests/initial-role-permissions-api.test.mjs",
+      "sha256": "7CED07D0417071E07086190DACD9C5BFB11FAFB3FB06F7042D0F9E63EFC85F3A"
+    },
+    {
+      "path": "frontend/tests/initial-role-permissions-browser.test.mjs",
+      "sha256": "8DC0916B5FEDBABFFDA184B999FB2AFABFC35EC2F378BEDD01F4B0B01100481E"
+    },
+    {
+      "path": "scripts/verification/InitialRolePermissions/InitialRolePermissions.Verification.csproj",
+      "sha256": "720478BD353C02A24462E2FE4F00BD713CC9ABD45A42AE42F904BDF140B13A50"
+    },
+    {
+      "path": "scripts/verification/InitialRolePermissions/Program.cs",
+      "sha256": "09367A4E9EC223DBB5D67124E78E435B771A81E66D977A31412D036DDD96166F"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/InitialRolePermissionsCandidateController.cs",
+      "sha256": "48039BC3A0AADFD4BCEE91010C80434A75927CF658D5CA151509DF72804DEFA1"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Rbac/InitialRolePermissionRequests.cs",
+      "sha256": "C87BE471E8FC358B683F3B2244DCEB73FEA6E5040EADD38EBF2F8C01BED7A21A"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Rbac/InitialRolePermissionsService.cs",
+      "sha256": "C11C07AA199A386ACA498EAC6CA11E4DF7CC7FC8B24A0C539BBC31E9EB2FD04F"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Rbac/SqlInitialRolePermissionsTransactions.cs",
+      "sha256": "822A6CDBF9F0BF3927A63FD8AFC64BAF29D94E445FE8D5E78321D7C9A2BE0364"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "src/HotelOps.Api/Program.cs",
+      "baseBlobSha256": "9FD31CCBF043FE49019B93AEE399268F94FA09CDD7B5C312B12B6D6B0A78F510",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+      "baseBlobSha256": "F2B782C601A25ADBDD78186BA81DBFF1E9D39BAC3664A884692F2AADB01716FD",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/Role.cs",
+      "baseBlobSha256": "6F71CF2B8F5EDB4670C8F9E5EAC4A4CB89D8AF742489C4C906AB1A7EBF0E2E73",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/RolePermission.cs",
+      "baseBlobSha256": "171D83EB6E7C7CA613652B1740504D4C6A891CF812EECACBE6078693DAFE4309",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/Permission.cs",
+      "baseBlobSha256": "5A6E3B4D0D4664B07C1D9DF028A6E4EB47981AC0ABF42C6AD4B697C502ADB8A7",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Entities/UserRole.cs",
+      "baseBlobSha256": "FCEF3DA2E4B7FFCBB76ECF2C9C1F98AC02748859C8EC3E64D6E95C3EA0E4D6D5",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+      "baseBlobSha256": "301D66D15F9F212B7FDF699E8D5ED7DCC68B6574F9DEE789C380A33E387A1D11",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Users/AccountWriterSessionGate.cs",
+      "baseBlobSha256": "16C68F24FCB4D6C3C1949700375D8788CD1944B40E7A83FD01D137985923F26B",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Rbac/RoleCatalogAuthority.cs",
+      "baseBlobSha256": "974E5F24093A23FB60E81339F1B85DC4446D6AD4F0FC0C47E0473B1976DC7097",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Rbac/RoleCatalogService.cs",
+      "baseBlobSha256": "F79649F1514F92BD70FA1A999F032AF7AB11CCD818A7E7F1EEF0D3F9BD742BD7",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Rbac/CustomRoleService.cs",
+      "baseBlobSha256": "A282868DCEAAB0310CFC41E7D0AB54848640E802274B65C8C369F1F726DD6139",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+      "baseBlobSha256": "466D5BD81927AFB074D906E81C9291B1B97FA9286B40D8EDA55701BCEEC22297",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+      "baseBlobSha256": "1890559D3578CE136A758A4C625D8F2D242951FF596138D969B03D07E1616380",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/roles/RoleCatalogRoute.tsx",
+      "baseBlobSha256": "8043C410E07ED8E17EE89AF77E95A0E73F1872E79373D0AA4FA04B2ABB4623C5",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/roles/roleCatalogApi.ts",
+      "baseBlobSha256": "FF4BA7BD7345415343C1B8FC3C458FF756CB5FA6B953529C0122247877D6CFD9",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/auth/AuthProvider.tsx",
+      "baseBlobSha256": "4A95E5A24DB18E440F6200D3B23F9F85B4B9E306A5BA879BD3AF7BD6EAAE9DE7",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/auth/authStore.ts",
+      "baseBlobSha256": "CD510BA52C12F313EF56498C11FBF3B68B61C594B5020EDFF56EDF2B01CB82EE",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/auth/AuthRouteHost.tsx",
+      "baseBlobSha256": "B7638B83B592F540E268F1B90FA6CFAEC60B43E7EF64856DF3165AFA918759F6",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/main.tsx",
+      "baseBlobSha256": "E0CDAA4D240885CBEEDCE405E143779C3CD2A429ABCA207E6973C972DF5F2A79",
+      "unchanged": true
+    }
+  ],
+  "receipts": {
+    "initialBackend": {
+      "pass": 45,
+      "exit": 0,
+      "sqlExecuted": false,
+      "concurrencyAdapter": "deterministic serialized fake transaction; not SQL race evidence"
+    },
+    "roleCatalog": {
+      "pass": 38,
+      "exit": 0
+    },
+    "customRole": {
+      "pass": 25,
+      "exit": 0
+    },
+    "frontendCombined": {
+      "pass": 193,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "exit": 0
+    },
+    "finalInitialFrontend": {
+      "pass": 39,
+      "exit": 0
+    },
+    "backendBuildExit": 0,
+    "typecheckExit": 0,
+    "frontendBuildExit": 0,
+    "formatExit": 0,
+    "dotnetTest": {
+      "exit": 0,
+      "testProjects": 0
+    }
+  },
+  "sqlHttps": "NOT_RUN",
+  "productionMutation": false,
+  "wholeUcComplete": false
+}
