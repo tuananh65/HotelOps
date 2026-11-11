@@ -10,4 +10,3 @@ Backend: real actor/cookie shape và actual PermissionService với permission d
 Lần chạy đầu backend thất bại vì antiforgery TLS precondition của fixture HTTP; sửa harness đánh dấu request HTTPS. Lần đầu frontend hook thất bại do native bundler discovery trong sandbox; dùng resolver Node read-only. Kết quả cuối thay thế các lần đó; không che lỗi cũ.
 
 SQL integration, live sessions/grants, transaction rollback/concurrency, actual options query results và full integrated frontend npm build: NOT_RUN. Runtime regression list/detail/status/triage: NOT_RUN; source methods khớp baseline. Xem TEST_RECEIPTS.json và receipts/*.txt.
-

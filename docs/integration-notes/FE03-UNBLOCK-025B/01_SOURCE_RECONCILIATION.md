@@ -30,4 +30,3 @@ Source/test tạo hoặc sửa (16):
 - `tests/HotelOps.Incident.UnitTests/Program.cs`
 
 Danh sách report và hash đầy đủ trong CHANGED_FILES_SHA256.json. Không sửa generated entities, mappings, Program.cs, shared DI/security, SQL hay FE03/04/05. Git add chỉ explicit paths thất bại exit128 do index.lock; không tạo implementation commit.
-

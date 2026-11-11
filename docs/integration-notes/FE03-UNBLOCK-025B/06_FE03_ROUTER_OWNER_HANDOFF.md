@@ -17,4 +17,3 @@ FE03 sau khi tất cả gate được duyệt mới dùng reportIncidentHref(bra
 Source commit: NOT_PUBLISHED; starting 6aee2a0e692a7814f41c81224709cddfbe1e2ec4. Local implementation chưa commit: git add explicit source/test paths exit128, index.lock permission denied ngoài writable roots. Developer cần review CHANGED_FILES_SHA256.json rồi stage từng source/test file (không git add -A), commit source-only; PL chọn PR target trước publication. Không push/PR/merge/deploy trong task này.
 
 Các gate và responsible owner đầy đủ: FINAL_READINESS.json. FE06/Security cần test SQL isolated được duyệt và chốt contract; Router Owner mount/test exact host; FE03/PL chấp thuận v1 context; publication cần actual accepted source SHA.
-

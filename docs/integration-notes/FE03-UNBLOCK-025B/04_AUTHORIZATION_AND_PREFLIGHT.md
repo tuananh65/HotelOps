@@ -7,4 +7,3 @@ INCIDENT_CREATE đã có trong source catalog tại scripts/database/release/02_
 Options branch-only chỉ là UI hint theo branch. Khi có roomId mới kiểm tra current room/floor/area. Thành công GET không ghi dữ liệu và không cấp quyền POST. Actor của GET do cookie middleware/current-user xác minh; POST khóa user/session và placement trong transaction rồi kiểm tra lại trước commit. Session expiry/revocation, restricted, inactive user và denied grant fail closed. Live deployed security và SQL concurrency chưa kiểm chứng.
 
 Security/RBAC + PL cần duyệt reporter compatibility, exact create-only/branch scope contract và grant của actor FE03 thực tế. Không thay shared policy/catalog/schema.
-

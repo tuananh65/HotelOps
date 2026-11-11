@@ -9,4 +9,3 @@ Actor cookie phải khớp current-user accessor, active/nondeleted/employment A
 201 trả IncidentDetailDto + Location; frontend dùng subset được decode và hiển thị kết quả tại chỗ để hỗ trợ create-only actor.400 model/source/CSRF;401 session;403 permission/reporter/restricted;503 khi initial permission source unavailable. Thứ tự middleware có thể trả CSRF400 trước auth401 cho unsafe request thiếu token. Không có stable domain error code mới cho mỗi placement case; source errors dùng ProblemDetails.detail, model errors dùng ValidationProblemDetails.errors.
 
 Giữ transaction, số incident, CREATED event, audit và trạng thái OPEN. SRS historical gọi Pending Triage và có ảnh/notification; task này không thêm status, upload hoặc notification chưa được duyệt. Ngoài UC049 create/options, baseline list/detail/status/triage và các actor field cũ không được retrofit authorization ở đây; Security/FE06 cần đánh giá trước acceptance rộng hơn.
-

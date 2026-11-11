@@ -7,4 +7,3 @@ reportIncidentHref(branchId: string, roomId: string): string tại frontend/src/
 Invalid context không fallback hoặc đổi URL. Options(roomId,branchId) xác minh authoritative current room;400 source unknown/inactive/stale/cross-branch,403 branch không được phép; form không render khi lỗi preflight. Context room đã chọn được khóa trong form; refresh/back/forward remount và reload. POST kiểm tra lại độc lập. Không có room rowversion/If-Match mới: stale ở đây là current source không còn hợp lệ, không hứa phát hiện mọi thay đổi lịch sử.
 
 Không tạo BrowserRouter/AuthProvider mới. Phụ thuộc host auth interface được kiểm tra đúng pin d0a5a073b7921040f1e2ed726782ca97e0e30e61; chưa chứng minh tương thích mọi nhánh frontend khác.
-
