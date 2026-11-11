@@ -1,0 +1,70 @@
+{
+    "task":  "FE04-UC034-FULL-COMMAND-001",
+    "base":  "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+    "sourceCommit":  "397ff6c2c08bb946756c196e2f4382a9e3f3f524",
+    "files":  [
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningClosureBoundary.cs",
+                      "sha256":  "92463f633b2d8a43a00bc15c9125e36cb9c70e7a8bc9bd098722877523e4a67b",
+                      "normalizedSha256":  "92463f633b2d8a43a00bc15c9125e36cb9c70e7a8bc9bd098722877523e4a67b",
+                      "gitBlob":  "e9563917061e78ca2c914ce6f63c5556b42c353c"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningCompletionCommandTests.cs",
+                      "sha256":  "94f9c785e6aa125051432e1f65648028f58f05c1920c26024c2c38c3116c5a3d",
+                      "normalizedSha256":  "94f9c785e6aa125051432e1f65648028f58f05c1920c26024c2c38c3116c5a3d",
+                      "gitBlob":  "3b3e4df43d72d55e3ae3a031153e7a4d9a321445"
+                  },
+                  {
+                      "path":  "docs/fe04-uc034-full-command-001/SCOPE.md",
+                      "sha256":  "b9be09a79ee98da93d944a3abf97caec96661021168a482d892101f9da71e489",
+                      "normalizedSha256":  "b9be09a79ee98da93d944a3abf97caec96661021168a482d892101f9da71e489",
+                      "gitBlob":  "85cb2ebca84d0d101184eafe63ea2c6fe9eeb129"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionSource.cs",
+                      "sha256":  "c9d3cef0c4031cea6812894ed51677f322758769cfa50eb9534e61376604952a",
+                      "normalizedSha256":  "af51e954a507636a2110888066250996db1282395f63ed0a84cfe9330e9c88fd",
+                      "gitBlob":  "d709fd988b49254b6031b57f0d37603b63421e74"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionContract.cs",
+                      "sha256":  "7989d7bb924f195a5e34bbcb0110d3f009c7241372562070c45fc249cd1782ab",
+                      "normalizedSha256":  "e5f84ccca603b3302c6450127706d32a56375b1dba5df792efdfbb4f36dacb44",
+                      "gitBlob":  "86f2bf73fa1ce3925116f9bcfedbbf211ebcf455"
+                  },
+                  {
+                      "path":  "scripts/database/release/fe04-cleaner-r04/01_CleanerAttributionCandidate.sql",
+                      "sha256":  "2820bbb6ce97a69bc7a4223de58921a7b4a7ea184c5a6b656acb8449b0c1f6b9",
+                      "normalizedSha256":  "b68936fd5bf07267c3c45a3d9f609a0f333078e8e8edb658b83c186a53b91abd",
+                      "gitBlob":  "7ae4b4b397e4b69866f96286c166350c2361ebb5"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/ReworkAuthorityReader.cs",
+                      "sha256":  "9c06ed8de2570b58ad26d41b6ff087693a2851f57a737041b81339153bf4ea9d",
+                      "normalizedSha256":  "d714b7867424d631d5abcd433a7d387439fbc13b780892225f90e1a3ce399664",
+                      "gitBlob":  "f799f011d8c6b634ba770cdb09362782624de8a6"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningClosure.cs",
+                      "sha256":  "91d35058c401a9cf1729068f9fc678e224dece6642b0e718b8073461ee80a156",
+                      "normalizedSha256":  "59a203c8c21be766c8cee9370611a952cb31a40e3e0d767ec0e5c7fb3253e1bb",
+                      "gitBlob":  "d144d344d6b357d2ee4a0faa33dfe3ca513382d1"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+                      "sha256":  "187fe3b975d0ee301108d95e9f28093505db3e9b477efee01f67f2fa8b89b6ae",
+                      "normalizedSha256":  "15c7675ac7513cec31e60177436f1ce5b9e3ca6a9fe5cdfce7fbfbf5476578e2",
+                      "gitBlob":  "8b5a284c6dc273175b1a6cb3eeaa57ca6ee37be4"
+                  }
+              ],
+    "receipt":  {
+                    "path":  "TestResults/uc034-full-command-001/focused.trx",
+                    "sha256":  "8f74aa8e8f57efea10034db66ce57be9444050cc90d2c938a5232caca36bed80",
+                    "passed":  132,
+                    "failed":  0,
+                    "skipped":  1,
+                    "newNoSqlPassed":  40
+                },
+    "limits":  "No SQL or HTTPS acceptance; receipt and transaction double tests are components only."
+}
