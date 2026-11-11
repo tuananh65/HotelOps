@@ -1,0 +1,32 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\StructureDeactivationPreview\StructureDeactivationPreview.Verification.csproj]
+<WORKTREE>\scripts\verification\StructureDeactivationPreview\StructureDeactivationPreview.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\StructureDeactivationPreview\StructureDeactivationPreview.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS: GET route FloorDeactivationDependencies
+PASS: GET only FloorDeactivationDependencies
+PASS: positive route IDs FloorDeactivationDependencies
+PASS: cancellation FloorDeactivationDependencies
+PASS: GET route AreaDeactivationDependencies
+PASS: GET only AreaDeactivationDependencies
+PASS: positive route IDs AreaDeactivationDependencies
+PASS: cancellation AreaDeactivationDependencies
+PASS: existing cookie scheme
+PASS: no-store
+PASS: not anonymous
+PASS: HTTPS required before work
+PASS: invalid ticket denied before work
+PASS: preview whitelist response
+PASS: real structure tag forwarded
+PASS: failure mapping 401
+PASS: failure mapping 403
+PASS: failure mapping 404
+PASS: failure mapping 503
+PASS: legacy record response preserved
+PASS: readiness remains closed
+PASS: count DTO camelcase
+PASS: existing scoped dependency reader reused
+PASS: final gate before read commit
+PASS: preview does not mutate structure or audit
+PASS: no readiness certificate
+PASS: deactivation remains fail-closed
+RESULT: 27 PASS. SQL/live authorization/races NOT RUN.

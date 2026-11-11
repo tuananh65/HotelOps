@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="../ScheduledWorkdayTrialHost/TrialConfiguration.cs" Link="TrialConfiguration.cs" />
+    <Compile Include="../ScheduledWorkdayTrialHost/TrialArtifacts.cs" Link="TrialArtifacts.cs" />
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <ProjectReference Include="../../../src/HotelOps.Api/HotelOps.Api.csproj" />
   </ItemGroup>

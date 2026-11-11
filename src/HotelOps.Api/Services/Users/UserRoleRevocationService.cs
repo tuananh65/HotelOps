@@ -6,6 +6,7 @@ using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Dependencies;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -74,9 +75,11 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
             || !await db.UserBranchAccesses.AnyAsync(a => a.UserId == targetId && a.BranchId == branchId && a.RevokedAt == null && a.GrantedAt <= now, ct)) return new(RevokeRoleStatus.Forbidden);
         // Read the complete target, not just the role branch; unscoped/inactive-branch
         // responsibilities may still require this executor. Readers never certify writers.
-        async Task<RevokeRoleStatus?> Responsibilities()
+        var responsibilities = new TransactionalUserResponsibilities(db,
+            new Dev2DependencyReader(db, current, permissions, new UserAccountStatusAccess(authorityLocks)));
+        async Task<RevokeRoleStatus?> Responsibilities(bool afterMutation = false)
         {
-            var review = await new IntegratedDeactivationResponsibilityQueries(db).ReadAsync(targetId, ct);
+            var review = await responsibilities.ReadAsync(targetId, afterMutation, ct);
             return ValidateResponsibilities(review.Blockers, review.Unresolved, review.Unsupported,
                 PendingResponsibilityWriters);
         }
@@ -109,7 +112,7 @@ public sealed class UserRoleRevocationService(HotelOpsDbContext db, ICurrentUser
         db.Add(audit); try { await db.SaveChangesAsync(ct); } finally { db.Entry(audit).State = EntityState.Detached; }
         try { await guard.EnsurePreservedAsync(before, ct); } catch (GlobalAdministrationInvariantException) { return new(RevokeRoleStatus.LastAdministrator); }
         if (await Authority() is { } final) return new(final);
-        if (await Responsibilities() is { } finalWork) return new(finalWork);
+        if (await Responsibilities(afterMutation: true) is { } finalWork) return new(finalWork);
         var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
         await tx.CommitAsync(ct); return new(RevokeRoleStatus.Success, version);
         // All early returns/errors dispose the uncommitted transaction: no role/session/audit partial commit.

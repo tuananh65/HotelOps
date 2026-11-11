@@ -1,0 +1,144 @@
+﻿{
+    "status":  "BLOCKED_NOT_MERGED",
+    "sourceSha":  "2140522457e89b974cf2d65c64515ec15d733fa9",
+    "sourceTree":  "33ae51a1dbc228dc0338768ecbe9cd959dec0939",
+    "comparison":  "cached origin/integration/fullstack-base...HEAD",
+    "cachedIntegration":  "8fd30f2f12e9dae102de2826e0be20e99e6a14ad",
+    "liveBaseDiffVerified":  false,
+    "originalPathCount":  24,
+    "originalPaths":  [
+                          {
+                              "path":  "docs/integration-notes/DEV2-MASTER-EXECUTION-001/P0_SOURCE_HANDOFF.md",
+                              "sha256":  "13e427739e911c368e12c9d4c5759cb13c28cbca39e2b6ec5fc6ad80c7256405"
+                          },
+                          {
+                              "path":  "docs/integration-notes/DEV2-MASTER-EXECUTION-001/P1_SOURCE_HANDOFF.md",
+                              "sha256":  "f43e98af371dfb993e609d0f8bb6a0668705e52975e6d1a8d99fc3f1f5f54375"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Controllers/AssetsController.cs",
+                              "sha256":  "844ab7da99830fe20d2bf142b9aca4254e59d7be1665b2b876183533e1334721"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Controllers/IncidentsController.cs",
+                              "sha256":  "7bd3c319d62703f57e88b0f2767a314e9c0ed99903361dda387da3991e6508ee"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Program.cs",
+                              "sha256":  "49d1fcec18e2ee110536e479058875a8506c3a0c2b0ad3fffa111f2e282c59de"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+                              "sha256":  "491c42e46ea40c5c457e90ce3f2f7afe8047d09f59b76c8e55f19d640db2076d"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+                              "sha256":  "2d8baf3f066d41c09d40e6061019404be8808600ebe2771bd6f391e60473b1a6"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+                              "sha256":  "d32a78bc341ced9aaba6d20ee91b6275520e16d3c7b69e6345c7ac4b7af5ec10"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+                              "sha256":  "ed8953baf98f5e4225b4e8ecc348d9510436114f60b3dec92bdaca2f145ee26d"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+                              "sha256":  "f149be004067fa0cc74bdc516379569b5ea0372a0fb16f5b9804adef1ce7beb9"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Assets/AssetService.cs",
+                              "sha256":  "4af042a847841904071de07792ddaa0185b9bcf4af86ae6e3b0733e282d292e1"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Dependencies/DependencyContracts.cs",
+                              "sha256":  "43328fbc36b1cfd43c85eece76fabbd6877a87692ffab477f8f9b46da63e1243"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Dependencies/Dev2DependencyQueries.cs",
+                              "sha256":  "f7f73bcba789234deb6a02a601cadf8388eaf6b35dd61a637a6cd691d9fff74e"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Dependencies/Dev2DependencyReader.cs",
+                              "sha256":  "99b90e5f0af372969f6552f7954ce07ac2804e3690d84bd0dd999fabb8dc7137"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Dependencies/Dev2PlacementAuthority.cs",
+                              "sha256":  "15d5a59c17fd1c2eb57cf074ab6399e34812f3b34e3f093bea78bf0fc357e87e"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Dependencies/Dev2PlacementGuard.cs",
+                              "sha256":  "060684189a369055c1fcc9723d4290ffe5ccddd33a75acdbaf5bd53e83407d71"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+                              "sha256":  "8b982074cfb866b924f47fbb982b6722be6e293b281e8705df6f940497ef689f"
+                          },
+                          {
+                              "path":  "src/HotelOps.Api/Services/Notifications/Fe12MaintenanceDependencyAdapter.cs",
+                              "sha256":  "876e39a51838a9f920f5f3e9cbcbd5b4a905397bbe47e70edef632e56c4ea096"
+                          },
+                          {
+                              "path":  "tests/HotelOps.Dev3Unblock.NoSql/ExpansionChecks.cs",
+                              "sha256":  "f920ac5c8639fa20cbd1e4dc8a532d395175533092d1fdd2e0248dcb1c0507b8"
+                          },
+                          {
+                              "path":  "tests/HotelOps.Dev3Unblock.NoSql/HotelOps.Dev3Unblock.NoSql.csproj",
+                              "sha256":  "25bfe3806a5353f79a448755c0a0236a95c7c608ed24b92a5b0a4b01130e8d28"
+                          },
+                          {
+                              "path":  "tests/HotelOps.Dev3Unblock.NoSql/Program.cs",
+                              "sha256":  "acd1b4d684244fccdb7aa115c2c5612c7eec8f1b6769bd71494768551ceeff3d"
+                          },
+                          {
+                              "path":  "tests/HotelOps.Dev3Unblock.NoSql/SqlPlacementProbe.cs",
+                              "sha256":  "d5dcff42119944a018d14327a6a40ee17bb506dfb8733e44cb8d4199c7dfda33"
+                          },
+                          {
+                              "path":  "tests/HotelOps.Dev3Unblock.NoSql/Uc006InactiveBranchChecks.cs",
+                              "sha256":  "2752f95cdcb1efd63fa9bcfa115dd225ca33d36d51894ac5461fb4e363f8ac39"
+                          },
+                          {
+                              "path":  "tests/HotelOps.Dev3Unblock.NoSql/WriterOrderChecks.cs",
+                              "sha256":  "4aa939af215edb369d4547e40177101c8e16ca685d748bf8f7efb7a8acf92a1a"
+                          }
+                      ],
+    "additionalUncommittedEvidence":  [
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/01_SOURCE_PINS_AND_MERGE.md",
+                                              "sha256":  "2bed32416f6e3f5bf8cbf48d7d785c2d7bbd260213b80a85f6449b889f182f1c"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/02_CONFLICT_RESOLUTION.md",
+                                              "sha256":  "c0f6d437c61780e39dc359d844ad192ca93aaaddb6da8b17da5d0635f1eeb120"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/03_COMBINED_SOURCE_GUARDS.md",
+                                              "sha256":  "5b403a34e279d3bb6da79226d4a12b7f328d459acc18808abacca930db6d33f7"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/04_BUILD_AND_338_CHECK_RECEIPTS.md",
+                                              "sha256":  "113ca56aaf03e113c4e4874fa60f9003f32fa0edc1b101aac717908e44717f41"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/06_DEV3_FINAL_REVIEW_REQUEST.md",
+                                              "sha256":  "deb7a74171bdf6ed804e1dcf6068c891e84d1152f280a1eb59b00f604534c345"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/07_FINAL_VERDICT.md",
+                                              "sha256":  "799aa3601b4c2053dc45c01a3a4611122d134b9d1ce75e0212d9b19490758eeb"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/08_HOST_GIT_BASH_CONTINUATION.md",
+                                              "sha256":  "924890c9d764470055e4800b93e695b6a06d5a7c5f80ed6474ac2f6ebf57df60"
+                                          },
+                                          {
+                                              "path":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/01_environment_failures.txt",
+                                              "sha256":  "e1c1032f11a944b5c70c3a4d99f76dfb30b606f0d48b83a70e6a53e20dc9c8b4"
+                                          }
+                                      ],
+    "manifestSelfHashExcluded":  true,
+    "sqlExecution":  "NOT_RUN",
+    "combinedBuildTests":  "NOT_RUN"
+}

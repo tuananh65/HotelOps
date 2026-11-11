@@ -1,0 +1,29 @@
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json. [<WORKTREE>\scripts\verification\ShiftSchedulePlanning\ShiftSchedulePlanning.Verification.csproj]
+<WORKTREE>\scripts\verification\ShiftSchedulePlanning\ShiftSchedulePlanning.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\scripts\verification\ShiftSchedulePlanning\ShiftSchedulePlanning.Verification.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+<WORKTREE>\src\HotelOps.Api\HotelOps.Api.csproj : warning NU1900: Error occurred while getting package vulnerability data: Unable to load the service index for source https://api.nuget.org/v3/index.json.
+PASS: branch wall-clock start converts to UTC
+PASS: branch wall-clock end converts to UTC
+PASS: both offsets are UTC
+PASS: roster date retained separately from UTC date
+PASS: overnight template produces next-day end
+PASS: overnight UTC date may differ from local end date
+PASS: leap-day rollover
+PASS: year rollover
+PASS: zero interval rejected
+PASS: end before start without overnight rejected
+PASS: date overflow rejected
+PASS: missing timezone rejected
+PASS: DST nonexistent start rejected
+PASS: DST ambiguous start rejected
+PASS: DST nonexistent end rejected
+PASS: DST ambiguous end rejected
+PASS: UTC underflow cannot be silently clamped
+PASS: UTC overflow cannot be silently clamped
+PASS: adjacent planned shifts do not overlap
+PASS: overlapping planned shifts conflict
+PASS: reader rejects wrong-branch before SQL
+PASS: reader rejects inactive before SQL
+PASS: reader rejects invalid-employee before SQL
+PASS: reader cancellation before SQL
+RESULT: 24 PASS; no SQL, roster writes, authorization or notification acceptance executed.

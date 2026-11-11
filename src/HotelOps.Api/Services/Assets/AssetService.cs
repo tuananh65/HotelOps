@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Assets;
 
-public sealed partial class AssetService(HotelOpsDbContext dbContext) : IAssetService
+public sealed partial class AssetService(HotelOpsDbContext dbContext,
+    HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority? placementAuthority = null) : IAssetService
 {
     private readonly HotelOpsDbContext _dbContext = dbContext;
 

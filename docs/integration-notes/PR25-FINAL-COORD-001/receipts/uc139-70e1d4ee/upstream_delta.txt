@@ -1,0 +1,13 @@
+﻿A	docs/fullstack-integration/DEV3-FASTTRACK-032/HANDOFF.md
+A	docs/fullstack-integration/DEV3-FASTTRACK-032/MANIFEST.json
+M	frontend/src/workday/ScheduledWorkdayPanel.tsx
+M	frontend/tests/scheduled-workday-browser.test.mjs
+M	scripts/verification/ScheduledWorkday/Program.cs
+A	scripts/verification/ScheduledWorkdayAcceptance/Program.cs
+A	scripts/verification/ScheduledWorkdayAcceptance/README.md
+A	scripts/verification/ScheduledWorkdayAcceptance/ScheduledWorkdayAcceptance.csproj
+A	scripts/verification/ScheduledWorkdayAcceptance/receipt.template.json
+A	scripts/verification/ScheduledWorkdayAcceptance/test-guards.mjs
+A	src/HotelOps.Api/Services/WorkTime/ScheduledWorkdayClaims.cs
+M	src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs
+M	src/HotelOps.Api/Services/WorkTime/WorkdayService.cs

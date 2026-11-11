@@ -18,9 +18,21 @@ public sealed partial class AssetService
     private async Task<AssetDetailDto?> MoveAsync(long id, long actor, long? roomId, long? areaId,
         string? reason, string? expectedType, long? expectedId, string? confirmation, CancellationToken cancellationToken)
     {
+        var authority = placementAuthority ?? throw new HotelOps.Api.Services.Dependencies.Dev2PlacementDeniedException(401);
+        actor = authority.Actor(actor);
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(actor, cancellationToken);
+        // Discovery is not proof; Branch precedes Asset, as in DEV3 UC015/016.
+        var branch = await _dbContext.Assets.AsNoTracking().Where(a => a.AssetId == id)
+            .Select(a => (long?)a.BranchId).SingleOrDefaultAsync(cancellationToken);
+        if (branch is null) return null;
+        var permission = expectedType is null ? "ASSET_MANAGE" : "ASSET_TRANSFER";
+        await authority.RequireAsync(actor, branch.Value, permission, cancellationToken);
+        var placement = new HotelOps.Api.Services.Dependencies.Dev2PlacementGuard(_dbContext);
+        await placement.LockBranchAsync(branch.Value, cancellationToken);
         var asset = await LockAssetAsync(id, cancellationToken);
         if (asset is null) return null;
+        if (asset.BranchId != branch.Value) throw new ValidationException("Asset branch changed; reload before retrying.");
         RequireOperational(asset);
         await RequireActorAsync(actor, cancellationToken);
         if (roomId.HasValue == areaId.HasValue)
@@ -52,6 +64,7 @@ public sealed partial class AssetService
                 a.BranchId == asset.BranchId && a.IsActive, cancellationToken);
         if (!validTarget)
             throw new ValidationException("Target must be an active room/area in the Asset branch.");
+        await placement.ValidateReferencesAsync(asset.BranchId, roomId, areaId, cancellationToken);
         confirmation = OptionalNote(confirmation);
         if (expectedType is not null && await _dbContext.MaintenanceWorks.AsNoTracking()
             .AnyAsync(w => w.Incident != null && w.Incident.AssetId == id &&
@@ -80,6 +93,7 @@ public sealed partial class AssetService
         });
         await _dbContext.SaveChangesAsync(cancellationToken);
         var result = await RequireDetailAsync(id, cancellationToken);
+        await authority.RequireAsync(actor, asset.BranchId, permission, cancellationToken);
         await transaction.CommitAsync(cancellationToken);
         return result;
     }

@@ -1,0 +1,9 @@
+﻿{
+    "command":  "\"C:\\Program Files\\nodejs\\node.exe\" --test tests/shift-plan-preview-browser.test.mjs",
+    "workingDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_PR25_FINAL_COORD_001\\bin\\PR25-UC138-95d870a47f684d9c9ad4425afdbf4950",
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "exitCode":  1,
+    "output":  "docs/integration-notes/PR25-FINAL-COORD-001/receipts/upstream-00bdc481/frontend-shift-plan-preview-browser.txt",
+    "sqlExecution":  "NOT_RUN",
+    "httpExecution":  "offline browser interception/mock fetch only"
+}

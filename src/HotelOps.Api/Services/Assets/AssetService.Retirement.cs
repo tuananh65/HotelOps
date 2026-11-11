@@ -10,6 +10,8 @@ public sealed partial class AssetService
     {
         var reason = Required(request.Reason, "Reason", minimum: 10);
         await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        // User-first coordination with placement and deactivation writers.
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ActorUserId, cancellationToken);
         var asset = await LockAssetAsync(assetId, cancellationToken);
         if (asset is null) return null;
         await RequireActorAsync(request.ActorUserId, cancellationToken);

@@ -1,0 +1,131 @@
+﻿{
+    "sourceTree":  "85bd4cfa8816736231449abeb985a5b573fb79ab",
+    "temporaryRoot":  "C:\\Users\\Admin\\AppData\\Local\\Temp\\HotelOps-PR25-UC138-d664e1f16d1d4ba589b4b8da004f0385",
+    "node":  "C:\\Program Files\\nodejs\\node.exe",
+    "nodeVersion":  "v26.13.0",
+    "dependencyDirectory":  "C:\\Users\\Admin\\Documents\\GitHub\\HotelOps_DEV2_FullStack_Integration\\frontend\\node_modules",
+    "dependencyVersions":  {
+                               "esbuild":  "0.25.12",
+                               "@playwright/test":  "1.63.0",
+                               "react":  "19.3.0",
+                               "react-dom":  "19.3.0"
+                           },
+    "indexedFiles":  [
+                         {
+                             "path":  "frontend/src/auth/AuthProvider.tsx",
+                             "gitBlob":  "d0725bc043decbf3dd56933045e7822983c3c15b",
+                             "sha256":  "4a95e5a24db18e440f6200d3b23f9f85b4b9e306a5ba879bd3af7bd6eaae9de7"
+                         },
+                         {
+                             "path":  "frontend/src/auth/AuthRouteHost.tsx",
+                             "gitBlob":  "3f8b3cf87186ca25c0193a41addff264ced8a072",
+                             "sha256":  "b7638b83b592f540e268f1b90fa6cfaec60b43e7ef64856df3165afa918759f6"
+                         },
+                         {
+                             "path":  "frontend/src/auth/authApi.ts",
+                             "gitBlob":  "ed48d17295141415167b94970f991c7016ffeb50",
+                             "sha256":  "8ace6189e6cf3c7aa07dfb8960de13c3c9bab7ddf4b2f2ce13d4a41ec88a7b10"
+                         },
+                         {
+                             "path":  "frontend/src/auth/authStore.ts",
+                             "gitBlob":  "f4c263fc28329b1f7d3e52e1658f1b34da3b5ed4",
+                             "sha256":  "cd510ba52c12f313ef56498c11fbf3b68b61c594b5020edff56edf2b01cb82ee"
+                         },
+                         {
+                             "path":  "frontend/src/auth/contracts.ts",
+                             "gitBlob":  "1d4094c0ae6978ba7e728461c40a3edce74a730f",
+                             "sha256":  "2164f3781beffd2069392a45e237d19f66669ee6eef3a6e69768b9156f4022c8"
+                         },
+                         {
+                             "path":  "frontend/src/auth/http.ts",
+                             "gitBlob":  "ee777a28598015152bd739737e69ef1d5a03e59c",
+                             "sha256":  "8685a418feddc2a1330ef46d988c4022ad66569f94735a6b92e352835051337d"
+                         },
+                         {
+                             "path":  "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+                             "gitBlob":  "23db2f08e7cfcf93f3335a7e40961e7e08ab1c56",
+                             "sha256":  "6c3ea4a0aaee0a958cf7ce89894056c3f39354fec892b304b5d697b3adfd5b1c"
+                         },
+                         {
+                             "path":  "frontend/src/workday/SecureShiftPlanWorkspace.tsx",
+                             "gitBlob":  "4107e1c4200c600487932e425c967f1051e62a4d",
+                             "sha256":  "81b7e6ab7a19f94cc0fe31fe16e785d7a3ec0d3bf59db26f8920042f179d247e"
+                         },
+                         {
+                             "path":  "frontend/src/workday/ShiftPlanPreviewPanel.tsx",
+                             "gitBlob":  "4a4726a80b51d21290d0badf0280c0970d4a8e89",
+                             "sha256":  "f8b3e77cf030534e174c07e4bdafc3281a049077298bba16d256291712549856"
+                         },
+                         {
+                             "path":  "frontend/src/workday/WorkdayReadPanel.tsx",
+                             "gitBlob":  "ae80f4fc8125f477b8bf4c575ae8188baa88d7ae",
+                             "sha256":  "a04736e2a0b4c06947292a665d9b0d5f41b67c0d80da42777c67eb32e9e9a7e9"
+                         },
+                         {
+                             "path":  "frontend/src/workday/WorkdayRoute.tsx",
+                             "gitBlob":  "389b1d588182084baf13ac009848ed66baba8c16",
+                             "sha256":  "21d048672bd64c0dd72228c1d3a06210f1099b52003c9c3603dce6f72106edc3"
+                         },
+                         {
+                             "path":  "frontend/src/workday/contracts.ts",
+                             "gitBlob":  "a326c894d657d0d80b8d09bbe0cc10c0fa1bffd3",
+                             "sha256":  "5145d980d6d1e33efb8ec31d88e81fe1c3410c8dba68fe186104711142411842"
+                         },
+                         {
+                             "path":  "frontend/src/workday/readFeature.ts",
+                             "gitBlob":  "c332f9ed1a030ef253dabdb2b81d6dfc276a2c85",
+                             "sha256":  "1d48027ded65656c753a89e9077685aff26aa6e34a33cc364bf82151e6d8e43e"
+                         },
+                         {
+                             "path":  "frontend/src/workday/scheduledContracts.ts",
+                             "gitBlob":  "5c7d07c495927e097060341d89d50eb728a9896d",
+                             "sha256":  "829c68c39596e56046f56d18bf1383679fd6bb69043a179baadd2a283a57488c"
+                         },
+                         {
+                             "path":  "frontend/src/workday/scheduledWorkdayApi.ts",
+                             "gitBlob":  "9813ac5ac944277b476f5984162dbfbb42cc6dd9",
+                             "sha256":  "835f19ddca01baca66a1c5968a5bb4cf8e6c9115005dfd5e925de485c633cccb"
+                         },
+                         {
+                             "path":  "frontend/src/workday/shiftPlanApi.ts",
+                             "gitBlob":  "6cc39c05afbf55d74f7a6203d1308f5b553cbfc3",
+                             "sha256":  "3e0e45bee4d2c6c941a36640a5ab7d4746a53a89d55598f64edc5de3b459c04a"
+                         },
+                         {
+                             "path":  "frontend/src/workday/shiftPlanPreview.ts",
+                             "gitBlob":  "c2911d661477c180cfcabd97bde091588c6ecd1b",
+                             "sha256":  "ca33cfb5a65f151d0835b1d8b720680da63519161ebe0bbbc79ecba1f8c2936f"
+                         },
+                         {
+                             "path":  "frontend/src/workday/workdayApi.ts",
+                             "gitBlob":  "5cff81fa35498e13c4bc46193b5db5269ea85735",
+                             "sha256":  "43c886be91f47f37129c1749624773ec4dc0a4e3fc25a1da1fd14007747f7743"
+                         },
+                         {
+                             "path":  "frontend/package.json",
+                             "gitBlob":  "cf63fcc29086c03e4d250449756fe1362c3295a7",
+                             "sha256":  "bf1662bcd09fcb0967b40afee2107307797fd47f7c5f826c2dd8ee3e5addadfd"
+                         },
+                         {
+                             "path":  "frontend/tests/shift-plan-api.test.mjs",
+                             "gitBlob":  "995c97fc7a1ee8ffd2c6e387e1cad1329f59966a",
+                             "sha256":  "6b5d84839788cbe089a69a599a7367cf72559cdaa5bf2add0ef8020d12c6bc1b"
+                         },
+                         {
+                             "path":  "frontend/tests/secure-shift-plan-browser.test.mjs",
+                             "gitBlob":  "fbc201c68e812745ed9875c4b3a29070ed7d3788",
+                             "sha256":  "c259ed60a816b50b5f15fed82edd51b67b3d21f118103b0779a4c26294417cae"
+                         },
+                         {
+                             "path":  "frontend/tests/shift-plan-preview.test.mjs",
+                             "gitBlob":  "5178feeb471323ba7dd13818981f5ab62b9c4ed8",
+                             "sha256":  "fb193d90d211cffe2d6591a2c4de7cc353e3119e78a78188d943c91d9f780b87"
+                         },
+                         {
+                             "path":  "frontend/tests/shift-plan-preview-browser.test.mjs",
+                             "gitBlob":  "e61bf9fa5c65c54ca7fb0da3d19221412664ec0b",
+                             "sha256":  "deabb1c76382d2f49b6ae3d62b959d583fa416478780eafea01c499c46ec8175"
+                         }
+                     ],
+    "qualification":  "Only indexed source copies, no installs, no modification of original worktree/dependencies, browser fixtures intercept requests; production routes not launched"
+}

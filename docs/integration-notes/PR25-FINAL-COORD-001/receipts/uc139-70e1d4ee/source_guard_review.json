@@ -1,0 +1,36 @@
+﻿{
+    "sourceTree":  "b3d8dfe61a528c68002ce6d725d47840604d2e27",
+    "integrationParent":  "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+    "previousIntegration":  "00bdc481cb224d7117a79c95669abc7016f51ba4",
+    "commits":  2,
+    "paths":  [
+                  "docs/fullstack-integration/DEV3-FASTTRACK-032/HANDOFF.md",
+                  "docs/fullstack-integration/DEV3-FASTTRACK-032/MANIFEST.json",
+                  "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+                  "frontend/tests/scheduled-workday-browser.test.mjs",
+                  "scripts/verification/ScheduledWorkday/Program.cs",
+                  "scripts/verification/ScheduledWorkdayAcceptance/Program.cs",
+                  "scripts/verification/ScheduledWorkdayAcceptance/README.md",
+                  "scripts/verification/ScheduledWorkdayAcceptance/ScheduledWorkdayAcceptance.csproj",
+                  "scripts/verification/ScheduledWorkdayAcceptance/receipt.template.json",
+                  "scripts/verification/ScheduledWorkdayAcceptance/test-guards.mjs",
+                  "src/HotelOps.Api/Services/WorkTime/ScheduledWorkdayClaims.cs",
+                  "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+                  "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs"
+              ],
+    "original24Preserved":  true,
+    "sourceFixes":  [
+
+                    ],
+    "programDi":  "Unchanged; 3 DEV2 scoped additions retained; DI16 fresh PASS",
+    "uc139Claim":  "Same Unclaimed anti-join in own-shifts and locked Start; any prior Workday, including ENDED or inconsistent ownership, consumes assignment; no deletion/status rewrite",
+    "transaction":  "Existing Serializable caller, User/time/assignment locks, SQL session/resource admission, server SYSUTCDATETIME, audit within caller transaction; participant does not commit",
+    "uiReceipt":  "Only CONFIRMED response updates receipt; session/branch/401 clears it; no new receipt for unknown Start outcome",
+    "activation":  "WorkdaysController NonController; Save/Assign release gates, unscheduled notification and Pause All remain closed",
+    "schemaAndPolicyChanges":  [
+
+                               ],
+    "runtimeAcceptance":  "NOT_RUN",
+    "frontend":  "HOST_PENDING; no repeated sandbox esbuild attempts",
+    "historical688":  "PREVIOUS_TREE_ONLY"
+}

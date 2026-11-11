@@ -11,6 +11,10 @@ using HotelOps.Api.Services.Inventory;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+// DEV2-owned dependency participants only; no producer/worker or deactivation activation.
+builder.Services.AddScoped<HotelOps.Api.Services.Dependencies.Dev2DependencyReader>();
+builder.Services.AddScoped<HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.Fe12MaintenanceDependencyAdapter>();
 builder.Services.AddScoped<StartupSchemaValidator>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();

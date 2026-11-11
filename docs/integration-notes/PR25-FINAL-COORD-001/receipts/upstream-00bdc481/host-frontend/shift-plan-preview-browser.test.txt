@@ -1,0 +1,20 @@
+✔ default unavailable never fetches worktime or calls adapter (1088.306ms)
+✔ multi-row preview uses exact immutable drafts and server intervals (529.8498ms)
+✔ invalid date never invokes adapter (621.162ms)
+✔ existing and proposed overlaps rendered without save authority (523.5591ms)
+✔ safe unavailable without retry {"throw":true} (480.3587ms)
+✔ safe unavailable without retry {"preview":{"detail":"SECRET-ERROR"}} (482.6805ms)
+✔ safe unavailable without retry {"preview":{"rows":[{"index":0,"startUtc":"2028-02-29T16:00:00Z","endUtc":"2028-03-01T00:00:00Z","issues":[]}],"requiresServerRevalidation":false}} (480.5524ms)
+✔ double click cannot queue previews and edit aborts stale result (461.4658ms)
+✔ remove draft invalidates prior preview (486.0255ms)
+✔ anonymous/restricted no draft or preview 401 (317.3924ms)
+✔ anonymous/restricted no draft or preview undefined (326.918ms)
+✔ identity replacement removes drafts and ignores late preview (534.7696ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7136.9311
