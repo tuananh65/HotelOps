@@ -1,0 +1,17 @@
+{
+  "version": "UC049-NAV-v1-CANDIDATE",
+  "status": "PROPOSED",
+  "hrefBuilder": "reportIncidentHref(branchId: string, roomId: string): string",
+  "source": "frontend/src/incidents/navigation.ts",
+  "required": [
+    "branchId",
+    "roomId"
+  ],
+  "encoding": "URLSearchParams after canonical positive decimal + JS safe integer validation",
+  "example": "/incidents/new?branchId=1&roomId=11",
+  "authority": "URL is untrusted context only; GET and POST server authority required",
+  "routerAcceptanceReference": null,
+  "sourceCommit": null,
+  "publication": "NOT_PUBLISHED",
+  "FE03MayEnable": false
+}

@@ -6,6 +6,7 @@ using System.ComponentModel.DataAnnotations;
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[IncidentAccessFilter]
 [Route("api/incidents")]
 public class IncidentsController : ControllerBase
 {
@@ -59,6 +60,9 @@ public class IncidentsController : ControllerBase
     }
 
     [HttpPost]
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = HotelOps.Api.Security.HotelOpsCookieTicket.Scheme)]
+    [ValidateAntiForgeryToken]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
     public async Task<ActionResult<IncidentDetailDto>> CreateIncident(
         CreateIncidentRequest request, CancellationToken cancellationToken)
     {
@@ -71,6 +75,21 @@ public class IncidentsController : ControllerBase
         {
             return Problem(statusCode: StatusCodes.Status400BadRequest,
                 title: "Incident validation failed", detail: exception.Message);
+        }
+    }
+
+    [HttpGet("options")]
+    [Microsoft.AspNetCore.Authorization.Authorize(AuthenticationSchemes = HotelOps.Api.Security.HotelOpsCookieTicket.Scheme)]
+    [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+    public async Task<ActionResult<IncidentOptionsDto>> GetOptions(
+        [FromQuery] long? branchId, [FromQuery] long? roomId, CancellationToken cancellationToken)
+    {
+        if (Request.Query["branchId"].Count > 1 || Request.Query["roomId"].Count > 1)
+            return Problem(statusCode: 400, title: "Duplicate incident context query parameter");
+        try { return Ok(await _incidentService.GetOptionsAsync(branchId, roomId, cancellationToken)); }
+        catch (ValidationException exception)
+        {
+            return Problem(statusCode: 400, title: "Incident context validation failed", detail: exception.Message);
         }
     }
 

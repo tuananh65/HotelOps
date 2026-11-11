@@ -1,0 +1,156 @@
+{
+  "startingSha": "6aee2a0e692a7814f41c81224709cddfbe1e2ec4",
+  "remoteFreshness": "UNKNOWN",
+  "placement": "2140522457e89b974cf2d65c64515ec15d733fa9",
+  "fe03": "6143218925fddb2e9927a5d053ae43041940ae41",
+  "provenance": [
+    {
+      "path": "src/HotelOps.Api/Services/Dependencies/Dev2PlacementGuard.cs",
+      "source": "2140522457e89b974cf2d65c64515ec15d733fa9",
+      "sourceSha256": "1ff68fe6da731a1f4b3fd5898b61d980f36bd72816fd660c889f36091c620287",
+      "tracked": true,
+      "destination": "src/HotelOps.Api/Services/Incidents/IncidentPlacementGuard.cs",
+      "destinationSha256": "f1e593cfe9fec1b1d654907354569a299cc45189d75f1f5e3f85e536d0e88924",
+      "startingDestinationSha256": null
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Dependencies/Dev2PlacementAuthority.cs",
+      "source": "2140522457e89b974cf2d65c64515ec15d733fa9",
+      "sourceSha256": "faee2732bc8d58c99433ff9dc3fe07b7a4d89365ee7c089dcec61bd5cf016cd6",
+      "tracked": true,
+      "destination": "src/HotelOps.Api/Services/Incidents/IncidentCreateAuthority.cs",
+      "destinationSha256": "e550ed0071a7c1a7dfbd256a13abe6d60df600a778a80b148048147e217d46d6",
+      "startingDestinationSha256": null
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+      "source": "2140522457e89b974cf2d65c64515ec15d733fa9",
+      "sourceSha256": "402a4325f979f54abe6bae5ddd8c0cf3d97bdeb263f3b292e38cc7ecb680e535",
+      "tracked": true,
+      "destination": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+      "destinationSha256": "e24e375753bb83127967ac1785c4fa1e29708e969c72db54b8e4309c5fb83410",
+      "startingDestinationSha256": "cc305ec2e49c54463faa253c8595f0628d0dce8385f73255ce8ba1cd9aa3c25a"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/IncidentAccessFilterAttribute.cs",
+      "source": "ORIGINAL_WORKING_FILE",
+      "sourceSha256": "4edef340edd6eb5ffdba530b6415edcdb5ffc890c0d6f48ea9c24822aab54cea",
+      "tracked": false,
+      "destination": "src/HotelOps.Api/Controllers/IncidentAccessFilterAttribute.cs",
+      "destinationSha256": "9f5bef2bfb247982f998e876262b6d5e31755a140f3be3eda71df7f1918a82b1",
+      "startingDestinationSha256": null
+    }
+  ],
+  "hostAuth": "d0a5a073b7921040f1e2ed726782ca97e0e30e61",
+  "initialWorktreeClean": true,
+  "currentBranch": "feature/dev2-fe06-uc049-integration025b",
+  "currentHead": "6aee2a0e692a7814f41c81224709cddfbe1e2ec4",
+  "placementAncestorOfStart": false,
+  "fe03AncestorOfStart": false,
+  "acceptedSourceApproval": "NO_NEW_ACCEPTANCE_EVIDENCE",
+  "originalCandidates": [
+    {
+      "path": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+      "exists": true,
+      "tracked": true,
+      "sha256": "e59cc0cc7d2bdd7a3a263e265c8dd02a6aac941d6a48b64ea3451868b6b93c71",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/IncidentAccessFilterAttribute.cs",
+      "exists": true,
+      "tracked": false,
+      "sha256": "4edef340edd6eb5ffdba530b6415edcdb5ffc890c0d6f48ea9c24822aab54cea",
+      "action": "adapted HTTP exception mapping"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Incidents/CreateIncidentRequest.cs",
+      "exists": true,
+      "tracked": true,
+      "sha256": "1633c5f64a408809b69c3624d3ee8cbaef436dea6cc096023c29084ca0d01c0a",
+      "action": "compatibility field nullable instead of local JsonIgnore"
+    },
+    {
+      "path": "src/HotelOps.Api/DTOs/Incidents/IncidentOptionsDto.cs",
+      "exists": true,
+      "tracked": false,
+      "sha256": "d4e8db0f9bf0a887ec0c43b680c4218f02d75aa26acbdeb59d20afb833ddb880",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Incidents/IncidentAccess.cs",
+      "exists": true,
+      "tracked": false,
+      "sha256": "e032c693049aeb6278d2bf314822d14352de53beef276afaf443ba52e4ecf31e",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+      "exists": true,
+      "tracked": true,
+      "sha256": "3a90aef58d4fd6c64ff3ecb32fe2a56d0517a5d65405d1573513e61d9529a75c",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Incidents/IIncidentService.cs",
+      "exists": true,
+      "tracked": true,
+      "sha256": "7740af3fe9e4428053e6c1191575b697a70e1ebf423ce3db74f2899940270562",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Incidents/IncidentStatusRules.cs",
+      "exists": true,
+      "tracked": false,
+      "sha256": "6d95ca172a86e4a46a6ae066e907f7267815b2092c0c523a5f6e4c73e0f4331d",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "frontend/src/incidents/api.ts",
+      "exists": true,
+      "tracked": false,
+      "sha256": "39bd151565937d91ea85f1f659b8ddef947fa4a7ca297292d8c8037e6192d458",
+      "action": "reimplemented against pinned integrated auth transport"
+    },
+    {
+      "path": "frontend/src/incidents/IncidentRuntime.tsx",
+      "exists": true,
+      "tracked": false,
+      "sha256": "e53449bef5a25f47ad35672eab205a69e8eb3d37553a8ca1ae2b9ed67c9d54c2",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "frontend/src/screens/maintenance/ReportIncidentScreen.tsx",
+      "exists": true,
+      "tracked": false,
+      "sha256": "ff6ddcbe82be19457d47bc97dfef1f254ac1115c98d7950a2b402de6ed666c3a",
+      "action": "reimplemented focused route form; no copy of generic shell"
+    },
+    {
+      "path": "tests/HotelOps.Incident.UnitTests/Program.cs",
+      "exists": true,
+      "tracked": false,
+      "sha256": "0d59c0fd25be584a3164d3c1c5530675fee58a97ff2ba6c5744be8f881a84d05",
+      "action": "inspected only; dirty source not imported"
+    },
+    {
+      "path": "tests/HotelOps.Incident.UnitTests/HotelOps.Incident.UnitTests.csproj",
+      "exists": true,
+      "tracked": false,
+      "sha256": "6cfc739e4ae09e14d46f07c46d27af16db64fd84d702c26a78c343e2dfeae5c4",
+      "action": "inspected only; dirty source not imported"
+    }
+  ],
+  "regression": {
+    "statusAndTriageUnchanged": true,
+    "listAndDetailUnchanged": true,
+    "scope": "normalized exact source comparison, NOT runtime workflow regression tests"
+  },
+  "sparseCheckout": {
+    "enabled": true,
+    "expansionExit": 128,
+    "reason": "Git metadata outside writable roots; sparse-checkout.lock permission denied",
+    "fallback": "Materialized exact HEAD src/tests/docs requirements with git archive into worktree. No shared source changes. Sparse metadata unchanged."
+  },
+  "originalStatusEntries": 168
+}
