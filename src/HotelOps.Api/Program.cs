@@ -83,6 +83,9 @@ builder.Services.AddControllers().ConfigureApiBehaviorOptions(AuthenticationApiB
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
+// DEV2 candidate read-only insights; existing permissions remain authoritative.
+HotelOps.Api.Services.Insights.InsightRegistration.AddHotelOpsInsights(builder.Services);
+
 var app = builder.Build();
 await using (var schemaScope = app.Services.CreateAsyncScope())
 {
