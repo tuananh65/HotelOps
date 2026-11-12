@@ -59,5 +59,26 @@ using (var queryDb = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsD
     var sql = ScheduledWorkdayClaims.Unclaimed(queryDb.ShiftAssignments.AsNoTracking(), queryDb.Workdays.AsNoTracking()).Select(a => a.ShiftAssignmentId).ToQueryString();
     Check(sql.Contains("NOT EXISTS") && sql.Contains("[workdays]") && sql.Contains("[shift_assignment_id]"), "SQL adapter translates claim anti-join without connection; execution NOT_RUN");
 }
+// Execute the writer's calendar admission against fresh server timestamps, including a lock wait.
+bool Admitted(DateOnly date, DateTime utc)
+{
+    try { ScheduledWorkdayClaims.RequireCurrentHotelDate(date, utc); return true; }
+    catch (WorkTimeContractException e) when (e.Code == "TIME_STATE_CONFLICT") { return false; }
+}
+var shiftDate = new DateOnly(2026, 11, 12);
+var beforeMidnight = new DateTime(2026, 11, 12, 16, 59, 59, DateTimeKind.Utc);
+Check(Admitted(shiftDate, beforeMidnight), "calendar: today's assignment admitted before hotel midnight");
+Check(!Admitted(shiftDate, beforeMidnight.AddSeconds(1)), "calendar: lock wait across hotel midnight rejects old assignment");
+Check(Admitted(shiftDate.AddDays(1), beforeMidnight.AddSeconds(1)), "calendar: new hotel date admitted at exact midnight");
+Check(!Admitted(shiftDate.AddDays(1), beforeMidnight), "calendar: tomorrow assignment not admitted early");
+Check(Admitted(shiftDate, new DateTime(2026, 11, 11, 17, 0, 0, DateTimeKind.Utc)), "calendar: UTC previous date still maps to hotel date");
+Check(!Admitted(shiftDate, DateTime.SpecifyKind(beforeMidnight, DateTimeKind.Unspecified)), "calendar: untrusted unspecified clock fails closed");
+Check(!Admitted(shiftDate, DateTime.SpecifyKind(beforeMidnight, DateTimeKind.Local)), "calendar: machine-local clock fails closed");
+Check(Admitted(new DateOnly(2028, 2, 29), new DateTime(2028, 2, 28, 17, 0, 0, DateTimeKind.Utc)), "calendar: leap day hotel boundary");
+Check(!Admitted(new DateOnly(2028, 2, 29), new DateTime(2028, 2, 29, 17, 0, 0, DateTimeKind.Utc)), "calendar: leap day expires at March boundary");
+Check(!Admitted(new DateOnly(2026, 12, 31), new DateTime(2026, 12, 31, 17, 0, 0, DateTimeKind.Utc)), "calendar: year boundary rejects previous year");
+var finalCalendar = participant.LastIndexOf("ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now)", StringComparison.Ordinal);
+var refresh = participant.LastIndexOf("now = await NowAsync(ct);", participant.IndexOf("var day = new Workday", StringComparison.Ordinal), StringComparison.Ordinal);
+Check(finalCalendar > refresh && finalCalendar < participant.IndexOf("var day = new Workday", StringComparison.Ordinal), "writer uses fresh calendar admission before domain/audit inserts (source wiring, SQL NOT_RUN)");
 Console.WriteLine($"RESULT: {count} PASS. SQL success/race/cancellation/rollback acceptance NOT RUN.");
 sealed class Actor(bool restricted) : ICurrentUserAccessor { public bool TryGetCurrentUser(out CurrentUserInfo user) { user = new(7, 9, restricted); return restricted; } }
