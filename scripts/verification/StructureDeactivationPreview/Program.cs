@@ -11,6 +11,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
+using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
+using Microsoft.EntityFrameworkCore;
 var checks=0;
 void Check(bool condition,string label){if(!condition)throw new Exception("FAIL: "+label);checks++;Console.WriteLine("PASS: "+label);}
 var controller=typeof(HotelStructureUpdateController);
@@ -47,4 +50,42 @@ var source=File.ReadAllText("src/HotelOps.Api/Services/HotelStructure/HotelStruc
 var start=source.IndexOf("            if (preview)",StringComparison.Ordinal);var end=source.IndexOf("            if (deactivate)",start,StringComparison.Ordinal);var block=source[start..end];
 Check(block.Contains("StructureDeactivationDependencies.ReadAsync"),"existing scoped dependency reader reused");Check(block.Contains("await Gate()")&&block.IndexOf("await Gate()",StringComparison.Ordinal)<block.IndexOf("tx.CommitAsync",StringComparison.Ordinal),"final gate before read commit");Check(!block.Contains("SaveChanges")&&!block.Contains("ExecuteUpdate")&&!block.Contains("AuditLog"),"preview does not mutate structure or audit");Check(block.Contains("WriterCoordinationRequired: true"),"no readiness certificate");
 Check(source.Contains("StructureUpdateStatus.WriterCoordinationRequired, ETag: tag"),"deactivation remains fail-closed");
-Console.WriteLine($"RESULT: {checks} PASS. SQL/live authorization/races NOT RUN.");
+Check(HotelStructureUpdateService.DeactivationReleaseGates.Count == 3, "all writer/contract/SQL gates remain closed");
+try { ((IList<string>)HotelStructureUpdateService.DeactivationReleaseGates).Clear(); throw new Exception("mutable gates"); }
+catch (NotSupportedException) { Check(true, "release gates immutable to callers"); }
+IQueryable<Floor> Floors(IQueryable<Floor> rows, EditableStructureDto before) => (IQueryable<Floor>)typeof(HotelStructureUpdateService)
+    .GetMethod("FloorDeactivationRows", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [rows, before])!;
+IQueryable<Area> Areas(IQueryable<Area> rows, EditableStructureDto before) => (IQueryable<Area>)typeof(HotelStructureUpdateService)
+    .GetMethod("AreaDeactivationRows", BindingFlags.NonPublic | BindingFlags.Static)!.Invoke(null, [rows, before])!;
+Floor FloorRow() => new() { FloorId = 11, BranchId = 42, FloorCode = "F11", FloorName = "Floor", FloorNumber = 2, IsActive = true };
+Check(Floors(new[] { FloorRow() }.AsQueryable(), record).Count() == 1, "exact active Floor snapshot eligible for conditional update");
+foreach (var change in new Action<Floor>[] { x => x.FloorId++, x => x.BranchId++, x => x.IsActive = false,
+    x => x.FloorCode = "NEW", x => x.FloorName = "Changed", x => x.Description = "changed", x => x.FloorNumber = 3 })
+{
+    var stale = FloorRow(); change(stale);
+    Check(!Floors(new[] { stale }.AsQueryable(), record).Any(), "Floor stale field/scope/state does not match");
+}
+var areaBefore = new EditableStructureDto("area", 12, 42, "A12", "Area", null, null, null, true);
+Area AreaRow() => new() { AreaId = 12, BranchId = 42, AreaCode = "A12", AreaName = "Area", IsActive = true };
+Check(Areas(new[] { AreaRow() }.AsQueryable(), areaBefore).Count() == 1, "exact parentless Area eligible without invented parent");
+foreach (var change in new Action<Area>[] { x => x.AreaId++, x => x.BranchId++, x => x.IsActive = false,
+    x => x.AreaCode = "NEW", x => x.AreaName = "Changed", x => x.Description = "changed", x => x.FloorId = 3 })
+{
+    var stale = AreaRow(); change(stale);
+    Check(!Areas(new[] { stale }.AsQueryable(), areaBefore).Any(), "Area stale field/parent/scope/state does not match");
+}
+using (var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+    .UseSqlServer("Server=offline.invalid;Database=OFFLINE;Integrated Security=true;Encrypt=true;TrustServerCertificate=false").Options))
+{
+    var floorSql = Floors(db.Floors, record).ToQueryString(); var areaSql = Areas(db.Areas, areaBefore).ToQueryString();
+    Check(floorSql.Contains("[floor_id]") && floorSql.Contains("[branch_id]") && floorSql.Contains("[is_active]") && floorSql.Contains("[description] IS NULL"), "Floor snapshot SQL translation only; SQL execution NOT_RUN");
+    Check(areaSql.Contains("[area_id]") && areaSql.Contains("[branch_id]") && areaSql.Contains("[floor_id] IS NULL"), "Area nullable-parent SQL translation only; SQL execution NOT_RUN");
+}
+var deactivationEnd = source.IndexOf("            if (input == null)", end, StringComparison.Ordinal);
+var writer = source[end..deactivationEnd];
+Check(writer.IndexOf("DeactivationReleaseGates.Count != 0", StringComparison.Ordinal) < writer.IndexOf(".ExecuteUpdateAsync", StringComparison.Ordinal), "source wiring: immutable gate precedes either writer");
+Check(writer.Contains("fresh != before") && writer.Contains("Tag(before, finalRevision)") && writer.Contains("finalDependencies.Count != 0"), "source wiring: final snapshot/ETag/dependencies checked");
+Check(writer.Contains("if (affected != 1)") && writer.Contains("with { IsActive = false }") && writer.Contains("reason = deactivationReason"), "source wiring: real conditional mutation with reason audit");
+Check(writer.IndexOf("await db.SaveChangesAsync", StringComparison.Ordinal) < writer.IndexOf("await tx.CommitAsync", StringComparison.Ordinal)
+    && writer.Contains("await Gate() is { } commitGate") && source.Contains("await using var tx"), "source wiring: audit and final authority before owned commit; actual rollback NOT_RUN");
+Console.WriteLine($"RESULT: {checks} PASS. SQL/live authorization/races/rollback NOT RUN.");
