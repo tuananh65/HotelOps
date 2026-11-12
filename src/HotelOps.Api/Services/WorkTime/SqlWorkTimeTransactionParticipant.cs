@@ -23,7 +23,6 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
 {
     private Guid? lockedTransaction;
     private long[] lockedIds = [];
-    private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
 
     public Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken) => RunAsync(async () =>
     {
@@ -73,9 +72,9 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
         var shift = await db.WorkShifts.FromSqlInterpolated(
             $"SELECT * FROM dbo.work_shifts WITH(UPDLOCK,HOLDLOCK) WHERE shift_id={assignment.ShiftId}")
             .AsNoTracking().SingleOrDefaultAsync(ct);
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
-        if (shift is null || shift.BranchId != branchId || shift.Status != "PLANNED" || shift.ShiftDate != today
+        if (shift is null || shift.BranchId != branchId || shift.Status != "PLANNED"
             || shift.ScheduledEndAt < shift.ScheduledStartAt) throw Failure("TIME_STATE_CONFLICT");
+        ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
         if (!await db.ShiftTemplates.FromSqlInterpolated(
                 $"SELECT * FROM dbo.shift_templates WITH(HOLDLOCK) WHERE shift_template_id={shift.ShiftTemplateId}")
                 .AsNoTracking().AnyAsync(x => x.ShiftTemplateId == shift.ShiftTemplateId
@@ -89,6 +88,7 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
                 .Where(a => a.ShiftAssignmentId == shiftAssignmentId), db.Workdays.AsNoTracking()).AnyAsync(ct))
             throw Failure("TIME_ASSIGNMENT_ALREADY_RECORDED");
         now = await NowAsync(ct);
+        ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
         var day = new Workday
         {
             UserId = actorUserId,
