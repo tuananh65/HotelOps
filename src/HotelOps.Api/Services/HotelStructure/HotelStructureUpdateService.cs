@@ -22,6 +22,13 @@ public sealed record StructureUpdateResult(StructureUpdateStatus Status, Editabl
 public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUserAccessor current,
     IPermissionService permissions, ISqlSessionService sessions, TimeProvider clock)
 {
+    public static IReadOnlyList<string> DeactivationReleaseGates { get; } = Array.AsReadOnly(new[]
+    {
+        "OPERATIONAL_TASK_COMPLETION_AND_CHILD_LOCATION_CONTRACT",
+        "ALL_REFERENCE_WRITER_PARTICIPATION",
+        "SQL_DEACTIVATION_RACE_AUDIT_ROLLBACK_ACCEPTANCE"
+    });
+
     public Task<StructureUpdateResult> DeactivateAsync(SessionReference ticket, long sessionId, long branchId,
         long id, bool area, string etag, DeactivateStructureRequest request, CancellationToken ct)
     {
@@ -29,7 +36,7 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
         if (!request.Confirmation || string.IsNullOrEmpty(reason) || reason.Length is < 10 or > 1000 || reason.Any(char.IsControl))
             throw new ValidationException("Confirmation and a reason of 10-1000 characters without control characters are required.");
         if (!IsStrongTag(etag)) throw new ValidationException("A single strong structure ETag is required.");
-        return Run(ticket, sessionId, branchId, id, area, etag, null, ct, deactivate: true);
+        return Run(ticket, sessionId, branchId, id, area, etag, null, ct, deactivate: true, deactivationReason: reason);
     }
     public Task<StructureUpdateResult> ReadDeactivationDependenciesAsync(SessionReference ticket, long sessionId, long branchId,
         long id, bool area, CancellationToken ct) => Run(ticket, sessionId, branchId, id, area, null, null, ct, preview: true);
@@ -46,7 +53,8 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
         && tag.AsSpan(1, 64).ToString().All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
 
     private async Task<StructureUpdateResult> Run(SessionReference ticket, long sessionId, long branchId,
-        long id, bool area, string? expected, Input? input, CancellationToken ct, bool deactivate = false, bool preview = false)
+        long id, bool area, string? expected, Input? input, CancellationToken ct, bool deactivate = false, bool preview = false,
+        string? deactivationReason = null)
     {
         if (branchId <= 0 || id <= 0) throw new ValidationException("Branch and record IDs must be positive.");
         if (input != null && !IsStrongTag(expected)) throw new ValidationException("A single strong structure ETag is required.");
@@ -102,11 +110,50 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
                 if (!string.Equals(tag, expected, StringComparison.Ordinal)) return new(StructureUpdateStatus.Stale);
                 var dependencies = await StructureDeactivationDependencies.ReadAsync(db, branchId, id, area, ct);
                 if (await Gate() is { } finalCheck) return new(finalCheck);
-                // No mutation is permitted yet: Incident create does not require an active location,
-                // and Asset Move releases its location eligibility read before committing the FK.
-                // Serializable reader locks alone cannot repair those uncoordinated writers.
-                return new(dependencies.Count > 0 ? StructureUpdateStatus.DependenciesExist
-                    : StructureUpdateStatus.WriterCoordinationRequired, ETag: tag, Dependencies: dependencies);
+                if (dependencies.Count > 0)
+                    return new(StructureUpdateStatus.DependenciesExist, ETag: tag, Dependencies: dependencies);
+                // Placement guards alone do not certify OperationalTask terminal semantics or ALL
+                // reference writers. Empty diagnostics must never enable this writer by themselves.
+                if (DeactivationReleaseGates.Count != 0)
+                    return new(StructureUpdateStatus.WriterCoordinationRequired, ETag: tag, Dependencies: dependencies);
+
+                if (!current.TryGetCurrentUser(out var finalActor) || finalActor != actor)
+                    return new(StructureUpdateStatus.SessionInvalid);
+                if (await Gate() is { } prewriteGate) return new(prewriteGate);
+                var fresh = area
+                    ? await db.Areas.AsNoTracking().Where(x => x.AreaId == id && x.BranchId == branchId)
+                        .Select(x => new EditableStructureDto("area", x.AreaId, x.BranchId, x.AreaCode, x.AreaName, x.Description, x.FloorId, null, x.IsActive)).SingleOrDefaultAsync(ct)
+                    : await db.Floors.AsNoTracking().Where(x => x.FloorId == id && x.BranchId == branchId)
+                        .Select(x => new EditableStructureDto("floor", x.FloorId, x.BranchId, x.FloorCode, x.FloorName, x.Description, null, x.FloorNumber, x.IsActive)).SingleOrDefaultAsync(ct);
+                var finalRevision = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == entity && x.EntityId == key)
+                    .Select(x => (long?)x.AuditId).MaxAsync(ct) ?? 0;
+                if (fresh != before || !string.Equals(Tag(before, finalRevision), expected, StringComparison.Ordinal))
+                    return new(StructureUpdateStatus.Stale);
+                var finalDependencies = await StructureDeactivationDependencies.ReadAsync(db, branchId, id, area, ct);
+                if (finalDependencies.Count != 0)
+                    return new(StructureUpdateStatus.DependenciesExist, ETag: tag, Dependencies: finalDependencies);
+                ct.ThrowIfCancellationRequested();
+                var affected = area
+                    ? await AreaDeactivationRows(db.Areas, before).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, false), ct)
+                    : await FloorDeactivationRows(db.Floors, before).ExecuteUpdateAsync(s => s.SetProperty(x => x.IsActive, false), ct);
+                if (affected != 1) return new(StructureUpdateStatus.Stale);
+                var deactivated = before with { IsActive = false };
+                var deactivationAudit = new AuditLog
+                {
+                    ActorUserId = actor.UserId, BranchId = branchId, EntityType = entity, EntityId = key,
+                    Action = "UPDATE", OccurredAt = clock.GetUtcNow().UtcDateTime,
+                    OldValues = JsonSerializer.Serialize(before, Json),
+                    NewValues = JsonSerializer.Serialize(new { value = deactivated, reason = deactivationReason }, Json),
+                    ChangedFields = "[\"isActive\"]"
+                };
+                db.Add(deactivationAudit);
+                try { await db.SaveChangesAsync(ct); }
+                finally { db.Entry(deactivationAudit).State = EntityState.Detached; }
+                if (!current.TryGetCurrentUser(out finalActor) || finalActor != actor)
+                    return new(StructureUpdateStatus.SessionInvalid);
+                if (await Gate() is { } commitGate) return new(commitGate);
+                await tx.CommitAsync(ct);
+                return new(StructureUpdateStatus.Success, deactivated, Tag(deactivated, deactivationAudit.AuditId));
             }
             if (input == null)
             {
@@ -147,7 +194,8 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
         async Task<StructureUpdateStatus?> Gate()
         {
             var valid = await sessions.ValidateSessionAsync(ticket, ct); ct.ThrowIfCancellationRequested();
-            if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted) return StructureUpdateStatus.SessionInvalid;
+            if (!valid.IsValid || valid.Session?.SessionId != sessionId || valid.Session.IsRestricted
+                || (deactivate && valid.Session.UserId != actor.UserId)) return StructureUpdateStatus.SessionInvalid;
             var access = await permissions.EvaluateGlobalAsync("MASTER_DATA_MANAGE", ct);
             if (!access.IsGranted && access.Decision != PermissionDecision.Unavailable)
                 access = await permissions.EvaluateBranchAsync("MASTER_DATA_MANAGE", branchId, ct);
@@ -156,6 +204,14 @@ public sealed class HotelStructureUpdateService(HotelOpsDbContext db, ICurrentUs
         }
     }
     private sealed record Input(string Code, string Name, string? Description, string Reason, long? FloorId);
+    private static IQueryable<Floor> FloorDeactivationRows(IQueryable<Floor> rows, EditableStructureDto before)
+        => rows.Where(x => x.FloorId == before.Id && x.BranchId == before.BranchId && x.IsActive
+            && x.FloorCode == before.Code && x.FloorName == before.Name && x.Description == before.Description
+            && x.FloorNumber == before.FloorNumber);
+    private static IQueryable<Area> AreaDeactivationRows(IQueryable<Area> rows, EditableStructureDto before)
+        => rows.Where(x => x.AreaId == before.Id && x.BranchId == before.BranchId && x.IsActive
+            && x.AreaCode == before.Code && x.AreaName == before.Name && x.Description == before.Description
+            && x.FloorId == before.FloorId);
     private static Input Normalize(string? code, string? name, string? description, string? reason, long? floorId, int max)
     {
         code = code?.Trim().ToUpperInvariant(); name = name?.Trim(); description = description?.Trim(); reason = reason?.Trim();
