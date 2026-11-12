@@ -209,6 +209,9 @@ export function useAddUserBranch(target: number | null) {
         setRead(null);
         paused.current = true;
         publish({ phase: "unknown" });
+        // Receiving401 invalidates session authority even when its body is unreadable.
+        // Preserve the unknown mutation outcome and never replay membership creation.
+        recover(result.error.status, result.error.reason);
       } else {
         const e = result.error;
         if ([401, 403, 404, 412, 428].includes(e.status ?? 0)) {

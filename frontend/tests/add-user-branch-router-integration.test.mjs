@@ -54,7 +54,7 @@ const bundle = await build({
     "/api/auth/login":[{body:${JSON.stringify(session(false, "8"))}}],
     ...s.responses
   };
-  function respond(r){if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},"TimeoutError");if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},"AbortError");return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{"Content-Type":r.type??"application/json",...r.headers}});}
+  function respond(r){if(r.bodyReadFailure)return{status:r.status,headers:new Headers({"Content-Type":"application/json"}),text:async()=>{throw new Error(${JSON.stringify(secret)});}};if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},"TimeoutError");if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},"AbortError");return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{"Content-Type":r.type??"application/json",...r.headers}});}
   const fetcher=async(url,init)=>{const c={url,method:init.method,body:init.body,headers:Object.fromEntries(new Headers(init.headers)),credentials:init.credentials,cache:init.cache,redirect:init.redirect,aborted:init.signal?.aborted??false};calls.push(c);init.signal?.addEventListener("abort",()=>{c.aborted=true;},{once:true});const r=queues[url]?.shift();if(!r){unexpected.push(url);throw new Error("Unexpected request");}if(r.deferred)return new Promise((resolve,reject)=>waiting.set(r.deferred,{resolve,reject}));return respond(r);};
   window.fetch=fetcher;const store=createAuthStore(createAuthApi(fetcher));const host=<AuthRouteHost/>;const root=createRoot(document.getElementById("root"));
   root.render(<StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
@@ -523,6 +523,35 @@ test("412 removes old confirmation; explicit Reload and review use fresh ETag", 
     },
   );
 });
+test("unreadable POST401 starts bounded recovery and preserves unknown membership outcome", async () => {
+  await withMembership(
+    {
+      posts: [{ status: 401, bodyReadFailure: true }],
+      sessions: [{ body: session() }, { deferred: "recover" }],
+    },
+    async (p) => {
+      await ready(p);
+      await review(p);
+      await confirm(p);
+      assert.equal((await calls(p, "/api/auth/session")).length, 2);
+      await p
+        .getByRole("main", { name: "Membership session recovery" })
+        .waitFor();
+      assert.equal((await posts(p)).length, 1);
+      await finish(p, "recover", { body: session() });
+      assert.ok((await body(p)).includes(unknown));
+      assert.equal(
+        await p
+          .getByRole("button", { name: "Confirm Add Branch", exact: true })
+          .count(),
+        0,
+      );
+      assert.equal((await posts(p)).length, 1);
+      assert.equal((await calls(p, "/api/users/42/profile")).length, 1);
+    },
+  );
+});
+
 for (const recovery of [{ body: session() }, problem(401), problem(503)])
   test(`401 bounded recovery ${recovery.status ?? 200}, no POST replay`, async () => {
     await withMembership(
