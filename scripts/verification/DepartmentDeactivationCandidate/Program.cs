@@ -31,5 +31,46 @@ var results=await Task.WhenAll(Call(),Call());Check(results.All(r=>r.Status==Roo
 try{((IList<string>)RoomTypeCreationService.DepartmentDeactivationReleaseGates).Clear();throw new Exception("mutable gates");}catch(NotSupportedException){Check(true,"immutable dependency/writer/audit/SQL gates");}
 var context=new DefaultHttpContext();var controller=new DepartmentDeactivationCandidateController(service){ControllerContext=new ControllerContext{HttpContext=context}};async Task<int?> Status()=>((ObjectResult)await controller.Deactivate(1,2,valid,default)).StatusCode;
 Check(await Status()==400,"HTTPS required");context.Request.Scheme="https";Check(await Status()==401,"cookie required");context.User=(System.Security.Claims.ClaimsPrincipal)typeof(HotelOpsCookieTicket).GetMethod("BuildPrincipal",BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null,[ticket,70L])!;Check(await Status()==428,"If-Match required");context.Request.Headers.IfMatch="*";Check(await Status()==400,"malformed If-Match rejected");context.Request.Headers.IfMatch=tag;Check(await Status()==503,"valid candidate HTTP remains unavailable");
+// Execute the production dependency decision and conditional-update predicate without SQL.
+var decisionMethod = typeof(RoomTypeCreationService).GetMethod("DepartmentDeactivationDecision", BindingFlags.NonPublic | BindingFlags.Static)!;
+RoomTypeBatchStatus Decision(HotelOps.Api.Services.Dependencies.DependencySnapshot snapshot, bool users = false, bool warehouses = false, bool coverage = false)
+    => (RoomTypeBatchStatus)decisionMethod.Invoke(null, [snapshot, users, warehouses, coverage])!;
+var clear = new HotelOps.Api.Services.Dependencies.DependencySnapshot("DEPARTMENT", 2, 1, [], [], "synthetic", true);
+Check(Decision(clear) == RoomTypeBatchStatus.Unavailable, "empty reader never substitutes for owner coverage");
+Check(Decision(clear, coverage: true) == RoomTypeBatchStatus.Success, "fully certified synthetic decision admits writer; not SQL acceptance");
+Check(Decision(clear with { CanDeactivate = false }, coverage: true) == RoomTypeBatchStatus.Unavailable, "reader clearance required independently");
+Check(Decision(clear with { Unresolved = ["unresolved"] }, coverage: true) == RoomTypeBatchStatus.Unavailable, "unresolved facts fail closed");
+Check(Decision(clear, users: true, coverage: true) == RoomTypeBatchStatus.DependenciesExist, "active user blocks deactivation");
+Check(Decision(clear, warehouses: true, coverage: true) == RoomTypeBatchStatus.DependenciesExist, "warehouse blocks without deleting references");
+foreach (var classification in Enum.GetValues<HotelOps.Api.Services.Dependencies.DependencyClassification>())
+{
+    var snapshot = clear with { Facts = [new("ASSET", 9, 1, "synthetic", classification)] };
+    var expectedStatus = classification switch
+    {
+        HotelOps.Api.Services.Dependencies.DependencyClassification.HISTORICAL => RoomTypeBatchStatus.Success,
+        HotelOps.Api.Services.Dependencies.DependencyClassification.UNKNOWN_POLICY => RoomTypeBatchStatus.Unavailable,
+        _ => RoomTypeBatchStatus.DependenciesExist
+    };
+    Check(Decision(snapshot, coverage: true) == expectedStatus, "classification preserved: " + classification);
+}
+var predicateMethod = typeof(RoomTypeCreationService).GetMethod("DepartmentDeactivationRows", BindingFlags.NonPublic | BindingFlags.Static)!;
+var before = new DepartmentInformationDto(2, 1, "D", "Department", null, null, true);
+IQueryable<HotelOps.Api.Entities.Department> Conditional(IQueryable<HotelOps.Api.Entities.Department> rows)
+    => (IQueryable<HotelOps.Api.Entities.Department>)predicateMethod.Invoke(null, [rows, before])!;
+HotelOps.Api.Entities.Department Row() => new() { DepartmentId = 2, BranchId = 1, DepartmentCode = "D", DepartmentName = "Department", IsActive = true };
+Check(Conditional(new[] { Row() }.AsQueryable()).Count() == 1, "exact active snapshot eligible for conditional write");
+foreach (var change in new Action<HotelOps.Api.Entities.Department>[] { r => r.DepartmentId++, r => r.BranchId++, r => r.IsActive = false,
+    r => r.DepartmentCode = "OTHER", r => r.DepartmentName = "Changed", r => r.ManagerUserId = 9, r => r.ScopeDescription = "changed" })
+{
+    var stale = Row(); change(stale);
+    Check(!Conditional(new[] { stale }.AsQueryable()).Any(), "changed identity/state/field cannot match conditional write");
+}
+var translated = Conditional(db.Departments).ToQueryString();
+Check(translated.Contains("[department_id]") && translated.Contains("[branch_id]") && translated.Contains("[is_active]")
+    && translated.Contains("[manager_user_id] IS NULL") && translated.Contains("[scope_description] IS NULL"), "SQL null-safe snapshot predicate translates offline; execution NOT_RUN");
+var writer = File.ReadAllText("src/HotelOps.Api/Services/HotelStructure/DepartmentDeactivationCandidateService.cs");
+Check(writer.IndexOf("RevalidateInCallerTransactionAsync", StringComparison.Ordinal) < writer.IndexOf(".ExecuteUpdateAsync", StringComparison.Ordinal), "source wiring: retained fingerprint reread before update");
+Check(writer.Contains("if (affected != 1)") && writer.Contains("BatchAuditAsync") && writer.Contains("with { IsActive = false }")
+    && writer.Contains("ownerCoverageComplete: false"), "source wiring: conditional persistence, audit and incomplete coverage retained");
 Console.WriteLine($"{count}/{count} checks PASS. SQL mutation/dependency/rollback NOT_RUN.");
 sealed class Actor:ICurrentUserAccessor{public CurrentUserInfo Value;public bool TryGetCurrentUser(out CurrentUserInfo actor){actor=Value;return true;}}
