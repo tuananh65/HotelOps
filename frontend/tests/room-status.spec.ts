@@ -1,11 +1,196 @@
 import { test, expect } from "@playwright/test";
+import { build } from "esbuild";
 import { board, room, detail, history } from "./room-status-fixtures.mjs";
-// Intercepted fixtures test UI behavior only, not live SQL/HTTPS.
+// OFFLINE: the app bundle and all API responses are intercepted in memory.
+// Run without a webServer: playwright test --config tests room-status.spec.ts.
+test.use({
+  baseURL: "http://fe03.offline.invalid",
+  channel: "msedge",
+  serviceWorkers: "block",
+});
+let app: string;
+const mutations = new WeakMap<import("@playwright/test").Page, string[]>();
+test.beforeAll(async () => {
+  const bundle = await build({
+    entryPoints: ["src/main.tsx"],
+    bundle: true,
+    write: false,
+    platform: "browser",
+    format: "iife",
+    loader: { ".css": "empty" },
+    define: { "import.meta.env": "{}", "process.env.NODE_ENV": '"test"' },
+  });
+  app = bundle.outputFiles[0].text;
+});
 // Every options request stays isolated; individual action tests override this default.
 test.beforeEach(async ({ page }) => {
+  const writes: string[] = [];
+  mutations.set(page, writes);
+  page.on("request", (request) => {
+    if (
+      new URL(request.url()).pathname.startsWith("/api/") &&
+      request.method() !== "GET"
+    )
+      writes.push(`${request.method()} ${request.url()}`);
+  });
+  await page.route("**/*", (route) => {
+    const url = new URL(route.request().url());
+    if (url.origin !== "http://fe03.offline.invalid") return route.abort();
+    if (url.pathname === "/offline-app.js")
+      return route.fulfill({
+        contentType: "application/javascript",
+        body: app,
+      });
+    if (url.pathname.startsWith("/api/"))
+      return route.fulfill({
+        status: 503,
+        json: { title: "OFFLINE_UNMOCKED_REQUEST" },
+      });
+    if (route.request().isNavigationRequest())
+      return route.fulfill({
+        contentType: "text/html",
+        body: '<div id="root"></div><script src="/offline-app.js"></script>',
+      });
+    return route.abort();
+  });
   await page.route("**/api/branches/**/cleaning-task-options?**", (route) =>
     route.fulfill({ status: 403, json: { title: "PERMISSION_DENIED" } }),
   );
+});
+test.afterEach(async ({ page }) => {
+  expect(mutations.get(page)).toEqual([]);
+  expect(
+    await page.evaluate(() =>
+      performance
+        .getEntriesByType("resource")
+        .filter((entry) => entry.name.includes("/api/incidents")),
+    ),
+  ).toEqual([]);
+});
+
+for (const query of [
+  "branchId=7&branchId=7",
+  "branchId=7&branchId=8&roomId=11",
+  "branchId=7&roomId=11&roomId=11",
+  "branchId=7&roomId=11&roomId=12",
+  "branchId=7&%72oomId=11&roomId=11",
+  "roomId=11",
+  ...[
+    "",
+    "0",
+    "-1",
+    "01",
+    "1.0",
+    "1e2",
+    "9007199254740992",
+    "%201",
+    "%0A1",
+    "1%26roomId%3D99",
+  ].flatMap((value) => [
+    `branchId=${value}&roomId=11`,
+    `branchId=7&roomId=${value}`,
+  ]),
+])
+  test(`invalid explicit context performs no API read: ${query}`, async ({
+    page,
+  }) => {
+    const calls: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname.startsWith("/api/"))
+        calls.push(request.url());
+    });
+    await page.goto(`/rooms/status?${query}`);
+    await expect(page.getByRole("alert")).toBeVisible();
+    await expect(
+      page.getByRole("region", { name: "Hành động tiếp theo", exact: true }),
+    ).toHaveCount(0);
+    await expect(page.getByLabel("Bộ đếm trạng thái")).toHaveCount(0);
+    expect(calls).toEqual([]);
+    expect(new URL(page.url()).search).toBe(`?${query}`);
+  });
+
+test("missing optional context waits for explicit branch selection", async ({
+  page,
+}) => {
+  const calls: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname.startsWith("/api/"))
+      calls.push(request.url());
+  });
+  await page.goto("/rooms/status");
+  await expect(
+    page.getByText("Chọn chi nhánh để tải các phòng được phép xem."),
+  ).toBeVisible();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  expect(calls).toEqual([]);
+});
+
+test("detail scope switch and Back wait for fresh authoritative detail", async ({
+  page,
+}) => {
+  let detailCalls = 0;
+  let holdDetail = false;
+  let release!: () => void;
+  const pending = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  await page.route("**/api/rooms/11?**", async (route) => {
+    detailCalls++;
+    if (holdDetail) await pending;
+    await route.fulfill({ json: detail }).catch(() => {});
+  });
+  await page.route("**/api/rooms/11/history?**", (route) =>
+    route.fulfill({ json: history }),
+  );
+  await page.route("**/api/rooms?**", (route) =>
+    route.fulfill({ status: 403, json: {} }),
+  );
+  let eligibilityCalls = 0;
+  await page.route(
+    "**/api/branches/7/cleaning-task-options?roomId=11",
+    (route) => {
+      eligibilityCalls++;
+      return route.fulfill({ json: actionOptions });
+    },
+  );
+  await page.goto("/rooms/status?branchId=7&roomId=11");
+  const link = page.getByRole("link", {
+    name: "Tạo công việc vệ sinh",
+    exact: true,
+  });
+  await expect(link).toHaveAttribute(
+    "href",
+    "/cleaning/tasks/new?branchId=7&roomId=11",
+  );
+  const initialDetails = detailCalls;
+  const initialEligibility = eligibilityCalls;
+  holdDetail = true;
+  await page.getByLabel("Chi nhánh (ID)", { exact: true }).fill("8");
+  await page.getByRole("button", { name: "Lọc phòng" }).click();
+  await expect(page.getByRole("alert")).toBeVisible();
+  await expect(link).toHaveCount(0);
+  await page.goBack();
+  try {
+    await expect.poll(() => detailCalls).toBeGreaterThan(initialDetails);
+    await expect(link).toHaveCount(0);
+    await expect(
+      page.getByRole("region", { name: "Hành động tiếp theo", exact: true }),
+    ).toHaveCount(0);
+    expect(eligibilityCalls).toBe(initialEligibility);
+  } finally {
+    release();
+  }
+  await expect(link).toHaveAttribute(
+    "href",
+    "/cleaning/tasks/new?branchId=7&roomId=11",
+  );
+  await expect.poll(() => eligibilityCalls).toBeGreaterThan(initialEligibility);
+  await expect(
+    page.getByRole("button", { name: "Phân công kiểm tra phòng", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Báo cáo sự cố", exact: true }),
+  ).toBeDisabled();
 });
 test("board filters, paginates and opens room detail/history", async ({
   page,
