@@ -1,5 +1,13 @@
 # UC012 synthetic fixture seeder — source-only candidate
 
+FASTTRACK-053 owner handoff: `review-artifacts/HASHES.json` now publishes the exact
+previously local schema/catalog/rollback and fixture/principal design artifacts.
+Schema Owner and Security/SQL Owner must review the exact file hashes; ENV must
+receive separate execution authority before provisioning. These files remain
+DESIGN_ONLY and are NOT an approved migration, runtime lease or seed plan.
+The design manifest is not the executable approved manifest required by Seeder.
+No source behavior or installed catalog/profile is changed by this handoff.
+
 No execution approval is supplied. Do not run `--seed` under FASTTRACK-045.
 The only verification mode used here is `--self-test`, which opens no SQL,
 loads no credentials/certificate and starts no HTTPS listener.
