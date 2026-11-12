@@ -91,6 +91,9 @@ export function useCreateUser() {
           break;
         case "OUTCOME_UNKNOWN":
           publish({ phase: "unknown" });
+          // A received401 invalidates session authority even if its body was unreadable.
+          // Keep the ambiguous creation locked; session recovery never replays POST.
+          if (result.error.status === 401) void actions.revalidate();
           break;
         case "NOT_DISPATCHED":
           publish({ phase: "not-dispatched", error: result.error });

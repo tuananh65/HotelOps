@@ -217,6 +217,7 @@ export function createCreateUserApi(
     async createUser(input, signal): Promise<CreateUserResult> {
       let dispatched = false;
       let status: number | undefined;
+      let bootstrapStatus: number | undefined;
       try {
         const request = snapshot(input);
         if (!request)
@@ -238,6 +239,7 @@ export function createCreateUserApi(
           method: "GET",
           headers: { Accept: "application/json" },
         });
+        bootstrapStatus = bootstrap.status;
         const csrf = await json(bootstrap);
         if (bootstrap.status !== 200)
           return {
@@ -304,7 +306,9 @@ export function createCreateUserApi(
               signal?.aborted || (object(error) && error.name === "AbortError")
                 ? "CANCELLED"
                 : "NETWORK",
-            ...(status === undefined ? {} : { status }),
+            ...((dispatched ? status : bootstrapStatus) === undefined
+              ? {}
+              : { status: dispatched ? status : bootstrapStatus }),
           },
         };
       }

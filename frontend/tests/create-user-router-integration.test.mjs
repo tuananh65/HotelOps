@@ -66,6 +66,7 @@ const bundle = await build({
     ...scenario.responses,
   };
   function respond(reply) {
+    if (reply.bodyReadFailure) return {status:reply.status,headers:new Headers({"Content-Type":"application/json"}),text:async()=>{throw new Error(${JSON.stringify(secret)});}};
     if (reply.network) throw new Error(${JSON.stringify(secret)});
     if (reply.timeout) throw new DOMException(${JSON.stringify(secret)}, "TimeoutError");
     if (reply.cancelled) throw new DOMException(${JSON.stringify(secret)}, "AbortError");
@@ -677,6 +678,46 @@ test("401 during CSRF bootstrap checks session without sending POST", async () =
     },
   );
 });
+
+for (const stage of ["csrf", "post"]) {
+  test(`unreadable401 ${stage} revalidates session without replay or credential leak`, async () => {
+    await withFlow(
+      {
+        sessions: [{ body: session() }, { deferred: "recover" }],
+        ...(stage === "csrf"
+          ? { csrf: [{ status: 401, bodyReadFailure: true }] }
+          : { posts: [{ status: 401, bodyReadFailure: true }] }),
+      },
+      async (page) => {
+        await fill(page);
+        await submit(page);
+        await page
+          .getByRole("main", { name: "Create account session recovery" })
+          .waitFor();
+        assert.equal(
+          (await calls(page, "/api/users")).length,
+          stage === "csrf" ? 0 : 1,
+        );
+        assert.equal((await calls(page, "/api/auth/session")).length, 2);
+        assert.ok(!(await visible(page)).includes(secret));
+        await finish(page, "recover", { body: session() });
+        if (stage === "post") {
+          assert.ok((await visible(page)).includes(unknown));
+          assert.equal(
+            await page
+              .getByRole("button", { name: "Create account", exact: true })
+              .count(),
+            0,
+          );
+        }
+        assert.equal(
+          (await calls(page, "/api/users")).length,
+          stage === "csrf" ? 0 : 1,
+        );
+      },
+    );
+  });
+}
 
 test("revealed credential disappears during pending revalidation and never returns", async () => {
   await withFlow(

@@ -562,6 +562,45 @@ for (const key of [
     assert.equal((await api.createUser(input())).outcome, "OUTCOME_UNKNOWN");
   });
 }
+for (const status of [401, 403, 503]) {
+  test(`unreadable CSRF body preserves actual ${status} without POST`, async () => {
+    const { api, calls } = harness(created, () => ({
+      status,
+      headers: new Headers({ "Content-Type": "application/json" }),
+      text: async () => {
+        throw new Error(secret);
+      },
+    }));
+    const result = await api.createUser(input());
+    assert.equal(result.outcome, "NOT_DISPATCHED");
+    assert.equal(result.error.status, status);
+    assert.equal(calls.length, 1);
+    assert.ok(!JSON.stringify(result).includes(secret));
+  });
+}
+test("unreadable POST401 stays unknown and retains session recovery status", async () => {
+  const { api, calls } = harness(() => ({
+    status: 401,
+    headers: new Headers({ "Content-Type": "application/json" }),
+    text: async () => {
+      throw new Error(secret);
+    },
+  }));
+  const result = await api.createUser(input());
+  assert.equal(result.outcome, "OUTCOME_UNKNOWN");
+  assert.equal(result.error.status, 401);
+  assert.equal(calls.length, 2);
+  assert.ok(!JSON.stringify(result).includes(secret));
+});
+test("POST transport failure does not inherit successful bootstrap200 status", async () => {
+  const { api } = harness(() => {
+    throw new Error(secret);
+  });
+  const result = await api.createUser(input());
+  assert.equal(result.outcome, "OUTCOME_UNKNOWN");
+  assert.equal(result.error.status, undefined);
+});
+
 test("bootstrap malformed JSON and body-read rejection never reach POST", async () => {
   for (const bootstrap of [
     () =>
