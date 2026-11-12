@@ -20,6 +20,13 @@ public sealed record ShiftPlanSaveResult(int Status, ShiftPlanSaved? Value = nul
 public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAccessor current, IPermissionDataSource paths,
  ISqlSessionService sessions, TimeProvider clock, IShiftPlanNotificationParticipant? notifications = null)
 {
+    /// <summary>Future-only V1 eligibility must hold again after transaction participants finish.</summary>
+    public static bool AreAssignmentsStillFuture(IReadOnlyList<DateTimeOffset> starts, DateTimeOffset now)
+    {
+        ArgumentNullException.ThrowIfNull(starts);
+        return starts.Count > 0 && starts.All(start => start > now);
+    }
+
     public static IReadOnlyList<string> PendingReleaseGates { get; } = Array.AsReadOnly(new[] { "ROSTER_USER_SCOPE_WRITER_COORDINATION", "NOTIFICATION_TRANSACTION_PARTICIPANT_ACCEPTANCE", "SQL_OVERLAP_RACE_AUDIT_ROLLBACK_HTTPS" });
     public async Task<ShiftPlanSaveResult> SaveAsync(SessionReference ticket, long sid, long branch, long department, ShiftPreviewRequest request, CancellationToken ct)
     {
@@ -52,7 +59,8 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
         if (preview.Value.Rows.Any(r => r.Issues.Count != 0 || r.StartUtc == null || r.EndUtc == null)) return new(409);
         var now = clock.GetUtcNow().UtcDateTime;
         var entries = request.Drafts.Select((d, i) => (Draft: d, Row: preview.Value.Rows[i])).ToArray();
-        if (entries.Any(x => x.Row.StartUtc!.Value.UtcDateTime <= now)) return new(409); // V1 creates future assignments only.
+        var starts = entries.Select(x => x.Row.StartUtc!.Value).ToArray();
+        if (!AreAssignmentsStillFuture(starts, new DateTimeOffset(now))) return new(409); // V1 creates future assignments only.
                                                                                          // Insert-only V1: reject existing template/date plans. Never infer update authority or a fake ETag.
         foreach (var group in entries.GroupBy(x => (x.Draft.TemplateId, x.Draft.ShiftDate)))
             if (await db.WorkShifts.AnyAsync(s => s.BranchId == branch && s.DepartmentId == department && s.ShiftTemplateId == group.Key.TemplateId && s.ShiftDate == group.Key.ShiftDate, ct)) return new(409);
@@ -106,6 +114,9 @@ public sealed class ShiftPlanSaveService(HotelOpsDbContext db, ICurrentUserAcces
                 if (await db.ShiftAssignments.AsNoTracking().AnyAsync(x => x.UserId == entry.Draft.EmployeeId && !ownIds.Contains(x.ShiftAssignmentId) && x.AssignmentStatus != "CANCELLED"
                  && ((x.Shift.ScheduledStartAt < b && x.Shift.ScheduledEndAt > a) || x.Shift.ScheduledEndAt <= x.Shift.ScheduledStartAt), ct)) return new(409);
             }
+            // Participant/authority/overlap reads can outlast the planned start.
+            // Reject within the same transaction so staged notices and audit roll back too.
+            if (!AreAssignmentsStillFuture(starts, clock.GetUtcNow())) return new(409);
             await tx.CommitAsync(ct); return new(201, new(shiftCount, created.Count, staged));
         }
         finally { db.ChangeTracker.Clear(); } // Every failed/early path disposes the uncommitted transaction.

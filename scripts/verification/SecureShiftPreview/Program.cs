@@ -8,6 +8,14 @@ using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using System.Text.Json;
 var count = 0; void Check(bool v, string n) { if (!v) throw new Exception("FAIL " + n); count++; Console.WriteLine("PASS " + n); }
+var planReviewAt = new DateTimeOffset(2028, 2, 29, 7, 0, 0, TimeSpan.Zero);
+var plannedStarts = new[] { planReviewAt.AddMinutes(1), planReviewAt.AddHours(1) };
+Check(ShiftPlanSaveService.AreAssignmentsStillFuture(plannedStarts, planReviewAt), "future-only plan eligible at initial review");
+Check(!ShiftPlanSaveService.AreAssignmentsStillFuture(plannedStarts, planReviewAt.AddMinutes(1)), "notification delay reaching exact start invalidates whole plan");
+Check(!ShiftPlanSaveService.AreAssignmentsStillFuture(plannedStarts, planReviewAt.AddMinutes(2)), "late final boundary rejects mixed started and future assignments");
+Check(ShiftPlanSaveService.AreAssignmentsStillFuture(plannedStarts, planReviewAt.AddSeconds(59)), "final boundary still before every start remains eligible");
+Check(!ShiftPlanSaveService.AreAssignmentsStillFuture([], planReviewAt), "empty plan is not future-only eligibility");
+Check(!ShiftPlanSaveService.AreAssignmentsStillFuture([plannedStarts[0].ToOffset(TimeSpan.FromHours(7))], plannedStarts[0]), "offset representation cannot evade exact-start rejection");
 ShiftPreviewRequest Input(params long[] users) => new(users.Select(x => new ShiftPreviewInput(x, 10, new(2028, 2, 29))).ToArray());
 async Task<SecurePreviewResult> Run(Fixture f, ShiftPreviewRequest? r = null) => await new SecureShiftPlanPreviewService(f, f, f, f, f, TimeProvider.System).PreviewAsync(1, 2, r ?? Input(8), default);
 foreach (var scope in new[] { "BRANCH", "ALL" }) { var f = new Fixture { Scope = scope }; var r = await Run(f); Check(r.Status == 200 && r.Value!.Rows[0].Issues.Count == 0, "real evaluator+resolver permits authorized " + scope); Check(r.Value!.RequiresServerRevalidation, "no version/save authority"); }
