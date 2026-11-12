@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
+  positiveId,
   roomStatusCodes,
   type RoomDirectoryResponse,
 } from "../../api/dev1/rooms";
@@ -22,14 +23,31 @@ type Loaded = {
   detail?: RoomDetail;
   history?: RoomHistory;
 };
+export function parseRoomContext(params: URLSearchParams) {
+  for (const name of ["branchId", "roomId"]) {
+    const values = params.getAll(name);
+    if (values.length > 1) throw new Error("Duplicate room context");
+    if (values.length) positiveId(values[0]);
+  }
+  const branch = params.get("branchId") ?? "";
+  const room = params.get("roomId") ?? "";
+  if (room && !branch) throw new Error("Room requires branch context");
+  return { branch, room };
+}
 export default function RoomStatusBoardScreen() {
   const [params, setParams] = useSearchParams();
   const location = useLocation();
   const [retry, setRetry] = useState(0);
   const query = params.toString(),
     key = useMemo(() => Symbol("room-read"), [location.key, query, retry]);
-  const branch = params.get("branchId") || "",
-    room = params.get("roomId") || "";
+  let branch = "",
+    room = "",
+    contextError = "";
+  try {
+    ({ branch, room } = parseRoomContext(params));
+  } catch (error) {
+    contextError = roomBoardError(error);
+  }
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   const [failure, setFailure] = useState<{
     key: symbol;
@@ -37,7 +55,7 @@ export default function RoomStatusBoardScreen() {
   } | null>(null);
   useEffect(() => {
     const abort = new AbortController();
-    if (!branch) return () => abort.abort();
+    if (contextError || !branch) return () => abort.abort();
     async function load() {
       const p = new URLSearchParams(query);
       try {
@@ -58,9 +76,9 @@ export default function RoomStatusBoardScreen() {
     }
     void load();
     return () => abort.abort();
-  }, [branch, room, query, key]);
-  const data = loaded?.key === key ? loaded : null;
-  const error = failure?.key === key ? failure.message : "";
+  }, [branch, room, query, key, contextError]);
+  const data = !contextError && loaded?.key === key ? loaded : null;
+  const error = contextError || (failure?.key === key ? failure.message : "");
   const board = data?.board,
     detail = data?.detail,
     history = data?.history;
@@ -139,7 +157,9 @@ export default function RoomStatusBoardScreen() {
         Effective Readiness: Chưa có nguồn được xác nhận. Trạng thái dọn phòng
         và kết quả kiểm tra được theo dõi riêng.
       </p>
-      {!branch && <p>Chọn chi nhánh để tải các phòng được phép xem.</p>}
+      {!branch && !error && (
+        <p>Chọn chi nhánh để tải các phòng được phép xem.</p>
+      )}
       {branch && !data && !error && <p role="status">Đang tải phòng…</p>}
       {error && (
         <p role="alert">
@@ -223,11 +243,14 @@ export default function RoomStatusBoardScreen() {
             động: {detail.room.isActive ? "Có" : "Không"}
           </p>
           <p>{detail.description}</p>
-          <RoomWorkflowActions
-            key={`${location.key}:${query}:${retry}`}
-            branch={branch}
-            room={room}
-          />
+          {detail.room.branchId === Number(branch) &&
+            detail.room.id === Number(room) && (
+              <RoomWorkflowActions
+                key={`${location.key}:${query}:${retry}`}
+                branch={String(detail.room.branchId)}
+                room={String(detail.room.id)}
+              />
+            )}
           <h3>Bằng chứng trạng thái hiện tại</h3>
           <p>
             {detail.currentStatusEvidence.availability} ·{" "}

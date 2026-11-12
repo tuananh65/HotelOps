@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { cleaningActionHref } from "../../api/dev1/roomActions";
 import { createError } from "../../api/dev1/cleaningCreate";
@@ -11,7 +11,12 @@ export default function RoomWorkflowActions({
   room: string;
 }) {
   const [retry, setRetry] = useState(0);
+  const contextKey = useMemo(
+    () => Symbol("room-action"),
+    [branch, room, retry],
+  );
   const [result, setResult] = useState<{
+    key: symbol;
     href?: string;
     error?: string;
   } | null>(null);
@@ -19,23 +24,25 @@ export default function RoomWorkflowActions({
     const abort = new AbortController();
     cleaningActionHref(branch, room, abort.signal)
       .then((href) => {
-        if (!abort.signal.aborted) setResult({ href });
+        if (!abort.signal.aborted) setResult({ key: contextKey, href });
       })
       .catch((error) => {
-        if (!abort.signal.aborted) setResult({ error: createError(error) });
+        if (!abort.signal.aborted)
+          setResult({ key: contextKey, error: createError(error) });
       });
     return () => abort.abort();
-  }, [branch, room, retry]);
+  }, [branch, room, contextKey]);
+  const current = result?.key === contextKey ? result : null;
   return (
     <section aria-label="Hành động tiếp theo">
       <h3>Hành động tiếp theo</h3>
-      {result?.href ? (
-        <Link to={result.href}>Tạo công việc vệ sinh</Link>
+      {current?.href ? (
+        <Link to={current.href}>Tạo công việc vệ sinh</Link>
       ) : (
         <>
           <button disabled>Tạo công việc vệ sinh</button>
-          <p>{result?.error || "Đang kiểm tra quyền và phòng…"}</p>
-          {result?.error && (
+          <p>{current?.error || "Đang kiểm tra quyền và phòng…"}</p>
+          {current?.error && (
             <button
               onClick={() => {
                 setResult(null);
