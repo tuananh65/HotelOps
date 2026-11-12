@@ -1,0 +1,42 @@
+{
+  "approvalScope": "D1-D4 DESIGN ONLY; EXECUTION NOT_GRANTED",
+  "model": {
+    "path": "D:/HotelOps/DB-MAIN-005-local-20261111/MODEL_CREATE_REFERENCE_NOT_FOR_EXECUTION.sql",
+    "sha256": "536ecd104b877a4721e981e589d9aaf0bda7e92c6b4da28846925ec996ddf7b2",
+    "source": "4f95da1d51b36806a6ce31bb5abc7462d0ed43b3"
+  },
+  "candidateApi": "be6c7278e1f5749211e97b55c8c21c0727b31fba",
+  "tables": [
+    "branches",
+    "departments",
+    "users",
+    "roles",
+    "permissions",
+    "role_permissions",
+    "user_roles",
+    "user_branch_access",
+    "user_sessions",
+    "audit_logs"
+  ],
+  "selectedBatches": 38,
+  "catalog": {
+    "path": "D:/HotelOps/worktrees/dev3-fasttrack041r-pr51/scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+    "sha256": "dd6874db482b770482b5b8d0b3230f2f4175618433e7a65e29f63c9670dc4f7b",
+    "transform": "Copy entire BEGIN TRY..END CATCH catalog transaction; remove only old target precondition; prepend new fail-closed disposable/GUID/execution-approval conditions. No role/grant rows changed."
+  },
+  "schemaChanges": [
+    "Select only 10-table Auth/Branch EF closure and their original indexes/FKs",
+    "Add branches.row_version SQL rowversion NOT NULL per PR51 raw schema contract",
+    "Require CI branch_code collation, no ALTER of existing data",
+    "Add schema version marker"
+  ],
+  "excluded": [
+    "WorkTime tables",
+    "DEV1/DEV2 business tables",
+    "all shared/primary targets",
+    "historical data backfill",
+    "database creation",
+    "principal provisioning",
+    "lease issuance"
+  ]
+}

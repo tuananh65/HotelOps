@@ -1,0 +1,50 @@
+{
+  "status": "DESIGN_ACCEPTED_EXACT_ARTIFACT_REVIEW_PENDING",
+  "schemaVersion": "UC012.AuthBranchClosure.v1",
+  "owner": "PENDING_NAMED_FIXTURE_OWNER",
+  "databaseGuid": null,
+  "leaseId": null,
+  "codePrefix": null,
+  "identities": [
+    {
+      "key": "global_allowed",
+      "usernamePattern": "uc012.<run>.allowed",
+      "roleCode": "SYS_ADMIN",
+      "assignmentBranchId": null,
+      "requiredEffectivePermission": "MASTER_DATA_MANAGE/ALL unbound",
+      "expectedBranchGet": 200
+    },
+    {
+      "key": "branch_denied",
+      "usernamePattern": "uc012.<run>.denied",
+      "roleCode": "SYS_ADMIN",
+      "assignmentBranchId": "actual owned fixture branch ID",
+      "requiredEffectivePermission": "MASTER_DATA_MANAGE/ALL branch-bound only; no global assignment",
+      "expectedBranchGet": 403
+    }
+  ],
+  "catalog": "Unmodified canonical 12 roles / 62 permissions / 140 grants from 02_CATALOG_INSTALL_REVIEW.sql; resolve role IDs by code, not constants. SYS_ADMIN name is not authority; verify effective paths.",
+  "users": {
+    "accountStatus": "ACTIVE",
+    "employmentStatus": "ACTIVE",
+    "deletedAt": null,
+    "lockedUntil": null,
+    "failedLoginCount": 0,
+    "temporaryPasswordExpiresAt": null,
+    "passwords": "Fresh independent cryptographically random secrets; hash with existing IdentityV3 PasswordCredentialService; never artifact/log; process-only delivery.",
+    "relationships": "One fresh owned fixture Branch/Department with both identities bound consistently; STANDARD user_branch_access; distinct employee/username/email natural keys."
+  },
+  "sessions": {
+    "seeded": 0,
+    "contract": "All sessions created through real HTTPS login during execute; no historical session/token/hash copy."
+  },
+  "seedRules": [
+    "One atomic fixture transaction under separate provisioning admin, after exact fixture approval",
+    "Reject any preexisting fixture natural key; never overwrite/repair/retry",
+    "Return actual generated positive IDs, GUID and ownership manifest without hashes/secrets",
+    "Assert global actor positive path; branch actor has active bound MASTER_DATA_MANAGE path and zero effective global path",
+    "No production principal/catalog grant changes; dedicated database only"
+  ],
+  "seederStatus": "NOT_IMPLEMENTED_NOT_EXECUTED",
+  "approved": false
+}

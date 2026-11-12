@@ -1,0 +1,3 @@
+# UC012 candidate rollback / NOT_APPROVED_FOR_EXECUTION
+Schema installer is transactional; any failure rolls back all its DDL. Catalog installer has its own transaction. Catalog/fixture failure does not erase the earlier installed schema: stop and retain evidence, do not run acceptance.
+No DROP/database removal or existing-table cleanup is authorized by this package. For a partially provisioned disposable target, ENV must obtain exact GUID-bound decommission approval after retaining schema, fixture and audit evidence. Never DROP, restore over, or modify HotelOpsDB/HotelOps_ImportReview. Trial audit-fault rollback is performed by the existing caller transaction, not this provisioning policy.

@@ -1,0 +1,9 @@
+{
+  "kind": "OFFLINE_STATIC_ARTIFACT_CHECKS",
+  "passed": 16,
+  "failed": 0,
+  "sqlCompilation": "NOT_RUN",
+  "schemaApply": "NOT_RUN",
+  "fixturesSeed": "NOT_RUN",
+  "https": "NOT_RUN"
+}
