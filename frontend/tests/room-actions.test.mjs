@@ -31,7 +31,8 @@ const boardSource = boardBundle.outputFiles[0].text.replace(
   /from "(react(?:\/jsx-runtime)?|react-router-dom)"/g,
   (_, name) => `from "${pathToFileURL(require.resolve(name)).href}"`,
 );
-const { parseRoomContext } = await loadBundle(boardSource);
+const { parseRoomContext, recordedCleaningHref } =
+  await loadBundle(boardSource);
 
 test("optional context stays missing; canonical scoped IDs are preserved", () => {
   for (const [query, expected] of [
@@ -137,4 +138,46 @@ test("canceled scope cannot yield navigation", async () => {
     return Response.json(options);
   };
   await assert.rejects(cleaningActionHref("7", "11", abort.signal));
+});
+
+test("verified cleaning source opens the scoped monitor, never execution", () => {
+  assert.equal(
+    recordedCleaningHref(7, {
+      type: "CLEANING_TASK",
+      id: 12,
+      availability: "VERIFIED_SAME_ROOM",
+    }),
+    "/cleaning/tasks/12?branchId=7&monitor=1&kind=cleaning",
+  );
+});
+test("missing, unresolved or unsupported sources never invent a destination", () => {
+  for (const source of [
+    null,
+    { type: "CLEANING_TASK", id: null, availability: "NOT_RECORDED" },
+    { type: "CLEANING_TASK", id: 12, availability: "UNRESOLVED" },
+    { type: "INSPECTION", id: 12, availability: "VERIFIED_SAME_ROOM" },
+    { type: "ROOM_BLOCK", id: 12, availability: "VERIFIED_SAME_ROOM" },
+    { type: "INCIDENT", id: 12, availability: "VERIFIED_SAME_ROOM" },
+  ])
+    assert.equal(recordedCleaningHref(7, source), null);
+});
+test("recorded source navigation rejects invalid branch and source IDs", () => {
+  for (const id of [0, -1, null, NaN, 1.5, 9007199254740992, "12"]) {
+    assert.equal(
+      recordedCleaningHref(7, {
+        type: "CLEANING_TASK",
+        id,
+        availability: "VERIFIED_SAME_ROOM",
+      }),
+      null,
+    );
+    assert.equal(
+      recordedCleaningHref(id, {
+        type: "CLEANING_TASK",
+        id: 12,
+        availability: "VERIFIED_SAME_ROOM",
+      }),
+      null,
+    );
+  }
 });

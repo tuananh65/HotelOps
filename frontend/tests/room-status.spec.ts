@@ -541,3 +541,93 @@ test("scope switch and Back discard canceled eligibility and reauthorize", async
     page.getByRole("link", { name: "Tạo công việc vệ sinh", exact: true }),
   ).toHaveCount(0);
 });
+
+// FASTTRACK-038: recorded evidence opens only the existing scoped read destination.
+test("verified recorded cleaning links preserve canonical detail branch and source identity", async ({
+  page,
+}) => {
+  await actionRoom(page);
+  await page.goto("/rooms/status?branchId=7&roomId=11");
+  for (const name of ["Chi tiết trạng thái phòng", "Lịch sử trạng thái"]) {
+    await expect(
+      page
+        .getByRole("region", { name, exact: true })
+        .getByRole("link", { name: "Mở công việc vệ sinh #12", exact: true }),
+    ).toHaveAttribute(
+      "href",
+      "/cleaning/tasks/12?branchId=7&monitor=1&kind=cleaning",
+    );
+  }
+  await expect(
+    page.getByRole("button", { name: "Phân công kiểm tra phòng", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Báo cáo sự cố", exact: true }),
+  ).toBeDisabled();
+});
+for (const status of [401, 403, 404, 503])
+  test(`linked cleaning record reauthorizes at destination: ${status}`, async ({
+    page,
+  }) => {
+    await actionRoom(page);
+    const reads: string[] = [];
+    await page.route(
+      "**/api/branches/7/cleaning-monitor/cleaning/12?**",
+      (route) => {
+        reads.push(route.request().method());
+        return route.fulfill({ status, json: { title: "DENIED" } });
+      },
+    );
+    await page.goto("/rooms/status?branchId=7&roomId=11");
+    await page
+      .getByRole("region", { name: "Chi tiết trạng thái phòng", exact: true })
+      .getByRole("link", { name: "Mở công việc vệ sinh #12", exact: true })
+      .click();
+    await expect(page).toHaveURL(
+      /\/cleaning\/tasks\/12\?branchId=7&monitor=1&kind=cleaning$/,
+    );
+    await expect(page.getByRole("alert")).toBeVisible();
+    expect(reads.length).toBeGreaterThan(0);
+    expect(reads.every((method) => method === "GET")).toBe(true);
+    await page.goBack();
+    await expect(page).toHaveURL(/\/rooms\/status\?branchId=7&roomId=11$/);
+    await expect(
+      page.getByRole("heading", { name: "Phòng A101", exact: true }),
+    ).toBeVisible();
+  });
+for (const source of [
+  { type: "CLEANING_TASK", id: null, availability: "NOT_RECORDED" },
+  { type: "CLEANING_TASK", id: null, availability: "UNRESOLVED" },
+  { type: "INSPECTION", id: 12, availability: "VERIFIED_SAME_ROOM" },
+  { type: "ROOM_BLOCK", id: 12, availability: "VERIFIED_SAME_ROOM" },
+])
+  test(`unsupported or unresolved source remains recorded text: ${source.type}/${source.availability}`, async ({
+    page,
+  }) => {
+    await page.route("**/api/rooms/11?**", (route) =>
+      route.fulfill({
+        json: {
+          ...detail,
+          currentStatusEvidence: { ...detail.currentStatusEvidence, source },
+        },
+      }),
+    );
+    await page.route("**/api/rooms/11/history?**", (route) =>
+      route.fulfill({
+        json: {
+          ...history,
+          items: [{ ...history.items[0], source }],
+        },
+      }),
+    );
+    await page.goto("/rooms/status?branchId=7&roomId=11");
+    await expect(
+      page.getByRole("heading", { name: "Phòng A101", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /Mở công việc vệ sinh/ }),
+    ).toHaveCount(0);
+    await expect(
+      page.getByRole("region", { name: "Lịch sử trạng thái", exact: true }),
+    ).toContainText(source.availability);
+  });
