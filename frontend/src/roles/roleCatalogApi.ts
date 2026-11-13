@@ -26,9 +26,13 @@ export function createRoleCatalogApi(
     signal?: AbortSignal,
     query = "",
   ): Promise<CatalogResult<T>> {
-    const request = createHttpClient((url, init) =>
-      fetcher(String(url) + query, init),
-    );
+    let failureStatus: number | undefined;
+    const request = createHttpClient(async (url, init) => {
+      const response = await fetcher(String(url) + query, init);
+      if (response.status >= 400 && response.status <= 599)
+        failureStatus = response.status;
+      return response;
+    });
     const r = await request({
       method: "GET",
       url: path,
@@ -38,6 +42,8 @@ export function createRoleCatalogApi(
     });
     if (signal?.aborted) return { ok: false, kind: "cancelled" };
     if (r.ok) return { ok: true, data: r.data };
+    if (failureStatus !== undefined && r.error.kind !== "cancelled")
+      return { ok: false, kind: "http", status: failureStatus };
     return {
       ok: false,
       kind: r.error.kind,

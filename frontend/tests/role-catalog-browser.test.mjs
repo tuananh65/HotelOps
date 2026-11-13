@@ -9,7 +9,7 @@ const compiled = await build({
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
-    contents: `import React from'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{AuthRouteHost}from'./src/auth/AuthRouteHost';const s=window.scenario,calls=[],waiters=[];let old=s.late;window.fetch=async(u,o)=>{calls.push({url:u,method:o.method,cache:o.cache,credentials:o.credentials});if(u==='/api/auth/session')return s.anonymous?Response.json({},{status:401}):Response.json({...${JSON.stringify(session())},mustChangePassword:s.restricted??false});const body=u.includes('/permissions/catalog')?${JSON.stringify(page([permission(), permission(2)]))}:u.endsWith('/permissions')?${JSON.stringify({ roleId: 1, grants: detail().grants })}:u.startsWith('/api/roles?')?${JSON.stringify(page([role()]))}:${JSON.stringify(detail())};if(s.empty&&u.startsWith('/api/roles?'))return Response.json({items:[],page:1,pageSize:25,total:0});if(s.status)return Response.json({detail:'SECRET'},{status:s.status});if(old){old=false;return new Promise(resolve=>waiters.push(()=>resolve(Response.json({...body,items:[{...${JSON.stringify(role())},roleName:'OLD PRIVATE'}]}))));}return Response.json(body);};const store=createAuthStore(createAuthApi(window.fetch));createRoot(document.getElementById('root')).render(<BrowserRouter><AuthProvider store={store} fallback={<AuthRouteHost/>}><AuthRouteHost/></AuthProvider></BrowserRouter>);window.fixture={calls,finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
+    contents: `import React from'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{AuthRouteHost}from'./src/auth/AuthRouteHost';const s=window.scenario,calls=[],waiters=[];let old=s.late,lateGrants=s.lateGrants;window.fetch=async(u,o)=>{calls.push({url:u,method:o.method,cache:o.cache,credentials:o.credentials});if(u==='/api/auth/session')return s.anonymous?Response.json({},{status:401}):Response.json({...${JSON.stringify(session())},mustChangePassword:s.restricted??false});const body=u.includes('/permissions/catalog')?${JSON.stringify(page([permission(), permission(2)]))}:u.endsWith('/permissions')?${JSON.stringify({ roleId: 1, grants: detail().grants })}:u.startsWith('/api/roles?')?${JSON.stringify(page([role()]))}:${JSON.stringify(detail())};if(lateGrants&&u.endsWith('/permissions')){lateGrants=false;return new Promise(resolve=>waiters.push(()=>resolve(Response.json({...body,grants:body.grants.map(g=>({...g,permission:{...g.permission,permissionName:'OLD PRIVATE'}}))}))));}if(s.empty&&u.startsWith('/api/roles?'))return Response.json({items:[],page:1,pageSize:25,total:0});if(s.status){const r=Response.json({detail:'SECRET'},{status:s.status});if(s.unreadable)r.text=async()=>{throw Error('SECRET');};return r;}if(old){old=false;return new Promise(resolve=>waiters.push(()=>resolve(Response.json({...body,items:[{...${JSON.stringify(role())},roleName:'OLD PRIVATE'}]}))));}return Response.json(body);};const store=createAuthStore(createAuthApi(window.fetch));createRoot(document.getElementById('root')).render(<BrowserRouter><AuthProvider store={store} fallback={<AuthRouteHost/>}><AuthRouteHost/></AuthProvider></BrowserRouter>);window.fixture={calls,finish:()=>waiters.splice(0).forEach(f=>f()),replace:()=>store.revalidate()};`,
   },
   bundle: true,
   write: false,
@@ -156,3 +156,76 @@ test("filter replacement hides stale role results", () =>
     await p.evaluate(() => window.fixture.finish());
     assert.equal(await p.getByText(/OLD PRIVATE/).count(), 0);
   }));
+
+for (const path of [
+  "/roles",
+  "/roles/1",
+  "/permissions",
+  "/roles/1/permissions",
+])
+  for (const status of [401, 403, 503])
+    test("092 unreadable " + status + " " + path, () =>
+      run(
+        { status, unreadable: true },
+        async (p) => {
+          const message =
+            status === 401
+              ? "Session invalid. Revalidate before continuing."
+              : status === 403
+                ? "Access denied by server."
+                : "Catalog unavailable.";
+          await p.getByText(message, { exact: true }).first().waitFor();
+          assert.equal(
+            (await p.evaluate(() => window.fixture.calls)).filter(
+              (c) => c.url === "/api/auth/session",
+            ).length,
+            1,
+          );
+          assert.equal(
+            (await p
+              .getByRole("button", { name: "Revalidate session" })
+              .count()) > 0,
+            status === 401,
+          );
+          if (status === 401) {
+            await p
+              .getByRole("button", { name: "Revalidate session" })
+              .first()
+              .click();
+            await p.waitForFunction(
+              () =>
+                window.fixture.calls.filter(
+                  (c) => c.url === "/api/auth/session",
+                ).length === 2,
+            );
+          }
+        },
+        path,
+      ),
+    );
+
+test("092 session replacement never restores old grant matrix", () =>
+  run(
+    { lateGrants: true },
+    async (p) => {
+      await p.waitForFunction(() =>
+        window.fixture.calls.some((c) => c.url === "/api/roles/1/permissions"),
+      );
+      await p.evaluate(() => window.fixture.replace());
+      await p.waitForFunction(
+        () =>
+          window.fixture.calls.filter(
+            (c) => c.url === "/api/roles/1/permissions",
+          ).length === 2,
+      );
+      await p.evaluate(() => window.fixture.finish());
+      await p.evaluate(
+        () =>
+          new Promise((r) =>
+            requestAnimationFrame(() => requestAnimationFrame(r)),
+          ),
+      );
+      assert.equal(await p.getByText(/OLD PRIVATE/).count(), 0);
+    },
+    "/roles/1/permissions",
+  ));

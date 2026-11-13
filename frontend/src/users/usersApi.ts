@@ -263,6 +263,7 @@ export function createUsersApi(
     signal?: AbortSignal,
   ): Promise<UsersApiResult<T>> {
     if (signal?.aborted) return failure("cancelled");
+    let failureStatus: number | undefined;
     try {
       const response = await fetchImplementation(url, {
         method: "GET",
@@ -272,6 +273,7 @@ export function createUsersApi(
         headers: new Headers({ Accept: "application/json" }),
         signal,
       });
+      if (!response.ok) failureStatus = response.status;
       const contentType = response.headers
         .get("Content-Type")
         ?.split(";")[0]
@@ -300,11 +302,11 @@ export function createUsersApi(
         return failure("invalid-response");
       }
     } catch (error) {
-      return failure(
-        signal?.aborted || (object(error) && error.name === "AbortError")
-          ? "cancelled"
-          : "network",
-      );
+      if (signal?.aborted || (object(error) && error.name === "AbortError"))
+        return failure("cancelled");
+      if (failureStatus !== undefined)
+        return { ok: false, error: httpError(failureStatus, undefined) };
+      return failure("network");
     }
   }
 
