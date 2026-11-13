@@ -82,9 +82,10 @@ public sealed class CreateAuditFault : SaveChangesInterceptor
         InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (context is null || !ReferenceEquals(eventData.Context, context)) return ValueTask.FromResult(result);
+        TrialAdmission.Require(context is not null && ReferenceEquals(eventData.Context, context),
+            "EXACT_BOUND_CONTEXT_REQUIRED");
         CreateAuditFaultPolicy.Validate(profile, receipt, hostSha, prefix, clock.GetUtcNow());
-        var actualTransaction = context.Database.CurrentTransaction?.TransactionId;
+        var actualTransaction = context!.Database.CurrentTransaction?.TransactionId;
         TrialAdmission.Require(actualTransaction is not null && actualTransaction != Guid.Empty, "BOUND_TRANSACTION_REQUIRED");
         transactionId ??= actualTransaction;
         TrialAdmission.Require(transactionId == actualTransaction, "EXACT_AUDIT_TRANSACTION_REQUIRED");

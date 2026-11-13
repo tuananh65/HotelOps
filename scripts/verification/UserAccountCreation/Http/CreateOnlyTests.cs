@@ -42,15 +42,25 @@ public static class CreateOnlyTests
         using (var result = await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users", new { employeeCode = "synthetic" }, "offline-token", CancellationToken.None))
             Check(result.StatusCode == HttpStatusCode.ServiceUnavailable && handler.Calls == 1, "503-never-retried");
         Check(handler.Method == HttpMethod.Post && handler.Path == "/api/users" && handler.HasCsrf, "exact-create-http-shape");
+        foreach (var (method, path) in new[] {
+            (HttpMethod.Delete, "/api/users"), (HttpMethod.Put, "/api/users"),
+            (HttpMethod.Get, "/api/auth/login"), (HttpMethod.Post, "/api/auth/csrf") })
+        {
+            var rejected = false;
+            try { using var response = await CreateOnlyRunner.SendAsync(http, method, path, null, null, CancellationToken.None); }
+            catch (AdmissionFailure) { rejected = true; }
+            Check(rejected && handler.Calls == 1, "unsupported-method-not-dispatched:" + method + path);
+        }
         handler.Fail = true;
-        try { await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users", new { }, "offline-token", CancellationToken.None); }
+        try { await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users", new { }, "offline-token", CancellationToken.None); throw new InvalidOperationException("Transport failure was swallowed"); }
         catch (HttpRequestException) { Check(handler.Calls == 2, "unknown-outcome-never-replayed"); }
-        try { await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users/1/reset-password", new { }, null, CancellationToken.None); }
+        try { await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users/1/reset-password", new { }, null, CancellationToken.None); throw new InvalidOperationException("Unrelated route was accepted"); }
         catch (AdmissionFailure) { Check(handler.Calls == 2, "unrelated-route-never-dispatched"); }
         using var cancelled = new CancellationTokenSource(); cancelled.Cancel();
-        try { await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users", new { }, null, cancelled.Token); }
+        try { await CreateOnlyRunner.SendAsync(http, HttpMethod.Post, "/api/users", new { }, null, cancelled.Token); throw new InvalidOperationException("Cancellation was ignored"); }
         catch (OperationCanceledException) { Check(handler.Calls == 2, "cancelled-request-not-dispatched"); }
-        Console.WriteLine($"UC004 HTTP offline: {count}/{count} PASS; SQL/HTTPS acceptance NOT_RUN.");
+        if (count != 31) throw new InvalidOperationException("Incomplete offline HTTP suite");
+        Console.WriteLine($"UC004 HTTP offline: {count}/31 PASS; SQL/HTTPS acceptance NOT_RUN.");
     }
     private sealed class Probe : HttpMessageHandler
     {
