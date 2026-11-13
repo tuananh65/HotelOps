@@ -19,7 +19,7 @@ const result = await build({
     loader: "tsx",
     contents: `
 import React from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{SecureShiftPlanWorkspace}from'./src/workday/SecureShiftPlanWorkspace';
-const s=window.scenario,calls=[],waiting=new Map(),make=r=>Response.json(r.body??{}, {status:r.status??200});
+const s=window.scenario,calls=[],waiting=new Map(),make=r=>{const response=Response.json(r.body??{}, {status:r.status??200});if(r.unreadable)response.text=async()=>{throw Error("SECRET-ERROR")};return response;};
 window.fetch=async(url,init)=>{calls.push({url,...init});let r;if(url==='/api/auth/session')r=s.auth??{body:${JSON.stringify(session)}};else if(url==='/api/auth/csrf')r=s.csrf??{body:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC-CSRF'}};else if(url.endsWith('/preview'))r=s.previewReply??{body:{rows:JSON.parse(init.body).drafts.map((_,index)=>({index,startUtc:'2028-02-29T08:00:00Z',endUtc:'2028-02-29T16:00:00Z',issues:[]})),requiresServerRevalidation:true}};else r=s.saveReply??{status:201,body:{createdShifts:1,createdAssignments:1,notificationCount:1}};if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r);};
 const store=createAuthStore(createAuthApi(window.fetch));const app=<SecureShiftPlanWorkspace saveEnabled={s.saveEnabled===true}/>;const root=createRoot(document.getElementById('root'));root.render(<AuthProvider store={store} fallback={app}>{app}</AuthProvider>);window.fixture={calls,scenario:s,revalidate:()=>store.revalidate(),finish:(k,v)=>waiting.get(k)(make(v)),unmount:()=>root.unmount()};`,
   },
@@ -211,3 +211,17 @@ test("late Save after session replacement cannot publish receipt", () =>
       0,
     );
   }));
+
+for (const status of [401, 403, 503])
+  test("082 unreadable CSRF " + status + " stops preview dispatch", () =>
+    run({ csrf: { status, unreadable: true } }, async (p) => {
+      await add(p);
+      await p.getByRole("button", { name: "Preview assignments" }).click();
+      await p.getByRole("alert").waitFor();
+      assert.equal((await posts(p)).length, 0);
+      assert.equal(
+        await p.getByRole("button", { name: "Check session" }).count(),
+        status === 401 ? 1 : 0,
+      );
+    }),
+  );
