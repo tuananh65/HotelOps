@@ -1,8 +1,8 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { ChecklistRoute } from "../features/inspectionChecklists/ChecklistRoute";
-import { createChecklistApi } from "../features/inspectionChecklists/api";
+import { createChecklistApi, ChecklistApiError } from "../features/inspectionChecklists/api";
 import { defaultCollectionQuery } from "../features/inspectionChecklists/collection";
 import { Recovery } from "./AuthForms";
 
@@ -20,12 +20,6 @@ export function checklistBranch(search: string): number | null {
 export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
   const { state } = useAuth();
   const { search } = useLocation();
-  const owner = useRef(state.session);
-  const revision = useRef(0);
-  if (owner.current !== state.session) {
-    owner.current = state.session;
-    ++revision.current;
-  }
   if (!enabled)
     return <p role="alert">Checklist destination is not activated.</p>;
   if (state.status === "INITIALIZING" || state.status === "ERROR_UNAVAILABLE")
@@ -37,13 +31,14 @@ export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
   const branch = checklistBranch(search);
   if (branch === null)
     return <p role="alert">Invalid checklist branch context.</p>;
-  const key = JSON.stringify([revision.current, state.session.user.id, branch]);
+  const key = JSON.stringify([state.authorityGeneration, state.session.user.id, branch]);
   return (
     <AdmittedChecklist
       key={key}
       branch={branch}
       sessionKey={key}
       principalId={state.session.user.id}
+      authorityGeneration={state.authorityGeneration}
     />
   );
 }
@@ -52,10 +47,12 @@ function AdmittedChecklist({
   branch,
   sessionKey,
   principalId,
+  authorityGeneration,
 }: {
   branch: number;
   sessionKey: string;
   principalId: string;
+  authorityGeneration: import("../auth/authStore").AuthorityGeneration;
 }) {
   const { actions } = useAuth();
   const [admission, setAdmission] = useState<"pending" | "granted" | "denied">(
@@ -71,12 +68,15 @@ function AdmittedChecklist({
       .then(() => {
         if (!controller.signal.aborted) setAdmission("granted");
       })
-      .catch(() => {
+      .catch((error: unknown) => {
         if (controller.signal.aborted) return;
+        if (error instanceof ChecklistApiError && error.status === 401)
+          actions.invalidateSession(authorityGeneration);
+        // Resource 403 denies only this checklist admission.
         setAdmission("denied");
       });
     return () => controller.abort();
-  }, [branch, actions]);
+  }, [branch, actions, authorityGeneration]);
   if (admission === "pending")
     return <p role="status">Checking checklist access...</p>;
   if (admission === "denied")

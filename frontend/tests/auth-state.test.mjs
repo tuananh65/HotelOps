@@ -229,6 +229,7 @@ test("logout 204 is confirmed anonymous and drops public identity", async () => 
     session: null,
     pending: null,
     error: null,
+    authorityGeneration: store.getSnapshot().authorityGeneration,
   });
   assert.equal(calls[1].method, "logout");
 });
@@ -726,3 +727,44 @@ test(
     }
   },
 );
+
+test("HC03 generation rotates on recovery and same-identity replacement", async () => {
+  const { store } = harness(ok(dto()), ok(dto()));
+  const initial = store.getSnapshot().authorityGeneration;
+  await store.initialize();
+  const authenticated = store.getSnapshot().authorityGeneration;
+  assert.notEqual(authenticated, initial);
+  const read = store.revalidate();
+  const blocked = store.getSnapshot();
+  assert.equal(blocked.session, null);
+  assert.notEqual(blocked.authorityGeneration, authenticated);
+  await read;
+  assert.notEqual(store.getSnapshot().authorityGeneration, blocked.authorityGeneration);
+});
+test("HC04 current 401 invalidates immediately; stale 401 cannot revoke newer session", async () => {
+  const { store } = harness(ok(dto()), ok(dto()));
+  await store.initialize();
+  const previous = store.getSnapshot().authorityGeneration;
+  store.invalidateSession(previous);
+  assert.equal(store.getSnapshot().status, "EXPIRED_INVALID");
+  assert.equal(store.getSnapshot().session, null);
+  const revoked = store.getSnapshot().authorityGeneration;
+  assert.notEqual(revoked, previous);
+  await store.revalidate();
+  const current = store.getSnapshot();
+  store.invalidateSession(previous);
+  assert.equal(store.getSnapshot(), current);
+  assert.equal(current.status, "AUTHENTICATED");
+});
+test("HC04 invalidation rejects in-flight read without automatic retry", async () => {
+  const pending = deferred();
+  const { store, calls } = harness(ok(dto()), () => pending.promise);
+  await store.initialize();
+  const read = store.revalidate();
+  await Promise.resolve();
+  store.invalidateSession(store.getSnapshot().authorityGeneration);
+  pending.resolve(ok(dto()));
+  assert.equal((await read).error.kind, "stale");
+  assert.equal(store.getSnapshot().status, "EXPIRED_INVALID");
+  assert.equal(calls.length, 2);
+});
