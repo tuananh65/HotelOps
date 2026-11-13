@@ -223,7 +223,18 @@ export function createUserActivationApi(
           etag: nextEtag,
         };
       } catch (error) {
-        return fail(caught(error, signal, status));
+        const failure = caught(error, signal, status);
+        // Only bootstrap failures are known not to have dispatched a mutation.
+        // An unreadable mutation response must retain OUTCOME_UNKNOWN.
+        if (
+          !dispatched &&
+          failure.kind !== "cancelled" &&
+          status !== undefined &&
+          status >= 400 &&
+          status <= 599
+        )
+          return fail(httpError(status, undefined));
+        return fail(failure);
       }
     },
   };

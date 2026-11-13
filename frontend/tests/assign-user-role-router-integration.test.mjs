@@ -60,7 +60,7 @@ const bundle = await build({
     "/api/auth/login":[{body:${JSON.stringify(session(false, "8"))}}],
     ...s.responses
   };
-  function respond(r){if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},"TimeoutError");if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},"AbortError");return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{"Content-Type":r.type??"application/json",...r.headers}});}
+  function respond(r){if(r.bodyReadFailure)return{status:r.status,headers:new Headers({"Content-Type":"application/json"}),text:async()=>{throw new Error(${JSON.stringify(secret)});}};if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},"TimeoutError");if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},"AbortError");return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{"Content-Type":r.type??"application/json",...r.headers}});}
   const fetcher=async(url,init)=>{const c={url,method:init.method,body:init.body,headers:Object.fromEntries(new Headers(init.headers)),credentials:init.credentials,cache:init.cache,redirect:init.redirect,aborted:init.signal?.aborted??false};calls.push(c);init.signal?.addEventListener("abort",()=>{c.aborted=true;},{once:true});const r=queues[url]?.shift();if(!r){unexpected.push(url);throw new Error("Unexpected request");}if(r.deferred)return new Promise((resolve,reject)=>waiting.set(r.deferred,{resolve,reject}));return respond(r);};
   window.fetch=fetcher;const store=createAuthStore(createAuthApi(fetcher));const host=<AuthRouteHost/>;const root=createRoot(document.getElementById("root"));
   root.render(<StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
@@ -1005,3 +1005,36 @@ test("root unmount aborts mutation; late 201 cannot publish", async () => {
     assert.equal((await posts(p)).length, 1);
   });
 });
+
+for (const status of [401, 403, 503]) {
+  test(`093 unreadable bootstrap ${status} preserves recovery boundary and sends no POST`, async () => {
+    await withAssignment(
+      {
+        csrf: [{ status, bodyReadFailure: true }],
+        sessions: [{ body: session() }, { body: session() }],
+      },
+      async (p) => {
+        await ready(p);
+        await review(p);
+        await confirm(p);
+        if (status === 401)
+          await p.waitForFunction(
+            () =>
+              window.fixture.calls.filter((c) => c.url === "/api/auth/session")
+                .length === 2,
+          );
+        else await p.getByRole("alert").waitFor();
+        await settle(p);
+        const all = await calls(p);
+        assert.equal(all.filter((c) => c.method === "POST").length, 0);
+        assert.equal(all.filter((c) => c.url === "/api/auth/csrf").length, 1);
+        assert.equal(
+          all.filter((c) => c.url === "/api/auth/session").length,
+          status === 401 ? 2 : 1,
+        );
+        if (status === 401)
+          assert.equal(await p.locator("input[name=branchId]").count(), 0);
+      },
+    );
+  });
+}
