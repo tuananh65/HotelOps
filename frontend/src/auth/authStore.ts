@@ -159,12 +159,15 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
     const promise = Promise.resolve()
       .then(async (): Promise<AuthResult<PublicSession>> => {
         if (generation !== epoch) return failure("stale");
-        publish({
-          status: "INITIALIZING",
-          session: null,
-          pending,
-          error: null,
-        });
+        if (pending === "initialize")
+          publish({
+            status: "INITIALIZING",
+            session: null,
+            pending,
+            error: null,
+          });
+        // A subscriber may start a mutation while initialization is published.
+        if (generation !== epoch) return failure("stale");
         const result = await invoke(() => api.getSession(signal));
         if (generation !== epoch) return failure("stale");
         if (result.ok) return accept(result.data);
@@ -186,6 +189,15 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
         if (activeRead?.promise === promise) activeRead = undefined;
       });
     activeRead = { epoch: generation, promise };
+    // Revoke local admission immediately, not one microtask after recovery begins.
+    // Register the flight first so synchronous subscribers cannot create another GET.
+    if (pending === "revalidate")
+      publish({
+        status: "INITIALIZING",
+        session: null,
+        pending,
+        error: null,
+      });
     return promise;
   }
 
