@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import {
   collectionParams,
   collectionQuery,
@@ -38,6 +39,7 @@ const messages: Record<number, string> = {
 };
 export function createChecklistApi(
   send: Fetcher = (...args) => fetch(...args),
+  lifetime?: AbortSignal,
 ) {
   async function request(
     method: string,
@@ -46,6 +48,11 @@ export function createChecklistApi(
     etag?: string,
     signal?: AbortSignal,
   ): Promise<Response> {
+    signal =
+      signal && lifetime
+        ? AbortSignal.any([signal, lifetime])
+        : signal || lifetime;
+    signal?.throwIfAborted();
     const writing = method !== "GET";
     const headers: Record<string, string> = { Accept: "application/json" };
     if (body !== undefined) headers["Content-Type"] = "application/json";
@@ -72,6 +79,7 @@ export function createChecklistApi(
         throw new ChecklistApiError(503, "Thông tin bảo mật không hợp lệ.");
       headers[token.headerName] = token.csrfToken;
     }
+    signal?.throwIfAborted();
     let response: Response;
     try {
       response = await send(path, {
@@ -93,6 +101,7 @@ export function createChecklistApi(
         writing,
       );
     }
+    signal?.throwIfAborted();
     if (!response.ok)
       throw new ChecklistApiError(
         response.status,
@@ -263,4 +272,32 @@ export function createChecklistApi(
       return result;
     },
   };
+}
+
+// Component lifetime cancellation also stops writes after a late CSRF bootstrap.
+// No authentication authority and no automatic mutation retry.
+export function useChecklistApi() {
+  const scope = useMemo(() => {
+    let controller = new AbortController();
+    return {
+      api: createChecklistApi((input, init) => {
+        controller.signal.throwIfAborted();
+        const signal = init?.signal
+          ? AbortSignal.any([init.signal, controller.signal])
+          : controller.signal;
+        return fetch(input, { ...init, signal });
+      }),
+      activate() {
+        if (controller.signal.aborted) controller = new AbortController();
+      },
+      dispose() {
+        controller.abort();
+      },
+    };
+  }, []);
+  useEffect(() => {
+    scope.activate();
+    return () => scope.dispose();
+  }, [scope]);
+  return scope.api;
 }

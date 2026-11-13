@@ -3,14 +3,21 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import {
   ChecklistApiError,
-  createChecklistApi,
+  useChecklistApi,
   type LoadedChecklist,
 } from "./api";
 import { editableCriteria, lifecycle, positiveId, reasonInput } from "./model";
 import { ChecklistForm } from "./ChecklistForm";
 import "./checklists.css";
-const api = createChecklistApi();
-export function ChecklistWorkspace({ initialId }: { initialId?: string }) {
+export function ChecklistWorkspace({
+  initialId,
+  branchId: hostBranch,
+  onAccessDenied,
+}: {
+  initialId?: string;
+  branchId?: number;
+  onAccessDenied?: () => void;
+}) {
   const [search, setSearch] = useSearchParams();
   const branch = search.get("branchId") || "";
   const [branchText, setBranchText] = useState(branch);
@@ -20,6 +27,18 @@ export function ChecklistWorkspace({ initialId }: { initialId?: string }) {
     branchId = positiveId(branch);
   } catch {
     /* Await explicit branch selection. */
+  }
+  if (hostBranch !== undefined) {
+    return (
+      <section className="fe05-checklists">
+        <BranchWorkspace
+          key={hostBranch + ":" + (initialId || "")}
+          branch={positiveId(hostBranch)}
+          initialId={initialId}
+          onAccessDenied={onAccessDenied}
+        />
+      </section>
+    );
   }
   return (
     <section className="fe05-checklists">
@@ -65,9 +84,11 @@ export function ChecklistWorkspace({ initialId }: { initialId?: string }) {
 function BranchWorkspace({
   branch,
   initialId,
+  onAccessDenied,
 }: {
   branch: number;
   initialId?: string;
+  onAccessDenied?: () => void;
 }) {
   const [idText, setIdText] = useState(initialId || "");
   const [selected, setSelected] = useState<number | null>(() => {
@@ -86,12 +107,16 @@ function BranchWorkspace({
     setDenied(false);
     setError("");
   }, []);
-  const deny = useCallback((message: string) => {
-    setError(message);
-    setDenied(true);
-    setCreating(false);
-    setSelected(null);
-  }, []);
+  const deny = useCallback(
+    (message: string) => {
+      onAccessDenied?.();
+      setError(message);
+      setDenied(true);
+      setCreating(false);
+      setSelected(null);
+    },
+    [onAccessDenied],
+  );
   function open(id: number) {
     setSelected(id);
     setDetailKey((n) => n + 1);
@@ -185,6 +210,7 @@ function ChecklistDetail({
   onDenied: (message: string) => void;
   onMutated: () => void;
 }) {
+  const api = useChecklistApi();
   const [loaded, setLoaded] = useState<LoadedChecklist | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -206,6 +232,7 @@ function ChecklistDetail({
     api
       .read(branch, id, abort.signal)
       .then((result) => {
+        if (abort.signal.aborted) return;
         setLoaded(result);
         onLoaded(result);
       })
