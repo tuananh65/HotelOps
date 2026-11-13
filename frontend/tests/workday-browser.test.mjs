@@ -13,7 +13,7 @@ import React,{StrictMode,useState} from 'react';import{createRoot}from'react-dom
 import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';
 import{WorkdayReadPanel}from'./src/workday/WorkdayReadPanel';import{HotelRouteHost}from'./src/hotel/HotelRouteHost';
 const calls=[],waiting=new Map();let sessions=[...(window.scenario.sessions??[{body:${JSON.stringify(session())}}])];
-const respond=r=>new Response(r.status===204?null:JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':'application/json'}});
+const respond=r=>{const response=new Response(r.status===204?null:JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':'application/json'}});if(r.unreadable)response.text=async()=>{throw Error('PRIVATE_RESPONSE')};return response;};
 window.fetch=async(url,init)=>{const call={url,method:init.method,credentials:init.credentials,cache:init.cache};calls.push(call);
 init.signal?.addEventListener('abort',()=>{call.aborted=true},{once:true});
 let r;if(url==='/api/auth/session')r=sessions.shift();else r=window.scenario.responses?.[url]??(url.endsWith('own-shifts')?{body:[${JSON.stringify(shift())}]}:{body:${JSON.stringify(day())}});
@@ -393,3 +393,44 @@ test("unmount ignores late read; existing profile remains", () =>
       );
     },
   ));
+
+for (const op of ["current", "own-shifts"])
+  for (const status of [401, 403, 503])
+    test(
+      "082 unreadable " + op + " " + status + " preserves recovery boundary",
+      () =>
+        withPage(
+          {
+            responses: {
+              [path(1, op)]: { status, body: {}, unreadable: true },
+            },
+          },
+          async (p) => {
+            const section =
+              op === "current" ? currentSection(p) : shiftsSection(p);
+            await section.getByRole("alert").waitFor();
+            const buttons = section.getByRole("button");
+            assert.equal(await buttons.count(), 1);
+            assert.equal(
+              await section
+                .getByRole("button", {
+                  name: "X\u00e1c minh phi\u00ean",
+                  exact: true,
+                })
+                .count(),
+              status === 401 ? 1 : 0,
+            );
+            assert.equal(
+              (await p.evaluate(() => window.fixture.calls)).filter(
+                (c) => c.url === "/api/auth/session",
+              ).length,
+              1,
+            );
+            assert.ok(
+              !(await p.locator("body").innerText()).includes(
+                "PRIVATE_RESPONSE",
+              ),
+            );
+          },
+        ),
+    );
