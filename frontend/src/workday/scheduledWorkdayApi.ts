@@ -10,7 +10,6 @@ export function createScheduledWorkdayApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   dispatchEnabled = false,
 ) {
-  const csrf = createHttpClient(fetcher);
   let pending = false;
   async function mutate(
     ...args: Parameters<typeof dispatch>
@@ -46,6 +45,15 @@ export function createScheduledWorkdayApi(
         outcome: "NOT_DISPATCHED",
         error: { reason: "INVALID_REQUEST" },
       };
+    // Keep observed failure status even when the response body cannot be read.
+    // No response or a malformed successful bootstrap supplies no failure status.
+    let bootstrapFailureStatus: number | undefined;
+    const csrf = createHttpClient(async (url, options) => {
+      const response = await fetcher(url, options);
+      if (response.status >= 400 && response.status <= 599)
+        bootstrapFailureStatus = response.status;
+      return response;
+    });
     const token = await csrf({
       method: "GET",
       url: "/api/auth/csrf",
@@ -71,7 +79,9 @@ export function createScheduledWorkdayApi(
           reason: "CSRF",
           ...(token.error.kind === "http"
             ? { status: token.error.status }
-            : {}),
+            : bootstrapFailureStatus !== undefined
+              ? { status: bootstrapFailureStatus }
+              : {}),
         },
       };
     if (signal?.aborted || !current())
