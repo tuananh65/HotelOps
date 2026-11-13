@@ -215,3 +215,53 @@ test("reactivation cannot confirm a Ready response", async () => {
   );
   assert.equal((await change(api, true)).outcome, "OUTCOME_UNKNOWN");
 });
+
+for (const status of [401, 403, 503])
+  test(
+    "phaseA unreadable CSRF " + status + " preserves admission failure",
+    async () => {
+      const h = harness(undefined, true, () => {
+        const r = response({ detail: secret }, status);
+        r.text = async () => {
+          throw Error(secret);
+        };
+        return r;
+      });
+      const result = await change(h.api);
+      assert.equal(result.outcome, "NOT_DISPATCHED");
+      assert.equal(result.status, status);
+      assert.equal(h.calls.length, 1);
+      assert.ok(!JSON.stringify(result).includes(secret));
+    },
+  );
+
+for (const profile of ["network", "malformed", "unreadable-success"])
+  test("phaseA " + profile + " supplies no invented status", async () => {
+    const h = harness(undefined, true, () => {
+      if (profile === "network") throw Error(secret);
+      const r = response({});
+      if (profile === "unreadable-success")
+        r.text = async () => {
+          throw Error(secret);
+        };
+      return r;
+    });
+    const r = await change(h.api);
+    assert.equal(r.outcome, "NOT_DISPATCHED");
+    assert.equal(r.status, undefined);
+    assert.equal(h.calls.length, 1);
+  });
+test("phaseA failed bootstrap cannot poison next request", async () => {
+  let i = 0;
+  const h = harness(undefined, true, () => {
+    if (i++) throw Error(secret);
+    const r = response({}, 401);
+    r.text = async () => {
+      throw Error(secret);
+    };
+    return r;
+  });
+  assert.equal((await change(h.api)).status, 401);
+  assert.equal((await change(h.api)).status, undefined);
+  assert.equal(h.calls.length, 2);
+});

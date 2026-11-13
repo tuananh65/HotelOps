@@ -21,7 +21,6 @@ export function createRoomLifecycleApi(
   enabled = false,
 ) {
   let busy = false;
-  const http = createHttpClient(fetcher);
   return {
     async change(
       branchId: number,
@@ -54,6 +53,13 @@ export function createRoomLifecycleApi(
       busy = true;
       let dispatched = false;
       try {
+        let failureStatus: number | undefined;
+        const http = createHttpClient(async (url, options) => {
+          const response = await fetcher(url, options);
+          if (response.status >= 400 && response.status <= 599)
+            failureStatus = response.status;
+          return response;
+        });
         const csrf = await http({
           method: "GET",
           url: "/api/auth/csrf",
@@ -78,7 +84,9 @@ export function createRoomLifecycleApi(
             reason: "CSRF",
             ...(csrf.error.kind === "http"
               ? { status: csrf.error.status }
-              : {}),
+              : failureStatus !== undefined
+                ? { status: failureStatus }
+                : {}),
           };
         if (signal?.aborted || !current())
           return { outcome: "NOT_DISPATCHED", reason: "STALE" };
