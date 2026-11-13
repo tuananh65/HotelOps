@@ -18,7 +18,7 @@ const result = await build({
     loader: "tsx",
     contents: `
 import React from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{ChangeDepartmentFlow}from'./src/users/ChangeDepartmentFlow';
-const s=window.scenario,calls=[],waiting=new Map();const make=r=>new Response(JSON.stringify(r.body??{}),{status:r.status??200,headers:{'Content-Type':'application/json',ETag:${JSON.stringify(next)},...r.headers}});
+const s=window.scenario,calls=[],waiting=new Map();const make=r=>{const response=new Response(JSON.stringify(r.body??{}),{status:r.status??200,headers:{'Content-Type':'application/json',ETag:${JSON.stringify(next)},...r.headers}});if(r.unreadable)response.text=async()=>{throw Error("PRIVATE-ERROR")};return response;};
 window.fetch=async(url,init)=>{calls.push({url,...init});let r;if(url==='/api/auth/session')r=s.auth??{body:${JSON.stringify(session)}};else if(url==='/api/auth/csrf')r=s.csrf??{body:{headerName:'X-CSRF-TOKEN',csrfToken:'PRIVATE-CSRF'}};else if(init.method==='GET')r=s.read??{body:{userId:Number(url.split('/')[3]),branchId:1,departmentId:2},headers:{ETag:${JSON.stringify(tag)}}};else r=s.mutation??{body:{userId:42,branchId:1,previousDepartmentId:2,departmentId:3}};if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r);};
 const store=createAuthStore(createAuthApi(window.fetch)),root=createRoot(document.getElementById('root'));let target=42;const render=()=>{const app=<ChangeDepartmentFlow userId={target} dispatchEnabled={s.enabled===true}/>;root.render(<AuthProvider store={store} fallback={app}>{app}</AuthProvider>);};render();window.fixture={calls,scenario:s,revalidate:()=>store.revalidate(),target:id=>{target=id;render();},finish:(k,r)=>waiting.get(k)(make(r)),unmount:()=>root.unmount()};
 `,
@@ -249,6 +249,34 @@ test("unmount ignores late response", () =>
       await p
         .getByText("Department change confirmed. Target sessions revoked.")
         .count(),
+      0,
+    );
+  }));
+
+test("unreadable CSRF401 exposes explicit session recovery without PUT or retry", () =>
+  run({ enabled: true, csrf: { status: 401, unreadable: true } }, async (p) => {
+    await review(p);
+    await p.getByRole("button", { name: "Confirm department change" }).click();
+    await p
+      .getByText("Session invalid. Revalidate before a new review.")
+      .waitFor();
+    await p.getByRole("button", { name: "Check session" }).waitFor();
+    assert.equal(
+      await p.getByText("User 42; Branch 1; Department 2").count(),
+      0,
+    );
+    assert.equal(
+      await p.evaluate(
+        () => window.fixture.calls.filter((c) => c.method === "PUT").length,
+      ),
+      0,
+    );
+    await p.getByRole("button", { name: "Check session" }).click();
+    await p.getByText("User 42; Branch 1; Department 2").waitFor();
+    assert.equal(
+      await p.evaluate(
+        () => window.fixture.calls.filter((c) => c.method === "PUT").length,
+      ),
       0,
     );
   }));

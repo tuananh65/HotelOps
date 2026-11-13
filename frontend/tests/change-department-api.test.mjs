@@ -248,3 +248,32 @@ test("CSRF network failure has no invented HTTP status or PUT", async () => {
   assert.deepEqual(r, { ok: false, outcome: "NOT_DISPATCHED" });
   assert.equal(h.calls.length, 1);
 });
+
+for (const status of [401, 403, 503])
+  test("unreadable CSRF error retains observed status " + status, async () => {
+    const h = harness(success, () => {
+      const response = json({ detail: secret }, status);
+      response.text = async () => {
+        throw new Error(secret);
+      };
+      return response;
+    });
+    assert.deepEqual(await h.run(), {
+      ok: false,
+      outcome: "NOT_DISPATCHED",
+      status,
+    });
+    assert.equal(h.calls.length, 1);
+  });
+
+test("unreadable successful CSRF has no failure HTTP status", async () => {
+  const h = harness(success, () => {
+    const response = csrf();
+    response.text = async () => {
+      throw new Error(secret);
+    };
+    return response;
+  });
+  assert.deepEqual(await h.run(), { ok: false, outcome: "NOT_DISPATCHED" });
+  assert.equal(h.calls.length, 1);
+});
