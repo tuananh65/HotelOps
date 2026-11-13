@@ -87,7 +87,22 @@ public static class CreateAuditFaultTests
         try { new CreateAuditFault(profile, receipt, profile.HostArtifactSha256, prefix, TimeProvider.System).BindContext(context); }
         catch (AdmissionFailure) { dirtyRejected = true; }
         Check(dirtyRejected);
-        Console.WriteLine($"UC004 fault admission/matching: {passed}/23 PASS; interceptor/rollback/HTTP runtime NOT_RUN.");
-        if (passed != 23) throw new InvalidOperationException("Incomplete offline suite");
+        // Empty contexts exercise the interception boundary without opening a connection.
+        foreach (var bindOtherContext in new[] { false, true })
+        {
+            var isolated = new CreateAuditFault(profile, receipt, profile.HostArtifactSha256, prefix, TimeProvider.System);
+            using var other = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+                .UseSqlServer("Server=offline.invalid;Database=offline;Integrated Security=true;Encrypt=true;TrustServerCertificate=false").Options);
+            if (bindOtherContext) isolated.BindContext(other);
+            using var caller = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+                .UseSqlServer("Server=offline.invalid;Database=offline;Integrated Security=true;Encrypt=true;TrustServerCertificate=false")
+                .AddInterceptors(isolated).Options);
+            var rejected = false;
+            try { caller.SaveChangesAsync().GetAwaiter().GetResult(); }
+            catch (AdmissionFailure e) when (e.Message == "EXACT_BOUND_CONTEXT_REQUIRED") { rejected = true; }
+            Check(rejected && !isolated.Fired);
+        }
+        Console.WriteLine($"UC004 fault admission/matching: {passed}/25 PASS; interceptor/rollback/HTTP runtime NOT_RUN.");
+        if (passed != 25) throw new InvalidOperationException("Incomplete offline suite");
     }
 }

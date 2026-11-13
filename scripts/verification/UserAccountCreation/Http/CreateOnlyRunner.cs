@@ -62,6 +62,8 @@ public static class CreateOnlyRunner
     {
         ct.ThrowIfCancellationRequested();
         TrialAdmission.Require(path is "/api/auth/csrf" or "/api/auth/login" or "/api/users", "HTTP_PATH_OUTSIDE_SCOPE");
+        TrialAdmission.Require(path == "/api/auth/csrf" ? method == HttpMethod.Get : method == HttpMethod.Post,
+            "HTTP_METHOD_OUTSIDE_SCOPE");
         using var request = new HttpRequestMessage(method, path);
         if (csrf is not null) request.Headers.Add(HotelOpsAntiforgery.HeaderName, csrf);
         if (body is not null) request.Content = JsonContent.Create(body);
