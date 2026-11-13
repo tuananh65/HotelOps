@@ -811,3 +811,42 @@ for (const response of [network(), fail(503, "AUTH_SERVICE_UNAVAILABLE")])
       assert.equal(store.getSnapshot().status, "ERROR_UNAVAILABLE");
     },
   );
+
+for (const operation of ["login", "logout", "changePassword"])
+  test(
+    "HC04 synchronous invalidation before " +
+      operation +
+      " prevents transport dispatch",
+    async () => {
+      const requests = [];
+      const api = createAuthApi(async (url, init) => {
+        requests.push({ url, method: init.method });
+        return new Response(
+          JSON.stringify({
+            csrfToken: "fixture-token",
+            headerName: "X-CSRF-TOKEN",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      });
+      const store = createAuthStore(api);
+      const unsubscribe = store.subscribe(() => {
+        const current = store.getSnapshot();
+        if (current.pending === operation)
+          store.invalidateSession(current.authorityGeneration);
+      });
+      const result = await (operation === "login"
+        ? store.login(credentials)
+        : operation === "logout"
+          ? store.logout()
+          : store.changePassword(password));
+      unsubscribe();
+      assert.equal(result.error.kind, "stale");
+      assert.deepEqual(
+        requests,
+        [],
+        "revoked authority must not start CSRF or POST",
+      );
+      assert.equal(store.getSnapshot().status, "EXPIRED_INVALID");
+    },
+  );

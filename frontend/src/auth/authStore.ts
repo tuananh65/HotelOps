@@ -225,6 +225,8 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
       error: null,
     });
     try {
+      // Synchronous subscribers can revoke authority while pending state is published.
+      if (generation !== epoch) return failure("stale");
       const result = await invoke(action);
       if (generation !== epoch) return failure("stale");
       if (result.ok) {
