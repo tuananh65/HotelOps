@@ -42,7 +42,6 @@ export function createCustomRoleApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,
 ) {
-  const csrf = createHttpClient(fetcher);
   return {
     async create(
       input: CustomRoleInput,
@@ -59,6 +58,13 @@ export function createCustomRoleApi(
         roleCode: input.roleCode,
         roleName: input.roleName,
         description: input.description,
+      });
+      let bootstrapFailureStatus: number | undefined;
+      const csrf = createHttpClient(async (url, options) => {
+        const response = await fetcher(url, options);
+        if (response.status >= 400 && response.status <= 599)
+          bootstrapFailureStatus = response.status;
+        return response;
       });
       const token = await csrf({
         method: "GET",
@@ -78,7 +84,14 @@ export function createCustomRoleApi(
             return v.csrfToken;
         },
       });
-      if (!token.ok) return { outcome: "NOT_DISPATCHED", reason: "CSRF" };
+      if (!token.ok)
+        return {
+          outcome: "NOT_DISPATCHED",
+          reason: "CSRF",
+          ...(bootstrapFailureStatus === undefined
+            ? {}
+            : { status: bootstrapFailureStatus }),
+        };
       if (!current() || signal?.aborted)
         return { outcome: "NOT_DISPATCHED", reason: "STALE" };
       try {

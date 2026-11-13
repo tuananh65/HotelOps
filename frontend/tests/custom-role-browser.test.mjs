@@ -8,7 +8,7 @@ const bundle = await build({
   stdin: {
     resolveDir: process.cwd(),
     loader: "tsx",
-    contents: `import React from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthApi}from'./src/auth/authApi';import{createAuthStore}from'./src/auth/authStore';import{CustomRoleForm}from'./src/roles/CustomRoleForm';const s=window.scenario,calls=[],waiters=[];const dto={roleId:12,roleCode:s.createdCode??'CUSTOM_X',roleName:'Custom name',description:null,isSystemRole:s.system??false,isActive:true,assignedUserCount:0,permissionGrantCount:0};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json({...${JSON.stringify(session())},mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf')return Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});if(o.method==='GET')return Response.json({role:dto,grants:[]});const finish=()=>{if(s.network)throw Error('SECRET');return s.status?Response.json({detail:'SECRET'},{status:s.status}):Response.json(dto,{status:201,headers:{Location:'/api/roles/12'}});};if(s.late)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));const app=<CustomRoleForm roleId={s.edit?12:undefined} dispatchEnabled={s.enabled??false}/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={app}>{app}</AuthProvider>);window.fixture={calls,replace:()=>store.revalidate(),finish:()=>waiters.splice(0).forEach(f=>f())};`,
+    contents: `import React from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthApi}from'./src/auth/authApi';import{createAuthStore}from'./src/auth/authStore';import{CustomRoleForm}from'./src/roles/CustomRoleForm';const s=window.scenario,calls=[],waiters=[];const dto={roleId:12,roleCode:s.createdCode??'CUSTOM_X',roleName:'Custom name',description:null,isSystemRole:s.system??false,isActive:true,assignedUserCount:0,permissionGrantCount:0};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json({...${JSON.stringify(session())},mustChangePassword:s.restricted??false});if(u==='/api/auth/csrf'){const r=s.csrfStatus?Response.json({detail:'SECRET'},{status:s.csrfStatus}):Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});if(s.unreadable)r.text=async()=>{throw Error('SECRET')};return r;}if(o.method==='GET')return Response.json({role:dto,grants:[]});const finish=()=>{if(s.network)throw Error('SECRET');return s.status?Response.json({detail:'SECRET'},{status:s.status}):Response.json(dto,{status:201,headers:{Location:'/api/roles/12'}});};if(s.late)return new Promise(resolve=>waiters.push(()=>resolve(finish())));return finish();};const store=createAuthStore(createAuthApi(window.fetch));const app=<CustomRoleForm roleId={s.edit?12:undefined} dispatchEnabled={s.enabled??false}/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={app}>{app}</AuthProvider>);window.fixture={calls,replace:()=>store.revalidate(),finish:()=>waiters.splice(0).forEach(f=>f())};`,
   },
   bundle: true,
   write: false,
@@ -188,3 +188,52 @@ test("invariant Unicode code confirms Create and refreshes without replay", () =
       1,
     );
   }));
+for (const unreadable of [false, true])
+  test(`CSRF 401 unreadable=${unreadable} clears form until explicit revalidation`, () =>
+    run({ enabled: true, csrfStatus: 401, unreadable }, async (p) => {
+      await review(p);
+      await p.getByRole("button", { name: "Confirm create" }).click();
+      await p.getByText("Confirmed unrestricted session required.").waitFor();
+      assert.equal(await p.getByLabel("Role code", { exact: true }).count(), 0);
+      let calls = await p.evaluate(() => window.fixture.calls);
+      assert.equal(calls.filter((c) => c.method === "POST").length, 0);
+      assert.equal(
+        calls.filter((c) => c.url === "/api/auth/session").length,
+        1,
+      );
+      await p.getByRole("button", { name: "Revalidate session" }).click();
+      await p.getByLabel("Role code", { exact: true }).waitFor();
+      assert.equal(
+        await p.getByLabel("Role code", { exact: true }).inputValue(),
+        "",
+      );
+      calls = await p.evaluate(() => window.fixture.calls);
+      assert.equal(calls.filter((c) => c.method === "POST").length, 0);
+      assert.equal(
+        calls.filter((c) => c.url === "/api/auth/session").length,
+        2,
+      );
+    }));
+for (const status of [403, 503])
+  test(`CSRF ${status} does not invalidate session or dispatch`, () =>
+    run({ enabled: true, csrfStatus: status, unreadable: true }, async (p) => {
+      await review(p);
+      await p.getByRole("button", { name: "Confirm create" }).click();
+      await p
+        .getByText(
+          status === 403
+            ? "Global administration access denied."
+            : "Operation not confirmed. Check input and server availability.",
+        )
+        .waitFor();
+      assert.equal(
+        await p.getByRole("button", { name: "Revalidate session" }).count(),
+        0,
+      );
+      const calls = await p.evaluate(() => window.fixture.calls);
+      assert.equal(calls.filter((c) => c.method === "POST").length, 0);
+      assert.equal(
+        calls.filter((c) => c.url === "/api/auth/session").length,
+        1,
+      );
+    }));
