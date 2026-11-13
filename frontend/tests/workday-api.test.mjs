@@ -175,3 +175,67 @@ test("concurrent current reads cannot mix empty flags", async () => {
   assert.deepEqual(await a, { ok: true, data: null });
   assert.deepEqual(await b, { ok: true, data: day(2) });
 });
+for (const op of ["current", "ownShifts"]) {
+  for (const [status, error] of [
+    [401, "unauthorized"],
+    [403, "forbidden"],
+    [503, "unavailable"],
+  ]) {
+    test(`082 ${op} unreadable ${status} retains observed failure`, async () => {
+      let calls = 0;
+      const api = createWorkdayApi(async () => {
+        calls++;
+        const r = Response.json({ detail: secret }, { status });
+        r.text = async () => {
+          throw Error(secret);
+        };
+        return r;
+      });
+      assert.deepEqual(await api[op](1), { ok: false, error });
+      assert.equal(calls, 1);
+    });
+  }
+}
+for (const op of ["current", "ownShifts"]) {
+  test(`082 ${op} no response or unreadable success never invents authorization status`, async () => {
+    for (const status of [undefined, 200]) {
+      const api = createWorkdayApi(async () => {
+        if (status === undefined) throw Error(secret);
+        const r = Response.json({});
+        r.text = async () => {
+          throw Error(secret);
+        };
+        return r;
+      });
+      assert.deepEqual(await api[op](1), { ok: false, error: "network" });
+    }
+  });
+  test(`082 ${op} concurrent statuses are request-local and cancellation wins`, async () => {
+    const api = createWorkdayApi(async (url) => {
+      const status = url.includes("/1/") ? 401 : 403;
+      const r = Response.json({}, { status });
+      r.text = async () => {
+        await Promise.resolve();
+        throw Error(secret);
+      };
+      return r;
+    });
+    assert.deepEqual(await Promise.all([api[op](1), api[op](2)]), [
+      { ok: false, error: "unauthorized" },
+      { ok: false, error: "forbidden" },
+    ]);
+    const abort = new AbortController();
+    const cancelled = createWorkdayApi(async () => {
+      const r = Response.json({}, { status: 401 });
+      r.text = async () => {
+        abort.abort();
+        throw Error(secret);
+      };
+      return r;
+    });
+    assert.deepEqual(await cancelled[op](1, abort.signal), {
+      ok: false,
+      error: "cancelled",
+    });
+  });
+}
