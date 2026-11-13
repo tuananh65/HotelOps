@@ -61,4 +61,6 @@ export interface AuthApi {
   ): Promise<ApiResult<SessionDto>>;
   /** Detached local cache. Null after a failed mutation means unknown, NOT confirmed logout. */
   getSessionSnapshot(): SessionDto | null;
+  /** Clears local CSRF/session caches, not server-side session authority. */
+  invalidateLocalAuthority?(): void;
 }

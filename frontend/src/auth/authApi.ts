@@ -117,7 +117,7 @@ export function createAuthApi(
   ): Promise<ApiResult<T>> {
     if (mutation) return busy();
     mutation = true;
-    ++identityEpoch; // Invalidate all reads issued before this identity operation.
+    const operationEpoch = ++identityEpoch; // Invalidate all reads issued before this identity operation.
     try {
       let currentToken = csrf;
       if (!currentToken) {
@@ -143,6 +143,7 @@ export function createAuthApi(
         decode,
         signal,
       });
+      if (operationEpoch !== identityEpoch) return stale();
       if (result.ok && expectedStatus === 200) {
         session = structuredClone(result.data as SessionDto);
         csrf = session.csrfToken;
@@ -209,5 +210,13 @@ export function createAuthApi(
       ),
     getSessionSnapshot: () =>
       session === null ? null : structuredClone(session),
+    invalidateLocalAuthority() {
+      ++identityEpoch;
+      ++readGeneration.session;
+      ++readGeneration.csrf;
+      csrf = null;
+      session = null;
+      tokenSequence = ++readSequence;
+    },
   };
 }

@@ -8,6 +8,10 @@ import type {
   SessionDto,
 } from "./contracts";
 
+declare const authorityGenerationBrand: unique symbol;
+/** Non-secret, per-store-lifetime opaque authority revision. */
+export type AuthorityGeneration = string & { readonly [authorityGenerationBrand]: true };
+
 export type AuthStatus =
   | "INITIALIZING"
   | "ANONYMOUS"
@@ -35,6 +39,7 @@ export type AuthResult<T> =
   | { readonly ok: false; readonly error: AuthError };
 
 export interface AuthSnapshot {
+  readonly authorityGeneration: AuthorityGeneration;
   readonly status: AuthStatus;
   readonly session: PublicSession | null;
   readonly pending:
@@ -56,6 +61,7 @@ export interface AuthStore {
   ): Promise<AuthResult<PublicSession>>;
   subscribe(listener: () => void): () => void;
   getSnapshot(): AuthSnapshot;
+  invalidateSession(expectedGeneration: AuthorityGeneration): void;
 }
 
 const knownCodes = new Set([
@@ -106,7 +112,12 @@ const failure = (kind: "busy" | "stale"): AuthResult<never> => ({
 
 /** Own one accepted AuthApi instance exclusively; do not share it with other stores/callers. */
 export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
+  const instanceId = crypto.randomUUID();
+  let generationNumber = 0;
+  const nextGeneration = (): AuthorityGeneration =>
+    `${instanceId}:${++generationNumber}` as AuthorityGeneration;
   let snapshot: AuthSnapshot = Object.freeze({
+    authorityGeneration: nextGeneration(),
     status: "INITIALIZING",
     session: null,
     pending: null,
@@ -120,8 +131,9 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
   let activeRead:
     { epoch: number; promise: Promise<AuthResult<PublicSession>> } | undefined;
 
-  function publish(next: AuthSnapshot) {
-    snapshot = Object.freeze(next);
+  function publish(next: Omit<AuthSnapshot, "authorityGeneration">, rotate = false) {
+    snapshot = Object.freeze({ ...next,
+      authorityGeneration: rotate ? nextGeneration() : snapshot.authorityGeneration });
     for (const listener of [...listeners]) listener();
   }
 
@@ -143,7 +155,7 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
       session,
       pending: null,
       error: null,
-    });
+    }, true);
     return { ok: true, data: session };
   }
 
@@ -165,7 +177,7 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
             session: null,
             pending,
             error: null,
-          });
+          }, true);
         // A subscriber may start a mutation while initialization is published.
         if (generation !== epoch) return failure("stale");
         const result = await invoke(() => api.getSession(signal));
@@ -197,7 +209,7 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
         session: null,
         pending,
         error: null,
-      });
+      }, true);
     return promise;
   }
 
@@ -207,16 +219,17 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
   ): Promise<AuthResult<PublicSession | void>> {
     if (mutation) return failure("busy");
     mutation = true;
-    ++epoch; // Store protection is independent of transport stale-response protection.
+    const generation = ++epoch; // Store protection is independent of transport stale-response protection.
     const previous = snapshot;
     publish({
       status: "INITIALIZING",
       session: null,
       pending: operation,
       error: null,
-    });
+    }, true);
     try {
       const result = await invoke(action);
+      if (generation !== epoch) return failure("stale");
       if (result.ok) {
         if (operation !== "logout") return accept(result.data as SessionDto);
         hadIdentity = false;
@@ -291,5 +304,13 @@ export function createAuthStore(api: AuthApi = createAuthApi()): AuthStore {
       };
     },
     getSnapshot: () => snapshot,
+    invalidateSession(expectedGeneration) {
+      if (expectedGeneration !== snapshot.authorityGeneration) return;
+      ++epoch;
+      hadIdentity = true;
+      api.invalidateLocalAuthority?.();
+      publish({ status: "EXPIRED_INVALID", session: null, pending: null,
+        error: { kind: "http", status: 401, code: "SESSION_INVALID" } }, true);
+    },
   };
 }

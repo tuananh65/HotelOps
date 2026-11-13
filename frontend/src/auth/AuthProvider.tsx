@@ -16,7 +16,7 @@ import {
 export type AuthActions = Readonly<
   Pick<
     AuthStore,
-    "initialize" | "revalidate" | "login" | "logout" | "changePassword"
+    "initialize" | "revalidate" | "login" | "logout" | "changePassword" | "invalidateSession"
   >
 >;
 
@@ -55,6 +55,7 @@ export function AuthProvider({
         login: store.login,
         logout: store.logout,
         changePassword: store.changePassword,
+        invalidateSession: store.invalidateSession,
       }),
     [store],
   );
