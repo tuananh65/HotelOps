@@ -22,7 +22,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using UC004Trial;
 
-if (args.SequenceEqual(new[] { "--self-test" })) { TrialGuardTests.Run(); await CreateOnlyTests.RunAsync(); return; }
+if (args.SequenceEqual(new[] { "--self-test" })) { TrialGuardTests.Run(); await CreateOnlyTests.RunAsync(); CreateAuditFaultTests.Run(); return; }
 if (args.FirstOrDefault() == "--uc004")
 {
     try { await CreateOnlyRunner.RunAsync(args[1..]); }
