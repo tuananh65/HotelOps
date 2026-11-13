@@ -53,6 +53,26 @@ public sealed partial class RoomTypeCreationService
         && value.Readiness == (complete ? "PENDING_INSPECTION" : "PENDING_CLEANING")
         && value.Notification == "PENDING_DELIVERY" && value.Contract == "PROVISIONAL_NOT_ACCEPTED";
 
+    // This is a structural guard, not an authorization or completed-ledger substitute.
+    public static CleaningClosureResult? ReadClosureReceipt(
+        HotelOps.Api.Models.NotificationOperationCandidate stored, long actor, byte[] expectedFingerprint,
+        long branch, long task, long assignment, Guid operation, bool complete)
+    {
+        if (actor <= 0 || branch <= 0 || task <= 0 || assignment <= 0 || operation == Guid.Empty
+            || expectedFingerprint is not { Length: 32 } || stored.ActorUserId != actor
+            || stored.OperationKey != operation || stored.FingerprintVersion != 1 || !stored.Completed
+            || stored.Fingerprint is not { Length: 32 }
+            || !CryptographicOperations.FixedTimeEquals(stored.Fingerprint, expectedFingerprint)
+            || string.IsNullOrWhiteSpace(stored.ResultJson)) return null;
+        try
+        {
+            var receipt = JsonSerializer.Deserialize<CleaningClosureResult>(stored.ResultJson, Json);
+            return receipt != null && ValidClosureReceipt(receipt, branch, task, assignment, operation, complete)
+                ? receipt : null;
+        }
+        catch (JsonException) { return null; }
+    }
+
     private async Task<RoomTypeBatchResult> ExecuteCleaningClosureAsync(SessionReference ticket, long sid, long branch,
         long task, string tag, string key, long? reason, string note, string? progressTag,
         IReadOnlyList<EvidenceUpload>? photos, string? root, CancellationToken ct)
@@ -104,9 +124,16 @@ public sealed partial class RoomTypeCreationService
                 var stored = await candidateNotification!.FindAsync(actor, operation, inner);
                 if (stored != null)
                 {
-                    if (!stored.Fingerprint.SequenceEqual(fingerprint)) return new(RoomTypeBatchStatus.Duplicate);
-                    var receipt = JsonSerializer.Deserialize<CleaningClosureResult>(stored.ResultJson!, Json);
-                    if (receipt == null || !ValidClosureReceipt(receipt, branch, task, owner.AssignmentId, operation, reason == null))
+                    if (stored.Fingerprint is not { Length: 32 }
+                        || !CryptographicOperations.FixedTimeEquals(stored.Fingerprint, fingerprint))
+                        return new(RoomTypeBatchStatus.Duplicate);
+                    var receipt = ReadClosureReceipt(stored, actor, fingerprint, branch, task,
+                        owner.AssignmentId, operation, reason == null);
+                    if (receipt == null || receipt.SourceETag != WorkflowTag(state.Revision)
+                        || state.State != (reason == null ? "PENDING_INSPECTION" : "ON_HOLD")
+                        || reason == null && (row.ActualEndAt != receipt.OccurredAtUtc
+                            || !await VerifyCompletedCleanerAttributionAsync(task, owner.AssignmentId, actor,
+                                receipt.ProgressId, receipt.OccurredAtUtc, inner)))
                         return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
                     var originalRecipients = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.notification_delivery_intents WHERE publication_id={receipt.PublicationId}").SingleAsync(inner);
                     if (originalRecipients == 0) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_STAGING_REQUIRED");
@@ -161,6 +188,9 @@ public sealed partial class RoomTypeCreationService
                 if (reason == null)
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='PENDING_INSPECTION',actual_end_at={now},completion_note={note} WHERE cleaning_task_id={task}", inner);
                 else await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='ON_HOLD' WHERE cleaning_task_id={task}", inner);
+                // Mandatory immutable capture is part of this caller-owned completion transaction.
+                // Missing schema, ambiguous history or failed verification aborts the entire write.
+                if (reason == null) await CaptureCleanerAttribution(task, owner.AssignmentId, actor, log.ProgressId, inner);
                 var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == row.RoomId && x.ReleasedAt == null, inner);
                 var readiness = reason == null ? "PENDING_INSPECTION" : "PENDING_CLEANING";
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},{readiness},{blocked},{actor},{now})", inner);
