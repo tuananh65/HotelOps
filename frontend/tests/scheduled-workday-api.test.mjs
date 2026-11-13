@@ -452,3 +452,30 @@ for (const failure of ["network", "malformed", "cancelled"]) {
     },
   );
 }
+
+for (const operation of ["start", "end"])
+  for (const status of [401, 403, 503])
+    test(
+      operation + " unreadable CSRF failure preserves " + status,
+      async () => {
+        const calls = [];
+        const api = createScheduledWorkdayApi(async (url, options) => {
+          calls.push({ url, method: options.method });
+          const r = response({ detail: "PRIVATE-ERROR" }, status);
+          r.text = async () => {
+            throw Error("PRIVATE-ERROR");
+          };
+          return r;
+        }, true);
+        const result =
+          operation === "start"
+            ? await api.start(1, 10, () => true)
+            : await api.end(1, 20, 10, tag, () => true);
+        assert.deepEqual(result, {
+          outcome: "NOT_DISPATCHED",
+          error: { reason: "CSRF", status },
+        });
+        assert.equal(calls.length, 1);
+        assert.equal(calls[0].method, "GET");
+      },
+    );
