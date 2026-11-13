@@ -1,0 +1,71 @@
+{
+  "receipts": [
+    {
+      "command": "dotnet build HotelOps.slnx --nologo",
+      "exitCode": 0,
+      "result": "Passed",
+      "warnings": 0,
+      "errors": 0,
+      "receipt": "receipts/backend-build.txt"
+    },
+    {
+      "command": "dotnet test HotelOps.slnx --nologo",
+      "exitCode": 0,
+      "result": "NO_TESTS_DISCOVERED",
+      "tests": 0,
+      "note": "Solution lists API project only. Exit zero is NOT testing passed.",
+      "receipt": "receipts/solution-test.txt"
+    },
+    {
+      "command": "dotnet run --project tests/HotelOps.Incident.UnitTests/HotelOps.Incident.UnitTests.csproj --no-launch-profile",
+      "exitCode": 0,
+      "result": "Passed",
+      "assertions": 49,
+      "sqlConnections": 0,
+      "receipt": "receipts/backend-focused.txt"
+    },
+    {
+      "command": "$env:UC049_NODE_MODULES=\"C:/Users/Admin/Documents/GitHub/HotelOps_DEV2_FullStack_Integration/frontend/node_modules\"; node --test frontend/tests/incidents/uc049.test.cjs",
+      "exitCode": 0,
+      "result": "Passed",
+      "tests": 34,
+      "passed": 34,
+      "failed": 0,
+      "typecheck": "Passed - tsc strict noEmit for candidate + exact committed auth sources",
+      "bundle": "Passed - esbuild fixture with explicit file resolver",
+      "browser": "local installed Google Chrome headless via Playwright",
+      "receipt": "receipts/frontend-focused.txt",
+      "limitations": "API responses and identity fixtures; not live SQL/session/RBAC acceptance; host registered only in fixture"
+    }
+  ],
+  "initialFailures": [
+    {
+      "command": "focused backend harness initial run",
+      "exitCode": 1,
+      "cause": "secure-cookie antiforgery fixture TLS precondition",
+      "resolution": "loopback fixture request marked HTTPS; production code unchanged",
+      "supersededBy": "49 assertions pass"
+    },
+    {
+      "command": "frontend harness first run",
+      "exitCode": 1,
+      "tests": 34,
+      "pass": 0,
+      "cause": "native esbuild ancestor directory discovery denied by sandbox before tests",
+      "resolution": "explicit Node read-only file resolver; final 34 pass"
+    }
+  ],
+  "notRun": [
+    "Live SQL connectivity",
+    "SQL persistence/rollback/concurrent placement integration",
+    "Actual session/grant revoke between GET and commit",
+    "Live integrated host production route",
+    "Runtime list/detail/triage/status regression; exact source preservation verified instead",
+    "Full accepted host frontend npm build: host not present at starting HEAD; only focused candidate typecheck/bundle performed"
+  ],
+  "regression": {
+    "statusAndTriageUnchanged": true,
+    "listAndDetailUnchanged": true,
+    "scope": "normalized exact source comparison, NOT runtime workflow regression tests"
+  }
+}

@@ -1,0 +1,133 @@
+{
+  "version": "UC049-CREATE-v1-CANDIDATE",
+  "approval": "PROPOSED",
+  "method": "POST",
+  "url": "/api/incidents",
+  "fields": {
+    "branchId": {
+      "type": "int64 JSON number",
+      "required": true,
+      "nullable": false,
+      "min": 1
+    },
+    "reportedBy": {
+      "type": "int64 JSON number",
+      "required": false,
+      "nullable": true,
+      "omission": "derive actor from session",
+      "supplied": "must equal session userId; mismatch 403"
+    },
+    "incidentTitle": {
+      "type": "string",
+      "required": true,
+      "maxLength": 200
+    },
+    "description": {
+      "type": "string",
+      "required": true
+    },
+    "discoveredAt": {
+      "type": "ISO 8601 DateTime string",
+      "required": true,
+      "nullable": false
+    },
+    "roomId": {
+      "type": "int64 JSON number",
+      "required": false,
+      "nullable": true,
+      "min": 1,
+      "omission": "null"
+    },
+    "areaId": {
+      "type": "int64 JSON number",
+      "required": false,
+      "nullable": true,
+      "min": 1,
+      "omission": "null"
+    },
+    "assetId": {
+      "type": "int64 JSON number",
+      "required": false,
+      "nullable": true,
+      "min": 1,
+      "omission": "null"
+    },
+    "severityId": {
+      "type": "int64 JSON number",
+      "required": false,
+      "nullable": true,
+      "min": 1,
+      "omission": "null"
+    },
+    "priorityId": {
+      "type": "int64 JSON number",
+      "required": false,
+      "nullable": true,
+      "min": 1,
+      "omission": "null"
+    }
+  },
+  "physicalSource": "At least one roomId/areaId/assetId required",
+  "clientIdRange": "1..9007199254740991; canonical decimal strings in URLs; JSON safe integer numbers in body",
+  "serverIdRange": "positive System.Int64; no schema changes",
+  "actor": "validated cookie/current user + locked SQL User/UserSession; never authority from payload",
+  "branchAuthority": "IPermissionService.EvaluateBranchAsync(INCIDENT_CREATE, branchId), active branch and placement locks",
+  "permissionRechecks": [
+    "before transaction",
+    "inside transaction before source locks",
+    "immediately before commit"
+  ],
+  "roomValidation": "exists, active, same branch, active consistent floor/area; supplied area must equal authoritative room parent",
+  "assetValidation": "same branch, not RETIRED, locked current location validates placement; supplied room/area must equal current asset parents",
+  "references": "active SEVERITY/PRIORITY reference groups when supplied",
+  "transaction": "existing local SQL transaction encompasses incident/event/audit/number allocation; caller rollback on failure; no RoomBlock/RoomStatus writes",
+  "csrf": {
+    "bootstrap": "GET /api/auth/csrf with cookie",
+    "header": "X-CSRF-TOKEN",
+    "cookie": "__Host-HotelOps.Antiforgery",
+    "protections": [
+      "existing ApiCsrfMiddleware",
+      "ValidateAntiForgeryToken attribute"
+    ],
+    "transport": "existing auth/http createHttpClient; credentials include, no-store, redirect error; no retries"
+  },
+  "responses": {
+    "201": {
+      "body": "IncidentDetailDto",
+      "location": "/api/incidents/{incidentId}",
+      "fields": [
+        "incidentId",
+        "incidentNo",
+        "branchId",
+        "branchName",
+        "roomId",
+        "roomNumber",
+        "areaId",
+        "areaName",
+        "assetId",
+        "assetName",
+        "incidentTitle",
+        "severityId",
+        "severityName",
+        "priorityId",
+        "priorityName",
+        "status",
+        "reportedBy",
+        "reportedByName",
+        "discoveredAt",
+        "reportedAt",
+        "resolvedAt",
+        "closedAt",
+        "description",
+        "closureNote",
+        "events"
+      ]
+    },
+    "400": "ValidationProblemDetails for model binding/annotations; ProblemDetails detail for source/placement; CSRF_VALIDATION_FAILED middleware code",
+    "401": "authentication/session invalid (with valid CSRF for unsafe request)",
+    "403": "restricted session, forged reporter or denied branch permission",
+    "503": "pre-transaction permission data unavailable; SQL availability is not integration-verified"
+  },
+  "responseStatus": "OPEN preserved; historical SRS Pending Triage label is not a new persisted status",
+  "newColumns": false
+}
