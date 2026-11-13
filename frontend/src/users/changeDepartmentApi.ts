@@ -21,7 +21,6 @@ export function createChangeDepartmentApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,
 ) {
-  const http = createHttpClient(fetcher);
   let pending = false;
   return {
     async read(
@@ -89,6 +88,15 @@ export function createChangeDepartmentApi(
       pending = true;
       let dispatched = false;
       try {
+        // Preserve only an observed HTTP failure if reading its body fails.
+        // A transport failure or malformed successful bootstrap must not invent status.
+        let bootstrapFailureStatus: number | undefined;
+        const http = createHttpClient(async (url, options) => {
+          const response = await fetcher(url, options);
+          if (response.status >= 400 && response.status <= 599)
+            bootstrapFailureStatus = response.status;
+          return response;
+        });
         const csrf = await http({
           method: "GET",
           url: "/api/auth/csrf",
@@ -110,7 +118,9 @@ export function createChangeDepartmentApi(
             outcome: "NOT_DISPATCHED",
             ...(csrf.error.kind === "http"
               ? { status: csrf.error.status }
-              : {}),
+              : bootstrapFailureStatus !== undefined
+                ? { status: bootstrapFailureStatus }
+                : {}),
           };
         if (!current() || signal?.aborted)
           return { ok: false, outcome: "NOT_DISPATCHED" };
