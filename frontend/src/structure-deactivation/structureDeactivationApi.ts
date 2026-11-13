@@ -38,7 +38,6 @@ export function createStructureDeactivationApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   dispatchEnabled = false,
 ) {
-  const csrf = createHttpClient(fetcher);
   const valid = (kind: StructureKind, b: number, id: number) =>
     (kind === "floor" || kind === "area") && safeId(b) && safeId(id);
   const url = (kind: StructureKind, b: number, id: number) =>
@@ -162,6 +161,13 @@ export function createStructureDeactivationApi(
           error: { reason: "INVALID_REQUEST" },
         };
       const body = JSON.stringify({ reason: input.reason, confirmation: true });
+      let failureStatus: number | undefined;
+      const csrf = createHttpClient(async (url, options) => {
+        const response = await fetcher(url, options);
+        if (response.status >= 400 && response.status <= 599)
+          failureStatus = response.status;
+        return response;
+      });
       const token = await csrf({
         method: "GET",
         url: "/api/auth/csrf",
@@ -183,7 +189,10 @@ export function createStructureDeactivationApi(
       if (!token.ok)
         return {
           outcome: "NOT_DISPATCHED",
-          error: { reason: "INVALID_RESPONSE" },
+          error: {
+            reason: "INVALID_RESPONSE",
+            ...(failureStatus !== undefined ? { status: failureStatus } : {}),
+          },
         };
       if (signal?.aborted || !stillCurrent())
         return { outcome: "NOT_DISPATCHED", error: { reason: "STALE" } };

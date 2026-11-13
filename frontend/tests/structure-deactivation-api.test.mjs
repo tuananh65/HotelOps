@@ -195,3 +195,42 @@ test("non JSON read rejected", async () =>
     ).ok,
     false,
   ));
+for (const kind of ["floor", "area"])
+  for (const unreadable of [false, true])
+    for (const status of [401, 403, 503])
+      test(`phaseA ${kind} CSRF ${status} unreadable=${unreadable} preserves status`, async () => {
+        let n = 0;
+        const api = createStructureDeactivationApi(async () => {
+          n++;
+          const r = make({ detail: "PRIVATE" }, status);
+          if (unreadable)
+            r.text = async () => {
+              throw Error("PRIVATE");
+            };
+          return r;
+        }, true);
+        const r = await api.deactivate(kind, 42, 11, tag, input, () => true);
+        assert.equal(r.outcome, "NOT_DISPATCHED");
+        assert.equal(r.error.status, status);
+        assert.equal(n, 1);
+        assert.ok(!JSON.stringify(r).includes("PRIVATE"));
+      });
+
+for (const profile of ["network", "malformed", "unreadable-success"])
+  test("phaseA " + profile + " does not invent HTTP status", async () => {
+    let n = 0;
+    const api = createStructureDeactivationApi(async () => {
+      n++;
+      if (profile === "network") throw Error("PRIVATE");
+      const r = make({});
+      if (profile === "unreadable-success")
+        r.text = async () => {
+          throw Error("PRIVATE");
+        };
+      return r;
+    }, true);
+    const r = await api.deactivate("floor", 42, 11, tag, input, () => true);
+    assert.equal(r.outcome, "NOT_DISPATCHED");
+    assert.equal(r.error.status, undefined);
+    assert.equal(n, 1);
+  });
