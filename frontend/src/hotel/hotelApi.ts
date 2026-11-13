@@ -215,8 +215,11 @@ function httpError(status: number, body: unknown): HotelError {
     ...(activeRooms ? { activeRooms } : {}),
   };
 }
-function caught(e: unknown, signal?: AbortSignal): HotelError {
+function caught(e: unknown, signal?: AbortSignal, status?: number): HotelError {
   return {
+    ...(status !== undefined && status >= 400 && status <= 599
+      ? { status }
+      : {}),
     kind:
       signal?.aborted || (object(e) && e.name === "AbortError")
         ? "cancelled"
@@ -283,6 +286,7 @@ export function createHotelApi(
           (safeId(filters.pageSize) === undefined || filters.pageSize > 100))
       )
         return { ok: false, error: { kind: "invalid-request" } };
+      let observedStatus: number | undefined;
       try {
         if (signal?.aborted) return { ok: false, error: { kind: "cancelled" } };
         const r = await fetchImplementation(readPath(kind, context, filters), {
@@ -290,6 +294,7 @@ export function createHotelApi(
           method: "GET",
           headers: { Accept: "application/json" },
         });
+        observedStatus = r.status;
         const body = await json(r);
         if (signal?.aborted) return { ok: false, error: { kind: "cancelled" } };
         if (r.status !== 200)
@@ -351,7 +356,7 @@ export function createHotelApi(
           etag: readNeedsTag(kind) ? etag : null,
         };
       } catch (e) {
-        return { ok: false, error: caught(e, signal) };
+        return { ok: false, error: caught(e, signal, observedStatus) };
       }
     },
     async mutate<K extends MutationKind>(
@@ -362,6 +367,7 @@ export function createHotelApi(
       signal?: AbortSignal,
     ): Promise<MutationResult<MutationTypes[K]>> {
       let dispatched = false;
+      let observedStatus: number | undefined;
       const fail = (error: HotelError): MutationResult<MutationTypes[K]> => ({
         outcome: dispatched ? "OUTCOME_UNKNOWN" : "NOT_DISPATCHED",
         error,
@@ -444,6 +450,7 @@ export function createHotelApi(
           method: "GET",
           headers: { Accept: "application/json" },
         });
+        observedStatus = bootstrap.status;
         const csrf = await json(bootstrap);
         if (signal?.aborted) return fail({ kind: "cancelled" });
         if (bootstrap.status !== 200)
@@ -462,6 +469,7 @@ export function createHotelApi(
         });
         if (update(kind)) headers.set("If-Match", etag!);
         if (signal?.aborted) return fail({ kind: "cancelled" });
+        observedStatus = undefined;
         dispatched = true;
         const r = await fetchImplementation(mutationPath(kind, context), {
           ...options(signal),
@@ -469,6 +477,7 @@ export function createHotelApi(
           headers,
           body,
         });
+        observedStatus = r.status;
         const value = await json(r);
         if (signal?.aborted) return fail({ kind: "cancelled" });
         const expected = kind.startsWith("create") ? 201 : 200;
@@ -514,7 +523,7 @@ export function createHotelApi(
           etag: strongTag(next) ? next : null,
         };
       } catch (e) {
-        return fail(caught(e, signal));
+        return fail(caught(e, signal, observedStatus));
       }
     },
   };

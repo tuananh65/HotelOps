@@ -462,3 +462,63 @@ test("UC019 exposes only allowlisted server dependency references", async () => 
   assert.equal(JSON.stringify(result).includes(secret), false);
   assert.equal(h.calls.length, 2);
 });
+for (const status of [401, 403, 503]) {
+  for (const phase of ["read", "csrf", "mutation"]) {
+    test(`unreadable ${phase} HTTP ${status} preserves status without retry`, async () => {
+      const broken = () => {
+        const r = response({}, status);
+        r.text = async () => {
+          throw new Error(secret);
+        };
+        return r;
+      };
+      const h = harness(broken, phase === "csrf" ? broken : undefined);
+      const result =
+        phase === "read"
+          ? await h.api.read("department", { branchId: 1, id: 13 })
+          : await h.api.mutate(
+              "updateDepartment",
+              { branchId: 1, id: 13 },
+              requests.updateDepartment,
+              tag,
+            );
+      assert.equal(result.error.status, status);
+      assert.equal(result.error.kind, "network");
+      if (phase !== "read")
+        assert.equal(
+          result.outcome,
+          phase === "csrf" ? "NOT_DISPATCHED" : "OUTCOME_UNKNOWN",
+        );
+      assert.equal(h.calls.length, phase === "mutation" ? 2 : 1);
+      assert.equal(JSON.stringify(result).includes(secret), false);
+    });
+  }
+}
+for (const phase of ["read", "csrf", "mutation"]) {
+  test(`unreadable successful ${phase} response does not invent HTTP failure`, async () => {
+    const broken = () => {
+      const r = response({}, 200);
+      r.text = async () => {
+        throw new Error(secret);
+      };
+      return r;
+    };
+    const h = harness(broken, phase === "csrf" ? broken : undefined);
+    const result =
+      phase === "read"
+        ? await h.api.read("department", { branchId: 1, id: 13 })
+        : await h.api.mutate(
+            "updateDepartment",
+            { branchId: 1, id: 13 },
+            requests.updateDepartment,
+            tag,
+          );
+    assert.equal(result.error.status, undefined);
+    assert.equal(result.error.kind, "network");
+    if (phase !== "read")
+      assert.equal(
+        result.outcome,
+        phase === "csrf" ? "NOT_DISPATCHED" : "OUTCOME_UNKNOWN",
+      );
+  });
+}

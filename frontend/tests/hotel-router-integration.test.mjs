@@ -69,7 +69,7 @@ import React,{StrictMode} from 'react'; import {createRoot} from 'react-dom/clie
 import {AuthProvider} from './src/auth/AuthProvider'; import {HotelRouteHost} from './src/hotel/HotelRouteHost'; import {createAuthApi} from './src/auth/authApi'; import {createAuthStore} from './src/auth/authStore';
 const scenario=window.scenario, calls=[], unexpected=[], waiting=new Map();
 const defaults=${JSON.stringify(defaults)}; const sessions=[...(scenario.sessions??[{body:${JSON.stringify(session())}}])];
-function respond(r){if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},'TimeoutError');if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},'AbortError');return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':r.type??'application/json',...r.headers}});}
+function respond(r){if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},'TimeoutError');if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},'AbortError');const response=new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':r.type??'application/json',...r.headers}});if(r.unreadable)response.text=async()=>{throw new Error('body unavailable')};return response;}
 const fetcher=async(url,init)=>{const parsed=new URL(url,'https://hotelops.test'),key=init.method+' '+parsed.pathname; const c={url,method:init.method,body:init.body,headers:Object.fromEntries(new Headers(init.headers)),credentials:init.credentials,cache:init.cache,redirect:init.redirect,aborted:init.signal?.aborted??false};calls.push(c);init.signal?.addEventListener('abort',()=>{c.aborted=true},{once:true});
 let r;if(parsed.pathname==='/api/auth/session')r=sessions.shift();else if(parsed.pathname==='/api/auth/csrf')r=scenario.csrf??{body:{csrfToken:${JSON.stringify(secret)},headerName:'X-CSRF-TOKEN'}};else if(scenario.responses?.[key])r=scenario.responses[key].shift();else r=defaults[key];
 if(!r){unexpected.push(key);throw new Error('Unexpected request');}if(r.deferred)return new Promise((resolve,reject)=>waiting.set(r.deferred,{resolve,reject}));return respond(r);};
@@ -740,6 +740,8 @@ test("dashboard exposes FE02 without changing accepted AuthRouteHost", async () 
 for (const result of [
   problem(401, "SESSION_INVALID"),
   problem(403, "PERMISSION_DENIED"),
+  { ...problem(401, "SESSION_INVALID"), unreadable: true },
+  { ...problem(403, "PERMISSION_DENIED"), unreadable: true },
 ])
   test(`mutation ${result.status} clears editor; 401 performs bounded revalidation only`, async () => {
     await withHotel(

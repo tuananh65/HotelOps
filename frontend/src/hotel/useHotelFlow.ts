@@ -216,6 +216,7 @@ export function useHotelFlow(key: string) {
       usable.current = null;
       setSnapshot(null);
       publish("unknown");
+      recover(result.error);
     } else {
       const e = result.error;
       if ([401, 403, 404, 412, 428].includes(e.status ?? 0)) {
