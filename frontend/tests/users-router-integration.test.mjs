@@ -135,6 +135,7 @@ const bundle = await build({
         ...Object.fromEntries(Object.entries(scenario.responses ?? {}).map(([key, replies]) => [key, [...replies]])),
       };
       function response(reply) {
+        if (reply.unreadable) { const r = new Response("", {status:reply.status,headers:{"Content-Type":"application/problem+json"}}); r.text=async()=>{throw Error("PRIVATE-092");}; return r; }
         if (reply.network) throw new Error(${JSON.stringify(secret)});
         if (reply.cancelled) throw new DOMException(${JSON.stringify(secret)}, "AbortError");
         return new Response(reply.status === 204 ? null : reply.raw ?? JSON.stringify(reply.body), {
@@ -349,6 +350,8 @@ test("empty directory is not an authorization error", async () => {
 for (const [label, reply] of [
   ["403", problem(403)],
   ["503", unavailable],
+  ["092 unreadable 403", { ...problem(403), unreadable: true }],
+  ["092 unreadable 503", { ...unavailable, unreadable: true }],
   ["500", problem(500, "INTERNAL_SERVER_ERROR")],
   ["network", { network: true }],
   ["invalid-response", ok({ items: [] })],
@@ -1061,6 +1064,36 @@ test("leading-zero decimal route ID is checked and converted to a positive safe 
       await page.getByText("Minimal Target", { exact: true }).waitFor();
       await heading(page, "User account 42");
       assert.equal((await calls(page, "/api/users/42")).length, 1);
+    },
+  );
+});
+
+test("092 unreadable directory 401 checks session once and requires explicit Users reload, without retry loop", async () => {
+  await withUsers(
+    "/users",
+    {
+      sessions: [ok(session()), ok(session())],
+      responses: {
+        [listUrl]: [
+          { ...anon, unreadable: true },
+          ok(directory("Recovered Rows")),
+        ],
+      },
+    },
+    async (page) => {
+      await page
+        .getByRole("button", { name: "Reload users", exact: true })
+        .waitFor();
+      assert.equal(await page.getByRole("table").count(), 0);
+      assert.equal((await calls(page, "/api/auth/session")).length, 2);
+      assert.equal((await calls(page, listUrl)).length, 1);
+      await settle(page);
+      assert.equal((await calls(page, listUrl)).length, 1);
+      await page
+        .getByRole("button", { name: "Reload users", exact: true })
+        .click();
+      await page.getByRole("link", { name: "Recovered Rows" }).waitFor();
+      assert.equal((await calls(page, "/api/auth/session")).length, 2);
     },
   );
 });

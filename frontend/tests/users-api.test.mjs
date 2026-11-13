@@ -806,3 +806,74 @@ test("all three reads work with forbidden browser storage and make no console ca
     });
   }
 });
+
+for (const [name, call] of [
+  ["list", (a) => a.listUsers()],
+  ["detail", (a) => a.getUser(42)],
+  ["access", (a) => a.getEffectiveAccess(42)],
+]) {
+  for (const status of [401, 403, 503])
+    for (const contentType of ["application/json", "application/problem+json"])
+      test(
+        "092 unreadable " + name + " " + status + " " + contentType,
+        async () => {
+          const seen = [];
+          const api = createUsersApi(async (url, init) => {
+            seen.push(init.method);
+            const response = new Response("", {
+              status,
+              headers: { "Content-Type": contentType },
+            });
+            response.text = async () => {
+              throw Error("PRIVATE-092-ERROR");
+            };
+            return response;
+          });
+          const r = await call(api);
+          assert.equal(r.ok, false);
+          assert.equal(r.error.kind, "http");
+          assert.equal(r.error.status, status);
+          assert.deepEqual(seen, ["GET"]);
+          assert.ok(!JSON.stringify(r).includes("PRIVATE-092"));
+        },
+      );
+  for (const failure of ["network", "successful-body", "malformed-success"])
+    test(
+      "092 " + name + " " + failure + " has no invented status",
+      async () => {
+        const api = createUsersApi(async () => {
+          if (failure === "network") throw Error("PRIVATE-092");
+          const response = new Response("invalid", {
+            headers: { "Content-Type": "application/json" },
+          });
+          if (failure === "successful-body")
+            response.text = async () => {
+              throw Error("PRIVATE-092");
+            };
+          return response;
+        });
+        const r = await call(api);
+        assert.equal(r.ok, false);
+        assert.equal(r.error.status, undefined);
+        assert.ok(!JSON.stringify(r).includes("PRIVATE-092"));
+      },
+    );
+}
+
+test("092 cancellation during failed body read wins over observed status", async () => {
+  const abort = new AbortController();
+  const api = createUsersApi(async () => {
+    const response = new Response("", {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+    response.text = async () => {
+      abort.abort();
+      throw Error("PRIVATE-092");
+    };
+    return response;
+  });
+  const r = await api.listUsers({}, abort.signal);
+  assert.equal(r.error.kind, "cancelled");
+  assert.equal(r.error.status, undefined);
+});
