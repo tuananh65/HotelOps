@@ -24,6 +24,11 @@ export function CustomRoleForm({
   dispatchEnabled?: boolean;
 }) {
   const { state, actions } = useAuth();
+  const identity = useMemo(
+    () => ({}),
+    [state.session, state.status, state.pending],
+  );
+  const [invalid, setInvalid] = useState<object | null>(null);
   const binding = useMemo(
     () => ({}),
     [state.session, state.status, state.pending, roleId, dispatchEnabled],
@@ -35,7 +40,8 @@ export function CustomRoleForm({
     state.status !== "AUTHENTICATED" ||
     !state.session ||
     state.session.mustChangePassword ||
-    state.pending !== null
+    state.pending !== null ||
+    invalid === identity
   )
     return (
       <section>
@@ -47,16 +53,24 @@ export function CustomRoleForm({
     );
   if (roleId !== undefined && !id(roleId))
     return <p role="alert">Invalid role ID.</p>;
-  return <Bound key={key(binding)} {...{ roleId, dispatchEnabled, current }} />;
+  return (
+    <Bound
+      key={key(binding)}
+      {...{ roleId, dispatchEnabled, current }}
+      invalidate={() => setInvalid(identity)}
+    />
+  );
 }
 function Bound({
   roleId,
   dispatchEnabled,
   current,
+  invalidate,
 }: {
   roleId?: number;
   dispatchEnabled: boolean;
   current: () => boolean;
+  invalidate: () => void;
 }) {
   const [api] = useState(() =>
       createCustomRoleApi(globalThis.fetch.bind(globalThis), dispatchEnabled),
@@ -130,6 +144,10 @@ function Bound({
     setLocked(true);
     setReview(null);
     if (result.outcome !== "CONFIRMED") {
+      if (result.status === 401) {
+        invalidate();
+        return;
+      }
       setMessage(customRoleMessage(result));
       return;
     }

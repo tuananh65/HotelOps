@@ -168,3 +168,54 @@ for (const wrongCode of ["STRASSE", "OTHER", "straße"]) {
     },
   );
 }
+for (const status of [401, 403, 503])
+  for (const unreadable of [false, true]) {
+    test(`CSRF ${status} unreadable=${unreadable} retains observed status without POST`, async () => {
+      let calls = 0;
+      const api = createCustomRoleApi(async () => {
+        calls++;
+        const r = Response.json({ detail: "SECRET" }, { status });
+        if (unreadable)
+          r.text = async () => {
+            throw Error("SECRET");
+          };
+        return r;
+      }, true);
+      const result = await api.create(input, () => true);
+      assert.equal(result.outcome, "NOT_DISPATCHED");
+      assert.equal(result.status, status);
+      assert.equal(calls, 1);
+      assert.ok(!JSON.stringify(result).includes("SECRET"));
+    });
+  }
+for (const mode of ["network", "malformed-success", "unreadable-success"])
+  test(`CSRF ${mode} does not invent status`, async () => {
+    let calls = 0;
+    const result = await createCustomRoleApi(async () => {
+      calls++;
+      if (mode === "network") throw Error("SECRET");
+      const r = new Response("{", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+      if (mode === "unreadable-success")
+        r.text = async () => {
+          throw Error("SECRET");
+        };
+      return r;
+    }, true).create(input, () => true);
+    assert.equal(result.outcome, "NOT_DISPATCHED");
+    assert.equal(result.status, undefined);
+    assert.equal(calls, 1);
+    assert.ok(!JSON.stringify(result).includes("SECRET"));
+  });
+test("CSRF failure status cannot leak into a later invocation", async () => {
+  let calls = 0;
+  const api = createCustomRoleApi(async () => {
+    if (++calls === 1) return Response.json({}, { status: 401 });
+    throw Error("SECRET");
+  }, true);
+  assert.equal((await api.create(input, () => true)).status, 401);
+  assert.equal((await api.create(input, () => true)).status, undefined);
+  assert.equal(calls, 2);
+});

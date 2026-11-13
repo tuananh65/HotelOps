@@ -227,3 +227,55 @@ test("cancelled preflight has no invented status", async () => {
   );
   assert.equal(h.calls.length, 1);
 });
+for (const status of [401, 403, 503])
+  test(`082 unreadable CSRF ${status} preserves preview status without dispatch`, async () => {
+    const h = harness(undefined, () => {
+      const r = json({ detail: secret }, status);
+      r.text = async () => {
+        throw Error(secret);
+      };
+      return r;
+    });
+    await assert.rejects(
+      h.api.preview(drafts, signal()),
+      (e) => e.status === status && !e.message.includes(secret),
+    );
+    assert.equal(h.calls.length, 1);
+  });
+for (const profile of ["network", "malformed", "unreadable-success"])
+  test(`082 ${profile} bootstrap supplies no invented status`, async () => {
+    const h = harness(undefined, () => {
+      if (profile === "network") throw Error(secret);
+      const r = json({});
+      if (profile === "unreadable-success")
+        r.text = async () => {
+          throw Error(secret);
+        };
+      return r;
+    });
+    await assert.rejects(
+      h.api.preview(drafts, signal()),
+      (e) => e.status === undefined,
+    );
+    assert.equal(h.calls.length, 1);
+  });
+test("082 bootstrap failure status does not leak into subsequent operation", async () => {
+  let i = 0;
+  const h = harness(undefined, () => {
+    if (i++) throw Error(secret);
+    const r = json({}, 401);
+    r.text = async () => {
+      throw Error(secret);
+    };
+    return r;
+  });
+  await assert.rejects(
+    h.api.preview(drafts, signal()),
+    (e) => e.status === 401,
+  );
+  await assert.rejects(
+    h.api.preview(drafts, signal()),
+    (e) => e.status === undefined,
+  );
+  assert.equal(h.calls.length, 2);
+});
