@@ -24,7 +24,6 @@ export function createRevokeUserRoleApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   dispatchEnabled = false,
 ) {
-  const http = createHttpClient(fetcher);
   let pending = false;
   return {
     async revoke(
@@ -44,6 +43,13 @@ export function createRevokeUserRoleApi(
       pending = true;
       let dispatched = false;
       try {
+        let failureStatus: number | undefined;
+        const http = createHttpClient(async (url, options) => {
+          const response = await fetcher(url, options);
+          if (response.status >= 400 && response.status <= 599)
+            failureStatus = response.status;
+          return response;
+        });
         const csrf = await http({
           method: "GET",
           url: "/api/auth/csrf",
@@ -68,7 +74,9 @@ export function createRevokeUserRoleApi(
             reason: "CSRF",
             ...(csrf.error.kind === "http"
               ? { status: csrf.error.status }
-              : {}),
+              : failureStatus !== undefined
+                ? { status: failureStatus }
+                : {}),
           };
         if (signal?.aborted || !current())
           return { outcome: "NOT_DISPATCHED", reason: "STALE" };
