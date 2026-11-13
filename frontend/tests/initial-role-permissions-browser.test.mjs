@@ -7,7 +7,7 @@ const bundle = await build({
   stdin: {
     loader: "tsx",
     resolveDir: process.cwd(),
-    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{InitialRolePermissionsPanel}from'./src/roles/InitialRolePermissionsPanel';const s=window.scenario,calls=[],grants=new Map();let finish;const permission={permissionId:10,permissionCode:'ROOM_VIEW',permissionName:'View rooms',moduleCode:'ROOM',resourceCode:'room',actionCode:'view',description:null};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json(s.anonymous?{}:{...${JSON.stringify(session())},mustChangePassword:!!s.restricted},{status:s.anonymous?401:200});if(u==='/api/auth/csrf')return Response.json(s.csrfStatus?{detail:'SECRET'}:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC'},{status:s.csrfStatus??200});if(u.startsWith('/api/permissions/catalog'))return Response.json({items:[permission,{...permission,permissionId:11,permissionCode:'USER_MANAGE',permissionName:'Manage users',moduleCode:'ADMIN'}],page:1,pageSize:25,total:2});const roleId=Number(u.split('/')[3]);if(o.method==='GET'&&s.readStatus)return Response.json({detail:'SECRET'},{status:s.readStatus});if(o.method==='POST'){const run=()=>{if(s.network)throw Error('SECRET');if(s.status)return Response.json({detail:'SECRET',traceId:'SECRET'},{status:s.status});const g=JSON.parse(o.body).grants;grants.set(roleId,g);return Response.json(s.malformed?{}:{contractVersion:1,roleId,grants:g},{status:201})};if(s.defer)return new Promise(r=>finish=()=>r(run()));return run();}const g=grants.get(roleId)??[];return Response.json({role:{roleId,roleCode:'CUSTOM_TEST',roleName:'Custom '+roleId,description:null,isSystemRole:!!s.system,isActive:true,assignedUserCount:0,permissionGrantCount:g.length},grants:g.map((v,i)=>({rolePermissionId:60+i,permission,dataScope:v.dataScope}))});};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[id,setId]=useState(7);return <><button onClick={()=>setId(8)}>Change role</button><InitialRolePermissionsPanel roleId={id} dispatchEnabled={s.enabled??false}/></>};const app=<App/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}>{app}</AuthProvider>);window.fixture={calls,finish:()=>finish(),replace:()=>store.revalidate()};`,
+    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{InitialRolePermissionsPanel}from'./src/roles/InitialRolePermissionsPanel';const s=window.scenario,calls=[],grants=new Map();let finish;const permission={permissionId:10,permissionCode:'ROOM_VIEW',permissionName:'View rooms',moduleCode:'ROOM',resourceCode:'room',actionCode:'view',description:null};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json(s.anonymous?{}:{...${JSON.stringify(session())},mustChangePassword:!!s.restricted},{status:s.anonymous?401:200});if(u==='/api/auth/csrf'){const run=()=>{const r=Response.json(s.csrfStatus?{detail:'SECRET'}:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC'},{status:s.csrfStatus??200});if(s.csrfUnreadable)r.text=async()=>{throw Error('SECRET')};return r;};if(s.deferCsrf)return new Promise(r=>finish=()=>r(run()));return run();}if(u.startsWith('/api/permissions/catalog'))return Response.json({items:[permission,{...permission,permissionId:11,permissionCode:'USER_MANAGE',permissionName:'Manage users',moduleCode:'ADMIN'}],page:1,pageSize:25,total:2});const roleId=Number(u.split('/')[3]);if(o.method==='GET'&&s.readStatus)return Response.json({detail:'SECRET'},{status:s.readStatus});if(o.method==='POST'){const run=()=>{if(s.network)throw Error('SECRET');if(s.status){const r=Response.json({detail:'SECRET',traceId:'SECRET'},{status:s.status});if(s.postUnreadable)r.text=async()=>{throw Error('SECRET')};return r;}const g=JSON.parse(o.body).grants;grants.set(roleId,g);return Response.json(s.malformed?{}:{contractVersion:1,roleId,grants:g},{status:201})};if(s.defer)return new Promise(r=>finish=()=>r(run()));return run();}const g=grants.get(roleId)??[];return Response.json({role:{roleId,roleCode:'CUSTOM_TEST',roleName:'Custom '+roleId,description:null,isSystemRole:!!s.system,isActive:true,assignedUserCount:0,permissionGrantCount:g.length},grants:g.map((v,i)=>({rolePermissionId:60+i,permission,dataScope:v.dataScope}))});};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[id,setId]=useState(7);return <><button onClick={()=>setId(8)}>Change role</button><InitialRolePermissionsPanel roleId={id} dispatchEnabled={s.enabled??false}/></>};const app=<App/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}>{app}</AuthProvider>);window.fixture={calls,finish:()=>finish(),replace:()=>store.revalidate()};`,
   },
   bundle: true,
   write: false,
@@ -204,3 +204,106 @@ for (const readStatus of [403, 503])
         assert.equal((await posts(p)).length, 0);
       }),
   );
+for (const unreadable of [false, true])
+  test(`csrf 401 unreadable=${unreadable} requires explicit recovery`, () =>
+    run(
+      { enabled: true, csrfStatus: 401, csrfUnreadable: unreadable },
+      async (p) => {
+        await review(p);
+        await p.getByRole("button", { name: "Confirm and save" }).click();
+        await p.getByText("Confirmed unrestricted session required.").waitFor();
+        assert.equal(
+          await p.getByLabel("ROOM_VIEW", { exact: true }).count(),
+          0,
+        );
+        assert.equal((await posts(p)).length, 0);
+        await p.getByRole("button", { name: "Revalidate session" }).click();
+        await p.getByLabel("ROOM_VIEW", { exact: true }).waitFor();
+        assert.equal(
+          await p.getByLabel("ROOM_VIEW", { exact: true }).isChecked(),
+          false,
+        );
+        assert.equal((await posts(p)).length, 0);
+      },
+    ));
+test("unreadable POST 401 preserves uncertainty across recovery", () =>
+  run({ enabled: true, status: 401, postUnreadable: true }, async (p) => {
+    await review(p);
+    await p.getByRole("button", { name: "Confirm and save" }).click();
+    await p.getByText("Confirmed unrestricted session required.").waitFor();
+    assert.equal((await posts(p)).length, 1);
+    await p.getByRole("button", { name: "Revalidate session" }).click();
+    await p
+      .getByText(
+        "Outcome unknown. Do not replay. Verify with an authorized owner.",
+      )
+      .waitFor();
+    assert.equal(await p.getByLabel("ROOM_VIEW", { exact: true }).count(), 0);
+    assert.equal((await posts(p)).length, 1);
+  }));
+for (const replacement of ["session", "role"])
+  for (const phase of ["csrf", "post"])
+    test(`late unreadable 401 ${phase} after ${replacement} replacement cannot invalidate current editor`, () =>
+      run(
+        {
+          enabled: true,
+          ...(phase === "csrf"
+            ? { deferCsrf: true, csrfStatus: 401, csrfUnreadable: true }
+            : { defer: true, status: 401, postUnreadable: true }),
+        },
+        async (p) => {
+          await review(p);
+          await p.getByRole("button", { name: "Confirm and save" }).click();
+          await p.waitForFunction(
+            (phase) =>
+              window.fixture.calls.some((c) =>
+                phase === "csrf"
+                  ? c.url === "/api/auth/csrf"
+                  : c.method === "POST",
+              ),
+            phase,
+          );
+          if (replacement === "session")
+            await p.evaluate(() => window.fixture.replace());
+          else await p.getByRole("button", { name: "Change role" }).click();
+          await p
+            .getByText("Custom " + (replacement === "session" ? 7 : 8), {
+              exact: true,
+            })
+            .waitFor();
+          await p.evaluate(() => window.fixture.finish());
+          await p.waitForTimeout(50);
+          assert.equal(
+            await p
+              .getByText("Confirmed unrestricted session required.")
+              .count(),
+            0,
+          );
+          assert.equal(
+            await p.getByLabel("ROOM_VIEW", { exact: true }).isEnabled(),
+            true,
+          );
+          assert.equal((await posts(p)).length, phase === "csrf" ? 0 : 1);
+        },
+      ));
+for (const status of [403, 503])
+  test(`unreadable CSRF ${status} denies without session recovery or POST`, () =>
+    run(
+      { enabled: true, csrfStatus: status, csrfUnreadable: true },
+      async (p) => {
+        await review(p);
+        await p.getByRole("button", { name: "Confirm and save" }).click();
+        await p
+          .getByText(
+            status === 403
+              ? "Access denied by server."
+              : "Initial configuration not confirmed.",
+          )
+          .waitFor();
+        assert.equal(
+          await p.getByRole("button", { name: "Revalidate session" }).count(),
+          0,
+        );
+        assert.equal((await posts(p)).length, 0);
+      },
+    ));

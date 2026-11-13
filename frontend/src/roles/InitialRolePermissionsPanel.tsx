@@ -20,6 +20,9 @@ export function InitialRolePermissionsWorkspace() {
     </>
   );
 }
+// Provider-scoped safety state survives child unmount during session revalidation.
+// It contains only role IDs, never credentials or permission authority.
+const uncertainByAuthority = new WeakMap<object, Set<number>>();
 const keys = new WeakMap<object, number>();
 let next = 0;
 function key(o: object) {
@@ -37,6 +40,10 @@ export function InitialRolePermissionsPanel({
   const identity = useMemo(
     () => ({}),
     [state.session, state.status, state.pending],
+  );
+  // An uncertain write remains blocked across explicit session recovery.
+  const [uncertainRoles, setUncertainRoles] = useState<readonly number[]>(
+    () => [...(uncertainByAuthority.get(actions) ?? [])],
   );
   const [invalid, setInvalid] = useState<object | null>(null);
   const binding = useMemo(() => ({}), [identity, roleId, dispatchEnabled]);
@@ -59,11 +66,23 @@ export function InitialRolePermissionsPanel({
       </section>
     );
   if (!id(roleId)) return <p role="alert">Invalid role ID.</p>;
+  if (uncertainRoles.includes(roleId))
+    return (
+      <p role="alert">
+        Outcome unknown. Do not replay. Verify with an authorized owner.
+      </p>
+    );
   return (
     <Editor
       key={key(binding)}
       {...{ roleId, dispatchEnabled, current }}
       invalidate={() => setInvalid(identity)}
+      markUncertain={() => {
+        const roles = uncertainByAuthority.get(actions) ?? new Set<number>();
+        roles.add(roleId);
+        uncertainByAuthority.set(actions, roles);
+        setUncertainRoles([...roles]);
+      }}
     />
   );
 }
@@ -72,11 +91,13 @@ function Editor({
   dispatchEnabled,
   current,
   invalidate,
+  markUncertain,
 }: {
   roleId: number;
   dispatchEnabled: boolean;
   current: () => boolean;
   invalidate: () => void;
+  markUncertain: () => void;
 }) {
   const [read] = useState(() => createRoleCatalogApi());
   const [write] = useState(() =>
@@ -197,6 +218,7 @@ function Editor({
     );
     if (!mounted.current || !current()) return;
     setPending(false);
+    if (r.outcome === "OUTCOME_UNKNOWN" && r.status === 401) markUncertain();
     if (r.outcome !== "CONFIRMED" && r.status === 401) {
       invalidate();
       return;
