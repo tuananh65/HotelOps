@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
   criteriaInput,
   createInput,
@@ -8,10 +8,9 @@ import {
 } from "./model";
 import {
   ChecklistApiError,
-  createChecklistApi,
+  useChecklistApi,
   type LoadedChecklist,
 } from "./api";
-const api = createChecklistApi();
 export function ChecklistForm({
   branch,
   initial,
@@ -27,6 +26,7 @@ export function ChecklistForm({
   onBlocked?: (error: ChecklistApiError) => void;
   disabled?: boolean;
 }) {
+  const api = useChecklistApi();
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -38,21 +38,6 @@ export function ChecklistForm({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [blocked, setBlocked] = useState(false);
-  const [types, setTypes] = useState<Awaited<ReturnType<typeof api.roomTypes>>>(
-    [],
-  );
-  const [typeError, setTypeError] = useState("");
-  useEffect(() => {
-    if (initial) return;
-    const controller = new AbortController();
-    api
-      .roomTypes(branch, controller.signal)
-      .then(setTypes)
-      .catch((e) => {
-        if (e.name !== "AbortError") setTypeError(e.message);
-      });
-    return () => controller.abort();
-  }, [branch, initial]);
   function change(index: number, patch: Partial<CriterionInput>) {
     setCriteria((items) =>
       items.map((c, i) => (i === index ? { ...c, ...patch } : c)),
@@ -80,7 +65,7 @@ export function ChecklistForm({
       setError(e instanceof Error ? e.message : "Không lưu được checklist.");
       if (
         e instanceof ChecklistApiError &&
-        (e.uncertain || [401, 403, 412, 428].includes(e.status))
+        (e.uncertain || [401, 403, 409, 412, 428].includes(e.status))
       ) {
         setBlocked(true);
         onBlocked?.(e);
@@ -126,38 +111,7 @@ export function ChecklistForm({
                 onChange={(e) => setDescription(e.target.value)}
               />
             </label>
-            {typeError && (
-              <p role="status">
-                Không tải được bộ chọn loại phòng: {typeError} Có thể nhập mã
-                loại phòng đã biết; server sẽ kiểm tra phạm vi.
-              </p>
-            )}
-            {types.length > 0 && (
-              <fieldset>
-                <legend>Loại phòng đang hoạt động</legend>
-                {types.map((t) => (
-                  <label key={t.id} className="fe05-inline">
-                    <input
-                      type="checkbox"
-                      checked={ids
-                        .split(",")
-                        .map((v) => v.trim())
-                        .includes(String(t.id))}
-                      onChange={(e) => {
-                        const selected = ids
-                          .split(",")
-                          .map((v) => v.trim())
-                          .filter(Boolean)
-                          .filter((v) => v !== String(t.id));
-                        if (e.target.checked) selected.push(String(t.id));
-                        setIds(selected.join(","));
-                      }}
-                    />
-                    {t.code} — {t.name}
-                  </label>
-                ))}
-              </fieldset>
-            )}
+            <p>Nhập ID loại phòng đã biết thuộc chi nhánh đang chọn.</p>
             <label>
               Mã loại phòng áp dụng (phân cách bằng dấu phẩy)
               <input
