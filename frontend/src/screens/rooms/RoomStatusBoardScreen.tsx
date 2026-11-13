@@ -13,6 +13,7 @@ import {
   roomBoardError,
   type RoomDetail,
   type RoomHistory,
+  type RoomSource,
 } from "../../api/dev1/roomBoard";
 
 import RoomWorkflowActions from "./RoomWorkflowActions";
@@ -33,6 +34,35 @@ export function parseRoomContext(params: URLSearchParams) {
   const room = params.get("roomId") ?? "";
   if (room && !branch) throw new Error("Room requires branch context");
   return { branch, room };
+}
+// URL context is a navigation hint; the destination reauthorizes every read.
+export function recordedCleaningHref(
+  branchId: number,
+  source: RoomSource | null,
+): string | null {
+  if (
+    !Number.isSafeInteger(branchId) ||
+    branchId <= 0 ||
+    source?.availability !== "VERIFIED_SAME_ROOM" ||
+    source.type !== "CLEANING_TASK" ||
+    source.id === null ||
+    !Number.isSafeInteger(source.id) ||
+    source.id <= 0
+  )
+    return null;
+  return `/cleaning/tasks/${source.id}?${new URLSearchParams({ branchId: String(branchId), monitor: "1", kind: "cleaning" })}`;
+}
+function RecordedSourceLink({
+  branchId,
+  source,
+}: {
+  branchId: number;
+  source: RoomSource | null;
+}) {
+  const href = recordedCleaningHref(branchId, source);
+  return href ? (
+    <Link to={href}>Mở công việc vệ sinh #{source?.id}</Link>
+  ) : null;
 }
 export default function RoomStatusBoardScreen() {
   const [params, setParams] = useSearchParams();
@@ -261,7 +291,11 @@ export default function RoomStatusBoardScreen() {
             <p>
               Nguồn: {detail.currentStatusEvidence.source.type || "—"}{" "}
               {detail.currentStatusEvidence.source.id ?? ""} ·{" "}
-              {detail.currentStatusEvidence.source.availability}
+              {detail.currentStatusEvidence.source.availability}{" "}
+              <RecordedSourceLink
+                branchId={detail.room.branchId}
+                source={detail.currentStatusEvidence.source}
+              />
             </p>
           )}
           <h3>RoomBlock chưa release</h3>
@@ -282,7 +316,7 @@ export default function RoomStatusBoardScreen() {
           </ul>
         </section>
       )}
-      {history && (
+      {history && detail && (
         <section aria-label="Lịch sử trạng thái">
           <h2>Lịch sử trạng thái đã ghi nhận</h2>
           {!history.items.length && <p>Chưa có sự kiện trên trang này.</p>}
@@ -293,7 +327,11 @@ export default function RoomStatusBoardScreen() {
                 {e.toStatusCode} · {e.reason || "—"} · Nguồn{" "}
                 {e.source.type || "—"} {e.source.id ?? ""} (
                 {e.source.availability}) · Người thay đổi (ID):{" "}
-                {e.changedByUserId ?? "Chưa ghi nhận"}
+                {e.changedByUserId ?? "Chưa ghi nhận"}{" "}
+                <RecordedSourceLink
+                  branchId={detail.room.branchId}
+                  source={e.source}
+                />
               </li>
             ))}
           </ol>
