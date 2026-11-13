@@ -28,6 +28,9 @@ export function SharedAuthHost({ checklistEnabled = false }: { checklistEnabled?
       <Route path="/forgot-password" element={<ForgotPasswordScreen />} />
       <Route path="/dashboard" element={<Protected><Navigate replace to="/rooms/status" /></Protected>} />
       <Route path="/inspections/checklists" element={<ChecklistAuthRoute enabled={checklistEnabled} />} />
+      <Route path="/inspections/assignment" element={<Protected><p role="alert">This destination is not activated.</p></Protected>} />
+      <Route path="/inspections/:branch/:id/execution" element={<Protected><p role="alert">This destination is not activated.</p></Protected>} />
+      <Route path="/incidents/new" element={<Protected><p role="alert">This destination is not activated.</p></Protected>} />
       <Route path="*" element={<Protected><Link to="/profile">Profile</Link><OperationsRoutes /></Protected>} />
     </Routes>
   );
