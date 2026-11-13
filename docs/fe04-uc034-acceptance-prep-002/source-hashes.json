@@ -1,0 +1,75 @@
+{
+    "task":  "FE04-UC034-ACCEPTANCE-PREP-002",
+    "startingHead":  "db12691295ffe0382b005c686ac7478326b0c0d6",
+    "r05Base":  "95f7422e284bc81bcfcf9f460dace52022de5cc7",
+    "sourceCommit":  "70db8cbbc4ad72cf7858125dd7e1b04b39142385",
+    "files":  [
+                  {
+                      "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningCompletionAcceptanceHarness.cs",
+                      "sha256":  "e0e387725b6972946fc5cac8b17b5f693334c50358046c41d339447ec91436b5",
+                      "normalizedSha256":  "e0e387725b6972946fc5cac8b17b5f693334c50358046c41d339447ec91436b5",
+                      "gitBlob":  "74e916c342bd2e80a94db4b59dc2ad5f3d1d2aaa"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningCompletionAcceptanceCallbacks.cs",
+                      "sha256":  "78fd213733c6d81686091366d8db23c0e92a7213c61b58b30aa41c1dad2e392f",
+                      "normalizedSha256":  "78fd213733c6d81686091366d8db23c0e92a7213c61b58b30aa41c1dad2e392f",
+                      "gitBlob":  "41349ce1777bc5e319ef8b4e76a6da5482128188"
+                  },
+                  {
+                      "path":  "tests/HotelOps.Dev1.RegressionTests/CleaningCompletionAcceptanceHarnessTests.cs",
+                      "sha256":  "60902da2b964bc60e25a47c66e32ce877ca387e5a4921dae26315aa3eb900b6b",
+                      "normalizedSha256":  "60902da2b964bc60e25a47c66e32ce877ca387e5a4921dae26315aa3eb900b6b",
+                      "gitBlob":  "88bc58e8ab83e217f275350cd8169348cc4afe8b"
+                  },
+                  {
+                      "path":  "docs/fe04-uc034-acceptance-prep-002/SCOPE.md",
+                      "sha256":  "d0cb8ac7e992c1fdba73b00ede466053cf990b0a5edecddfbe4e18a830a33404",
+                      "normalizedSha256":  "d0cb8ac7e992c1fdba73b00ede466053cf990b0a5edecddfbe4e18a830a33404",
+                      "gitBlob":  "5f474b8c9249ba21e2a988e22db3a03ea2eaf5a0"
+                  },
+                  {
+                      "path":  "docs/fe04-uc034-acceptance-prep-002/HANDOFF.md",
+                      "sha256":  "46f95bbd4269e2271812b72de414ae3fb066452b396c5cfc730ed04ecbb4bafd",
+                      "normalizedSha256":  "46f95bbd4269e2271812b72de414ae3fb066452b396c5cfc730ed04ecbb4bafd",
+                      "gitBlob":  "ab095126e8ecb28ad95f6237d1a5320fadfb5aa9"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleaningClosureBoundary.cs",
+                      "sha256":  "92463f633b2d8a43a00bc15c9125e36cb9c70e7a8bc9bd098722877523e4a67b",
+                      "normalizedSha256":  "92463f633b2d8a43a00bc15c9125e36cb9c70e7a8bc9bd098722877523e4a67b",
+                      "gitBlob":  "e9563917061e78ca2c914ce6f63c5556b42c353c"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionSource.cs",
+                      "sha256":  "c9d3cef0c4031cea6812894ed51677f322758769cfa50eb9534e61376604952a",
+                      "normalizedSha256":  "af51e954a507636a2110888066250996db1282395f63ed0a84cfe9330e9c88fd",
+                      "gitBlob":  "d709fd988b49254b6031b57f0d37603b63421e74"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionContract.cs",
+                      "sha256":  "7989d7bb924f195a5e34bbcb0110d3f009c7241372562070c45fc249cd1782ab",
+                      "normalizedSha256":  "e5f84ccca603b3302c6450127706d32a56375b1dba5df792efdfbb4f36dacb44",
+                      "gitBlob":  "86f2bf73fa1ce3925116f9bcfedbbf211ebcf455"
+                  },
+                  {
+                      "path":  "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningClosure.cs",
+                      "sha256":  "91d35058c401a9cf1729068f9fc678e224dece6642b0e718b8073461ee80a156",
+                      "normalizedSha256":  "59a203c8c21be766c8cee9370611a952cb31a40e3e0d767ec0e5c7fb3253e1bb",
+                      "gitBlob":  "d144d344d6b357d2ee4a0faa33dfe3ca513382d1"
+                  }
+              ],
+    "receipt":  {
+                    "path":  "TestResults/uc034-acceptance-prep-002/focused-final.trx",
+                    "sha256":  "4c03b8c2dc14e9da4e00f4a56cf7942eee5ab088172a11434616d0a891185d31",
+                    "passed":  177,
+                    "failed":  0,
+                    "skipped":  1,
+                    "newNoSqlCases":  45,
+                    "sqlCasesNotRun":  21
+                },
+    "notificationCandidate":  "54d75a634005afb8d42704f761a820ed16b1b9d4",
+    "acceptedNotificationSha":  null,
+    "fe05ConsumerSha":  null,
+    "limits":  "Preparation only. No SQL/HTTPS execution. R05 app source unchanged. Callback/lease tests do not establish domain acceptance."
+}
