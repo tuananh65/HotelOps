@@ -20,14 +20,18 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
+using UC004Trial;
+
+if (args.SequenceEqual(new[] { "--self-test" })) { TrialGuardTests.Run(); return; }
+var admission = TrialAdmission.Load(args, args.FirstOrDefault() == "--entity-reads" ? "ENTITY_READ_ONLY" : "HTTP_LEGACY");
 
 if (args.Length == 2 && args[0] == "--entity-reads")
 {
     if (!Regex.IsMatch(args[1], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$")) throw new ArgumentException("Trial name required");
-    var readConnection = new SqlConnectionStringBuilder { DataSource = @"DESKTOP-JI8U50T\SQLEXPRESS", InitialCatalog = args[1], IntegratedSecurity = true, TrustServerCertificate = true };
-    using var readBudget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+    var readConnection = admission.Connection;
+    using var readBudget = admission.Budget(TimeSpan.FromMinutes(2));
     await using var readDb = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(readConnection.ConnectionString).Options);
-    await readDb.Database.OpenConnectionAsync(readBudget.Token);
+    await TrialAdmission.VerifyAsync(readDb.Database.GetDbConnection(), admission, readBudget.Token);
     await using var identity = readDb.Database.GetDbConnection().CreateCommand();
     identity.CommandText = "SELECT CONVERT(nvarchar(128),@@SERVERNAME),DB_NAME(),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.UserDirectory.Trial')";
     await using (var reader = await identity.ExecuteReaderAsync(readBudget.Token))
@@ -53,12 +57,8 @@ if (args.Length != 3 || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6
     || !Regex.IsMatch(args[2], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$") || args[0] == args[2])
     throw new ArgumentException("Usage: UserDirectory.Verification <new UC141 database> <new evidence JSON path>");
 if (File.Exists(args[1])) throw new InvalidOperationException("Evidence already exists; do not overwrite");
-var connection = new SqlConnectionStringBuilder
-{
-    DataSource = @"DESKTOP-JI8U50T\SQLEXPRESS", InitialCatalog = args[0], IntegratedSecurity = true,
-    TrustServerCertificate = true, ConnectTimeout = 10, ApplicationName = "HotelOps UC141 Isolated Verification"
-};
-using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(8));
+var connection = admission.Connection;
+using var budget = admission.Budget(TimeSpan.FromMinutes(8));
 var ct = budget.Token;
 HotelOpsDbContext Open(DbCommandInterceptor? interceptor = null)
 {
@@ -67,7 +67,7 @@ HotelOpsDbContext Open(DbCommandInterceptor? interceptor = null)
     return new(options.Options);
 }
 await using var db = Open();
-await db.Database.OpenConnectionAsync(ct);
+await TrialAdmission.VerifyAsync(db.Database.GetDbConnection(), admission, ct);
 await using (var cmd = db.Database.GetDbConnection().CreateCommand())
 {
     cmd.CommandText = "SELECT CONVERT(nvarchar(128),@@SERVERNAME),DB_NAME(),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.UserDirectory.Trial')";
@@ -231,7 +231,7 @@ try
         var served = false;
         try
         {
-            using var probeHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, cert, _, _) => cert?.GetCertHashString() == certificate.GetCertHashString() };
+            using var probeHandler = new HttpClientHandler { ServerCertificateCustomValidationCallback = (_, cert, _, errors) => TrialAdmission.CertificateAccepted(errors, cert?.GetCertHashString(), certificate.GetCertHashString()) };
             using var probe = new HttpClient(probeHandler) { BaseAddress = new Uri("https://127.0.0.1:" + port), Timeout = TimeSpan.FromSeconds(1) };
             using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct); limit.CancelAfter(TimeSpan.FromSeconds(45));
             while (!child.HasExited)
@@ -312,7 +312,7 @@ try
     process = Process.Start(start) ?? throw new InvalidOperationException("API did not start");
     var stdout = process.StandardOutput.ReadToEndAsync(ct); var stderr = process.StandardError.ReadToEndAsync(ct);
     using var handler = new HttpClientHandler { UseCookies = false, AllowAutoRedirect = false,
-        ServerCertificateCustomValidationCallback = (_, cert, _, _) => cert?.GetCertHashString() == certificate.GetCertHashString() };
+        ServerCertificateCustomValidationCallback = (_, cert, _, errors) => TrialAdmission.CertificateAccepted(errors, cert?.GetCertHashString(), certificate.GetCertHashString()) };
     using var http = new HttpClient(handler) { BaseAddress = new Uri("https://127.0.0.1:" + port), Timeout = TimeSpan.FromSeconds(60) };
     async Task<HttpResponseMessage> Send(HttpMethod method, string path, Jar jar, object? body = null, bool csrf = true)
     {
