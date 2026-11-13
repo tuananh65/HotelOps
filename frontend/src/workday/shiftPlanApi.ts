@@ -32,7 +32,6 @@ export function createShiftPlanApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   saveEnabled = false,
 ) {
-  const http = createHttpClient(fetcher);
   let busy = false;
   async function call(
     drafts: readonly ShiftDraft[],
@@ -62,6 +61,13 @@ export function createShiftPlanApi(
       })),
     });
     try {
+      let bootstrapFailureStatus: number | undefined;
+      const http = createHttpClient(async (url, options) => {
+        const response = await fetcher(url, options);
+        if (response.status >= 400 && response.status <= 599)
+          bootstrapFailureStatus = response.status;
+        return response;
+      });
       const csrf = await http({
         method: "GET",
         url: "/api/auth/csrf",
@@ -81,7 +87,11 @@ export function createShiftPlanApi(
         return {
           ok: false as const,
           outcome: "NOT_DISPATCHED" as const,
-          ...(csrf.error.kind === "http" ? { status: csrf.error.status } : {}),
+          ...(csrf.error.kind === "http"
+            ? { status: csrf.error.status }
+            : bootstrapFailureStatus !== undefined
+              ? { status: bootstrapFailureStatus }
+              : {}),
         };
       if (signal.aborted)
         return { ok: false as const, outcome: "NOT_DISPATCHED" as const };
