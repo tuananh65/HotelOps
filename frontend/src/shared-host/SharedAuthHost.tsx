@@ -1,4 +1,5 @@
 import { LoginRoute } from "./LoginRoute";
+import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { loginDestination } from "./returnUrl";
 import { lazy, Suspense } from "react";
 import { type ReactNode } from "react";
@@ -100,9 +101,15 @@ function DisabledDestination({ kind }: { kind: "inspection" | "incident" }) {
   );
 }
 /** Local candidate only. Server APIs authorize resources independently of route admission. */
-export function SharedAuthHost() {
+export function SharedAuthHost({
+  checklistEnabled = false,
+}: { checklistEnabled?: boolean } = {}) {
   return (
     <Routes>
+      <Route
+        path="/inspections/checklists"
+        element={<ChecklistAuthRoute enabled={checklistEnabled} />}
+      />
       <Route
         path="/inspections/:branch/:id/execution"
         element={

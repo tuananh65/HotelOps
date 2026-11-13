@@ -1,0 +1,83 @@
+.fe05-checklists {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.fe05-checklists form,
+.fe05-checklists article,
+.fe05-checklists section[aria-label] {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #d9dce5);
+  border-radius: 12px;
+  padding: 18px;
+  margin: 16px 0;
+}
+.fe05-checklists label {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+.fe05-checklists input,
+.fe05-checklists textarea {
+  max-width: 100%;
+  padding: 10px;
+  border: 1px solid #8993a5;
+  border-radius: 6px;
+  font: inherit;
+}
+.fe05-checklists fieldset {
+  min-width: 0;
+  border: 1px solid #d9dce5;
+  border-radius: 8px;
+  margin: 12px 0;
+  padding: 14px;
+}
+.fe05-checklists .fe05-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fe05-checklists .fe05-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+.fe05-checklists button {
+  margin: 6px 8px 6px 0;
+}
+.fe05-checklists [role="alert"] {
+  color: #a31e24;
+  white-space: pre-wrap;
+}
+.fe05-checklists table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.fe05-checklists td,
+.fe05-checklists th {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid #d9dce5;
+  overflow-wrap: anywhere;
+}
+.fe05-checklists button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.fe05-checklists .fe05-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 12px;
+}
+.fe05-checklists select {
+  padding: 10px;
+  border: 1px solid #8993a5;
+  border-radius: 6px;
+  font: inherit;
+  max-width: 100%;
+}
+.fe05-checklists .fe05-table-scroll {
+  overflow-x: auto;
+}

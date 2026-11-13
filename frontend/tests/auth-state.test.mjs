@@ -140,6 +140,64 @@ test("login success forwards credentials but exposes only public session", async
   assert.ok(!JSON.stringify(result).includes("PRIVATE"));
 });
 
+test("revalidation synchronously removes identity before returning to protected callers", async () => {
+  const pending = deferred();
+  const { store, calls } = harness(ok(dto()), () => pending.promise);
+  await store.initialize();
+  const read = store.revalidate();
+  const immediate = store.getSnapshot();
+  // A same-turn route/action must not see the old authority while GET is queued.
+  assert.equal(immediate.status, "INITIALIZING");
+  assert.equal(immediate.session, null);
+  assert.equal(immediate.pending, "revalidate");
+  assert.equal(store.revalidate(), read);
+  await Promise.resolve();
+  assert.equal(calls.length, 2);
+  pending.resolve(ok(dto(false, "Reconfirmed")));
+  await read;
+  assert.equal(store.getSnapshot().session.user.name, "Reconfirmed");
+});
+
+test("synchronous recovery subscriber shares the read without resurrecting identity after logout", async () => {
+  const { store, calls } = harness(ok(dto()), ok(undefined, 204));
+  await store.initialize();
+  let nestedRead;
+  let logout;
+  const unsubscribe = store.subscribe(() => {
+    if (store.getSnapshot().pending !== "revalidate") return;
+    nestedRead = store.revalidate();
+    logout = store.logout();
+  });
+  const read = store.revalidate();
+  assert.equal(nestedRead, read);
+  assert.equal(store.getSnapshot().session, null);
+  await logout;
+  assert.equal((await read).error.kind, "stale");
+  assert.equal(store.getSnapshot().status, "ANONYMOUS");
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    ["getSession", "logout"],
+  );
+  unsubscribe();
+});
+
+test("initialization superseded by a subscriber logout does not dispatch an obsolete GET", async () => {
+  const { store, calls } = harness(ok(undefined, 204));
+  let logout;
+  const unsubscribe = store.subscribe(() => {
+    if (store.getSnapshot().pending === "initialize") logout = store.logout();
+  });
+  const read = store.initialize();
+  assert.equal((await read).error.kind, "stale");
+  await logout;
+  assert.equal(store.getSnapshot().status, "ANONYMOUS");
+  assert.deepEqual(
+    calls.map((call) => call.method),
+    ["logout"],
+  );
+  unsubscribe();
+});
+
 test("login failure is anonymous with sanitized error and no retry", async () => {
   const { store, calls } = harness(fail(401, "INVALID_CREDENTIALS"));
   const result = await store.login(credentials);
