@@ -53,6 +53,20 @@ public sealed partial class RoomTypeCreationService
         && value.Readiness == (complete ? "PENDING_INSPECTION" : "PENDING_CLEANING")
         && value.Notification == "PENDING_DELIVERY" && value.Contract == "PROVISIONAL_NOT_ACCEPTED";
 
+    // Persisted JSON is a contract boundary, not trusted executable state.
+    // A matching fingerprint alone cannot establish a completed durable operation.
+    public static CleaningClosureResult? ReadClosureReceipt(HotelOps.Api.Models.NotificationOperationCandidate stored,
+        long branch, long task, long assignment, Guid operation, bool complete)
+    {
+        if (!stored.Completed || stored.FingerprintVersion != 1 || string.IsNullOrWhiteSpace(stored.ResultJson)) return null;
+        try
+        {
+            var receipt = JsonSerializer.Deserialize<CleaningClosureResult>(stored.ResultJson, Json);
+            return receipt != null && ValidClosureReceipt(receipt, branch, task, assignment, operation, complete) ? receipt : null;
+        }
+        catch (JsonException) { return null; }
+    }
+
     private async Task<RoomTypeBatchResult> ExecuteCleaningClosureAsync(SessionReference ticket, long sid, long branch,
         long task, string tag, string key, long? reason, string note, string? progressTag,
         IReadOnlyList<EvidenceUpload>? photos, string? root, CancellationToken ct)
@@ -105,8 +119,8 @@ public sealed partial class RoomTypeCreationService
                 if (stored != null)
                 {
                     if (!stored.Fingerprint.SequenceEqual(fingerprint)) return new(RoomTypeBatchStatus.Duplicate);
-                    var receipt = JsonSerializer.Deserialize<CleaningClosureResult>(stored.ResultJson!, Json);
-                    if (receipt == null || !ValidClosureReceipt(receipt, branch, task, owner.AssignmentId, operation, reason == null))
+                    var receipt = ReadClosureReceipt(stored, branch, task, owner.AssignmentId, operation, reason == null);
+                    if (receipt == null)
                         return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_RESULT_CONTRACT_INVALID");
                     var originalRecipients = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.notification_delivery_intents WHERE publication_id={receipt.PublicationId}").SingleAsync(inner);
                     if (originalRecipients == 0) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "DURABLE_STAGING_REQUIRED");
