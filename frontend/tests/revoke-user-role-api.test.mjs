@@ -288,3 +288,48 @@ for (const title of [
     assert.equal(JSON.stringify(result).includes(secret), false);
   });
 }
+
+for (const status of [401, 403, 503])
+  for (const contentType of ["application/json", "application/problem+json"])
+    test("092 unreadable CSRF " + status + " " + contentType, async () => {
+      const { api, calls } = harness(undefined, true, () => {
+        const r = new Response("", {
+          status,
+          headers: { "Content-Type": contentType },
+        });
+        r.text = async () => {
+          throw Error("PRIVATE-092");
+        };
+        return r;
+      });
+      const result = await api.revoke(42, 18, old, () => true);
+      assert.equal(result.outcome, "NOT_DISPATCHED");
+      assert.equal(result.status, status);
+      assert.deepEqual(
+        calls.map((c) => c.method),
+        ["GET"],
+      );
+      assert.ok(!JSON.stringify(result).includes("PRIVATE-092"));
+    });
+for (const fault of ["network", "successful-body", "malformed"])
+  test("092 CSRF " + fault + " no invented status or mutation", async () => {
+    const { api, calls } = harness(undefined, true, () => {
+      if (fault === "network") throw Error("PRIVATE-092");
+      const r = new Response("invalid", {
+        headers: { "Content-Type": "application/json" },
+      });
+      if (fault === "successful-body")
+        r.text = async () => {
+          throw Error("PRIVATE-092");
+        };
+      return r;
+    });
+    const result = await api.revoke(42, 18, old, () => true);
+    assert.equal(result.outcome, "NOT_DISPATCHED");
+    assert.equal(result.status, undefined);
+    assert.deepEqual(
+      calls.map((c) => c.method),
+      ["GET"],
+    );
+    assert.ok(!JSON.stringify(result).includes("PRIVATE-092"));
+  });
