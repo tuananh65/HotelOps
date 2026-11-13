@@ -82,6 +82,7 @@ test("DEV2 exact incident parser", () => {
     assert.throws(() => parseIncidentContext(q));
 });
 const bundle = await build({
+  loader: { ".css": "empty" },
   stdin: {
     loader: "tsx",
     resolveDir: process.cwd(),
