@@ -81,7 +81,7 @@ public static class TrialAdmission
         Require(!string.IsNullOrWhiteSpace(r.Principal) && !r.Principal.Equals("sa", StringComparison.OrdinalIgnoreCase), "RESTRICTED_PRINCIPAL_REQUIRED");
         Require(Regex.IsMatch(r.PrincipalSidHex, @"\A(?:[0-9a-fA-F]{2})+\z") && !string.IsNullOrWhiteSpace(r.PrincipalApprovalReference), "APPROVED_PRINCIPAL_IDENTITY_REQUIRED");
         Require(!string.IsNullOrWhiteSpace(r.LeaseId) && r.StartsUtc <= now && now < r.EndsUtc, "ACTIVE_LEASE_REQUIRED");
-        Require(r.Mode == mode && mode is "PARTICIPANT" or "ENTITY_READ_ONLY", "EXACT_EXECUTION_SCOPE_REQUIRED");
+        Require(r.Mode == mode && mode is "PARTICIPANT" or "ENTITY_READ_ONLY" or "UC004_HTTP", "EXACT_EXECUTION_SCOPE_REQUIRED");
         Require(new[] { r.SchemaPath, r.SchemaSha256, r.FixturePath, r.FixtureSha256, r.ApiSha256, r.RunnerSha256 }.All(x => !string.IsNullOrWhiteSpace(x)), "APPROVED_ARTIFACTS_REQUIRED");
         Require(!string.IsNullOrWhiteSpace(r.SchemaApprovalReference) && !string.IsNullOrWhiteSpace(r.FixtureApprovalReference), "ARTIFACT_OWNER_APPROVAL_REQUIRED");
     }

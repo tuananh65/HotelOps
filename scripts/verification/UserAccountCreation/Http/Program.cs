@@ -22,7 +22,13 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
 using UC004Trial;
 
-if (args.SequenceEqual(new[] { "--self-test" })) { TrialGuardTests.Run(); return; }
+if (args.SequenceEqual(new[] { "--self-test" })) { TrialGuardTests.Run(); await CreateOnlyTests.RunAsync(); return; }
+if (args.FirstOrDefault() == "--uc004")
+{
+    try { await CreateOnlyRunner.RunAsync(args[1..]); }
+    catch (Exception) { Console.Error.WriteLine("UC004 trial stopped; outcome may be unknown. Do not retry mutation. Review the sanitized receipt and owner-side logs."); Environment.ExitCode = 1; }
+    return;
+}
 var admission = TrialAdmission.Load(args, args.FirstOrDefault() == "--entity-reads" ? "ENTITY_READ_ONLY" : "HTTP_LEGACY");
 
 if (args.Length == 2 && args[0] == "--entity-reads")
