@@ -53,7 +53,7 @@ const bundle = await build({
     "/api/auth/login":[{body:${JSON.stringify(session(false, "8"))}}],
     ...s.responses
   };
-  function respond(r){if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},"TimeoutError");if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},"AbortError");return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{"Content-Type":r.type??"application/json",...r.headers}});}
+  function respond(r){if(r.unreadable){const value=new Response("",{status:r.status,headers:{"Content-Type":"application/problem+json"}});value.text=async()=>{throw Error("PRIVATE-PROFILE-ERROR");};return value;}if(r.network)throw new Error(${JSON.stringify(secret)});if(r.timeout)throw new DOMException(${JSON.stringify(secret)},"TimeoutError");if(r.cancelled)throw new DOMException(${JSON.stringify(secret)},"AbortError");return new Response(r.raw??JSON.stringify(r.body),{status:r.status??200,headers:{"Content-Type":r.type??"application/json",...r.headers}});}
   const fetcher=async(url,init)=>{const c={url,method:init.method,body:init.body,headers:Object.fromEntries(new Headers(init.headers)),credentials:init.credentials,cache:init.cache,redirect:init.redirect,aborted:init.signal?.aborted??false};calls.push(c);init.signal?.addEventListener("abort",()=>{c.aborted=true;},{once:true});const r=queues[url]?.shift();if(!r){unexpected.push(url);throw new Error("Unexpected request");}if(r.deferred)return new Promise((resolve,reject)=>waiting.set(r.deferred,{resolve,reject}));return respond(r);};
   window.fetch=fetcher;const store=createAuthStore(createAuthApi(fetcher));const host=<AuthRouteHost/>;const root=createRoot(document.getElementById("root"));
   root.render(<StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
@@ -798,6 +798,33 @@ test("unknown reconciliation is not repeated automatically by session replacemen
         await page.getByRole("form", { name: "Update user profile" }).count(),
         0,
       );
+    },
+  );
+});
+
+test("092 unreadable GET 401 revalidation is bounded and recovery 200 requires explicit management reload", async () => {
+  await withUpdate(
+    {
+      sessions: [{ body: session() }, { body: session() }],
+      reads: [{ ...problem(401), unreadable: true }, ok()],
+    },
+    async (page) => {
+      await page.waitForFunction(
+        () =>
+          window.fixture.calls.filter(
+            (call) => call.url === "/api/auth/session",
+          ).length === 2 &&
+          window.fixture.snapshot().status === "AUTHENTICATED",
+      );
+      await settle(page);
+      assert.equal((await calls(page, "/api/auth/session")).length, 2);
+      assert.equal((await calls(page, "/api/users/42/profile")).length, 1);
+      assert.equal(await page.locator("input").count(), 0);
+      await page
+        .getByRole("button", { name: "Reload profile", exact: true })
+        .click();
+      await ready(page);
+      assert.equal((await calls(page, "/api/users/42/profile")).length, 2);
     },
   );
 });

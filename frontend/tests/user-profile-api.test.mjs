@@ -595,3 +595,59 @@ test("request ETag containing a trailing newline is rejected before fetch", asyn
   );
   assert.equal(calls.length, 0);
 });
+
+for (const stage of ["get", "csrf"])
+  for (const status of [401, 403, 503])
+    test("092 unreadable profile " + stage + " " + status, async () => {
+      const bad = () => {
+        const r = response({}, status);
+        r.text = async () => {
+          throw Error(privateValue);
+        };
+        return r;
+      };
+      const { api, calls } = harness(
+        stage === "get" ? { get: bad } : { bootstrap: bad },
+      );
+      const r =
+        stage === "get"
+          ? await api.getProfile(42)
+          : await api.updateProfile(42, tag, { fullName: "New Name" });
+      assert.equal(r.error.kind, "http");
+      assert.equal(r.error.status, status);
+      assert.equal(
+        r.error.reason,
+        status === 401
+          ? "SESSION_INVALID"
+          : status === 403
+            ? "FORBIDDEN"
+            : "SERVICE_UNAVAILABLE",
+      );
+      if (stage === "csrf") assert.equal(r.outcome, "NOT_DISPATCHED");
+      assert.deepEqual(
+        calls.map((c) => c.method),
+        ["GET"],
+      );
+      assert.ok(!JSON.stringify(r).includes(privateValue));
+    });
+
+for (const status of [401, 503, 200])
+  test("092 unreadable PATCH " + status + " stays uncertain", async () => {
+    const { api, calls } = harness({
+      patch: () => {
+        const r = response({}, status);
+        r.text = async () => {
+          throw Error(privateValue);
+        };
+        return r;
+      },
+    });
+    const r = await api.updateProfile(42, tag, { fullName: "New Name" });
+    assert.equal(r.outcome, "OUTCOME_UNKNOWN");
+    assert.equal(r.error.status, status);
+    assert.deepEqual(
+      calls.map((c) => c.method),
+      ["GET", "PATCH"],
+    );
+    assert.ok(!JSON.stringify(r).includes(privateValue));
+  });

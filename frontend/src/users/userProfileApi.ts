@@ -74,7 +74,10 @@ function snapshot(value: unknown): string | undefined {
   }
 }
 
-async function json(response: Response): Promise<unknown> {
+async function json(
+  response: Response,
+  preserveErrorStatus = false,
+): Promise<unknown> {
   const type = response.headers
     .get("Content-Type")
     ?.split(";")[0]
@@ -82,7 +85,19 @@ async function json(response: Response): Promise<unknown> {
     .toLowerCase();
   if (type !== "application/json" && type !== "application/problem+json")
     return undefined;
-  const body = await response.text();
+  let body: string;
+  try {
+    body = await response.text();
+  } catch (error) {
+    if (
+      preserveErrorStatus &&
+      response.status >= 400 &&
+      response.status <= 599 &&
+      !(object(error) && error.name === "AbortError")
+    )
+      return undefined;
+    throw error;
+  }
   try {
     return JSON.parse(body);
   } catch {
@@ -183,7 +198,7 @@ export function createUserProfileApi(
           },
         );
         status = response.status;
-        const value = await json(response);
+        const value = await json(response, true);
         if (signal?.aborted)
           return {
             ok: false,
@@ -241,7 +256,7 @@ export function createUserProfileApi(
           method: "GET",
           headers: { Accept: "application/json" },
         });
-        const csrf = await json(bootstrap);
+        const csrf = await json(bootstrap, true);
         if (signal?.aborted)
           return {
             outcome: "NOT_DISPATCHED",
