@@ -10,6 +10,16 @@ import { defaultCollectionQuery } from "../features/inspectionChecklists/collect
 import type { AuthorityGeneration } from "../auth/authStore";
 import { Recovery } from "./AuthForms";
 
+/** Captures operation authority; FE05 receives no session token or permission grant. */
+export function bindChecklistSessionInvalidation(
+  invalidateSession: (expected: AuthorityGeneration) => void,
+  expectedGeneration: AuthorityGeneration,
+  lifetime: AbortSignal,
+): () => void {
+  return () => {
+    if (!lifetime.aborted) invalidateSession(expectedGeneration);
+  };
+}
 /** Local route selector only. The collection API independently checks CHECKLIST_MANAGE. */
 export function checklistBranch(search: string): number | null {
   const params = new URLSearchParams(search);
@@ -73,6 +83,11 @@ function AdmittedChecklist({
     // This is the existing branch-scoped collection read, not a client permission inference.
     // Validate its DTO and scope before mounting forms; every later API call still authorizes.
     const api = createChecklistApi();
+    const onSessionInvalid = bindChecklistSessionInvalidation(
+      actions.invalidateSession,
+      generation,
+      controller.signal,
+    );
     api
       .list(branch, defaultCollectionQuery(), controller.signal)
       .then(() => {
@@ -82,7 +97,7 @@ function AdmittedChecklist({
         if (controller.signal.aborted) return;
         setAdmission("denied");
         if (error instanceof ChecklistApiError && error.status === 401)
-          actions.invalidateSession(generation);
+          onSessionInvalid();
       });
     return () => controller.abort();
   }, [branch, actions, generation]);

@@ -11,6 +11,8 @@ const bundle = await build({
     contents: `
 import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';
 import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{SharedAuthHost}from'./src/shared-host/SharedAuthHost';
+import{bindChecklistSessionInvalidation}from'./src/shared-host/ChecklistAuthRoute';
+window.bindChecklistSessionInvalidation=bindChecklistSessionInvalidation;
 const session=()=>({user:{id:'7',name:'Trial',username:'trial'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:window.initialStatus==='RESTRICTED'});
 window.calls=[];window.pending=[];window.reads=0;window.branchReads={};
 const store=createAuthStore({invalidateLocalAuthority(){window.invalidations=(window.invalidations||0)+1},getSession:async()=>{window.reads++;if(window.deferSession)await new Promise(r=>window.finishSession=r);return ['ANONYMOUS','EXPIRED_INVALID'].includes(window.initialStatus)?{ok:false,error:{kind:'http',status:401}}:{ok:true,data:session()};},logout:async()=>({ok:true,status:204,data:undefined})});
@@ -350,3 +352,74 @@ test("HC04 stale admission401 after branch replacement cannot invalidate current
   await p.getByText("BRANCH-8", { exact: true }).waitFor();
   await p.close();
 });
+
+// Proposed FE05 callback contract only; these do not claim FE05 inner API wiring.
+for (const operation of [
+  "collection",
+  "read",
+  "create",
+  "update",
+  "publish",
+  "retire",
+  "csrf",
+])
+  test(
+    "mock FE05 " +
+      operation +
+      " callback keeps captured generation and branch lifetime",
+    async () => {
+      const p = await open();
+      try {
+        await p.getByText("BRANCH-7", { exact: true }).waitFor();
+        await p.evaluate(async () => {
+          const store = window.fixture.store;
+          const lifetime = new AbortController();
+          window.oldCallback = window.bindChecklistSessionInvalidation(
+            store.invalidateSession,
+            store.getSnapshot().authorityGeneration,
+            lifetime.signal,
+          );
+          await store.revalidate();
+          window.oldCallback();
+        });
+        assert.equal(
+          await p.evaluate(() => window.fixture.store.getSnapshot().status),
+          "AUTHENTICATED",
+        );
+        await p.evaluate(() => {
+          const store = window.fixture.store;
+          const lifetime = new AbortController();
+          const callback = window.bindChecklistSessionInvalidation(
+            store.invalidateSession,
+            store.getSnapshot().authorityGeneration,
+            lifetime.signal,
+          );
+          lifetime.abort(); // Replaced branch/operation: even the same session generation is invalid here.
+          callback();
+        });
+        assert.equal(
+          await p.evaluate(() => window.fixture.store.getSnapshot().status),
+          "AUTHENTICATED",
+        );
+        await p.evaluate(() => {
+          const store = window.fixture.store;
+          const callback = window.bindChecklistSessionInvalidation(
+            store.invalidateSession,
+            store.getSnapshot().authorityGeneration,
+            new AbortController().signal,
+          );
+          callback();
+          if (store.getSnapshot().status !== "EXPIRED_INVALID")
+            throw new Error("callback must invalidate synchronously");
+        });
+        await p.waitForURL("**/login");
+        assert.ok(
+          (await p.evaluate(() => window.calls)).every(
+            (c) => c.method === "GET",
+          ),
+        );
+      } finally {
+        await p.close();
+      }
+    },
+  );
