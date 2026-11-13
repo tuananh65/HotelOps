@@ -233,3 +233,49 @@ test("expired session after visible checklist clears data and blocks old callbac
   );
   await p.close();
 });
+
+for (const status of [401, 403])
+  test(`new admission ${status} cannot be undone by old pending 200`, async () => {
+    const p = await open({ deferCollection: 7 });
+    await p.waitForFunction(() => window.pending.length === 1);
+    await p.evaluate((code) => {
+      window.apiStatus = code;
+      window.deferCollection = undefined;
+      void window.fixture.store.revalidate();
+    }, status);
+    await p.getByText("Checklist access could not be confirmed.").waitFor();
+    assert.equal(await p.evaluate(() => window.pending[0].aborted), true);
+    const reads = await p.evaluate(() => window.reads);
+    await p.evaluate(() => {
+      window.apiStatus = 200;
+      window.fixture.release();
+    });
+    await p.waitForTimeout(50);
+    await p.getByText("Checklist access could not be confirmed.").waitFor();
+    assert.equal(await p.getByText("BRANCH-7", { exact: true }).count(), 0);
+    assert.equal(await p.evaluate(() => window.reads), reads);
+    await p.close();
+  });
+
+test("repeated close/open replaces pending lifetimes without stale snapshot", async () => {
+  const p = await open({ deferBranch: 7 });
+  for (let i = 1; i <= 3; i++) {
+    await p.waitForFunction((n) => window.pending.length === n, i);
+    await p.evaluate(() => window.fixture.navigate("/dashboard"));
+    await p.waitForURL("**/dashboard");
+    await p.waitForFunction(() =>
+      window.pending.every((request) => request.aborted),
+    );
+    await p.evaluate(() =>
+      window.fixture.navigate("/inspections/checklists?branchId=7"),
+    );
+  }
+  await p.waitForFunction(() => window.pending.length === 4);
+  await p.evaluate(() => {
+    window.deferBranch = undefined;
+    window.fixture.release();
+  });
+  await p.getByText("BRANCH-7", { exact: true }).waitFor();
+  assert.equal(await p.getByText("BRANCH-7", { exact: true }).count(), 1);
+  await p.close();
+});
