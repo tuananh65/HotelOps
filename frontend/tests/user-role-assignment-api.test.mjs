@@ -807,3 +807,74 @@ for (const [index, [label, body, reason]] of strict409Cases.entries())
     assert.equal(headers(h.calls[1])["if-match"], tag);
     assert.equal(headers(h.calls[1])["x-csrf-token"], "attempt-token");
   });
+
+for (const status of [401, 403, 503]) {
+  test(`093 unreadable CSRF ${status} retains HTTP classification before dispatch`, async () => {
+    const h = harness({
+      bootstrap: () => {
+        const r = response({}, status);
+        r.text = async () => {
+          throw new Error("PRIVATE-093-DETAIL");
+        };
+        return r;
+      },
+    });
+    const result = await h.run();
+    assert.equal(result.outcome, "NOT_DISPATCHED");
+    assert.equal(result.error.status, status);
+    assert.equal(result.error.kind, "http");
+    assert.notEqual(result.error.reason, "NETWORK");
+    assert.equal(h.calls.length, 1);
+    assert.equal(JSON.stringify(result).includes("PRIVATE-093-DETAIL"), false);
+  });
+}
+
+for (const status of [401, 503, 200, 201]) {
+  test(`093 unreadable dispatched response ${status} stays uncertain`, async () => {
+    const h = harness({
+      post: () => {
+        const r = response({}, status);
+        r.text = async () => {
+          throw Error("PRIVATE-093");
+        };
+        return r;
+      },
+    });
+    const result = await h.run();
+    assert.equal(result.outcome, "OUTCOME_UNKNOWN");
+    assert.equal(result.error.status, status);
+    assert.equal(h.calls.length, 2);
+    assert.equal(JSON.stringify(result).includes("PRIVATE-093"), false);
+  });
+}
+for (const cancelled of [false, true]) {
+  test(`093 bootstrap body abort precedence signal=${cancelled}`, async () => {
+    const controller = new AbortController();
+    const h = harness({
+      bootstrap: () => {
+        const r = response({}, 401);
+        r.text = async () => {
+          if (cancelled) controller.abort();
+          throw new DOMException("PRIVATE-093", "AbortError");
+        };
+        return r;
+      },
+    });
+    const result = await h.run(controller.signal);
+    assert.equal(result.outcome, "NOT_DISPATCHED");
+    assert.equal(result.error.kind, "cancelled");
+    assert.equal(h.calls.length, 1);
+  });
+}
+test("093 network has no invented HTTP status", async () => {
+  const h = harness({
+    bootstrap: () => {
+      throw Error("PRIVATE-093");
+    },
+  });
+  const result = await h.run();
+  assert.equal(result.outcome, "NOT_DISPATCHED");
+  assert.equal(result.error.kind, "network");
+  assert.equal(result.error.status, undefined);
+  assert.equal(h.calls.length, 1);
+});

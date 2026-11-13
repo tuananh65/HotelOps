@@ -822,3 +822,36 @@ test("contradictory 409 identifiers lock replay without exposing private respons
     },
   );
 });
+
+for (const status of [401, 403, 503]) {
+  test(`093 unreadable bootstrap ${status} preserves recovery boundary and sends no POST`, async () => {
+    await withMembership(
+      {
+        csrf: [{ status, bodyReadFailure: true }],
+        sessions: [{ body: session() }, { body: session() }],
+      },
+      async (p) => {
+        await ready(p);
+        await review(p);
+        await confirm(p);
+        if (status === 401)
+          await p.waitForFunction(
+            () =>
+              window.fixture.calls.filter((c) => c.url === "/api/auth/session")
+                .length === 2,
+          );
+        else await p.getByRole("alert").waitFor();
+        await settle(p);
+        const all = await calls(p);
+        assert.equal(all.filter((c) => c.method === "POST").length, 0);
+        assert.equal(all.filter((c) => c.url === "/api/auth/csrf").length, 1);
+        assert.equal(
+          all.filter((c) => c.url === "/api/auth/session").length,
+          status === 401 ? 2 : 1,
+        );
+        if (status === 401)
+          assert.equal(await p.locator("input[name=branchId]").count(), 0);
+      },
+    );
+  });
+}
