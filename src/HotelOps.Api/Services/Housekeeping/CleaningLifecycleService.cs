@@ -4,8 +4,10 @@ using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Housekeeping;
+using HotelOps.Api.Services.Rooms;
 using HotelOps.Api.Services.WorkTime;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 namespace HotelOps.Api.Services.HotelStructure;
 
 public sealed partial class RoomTypeCreationService
@@ -79,10 +81,22 @@ public sealed partial class RoomTypeCreationService
                 if (assignments.Length != 1) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 var owner = assignments[0];
                 var resume = state.State == "ON_HOLD";
+                // No D03/D04/D05 owner implementation has been accepted/registered.
+                var freshEvidence = new FreshStartCleaningTransactionEvidence(ticket, sid);
                 var conflict = resume ? CleaningLifecycleRules.ResumeConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker, input.Note)
                     : CleaningLifecycleRules.StartConflict(state.State, actor, owner.AssigneeUserId, input.ResolveBlocker);
                 if (conflict != null) return LifecycleFailure(conflict == "CURRENT_ASSIGNEE_REQUIRED" ? RoomTypeBatchStatus.Forbidden
                     : conflict == "BLOCKER_RESOLUTION_CONTRACT_REQUIRED" ? RoomTypeBatchStatus.Unavailable : RoomTypeBatchStatus.Inactive, conflict);
+                if (!resume)
+                {
+                    // The candidate is intentionally fail-closed before any task/room mutation:
+                    // there is no accepted D03 final authorization, D04 room-first lock protocol,
+                    // or D05 temporal/range StartGate. A synthetic Clear is not authority.
+                    await freshEvidence.RequireAdmissionAsync(db, actor, branch, row.RoomId,
+                        task, owner.AssignmentId, token);
+                    if (row.ActualStartAt != null)
+                        return LifecycleFailure(RoomTypeBatchStatus.Inactive, "FRESH_START_ALREADY_STARTED");
+                }
                 if (!await DueHousekeeper(actor, branch, DateTime.MaxValue, token)) return new(RoomTypeBatchStatus.InvalidReference);
                 if (owner.AssignedAt > clock.GetUtcNow().UtcDateTime) return LifecycleFailure(RoomTypeBatchStatus.Inactive, "CURRENT_ASSIGNMENT_REQUIRED");
                 if (await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId}").SingleOrDefaultAsync(token) != task)
@@ -99,7 +113,20 @@ public sealed partial class RoomTypeCreationService
                     var resolution = await ResolveCleaningBlockers(task, branch, actor, CleaningLifecycleRules.Reason(input.Note, 1), now, token);
                     if (resolution != null) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, resolution);
                 }
-                await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS',actual_start_at=COALESCE(actual_start_at,{now}) WHERE cleaning_task_id={task}", token);
+                if (resume)
+                    await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='IN_PROGRESS',status='IN_PROGRESS',actual_start_at=COALESCE(actual_start_at,{now}) WHERE cleaning_task_id={task}", token);
+                else
+                {
+                    // Exact strong pre-update revision; no unconditional fresh status mutation.
+                    var affected = await db.Database.ExecuteSqlInterpolatedAsync($"""
+                        UPDATE dbo.cleaning_tasks
+                        SET workflow_status='IN_PROGRESS',status='IN_PROGRESS',actual_start_at={now}
+                        WHERE cleaning_task_id={task} AND workflow_status='ASSIGNED'
+                          AND actual_start_at IS NULL
+                          AND row_version={state.Revision}
+                        """, token);
+                    if (affected != 1) return new(RoomTypeBatchStatus.Stale);
+                }
                 if (!await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_progress_versions WHERE cleaning_task_id={task}").AnyAsync(x => x > 0, token))
                 {
                     if (resume) return LifecycleFailure(RoomTypeBatchStatus.SchemaRequired, "CLEANING_ITEM_SNAPSHOT_REQUIRED");
@@ -109,17 +136,53 @@ public sealed partial class RoomTypeCreationService
                     await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_progress_versions(cleaning_task_id) VALUES({task}); INSERT dbo.cleaning_task_items(cleaning_task_id,source_item_id,label,is_required,sort_order) SELECT {task},item_id,label,is_required,sort_order FROM dbo.cleaning_item_definitions WHERE room_type_id={type}", token);
                 }
                 var interval = await time.OpenIntervalAsync(new(actor, actor, branch, "CLEANING", task), token);
-                var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == row.RoomId && x.ReleasedAt == null, token);
+                // Work-Time writes are flushed; detach its audit before the FE03 participant,
+                // which explicitly forbids tracked Room/history/AuditLog entities.
+                db.ChangeTracker.Clear();
+                Guid? sourceOperationId = null;
+                if (!resume)
+                {
+                    var connection = db.Database.GetDbConnection();
+                    var transaction = db.Database.CurrentTransaction?.GetDbTransaction()
+                        ?? throw new RoomStatusTransitionException("ROOM_STATUS_CALLER_TRANSACTION_REQUIRED");
+                    var resultingRevision = WorkflowTag((await CleaningState(task, token)).Revision);
+                    var writerTransactionId = await db.Database.SqlQuery<long>(
+                        $"SELECT CURRENT_TRANSACTION_ID() AS [Value]").SingleAsync(token);
+                    sourceOperationId = Guid.NewGuid();
+                    freshEvidence.BindSource(new FreshStartCleaningSourceReceipt(
+                        actor, branch, row.RoomId, task, owner.AssignmentId, task,
+                        tag, resultingRevision, sourceOperationId.Value, writerTransactionId,
+                        now, connection, transaction));
+                    // FE03 is the ONLY canonical room writer/history/audit owner. It cannot
+                    // commit independently; failure escapes and disposes FE04's transaction.
+                    var transition = await new RoomOperationalStatusTransitionParticipant(db, freshEvidence)
+                        .ApplyFreshStartCleaningAsync(connection, transaction,
+                            new FreshStartCleaningTransitionContext("START_CLEANING", actor,
+                                branch, row.RoomId, task, owner.AssignmentId, tag, input.Note), token);
+                    if (transition.RoomId != row.RoomId || transition.FromStatus != "DIRTY"
+                        || transition.ToStatus != "CLEANING" || transition.SourceOperationId != sourceOperationId)
+                        throw new RoomStatusTransitionException("ROOM_STATUS_TRANSITION_EVIDENCE_MISMATCH");
+                }
+                // RESUME preserves its existing provisional block summary; fresh START can
+                // reach here only after an authoritative D05 Clear, never an unlocked query.
+                var blocked = resume && await db.RoomBlocks.AsNoTracking()
+                    .AnyAsync(x => x.RoomId == row.RoomId && x.ReleasedAt == null, token);
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({row.RoomId},{task},'CLEANING_IN_PROGRESS',{blocked},{actor},{now})", token);
                 var startedAt = row.ActualStartAt is { } first ? DateTime.SpecifyKind(first, DateTimeKind.Utc) : now;
                 var result = new StartedCleaningDto(task, branch, owner.AssignmentId, "IN_PROGRESS", interval.IntervalId, startedAt, "CLEANING_IN_PROGRESS", blocked);
                 await BatchAuditAsync(actor, branch, "cleaning_tasks", task, new { state.State, row.ActualStartAt }, new { action = resume ? "RESUME_CLEANING" : "START_CLEANING", input.Note,
-                    contract = resume ? "PROVISIONAL_V1" : null, entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
+                    sourceOperationId, contract = resume ? "PROVISIONAL_V1" : "FE03_CANONICAL_TRANSACTION_BOUND", entity = result }, ["workflowStatus", "actualStartAt", "workInterval", "readiness", "blockerResolution"], token);
                 return new(RoomTypeBatchStatus.Success, result, WorkflowTag((await CleaningState(task, token)).Revision));
             }, ct, requireRoomTypeSchema: false, afterUserLocks: token => time.LockUsersAsync([ticket.UserId], token),
                 featurePermission: token => CleaningExecutionAccess(ticket.UserId, branch, task, "CLEANING_EXECUTE", token));
         }
         catch (WorkTimeContractException error) { return LifecycleTimeFailure(error); }
+        catch (RoomStatusTransitionException error)
+        {
+            // The BatchAsync transaction has been disposed without commit on exceptions.
+            // Unknown commit/network exceptions are NOT caught or retried here.
+            return LifecycleFailure(RoomTypeBatchStatus.Unavailable, error.Code);
+        }
     }
     private static RoomTypeBatchResult LifecycleTimeFailure(WorkTimeContractException error) => LifecycleFailure(error.Code switch
     {
