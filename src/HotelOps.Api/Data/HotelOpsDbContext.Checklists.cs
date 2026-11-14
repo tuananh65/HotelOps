@@ -22,6 +22,8 @@ public partial class HotelOpsDbContext
         model.Entity<RoomInspection>().ToTable("room_inspections", t => t.UseSqlOutputClause(false));
         model.Entity<InspectionResult>().ToTable("inspection_results", t => t.UseSqlOutputClause(false));
         model.Entity<InspectionDefect>().ToTable("inspection_defects", t => t.UseSqlOutputClause(false));
+        // Evidence revision trigger TR_hk_attachment_revision_v1 rejects direct OUTPUT.
+        model.Entity<Attachment>().ToTable("attachments", t => t.UseSqlOutputClause(false));
         model.Entity<ChecklistScopeV1>(e =>
         {
             e.ToView("inspection_checklists"); e.HasKey(x => x.ChecklistId);

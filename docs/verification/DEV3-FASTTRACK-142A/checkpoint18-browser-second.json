@@ -1,0 +1,24 @@
+{
+  "success": false,
+  "fixtureActor": 360121,
+  "fixtureInspection": 350086,
+  "checks": [
+    {
+      "cleanupRehearsalRolledBack": true
+    },
+    {
+      "browser": {
+        "success": false,
+        "stage": "save failed criterion",
+        "checks": [
+          "anonymous deep link and login",
+          "canonical inspection admission",
+          "start"
+        ]
+      }
+    }
+  ],
+  "failure": "Exception: Browser failed at save failed criterion",
+  "cleanup": true,
+  "scope": "Real canonical production browser over validated HTTPS and owned SQL; execution through Pending Conclusion only; no approval or readiness acceptance"
+}

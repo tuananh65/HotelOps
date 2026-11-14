@@ -1,0 +1,21 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "cleanupRehearsalRolledBack": true
+    },
+    {
+      "browser": {
+        "success": false,
+        "stage": "start",
+        "checks": [
+          "anonymous deep link and login",
+          "canonical inspection admission"
+        ]
+      }
+    }
+  ],
+  "failure": "Exception: Browser failed at start",
+  "cleanup": false,
+  "scope": "Real canonical production browser over validated HTTPS and owned SQL; execution through Pending Conclusion only; no approval or readiness acceptance"
+}

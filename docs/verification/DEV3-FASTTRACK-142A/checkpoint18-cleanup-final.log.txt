@@ -1,0 +1,11 @@
+t           n
+----------- -----------
+users                 0
+branches              0
+inspections           0
+attachments           0
+audits                0
+sessions              0
+name                                                                                                                             is_disabled
+-------------------------------------------------------------------------------------------------------------------------------- -----------
+TR_hk_attachment_revision_v1                                                                                                               0

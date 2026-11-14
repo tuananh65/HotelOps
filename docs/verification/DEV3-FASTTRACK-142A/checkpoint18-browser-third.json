@@ -1,0 +1,25 @@
+{
+  "success": false,
+  "fixtureActor": 360123,
+  "fixtureInspection": 350088,
+  "checks": [
+    {
+      "cleanupRehearsalRolledBack": true
+    },
+    {
+      "browser": {
+        "success": false,
+        "stage": "defect with server catalog and evidence",
+        "checks": [
+          "anonymous deep link and login",
+          "canonical inspection admission",
+          "start",
+          "save failed criterion"
+        ]
+      }
+    }
+  ],
+  "failure": "Exception: Browser failed at defect with server catalog and evidence",
+  "cleanup": true,
+  "scope": "Real canonical production browser over validated HTTPS and owned SQL; execution through Pending Conclusion only; no approval or readiness acceptance"
+}

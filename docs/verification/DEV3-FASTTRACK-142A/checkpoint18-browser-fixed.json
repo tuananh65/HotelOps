@@ -1,0 +1,34 @@
+{
+  "success": true,
+  "fixtureActor": 360125,
+  "fixtureInspection": 350090,
+  "checks": [
+    {
+      "cleanupRehearsalRolledBack": true
+    },
+    {
+      "browser": {
+        "success": true,
+        "checks": [
+          "anonymous deep link and login",
+          "canonical inspection admission",
+          "start",
+          "save failed criterion",
+          "defect with server catalog and evidence",
+          "finish pending conclusion",
+          "reload persists",
+          "logout"
+        ]
+      }
+    },
+    {
+      "persistedState": "PENDING_CONCLUSION",
+      "inspectionAudits": 4,
+      "defects": 1,
+      "evidenceBytesVerified": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "scope": "Real canonical production browser over validated HTTPS and owned SQL; execution through Pending Conclusion only; no approval or readiness acceptance"
+}
