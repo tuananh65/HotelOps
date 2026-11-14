@@ -1,0 +1,312 @@
+[
+  {
+    "path": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+    "targetBlob": "6307950e6629b60304a440893411c8d93158bd88",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+    "targetBlob": "b3e3f08026da029ff48d3b1ccb3eea5b119a9c27",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistCollectionService.cs",
+    "targetBlob": "5cbfdb75db5da1214a6c48fbe0c6f3b0520d4e64",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs",
+    "targetBlob": "7878e7d2ebe09c9593f98ed6fd6d6b099b4c356f",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+    "targetBlob": "8a73221947ad26ef5aa01cfe66e8a3c9bc3dca5a",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "targetBlob": "cc35a137c9fde0bd77a7f144ebf6df496e6c9ac6",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+    "targetBlob": "88cb3fc8386649d648e175c07221dd35dd6a47d8",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+    "targetBlob": "87e1a7d6bbc5496d850253d7a84208de64326ac6",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+    "targetBlob": "acc03d1d7d1b6109af7d745e9f7717b9a7f49901",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+    "targetBlob": "4caa004f0f2f22a5fd84ceaa0193886886b2c23f",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs",
+    "targetBlob": "43cc5d21eb46bd523fabd0123d3f82c3aa2e138d",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+    "targetBlob": "149d0b1e3ab00d1acdfa9abb2d2bc296939126b2",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+    "targetBlob": "c0648a68711ac57aa51a65c9ae62876817d13e4f",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/CleaningClosureBoundary.cs",
+    "targetBlob": "22538de2d06efe8216a75d4bfdd7ada56e86b136",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionSource.cs",
+    "targetBlob": "e9eea4e94e91905ce3baf26425ceee2bae612af0",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/CleanerAttributionContract.cs",
+    "targetBlob": "86f2bf73fa1ce3925116f9bcfedbbf211ebcf455",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/ReworkAuthorityContract.cs",
+    "targetBlob": "d442b31d8be5ef2ef588c31d1be38d8916c71318",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/ReworkAuthorityReader.cs",
+    "targetBlob": "f799f011d8c6b634ba770cdb09362782624de8a6",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/ReworkLifecycleRules.cs",
+    "targetBlob": "b6acb1af9cd76ca06a3c234245e9d0322d455210",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/ReworkLifecycleService.cs",
+    "targetBlob": "67743d0b3c2191cd1291e1720d980d26fdd9603a",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Rooms/RoomOperationalStatusTransitionParticipant.cs",
+    "targetBlob": "6fa3c74bf812fb110a78a15db3c0a41aa95dd7ad",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+    "targetBlob": "b386ae29583e861337d80efeae456f3ac4de42f1",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/IntegratedDeactivationResponsibilityQueries.cs",
+    "targetBlob": "07f670d6f7852866ae50de8d266361cd62f68e86",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountDeactivationService.cs",
+    "targetBlob": "3398e0bfcaf50d29df437d1afd259ab1c6e9a397",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "targetBlob": "a2fb39bde5ac23cfef888309b3ed3d934f5a7a55",
+    "unchanged": true
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "targetBlob": "aef6738cf6e387738a0058fd3ff9ef88b39c9e1e",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistCollection.tsx",
+    "targetBlob": "65a171e6ef5244927518c8334cb762ae63d98eea",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistForm.tsx",
+    "targetBlob": "c8fa83dbe26face50c79344caecfbc2681d7ae2c",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistRoute.tsx",
+    "targetBlob": "8f7ac46bff4bd77176a621c64caa1c4f5f633ceb",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/ChecklistWorkspace.tsx",
+    "targetBlob": "4d3157fce5411caf0960c7d2433790a97158a34f",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/api.ts",
+    "targetBlob": "baf74a9c6d944906ccbae2e2db316bfcefc96374",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/model.ts",
+    "targetBlob": "cd4033c8786a7dd123459dc7cf03632a2eb516a1",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/collection.ts",
+    "targetBlob": "e0b4e180df0132e5dee53dc672a65e0bc7a54ddf",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionChecklists/checklists.css",
+    "targetBlob": "016afdfa0f55becf4ccff877f097e51bc4d67bd1",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionExecution/InspectionRoute.tsx",
+    "targetBlob": "bff67eb103bd9609349ddf12f61e0f176bc4ef1d",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionExecution/InspectionWorkspace.tsx",
+    "targetBlob": "29d75a3b5ca74083075aac7e3120cbade6159e68",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionExecution/api.ts",
+    "targetBlob": "5560f000ebe2fc4ee8710b35f04cac5fe039f619",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionExecution/model.ts",
+    "targetBlob": "4c9cc640cd9b59da4f52c15b0771d202bf08b980",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionHistory/HistoryRoute.tsx",
+    "targetBlob": "d1af4bf0a8d1a8329e4818a34a317cf8d53a9842",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionHistory/HistoryWorkspace.tsx",
+    "targetBlob": "da98c6b262f830877e8e0089b7accb22e423e920",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionHistory/api.ts",
+    "targetBlob": "a2eaf00ae2fa26b7f9b10e7a9eb4107101e5282d",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/features/inspectionHistory/model.ts",
+    "targetBlob": "ba5b8f66bb5a2ae0bc9a77f3e9db80ca77495afe",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/shared-host/ChecklistAuthRoute.tsx",
+    "targetBlob": "dbc331f6c9d7aee15e924e746d0e7f95ad6a59f0",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/shared-host/SharedAuthHost.tsx",
+    "targetBlob": "ce95276d10743bed281553f220667de8654500ff",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/shared-host/OperationsRoutes.tsx",
+    "targetBlob": "9e165f35fd4b501695acbfb77ed4cc7893d5a5d6",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/auth/AuthProvider.tsx",
+    "targetBlob": "9b1b3f228cd8332b62b7b9241b4009cde5adddb7",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/auth/authStore.ts",
+    "targetBlob": "c4011785e73f12f75dfc8d1688bfa93ed1e56116",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/src/main.tsx",
+    "targetBlob": "18cf9cdc4df9eb7432165a43691c68aea5697fc9",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-checklists.test.mjs",
+    "targetBlob": "ce1ecfa5ad1c311c8b34830f40850484c1edc190",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-collection.test.mjs",
+    "targetBlob": "d3aa75d09a9dfbcaaf78a42dc5fb9560fe49ea7f",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-checklist-route.test.mjs",
+    "targetBlob": "3dbc4cf105e9ab7a06587d5ddef05a46f6f87819",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-checklist-route.spec.ts",
+    "targetBlob": "eb07e50bf08a48be4e51cbbcf3b0e5b8ca5f034b",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-inspection-execution.test.mjs",
+    "targetBlob": "c5deb5d6dd1fe1f06813ac3089d0349bc5f19df1",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-inspection-execution.spec.ts",
+    "targetBlob": "1942c920e155765a31ee0d2e21ffb2e4289810c4",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-history.test.mjs",
+    "targetBlob": "0940503ee87a294d34d5d22398f2b89994f1445a",
+    "unchanged": true
+  },
+  {
+    "path": "frontend/tests/fe05-history.spec.ts",
+    "targetBlob": "7db506cf622b6d8daa4524a59efbd9f001d28195",
+    "unchanged": true
+  },
+  {
+    "path": "tests/HotelOps.Checklist.CollectionTests/CollectionTests.cs",
+    "targetBlob": "7e3185f062a01854396da2656033fa214348221f",
+    "unchanged": true
+  },
+  {
+    "path": "tests/HotelOps.Dev1.RegressionTests/ReworkAuthorityTests.cs",
+    "targetBlob": "96e5eb9f068765116a8c3b2232c975a3a569bc4f",
+    "unchanged": true
+  },
+  {
+    "path": "tests/HotelOps.Dev1.RegressionTests/ReworkLifecycleTests.cs",
+    "targetBlob": "b4d43eb8c40073c908c767a19d11c9c16ee69932",
+    "unchanged": true
+  },
+  {
+    "path": "tests/HotelOps.Dev1.RegressionTests/RoomOperationalStatusTransitionTests.cs",
+    "targetBlob": "88c032c9672d8fc2ff2441dbe4f80daaf81861a2",
+    "unchanged": true
+  },
+  {
+    "path": "scripts/database/release/housekeeping/01_Housekeeping.sql",
+    "targetBlob": "622b64f51b2767575575b56a4e9530225cd2534b",
+    "unchanged": true
+  },
+  {
+    "path": "scripts/database/release/housekeeping/02_Verify.sql",
+    "targetBlob": "4daea294059f5067c5c13eb58f85c7c2e66eb5c5",
+    "unchanged": true
+  }
+]

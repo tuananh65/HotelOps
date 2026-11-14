@@ -1,0 +1,547 @@
+{
+  "credentialAndConflictScan": [
+    {
+      "path": "frontend/playwright.fe05-fast017.config.ts",
+      "findings": []
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+      "findings": []
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+      "findings": []
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/client.ts",
+      "findings": []
+    },
+    {
+      "path": "frontend/src/features/inspectionAssignment/navigation.ts",
+      "findings": []
+    },
+    {
+      "path": "frontend/src/features/inspectionReinspection/candidateClient.ts",
+      "findings": []
+    },
+    {
+      "path": "frontend/tests/fixtures/inspection-assignment-destination.html",
+      "findings": []
+    },
+    {
+      "path": "frontend/tests/fixtures/inspection-assignment-destination.tsx",
+      "findings": []
+    },
+    {
+      "path": "frontend/tests/fixtures/inspection-assignment.html",
+      "findings": []
+    },
+    {
+      "path": "frontend/tests/fixtures/inspection-assignment.tsx",
+      "findings": []
+    },
+    {
+      "path": "frontend/tests/inspection-assignment.spec.ts",
+      "findings": []
+    },
+    {
+      "path": "frontend/tests/inspection-assignment.test.mjs",
+      "findings": []
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/ApproveInspectionValidator.cs",
+      "findings": []
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionValidation.cs",
+      "findings": []
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/InspectionEvidenceRevisionReadGuard.cs",
+      "findings": []
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionLoading.cs",
+      "findings": []
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionSourceLoader.cs",
+      "findings": []
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionValidator.cs",
+      "findings": []
+    },
+    {
+      "path": "tests/HotelOps.Inspection.DomainTests/HotelOps.Inspection.DomainTests.csproj",
+      "findings": []
+    },
+    {
+      "path": "tests/HotelOps.Inspection.DomainTests/Program.cs",
+      "findings": []
+    },
+    {
+      "path": "tests/HotelOps.Inspection.DomainTests/README.md",
+      "findings": []
+    },
+    {
+      "path": "tests/HotelOps.Inspection.LoaderTests/HotelOps.Inspection.LoaderTests.csproj",
+      "findings": []
+    },
+    {
+      "path": "tests/HotelOps.Inspection.LoaderTests/Program.cs",
+      "findings": []
+    },
+    {
+      "path": "tests/HotelOps.Inspection.LoaderTests/README.md",
+      "findings": []
+    }
+  ],
+  "privatePreservation": [
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "FE05_D4_Independent_Review_2026-11-08.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "scripts/database/release/housekeeping/03_Rollback.sql",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "scripts/database/release/housekeeping/04_EvidenceInvalidation.sql",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "scripts/database/release/housekeeping/05_VerifyEvidence.sql",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "scripts/database/release/housekeeping/README.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "scripts/database/release/housekeeping/Run-Housekeeping.ps1",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "scripts/verification/Housekeeping/Test-EvidencePatch.ps1",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionLoading.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionSourceLoader.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionValidator.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.DomainTests/HotelOps.Inspection.DomainTests.csproj",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.DomainTests/Program.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.DomainTests/README.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.EvidenceTests/HotelOps.Inspection.EvidenceTests.csproj",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.EvidenceTests/INSP004C3_REPORT.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.EvidenceTests/IsolatedEvidenceSuite.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.EvidenceTests/Prepare-Isolated.ps1",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.EvidenceTests/Program.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.EvidenceTests/Verify-IsolatedRelease.ps1",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.LoaderTests/HotelOps.Inspection.LoaderTests.csproj",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.LoaderTests/Program.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+      "path": "tests/HotelOps.Inspection.LoaderTests/README.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+      "path": "frontend/src/features/inspectionExecution/api.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+      "path": "frontend/src/features/inspectionExecution/InspectionRoute.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+      "path": "frontend/src/features/inspectionExecution/InspectionWorkspace.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+      "path": "frontend/src/features/inspectionExecution/model.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+      "path": "frontend/tests/fe05-inspection-execution.spec.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+      "path": "frontend/tests/fe05-inspection-execution.test.mjs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "docs/verification/fe05-fast018/UC041_INTEGRATION_PROPOSAL_025A.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "docs/verification/fe05-fast018/UC041_ROUTER_HANDOFF_026.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/src/features/inspectionAssignment/client.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/src/features/inspectionAssignment/navigation.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/tests/fixtures/inspection-assignment-destination.html",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/tests/fixtures/inspection-assignment-destination.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/tests/inspection-assignment.spec.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "frontend/tests/inspection-assignment.test.mjs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "src/HotelOps.Api/Controllers/InspectionAssignmentCandidateController.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "src/HotelOps.Api/Services/Housekeeping/InspectionAssignmentDomainComponent.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+      "path": "tests/HotelOps.Checklist.CollectionTests/InspectionAssignmentContextTests.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "docs/fe05/FE05_INT001_LIVE_REPORT.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "docs/fe05/FE05_UI002_COLLECTION_API.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "scripts/verification/ChecklistLive/ChecklistLive.csproj",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "scripts/verification/ChecklistLive/Program.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "scripts/verification/ChecklistLive/README.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "src/HotelOps.Api/DTOs/HotelStructure/ChecklistCollectionDtos.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistCollectionService.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "tests/HotelOps.Checklist.CollectionTests/CollectionTests.cs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+      "path": "tests/HotelOps.Checklist.CollectionTests/HotelOps.Checklist.CollectionTests.csproj",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/docs/FE05_UI001.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/docs/FE05_UI003.md",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/playwright.fe05.config.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/api.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/ChecklistCollection.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/ChecklistForm.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/checklists.css",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/ChecklistWorkspace.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/collection.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/features/inspectionChecklists/model.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/tests/fe05-checklists.spec.ts",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/tests/fe05-checklists.test.mjs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/tests/fe05-collection.test.mjs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/tests/fe05-live.mjs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    },
+    {
+      "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+      "path": "frontend/tests/fe05-live-resume.mjs",
+      "originalStillMatches": true,
+      "privateSnapshotMatches": true
+    }
+  ],
+  "trackedBaselineDiff": "",
+  "newPaths": [
+    "docs/verification/fe05-fasttrack139a/path-reconciliation.json",
+    "docs/verification/fe05-fasttrack139a/protected-source-check.json",
+    "docs/verification/fe05-fasttrack139a/transfer-mapping.json",
+    "docs/verification/fe05-fasttrack139a/workspace-inventory.json",
+    "frontend/playwright.fe05-fast017.config.ts",
+    "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+    "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+    "frontend/src/features/inspectionAssignment/client.ts",
+    "frontend/src/features/inspectionAssignment/navigation.ts",
+    "frontend/src/features/inspectionReinspection/candidateClient.ts",
+    "frontend/tests/fixtures/inspection-assignment-destination.html",
+    "frontend/tests/fixtures/inspection-assignment-destination.tsx",
+    "frontend/tests/fixtures/inspection-assignment.html",
+    "frontend/tests/fixtures/inspection-assignment.tsx",
+    "frontend/tests/inspection-assignment.spec.ts",
+    "frontend/tests/inspection-assignment.test.mjs",
+    "src/HotelOps.Api/Services/Housekeeping/ApproveInspectionValidator.cs",
+    "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionValidation.cs",
+    "src/HotelOps.Api/Services/Housekeeping/InspectionEvidenceRevisionReadGuard.cs",
+    "src/HotelOps.Api/Services/Housekeeping/RejectInspectionLoading.cs",
+    "src/HotelOps.Api/Services/Housekeeping/RejectInspectionSourceLoader.cs",
+    "src/HotelOps.Api/Services/Housekeeping/RejectInspectionValidator.cs",
+    "tests/HotelOps.Inspection.DomainTests/HotelOps.Inspection.DomainTests.csproj",
+    "tests/HotelOps.Inspection.DomainTests/Program.cs",
+    "tests/HotelOps.Inspection.DomainTests/README.md",
+    "tests/HotelOps.Inspection.LoaderTests/HotelOps.Inspection.LoaderTests.csproj",
+    "tests/HotelOps.Inspection.LoaderTests/Program.cs",
+    "tests/HotelOps.Inspection.LoaderTests/README.md"
+  ]
+}
