@@ -1,0 +1,18 @@
+
+Running 11 tests using 1 worker
+
+(node:28248) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\fe05-inspection-execution.spec.ts:80:1 › gate OFF and invalid scope never issue protected HTTP (646ms)
+  ok  2 tests\fe05-inspection-execution.spec.ts:94:1 › scoped read and no premature READY or implicit conclusion (272ms)
+  ok  3 tests\fe05-inspection-execution.spec.ts:114:1 › branch change A→B→A and session replacement discard old read (508ms)
+  ok  4 tests\fe05-inspection-execution.spec.ts:181:1 › session replacement during CSRF bootstrap prevents old write dispatch (434ms)
+  ok  5 tests\fe05-inspection-execution.spec.ts:224:1 › 401 closes scope and 403 does not invalidate session (332ms)
+  ok  6 tests\fe05-inspection-execution.spec.ts:244:1 › 401 remains denied across inspection URL changes until authority changes (436ms)
+  ok  7 tests\fe05-inspection-execution.spec.ts:266:1 › start, save FAIL, record private evidence and finish stop at Pending Conclusion (629ms)
+  ok  8 tests\fe05-inspection-execution.spec.ts:353:3 › write 412 blocks replay until an explicit authorized GET (462ms)
+  ok  9 tests\fe05-inspection-execution.spec.ts:353:3 › write 428 blocks replay until an explicit authorized GET (449ms)
+  ok 10 tests\fe05-inspection-execution.spec.ts:353:3 › write 503 blocks replay until an explicit authorized GET (440ms)
+  ok 11 tests\fe05-inspection-execution.spec.ts:353:3 › write network blocks replay until an explicit authorized GET (443ms)
+
+  11 passed (6.3s)

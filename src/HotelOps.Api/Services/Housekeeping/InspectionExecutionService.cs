@@ -26,9 +26,10 @@ public sealed partial class RoomTypeCreationService
     private static string WorkflowReason(string? text) => ChecklistText(text, 500);
 
     public async Task<RoomTypeBatchResult> ExecuteInspectionAsync(SessionReference ticket, long sid, long branch, long id, string? expected,
-        string operation, SaveInspectionRequest? save, RecordInspectionDefectRequest? defect, string? reason, string privateRoot, CancellationToken ct)
+        string operation, SaveInspectionRequest? save, RecordInspectionDefectRequest? defect, string? reason, string privateRoot, CancellationToken ct, long? defectId = null)
     {
-        if (id <= 0 || operation is not ("read" or "start" or "save" or "finish" or "defect")) throw new ValidationException("Invalid inspection operation.");
+        if (id <= 0 || operation is not ("read" or "start" or "save" or "finish" or "defect" or "edit-defect")
+            || (operation == "edit-defect" ? defectId is not > 0 : defectId != null)) throw new ValidationException("Invalid inspection operation.");
         if (operation != "read" && !WorkflowStrongTag(expected)) throw new ValidationException("A strong rowversion If-Match is required.");
         var evidence = new HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime();
         var files = evidence.Files;
@@ -49,7 +50,8 @@ public sealed partial class RoomTypeCreationService
                 if (operation != "read" && expected != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
                 var before = await ExecutionDto(source, state, branch, token);
                 if (operation == "read") return new(RoomTypeBatchStatus.Success, before, WorkflowTag(state.Revision));
-                var auditReason = operation == "save" ? WorkflowReason(save?.Reason) : operation == "defect" ? "Record inspection defect" : WorkflowReason(reason);
+                var auditReason = operation == "save" ? WorkflowReason(save?.Reason) : operation == "defect" ? "Record inspection defect"
+                    : operation == "edit-defect" ? "Update inspection defect" : WorkflowReason(reason);
                 if (operation == "start")
                 {
                     if (state.State != "ASSIGNED") return new(RoomTypeBatchStatus.Inactive);
@@ -98,8 +100,21 @@ public sealed partial class RoomTypeCreationService
                     if (!await db.ReferenceValues.AnyAsync(r => r.ReferenceId == defect.SeverityId && r.IsActive && r.GroupCode == "SEVERITY" && (r.ValueCode == "MINOR" || r.ValueCode == "MAJOR"), token)
                         || !await db.InspectionResults.AnyAsync(r => r.InspectionId == id && r.ChecklistItemId == defect.ItemId && r.Outcome == "FAIL"
                             && r.ChecklistItem.VersionId == source.VersionId && r.ChecklistItem.IsActive, token)) return new(RoomTypeBatchStatus.InvalidReference);
-                    var row = new InspectionDefect { InspectionId = id, ChecklistItemId = defect.ItemId, SeverityId = defect.SeverityId, Description = description, Status = "OPEN" };
-                    db.Add(row); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+                    InspectionDefect row;
+                    if (operation == "edit-defect")
+                    {
+                        var existing = await db.InspectionDefects.SingleOrDefaultAsync(d => d.DefectId == defectId && d.InspectionId == id, token);
+                        if (existing == null) return new(RoomTypeBatchStatus.NotFound);
+                        // Editing details must not rebind historical evidence to another criterion.
+                        if (existing.ChecklistItemId != defect.ItemId) return new(RoomTypeBatchStatus.InvalidReference);
+                        row = existing; row.SeverityId = defect.SeverityId; row.Description = description;
+                    }
+                    else
+                    {
+                        row = new InspectionDefect { InspectionId = id, ChecklistItemId = defect.ItemId, SeverityId = defect.SeverityId, Description = description, Status = "OPEN" };
+                        db.Add(row);
+                    }
+                    await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.inspection_defects SET room_location={location} WHERE defect_id={row.DefectId}", token);
                     foreach (var photo in defect.Photos ?? [])
                     {

@@ -33,6 +33,7 @@ export function InspectionWorkspace({
   >({});
   const [notes, setNotes] = useState<Record<number, string>>({});
   const [selection, setSelection] = useState("");
+  const [editingDefect, setEditingDefect] = useState<number | null>(null);
   const [severity, setSeverity] = useState("");
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
@@ -62,6 +63,8 @@ export function InspectionWorkspace({
       .then((result) => {
         if (scope.signal.aborted || controller.signal.aborted) return;
         setCurrent(result);
+        setEditingDefect(null);
+        setUploads([]);
         setOutcomes(
           Object.fromEntries(
             result.value.criteria.map((c) => [
@@ -184,12 +187,14 @@ export function InspectionWorkspace({
           severities,
           { itemId, severityId: choice, description, location, photos: files },
           task.signal,
+          editingDefect ?? undefined,
         );
       }
       if (task.signal.aborted || scope.signal.aborted) return;
       setCurrent(result);
       setBlocked(false);
       setUploads([]);
+      setEditingDefect(null);
       setNotice(
         kind === "finish"
           ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
@@ -306,6 +311,28 @@ export function InspectionWorkspace({
           {current.value.defects.map((d) => (
             <p key={d.id}>
               Defect #{d.id}: {d.description} — {d.status}
+              <button
+                type="button"
+                disabled={
+                  busy ||
+                  blocked ||
+                  !severities?.length ||
+                  d.itemId === null ||
+                  !["INSPECTING", "PENDING_CONCLUSION"].includes(
+                    current.value.state,
+                  )
+                }
+                onClick={() => {
+                  setEditingDefect(d.id);
+                  setSelection(String(d.itemId));
+                  setSeverity(String(d.severityId ?? ""));
+                  setDescription(d.description);
+                  setLocation(d.location ?? "");
+                  setUploads([]);
+                }}
+              >
+                Edit defect #{d.id}
+              </button>
             </p>
           ))}
           {!severities?.length && (
@@ -332,6 +359,7 @@ export function InspectionWorkspace({
               Failed criterion{" "}
               <select
                 value={selection}
+                disabled={editingDefect !== null}
                 onChange={(e) => setSelection(e.target.value)}
               >
                 <option value="">Select</option>
@@ -366,6 +394,7 @@ export function InspectionWorkspace({
             <label>
               Description{" "}
               <textarea
+                aria-label="Description"
                 value={description}
                 maxLength={4000}
                 onChange={(e) => setDescription(e.target.value)}
@@ -393,8 +422,21 @@ export function InspectionWorkspace({
               disabled={busy || blocked || !severities?.length}
               onClick={() => void action("defect")}
             >
-              Record defect
+              {editingDefect === null ? "Record defect" : "Save defect changes"}
             </button>
+            {editingDefect !== null && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingDefect(null);
+                  setDescription("");
+                  setLocation("");
+                  setUploads([]);
+                }}
+              >
+                Cancel edit
+              </button>
+            )}
           </fieldset>
           <p>
             Evidence read/download is not available in this source increment

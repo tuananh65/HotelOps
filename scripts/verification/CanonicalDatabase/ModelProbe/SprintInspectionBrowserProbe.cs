@@ -109,13 +109,15 @@ internal static class SprintInspectionBrowserProbe
             if(state!="PENDING_CONCLUSION"||await db.InspectionDefects.CountAsync(d=>d.InspectionId==inspection,ct)!=1
                 ||await db.InspectionResults.CountAsync(r=>r.InspectionId==inspection&&r.Outcome=="FAIL",ct)!=1)
                 throw new Exception("Persisted execution results mismatch");
-            if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="room_inspections",ct)!=4)
-                throw new Exception("Expected exactly four inspection audits");
+            if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="room_inspections",ct)!=6)
+                throw new Exception("Expected exactly six inspection audits including two edits");
+            if(await db.InspectionDefects.Where(d=>d.InspectionId==inspection).Select(d=>d.Description).SingleAsync(ct)!="Synthetic stain final")
+                throw new Exception("Edited defect not persisted");
             var attachment=await db.Attachments.AsNoTracking().SingleAsync(a=>a.EntityType=="INSPECTION"&&a.EntityId==inspection,ct);
             if(!System.Text.RegularExpressions.Regex.IsMatch(attachment.StorageKey,"^[a-f0-9]{32}\\.png$"))throw new Exception("Unexpected evidence key");
             var bytes=await File.ReadAllBytesAsync(Path.Combine(root,attachment.StorageKey),ct);
             if(!bytes.SequenceEqual(new byte[]{137,80,78,71,13,10,26,10}))throw new Exception("Persisted evidence bytes mismatch");
-            checks.Add(new{persistedState=state,inspectionAudits=4,defects=1,evidenceBytesVerified=true});
+            checks.Add(new{persistedState=state,inspectionAudits=6,defects=1,defectEditsPersisted=true,evidenceBytesVerified=true});
         }
         catch(Exception e){failure=e.GetType().Name+": "+e.Message;}
         finally

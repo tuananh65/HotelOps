@@ -62,13 +62,30 @@ try {
       data,
       headers,
     });
-    if (response.status !== expected) throw Error("Unexpected denial status");
+    if (response.status !== expected)
+      throw Error(
+        "Unexpected denial status: expected=" +
+          expected +
+          " actual=" +
+          response.status,
+      );
     const after = await snapshot();
     if (
       after.etag !== before.etag ||
       JSON.stringify(after.body) !== JSON.stringify(before.body)
     )
-      throw Error("Rejected request changed execution snapshot");
+      throw Error(
+        "Rejected request changed execution snapshot: " +
+          JSON.stringify({
+            beforeTag: before.etag,
+            afterTag: after.etag,
+            changedKeys: Object.keys(before.body).filter(
+              (k) =>
+                JSON.stringify(before.body[k]) !==
+                JSON.stringify(after.body[k]),
+            ),
+          }),
+      );
     checks.push({
       label,
       expected,
@@ -210,6 +227,55 @@ try {
     .click();
   await page.getByText(/Defect #.*Synthetic stain/).waitFor();
   checks.push(stage);
+  stage = "edit defect while inspecting";
+  const beforeEdit = await snapshot();
+  const defectId = beforeEdit.body.defects[0].id;
+  await page
+    .getByRole("button", { name: `Edit defect #${defectId}`, exact: true })
+    .click();
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("Synthetic stain corrected");
+  await page
+    .getByLabel("Location", { exact: true })
+    .fill("Synthetic bed corrected");
+  const editAcknowledgment = page.waitForResponse(
+    (r) =>
+      r.url() === api + `/defects/${defectId}` &&
+      r.request().method() === "PUT",
+  );
+  await page
+    .getByRole("button", { name: "Save defect changes", exact: true })
+    .click();
+  await page.getByText(/Defect #.*Synthetic stain corrected/).waitFor();
+  if ((await editAcknowledgment).status() !== 200)
+    throw Error("Edit was not acknowledged");
+  const edited = await snapshot();
+  if (
+    edited.body.defects.length !== 1 ||
+    edited.body.defects[0].id !== defectId ||
+    JSON.stringify(edited.body.evidence) !==
+      JSON.stringify(beforeEdit.body.evidence)
+  )
+    throw Error("Edit changed evidence/defect identity");
+  checks.push(stage);
+  const editBody = { ...defect, description: "Synthetic stale edit" };
+  await rejected(
+    "stale defect edit",
+    api + `/defects/${defectId}`,
+    412,
+    editBody,
+    { ...headers, "If-Match": beforeEdit.etag },
+    "PUT",
+  );
+  await rejected(
+    "foreign defect edit",
+    api + "/defects/900000000",
+    404,
+    editBody,
+    { ...headers, "If-Match": edited.etag },
+    "PUT",
+  );
   stage = "concurrent finish with one shared ETag";
   const beforeFinish = await snapshot();
   const racing = await Promise.all(
@@ -235,6 +301,25 @@ try {
     .click();
   await page.getByText(/^State: PENDING_CONCLUSION\./).waitFor();
   checks.push(stage);
+  stage = "edit defect while pending conclusion";
+  await page
+    .getByRole("button", { name: `Edit defect #${defectId}`, exact: true })
+    .click();
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("Synthetic stain final");
+  const finalEditAcknowledgment = page.waitForResponse(
+    (r) =>
+      r.url() === api + `/defects/${defectId}` &&
+      r.request().method() === "PUT",
+  );
+  await page
+    .getByRole("button", { name: "Save defect changes", exact: true })
+    .click();
+  await page.getByText(/Defect #.*Synthetic stain final/).waitFor();
+  if ((await finalEditAcknowledgment).status() !== 200)
+    throw Error("Pending conclusion edit was not acknowledged");
+  checks.push(stage);
   stage = "reload persists";
   await page.reload();
   await page.getByText(/^State: PENDING_CONCLUSION\./).waitFor();
@@ -246,8 +331,20 @@ try {
   await page.waitForURL("**/login");
   checks.push(stage);
   process.stdout.write(JSON.stringify({ success: true, checks }));
-} catch {
-  process.stdout.write(JSON.stringify({ success: false, stage, checks }));
+} catch (error) {
+  process.stdout.write(
+    JSON.stringify({
+      success: false,
+      stage,
+      checks,
+      screen: stage.startsWith("edit defect")
+        ? await browser.contexts()[0].pages()[0].locator("body").innerText()
+        : undefined,
+      diagnostic: stage.startsWith("edit defect")
+        ? String(error?.message ?? "Browser failure")
+        : String(error?.message ?? "Browser failure").split("\n")[0],
+    }),
+  );
   process.exitCode = 1;
 } finally {
   await browser?.close();

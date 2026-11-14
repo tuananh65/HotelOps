@@ -318,6 +318,45 @@ test("No implicit severity and evidence authority", () => {
   );
 });
 
+test("defect editing uses scoped PUT with CSRF and inspection ETag", async () => {
+  const requests = [];
+  const api = client(async (path, init) => {
+    requests.push({ path, init });
+    return path === "/api/auth/csrf" ? csrf() : json(value("INSPECTING"));
+  });
+  await api.defect(
+    7,
+    42,
+    tag,
+    [{ id: 617, code: "MAJOR", name: "Major" }],
+    { itemId: 17, severityId: 617, description: "Corrected", location: "Bed" },
+    undefined,
+    88,
+  );
+  assert.equal(requests.length, 2);
+  assert.equal(requests[1].path, "/api/branches/7/inspections/42/defects/88");
+  assert.equal(requests[1].init.method, "PUT");
+  assert.equal(requests[1].init.headers["If-Match"], tag);
+  assert.equal(requests[1].init.headers["X-CSRF-TOKEN"], "csrf");
+  await assert.rejects(
+    api.defect(
+      7,
+      42,
+      tag,
+      [{ id: 617, code: "MAJOR", name: "Major" }],
+      {
+        itemId: 17,
+        severityId: 617,
+        description: "Corrected",
+        location: "Bed",
+      },
+      undefined,
+      0,
+    ),
+  );
+  assert.equal(requests.length, 2);
+});
+
 test("execution response accepts only valid unique server severity catalog", () => {
   const entry = { id: 617, code: "MAJOR", name: "Catalog major" };
   assert.deepEqual(

@@ -240,6 +240,7 @@ export function createInspectionApi(
         photos?: EvidenceUpload[];
       },
       signal?: AbortSignal,
+      defectId?: number,
     ) => {
       if (!trustedSeverity(options, details.severityId))
         throw new InspectionApiError(
@@ -257,8 +258,8 @@ export function createInspectionApi(
         throw new InspectionApiError(400, "Invalid defect");
       return loaded(
         await request(
-          "POST",
-          `${root(branch, id)}/defects`,
+          defectId === undefined ? "POST" : "PUT",
+          `${root(branch, id)}/defects${defectId === undefined ? "" : "/" + positiveId(defectId)}`,
           details,
           etag,
           signal,
