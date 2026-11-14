@@ -28,6 +28,46 @@ const object = (v: unknown): v is Record<string, unknown> =>
 const id = (v: unknown): v is number =>
   Number.isSafeInteger(v) && Number(v) > 0;
 const text = (v: unknown): v is string => typeof v === "string";
+export interface DashboardOptions {
+  branches: { id: number; code: string; name: string }[];
+  departments: { id: number; branchId: number; name: string }[];
+}
+export async function readDashboardOptions(
+  signal: AbortSignal,
+): Promise<DashboardOptions> {
+  const response = await fetch("/api/dashboards/options", {
+    method: "GET",
+    credentials: "same-origin",
+    cache: "no-store",
+    redirect: "error",
+    signal,
+    headers: { Accept: "application/json" },
+  });
+  if (!response.ok) throw new DashboardFailure(response.status);
+  const v: unknown = await response.json();
+  if (
+    !object(v) ||
+    !Array.isArray(v.branches) ||
+    !Array.isArray(v.departments) ||
+    !v.branches.every(
+      (b) => object(b) && id(b.id) && text(b.code) && text(b.name),
+    ) ||
+    !v.departments.every(
+      (d) => object(d) && id(d.id) && id(d.branchId) && text(d.name),
+    )
+  )
+    throw new Error("Invalid dashboard options");
+  const options = v as unknown as DashboardOptions;
+  const branches = new Set(options.branches.map((b) => b.id));
+  if (
+    branches.size !== options.branches.length ||
+    new Set(options.departments.map((d) => d.id)).size !==
+      options.departments.length ||
+    options.departments.some((d) => !branches.has(d.branchId))
+  )
+    throw new Error("Invalid dashboard scope");
+  return options;
+}
 export class DashboardFailure extends Error {
   constructor(readonly status: number) {
     super("Dashboard request failed");

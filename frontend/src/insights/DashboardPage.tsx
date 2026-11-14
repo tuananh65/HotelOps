@@ -1,4 +1,5 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { DashboardFilters } from "./DashboardFilters";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -30,12 +31,6 @@ export function DashboardPage() {
     !state.session.mustChangePassword
       ? state.authorityGeneration
       : null;
-  const [draft, setDraft] = useState({
-    branchId: "",
-    departmentId: "",
-    from: "",
-    to: "",
-  });
   const [query, setQuery] = useState("");
   const [retry, setRetry] = useState(0);
   const key = `${query}:${retry}`;
@@ -73,14 +68,6 @@ export function DashboardPage() {
   const visible =
     owner && result?.owner === owner && result.key === key ? result : null;
   const data = visible?.data;
-  function apply(event: FormEvent) {
-    event.preventDefault();
-    const params = new URLSearchParams();
-    for (const [name, value] of Object.entries(draft))
-      if (value.trim()) params.set(name, value.trim());
-    setQuery(params.toString());
-    setRetry((n) => n + 1);
-  }
   return (
     <main aria-label="Operations dashboard">
       <h1>Operations dashboard</h1>
@@ -96,30 +83,14 @@ export function DashboardPage() {
         </p>
       ) : (
         <>
-          <form onSubmit={apply} aria-label="Dashboard filters">
-            {Object.entries(draft).map(([name, value]) => (
-              <label key={name}>
-                {
-                  {
-                    branchId: "Branch ID",
-                    departmentId: "Department ID",
-                    from: "From (UTC)",
-                    to: "To (UTC)",
-                  }[name]
-                }
-                <input
-                  type={name === "from" || name === "to" ? "date" : "number"}
-                  min={name.endsWith("Id") ? "1" : undefined}
-                  step={name.endsWith("Id") ? "1" : undefined}
-                  value={value}
-                  onChange={(e) =>
-                    setDraft((d) => ({ ...d, [name]: e.target.value }))
-                  }
-                />
-              </label>
-            ))}
-            <button type="submit">Apply filters</button>
-          </form>
+          <DashboardFilters
+            owner={owner}
+            invalidate={actions.invalidateSession}
+            apply={(query) => {
+              setQuery(query);
+              setRetry((n) => n + 1);
+            }}
+          />
           <button onClick={() => setRetry((n) => n + 1)}>Refresh</button>
           {visible?.error && <p role="alert">{visible.error}</p>}
           {!visible && <p role="status">Loading dashboard…</p>}
