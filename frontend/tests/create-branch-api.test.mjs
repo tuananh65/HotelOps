@@ -1,4 +1,4 @@
-﻿import { test } from "node:test";
+import { test } from "node:test";
 import assert from "node:assert/strict";
 import { build } from "esbuild";
 const b = await build({
@@ -11,7 +11,7 @@ const { createBranchApi } = await import(
   "data:text/javascript;base64," +
     Buffer.from(b.outputFiles[0].text).toString("base64")
 );
-const tag = '"' + "A".repeat(64) + '"',
+const tag = '"AAAAAAAAAAE="',
   secret = "SYNTHETIC-CREATE-CSRF";
 const input = {
   code: " b-new ",
@@ -103,7 +103,10 @@ for (const reply of [
   { body: { ...branch, isActive: false } },
   { body: { ...branch, timezone: "OTHER" } },
   { body: { ...branch, address: null } },
-  { body: branch, etag: '"AAAAAAAAAAE="' },
+  {
+    body: branch,
+    etag: '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
+  },
   { body: branch, etag: "W/" + tag },
   { body: null },
   { raw: "{" },

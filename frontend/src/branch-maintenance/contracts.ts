@@ -40,7 +40,7 @@ export type BranchWriteResult =
 export const safeId = (v: unknown): v is number =>
   typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 export const strongBranchTag = (v: unknown): v is string =>
-  typeof v === "string" && /^"[0-9A-F]{64}"$/.test(v);
+  typeof v === "string" && /^"[A-Za-z0-9+/]{10}[AEIMQUYcgkosw048]="$/.test(v);
 const text = (v: unknown, max: number): v is string =>
   typeof v === "string" && v.length <= max && !/[\u0000-\u001f\u007f]/.test(v);
 const nullable = (v: unknown, max: number): v is string | null =>

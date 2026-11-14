@@ -1,9 +1,9 @@
-﻿import { test, before, after } from "node:test";
+import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { build } from "esbuild";
 import { chromium } from "@playwright/test";
-const tag = '"' + "A".repeat(64) + '"',
+const tag = '"AAAAAAAAAAE="',
   secret = "SYNTHETIC-CREATE-CSRF";
 const branch = {
   id: 42,

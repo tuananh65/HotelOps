@@ -8,7 +8,7 @@ import {
   type BranchWriteResult,
   type BranchUpdate,
 } from "./contracts";
-/** UC012 normal flow only. Targets the active BranchMaintenanceController / MaintainBranchAsync contract.
+/** UC012 normal flow only. Targets the active BranchMaintenanceController / BranchAdministrationService SQL RowVersion contract.
  * No backend activation is performed by this client.
  */
 export function createBranchMaintenanceApi(
@@ -115,7 +115,10 @@ export function createBranchMaintenanceApi(
       if (!bootstrap.ok)
         return {
           outcome: "NOT_DISPATCHED",
-          error: { kind: "invalid-response" },
+          error:
+            bootstrap.error.kind === "http"
+              ? { kind: "http", status: bootstrap.error.status }
+              : { kind: "invalid-response" },
         };
       if (signal?.aborted || !stillCurrent())
         return { outcome: "NOT_DISPATCHED", error: { kind: "stale" } };

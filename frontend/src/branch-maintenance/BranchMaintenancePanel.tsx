@@ -25,11 +25,13 @@ type Review = { key: object; input: BranchUpdate; etag: string };
 export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
   const { state, actions } = useAuth();
   const [api] = useState(() => createBranchMaintenanceApi());
+  const [needsSession, setNeedsSession] = useState(false);
   const confirmed =
     state.status === "AUTHENTICATED" &&
     state.session !== null &&
     !state.session.mustChangePassword &&
-    state.pending === null;
+    state.pending === null &&
+    !needsSession;
   const key = useMemo(() => ({}), [state.session, branchId, confirmed]);
   const latest = useRef({ key, confirmed });
   latest.current = { key, confirmed };
@@ -72,7 +74,8 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
           email: result.data.branch.email,
           reason: "",
         });
-      } else
+      } else {
+        if (result.error.status === 401) setNeedsSession(true);
         setRead({
           key,
           error:
@@ -84,6 +87,7 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
                   ? "Server denied branch management access."
                   : "Branch information unavailable.",
         });
+      }
     });
     return () => {
       active = false;
@@ -144,6 +148,7 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
         "Version changed or unavailable. Read again, review the latest values, then confirm a new update.",
       );
     } else {
+      if (result.error.status === 401) setNeedsSession(true);
       if ([401, 403, 404].includes(result.error.status ?? 0)) {
         setRead({
           key,
@@ -166,6 +171,31 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
       );
     }
   }
+  if (needsSession)
+    return (
+      <section>
+        <p role="alert">
+          Branch data cleared after server rejection. Session invalid.
+          Revalidate before continuing.
+        </p>
+        <button
+          disabled={state.pending !== null}
+          onClick={() =>
+            void (async () => {
+              const result = await actions.revalidate();
+              if (
+                mounted.current &&
+                result.ok &&
+                !result.data.mustChangePassword
+              )
+                setNeedsSession(false);
+            })()
+          }
+        >
+          Check session
+        </button>
+      </section>
+    );
   if (!confirmed)
     return <p role="alert">A confirmed unrestricted session is required.</p>;
   if (!safeId(branchId))

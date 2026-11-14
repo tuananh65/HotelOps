@@ -11,9 +11,8 @@ const { createBranchMaintenanceApi } = await import(
   "data:text/javascript;base64," +
     Buffer.from(bundle.outputFiles[0].text).toString("base64")
 );
-const tag =
-    '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
-  next = '"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"',
+const tag = '"AAAAAAAAAAE="',
+  next = '"AAAAAAAAAAI="',
   secret = "SYNTHETIC-BRANCH-PRIVATE";
 const branch = (id = 1) => ({
   id,
@@ -160,12 +159,67 @@ test("404 read remains unavailable error, never empty success", async () => {
     error: { kind: "http", status: 404 },
   });
 });
-test("active UC012 ETag contract rejects legacy base64 rowversion", async () => {
-  const h = setup({ body: branch(), etag: '"AAAAAAAAAAE="' });
+test("SQL RowVersion contract rejects legacy document-hash ETag", async () => {
+  const h = setup({
+    body: branch(),
+    etag: '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
+  });
   assert.equal((await h.api.read(1)).ok, false);
   assert.equal(
-    (await h.api.update(1, '"AAAAAAAAAAE="', update, () => true)).outcome,
+    (
+      await h.api.update(
+        1,
+        '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
+        update,
+        () => true,
+      )
+    ).outcome,
     "NOT_DISPATCHED",
   );
   assert.equal(h.calls.filter((c) => c.method === "PUT").length, 0);
+});
+
+for (const status of [401, 403, 503])
+  test(`CSRF ${status} preserves status without PUT`, async () => {
+    const calls = [];
+    const api = createBranchMaintenanceApi(async (url, init) => {
+      calls.push({ url, ...init });
+      return Response.json({ detail: secret }, { status });
+    });
+    assert.deepEqual(await api.update(1, tag, update, () => true), {
+      outcome: "NOT_DISPATCHED",
+      error: { kind: "http", status },
+    });
+    assert.equal(calls.length, 1);
+    assert.equal(calls[0].url, "/api/auth/csrf");
+  });
+
+test("canonical SQL RowVersion validates every final byte without accepting alternate padding", async () => {
+  const { strongBranchTag } = await import(
+    "data:text/javascript;base64," +
+      Buffer.from(
+        (
+          await build({
+            entryPoints: ["src/branch-maintenance/contracts.ts"],
+            bundle: true,
+            write: false,
+            format: "esm",
+          })
+        ).outputFiles[0].text,
+      ).toString("base64")
+  );
+  for (let b = 0; b < 256; b++) {
+    const bytes = Buffer.from([0, 1, 2, 3, 4, 5, 6, b]);
+    assert.equal(strongBranchTag('"' + bytes.toString("base64") + '"'), true);
+  }
+  for (const bad of [
+    '"AAAAAAAAAAB="',
+    '"AAAAAAAAAAA"',
+    '"AAAAAAAAAAA=="',
+    'W/"AAAAAAAAAAE="',
+    '"0011223344556677"',
+    tag + "," + tag,
+    "*",
+  ])
+    assert.equal(strongBranchTag(bad), false);
 });

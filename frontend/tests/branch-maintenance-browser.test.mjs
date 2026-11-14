@@ -3,9 +3,8 @@ import assert from "node:assert/strict";
 import { existsSync } from "node:fs";
 import { build } from "esbuild";
 import { chromium } from "@playwright/test";
-const tag =
-    '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
-  next = '"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"',
+const tag = '"AAAAAAAAAAE="',
+  next = '"AAAAAAAAAAI="',
   secret = "SYNTHETIC-BRANCH-PRIVATE";
 const branch = (id) => ({
   id,
@@ -31,7 +30,7 @@ const bundle = await build({
     contents: `
 import React,{StrictMode,useState} from 'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthApi}from'./src/auth/authApi';import{createAuthStore}from'./src/auth/authStore';import{BrowserRouter}from'react-router-dom';import{HotelRouteHost}from'./src/hotel/HotelRouteHost';
 const calls=[],waiting=new Map(),scenario=window.scenario;const make=r=>new Response(r.status===204?null:JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':'application/json',ETag:r.etag??${JSON.stringify(tag)}}});
-window.fetch=async(url,init)=>{const c={url,method:init.method,credentials:init.credentials,cache:init.cache,body:init.body,headers:Object.fromEntries(init.headers),aborted:false};calls.push(c);init.signal?.addEventListener('abort',()=>c.aborted=true,{once:true});let r;if(url==='/api/auth/session')r=scenario.auth??{body:${JSON.stringify(session())}};else if(url==='/api/auth/csrf')r={body:{csrfToken:${JSON.stringify(secret)},headerName:'X-CSRF-TOKEN'}};else if(init.method==='GET'){const id=Number(url.split('/')[3]);r=scenario.read??{body:{...${JSON.stringify(branch(1))},id,code:'B'+id,name:'Branch '+id,address:'Address '+id}}}else r=scenario.write??{body:{...${JSON.stringify(branch(1))},...JSON.parse(init.body)},etag:${JSON.stringify(next)}};if(r.network)throw Error(${JSON.stringify(secret)});if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r)};
+window.fetch=async(url,init)=>{const c={url,method:init.method,credentials:init.credentials,cache:init.cache,body:init.body,headers:Object.fromEntries(init.headers),aborted:false};calls.push(c);init.signal?.addEventListener('abort',()=>c.aborted=true,{once:true});let r;if(url==='/api/auth/session')r=scenario.auth??{body:${JSON.stringify(session())}};else if(url==='/api/auth/csrf')r=scenario.csrf??{body:{csrfToken:${JSON.stringify(secret)},headerName:'X-CSRF-TOKEN'}};else if(init.method==='GET'){const id=Number(url.split('/')[3]);r=scenario.read??{body:{...${JSON.stringify(branch(1))},id,code:'B'+id,name:'Branch '+id,address:'Address '+id}}}else r=scenario.write??{body:{...${JSON.stringify(branch(1))},...JSON.parse(init.body)},etag:${JSON.stringify(next)}};if(r.network)throw Error(${JSON.stringify(secret)});if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r)};
 const store=createAuthStore(createAuthApi(window.fetch));function App(){window.selectBranch=id=>{history.pushState(null,'','/branches/'+id+'/edit');dispatchEvent(new PopStateEvent('popstate'))};return <HotelRouteHost/>};const app=<BrowserRouter><App/></BrowserRouter>;createRoot(document.getElementById('root')).render(<StrictMode><AuthProvider store={store} fallback={app}>{app}</AuthProvider></StrictMode>);window.fixture={calls,resolve:(name,r)=>waiting.get(name)(make(r)),scenario,revalidate:()=>store.revalidate()};
 `,
   },
@@ -296,3 +295,107 @@ test("FE02 structure navigation reaches editor; FE01 Profile remains available",
       .waitFor();
     assert.equal((await writes(p)).length, 0);
   }));
+
+test("CSRF 401 clears protected branch fields without sending PUT", () =>
+  pageTest({ csrf: { status: 401, body: { detail: secret } } }, async (p) => {
+    await review(p);
+    await p.getByRole("button", { name: "Confirm update" }).click();
+    await p
+      .getByText("Branch data cleared after server rejection.", {
+        exact: false,
+      })
+      .waitFor();
+    assert.equal(
+      await p.getByRole("textbox", { name: "name", exact: true }).count(),
+      0,
+    );
+    assert.equal((await writes(p)).length, 0);
+  }));
+
+for (const origin of ["read", "csrf"])
+  test(`401 ${origin} recovery survives branch change and failed revalidation`, () =>
+    pageTest(
+      origin === "read"
+        ? { read: { status: 401, body: {} } }
+        : { csrf: { status: 401, body: {} } },
+      async (p) => {
+        if (origin === "csrf") {
+          await review(p);
+          await p.getByRole("button", { name: "Confirm update" }).click();
+        }
+        await p
+          .getByText("Branch data cleared after server rejection.", {
+            exact: false,
+          })
+          .waitFor();
+        const initial = await p.evaluate(
+          () =>
+            window.fixture.calls.filter((c) =>
+              c.url.startsWith("/api/branches"),
+            ).length,
+        );
+        await p.evaluate(() => {
+          window.fixture.scenario.read = {
+            body: {
+              id: 2,
+              code: "B2",
+              name: "Branch 2",
+              address: "Address",
+              phone: null,
+              email: null,
+              timezone: "Asia/Ho_Chi_Minh",
+              isActive: true,
+            },
+          };
+          window.selectBranch(2);
+        });
+        await settle(p);
+        assert.equal(
+          await p.evaluate(
+            () =>
+              window.fixture.calls.filter((c) =>
+                c.url.startsWith("/api/branches"),
+              ).length,
+          ),
+          initial,
+        );
+        await p.evaluate(() => {
+          window.fixture.scenario.auth = {
+            status: 503,
+            body: { detail: "private" },
+          };
+        });
+        await p.getByRole("button", { name: "Check session" }).click();
+        await p.waitForFunction(
+          () =>
+            window.fixture.calls.filter((c) => c.url === "/api/auth/session")
+              .length >= 2,
+        );
+        await settle(p);
+        assert.equal(
+          await p.getByRole("textbox", { name: "name", exact: true }).count(),
+          0,
+        );
+        assert.equal(
+          await p.evaluate(
+            () =>
+              window.fixture.calls.filter((c) =>
+                c.url.startsWith("/api/branches"),
+              ).length,
+          ),
+          initial,
+        );
+        await p.evaluate((s) => {
+          window.fixture.scenario.auth = { body: s };
+        }, session());
+        await p.getByRole("button", { name: "Check session" }).click();
+        await p.getByRole("textbox", { name: "name", exact: true }).waitFor();
+        assert.equal(
+          await p
+            .getByRole("textbox", { name: "name", exact: true })
+            .inputValue(),
+          "Branch 2",
+        );
+        assert.equal((await writes(p)).length, 0);
+      },
+    ));
