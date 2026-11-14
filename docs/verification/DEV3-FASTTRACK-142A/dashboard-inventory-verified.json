@@ -1,0 +1,163 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 360086,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85\u0026from=2026-11-14\u0026to=2026-11-14",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85\u0026from=2026-11-14\u0026to=2026-11-14\u0026departmentId=10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85\u0026from=2026-11-16\u0026to=2026-11-16",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "inventoryPositiveRows": true,
+      "utcInclusiveStartExclusiveEnd": true,
+      "signedDecimalStrings": true,
+      "separateItemUnitWarehouse": true,
+      "foreignWarehouseExcluded": true,
+      "departmentScope": true,
+      "lowStockStrictMinimum": true
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85\u0026departmentId=10",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=87",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/options",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=86",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85\u0026departmentId=11",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=0",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?from=2026-11-15\u0026to=2026-11-14",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?to=9999-12-31",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "dashboardPath": "/api/dashboards/operations?branchId=85",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "scopedDashboardCounts": true,
+      "unknownMetricsRemainNull": true,
+      "departmentAndZeroDenominator": true
+    },
+    {
+      "dashboardFixtureCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "success": true,
+  "scope": "Real HTTPS/SQL auth and scoped dashboard reads; no browser or all-KPI acceptance"
+}

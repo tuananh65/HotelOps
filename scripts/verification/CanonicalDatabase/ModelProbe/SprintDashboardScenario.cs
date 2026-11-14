@@ -15,6 +15,7 @@ internal static class SprintDashboardScenario
         var empty=new Branch {BranchCode=prefix+"C",BranchName="Synthetic empty dashboard",IsActive=true};
         var type=new RoomType {TypeCode=prefix,TypeName="Synthetic type",StandardCapacity=1,IsActive=true};
         long[] branches=[];
+        var inventory=new SprintDashboardInventory(db,prefix,actor);
         async Task<JsonElement> Get(string path,int expected)
         {
             using var response=await http.GetAsync(path,ct);
@@ -52,6 +53,8 @@ internal static class SprintDashboardScenario
                 db.UserBranchAccesses.Add(new UserBranchAccess {UserId=actor,BranchId=branch,AccessLevel="STANDARD",GrantedAt=DateTime.UtcNow.AddMinutes(-1)});
             }
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            await inventory.SeedAsync(own.BranchId,foreign.BranchId,ownDept.DepartmentId,ct);
+            await inventory.VerifyAsync(Get,own.BranchId,ownDept.DepartmentId,checks);
             var data=await Get("/api/dashboards/operations?branchId="+own.BranchId,200);
             if(Metric(data,"activeRooms").GetInt32()!=2||Metric(data,"readyRooms").GetInt32()!=1||Metric(data,"readyRatio").GetDecimal()!=50||Metric(data,"openIncidents").GetInt32()!=1)
                 throw new Exception("Dashboard counts leaked foreign/inactive records");
@@ -80,6 +83,7 @@ internal static class SprintDashboardScenario
         finally
         {
             db.ChangeTracker.Clear();await using var cleanup=await db.Database.BeginTransactionAsync(CancellationToken.None);
+            await inventory.CleanupAsync(CancellationToken.None);
             await db.MaintenanceWorks.Where(w=>w.WorkNo==prefix&&w.CreatedBy==actor).ExecuteDeleteAsync(CancellationToken.None);
             await db.Incidents.Where(i=>branches.Contains(i.BranchId)&&i.IncidentNo.StartsWith(prefix)&&i.ReportedBy==actor).ExecuteDeleteAsync(CancellationToken.None);
             await db.OperationalTasks.Where(t=>branches.Contains(t.BranchId)&&t.TaskCode.StartsWith(prefix)&&t.CreatedBy==actor).ExecuteDeleteAsync(CancellationToken.None);
