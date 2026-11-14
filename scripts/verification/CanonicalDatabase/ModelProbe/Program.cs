@@ -23,6 +23,8 @@ if (args.Length == 2 && args[0] == "--sprint-activation-browser")
     return await SprintAuthProbe.RunAsync(args[1], activation: true, browser: true);
 if (args.Length == 2 && args[0] == "--sprint-ir-history")
     return await SprintInternalRequestHistoryProbe.RunAsync(args[1]);
+if (args.Length == 2 && args[0] == "--sprint-reports")
+    return await SprintReportProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-notifications")
     return await SprintAuthProbe.RunAsync(args[1], notifications: true);
 if (args.Length == 2 && args[0] == "--sprint-notification-browser")
