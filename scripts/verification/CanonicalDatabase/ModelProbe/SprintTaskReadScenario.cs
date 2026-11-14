@@ -9,7 +9,18 @@ internal static class SprintTaskReadScenario
 {
     internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password)
     {
-        if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct))throw new Exception("Empty task fixture required");
+        if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct)||await db.Attachments.AnyAsync(ct))throw new Exception("Empty task/evidence fixture required");
+        var evidenceRoot=Path.GetFullPath("TestResults/sprint25-evidence");
+        if(Directory.Exists(evidenceRoot) && ((File.GetAttributes(evidenceRoot)&FileAttributes.ReparsePoint)!=0 || Directory.EnumerateFileSystemEntries(evidenceRoot).Any()))
+            throw new Exception("Empty owned evidence directory required");
+        var ownedFiles=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        string EvidencePath(string key)
+        {
+            if(!System.Text.RegularExpressions.Regex.IsMatch(key,"^[a-f0-9]{32}\\.(png|jpg|pdf)$"))throw new Exception("Unexpected evidence storage key");
+            var full=Path.GetFullPath(Path.Combine(evidenceRoot,key));
+            if(Path.GetDirectoryName(full)!=evidenceRoot)throw new Exception("Evidence path escaped owned root");
+            return full;
+        }
         var prefix="D3-TASK-"+Guid.NewGuid().ToString("N")[..8];
         long[] branches=[];long[] tasks=[];long department=0;long assignment=0;
         async Task Seed()
@@ -34,6 +45,13 @@ internal static class SprintTaskReadScenario
         }
         async Task Cleanup(CancellationToken token)
         {
+            var attachments=await db.Attachments.AsNoTracking().Where(a=>a.EntityType=="TASK"&&tasks.Contains(a.EntityId)&&a.UploadedBy==actor).ToArrayAsync(token);
+            foreach(var attachment in attachments)
+            {
+                ownedFiles.Add(EvidencePath(attachment.StorageKey));
+                await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.progress_evidence_links WHERE attachment_id={attachment.AttachmentId}",token);
+            }
+            await db.Attachments.Where(a=>a.EntityType=="TASK"&&tasks.Contains(a.EntityId)&&a.UploadedBy==actor).ExecuteDeleteAsync(token);
             foreach(var task in tasks) await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.task_progress_versions WHERE task_id={task}",token);
             await db.AuditLogs.Where(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks").ExecuteDeleteAsync(token);
             await db.OperationalTaskProgresses.Where(p=>tasks.Contains(p.TaskId)).ExecuteDeleteAsync(token);
@@ -86,6 +104,15 @@ internal static class SprintTaskReadScenario
             await Put(progressPath,428,null,csrf,update);
             await Put(progressPath,400,version,csrf,new{percent=101,items=Array.Empty<object>(),note="invalid"});
             await Put(progressPath,400,version,csrf,new{percent=50,items=new[]{new{id=long.MaxValue,outcome="PASS"}},note="foreign criterion"});
+            // First file is stored, then a bad second file must roll back SQL and remove the owned file.
+            await Put(progressPath,400,version,csrf,new{percent=50,items=Array.Empty<object>(),note="invalid second evidence",
+                photos=new[]{
+                    new{name="synthetic-valid.png",mimeType="image/png",base64="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII="},
+                    new{name="synthetic-invalid.png",mimeType="image/png",base64="bm90IGFuIGltYWdl"}}});
+            if(await db.Attachments.AnyAsync(ct)||await db.OperationalTaskProgresses.CountAsync(p=>p.TaskId==tasks[0],ct)!=2
+                ||Directory.Exists(evidenceRoot)&&Directory.EnumerateFileSystemEntries(evidenceRoot).Any())
+                throw new Exception("Invalid second evidence did not roll back progress/attachment/file");
+            checks.Add(new{invalidSecondEvidenceRollsBackSqlAndPrivateFile=true});
             await Put(progressPath,200,version,csrf,update);
             await Put(progressPath,412,version,csrf,update);
             await Get(root+"/"+tasks[3]+"/progress",403);
@@ -149,12 +176,34 @@ internal static class SprintTaskReadScenario
             if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=3)
                 throw new Exception("Browser progress audit missing");
             checks.Add(new{browserProgressPersisted=true,pausedProgressAccepted=true,threeSuccessfulWriteAudits=true});
+            var attachment=await db.Attachments.AsNoTracking().SingleAsync(a=>a.EntityType=="TASK"&&a.EntityId==tasks[0]&&a.UploadedBy==actor,ct);
+            var stored=EvidencePath(attachment.StorageKey);ownedFiles.Add(stored);
+            var bytes=Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=");
+            if(!File.Exists(stored)||!(await File.ReadAllBytesAsync(stored,ct)).SequenceEqual(bytes)
+                ||attachment.OriginalFileName!="synthetic-task.png"||attachment.FileSizeBytes!=bytes.Length)
+                throw new Exception("Evidence storage mismatch; API must use the dedicated trial evidence root");
+            var evidencePath=progressPath+"/evidence/"+attachment.AttachmentId;
+            using(var downloaded=await http.GetAsync(evidencePath,ct))
+            {
+                downloaded.EnsureSuccessStatusCode();
+                if(!(await downloaded.Content.ReadAsByteArrayAsync(ct)).SequenceEqual(bytes)
+                    ||downloaded.Content.Headers.ContentType?.MediaType!="image/png"
+                    ||downloaded.Content.Headers.ContentDisposition?.DispositionType!="attachment")throw new Exception("Protected evidence response mismatch");
+            }
+            await Get(progressPath+"/evidence/"+long.MaxValue,404);
+            var linked=await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.progress_evidence_links e JOIN dbo.operational_task_progress p ON p.progress_id=e.task_progress_id WHERE e.attachment_id={attachment.AttachmentId} AND p.task_id={tasks[0]} AND p.description='Browser synthetic progress'").SingleAsync(ct);
+            if(linked!=1)throw new Exception("Evidence is not linked to its committed progress update");
+            checks.Add(new{taskEvidenceStoredAndDownloaded=true,progressEvidenceLinkVerified=true});
             await db.UserBranchAccesses.Where(a=>a.UserId==actor&&a.BranchId==branches[0]).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.RevokedAt,DateTime.UtcNow),ct);
             await Get(root,403);
+            await Get(evidencePath,403);
         }
         finally
         {
             await using var cleanup=await db.Database.BeginTransactionAsync(CancellationToken.None);await Cleanup(CancellationToken.None);await cleanup.CommitAsync(CancellationToken.None);
+            foreach(var file in ownedFiles)File.Delete(file);
+            if(Directory.Exists(evidenceRoot)&&Directory.EnumerateFileSystemEntries(evidenceRoot).Any())throw new Exception("Evidence cleanup incomplete");
+            if(await db.Attachments.AnyAsync())throw new Exception("Attachment cleanup incomplete");
             if(await db.OperationalTasks.AnyAsync()||await db.Branches.AnyAsync())throw new Exception("Task fixture cleanup incomplete");
             checks.Add(new{taskFixtureCleanup=true});
         }

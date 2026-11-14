@@ -19,6 +19,17 @@ export interface TaskProgress {
   state: "IN_PROGRESS" | "PAUSED";
   percent: number;
   items: Criterion[];
+  evidence: TaskEvidence[];
+}
+export interface TaskEvidence {
+  id: number;
+  entityType: "TASK";
+  entityId: number;
+  name: string;
+  mimeType: string | null;
+  bytes: number | null;
+  uploadedAt: string;
+  downloadPath: string;
 }
 export interface TaskProgressSnapshot {
   data: TaskProgress;
@@ -78,6 +89,27 @@ function validate(data: TaskProgress, branch: number, task: number) {
         i.done !== null ||
         ![null, "PASS", "FAIL"].includes(i.outcome) ||
         !text(i.note, 1000),
+    ) ||
+    !Array.isArray(data.evidence) ||
+    data.evidence.length > 100 ||
+    new Set(data.evidence.map((e) => e?.id)).size !== data.evidence.length ||
+    data.evidence.some(
+      (e) =>
+        !e ||
+        !id(e.id) ||
+        e.entityType !== "TASK" ||
+        e.entityId !== task ||
+        typeof e.name !== "string" ||
+        !e.name.trim() ||
+        !text(e.name, 200) ||
+        (e.mimeType !== null &&
+          !["image/png", "image/jpeg", "application/pdf"].includes(
+            e.mimeType,
+          )) ||
+        (e.bytes !== null && (!Number.isSafeInteger(e.bytes) || e.bytes < 1)) ||
+        typeof e.uploadedAt !== "string" ||
+        !Number.isFinite(Date.parse(e.uploadedAt)) ||
+        e.downloadPath !== `${path(branch, task)}/evidence/${e.id}`,
     )
   )
     throw new Error("Invalid task progress response");

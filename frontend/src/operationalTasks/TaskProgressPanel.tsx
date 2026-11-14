@@ -134,6 +134,26 @@ export function TaskProgressPanel({
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
       {current && (
+        <section aria-label="Saved task evidence">
+          <h4>Saved evidence</h4>
+          {current.data.evidence.length === 0 ? (
+            <p>No evidence uploaded.</p>
+          ) : (
+            <ul>
+              {current.data.evidence.map((file) => (
+                <li key={file.id}>
+                  <a href={file.downloadPath} download={file.name}>
+                    {file.name}
+                  </a>
+                  {file.bytes !== null && <> — {file.bytes} bytes</>}
+                  <time dateTime={file.uploadedAt}> — {file.uploadedAt}</time>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+      {current && (
         <form onSubmit={save}>
           <p>Task execution state: {current.data.state}</p>
           <fieldset disabled={busy || locked}>

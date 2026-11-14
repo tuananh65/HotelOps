@@ -1,4 +1,9 @@
 import { chromium } from "@playwright/test";
+import { readFile } from "node:fs/promises";
+const evidence = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=",
+  "base64",
+);
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const fixture = JSON.parse(input);
@@ -42,14 +47,57 @@ try {
   await page.getByText("Earlier synthetic update", { exact: true }).waitFor();
   checks.push(stage);
   stage = "paused task progress save";
-  await page.getByText("Task execution state: PAUSED", { exact: true }).waitFor();
+  await page
+    .getByText("Task execution state: PAUSED", { exact: true })
+    .waitFor();
   await page.getByLabel("Progress (%)", { exact: true }).fill("75");
-  await page.getByLabel("Progress note", { exact: true }).fill("Browser synthetic progress");
-  await page.getByRole("button", { name: "Save progress", exact: true }).click();
-  await page.getByText("Progress saved. Reaching 100% does not complete this task.", { exact: true }).waitFor();
-  await page.getByRole("button", { name: "Reload progress (discard edits)", exact: true }).click();
-  await page.getByText("Task execution state: PAUSED", { exact: true }).waitFor();
-  if(await page.getByLabel("Progress (%)", { exact: true }).inputValue()!=="75") throw new Error("Saved progress missing after reload");
+  await page
+    .getByLabel("Progress note", { exact: true })
+    .fill("Browser synthetic progress");
+  await page
+    .getByLabel("Evidence files (up to 5, PNG/JPEG/PDF, 10 MB each)", {
+      exact: true,
+    })
+    .setInputFiles({
+      name: "synthetic-task.png",
+      mimeType: "image/png",
+      buffer: evidence,
+    });
+  await page
+    .getByRole("button", { name: "Save progress", exact: true })
+    .click();
+  await page
+    .getByText("Progress saved. Reaching 100% does not complete this task.", {
+      exact: true,
+    })
+    .waitFor();
+  await page
+    .getByRole("button", {
+      name: "Reload progress (discard edits)",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByText("Task execution state: PAUSED", { exact: true })
+    .waitFor();
+  if (
+    (await page.getByLabel("Progress (%)", { exact: true }).inputValue()) !==
+    "75"
+  )
+    throw new Error("Saved progress missing after reload");
+  checks.push(stage);
+  stage = "saved private evidence download after reload";
+  const downloadReady = page.waitForEvent("download");
+  await page
+    .getByRole("link", { name: "synthetic-task.png", exact: true })
+    .click();
+  const download = await downloadReady;
+  if (download.suggestedFilename() !== "synthetic-task.png")
+    throw new Error("Evidence filename mismatch");
+  const downloadedPath = await download.path();
+  if (!downloadedPath || !(await readFile(downloadedPath)).equals(evidence))
+    throw new Error("Evidence bytes mismatch");
+  await download.delete();
   checks.push(stage);
   stage = "search and empty result";
   await page
