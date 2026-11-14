@@ -38,6 +38,13 @@ await using (var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOps
     .UseSqlServer("Server=invalid;Database=NeverOpened;Integrated Security=true;TrustServerCertificate=true").Options))
 {
     var service = new RoomTypeCreationService(db, null!, null!, null!, TimeProvider.System);
+    try
+    {
+        await service.ApproveDomainInCallerTransactionAsync(null!, 1, 5, 1, "\"0000000000000001\"", default);
+        throw new Exception("Approval domain accepted absent transaction");
+    }
+    catch (InvalidOperationException error) when (error.Message.Contains("caller's clean SERIALIZABLE"))
+    { passed++; Console.WriteLine("PASS Approval domain rejects absent transaction before authorization or SQL"); }
     try { await service.LoadRejectInspectionSourceAsync(null!, 1, command, default); throw new Exception("Real adapter accepted absent transaction"); }
     catch (InvalidOperationException error) when (error.Message.Contains("caller's clean SERIALIZABLE"))
     { passed++; Console.WriteLine("PASS Real SQL adapter rejects absent caller transaction before opening connection"); }

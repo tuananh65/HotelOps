@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "scenario": "approve",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "duplicate",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "mandatory-fail",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "stale",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "wrong-branch",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "permission-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "session-revoked",
+      "success": true,
+      "rollbackVerified": true
+    }
+  ],
+  "failure": null,
+  "scope": "Real SQL credentials/session/permissions and internal approval domain participant; all writes rolled back; no public API or room/notification/replay acceptance"
+}

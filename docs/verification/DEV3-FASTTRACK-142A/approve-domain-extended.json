@@ -1,0 +1,47 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "scenario": "approve",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "duplicate",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "mandatory-fail",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "stale",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "wrong-branch",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "permission-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "session-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "cleaner-conflict",
+      "success": false,
+      "rollbackVerified": true
+    }
+  ],
+  "failure": "cleaner-conflict: SqlException: The INSERT statement conflicted with the CHECK constraint \u0022CK_cleaning_assignments_status\u0022. The conflict occurred in database \u0022HotelOps_DEV3_142A_20261114_cc78c13f\u0022, table \u0022dbo.cleaning_assignments\u0022, column \u0027assignment_status\u0027.",
+  "scope": "Real SQL credentials/session/permissions and internal approval domain participant; all writes rolled back; no public API or room/notification/replay acceptance"
+}

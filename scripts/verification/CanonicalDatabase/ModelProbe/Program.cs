@@ -16,6 +16,8 @@ if (args.Length == 2 && args[0] == "--sprint-schema")
     return await SprintSchemaProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-evidence-guard")
     return await SprintEvidenceGuardProbe.RunAsync(args[1]);
+if (args.Length == 2 && args[0] == "--sprint-approve")
+    return await SprintApproveProbe.RunAsync(args[1]);
 
 if (args.Length is < 2 or > 3 || (args.Length == 3 && args[2] != "--persistence")
     || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_(Fresh|Upgrade|AuthUpgrade)$"))
