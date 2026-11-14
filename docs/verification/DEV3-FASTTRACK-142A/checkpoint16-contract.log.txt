@@ -1,0 +1,23 @@
+✔ default denial and stable session/principal/branch scope (3.581ms)
+✔ read GET uses credentials/no-store; rejects cross-branch and missing ETag (18.8057ms)
+✔ start/save/finish use CSRF, strong If-Match, and backend state (1.2357ms)
+✔ 401 sync callback for read, write and CSRF; 403 local only (0.7128ms)
+✔ 401 on mutation response invokes captured callback without retry (0.4464ms)
+✔ aborted/superseded response cannot revoke newer generation (0.1979ms)
+✔ session invalidated during CSRF bootstrap never dispatches mutation (0.255ms)
+✔ 409/412/428 preserve conflict semantics; 503 and network remain uncertain (0.674ms)
+✔ defect fails before network when severity catalog is missing or untrusted (0.1888ms)
+✔ finish unexpected result fails uncertain, never implies PASS or READY (0.2756ms)
+✔ criteria bind exactly to inspection's assigned version (0.141ms)
+✔ No implicit severity and evidence authority (0.0507ms)
+✔ execution response accepts only valid unique server severity catalog (0.1488ms)
+✔ evidence uploads validate format, extension, signature, size and cancellation (5.0187ms)
+✔ weak/malformed ETags and invalid scope fail before any mutation or CSRF (0.2239ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 279.1808

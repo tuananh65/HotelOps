@@ -125,7 +125,11 @@ public sealed partial class RoomTypeCreationService
     {
         var history = await HistoryInspectionRows(db.RoomInspections.AsNoTracking().Where(i => i.InspectionId == source.InspectionId)).SingleAsync(ct);
         var detail = (await HistoryInspectionDetails([history], ct))[0];
-        return new(source.InspectionId, branch, source.RoomId, source.CleaningTaskId!.Value, source.InspectorUserId, source.VersionId, state.State!, state.DueAt, detail.Criteria, detail.Defects, detail.Evidence);
+        var severities = await db.ReferenceValues.AsNoTracking()
+            .Where(r => r.IsActive && r.GroupCode == "SEVERITY" && (r.ValueCode == "MINOR" || r.ValueCode == "MAJOR"))
+            .OrderBy(r => r.SortOrder).ThenBy(r => r.ReferenceId)
+            .Select(r => new InspectionSeverityDto(r.ReferenceId, r.ValueCode, r.DisplayName)).ToArrayAsync(ct);
+        return new(source.InspectionId, branch, source.RoomId, source.CleaningTaskId!.Value, source.InspectorUserId, source.VersionId, state.State!, state.DueAt, detail.Criteria, detail.Defects, detail.Evidence, severities);
     }
     private async Task<long> StoreInspectionEvidence(long inspection, long actor, EvidenceUpload upload, string root, List<string> owned, CancellationToken ct)
         => await StoreFeatureEvidence("INSPECTION", inspection, actor, upload, root, owned, ct);

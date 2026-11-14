@@ -38,6 +38,7 @@ export interface Inspection {
   dueAt: string | null;
   criteria: Criterion[];
   defects: Defect[];
+  severities?: SeverityOption[];
   evidence: Array<{
     id: number;
     entityType: string;
@@ -126,6 +127,22 @@ export function decodeInspection(
   )
     throw new Error("Invalid execution response");
   const v = raw as Inspection;
+  if (
+    v.severities !== undefined &&
+    (!Array.isArray(v.severities) ||
+      v.severities.some(
+        (s) =>
+          !s ||
+          !Number.isSafeInteger(s.id) ||
+          s.id <= 0 ||
+          !["MINOR", "MAJOR"].includes(s.code) ||
+          typeof s.name !== "string" ||
+          !s.name.trim(),
+      ) ||
+      new Set(v.severities.map((s) => s.id)).size !== v.severities.length ||
+      new Set(v.severities.map((s) => s.code)).size !== v.severities.length)
+  )
+    throw new Error("Invalid inspection severity catalog");
   if (
     v.id !== inspection ||
     v.branchId !== branch ||

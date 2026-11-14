@@ -6,7 +6,6 @@ import {
   reason,
   type CriterionResult,
   type LoadedInspection,
-  type SeverityOption,
 } from "./model";
 /** Direct-ID UI only; mounted by an explicit trusted DEV3 host only after separate approval. */
 export function InspectionWorkspace({
@@ -14,17 +13,16 @@ export function InspectionWorkspace({
   id,
   onDenied,
   onSessionInvalid,
-  severities,
 }: {
   branch: number;
   id: number;
   onDenied: (s: 401 | 403) => void;
   onSessionInvalid?: () => void;
-  severities?: SeverityOption[];
 }) {
   const lifetime = useRef<AbortController | null>(null);
   const running = useRef<AbortController | null>(null);
   const [current, setCurrent] = useState<LoadedInspection | null>(null);
+  const severities = current?.value.severities;
   const [busy, setBusy] = useState(false);
   const [reload, setReload] = useState(0);
   const [error, setError] = useState("");

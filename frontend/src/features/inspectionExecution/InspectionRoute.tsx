@@ -1,25 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { InspectionWorkspace } from "./InspectionWorkspace";
-import {
-  positiveId,
-  scopeOf,
-  type InspectionHostContext,
-  type SeverityOption,
-} from "./model";
+import { positiveId, scopeOf, type InspectionHostContext } from "./model";
 /** Isolated source candidate. The DEV3 Host owns permission and AuthorityGeneration. */
 export function InspectionRoute({
   context,
   initialId,
   onSessionInvalid,
   onAccessDenied,
-  severities,
 }: {
   context?: InspectionHostContext;
   initialId?: string;
   onSessionInvalid?: () => void;
   onAccessDenied?: (status: 401 | 403) => void;
-  /** Only an owner-accepted, backend-derived authoritative catalog may populate this. */
-  severities?: SeverityOption[];
 }) {
   const scope = scopeOf(context);
   if (!scope) return <p role="alert">Inspection execution is not admitted.</p>;
@@ -36,7 +28,6 @@ export function InspectionRoute({
       id={id}
       onAccessDenied={onAccessDenied}
       onSessionInvalid={onSessionInvalid}
-      severities={severities}
     />
   );
 }
@@ -45,13 +36,11 @@ function AuthorizedExecution({
   id,
   onSessionInvalid,
   onAccessDenied,
-  severities,
 }: {
   branch: number;
   id?: number;
   onSessionInvalid?: () => void;
   onAccessDenied?: (s: 401 | 403) => void;
-  severities?: SeverityOption[];
 }) {
   const [denied, setDenied] = useState<{
     status: 401 | 403;
@@ -85,7 +74,6 @@ function AuthorizedExecution({
       key={id}
       branch={branch}
       id={id}
-      severities={severities}
       onDenied={notify}
       onSessionInvalid={onSessionInvalid}
     />

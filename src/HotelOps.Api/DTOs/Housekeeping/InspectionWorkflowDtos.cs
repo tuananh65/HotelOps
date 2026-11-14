@@ -8,7 +8,9 @@ public sealed record RecordInspectionDefectRequest(long ItemId, long SeverityId,
 public sealed record AssignCleaningRequest(long AssigneeId, DateTime DueAt, string Reason, bool AdoptUnassignedLegacy = false);
 public sealed record AssignInspectionRequest(long InspectorId, DateTime DueAt, string Reason);
 public sealed record RequestReworkRequest(long AssigneeId, DateTime DueAt, IReadOnlyList<long> DefectIds, string Reason);
+public sealed record InspectionSeverityDto(long Id, string Code, string Name);
 public sealed record InspectionExecutionDto(long Id, long BranchId, long RoomId, long CleaningTaskId, long InspectorId, long VersionId,
     string State, DateTime? DueAt, IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryCriterionDto> Criteria,
-    IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryDefectDto> Defects, IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryEvidenceDto> Evidence);
+    IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryDefectDto> Defects, IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryEvidenceDto> Evidence,
+    IReadOnlyList<InspectionSeverityDto> Severities);
 public sealed record HousekeepingWriteDto(long Id, string State, string Notification = "NOT_INTEGRATED");

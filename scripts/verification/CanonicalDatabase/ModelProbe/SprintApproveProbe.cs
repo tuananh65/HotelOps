@@ -25,7 +25,7 @@ internal static class SprintApproveProbe
         var method = typeof(RoomTypeCreationService).GetMethod("ApproveDomainInCallerTransactionAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
         var checks = new List<object>();
         string? failure = null;
-        foreach (var scenario in new[] { "approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure" })
+        foreach (var scenario in new[] { "execution-catalog", "approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure" })
         {
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
             try
@@ -76,7 +76,33 @@ internal static class SprintApproveProbe
                     tag=await Tag();
                 }
                 audits=await db.AuditLogs.CountAsync(ct);
-                if(scenario=="audit-failure")
+                if(scenario=="execution-catalog")
+                {
+                    await db.Database.ExecuteSqlRawAsync("""
+                        IF NOT EXISTS(SELECT 1 FROM dbo.reference_values WHERE group_code='SEVERITY' AND value_code='MINOR')
+                            INSERT dbo.reference_values(group_code,value_code,display_name,is_active) VALUES('SEVERITY','MINOR','Synthetic minor',1);
+                        IF NOT EXISTS(SELECT 1 FROM dbo.reference_values WHERE group_code='SEVERITY' AND value_code='MAJOR')
+                            INSERT dbo.reference_values(group_code,value_code,display_name,is_active) VALUES('SEVERITY','MAJOR','Synthetic major',1);
+                        UPDATE dbo.reference_values SET is_active=1 WHERE group_code='SEVERITY' AND value_code IN('MINOR','MAJOR');
+                        """,ct);
+                    async Task<HotelOps.Api.DTOs.Housekeeping.InspectionExecutionDto> ReadExecution()
+                    {
+                        var stateTask = (Task<RoomTypeCreationService.HousekeepingState>)typeof(RoomTypeCreationService)
+                            .GetMethod("InspectionState",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(service,[inspection,ct])!;
+                        var state = await stateTask;
+                        var entity = await db.RoomInspections.AsNoTracking().SingleAsync(i=>i.InspectionId==inspection,ct);
+                        return await (Task<HotelOps.Api.DTOs.Housekeeping.InspectionExecutionDto>)typeof(RoomTypeCreationService)
+                            .GetMethod("ExecutionDto",BindingFlags.NonPublic|BindingFlags.Instance)!.Invoke(service,[entity,state,branch,ct])!;
+                    }
+                    var expectedCatalog=await db.ReferenceValues.AsNoTracking().Where(r=>r.GroupCode=="SEVERITY"&&(r.ValueCode=="MINOR"||r.ValueCode=="MAJOR"))
+                        .OrderBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId).Select(r=>new HotelOps.Api.DTOs.Housekeeping.InspectionSeverityDto(r.ReferenceId,r.ValueCode,r.DisplayName)).ToArrayAsync(ct);
+                    if(!(await ReadExecution()).Severities.SequenceEqual(expectedCatalog)) throw new Exception("Execution catalog did not preserve database IDs/labels/order");
+                    await db.Database.ExecuteSqlRawAsync("UPDATE dbo.reference_values SET is_active=0 WHERE group_code='SEVERITY' AND value_code='MINOR'",ct);
+                    var filtered=(await ReadExecution()).Severities;
+                    if(filtered.Count!=1||filtered[0].Code!="MAJOR") throw new Exception("Inactive severity leaked into execution catalog");
+                    if(await db.AuditLogs.CountAsync(ct)!=audits) throw new Exception("Catalog read wrote audit");
+                }
+                else if(scenario=="audit-failure")
                 {
                     // Test-only trigger exists inside the same disposable transaction and is rolled back.
                     await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_142A_AuditFault ON dbo.audit_logs AFTER INSERT AS BEGIN THROW 51994,'Synthetic audit fault',1; END",ct);

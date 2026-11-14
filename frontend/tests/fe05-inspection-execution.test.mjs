@@ -318,6 +318,33 @@ test("No implicit severity and evidence authority", () => {
   );
 });
 
+test("execution response accepts only valid unique server severity catalog", () => {
+  const entry = { id: 617, code: "MAJOR", name: "Catalog major" };
+  assert.deepEqual(
+    model.decodeInspection({ ...value(), severities: [entry] }, 7, 42, tag)
+      .value.severities,
+    [entry],
+  );
+  assert.equal(
+    model.decodeInspection(value(), 7, 42, tag).value.severities,
+    undefined,
+  );
+  for (const severities of [
+    null,
+    {},
+    [null],
+    [entry, entry],
+    [{ ...entry, id: -1 }],
+    [{ ...entry, code: "UNKNOWN" }],
+    [{ ...entry, name: " " }],
+    [entry, { ...entry, id: 618 }],
+  ]) {
+    assert.throws(() =>
+      model.decodeInspection({ ...value(), severities }, 7, 42, tag),
+    );
+  }
+});
+
 test("evidence uploads validate format, extension, signature, size and cancellation", async () => {
   const png = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
   const encoded = await model.encodeEvidence(

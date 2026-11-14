@@ -1,0 +1,11 @@
+PASS execution-catalog
+PASS approve
+PASS duplicate
+PASS mandatory-fail
+PASS stale
+PASS wrong-branch
+PASS permission-revoked
+PASS session-revoked
+PASS cleaner-conflict
+PASS invalid-state
+PASS audit-failure

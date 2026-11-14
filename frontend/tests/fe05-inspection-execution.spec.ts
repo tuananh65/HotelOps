@@ -308,14 +308,13 @@ test("start, save FAIL, record private evidence and finish stop at Pending Concl
   await expect(
     page.getByRole("button", { name: "Record defect", exact: true }),
   ).toBeDisabled();
-  // Explicit fixture-only catalog supplied through the trusted host input, never a source default.
-  await page.evaluate(
-    (c) =>
-      (window as any).renderHost(c, "42", [
-        { id: 617, code: "MAJOR", name: "Fixture major" },
-      ]),
-    host,
-  );
+  // Catalog arrives with the authorized execution response, not a host-injected ID.
+  Object.assign(current, {
+    severities: [{ id: 617, code: "MAJOR", name: "Fixture major" }],
+  });
+  await page
+    .getByRole("button", { name: "Verify current state (GET)", exact: true })
+    .click();
   await page.getByLabel("Failed criterion").selectOption("17");
   await page.getByRole("combobox", { name: /^Severity/ }).selectOption("617");
   await page.getByLabel("Description", { exact: true }).fill("Stain");
