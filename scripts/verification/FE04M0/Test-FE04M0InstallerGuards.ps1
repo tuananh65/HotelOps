@@ -93,7 +93,29 @@ try {
     if (-not $reference.Contains($PinnedTarget) -or -not $reference.Contains($marker) -or
         $reference.Contains("IF DB_NAME() NOT LIKE N'HotelOps[_]Canonical[_]%'") ) { throw 'Canonical guard adapter lost scope' }
     $script:pass++
-    Write-Output "FE04_M0_OFFLINE_GUARDS:$pass/31 PASS; SQL/HTTPS/DDL/DML NOT_RUN"
+    # These are pure function stubs: Verify-M0MinimumSchema must reject missing
+    # tables independently of live SQL, certificate, or provisioning state.
+    function Scalar($connection,[string]$sql) {
+        if ($sql -match 'dbo\.cleaning_reworks') { return 0 }
+        return 1
+    }
+    Reject 'm0_missing_cleaning_reworks' 'M0_TABLE_MISSING_cleaning_reworks' { Verify-M0MinimumSchema $null }
+    function Scalar($connection,[string]$sql) {
+        if ($sql -match 'dbo\.room_inspections') { return 0 }
+        return 1
+    }
+    Reject 'm0_missing_room_inspections' 'M0_TABLE_MISSING_room_inspections' { Verify-M0MinimumSchema $null }
+    function Scalar($connection,[string]$sql) {
+        if ($sql -match 'FROM dbo\.roles') { return 12 }
+        if ($sql -match 'FROM dbo\.permissions') { return 62 }
+        if ($sql -match 'FROM dbo\.role_permissions') { return 140 }
+        if ($sql -match 'FROM dbo\.branches') { return 2 }
+        if ($sql -match 'FROM dbo\.departments') { return 8 }
+        return 1 # All table metadata and Task26 condition are mocked present.
+    }
+    Verify-M0MinimumSchema $null
+    $script:pass++
+    Write-Output "FE04_M0_OFFLINE_GUARDS:$pass/34 PASS; SQL/HTTPS/DDL/DML NOT_RUN"
 } finally {
     $resolvedTemp=[IO.Path]::GetFullPath($temp)
     $tempRoot=[IO.Path]::GetFullPath([IO.Path]::GetTempPath())

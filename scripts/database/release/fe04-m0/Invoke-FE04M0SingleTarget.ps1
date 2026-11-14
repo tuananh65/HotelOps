@@ -104,7 +104,8 @@ function Verify-M0MinimumSchema($connection) {
     # comparison or FE04 writer acceptance. Requires explicit signoff in the detached Gate B envelope.
     $expected = @('users','user_roles','user_sessions','user_branch_access','roles','role_permissions',
         'permissions','branches','departments','rooms','floors','reference_values',
-        'cleaning_tasks','cleaning_assignments','cleaning_progress_logs','room_blocks','audit_logs')
+        'cleaning_tasks','cleaning_assignments','cleaning_progress_logs',
+        'cleaning_reworks','room_inspections','room_blocks','audit_logs')
     foreach ($table in $expected) {
         Require ((Scalar $connection "SELECT CASE WHEN OBJECT_ID(N'dbo.$table',N'U') IS NOT NULL THEN 1 ELSE 0 END") -eq 1) ('M0_TABLE_MISSING_' + $table)
     }
