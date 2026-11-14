@@ -124,6 +124,7 @@ const bundle = await build({
       import { BrowserRouter } from "react-router-dom";
       import { AuthProvider } from "./src/auth/AuthProvider";
       import { AuthRouteHost } from "./src/auth/AuthRouteHost";
+      import { SharedAuthHost } from "./src/shared-host/SharedAuthHost";
       import { createAuthStore } from "./src/auth/authStore";
       import { createAuthApi } from "./src/auth/authApi";
       const scenario = window.usersScenario;
@@ -156,7 +157,11 @@ const bundle = await build({
       };
       window.fetch = fetcher; // UsersRouteBoundary creates the real B-1 client over this fetch.
       const store = createAuthStore(createAuthApi(fetcher));
-      const host = <AuthRouteHost usersReadEnabled={scenario.usersEnabled !== false} structureReadEnabled />;
+      // Production host enables the integrated read routes. Keep the explicit
+      // opt-out scenario on the reusable host to verify its disabled mode too.
+      const host = scenario.usersEnabled === false
+        ? <SharedAuthHost usersReadEnabled={false} structureReadEnabled />
+        : <AuthRouteHost />;
       createRoot(document.getElementById("root")).render(
         <StrictMode><BrowserRouter><AuthProvider store={store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>
       );

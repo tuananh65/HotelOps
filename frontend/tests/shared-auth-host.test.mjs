@@ -52,8 +52,8 @@ const bundle = await build({
     loader: "tsx",
     resolveDir: process.cwd(),
     contents: `
-import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import React,{StrictMode}from'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./src/auth/AuthProvider';import{SharedAuthHost}from'./src/shared-host/SharedAuthHost';
-let snapshot={authorityGeneration:Object.freeze({}),status:'INITIALIZING',session:null,pending:null,error:null};const listeners=new Set();const session={user:{id:'7',username:'staff',name:'Staff'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:false};window.calls=[];window.fetch=async(url)=>{window.calls.push(String(url));if(window.realAuth){const response=window.realReplies[String(url)]?.shift();if(!response)throw Error("Unexpected offline request");if(response.deferred)await new Promise(r=>window.finishRealRevalidation=r);return new Response(response.status===204?null:JSON.stringify(response.body),{status:response.status,headers:{"Content-Type":"application/json"}})}return new Response('{}',{status:503})};function set(status){snapshot={authorityGeneration:Object.freeze({}),status,session:['AUTHENTICATED','RESTRICTED'].includes(status)?{...session,mustChangePassword:status==='RESTRICTED'}:null,pending:null,error:null};listeners.forEach(f=>f())}const store={invalidateSession(expected){if(expected===snapshot.authorityGeneration)set("EXPIRED_INVALID")},subscribe(f){listeners.add(f);return()=>listeners.delete(f)},getSnapshot:()=>snapshot,initialize:async()=>({ok:false,error:{kind:'network'}}),revalidate:async()=>{window.revalidationCalls=(window.revalidationCalls??0)+1;if(window.revalidationMode==="fail"){set("ERROR_UNAVAILABLE");return{ok:false,error:{kind:"network"}}}if(window.revalidationMode==="defer")await new Promise(r=>window.finishRevalidation=r);set('AUTHENTICATED');return{ok:true,data:snapshot.session}},login:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}},logout:async()=>{set('ANONYMOUS');return{ok:true}},changePassword:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}}};window.fixture={set,navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};const host=<SharedAuthHost usersReadEnabled structureReadEnabled/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={window.realAuth?window.realStore??(window.realStore=createAuthStore(createAuthApi(window.fetch))):store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
+import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import React,{StrictMode}from'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./src/auth/AuthProvider';import{AuthRouteHost}from'./src/auth/AuthRouteHost';
+let snapshot={authorityGeneration:Object.freeze({}),status:'INITIALIZING',session:null,pending:null,error:null};const listeners=new Set();const session={user:{id:'7',username:'staff',name:'Staff'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:false};window.calls=[];window.fetch=async(url,init)=>{window.calls.push(String(url));(window.methods??=[]).push(init?.method??"GET");if(window.businessReply)return new Response(JSON.stringify(window.businessReply.body),{status:window.businessReply.status,headers:{"Content-Type":"application/json"}});if(window.realAuth){const response=window.realReplies[String(url)]?.shift();if(!response)throw Error("Unexpected offline request");if(response.deferred)await new Promise(r=>window.finishRealRevalidation=r);return new Response(response.status===204?null:JSON.stringify(response.body),{status:response.status,headers:{"Content-Type":"application/json"}})}return new Response('{}',{status:503})};function set(status){snapshot={authorityGeneration:Object.freeze({}),status,session:['AUTHENTICATED','RESTRICTED'].includes(status)?{...session,mustChangePassword:status==='RESTRICTED'}:null,pending:null,error:null};listeners.forEach(f=>f())}const store={invalidateSession(expected){if(expected===snapshot.authorityGeneration)set("EXPIRED_INVALID")},subscribe(f){listeners.add(f);return()=>listeners.delete(f)},getSnapshot:()=>snapshot,initialize:async()=>({ok:false,error:{kind:'network'}}),revalidate:async()=>{window.revalidationCalls=(window.revalidationCalls??0)+1;if(window.revalidationMode==="fail"){set("ERROR_UNAVAILABLE");return{ok:false,error:{kind:"network"}}}if(window.revalidationMode==="defer")await new Promise(r=>window.finishRevalidation=r);set('AUTHENTICATED');return{ok:true,data:snapshot.session}},login:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}},logout:async()=>{set('ANONYMOUS');return{ok:true}},changePassword:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}}};window.fixture={set,navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};const host=<AuthRouteHost/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={window.realAuth?window.realStore??(window.realStore=createAuthStore(createAuthApi(window.fetch))):store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
 `,
   },
   bundle: true,
@@ -91,6 +91,131 @@ async function pageAt(path, status) {
   if (status) await page.evaluate((s) => window.fixture.set(s), status);
   return page;
 }
+
+for (const path of ["/users", "/users/42", "/hotel?branchId=7"]) {
+  for (const state of [
+    "INITIALIZING",
+    "ANONYMOUS",
+    "RESTRICTED",
+    "ERROR_UNAVAILABLE",
+  ]) {
+    test(`canonical read route ${path} denies business reads for ${state}`, async () => {
+      const p = await pageAt(path, state);
+      await p.evaluate(
+        () =>
+          new Promise((resolve) =>
+            requestAnimationFrame(() => requestAnimationFrame(resolve)),
+          ),
+      );
+      assert.deepEqual(await p.evaluate(() => window.calls), []);
+      assert.equal(
+        await p
+          .getByRole("heading", { name: "User directory", exact: true })
+          .count(),
+        0,
+      );
+      assert.equal(
+        await p
+          .getByRole("heading", {
+            name: "Hotel structure — Branch structure",
+            exact: true,
+          })
+          .count(),
+        0,
+      );
+      await p.close();
+    });
+  }
+}
+
+test("canonical operations navigation reaches integrated Users and Structure reads", async () => {
+  const p = await pageAt("/rooms/status", "AUTHENTICATED");
+  await p.getByRole("link", { name: "Users", exact: true }).click();
+  await p
+    .getByRole("heading", { name: "User directory", exact: true })
+    .waitFor();
+  await p.waitForFunction(() =>
+    window.calls.some((url) => url.startsWith("/api/users")),
+  );
+  await p.getByRole("link", { name: "Workspace", exact: true }).click();
+  await p.getByRole("link", { name: "Structure", exact: true }).click();
+  await p
+    .getByRole("heading", {
+      name: "Hotel structure — Branch structure",
+      exact: true,
+    })
+    .waitFor();
+  assert.equal(await p.getByText("Page not found", { exact: true }).count(), 0);
+  await p.close();
+});
+
+test("canonical user read renders permission denial without granting access", async () => {
+  const p = await pageAt("/users");
+  await p.evaluate(() => {
+    window.businessReply = {
+      status: 403,
+      body: { status: 403, code: "PERMISSION_DENIED" },
+    };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.getByRole("alert").waitFor();
+  assert.equal(await p.getByRole("table").count(), 0);
+  assert.ok(
+    (await p.evaluate(() => window.methods)).every(
+      (method) => method === "GET",
+    ),
+  );
+  await p.close();
+});
+
+test("canonical user directory discards data after same-account authority replacement", async () => {
+  const p = await pageAt("/users");
+  await p.evaluate(() => {
+    window.businessReply = {
+      status: 200,
+      body: {
+        items: [
+          {
+            id: 42,
+            employeeCode: "SYN42",
+            username: "synthetic42",
+            fullName: "Synthetic Directory Target",
+            email: "synthetic42@example.test",
+            accountStatus: "ACTIVE",
+            primaryBranch: null,
+            department: null,
+            roles: [],
+          },
+        ],
+        page: 1,
+        pageSize: 20,
+        totalCount: 1,
+      },
+    };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.getByRole("link", { name: "Synthetic Directory Target" }).waitFor();
+  await p.evaluate(() => {
+    window.businessReply = {
+      status: 200,
+      body: { items: [], page: 1, pageSize: 20, totalCount: 0 },
+    };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p
+    .getByRole("link", { name: "Synthetic Directory Target" })
+    .waitFor({ state: "detached" });
+  await p.waitForFunction(
+    () =>
+      window.calls.filter((url) => url.startsWith("/api/users")).length >= 2,
+  );
+  assert.ok(
+    (await p.evaluate(() => window.methods)).every(
+      (method) => method === "GET",
+    ),
+  );
+  await p.close();
+});
 test("bootstrap fail closed and explicit recovery", async () => {
   const p = await pageAt("/rooms/status");
   await p.getByText("Checking your session...").waitFor();
