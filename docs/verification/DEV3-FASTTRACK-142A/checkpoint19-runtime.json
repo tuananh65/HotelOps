@@ -1,0 +1,20 @@
+{
+  "success": false,
+  "fixtureActor": 360127,
+  "fixtureInspection": 350092,
+  "checks": [
+    {
+      "cleanupRehearsalRolledBack": true
+    },
+    {
+      "browser": {
+        "success": false,
+        "stage": "anonymous execution API denied",
+        "checks": []
+      }
+    }
+  ],
+  "failure": "Exception: Browser failed at anonymous execution API denied",
+  "cleanup": true,
+  "scope": "Real canonical production browser over validated HTTPS and owned SQL; execution through Pending Conclusion only; no approval or readiness acceptance"
+}

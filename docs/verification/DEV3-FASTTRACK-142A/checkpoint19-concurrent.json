@@ -1,0 +1,108 @@
+{
+  "success": true,
+  "fixtureActor": 360131,
+  "fixtureInspection": 350096,
+  "checks": [
+    {
+      "cleanupRehearsalRolledBack": true
+    },
+    {
+      "browser": {
+        "success": true,
+        "checks": [
+          "anonymous execution API denied",
+          "anonymous deep link and login",
+          "canonical inspection admission",
+          {
+            "label": "missing CSRF",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "missing ETag",
+            "expected": 428,
+            "actual": 428,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "weak ETag",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "stale ETag",
+            "expected": 412,
+            "actual": 412,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "wrong branch",
+            "expected": 403,
+            "actual": 403,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "finish before start",
+            "expected": 409,
+            "actual": 409,
+            "snapshotUnchanged": true
+          },
+          "start",
+          {
+            "label": "mandatory result missing",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          "save failed criterion",
+          {
+            "label": "failed criterion without defect",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "foreign criterion",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "unknown severity",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          {
+            "label": "second attachment invalid rolls back first",
+            "expected": 400,
+            "actual": 400,
+            "snapshotUnchanged": true
+          },
+          "defect with server catalog and evidence",
+          {
+            "label": "concurrent finish with one shared ETag",
+            "statuses": [
+              200,
+              412
+            ]
+          },
+          "stale UI finish requires explicit GET recovery",
+          "reload persists",
+          "logout"
+        ]
+      }
+    },
+    {
+      "persistedState": "PENDING_CONCLUSION",
+      "inspectionAudits": 4,
+      "defects": 1,
+      "evidenceBytesVerified": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "scope": "Real canonical production browser over validated HTTPS and owned SQL; execution through Pending Conclusion only; no approval or readiness acceptance"
+}

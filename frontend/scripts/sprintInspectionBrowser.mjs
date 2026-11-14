@@ -17,6 +17,70 @@ try {
   page.setDefaultTimeout(15000);
   const origin = "https://localhost:7142",
     path = `/inspections/${fixture.branch}/${fixture.inspection}/execution`;
+  const api = `${origin}/api/branches/${fixture.branch}/inspections/${fixture.inspection}`;
+  // Use the browser's validated HTTPS connection and cookie jar for direct API checks.
+  // No Node-specific certificate bypass or separate request-context trust settings.
+  async function request(url, options = {}) {
+    return page.evaluate(
+      async ({ url, options }) => {
+        const response = await fetch(url, {
+          method: options.method ?? "GET",
+          credentials: "include",
+          cache: "no-store",
+          headers: {
+            ...(options.data ? { "Content-Type": "application/json" } : {}),
+            ...options.headers,
+          },
+          body: options.data ? JSON.stringify(options.data) : undefined,
+        });
+        return {
+          status: response.status,
+          etag: response.headers.get("ETag"),
+          text: await response.text(),
+        };
+      },
+      { url, options },
+    );
+  }
+  async function snapshot() {
+    const response = await request(api + "/execution");
+    if (response.status !== 200) throw Error("Snapshot denied");
+    return { etag: response.etag, body: JSON.parse(response.text) };
+  }
+  async function rejected(
+    label,
+    endpoint,
+    expected,
+    data,
+    headers = {},
+    method = "POST",
+  ) {
+    stage = label;
+    const before = await snapshot();
+    const response = await request(endpoint, {
+      method,
+      data,
+      headers,
+    });
+    if (response.status !== expected) throw Error("Unexpected denial status");
+    const after = await snapshot();
+    if (
+      after.etag !== before.etag ||
+      JSON.stringify(after.body) !== JSON.stringify(before.body)
+    )
+      throw Error("Rejected request changed execution snapshot");
+    checks.push({
+      label,
+      expected,
+      actual: response.status,
+      snapshotUnchanged: true,
+    });
+  }
+  stage = "anonymous execution API denied";
+  await page.goto(origin + "/login");
+  const anonymous = await request(api + "/execution");
+  if (anonymous.status !== 401) throw Error("Anonymous execution exposed");
+  checks.push(stage);
   stage = "anonymous deep link and login";
   await page.goto(origin + path);
   await page.waitForURL("**/login?*");
@@ -34,6 +98,34 @@ try {
     })
     .waitFor();
   checks.push(stage);
+  const bootstrap = await request(origin + "/api/auth/csrf");
+  if (bootstrap.status !== 200) throw Error("CSRF bootstrap failed");
+  const csrf = JSON.parse(bootstrap.text).csrfToken;
+  const initial = await snapshot();
+  const headers = { "X-CSRF-TOKEN": csrf, "If-Match": initial.etag };
+  const reason = { reason: "Synthetic rejected operation" };
+  await rejected("missing CSRF", api + "/start", 400, reason, {
+    "If-Match": initial.etag,
+  });
+  await rejected("missing ETag", api + "/start", 428, reason, {
+    "X-CSRF-TOKEN": csrf,
+  });
+  await rejected("weak ETag", api + "/start", 400, reason, {
+    ...headers,
+    "If-Match": "W/" + initial.etag,
+  });
+  await rejected("stale ETag", api + "/start", 412, reason, {
+    ...headers,
+    "If-Match": '"0000000000000000"',
+  });
+  await rejected(
+    "wrong branch",
+    `${origin}/api/branches/${fixture.branch + 100000}/inspections/${fixture.inspection}/start`,
+    403,
+    reason,
+    headers,
+  );
+  await rejected("finish before start", api + "/finish", 409, reason, headers);
   stage = "start";
   await page
     .getByLabel("Reason", { exact: true })
@@ -43,6 +135,10 @@ try {
     .click();
   await page.getByText(/^State: INSPECTING\./).waitFor();
   checks.push(stage);
+  await rejected("mandatory result missing", api + "/finish", 400, reason, {
+    ...headers,
+    "If-Match": (await snapshot()).etag,
+  });
   stage = "save failed criterion";
   await page.getByRole("combobox", { name: /^Result/ }).selectOption("FAIL");
   await page.getByRole("button", { name: "Save results", exact: true }).click();
@@ -52,6 +148,47 @@ try {
     .filter({ hasText: "Synthetic criterion" })
     .waitFor({ state: "attached" });
   checks.push(stage);
+  const failed = await snapshot();
+  await rejected(
+    "failed criterion without defect",
+    api + "/finish",
+    400,
+    reason,
+    { ...headers, "If-Match": failed.etag },
+  );
+  const defect = {
+    itemId: failed.body.criteria[0].itemId,
+    severityId: fixture.severity,
+    description: "Synthetic rejected defect",
+    location: "Synthetic bed",
+  };
+  await rejected(
+    "foreign criterion",
+    api + "/defects",
+    400,
+    { ...defect, itemId: 900000000 },
+    { ...headers, "If-Match": failed.etag },
+  );
+  await rejected(
+    "unknown severity",
+    api + "/defects",
+    400,
+    { ...defect, severityId: 900000000 },
+    { ...headers, "If-Match": failed.etag },
+  );
+  await rejected(
+    "second attachment invalid rolls back first",
+    api + "/defects",
+    400,
+    {
+      ...defect,
+      photos: [
+        { name: "first.png", mimeType: "image/png", base64: "iVBORw0KGgo=" },
+        { name: "bad.png", mimeType: "image/png", base64: "bm90LXBuZw==" },
+      ],
+    },
+    { ...headers, "If-Match": failed.etag },
+  );
   stage = "defect with server catalog and evidence";
   const item = await page
     .getByLabel("Failed criterion")
@@ -63,20 +200,39 @@ try {
     .selectOption(String(fixture.severity));
   await page.getByLabel("Description", { exact: true }).fill("Synthetic stain");
   await page.getByLabel("Location", { exact: true }).fill("Synthetic bed");
-  await page
-    .getByLabel(/Evidence \(JPG/)
-    .setInputFiles({
-      name: "evidence.png",
-      mimeType: "image/png",
-      buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    });
+  await page.getByLabel(/Evidence \(JPG/).setInputFiles({
+    name: "evidence.png",
+    mimeType: "image/png",
+    buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  });
   await page
     .getByRole("button", { name: "Record defect", exact: true })
     .click();
   await page.getByText(/Defect #.*Synthetic stain/).waitFor();
   checks.push(stage);
-  stage = "finish pending conclusion";
+  stage = "concurrent finish with one shared ETag";
+  const beforeFinish = await snapshot();
+  const racing = await Promise.all(
+    [1, 2].map(() =>
+      request(api + "/finish", {
+        method: "POST",
+        data: { reason: "Synthetic simultaneous finish" },
+        headers: { ...headers, "If-Match": beforeFinish.etag },
+      }),
+    ),
+  );
+  const statuses = racing.map((r) => r.status).sort((a, b) => a - b);
+  if (JSON.stringify(statuses) !== JSON.stringify([200, 412]))
+    throw Error("Concurrent finish did not enforce ETag");
+  checks.push({ label: stage, statuses });
+  stage = "stale UI finish requires explicit GET recovery";
   await page.getByRole("button", { name: /^Finish/ }).click();
+  await page
+    .getByText("This operation is blocked.", { exact: false })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Verify current state (GET)", exact: true })
+    .click();
   await page.getByText(/^State: PENDING_CONCLUSION\./).waitFor();
   checks.push(stage);
   stage = "reload persists";
