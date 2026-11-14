@@ -1,0 +1,20 @@
+{
+  "Approved": false,
+  "Scope": "CHECKPOINT008_SAFETY_ACCEPTANCE_ONLY",
+  "AllowedMode": "fixture-acceptance",
+  "Run": "SAFETY008_OWNER_CHOOSES_UNIQUE_ID",
+  "OwnerName": "<ACTUAL_DEV2_OWNER_ACTION_REQUIRED>",
+  "ApprovedUtc": "0001-01-01T00:00:00Z",
+  "Database": "HotelOps_DEV2_FullStack_Trial",
+  "DatabaseGuid": "6e68f686-d7c1-4002-94d9-a58fa73175da",
+  "CandidateReleaseSha256": "<EXACT_CANDIDATE_RELEASE_SHA256>",
+  "FreshPreflightDirectory": "<FRESH_SEALED_WINDOWS_READONLY_PREFLIGHT>",
+  "FreshBackupReceipt": "<OWNER_SUPPLIED_VERIFIED_TRIAL_BACKUP_RECEIPT>",
+  "FreshBackupReceiptSha256": "<EXACT_BACKUP_RECEIPT_SHA256>",
+  "AllowFixtureCreate": false,
+  "AllowExactPkCleanup": false,
+  "AllowOwnedBrowserClose": false,
+  "AllowOwnedApiFrontendStop": false,
+  "AllowDeveloperTlsExport": false,
+  "MaximumMinutes": 10
+}

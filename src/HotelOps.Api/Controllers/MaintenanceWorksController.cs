@@ -2,10 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Maintenance;
 using HotelOps.Api.Services.Maintenance;
 using Microsoft.AspNetCore.Mvc;
+using HotelOps.Api.Controllers.Filters;
 
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[Dev2AuthorityPending]
 [Route("api/maintenance-works")]
 public class MaintenanceWorksController : ControllerBase
 {

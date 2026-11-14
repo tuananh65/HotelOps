@@ -2,10 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.MaterialRequests;
 using HotelOps.Api.Services.MaterialRequests;
 using Microsoft.AspNetCore.Mvc;
+using HotelOps.Api.Controllers.Filters;
 
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[Dev2AuthorityPending]
 [Route("api/material-requests")]
 public sealed class MaterialRequestsController(MaterialRequestService service) : ControllerBase
 {

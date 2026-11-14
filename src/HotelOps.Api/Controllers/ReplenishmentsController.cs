@@ -2,10 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Replenishments;
 using HotelOps.Api.Services.Replenishments;
 using Microsoft.AspNetCore.Mvc;
+using HotelOps.Api.Controllers.Filters;
 
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[Dev2AuthorityPending]
 [Route("api/replenishments")]
 public sealed class ReplenishmentsController(ReplenishmentService service) : ControllerBase
 {

@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Assets;
 using Microsoft.EntityFrameworkCore;
@@ -8,15 +9,16 @@ public sealed partial class AssetService
 {
     public async Task<AssetDetailDto?> RetireAssetAsync(long assetId, RetireAssetRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Assets", ["RetireAsset"], request.ActorUserId, assetId, request);
         var reason = Required(request.Reason, "Reason", minimum: 10);
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         var asset = await LockAssetAsync(assetId, cancellationToken);
         if (asset is null) return null;
-        await RequireActorAsync(request.ActorUserId, cancellationToken);
+        await RequireActorAsync(TrustedActorId, cancellationToken);
         if (asset.LifecycleStatus == "RETIRED")
         {
             var unchanged = await RequireDetailAsync(assetId, cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
+            await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
             return unchanged;
         }
         RequireOperational(asset);
@@ -34,11 +36,11 @@ public sealed partial class AssetService
         var now = DateTime.UtcNow;
         asset.LifecycleStatus = "RETIRED";
         asset.UpdatedAt = now;
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        Audit("assets", assetId, asset, request.ActorUserId, now, before, Snapshot(asset), reason);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        Audit("assets", assetId, asset, TrustedActorId, now, before, Snapshot(asset), reason);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await RequireDetailAsync(assetId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 }

@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Assets;
 using HotelOps.Api.Entities;
@@ -39,7 +40,7 @@ public sealed partial class AssetService
         CheckLength(request.SerialNumber, "SerialNumber", 100);
         CheckLength(request.Brand, "Brand", 100);
         CheckLength(request.Model, "Model", 100);
-        await RequireActorAsync(request.ActorUserId, cancellationToken);
+        await RequireActorAsync(TrustedActorId, cancellationToken);
         if (!await _dbContext.AssetTypes.AsNoTracking()
             .AnyAsync(t => t.AssetTypeId == request.AssetTypeId && t.IsActive, cancellationToken))
             throw new ValidationException("AssetTypeId must identify an active AssetType.");

@@ -92,6 +92,8 @@ internal static class ReplenishmentRules
     }
     internal static async Task Reconcile(HotelOpsDbContext db, MaterialReplenishment r, CancellationToken ct)
     {
+        if (r.MaterialReplenishmentLines.Count == 0 || r.MaterialReplenishmentLines.Any(l => l.WarehouseId != r.WarehouseId || l.RequestedBaseQty <= 0 || l.ReceivedBaseQty < 0 || l.ReceivedBaseQty > l.RequestedBaseQty))
+            throw Invalid("Replenishment line quantities/warehouse do not reconcile.");
         var links = await Links(db, r.ReplenishmentId, ct);
         foreach (var link in links)
         {

@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq.Expressions;
@@ -46,13 +47,14 @@ public sealed partial class AssetService
 
     public async Task<AssetHandoverDto?> CreateHandoverAsync(long assetId, CreateAssetHandoverRequest request, CancellationToken cancellationToken)
     {
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Assets", ["CreateHandover"], request.ActorUserId, assetId, request);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         await new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.ToUserId, cancellationToken);
         var asset = await LockAssetAsync(assetId, cancellationToken);
         if (asset is null) return null;
         await _dbContext.Entry(asset).ReloadAsync(cancellationToken);
         RequireOperational(asset);
-        await RequireActorAsync(request.ActorUserId, cancellationToken);
+        await RequireActorAsync(TrustedActorId, cancellationToken);
         await ValidateHandoverTargetAsync(asset, request.ToDepartmentId, request.ToUserId, cancellationToken);
         if (asset.CurrentDepartmentId == request.ToDepartmentId && asset.CustodianUserId == request.ToUserId)
             throw new ValidationException("Target custody must differ from current custody.");
@@ -66,29 +68,33 @@ public sealed partial class AssetService
             FromDepartmentId = asset.CurrentDepartmentId, FromUserId = asset.CustodianUserId,
             ToDepartmentId = request.ToDepartmentId, ToUserId = request.ToUserId,
             ConditionNote = OptionalNote(request.ConditionNote), HandoverStatus = "PENDING",
-            HandedOverAt = now, CreatedAt = now, CreatedBy = request.ActorUserId
+            HandedOverAt = now, CreatedAt = now, CreatedBy = TrustedActorId
         };
         _dbContext.AssetHandovers.Add(handover);
-        await _dbContext.SaveChangesAsync(cancellationToken);
-        Audit("asset_handovers", handover.HandoverId, asset, request.ActorUserId, now, null, HandoverSnapshot(handover));
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        Audit("asset_handovers", handover.HandoverId, asset, TrustedActorId, now, null, HandoverSnapshot(handover));
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await GetHandoverAsync(handover.HandoverId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 
-    public Task<AssetHandoverDto?> AcceptHandoverAsync(long handoverId, AcceptAssetHandoverRequest request, CancellationToken cancellationToken) =>
-        FinalizeHandoverAsync(handoverId, request.ActorUserId, null, cancellationToken);
+    public Task<AssetHandoverDto?> AcceptHandoverAsync(long handoverId, AcceptAssetHandoverRequest request, CancellationToken cancellationToken) {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Assets", ["AcceptHandover"], request.ActorUserId, handoverId, request);
+        return FinalizeHandoverAsync(handoverId, TrustedActorId, null, cancellationToken);
+    }
 
-    public Task<AssetHandoverDto?> RejectHandoverAsync(long handoverId, RejectAssetHandoverRequest request, CancellationToken cancellationToken) =>
-        FinalizeHandoverAsync(handoverId, request.ActorUserId, Required(request.Reason, "Reason", minimum: 10), cancellationToken);
+    public Task<AssetHandoverDto?> RejectHandoverAsync(long handoverId, RejectAssetHandoverRequest request, CancellationToken cancellationToken) {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Assets", ["RejectHandover"], request.ActorUserId, handoverId, request);
+        return FinalizeHandoverAsync(handoverId, TrustedActorId, Required(request.Reason, "Reason", minimum: 10), cancellationToken);
+    }
 
     private async Task<AssetHandoverDto?> FinalizeHandoverAsync(long handoverId, long actor, string? rejectionReason, CancellationToken cancellationToken)
     {
         var discovered = await _dbContext.AssetHandovers.AsNoTracking().Where(h => h.HandoverId == handoverId)
             .Select(h => new { h.AssetId, h.FromUserId, h.ToUserId }).SingleOrDefaultAsync(cancellationToken);
         if (discovered is null) return null;
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         if (rejectionReason is null)
         {
             if (discovered.ToUserId is not long receiver) throw new ValidationException("ToUserId is required.");
@@ -127,13 +133,13 @@ public sealed partial class AssetService
             asset.UpdatedAt = now;
         }
         else handover.HandoverStatus = "REJECTED";
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         Audit("asset_handovers", handoverId, asset, actor, now, beforeHandover, HandoverSnapshot(handover), rejectionReason);
         if (rejectionReason is null)
             Audit("assets", asset.AssetId, asset, actor, now, beforeAsset, Snapshot(asset));
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await GetHandoverAsync(handoverId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 

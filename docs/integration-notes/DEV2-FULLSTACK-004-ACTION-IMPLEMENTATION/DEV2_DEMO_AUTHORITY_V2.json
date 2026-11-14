@@ -1,0 +1,1183 @@
+{
+  "version": "DEV2_DEMO_AUTHORITY_V2_61_ACTIONS",
+  "ownerAuthorization": "Current DEV2 Owner: complete remaining58 after verified WorkTime repair; no further DEV2 approval needed",
+  "database": "HotelOps_DEV2_FullStack_Trial",
+  "productionAccepted": false,
+  "existingV1ThreeActionsPreserved": true,
+  "principles": {
+    "defaultDeny": true,
+    "delegation": "DISABLED",
+    "own": "EXCLUDED_V1; OWN grants never widen to BRANCH/ALL",
+    "scope": "Explicit active branch membership AND actual PermissionService branch evaluation; resource branch derived from persistence",
+    "actor": "Validated CurrentUserAccessor; input acting claims must match; audit uses server actor",
+    "sod": "Recipient-only handover; requester != approver; executor != verifier; stock poster != approver; no admin bypass",
+    "transaction": "User/session and grant-path locks before feature locks, fresh permission/resource/target checks before persistence/stock/commit; existing domain state/version/audit retained"
+  },
+  "actions": [
+    {
+      "id": "A004A-001",
+      "controller": "AssetsController",
+      "action": "CreateHandover",
+      "method": "POST",
+      "route": "/api/assets/{assetId:long}/handovers",
+      "codes": [
+        "ASSET_TRANSFER"
+      ],
+      "kind": "asset",
+      "argument": "assetId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-002",
+      "controller": "AssetsController",
+      "action": "GetHandovers",
+      "method": "GET",
+      "route": "/api/assets/{assetId:long}/handovers",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "asset",
+      "argument": "assetId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-003",
+      "controller": "AssetsController",
+      "action": "GetHandover",
+      "method": "GET",
+      "route": "/api/asset-handovers/{handoverId:long}",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "asset-handover",
+      "argument": "handoverId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-004",
+      "controller": "AssetsController",
+      "action": "AcceptHandover",
+      "method": "POST",
+      "route": "/api/asset-handovers/{handoverId:long}/accept",
+      "codes": [
+        "ASSET_TRANSFER"
+      ],
+      "kind": "asset-handover",
+      "argument": "handoverId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Designated receiver only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-005",
+      "controller": "AssetsController",
+      "action": "RejectHandover",
+      "method": "POST",
+      "route": "/api/asset-handovers/{handoverId:long}/reject",
+      "codes": [
+        "ASSET_TRANSFER"
+      ],
+      "kind": "asset-handover",
+      "argument": "handoverId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Designated receiver only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-006",
+      "controller": "AssetsController",
+      "action": "RetireAsset",
+      "method": "POST",
+      "route": "/api/assets/{assetId:long}/retire",
+      "codes": [
+        "ASSET_RETIRE"
+      ],
+      "kind": "asset",
+      "argument": "assetId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-007",
+      "controller": "AssetsController",
+      "action": "GetMaintenanceHistory",
+      "method": "GET",
+      "route": "/api/assets/{assetId:long}/maintenance-history",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "asset",
+      "argument": "assetId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-008",
+      "controller": "AssetsController",
+      "action": "GetStatistics",
+      "method": "GET",
+      "route": "/api/assets/statistics/by-location",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-009",
+      "controller": "AssetsController",
+      "action": "GetAssets",
+      "method": "GET",
+      "route": "/api/assets",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-010",
+      "controller": "AssetsController",
+      "action": "GetAsset",
+      "method": "GET",
+      "route": "/api/assets/{id:long}",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-011",
+      "controller": "AssetsController",
+      "action": "GetAssetTypes",
+      "method": "GET",
+      "route": "/api/asset-types",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "branch-query",
+      "argument": null,
+      "scope": "Explicit branchId query; global active asset-type catalog only",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-012",
+      "controller": "AssetsController",
+      "action": "GetConditionHistory",
+      "method": "GET",
+      "route": "/api/assets/{id:long}/condition-history",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-013",
+      "controller": "AssetsController",
+      "action": "GetLocationHistory",
+      "method": "GET",
+      "route": "/api/assets/{id:long}/location-history",
+      "codes": [
+        "ASSET_VIEW"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-014",
+      "controller": "AssetsController",
+      "action": "CreateAsset",
+      "method": "POST",
+      "route": "/api/assets",
+      "codes": [
+        "ASSET_MANAGE"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-015",
+      "controller": "AssetsController",
+      "action": "UpdateAsset",
+      "method": "PUT",
+      "route": "/api/assets/{id:long}",
+      "codes": [
+        "ASSET_MANAGE"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-016",
+      "controller": "AssetsController",
+      "action": "AssignLocation",
+      "method": "POST",
+      "route": "/api/assets/{id:long}/location",
+      "codes": [
+        "ASSET_MANAGE"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-017",
+      "controller": "AssetsController",
+      "action": "TransferLocation",
+      "method": "POST",
+      "route": "/api/assets/{id:long}/location-transfers",
+      "codes": [
+        "ASSET_TRANSFER"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-018",
+      "controller": "AssetsController",
+      "action": "ChangeCondition",
+      "method": "POST",
+      "route": "/api/assets/{id:long}/condition",
+      "codes": [
+        "ASSET_MANAGE"
+      ],
+      "kind": "asset",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-019",
+      "controller": "IncidentsController",
+      "action": "ChangeIncidentStatus",
+      "method": "PATCH",
+      "route": "/api/incidents/{id:long}/status",
+      "codes": [
+        "INCIDENT_MANAGE"
+      ],
+      "kind": "incident",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-020",
+      "controller": "IncidentsController",
+      "action": "TriageIncident",
+      "method": "PATCH",
+      "route": "/api/incidents/{id:long}/triage",
+      "codes": [
+        "INCIDENT_TRIAGE"
+      ],
+      "kind": "incident",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-021",
+      "controller": "IncidentsController",
+      "action": "CreateIncident",
+      "method": "POST",
+      "route": "/api/incidents",
+      "codes": [
+        "INCIDENT_CREATE"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-022",
+      "controller": "IncidentsController",
+      "action": "GetIncidents",
+      "method": "GET",
+      "route": "/api/incidents",
+      "codes": [
+        "INCIDENT_VIEW"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-023",
+      "controller": "IncidentsController",
+      "action": "GetIncident",
+      "method": "GET",
+      "route": "/api/incidents/{id:long}",
+      "codes": [
+        "INCIDENT_VIEW"
+      ],
+      "kind": "incident",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-024",
+      "controller": "MaintenanceWorksController",
+      "action": "CreateWork",
+      "method": "POST",
+      "route": "/api/incidents/{incidentId:long}/maintenance-works",
+      "codes": [
+        "MAINTENANCE_ASSIGN"
+      ],
+      "kind": "incident",
+      "argument": "incidentId",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-025",
+      "controller": "MaintenanceWorksController",
+      "action": "AssignWork",
+      "method": "PATCH",
+      "route": "/api/maintenance-works/{id:long}/assignment",
+      "codes": [
+        "MAINTENANCE_ASSIGN"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-026",
+      "controller": "MaintenanceWorksController",
+      "action": "StartWork",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/start",
+      "codes": [
+        "MAINTENANCE_EXECUTE"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current maintenance assignee only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-027",
+      "controller": "MaintenanceWorksController",
+      "action": "HoldWork",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/hold",
+      "codes": [
+        "MAINTENANCE_EXECUTE"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current maintenance assignee only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-028",
+      "controller": "MaintenanceWorksController",
+      "action": "ResumeWork",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/resume",
+      "codes": [
+        "MAINTENANCE_EXECUTE"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current maintenance assignee only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-029",
+      "controller": "MaintenanceWorksController",
+      "action": "CreateLog",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/logs",
+      "codes": [
+        "MAINTENANCE_EXECUTE"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current maintenance assignee only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-030",
+      "controller": "MaintenanceWorksController",
+      "action": "SubmitResult",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/submit-result",
+      "codes": [
+        "MAINTENANCE_EXECUTE"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current maintenance assignee only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-031",
+      "controller": "MaintenanceWorksController",
+      "action": "VerifyWork",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/verify",
+      "codes": [
+        "MAINTENANCE_REVIEW"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current assignee cannot review",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-032",
+      "controller": "MaintenanceWorksController",
+      "action": "ReturnWork",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/return",
+      "codes": [
+        "MAINTENANCE_REVIEW"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Current assignee cannot review",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-033",
+      "controller": "MaintenanceWorksController",
+      "action": "CancelWork",
+      "method": "POST",
+      "route": "/api/maintenance-works/{id:long}/cancel",
+      "codes": [
+        "DEV2_DEMO_MAINTENANCEWORKS_CANCELWORK"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-034",
+      "controller": "MaintenanceWorksController",
+      "action": "MaterialAvailability",
+      "method": "GET",
+      "route": "/api/maintenance-works/{id:long}/material-availability",
+      "codes": [
+        "MAINTENANCE_VIEW",
+        "INVENTORY_VIEW"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-035",
+      "controller": "MaintenanceWorksController",
+      "action": "GetWorks",
+      "method": "GET",
+      "route": "/api/maintenance-works",
+      "codes": [
+        "MAINTENANCE_VIEW"
+      ],
+      "kind": "incident-input",
+      "argument": null,
+      "scope": "IncidentId required; persisted Incident branch; service filters by IncidentId",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-036",
+      "controller": "MaintenanceWorksController",
+      "action": "GetWork",
+      "method": "GET",
+      "route": "/api/maintenance-works/{id:long}",
+      "codes": [
+        "MAINTENANCE_VIEW"
+      ],
+      "kind": "maintenance-work",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-037",
+      "controller": "MaterialRequestsController",
+      "action": "List",
+      "method": "GET",
+      "route": "/api/material-requests",
+      "codes": [
+        "DEV2_DEMO_MR_VIEW"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-038",
+      "controller": "MaterialRequestsController",
+      "action": "Get",
+      "method": "GET",
+      "route": "/api/material-requests/{id:long}",
+      "codes": [
+        "DEV2_DEMO_MR_VIEW"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-039",
+      "controller": "MaterialRequestsController",
+      "action": "History",
+      "method": "GET",
+      "route": "/api/material-requests/{id:long}/history",
+      "codes": [
+        "DEV2_DEMO_MR_VIEW"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-040",
+      "controller": "MaterialRequestsController",
+      "action": "Availability",
+      "method": "GET",
+      "route": "/api/material-requests/{id:long}/availability",
+      "codes": [
+        "DEV2_DEMO_MR_VIEW",
+        "INVENTORY_VIEW"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-041",
+      "controller": "MaterialRequestsController",
+      "action": "Fulfillments",
+      "method": "GET",
+      "route": "/api/material-requests/{id:long}/fulfillments",
+      "codes": [
+        "DEV2_DEMO_MR_VIEW"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-042",
+      "controller": "MaterialRequestsController",
+      "action": "Fulfillment",
+      "method": "GET",
+      "route": "/api/material-requests/{id:long}/fulfillments/{fulfillmentId:long}",
+      "codes": [
+        "DEV2_DEMO_MR_VIEW"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-043",
+      "controller": "MaterialRequestsController",
+      "action": "Create",
+      "method": "POST",
+      "route": "/api/material-requests",
+      "codes": [
+        "MR_CREATE"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-044",
+      "controller": "MaterialRequestsController",
+      "action": "Edit",
+      "method": "PUT",
+      "route": "/api/material-requests/{id:long}",
+      "codes": [
+        "MR_CREATE"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Requester only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-045",
+      "controller": "MaterialRequestsController",
+      "action": "Submit",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/submit",
+      "codes": [
+        "MR_CREATE"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Requester only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-046",
+      "controller": "MaterialRequestsController",
+      "action": "Information",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/request-information",
+      "codes": [
+        "MR_APPROVE_L1"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Latest independent assigned approver only; not requester or submitter",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-047",
+      "controller": "MaterialRequestsController",
+      "action": "Approve",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/approve",
+      "codes": [
+        "MR_APPROVE_L1"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Latest independent assigned approver only; not requester or submitter",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-048",
+      "controller": "MaterialRequestsController",
+      "action": "Reject",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/reject",
+      "codes": [
+        "MR_APPROVE_L1"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Latest independent assigned approver only; not requester or submitter",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-049",
+      "controller": "MaterialRequestsController",
+      "action": "Cancel",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/cancel",
+      "codes": [
+        "MR_CREATE"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Requester only",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-050",
+      "controller": "MaterialRequestsController",
+      "action": "Close",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/close-remainder",
+      "codes": [
+        "DEV2_DEMO_MATERIALREQUESTS_CLOSE"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Latest independent assigned approver only; not requester or submitter",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-051",
+      "controller": "MaterialRequestsController",
+      "action": "Issue",
+      "method": "POST",
+      "route": "/api/material-requests/{id:long}/fulfillments",
+      "codes": [
+        "MR_FULFILL",
+        "STOCK_ISSUE_POST"
+      ],
+      "kind": "material-request",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Poster differs from assigned approver",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-052",
+      "controller": "ReplenishmentsController",
+      "action": "List",
+      "method": "GET",
+      "route": "/api/replenishments",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_VIEW"
+      ],
+      "kind": "branch-input",
+      "argument": null,
+      "scope": "Explicit positive BranchId; exact DTO branch-filtered service query or create scope",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-053",
+      "controller": "ReplenishmentsController",
+      "action": "Get",
+      "method": "GET",
+      "route": "/api/replenishments/{id:long}",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_VIEW"
+      ],
+      "kind": "replenishment",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-054",
+      "controller": "ReplenishmentsController",
+      "action": "History",
+      "method": "GET",
+      "route": "/api/replenishments/{id:long}/history",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_VIEW"
+      ],
+      "kind": "replenishment",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-055",
+      "controller": "ReplenishmentsController",
+      "action": "Receipts",
+      "method": "GET",
+      "route": "/api/replenishments/{id:long}/receipts",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_VIEW"
+      ],
+      "kind": "replenishment",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-056",
+      "controller": "ReplenishmentsController",
+      "action": "Create",
+      "method": "POST",
+      "route": "/api/replenishments",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_CREATE"
+      ],
+      "kind": "warehouse-input",
+      "argument": null,
+      "scope": "Explicit WarehouseId; active persisted warehouse branch; any supplied BranchId must match",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-057",
+      "controller": "ReplenishmentsController",
+      "action": "Close",
+      "method": "POST",
+      "route": "/api/replenishments/{id:long}/close",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_CLOSE"
+      ],
+      "kind": "replenishment",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-058",
+      "controller": "ReplenishmentsController",
+      "action": "Link",
+      "method": "POST",
+      "route": "/api/replenishments/{id:long}/receipts/link",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_RECEIVE"
+      ],
+      "kind": "replenishment",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-059",
+      "controller": "ReplenishmentsController",
+      "action": "Post",
+      "method": "POST",
+      "route": "/api/replenishments/{id:long}/receipts/post",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_RECEIVE",
+        "STOCK_RECEIPT_POST"
+      ],
+      "kind": "replenishment",
+      "argument": "id",
+      "scope": "Persisted root branch; exact nested parent-child and warehouse/location consistency",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Receipt poster differs from approver",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "MUTATION",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-060",
+      "controller": "ReplenishmentsController",
+      "action": "Low",
+      "method": "GET",
+      "route": "/api/replenishment-shortages/low-stock",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_VIEW",
+        "INVENTORY_VIEW"
+      ],
+      "kind": "warehouse-input",
+      "argument": null,
+      "scope": "Explicit WarehouseId; active persisted warehouse branch; any supplied BranchId must match",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    },
+    {
+      "id": "A004A-061",
+      "controller": "ReplenishmentsController",
+      "action": "Material",
+      "method": "GET",
+      "route": "/api/replenishment-shortages/material-requests",
+      "codes": [
+        "DEV2_DEMO_REPLENISHMENT_VIEW",
+        "INVENTORY_VIEW"
+      ],
+      "kind": "warehouse-input",
+      "argument": null,
+      "scope": "Explicit WarehouseId; active persisted warehouse branch; any supplied BranchId must match",
+      "own": "EXCLUDED_V1; OWN is never widened",
+      "delegation": "DISABLED; acting claim equals validated session actor",
+      "sod": "Existing domain invariants; no role/admin bypass",
+      "workflow": "Existing service state/version/quantity/lineage rules retained; fresh authority before save/stock/commit",
+      "readOrMutation": "READ",
+      "acceptance": "NOT_COMPLETE_UNTIL_REAL_POSITIVE_NEGATIVE_SQL_RECEIPTS"
+    }
+  ]
+}

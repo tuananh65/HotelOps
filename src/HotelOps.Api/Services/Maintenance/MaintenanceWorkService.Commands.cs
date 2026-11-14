@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Maintenance;
 using HotelOps.Api.Entities;
@@ -8,8 +9,9 @@ namespace HotelOps.Api.Services.Maintenance;
 public sealed partial class MaintenanceWorkService
 {
     public Task<MaintenanceWorkDetailDto?> AssignWorkAsync(long id,
-        AssignMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
-        ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+        AssignMaintenanceWorkRequest request, CancellationToken cancellationToken) {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["AssignWork"], request.ActorUserId, id, request);
+        return ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
         {
             RequireState(work, "PENDING");
             var end = request.PlannedEndAt ?? work.PlannedEndAt;
@@ -21,6 +23,7 @@ public sealed partial class MaintenanceWorkService
             return Task.CompletedTask;
         }, cancellationToken, prepareOwners: token =>
             new HotelOps.Api.Services.Users.UserEligibilityLock(_dbContext).RequireEligibleAsync(request.AssigneeId, token));
+    }
 
     private async Task<MaintenanceWorkDetailDto?> ExecuteCorrectiveAsync(long id,
         MaintenanceActorRequest request, string? incidentNote,
@@ -38,7 +41,7 @@ public sealed partial class MaintenanceWorkService
         if (discovered.IncidentId is not long incidentId)
             throw new ValidationException("This action requires a corrective work linked to an incident.");
 
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         if (restoreAssigneeResponsibility)
         {
             if (discovered.AssigneeId is not long assigneeId)
@@ -64,14 +67,14 @@ public sealed partial class MaintenanceWorkService
             (work.AssigneeId != discovered.AssigneeId || work.Status != discovered.Status))
             throw new ValidationException("The maintenance assignee or state changed after discovery. Reload before retrying.");
         RequireSynchronizedPair(work, incident);
-        await RequireUserAsync(request.ActorUserId, "ActorUserId", cancellationToken);
+        await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
 
         var beforeWork = WorkSnapshot(work);
         var beforeIncident = IncidentSnapshot(incident);
         var previousStatus = incident.Status;
         var now = DateTime.UtcNow;
         await operation(work, incident, now, cancellationToken);
-        AddAudit("maintenance_works", id, incident.BranchId, request.ActorUserId,
+        AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
             now, beforeWork, WorkSnapshot(work));
         if (incident.Status != previousStatus)
         {
@@ -81,18 +84,18 @@ public sealed partial class MaintenanceWorkService
                 EventType = "STATUS_CHANGED",
                 FromStatus = previousStatus,
                 ToStatus = incident.Status,
-                ActorId = request.ActorUserId,
+                ActorId = TrustedActorId,
                 Note = incidentNote,
                 OccurredAt = now
             });
-            AddAudit("incidents", incident.IncidentId, incident.BranchId, request.ActorUserId,
+            AddAudit("incidents", incident.IncidentId, incident.BranchId, TrustedActorId,
                 now, beforeIncident, IncidentSnapshot(incident));
         }
 
         if (_dbContext.ChangeTracker.HasChanges())
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await RequireDetailAsync(id, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 

@@ -1,0 +1,50 @@
+.inventory-page {
+  max-width: 1100px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  color: var(--text, #172d3e);
+}
+.inventory-page nav {
+  display: flex;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+  margin: 1.25rem 0;
+}
+.inventory-page header {
+  margin: 2rem 0;
+}
+.inventory-page .inventory-eyebrow {
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.inventory-page .inventory-table {
+  overflow-x: auto;
+}
+.inventory-page table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+.inventory-page th,
+.inventory-page td {
+  padding: 0.85rem;
+  border-bottom: 1px solid #b8c5cc;
+}
+.inventory-page caption {
+  text-align: left;
+  margin-bottom: 0.75rem;
+}
+.inventory-page dt {
+  font-weight: 600;
+  margin-top: 1rem;
+}
+.inventory-page dd {
+  margin: 0.3rem 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.inventory-page button {
+  margin: 0.75rem 1rem 0.75rem 0;
+  padding: 0.65rem 1rem;
+}
