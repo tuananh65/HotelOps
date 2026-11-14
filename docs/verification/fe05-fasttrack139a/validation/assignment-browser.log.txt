@@ -1,0 +1,32 @@
+node : [WebServer] (node:31552) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+At line:2 char:1
++ node node_modules/@playwright/test/cli.js test --config playwright.fe ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([WebServer] (no... env being set.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 17 tests using 1 worker
+
+(node:33604) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 tests\inspection-assignment.spec.ts:13:3 › assignment Review/Confirm 503 stays closed without retry (24.6s)
+  ok  2 tests\inspection-assignment.spec.ts:13:3 › assignment Review/Confirm 412 stays closed without retry (4.9s)
+  ok  3 tests\inspection-assignment.spec.ts:13:3 › assignment Review/Confirm unknown stays closed without retry (3.3s)
+  ok  4 tests\inspection-assignment.spec.ts:96:3 › assignment queue authorization 401 (1.7s)
+  ok  5 tests\inspection-assignment.spec.ts:96:3 › assignment queue authorization 403 (2.4s)
+  ok  6 tests\inspection-assignment.spec.ts:111:3 › changing task clears previous assignment context (200) (6.5s)
+  ok  7 tests\inspection-assignment.spec.ts:111:3 › changing task clears previous assignment context (404) (2.5s)
+  ok  8 tests\inspection-assignment.spec.ts:111:3 › changing task clears previous assignment context (412) (2.9s)
+  ok  9 tests\inspection-assignment.spec.ts:154:1 › invalid direct-open and disabled activation do not fetch (3.5s)
+  ok 10 tests\inspection-assignment.spec.ts:163:45 › direct-open context failure 401 (1.4s)
+  ok 11 tests\inspection-assignment.spec.ts:163:45 › direct-open context failure 403 (1.6s)
+  ok 12 tests\inspection-assignment.spec.ts:163:45 › direct-open context failure 404 (1.5s)
+  ok 13 tests\inspection-assignment.spec.ts:163:45 › direct-open context failure 409 (8.5s)
+  ok 14 tests\inspection-assignment.spec.ts:163:45 › direct-open context failure 412 (1.4s)
+  ok 15 tests\inspection-assignment.spec.ts:170:1 › multiple candidates require selection; Back reloads clean room context (1.8s)
+  ok 16 tests\inspection-assignment.spec.ts:192:1 › task options for mismatched room fail closed (2.8s)
+  ok 17 tests\inspection-assignment.spec.ts:200:1 › destination preserves UUID and room context; source reload creates a new intent (3.0s)
+
+  17 passed (5.6m)

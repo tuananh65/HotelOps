@@ -1,0 +1,9 @@
+D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\src\HotelOps.Api\Services\Housekeeping\RejectInspectionSourceLoader.cs(56,29): error CS1061: 'RoomTypeCreationService' does not contain a definition for 'InspectionEvidenceRevisionInstalled' and no accessible extension method 'InspectionEvidenceRevisionInstalled' accepting a first argument of type 'RoomTypeCreationService' could be found (are you missing a using directive or an assembly reference?) [D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\src\HotelOps.Api\HotelOps.Api.csproj]
+
+Build FAILED.
+
+D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\src\HotelOps.Api\Services\Housekeeping\RejectInspectionSourceLoader.cs(56,29): error CS1061: 'RoomTypeCreationService' does not contain a definition for 'InspectionEvidenceRevisionInstalled' and no accessible extension method 'InspectionEvidenceRevisionInstalled' accepting a first argument of type 'RoomTypeCreationService' could be found (are you missing a using directive or an assembly reference?) [D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\src\HotelOps.Api\HotelOps.Api.csproj]
+    0 Warning(s)
+    1 Error(s)
+
+Time Elapsed 00:01:16.39

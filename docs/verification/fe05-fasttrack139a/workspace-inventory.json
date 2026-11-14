@@ -1,0 +1,615 @@
+[
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05",
+    "branch": "feature/dev1-inspection",
+    "head": "6aee2a0e692a7814f41c81224709cddfbe1e2ec4",
+    "status": [
+      " M scripts/database/release/housekeeping/03_Rollback.sql",
+      " M scripts/database/release/housekeeping/README.md",
+      " M scripts/database/release/housekeeping/Run-Housekeeping.ps1",
+      " M src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+      "?? FE05_D4_Independent_Review_2026-11-08.md",
+      "?? scripts/database/release/housekeeping/04_EvidenceInvalidation.sql",
+      "?? scripts/database/release/housekeeping/05_VerifyEvidence.sql",
+      "?? scripts/verification/Housekeeping/Test-EvidencePatch.ps1",
+      "?? src/HotelOps.Api/Services/Housekeeping/RejectInspectionLoading.cs",
+      "?? src/HotelOps.Api/Services/Housekeeping/RejectInspectionSourceLoader.cs",
+      "?? src/HotelOps.Api/Services/Housekeeping/RejectInspectionValidator.cs",
+      "?? tests/HotelOps.Inspection.DomainTests/HotelOps.Inspection.DomainTests.csproj",
+      "?? tests/HotelOps.Inspection.DomainTests/Program.cs",
+      "?? tests/HotelOps.Inspection.DomainTests/README.md",
+      "?? tests/HotelOps.Inspection.EvidenceTests/HotelOps.Inspection.EvidenceTests.csproj",
+      "?? tests/HotelOps.Inspection.EvidenceTests/INSP004C3_REPORT.md",
+      "?? tests/HotelOps.Inspection.EvidenceTests/IsolatedEvidenceSuite.cs",
+      "?? tests/HotelOps.Inspection.EvidenceTests/Prepare-Isolated.ps1",
+      "?? tests/HotelOps.Inspection.EvidenceTests/Program.cs",
+      "?? tests/HotelOps.Inspection.EvidenceTests/Verify-IsolatedRelease.ps1",
+      "?? tests/HotelOps.Inspection.LoaderTests/HotelOps.Inspection.LoaderTests.csproj",
+      "?? tests/HotelOps.Inspection.LoaderTests/Program.cs",
+      "?? tests/HotelOps.Inspection.LoaderTests/README.md"
+    ],
+    "files": [
+      {
+        "path": "FE05_D4_Independent_Review_2026-11-08.md",
+        "sha256": "0ADE4712C47ED45F4F4B4128B8B471F9958175505EFE57E4C3D29671DA2D7415",
+        "preservedSha256": "0ADE4712C47ED45F4F4B4128B8B471F9958175505EFE57E4C3D29671DA2D7415"
+      },
+      {
+        "path": "scripts/database/release/housekeeping/03_Rollback.sql",
+        "sha256": "2BFF1EB94AB18E8884EDC5F2C527E531E9FF8864E494632848EB9EDCFD6966F3",
+        "preservedSha256": "2BFF1EB94AB18E8884EDC5F2C527E531E9FF8864E494632848EB9EDCFD6966F3"
+      },
+      {
+        "path": "scripts/database/release/housekeeping/04_EvidenceInvalidation.sql",
+        "sha256": "314DBD336CED88E2DCFDCF6762F8126BFA95D349247ACADA7294F83F19B1F7AD",
+        "preservedSha256": "314DBD336CED88E2DCFDCF6762F8126BFA95D349247ACADA7294F83F19B1F7AD"
+      },
+      {
+        "path": "scripts/database/release/housekeeping/05_VerifyEvidence.sql",
+        "sha256": "6DB8B5F0A636636BAC12828B531BD4229E93166EAFB95E205D21A710D209AAF1",
+        "preservedSha256": "6DB8B5F0A636636BAC12828B531BD4229E93166EAFB95E205D21A710D209AAF1"
+      },
+      {
+        "path": "scripts/database/release/housekeeping/README.md",
+        "sha256": "C4A4B410693570CEEBD477BF60CE61DC14C491264AE173C5BAC85831188E96AA",
+        "preservedSha256": "C4A4B410693570CEEBD477BF60CE61DC14C491264AE173C5BAC85831188E96AA"
+      },
+      {
+        "path": "scripts/database/release/housekeeping/Run-Housekeeping.ps1",
+        "sha256": "3974A77D0C0E0991CC288B3E9AB600BAB6690FE31B14233B6667451DEAE354F4",
+        "preservedSha256": "3974A77D0C0E0991CC288B3E9AB600BAB6690FE31B14233B6667451DEAE354F4"
+      },
+      {
+        "path": "scripts/verification/Housekeeping/Test-EvidencePatch.ps1",
+        "sha256": "B97DC2EB4BFE39EEB2DDCC22A613DD82E44627FC6F6CE0B2EC860DD3ED844114",
+        "preservedSha256": "B97DC2EB4BFE39EEB2DDCC22A613DD82E44627FC6F6CE0B2EC860DD3ED844114"
+      },
+      {
+        "path": "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+        "sha256": "4FA412FE237D53A747465D9F67082F4DDFB131E8A4F1DE782E8EDAD5FA96ACEF",
+        "preservedSha256": "4FA412FE237D53A747465D9F67082F4DDFB131E8A4F1DE782E8EDAD5FA96ACEF"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionLoading.cs",
+        "sha256": "4EEAF3E84FE76DB44B0DB80C2B8C1782B86275DF8903216C7F07B693A6EC4CCD",
+        "preservedSha256": "4EEAF3E84FE76DB44B0DB80C2B8C1782B86275DF8903216C7F07B693A6EC4CCD"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionSourceLoader.cs",
+        "sha256": "B356E7FD99129982238B7C06B586EBA734B1653F484ECEEFA5E37C57A7CFA023",
+        "preservedSha256": "B356E7FD99129982238B7C06B586EBA734B1653F484ECEEFA5E37C57A7CFA023"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionValidator.cs",
+        "sha256": "23DB3DE5D28F8A79FD15C1B306E0201F425CF6F5768991A663669F0052AC7770",
+        "preservedSha256": "23DB3DE5D28F8A79FD15C1B306E0201F425CF6F5768991A663669F0052AC7770"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.DomainTests/HotelOps.Inspection.DomainTests.csproj",
+        "sha256": "F466A60B02B1A7CDF36057332AAC46F390FD2638B4B8D6B329F4A936C179F69D",
+        "preservedSha256": "F466A60B02B1A7CDF36057332AAC46F390FD2638B4B8D6B329F4A936C179F69D"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.DomainTests/Program.cs",
+        "sha256": "0D697E655A61F3BAD0ABAAB2D29AFFE6B86451480FF02E5727504E3AEB86ED93",
+        "preservedSha256": "0D697E655A61F3BAD0ABAAB2D29AFFE6B86451480FF02E5727504E3AEB86ED93"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.DomainTests/README.md",
+        "sha256": "9C7523E2C2CF710ECF89171CB84D4962ECA2C07B6E4C30D01B2F6959DB9CB07E",
+        "preservedSha256": "9C7523E2C2CF710ECF89171CB84D4962ECA2C07B6E4C30D01B2F6959DB9CB07E"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.EvidenceTests/HotelOps.Inspection.EvidenceTests.csproj",
+        "sha256": "F466A60B02B1A7CDF36057332AAC46F390FD2638B4B8D6B329F4A936C179F69D",
+        "preservedSha256": "F466A60B02B1A7CDF36057332AAC46F390FD2638B4B8D6B329F4A936C179F69D"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.EvidenceTests/INSP004C3_REPORT.md",
+        "sha256": "C1EA3122ED576202576A7E53AC8CE11F6337A62E6590D435F25F98BD236D6F30",
+        "preservedSha256": "C1EA3122ED576202576A7E53AC8CE11F6337A62E6590D435F25F98BD236D6F30"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.EvidenceTests/IsolatedEvidenceSuite.cs",
+        "sha256": "54409D2DDD4BD2FAAC0DD0939D5DF9C0B93AB278FD5429B2B11A307A04B66733",
+        "preservedSha256": "54409D2DDD4BD2FAAC0DD0939D5DF9C0B93AB278FD5429B2B11A307A04B66733"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.EvidenceTests/Prepare-Isolated.ps1",
+        "sha256": "1C36E7BFEF8FED6D622A4393C5EB9577C8F6A0D64CE2F30D1721BBC6CCC11DAE",
+        "preservedSha256": "1C36E7BFEF8FED6D622A4393C5EB9577C8F6A0D64CE2F30D1721BBC6CCC11DAE"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.EvidenceTests/Program.cs",
+        "sha256": "504537A42DE6319BC8473DF106486F7E6EC9A34A5370BDFD4F05F8DAFDCE556E",
+        "preservedSha256": "504537A42DE6319BC8473DF106486F7E6EC9A34A5370BDFD4F05F8DAFDCE556E"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.EvidenceTests/Verify-IsolatedRelease.ps1",
+        "sha256": "F4849E1B203B4AFE3EFFC58331698D8F8C214CBD7F71C74EE545F8CDE75123F6",
+        "preservedSha256": "F4849E1B203B4AFE3EFFC58331698D8F8C214CBD7F71C74EE545F8CDE75123F6"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.LoaderTests/HotelOps.Inspection.LoaderTests.csproj",
+        "sha256": "F466A60B02B1A7CDF36057332AAC46F390FD2638B4B8D6B329F4A936C179F69D",
+        "preservedSha256": "F466A60B02B1A7CDF36057332AAC46F390FD2638B4B8D6B329F4A936C179F69D"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.LoaderTests/Program.cs",
+        "sha256": "EA95D95844315EF8990AB08D0032A58493DEF0787B65FCC6AB93865C7DBCFCF7",
+        "preservedSha256": "EA95D95844315EF8990AB08D0032A58493DEF0787B65FCC6AB93865C7DBCFCF7"
+      },
+      {
+        "path": "tests/HotelOps.Inspection.LoaderTests/README.md",
+        "sha256": "D7E9635F0A9AE08FCF05BCCD7A2000EDBB5D6C056FE41C33F5EEF8A96247DACC",
+        "preservedSha256": "D7E9635F0A9AE08FCF05BCCD7A2000EDBB5D6C056FE41C33F5EEF8A96247DACC"
+      }
+    ]
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-checklist-ui-a",
+    "branch": "feature/dev1-fe05-checklist-ui-a",
+    "head": "8081b5996891fb5c27a1d3fe99a9e6482ab85b33",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fast019",
+    "branch": "feature/dev1-fe05-contract-blockers",
+    "head": "e393da22a202c7768cfc9ecb13d343755aa6ef53",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-fasttrack127c",
+    "branch": "feature/dev1-fe05-uc042-uc043-fasttrack127c",
+    "head": "a876209336fdca5f4537918f3926fddcc1f69a72",
+    "status": [
+      "A  frontend/src/features/inspectionExecution/InspectionRoute.tsx",
+      "A  frontend/src/features/inspectionExecution/InspectionWorkspace.tsx",
+      "A  frontend/src/features/inspectionExecution/api.ts",
+      "A  frontend/src/features/inspectionExecution/model.ts",
+      "A  frontend/tests/fe05-inspection-execution.spec.ts",
+      "A  frontend/tests/fe05-inspection-execution.test.mjs"
+    ],
+    "files": [
+      {
+        "path": "frontend/src/features/inspectionExecution/api.ts",
+        "sha256": "6BF78BE6B32EDDBEF47C99AC1F82FEC3B1CC7DEED90F936B203A76526E978B52",
+        "preservedSha256": "6BF78BE6B32EDDBEF47C99AC1F82FEC3B1CC7DEED90F936B203A76526E978B52"
+      },
+      {
+        "path": "frontend/src/features/inspectionExecution/InspectionRoute.tsx",
+        "sha256": "CF7C0B94BAC91B12F412C92B6E491FE4598FECD8C576B16F4FD409B4E1892EC7",
+        "preservedSha256": "CF7C0B94BAC91B12F412C92B6E491FE4598FECD8C576B16F4FD409B4E1892EC7"
+      },
+      {
+        "path": "frontend/src/features/inspectionExecution/InspectionWorkspace.tsx",
+        "sha256": "6A2D6E16A6B9C39DD582A61C93E56799DC4B210089239BDB25DEE9A8DCBAC63A",
+        "preservedSha256": "6A2D6E16A6B9C39DD582A61C93E56799DC4B210089239BDB25DEE9A8DCBAC63A"
+      },
+      {
+        "path": "frontend/src/features/inspectionExecution/model.ts",
+        "sha256": "C81FA2E671FC8BF68BB9EA0118E2A173EBB43FADBFDEE5DBD7FCF2B120A94CA3",
+        "preservedSha256": "C81FA2E671FC8BF68BB9EA0118E2A173EBB43FADBFDEE5DBD7FCF2B120A94CA3"
+      },
+      {
+        "path": "frontend/tests/fe05-inspection-execution.spec.ts",
+        "sha256": "726D981E14241B8C2463F6414A0398B5605C18A93CD66D4D396E3F661D563E7B",
+        "preservedSha256": "726D981E14241B8C2463F6414A0398B5605C18A93CD66D4D396E3F661D563E7B"
+      },
+      {
+        "path": "frontend/tests/fe05-inspection-execution.test.mjs",
+        "sha256": "B5DD1C128B638F672C79BA1F1CBC857862B8146EEE622595990F154D37C694ED",
+        "preservedSha256": "B5DD1C128B638F672C79BA1F1CBC857862B8146EEE622595990F154D37C694ED"
+      }
+    ]
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
+    "branch": "feature/dev1-fe05-source-021",
+    "head": "e393da22a202c7768cfc9ecb13d343755aa6ef53",
+    "status": [
+      " M frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+      " M frontend/src/features/inspectionAssignment/client.ts",
+      " M frontend/tests/inspection-assignment.spec.ts",
+      " M frontend/tests/inspection-assignment.test.mjs",
+      " M src/HotelOps.Api/Controllers/InspectionAssignmentCandidateController.cs",
+      " M src/HotelOps.Api/Services/Housekeeping/InspectionAssignmentDomainComponent.cs",
+      "?? docs/verification/fe05-fast018/UC041_INTEGRATION_PROPOSAL_025A.md",
+      "?? docs/verification/fe05-fast018/UC041_ROUTER_HANDOFF_026.md",
+      "?? frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+      "?? frontend/src/features/inspectionAssignment/navigation.ts",
+      "?? frontend/tests/fixtures/inspection-assignment-destination.html",
+      "?? frontend/tests/fixtures/inspection-assignment-destination.tsx",
+      "?? tests/HotelOps.Checklist.CollectionTests/InspectionAssignmentContextTests.cs"
+    ],
+    "files": [
+      {
+        "path": "docs/verification/fe05-fast018/UC041_INTEGRATION_PROPOSAL_025A.md",
+        "sha256": "45AEC05F944D0C9FA0D1F0E352CB128CF1F53DD677101E64C546866F1B2B6B30",
+        "preservedSha256": "45AEC05F944D0C9FA0D1F0E352CB128CF1F53DD677101E64C546866F1B2B6B30"
+      },
+      {
+        "path": "docs/verification/fe05-fast018/UC041_ROUTER_HANDOFF_026.md",
+        "sha256": "ACDB5EDB53DAF4CC532B01116F3611D6CC3F10B78B0D291B3AECBFEB39C93FA4",
+        "preservedSha256": "ACDB5EDB53DAF4CC532B01116F3611D6CC3F10B78B0D291B3AECBFEB39C93FA4"
+      },
+      {
+        "path": "frontend/src/features/inspectionAssignment/client.ts",
+        "sha256": "C8AD44187843F23796D090E6B968D578600736BB97905F1F0662DA5F13D37361",
+        "preservedSha256": "C8AD44187843F23796D090E6B968D578600736BB97905F1F0662DA5F13D37361"
+      },
+      {
+        "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
+        "sha256": "DBE28C07038AEC844F2E8888A0CD989413C51FA6871CCAE9FDFA7D886E01BA51",
+        "preservedSha256": "DBE28C07038AEC844F2E8888A0CD989413C51FA6871CCAE9FDFA7D886E01BA51"
+      },
+      {
+        "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
+        "sha256": "5A72F0250288E71348AA0DB27DF6F6FADA4496DCAF6AF659F602C1421E00A679",
+        "preservedSha256": "5A72F0250288E71348AA0DB27DF6F6FADA4496DCAF6AF659F602C1421E00A679"
+      },
+      {
+        "path": "frontend/src/features/inspectionAssignment/navigation.ts",
+        "sha256": "4976E78130AD7AFEE9B4F4D98FA1AAC0D9F4050B3A7DCF76D748171AF1DEE78F",
+        "preservedSha256": "4976E78130AD7AFEE9B4F4D98FA1AAC0D9F4050B3A7DCF76D748171AF1DEE78F"
+      },
+      {
+        "path": "frontend/tests/fixtures/inspection-assignment-destination.html",
+        "sha256": "B5982AF23C3B745A90C07E38724F3F105813596FF3B44140FF11A000783EA6BC",
+        "preservedSha256": "B5982AF23C3B745A90C07E38724F3F105813596FF3B44140FF11A000783EA6BC"
+      },
+      {
+        "path": "frontend/tests/fixtures/inspection-assignment-destination.tsx",
+        "sha256": "9BBEC036B71A2253B0DCBB1AB85330D8B14C7EEC3C97D611B75AE216E87B4DD9",
+        "preservedSha256": "9BBEC036B71A2253B0DCBB1AB85330D8B14C7EEC3C97D611B75AE216E87B4DD9"
+      },
+      {
+        "path": "frontend/tests/inspection-assignment.spec.ts",
+        "sha256": "F223707EF42CB3561B7CF98EC10B399FBD3934702A09BED3768DC0977BB85638",
+        "preservedSha256": "F223707EF42CB3561B7CF98EC10B399FBD3934702A09BED3768DC0977BB85638"
+      },
+      {
+        "path": "frontend/tests/inspection-assignment.test.mjs",
+        "sha256": "E83C591924A68971C845E6AF72060750DE4130D92BAD408A758949794420AF21",
+        "preservedSha256": "E83C591924A68971C845E6AF72060750DE4130D92BAD408A758949794420AF21"
+      },
+      {
+        "path": "src/HotelOps.Api/Controllers/InspectionAssignmentCandidateController.cs",
+        "sha256": "5E36F72B531424508EEC6CB1504ECDF5A8B2C6D21FF5BFC3665C419A2FFAB281",
+        "preservedSha256": "5E36F72B531424508EEC6CB1504ECDF5A8B2C6D21FF5BFC3665C419A2FFAB281"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/Housekeeping/InspectionAssignmentDomainComponent.cs",
+        "sha256": "FD4E07EA61F4B14BD365C7D9483A110DEAD53C079EEB9E7CB96648AEA5960CA1",
+        "preservedSha256": "FD4E07EA61F4B14BD365C7D9483A110DEAD53C079EEB9E7CB96648AEA5960CA1"
+      },
+      {
+        "path": "tests/HotelOps.Checklist.CollectionTests/InspectionAssignmentContextTests.cs",
+        "sha256": "8D40E951ED9A71F03464C8AE2B9C80B9ADAAAD3EA88D4C6D5FB9E0C3BB0404CC",
+        "preservedSha256": "8D40E951ED9A71F03464C8AE2B9C80B9ADAAAD3EA88D4C6D5FB9E0C3BB0404CC"
+      }
+    ]
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-uc039-uc040-a4-r1",
+    "branch": "feature/dev1-fe05-uc039-uc040-source",
+    "head": "6eeee8754dbcafb66c6f8951597be031383386de",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-uc048-history-ui",
+    "branch": "feature/dev1-fe05-uc048-history-ui",
+    "head": "4fd4f93e7aaf1dc1d27ef99277bd7de8de590382",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-COLLECTION",
+    "branch": "feature/dev1-fe05-checklist-collection",
+    "head": "6aee2a0e692a7814f41c81224709cddfbe1e2ec4",
+    "status": [
+      " M src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+      "?? docs/fe05/FE05_INT001_LIVE_REPORT.md",
+      "?? docs/fe05/FE05_UI002_COLLECTION_API.md",
+      "?? scripts/verification/ChecklistLive/ChecklistLive.csproj",
+      "?? scripts/verification/ChecklistLive/Program.cs",
+      "?? scripts/verification/ChecklistLive/README.md",
+      "?? src/HotelOps.Api/DTOs/HotelStructure/ChecklistCollectionDtos.cs",
+      "?? src/HotelOps.Api/Services/HotelStructure/ChecklistCollectionService.cs",
+      "?? tests/HotelOps.Checklist.CollectionTests/CollectionTests.cs",
+      "?? tests/HotelOps.Checklist.CollectionTests/HotelOps.Checklist.CollectionTests.csproj"
+    ],
+    "files": [
+      {
+        "path": "docs/fe05/FE05_INT001_LIVE_REPORT.md",
+        "sha256": "6675DEC9C45142B437DD1192C0E3F946EFD7CEA2E74E615BF7FF684E9103494C",
+        "preservedSha256": "6675DEC9C45142B437DD1192C0E3F946EFD7CEA2E74E615BF7FF684E9103494C"
+      },
+      {
+        "path": "docs/fe05/FE05_UI002_COLLECTION_API.md",
+        "sha256": "2B3FD72FF0D7006A580B8B9F8542591451EA8CCE7AAE4F24F7480ACA4B742F3D",
+        "preservedSha256": "2B3FD72FF0D7006A580B8B9F8542591451EA8CCE7AAE4F24F7480ACA4B742F3D"
+      },
+      {
+        "path": "scripts/verification/ChecklistLive/ChecklistLive.csproj",
+        "sha256": "F4224C82E932FD384923A75EADC79150E8C96C433F0BD7E4DB8551B13F5DA335",
+        "preservedSha256": "F4224C82E932FD384923A75EADC79150E8C96C433F0BD7E4DB8551B13F5DA335"
+      },
+      {
+        "path": "scripts/verification/ChecklistLive/Program.cs",
+        "sha256": "98FD8AAD53EAA2259F777568647CDAFFCF168480E5D8C9A0AE6B1ACA4475B2A4",
+        "preservedSha256": "98FD8AAD53EAA2259F777568647CDAFFCF168480E5D8C9A0AE6B1ACA4475B2A4"
+      },
+      {
+        "path": "scripts/verification/ChecklistLive/README.md",
+        "sha256": "CDDD9C81BECACE78798ABE2A1C1E46E67612FD0E1F5BA8E444BEDA5563E7805A",
+        "preservedSha256": "CDDD9C81BECACE78798ABE2A1C1E46E67612FD0E1F5BA8E444BEDA5563E7805A"
+      },
+      {
+        "path": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+        "sha256": "297BF8FCCE8CC92509601268D9976BEBDBFFE80C94CFC5B0F4C74EAA3A94B801",
+        "preservedSha256": "297BF8FCCE8CC92509601268D9976BEBDBFFE80C94CFC5B0F4C74EAA3A94B801"
+      },
+      {
+        "path": "src/HotelOps.Api/DTOs/HotelStructure/ChecklistCollectionDtos.cs",
+        "sha256": "A84D4BB865656DF6F03D9215F491DF6183C8DD5568E17C022AC358AC880F0575",
+        "preservedSha256": "A84D4BB865656DF6F03D9215F491DF6183C8DD5568E17C022AC358AC880F0575"
+      },
+      {
+        "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistCollectionService.cs",
+        "sha256": "FCF2591AB5BEE0B068D39C7007B8C0C74DCFB7663F234E1775C40784EC01BE52",
+        "preservedSha256": "FCF2591AB5BEE0B068D39C7007B8C0C74DCFB7663F234E1775C40784EC01BE52"
+      },
+      {
+        "path": "tests/HotelOps.Checklist.CollectionTests/CollectionTests.cs",
+        "sha256": "63C76CF20BD493CF914E4EEB48BFE4131F34F4340A6D6775073AE37DAD17994A",
+        "preservedSha256": "63C76CF20BD493CF914E4EEB48BFE4131F34F4340A6D6775073AE37DAD17994A"
+      },
+      {
+        "path": "tests/HotelOps.Checklist.CollectionTests/HotelOps.Checklist.CollectionTests.csproj",
+        "sha256": "16CCB9121DB76578A0BC47951FD4D83C18D4B39D7C3FD884759D43B391FF29FB",
+        "preservedSha256": "16CCB9121DB76578A0BC47951FD4D83C18D4B39D7C3FD884759D43B391FF29FB"
+      }
+    ]
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST001",
+    "branch": "feature/dev1-fe05-execution-history",
+    "head": "3502ef74e7d8ce7172823c4fe750689b4095259c",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST003",
+    "branch": "feature/dev1-fe05-failed-rework",
+    "head": "d87d1b9008699d4315e4427317fb273bafdf8d33",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST004",
+    "branch": "feature/dev1-fe05-conclusion-integration",
+    "head": "a5048a72670df18050992ed4ff7895cc07b6ee1e",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST005",
+    "branch": "feature/dev1-fe05-authority-wiring",
+    "head": "c3fe6bba1716ea54ace0f769b3b9bbf9e2ed234f",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST006",
+    "branch": "feature/dev1-fe05-authoritative-composition",
+    "head": "5a6eea8645a54d231724caee0fa0a258f55dc2d3",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST007",
+    "branch": "feature/dev1-fe05-complete-composition",
+    "head": "dd1dc1d19df75aa13a5bde37c76911063ed1d871",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST008",
+    "branch": "feature/dev1-fe05-supervisor-coordination",
+    "head": "3a1a16888ab487670335f7cf15cd777645e23ae2",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST009",
+    "branch": "feature/dev1-fe05-trusted-responsibility",
+    "head": "90bc660167620e2ccc7eef532123214023a2c655",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST010",
+    "branch": "feature/dev1-fe05-cleaner-attribution",
+    "head": "7e18caaf095fd6677dfb4fc1d3b002151feb17d9",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST011",
+    "branch": "feature/dev1-fe05-authority-closure",
+    "head": "53531b71e41b1796cc2c05b6e91114307c41cc46",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST012",
+    "branch": "feature/dev1-fe05-approve-reinspection",
+    "head": "96b1681e86bd41677972ca67410af446a62b3cfc",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST013",
+    "branch": "feature/dev1-fe05-approve-reinspection-composition",
+    "head": "d8d9195e13e0a5edb1edc79050ee56f24525209e",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST014",
+    "branch": "feature/dev1-fe05-approve-reinspection-accept010",
+    "head": "c235e23e5f52428554490cab2fc93c65164533ff",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST015",
+    "branch": "feature/dev1-fe05-reinspection-workflow",
+    "head": "6dac65a63430ce6da07c2245a112f6f6118b3290",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST016",
+    "branch": "feature/dev1-fe05-reinspection-conclusion",
+    "head": "7f4624751217ac0f1ea35929aadceb1c48c248da",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST017",
+    "branch": "feature/dev1-fe05-assignment-readiness",
+    "head": "6fcfe5529efeb027d379a4e1c1fe02cdfbfb1a7e",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-FAST018",
+    "branch": "feature/dev1-fe05-source-consolidation",
+    "head": "104dcdf55fde2b924509032f920a3266157f5fdc",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-INT003",
+    "branch": "integration/dev1-fe05-checklists",
+    "head": "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+    "status": [],
+    "files": []
+  },
+  {
+    "workspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05-UI",
+    "branch": "feature/dev1-fe05-checklist-ui",
+    "head": "9d220a94509e650464406a9b83099d24cb568220",
+    "status": [
+      " M frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+      " M frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+      "?? frontend/docs/FE05_UI001.md",
+      "?? frontend/docs/FE05_UI003.md",
+      "?? frontend/playwright.fe05.config.ts",
+      "?? frontend/src/features/inspectionChecklists/ChecklistCollection.tsx",
+      "?? frontend/src/features/inspectionChecklists/ChecklistForm.tsx",
+      "?? frontend/src/features/inspectionChecklists/ChecklistWorkspace.tsx",
+      "?? frontend/src/features/inspectionChecklists/api.ts",
+      "?? frontend/src/features/inspectionChecklists/checklists.css",
+      "?? frontend/src/features/inspectionChecklists/collection.ts",
+      "?? frontend/src/features/inspectionChecklists/model.ts",
+      "?? frontend/tests/fe05-checklists.spec.ts",
+      "?? frontend/tests/fe05-checklists.test.mjs",
+      "?? frontend/tests/fe05-collection.test.mjs",
+      "?? frontend/tests/fe05-live-resume.mjs",
+      "?? frontend/tests/fe05-live.mjs"
+    ],
+    "files": [
+      {
+        "path": "frontend/docs/FE05_UI001.md",
+        "sha256": "B9FB0C8C4059EA65D4F4FE7B394B8E1E9018EC85CF599CAD5E80A9DBD577194D",
+        "preservedSha256": "B9FB0C8C4059EA65D4F4FE7B394B8E1E9018EC85CF599CAD5E80A9DBD577194D"
+      },
+      {
+        "path": "frontend/docs/FE05_UI003.md",
+        "sha256": "88334813AB50AABAFF0B3F7395BE066A78FB70C56DB4DAC0BE64AC6A0C75E5C8",
+        "preservedSha256": "88334813AB50AABAFF0B3F7395BE066A78FB70C56DB4DAC0BE64AC6A0C75E5C8"
+      },
+      {
+        "path": "frontend/playwright.fe05.config.ts",
+        "sha256": "493F3E575A259CAD37231D41F60FB70408D79814998B1B25C65F7BAE8F6B9452",
+        "preservedSha256": "493F3E575A259CAD37231D41F60FB70408D79814998B1B25C65F7BAE8F6B9452"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/api.ts",
+        "sha256": "B8FDE5178BE4913FCFB2824C02C26CDEA12C4E5371D17F189645C6A1F20E8BC7",
+        "preservedSha256": "B8FDE5178BE4913FCFB2824C02C26CDEA12C4E5371D17F189645C6A1F20E8BC7"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/ChecklistCollection.tsx",
+        "sha256": "138A3CEA53D94F43C31CEE356317717F5D02F279F84B5044C8E934130D3625BA",
+        "preservedSha256": "138A3CEA53D94F43C31CEE356317717F5D02F279F84B5044C8E934130D3625BA"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/ChecklistForm.tsx",
+        "sha256": "F697F9E6D94682928CD6D6F8244691D7125E6693E0541A6C459EAEA1729886A1",
+        "preservedSha256": "F697F9E6D94682928CD6D6F8244691D7125E6693E0541A6C459EAEA1729886A1"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/checklists.css",
+        "sha256": "243067CD92571A328E22174A47BDA1D842764FCAA6ABC8072769C9B030166599",
+        "preservedSha256": "243067CD92571A328E22174A47BDA1D842764FCAA6ABC8072769C9B030166599"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/ChecklistWorkspace.tsx",
+        "sha256": "DE93B0200029A49AF934E37D12297BA9A18719C3F0801F26365068F90A847E05",
+        "preservedSha256": "DE93B0200029A49AF934E37D12297BA9A18719C3F0801F26365068F90A847E05"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/collection.ts",
+        "sha256": "97EDCDF2F211BC48370642FA3330C899EAC26BD53DEF11A85BB72861681CBB68",
+        "preservedSha256": "97EDCDF2F211BC48370642FA3330C899EAC26BD53DEF11A85BB72861681CBB68"
+      },
+      {
+        "path": "frontend/src/features/inspectionChecklists/model.ts",
+        "sha256": "467ACBCF18245382C158B971F74073BD51B053D4BDC3AA2088FA7227F292B179",
+        "preservedSha256": "467ACBCF18245382C158B971F74073BD51B053D4BDC3AA2088FA7227F292B179"
+      },
+      {
+        "path": "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+        "sha256": "A6668D7304480A363C46C38E33F3AAAAFD6511C2D846B99F6B258C7A798C5295",
+        "preservedSha256": "A6668D7304480A363C46C38E33F3AAAAFD6511C2D846B99F6B258C7A798C5295"
+      },
+      {
+        "path": "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+        "sha256": "E463E00B23E0E716D4E2949172352E766FA77D3796134EA3DA7BCD86275CF056",
+        "preservedSha256": "E463E00B23E0E716D4E2949172352E766FA77D3796134EA3DA7BCD86275CF056"
+      },
+      {
+        "path": "frontend/tests/fe05-checklists.spec.ts",
+        "sha256": "B60ED770191A55C9ECD398DC900A83B58C3E602CCBA2334EE5806BF98210BE58",
+        "preservedSha256": "B60ED770191A55C9ECD398DC900A83B58C3E602CCBA2334EE5806BF98210BE58"
+      },
+      {
+        "path": "frontend/tests/fe05-checklists.test.mjs",
+        "sha256": "FCFAA53CA1892C304FAA4A040995F0C3D3CD92E7B60482C9767AE897CAFEA000",
+        "preservedSha256": "FCFAA53CA1892C304FAA4A040995F0C3D3CD92E7B60482C9767AE897CAFEA000"
+      },
+      {
+        "path": "frontend/tests/fe05-collection.test.mjs",
+        "sha256": "861B1488CD31DF2FF5EDC51E6994D19183751F10095F3978850CCF47D02A2C3F",
+        "preservedSha256": "861B1488CD31DF2FF5EDC51E6994D19183751F10095F3978850CCF47D02A2C3F"
+      },
+      {
+        "path": "frontend/tests/fe05-live.mjs",
+        "sha256": "FC44378E79A299764ACF017695F30DE0B039187367B3E46ECD818E9C8DD3F1FC",
+        "preservedSha256": "FC44378E79A299764ACF017695F30DE0B039187367B3E46ECD818E9C8DD3F1FC"
+      },
+      {
+        "path": "frontend/tests/fe05-live-resume.mjs",
+        "sha256": "842F689A5E6349CDA15F23518F00D15BB4D57F48EBF1657DB6ADDFE2A64D0B7B",
+        "preservedSha256": "842F689A5E6349CDA15F23518F00D15BB4D57F48EBF1657DB6ADDFE2A64D0B7B"
+      }
+    ]
+  }
+]

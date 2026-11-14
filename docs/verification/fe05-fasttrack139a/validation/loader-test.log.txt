@@ -1,0 +1,10 @@
+D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\tests\HotelOps.Inspection.LoaderTests\Program.cs(53,18): error CS0103: The name 'ApproveInspectionValidator' does not exist in the current context [D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\tests\HotelOps.Inspection.LoaderTests\HotelOps.Inspection.LoaderTests.csproj]
+D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\tests\HotelOps.Inspection.LoaderTests\Program.cs(81,19): error CS0103: The name 'ApproveInspectionValidator' does not exist in the current context [D:\SEP490\Projects\HotelOps-DEV1-FE05\obj\fe05-fasttrack139a\handoff\tests\HotelOps.Inspection.LoaderTests\HotelOps.Inspection.LoaderTests.csproj]
+dotnet :
+At line:2 char:620
++ ... estore.log; dotnet run --project tests/HotelOps.Inspection.LoaderTest ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+The build failed. Fix the build errors and run again.

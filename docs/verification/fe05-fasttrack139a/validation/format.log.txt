@@ -1,0 +1,20 @@
+Checking formatting...
+node : [warn] src/features/inspectionAssignment/client.ts
+At line:2 char:167
++ ... TEXITCODE"; node node_modules/prettier/bin/prettier.cjs --check src/f ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([warn] src/feat...nment/client.ts:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+[warn] src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx
+[warn] src/features/inspectionAssignment/InspectionAssignmentDestination.tsx
+[warn] src/features/inspectionAssignment/navigation.ts
+[warn] src/features/inspectionReinspection/candidateClient.ts
+[warn] tests/inspection-assignment.test.mjs
+[warn] tests/inspection-assignment.spec.ts
+[warn] tests/fixtures/inspection-assignment-destination.html
+[warn] tests/fixtures/inspection-assignment-destination.tsx
+[warn] tests/fixtures/inspection-assignment.html
+[warn] tests/fixtures/inspection-assignment.tsx
+[warn] playwright.fe05-fast017.config.ts
+[warn] Code style issues found in 12 files. Run Prettier with --write to fix.

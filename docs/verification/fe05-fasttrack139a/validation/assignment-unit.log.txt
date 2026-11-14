@@ -1,0 +1,43 @@
+✔ read queue/options uses branch-scoped typed cookie transport (276.0877ms)
+✔ confirm 401 preserves identity and never retries (11.478ms)
+✔ confirm 403 preserves identity and never retries (4.8142ms)
+✔ confirm 412 preserves identity and never retries (18.5035ms)
+✔ confirm 409 preserves identity and never retries (4.654ms)
+✔ confirm 503 preserves identity and never retries (3.6432ms)
+✔ explicit retry carries the same operation UUID and body; no automatic retry (4.8676ms)
+✔ invalid candidate operation identity rejected before transport:  (1.5345ms)
+✔ invalid candidate operation identity rejected before transport: not-a-uuid (69.2244ms)
+✔ invalid candidate operation identity rejected before transport: 00000000-0000-0000-0000-000000000000 (0.8549ms)
+✔ unknown outcome does not retry (46.207ms)
+✔ unexpected successful mutation cannot produce fake UI success (41.8428ms)
+✔ invalid explicit selection/confirmation rejected before transport 99,6,true (0.7637ms)
+✔ invalid explicit selection/confirmation rejected before transport 5,99,true (0.6358ms)
+✔ invalid explicit selection/confirmation rejected before transport 5,6,false (85.5494ms)
+✔ reject malformed or unaccepted capability response {"taskId":99,"roomId":3,"taskRevision":"\"0000000000000001\"","cycleRevision":"\"0000000000000002\"","checklistVersionId":4,"inspectors":[{"userId":5,"fullName":"Inspector"}],"responsibleSupervisors":[{"userId":6,"fullName":"Supervisor"}],"productionMutationAvailable":false} (4.6044ms)
+✔ reject malformed or unaccepted capability response {"taskId":2,"roomId":3,"taskRevision":"W/\"0000000000000001\"","cycleRevision":"\"0000000000000002\"","checklistVersionId":4,"inspectors":[{"userId":5,"fullName":"Inspector"}],"responsibleSupervisors":[{"userId":6,"fullName":"Supervisor"}],"productionMutationAvailable":false} (2.1559ms)
+✔ reject malformed or unaccepted capability response {"taskId":2,"roomId":3,"taskRevision":"\"0000000000000001\"","cycleRevision":"\"0000000000000002\"","checklistVersionId":4,"inspectors":[{"userId":5,"fullName":"Inspector"}],"responsibleSupervisors":[{"userId":6,"fullName":"Supervisor"}],"productionMutationAvailable":true} (2.3102ms)
+✔ reject navigation  (4.1214ms)
+✔ reject navigation ?roomId=3 (0.9349ms)
+✔ reject navigation ?branchId= (0.9393ms)
+✔ reject navigation ?branchId=0 (1.5833ms)
+✔ reject navigation ?branchId=-1 (0.5349ms)
+✔ reject navigation ?branchId=1.5 (0.4062ms)
+✔ reject navigation ?branchId=1e2 (1.1959ms)
+✔ reject navigation ?branchId=01 (0.4004ms)
+✔ reject navigation ?branchId=9007199254740992 (0.6225ms)
+✔ reject navigation ?branchId=1&branchId=2 (0.2485ms)
+✔ reject navigation ?branchId=1&roomId= (0.2125ms)
+✔ reject navigation ?branchId=1&roomId=0 (0.1439ms)
+✔ reject navigation ?branchId=1&roomId=3&roomId=3 (0.1432ms)
+✔ reject navigation ?branchId=1&taskId=2 (0.14ms)
+✔ parse branch and optional room (6.8415ms)
+✔ room context reaches server and mismatched options fail closed (2.1851ms)
+✔ room queue cannot leak mismatched pending results (13.7998ms)
+ℹ tests 35
+ℹ suites 0
+ℹ pass 35
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5619.7205
