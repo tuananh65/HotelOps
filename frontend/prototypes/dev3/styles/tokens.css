@@ -1,0 +1,257 @@
+:root {
+  --brown-50: #faf6f1;
+  --brown-100: #f1e7d9;
+  --brown-200: #dfcbb0;
+  --brown-300: #c5a681;
+  --brown-500: #987550;
+  --brown-600: #7c5c3e;
+  --brown-700: #624831;
+  --brown-800: #49382b;
+  --brown-900: #352b24;
+  --font-body: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: Georgia, "Times New Roman", serif;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --radius-control: 3px;
+  --radius-panel: 4px;
+  --border-subtle: 1px solid var(--warm-300);
+  --shadow-panel: 0 4px 16px #352b240d;
+
+  --gold-50: #fbf7ef;
+  --gold-100: #f4ead8;
+  --gold-200: #ead7b6;
+  --gold-300: #ddc18e;
+  --gold-400: #d8bd91;
+  --gold-500: #c8a267;
+  --gold-600: #ad8750;
+  --gold-700: #785831;
+  --gold-800: #594126;
+  --charcoal-50: #f7f7f6;
+  --charcoal-100: #ecebe8;
+  --charcoal-200: #d8d6d1;
+  --charcoal-300: #aaa69f;
+  --charcoal-500: #68645d;
+  --charcoal-700: #3c3a36;
+  --charcoal-800: #2b2a27;
+  --charcoal-900: #232323;
+  --charcoal-950: #1c1c1c;
+  --warm-50: #faf9f5;
+  --warm-100: #f5f3ed;
+  --warm-200: #efe8dc;
+  --warm-300: #e2d6c4;
+  --status-sage-text: #50654f;
+  --status-sage-surface: #edf2e9;
+  --status-bronze-text: #7b613e;
+  --status-bronze-surface: #f2e9da;
+  --status-clay-text: #8a4d43;
+  --status-clay-surface: #f6eae5;
+  --status-neutral-text: #68645d;
+  --status-neutral-surface: #ecebe8;
+}
+
+/* Operations palette. Legacy aliases keep existing screen modules compatible. */
+:root {
+  --white: #ffffff;
+  --navy-500: #475569;
+  --navy-600: #334155;
+  --navy-700: #1e293b;
+  --navy-800: #172033;
+  --navy-900: #111827;
+  --navy-950: #0b1220;
+  --blue-50: #eff6ff;
+  --blue-100: #dbeafe;
+  --blue-500: #3b82f6;
+  --blue-600: #2563eb;
+  --blue-700: #1d4ed8;
+  --blue-800: #1e40af;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+  --gray-950: #020617;
+  --green-50: #f0fdf4;
+  --green-100: #dcfce7;
+  --green-700: #166534;
+  --amber-50: #fffbeb;
+  --amber-100: #fef3c7;
+  --amber-700: #92400e;
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-700: #991b1b;
+  --color-primary-500: var(--navy-500);
+  --color-primary-600: var(--navy-600);
+  --color-primary-700: var(--navy-700);
+  --color-primary-800: var(--navy-800);
+  --color-primary-900: var(--navy-900);
+  --color-primary-950: var(--navy-950);
+  --color-accent-50: var(--blue-50);
+  --color-accent-100: var(--blue-100);
+  --color-accent-500: var(--blue-500);
+  --color-accent-600: var(--blue-600);
+  --color-accent-700: var(--blue-700);
+  --color-accent-800: var(--blue-800);
+  --color-neutral-50: var(--gray-50);
+  --color-neutral-100: var(--gray-100);
+  --color-neutral-200: var(--gray-200);
+  --color-neutral-300: var(--gray-300);
+  --color-neutral-400: var(--gray-400);
+  --color-neutral-500: var(--gray-500);
+  --color-neutral-600: var(--gray-600);
+  --color-neutral-700: var(--gray-700);
+  --color-neutral-800: var(--gray-800);
+  --color-neutral-900: var(--gray-900);
+  --color-neutral-950: var(--gray-950);
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-700: var(--green-700);
+  --color-amber-50: var(--amber-50);
+  --color-amber-100: var(--amber-100);
+  --color-amber-700: var(--amber-700);
+  --color-red-50: var(--red-50);
+  --color-red-100: var(--red-100);
+  --color-red-700: var(--red-700);
+  --gold-50: var(--blue-50);
+  --gold-100: var(--blue-100);
+  --gold-200: var(--blue-100);
+  --gold-300: var(--blue-500);
+  --gold-400: var(--blue-500);
+  --gold-500: var(--blue-500);
+  --gold-600: var(--blue-600);
+  --gold-700: var(--blue-700);
+  --gold-800: var(--blue-800);
+  --brown-50: var(--gray-50);
+  --brown-100: var(--gray-100);
+  --brown-200: var(--gray-200);
+  --brown-300: var(--gray-300);
+  --brown-500: var(--gray-500);
+  --brown-600: var(--gray-600);
+  --brown-700: var(--gray-700);
+  --brown-800: var(--gray-800);
+  --brown-900: var(--gray-900);
+  --charcoal-50: var(--gray-50);
+  --charcoal-100: var(--gray-100);
+  --charcoal-200: var(--gray-200);
+  --charcoal-300: var(--gray-300);
+  --charcoal-500: var(--gray-500);
+  --charcoal-700: var(--gray-700);
+  --charcoal-800: var(--gray-800);
+  --charcoal-900: var(--gray-900);
+  --charcoal-950: var(--gray-950);
+  --warm-50: var(--gray-50);
+  --warm-100: var(--gray-100);
+  --warm-200: var(--gray-200);
+  --warm-300: var(--gray-300);
+  --color-success: var(--green-700);
+  --color-warning: var(--amber-700);
+  --color-danger: var(--red-700);
+  --color-info: var(--blue-700);
+  --status-sage-text: var(--green-700);
+  --status-sage-surface: var(--green-50);
+  --status-bronze-text: var(--amber-700);
+  --status-bronze-surface: var(--amber-50);
+  --status-clay-text: var(--red-700);
+  --status-clay-surface: var(--red-50);
+  --status-neutral-text: var(--gray-600);
+  --status-neutral-surface: var(--gray-100);
+  --font-heading: var(--font-body);
+  --brand-accent: #c8a267;
+}
+
+/* Enterprise content roles: separate interaction, navigation and semantic feedback. */
+:root {
+  --interaction-surface: #f1f5f9;
+  --interaction-selected: #e1eaf1;
+  --interaction-border: #93a6bb;
+  --interaction-focus: #577495;
+  --interaction-primary: #3f5c7d;
+  --interaction-link: #385778;
+  --interaction-hover: #2d4968;
+  --status-assigned-surface: #f1f5f9;
+  --status-assigned-text: #45617e;
+  --status-progress-surface: #eef7f8;
+  --status-progress-text: #26656f;
+  --status-success-surface: #f2f8f4;
+  --status-success-text: #2a6446;
+  --status-warning-surface: #fcf7ed;
+  --status-warning-text: #805e26;
+  --status-danger-surface: #fbf3f3;
+  --status-danger-text: #954145;
+  --status-disabled-surface: #f4f5f7;
+  --status-disabled-text: #5c6877;
+  --chart-primary: #577495;
+  --kpi-info-surface: #f4f7fa;
+  --kpi-success-surface: #f4f8f5;
+  --kpi-warning-surface: #fdf9f2;
+  --kpi-danger-surface: #fcf6f6;
+  --kpi-neutral-surface: #f5f6f8;
+}
+
+/* Bright refinement: content surfaces and typography, independent of sidebar. */
+:root {
+  --workspace-surface: #fbfcfd;
+  --table-header-surface: #f6f8fb;
+  --row-hover-surface: #f1f6fa;
+  --content-heading: #28364d;
+  --content-important: #2e3e56;
+  --content-border: #e6ecf2;
+}
+
+/* Shared navy bridge: navigation, actions, chrome and workspace. */
+:root {
+  --bridge-navy-950: #182c49;
+  --bridge-navy-900: #203655;
+  --bridge-navy-800: #294568;
+  --bridge-navy-700: #355779;
+  --bridge-navy-600: #4b6a8a;
+  --bridge-navy-500: #6c88a5;
+  --bridge-navy-300: #adc0d5;
+  --bridge-navy-200: #ccd9e8;
+  --bridge-navy-100: #e1e9f3;
+  --bridge-navy-50: #eef3f9;
+  --bridge-header-surface: #eaf0f7;
+  --bridge-card-surface: #fdfefe;
+}
+
+/* Vibrant accents: tint / primary / emphasis; neutral surfaces stay separate. */
+:root {
+  --accent-blue-100: #dbeafe;
+  --accent-blue-600: #2563eb;
+  --accent-blue-700: #1d4ed8;
+  --accent-green-100: #d1fae5;
+  --accent-green-600: #059669;
+  --accent-green-700: #047857;
+  --accent-amber-100: #fef3c7;
+  --accent-amber-600: #d97706;
+  --accent-amber-700: #92400e;
+  --accent-orange-100: #ffedd5;
+  --accent-orange-600: #ea580c;
+  --accent-orange-700: #9a3412;
+  --accent-red-100: #ffe4e6;
+  --accent-red-600: #e11d48;
+  --accent-red-700: #be123c;
+  --accent-cyan-100: #cffafe;
+  --accent-cyan-600: #0891b2;
+  --accent-cyan-700: #0e7490;
+  --accent-purple-100: #ede9fe;
+  --accent-purple-600: #7c3aed;
+  --accent-purple-700: #6d28d9;
+  --rich-navy-sidebar: #132d57;
+  --rich-navy-active: #234d86;
+}
+
+:root {
+  --requested-action-navy: #0a2472;
+  --requested-action-hover: #081d5c;
+}

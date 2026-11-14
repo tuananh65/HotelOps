@@ -1,0 +1,103 @@
+{
+  "revision": "UC004-OWNER-HANDOFF-096",
+  "head": "b9ed872ec68f88384ffdda9fc65398ba98e0154e",
+  "tree": "a7542db029bde58dad0f1b31639b5e65efb96e00",
+  "compositionStatus": "LOCAL_ONLY_NOT_REMOTE_COMMIT_ATTESTATION",
+  "sourceEntries": [
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/CONTRACT_065.md",
+      "blob": "4bacb3b2f542f4c2b44c6b717f6fde960a020908",
+      "gitBlobSha256": "b6d95823f0cbdee45c19fe4e90dfab83103ae5f051d23343b3f90d3b7e3c2a31",
+      "workingBytesSha256": "12683f9ac25f9f588fa30186eddc0fd284d3f4b233eb916dbfa9f9d7656d0cc4"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/CREATE_ONLY.md",
+      "blob": "84025b0e1bf9342cddbc947d06fd6a46a10261ef",
+      "gitBlobSha256": "1b772b23c46fa0e7aa47d1596c20390da04036cc5221dd5a7bb6c5701dfab876",
+      "workingBytesSha256": "6a4ddb8acc13141493e925d483103a8325172b8a24eed3d207902cfedfde50ff"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/CreateAuditFault.cs",
+      "blob": "ff57f3015cc98f7073c891eec8fd8229cfbd7283",
+      "gitBlobSha256": "a71631dcff304bef2d4644bc231c25b0d0dfb30f1243601b576fb775b07f1715",
+      "workingBytesSha256": "cc17783e1c959a2991032a25836e1a86303e387b9e365f67301efc0eea9bb78f"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/CreateAuditFaultTests.cs",
+      "blob": "41ff5568f4c1d289b8631e0fa23e94b250a9c613",
+      "gitBlobSha256": "41eeffdf83cfc0bf048b2d01265c5d8d68b02c0f75410d7ffe939d7680c23198",
+      "workingBytesSha256": "d4e62aa8d19366adc9345d87b2ed064e2aa0866ce95d0fc4c9b7167d0ae5b58f"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/CreateOnlyRunner.cs",
+      "blob": "d9cef84e76d0290b817bbd49a34eac860660b85c",
+      "gitBlobSha256": "2b9a40683c22193aa124b0467c3d956a42005da659e9e8168bac74a7c2d43f67",
+      "workingBytesSha256": "a67186296fde2f7e38616d66ea2cc2503fe600f575e039c57bd195305f22177a"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/CreateOnlyTests.cs",
+      "blob": "0ef1e73430521cad75b30dea176a8d9882b9f700",
+      "gitBlobSha256": "b06301b3802fcf87adc0f3fde9ad6fdd6e96c62e06283eb139909b68d1eae67d",
+      "workingBytesSha256": "e57bb2df6b7138791ce5fc6385197e8e721d54e0381690a81ec099f2cf451c67"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/Program.cs",
+      "blob": "e4dd039c06e555969e8106f5f809095ea406eebc",
+      "gitBlobSha256": "fa8a65519c83e459de27ba308198a93a3a3185ea7b7afda29ed3bf97bd9a017a",
+      "workingBytesSha256": "1484f6bf65ff93792857cbf456f37d6a805a0ec8b2da865c6660554069312865"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/UserAccountCreation.Http.Verification.csproj",
+      "blob": "79b3b077c72a12656f69b1814170d34cd7dbb46d",
+      "gitBlobSha256": "d5bd30de8768b8cfcc478ff4b03d330fb02c51beff616fb0f16c5edce0ac2477",
+      "workingBytesSha256": "d27cdb368d0d510cc0e94e0aecef622c5a42c54f23f4f34a066e89ab4f688af9"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Program.cs",
+      "blob": "344d49c3d49c8d59a469d8b0955669dec2152e2c",
+      "gitBlobSha256": "27dd426c86dbc863b2f6a8e8575e77e8a01331310c55bc245a47e4e825775abc",
+      "workingBytesSha256": "e68be1bef126030807a2e687c6d103ac4432ea8ed4fc6349ef64a890a65e1cf9"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/TRIAL_ADMISSION.md",
+      "blob": "66f11c126020101f5e6578371be197549cf4a079",
+      "gitBlobSha256": "972c63d10ddfa1389185682c1612a05f2cc5bb0b5d8a89c2e5536f845257d322",
+      "workingBytesSha256": "3241a9d7e38c894c98a2fc71a745e2bd2e62e0cdcbc565e9dda069af8d74eec4"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/TrialAdmission.cs",
+      "blob": "f4ca8ddc632c414f41cb4f2cae137763c1ea91b7",
+      "gitBlobSha256": "e46eae60997bbbba8f41584fd08b6e93cd9e8ce5f7824deab37b00474eacd57f",
+      "workingBytesSha256": "f3e71661fdb1af6260cf5c491934e318822c25e948d67bbbe15d50448a40c660"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/TrialGuardTests.cs",
+      "blob": "0e9a5afb7e1adc4011f9185345338265cba2db06",
+      "gitBlobSha256": "0906aa245f716c4fe5ffa164cde9cea3cda4183d7b58756074af41468ce8d7ab",
+      "workingBytesSha256": "de23b11891b6937b3138e43d91bfbc0275bfe35c64076b2a16031d2a3b3a3cfa"
+    }
+  ],
+  "binaries": [
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/bin/Debug/net10.0/HotelOps.Api.dll",
+      "sha256": "01662a8bc2b594a35af9bf3583ab07dfc839f99697121260bc3e25d5d862d2ca",
+      "status": "OBSERVED_LOCAL_BINARY_NOT_DEPLOYMENT_APPROVED",
+      "sourceReproducibility": "NOT_REBUILT_THIS_TASK"
+    },
+    {
+      "path": "scripts/verification/UserAccountCreation/Http/bin/Debug/net10.0/UserAccountCreation.Http.Verification.dll",
+      "sha256": "ed5efcc29b130aedb1104cda940ec7066456d745c70c3298ca881aab89752ed6",
+      "status": "OBSERVED_LOCAL_BINARY_NOT_DEPLOYMENT_APPROVED",
+      "sourceReproducibility": "NOT_REBUILT_THIS_TASK"
+    }
+  ],
+  "trialHost": "EXTERNAL_APPROVED_HTTPS_HOST_REQUIRED; no accepted activated host supplied",
+  "schemaArtifact": null,
+  "fixtureArtifact": null,
+  "targetGuid": null,
+  "principalSid": null,
+  "lease": null,
+  "runtime": "NOT_RUN",
+  "legacyHttp": "REJECTED_BEFORE_CONNECTION",
+  "faultHost": "NOT_REGISTERED_NOT_ACTIVATED"
+}

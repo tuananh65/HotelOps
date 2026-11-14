@@ -11,6 +11,15 @@ using HotelOps.Api.Services.Inventory;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddScoped<HotelOps.Api.Services.Dependencies.Dev2DependencyReader>();
+builder.Services.AddScoped<HotelOps.Api.Services.Dependencies.Dev2PlacementAuthority>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.Fe12MaintenanceDependencyAdapter>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.RoomTypeDirectoryService>();
+builder.Services.AddScoped<HotelOps.Api.Services.HotelStructure.BranchAdministrationService>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant, HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant>(sp => (HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant)sp.GetRequiredService<HotelOps.Api.Services.WorkTime.IWorkTimeTransactionParticipant>());
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.OwnWorkdaySnapshotReader>();
+builder.Services.AddScoped<HotelOps.Api.Services.WorkTime.WorkdayService>();
 builder.Services.AddScoped<StartupSchemaValidator>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
@@ -75,7 +84,8 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUserAccessor, CurrentUserAccessor>();
 builder.Services.AddScoped<IPermissionDataSource, EfPermissionDataSource>();
 builder.Services.AddScoped<ICleaningTaskAccessReader, EfCleaningTaskAccessReader>();
-builder.Services.AddScoped<IPermissionResourceResolver, CleaningTaskResourceResolver>();
+builder.Services.AddScoped<CleaningTaskResourceResolver>();
+builder.Services.AddScoped<IPermissionResourceResolver, HotelOps.Api.Services.WorkTime.WorkdayPermissionResourceResolver>();
 builder.Services.AddScoped<IPermissionService, PermissionService>();
 builder.Services.AddHotelOpsPermissionAuthorization();
 

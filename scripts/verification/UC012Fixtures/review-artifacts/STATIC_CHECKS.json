@@ -1,0 +1,128 @@
+{
+  "revision": "UC012.R3.DESKTOP-JI8U50T.SQLEXPRESS.v1",
+  "kind": "OFFLINE_STATIC_ARTIFACT_CHECKS",
+  "passed": 26,
+  "failed": 0,
+  "checks": [
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql host-only delta",
+      "status": "PASS"
+    },
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql LF/no BOM",
+      "status": "PASS"
+    },
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql database_guid=@guid",
+      "status": "PASS"
+    },
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql HotelOps[_]UC012[_]Trial[_]%",
+      "status": "PASS"
+    },
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql UC012.ExecutionApproval",
+      "status": "PASS"
+    },
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql BEGIN TRANSACTION",
+      "status": "PASS"
+    },
+    {
+      "name": "01_SCHEMA_INSTALL_REVIEW.sql ROLLBACK",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql host-only delta",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql LF/no BOM",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql database_guid=@guid",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql HotelOps[_]UC012[_]Trial[_]%",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql UC012.ExecutionApproval",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql BEGIN TRANSACTION",
+      "status": "PASS"
+    },
+    {
+      "name": "02_CATALOG_INSTALL_REVIEW.sql ROLLBACK",
+      "status": "PASS"
+    },
+    {
+      "name": "10-table closure",
+      "status": "PASS"
+    },
+    {
+      "name": "ALTER TABLE dbo.branches ADD row_version rowversion NOT NULL",
+      "status": "PASS"
+    },
+    {
+      "name": "[row_version] rowversion NOT NULL",
+      "status": "PASS"
+    },
+    {
+      "name": "ON [branches] ([branch_code])",
+      "status": "PASS"
+    },
+    {
+      "name": "LIKE '%[_]CI[_]%'",
+      "status": "PASS"
+    },
+    {
+      "name": "Seeder behavior preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "03_ROLLBACK_POLICY.md published raw hash preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "03_ROLLBACK_POLICY.md checkout semantically unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "04_FIXTURE_MANIFEST.json published raw hash preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "04_FIXTURE_MANIFEST.json checkout semantically unchanged",
+      "status": "PASS"
+    },
+    {
+      "name": "05_PRINCIPAL_PERMISSION_MATRIX.json published raw hash preserved",
+      "status": "PASS"
+    },
+    {
+      "name": "05_PRINCIPAL_PERMISSION_MATRIX.json checkout semantically unchanged",
+      "status": "PASS"
+    }
+  ],
+  "focusedGuards": {
+    "passed": 45,
+    "failed": 0,
+    "exitCode": 0
+  },
+  "build": {
+    "solution": "PASS",
+    "fixtureProject": "PASS",
+    "warnings": 0,
+    "errors": 0
+  },
+  "sqlCompilation": "NOT_RUN",
+  "schemaApply": "NOT_RUN",
+  "fixturesSeed": "NOT_RUN",
+  "https": "NOT_RUN",
+  "executionApproval": "NOT_GRANTED"
+}

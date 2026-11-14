@@ -1,0 +1,56 @@
+# DEV3-FASTTRACK-033 — UC009 initial configuration V1
+
+Base integration 70e1d4ee2c4b63b14543f90c1e315bec39585d80. Branch feature/dev3-uc009-initial-permissions. No develop/PR64/PR25/PR47/PR51/Workday/owner-writer changes. Source authority: PL Issue59 comment6791239920. Requirements: SRS UC009 section1.9, docs/requirements/srs_sections/02_use_case_specifications.md:733; GBR030/026/005/007/008, SRS_CHANGE_NOTES priority. This restricted append-once contract is the explicit PL-approved exception to broad reconfiguration/version work, not proof of whole UC009 completion.
+
+## Requirements matrix
+
+| Requirement | Implementation | Limit/gate |
+|---|---|---|
+| Select active role; catalog grouped by feature; current grants | InitialRolePermissionsWorkspace links to the existing RoleCatalogRoute(matrix); panel uses accepted catalog API, grouped checkboxes/scope display, existing grants | Standalone/unmounted; no production router cutover |
+| Lawful successful role-permission write | InitialRolePermissionsService.ConfigureAsync + SQL transaction adapter: nonempty grants and one before/after AuditLog then commit | Candidate NonController, default UI/API dispatch OFF |
+| Global Administrator authority | Existing RoleCatalogAuthority: both effective unbound USER_MANAGE and ROLE_MANAGE; existing cookie ticket and AccountWriterSessionGate at initial/final gates | No role-name or successful catalog GET as authority |
+| System/canonical/used role protection | Active non-system role, explicit seed-code registry and reserved prefixes; Any UserRole row including inactive/expired/history; no existing grants | No editing/deletion of historical grants, role metadata or assignments |
+| Anti-escalation/SoD | Restricted persisted-code/scope ceiling only: ROOM_VIEW/BRANCH, SHIFT_VIEW/OWN, ATTENDANCE_RECORD/OWN | All other combinations, ALL/global/admin grants rejected; no dynamic custom-role assignment |
+| Concurrency without invented version | Single global-admin transaction lock; retained role/assignment/grant locks and empty-set precondition; final state reread | No Role/RolePermission RowVersion, hash token, timestamp ETag or User ETag |
+| Atomic audit/session consistency | Server UTC GrantedAt/GrantedBy; one aggregate old=[]/new=exact grant list AuditLog; final SQL session/authority + durable-admin poststate | SQL fault/race acceptance NOT_RUN |
+| Next-request effective permissions | Existing uncached evaluator/data source unchanged; no assignee/history permitted | No affected sessions to revoke, no added session revocation policy |
+| Broad grant edits/removal/in-use roles | Not implemented in V1 | Durable aggregate revision, approved ceiling/SoD and affected-writer contracts still required |
+
+## Restricted V1 positive business path
+
+A live unrestricted actor with both effective global authorities selects a currently persisted active custom Role, never assigned to anyone and with zero grants. Actor selects canonical ROOM_VIEW PermissionId with BRANCH scope (or approved OWN pairs), reviews and confirms. Backend acquires global-first serialization and retained SQL locks, validates the persisted PermissionId/code and scope, inserts RolePermission rows with actor/server UTC, saves one exact empty-before/nonempty-after audit, rereads target/history/grants, checks durable administration and final session/authority, commits and returns201. Frontend confirms only the exact role/version/grants response and rereads authoritative catalog grants. This is a successful writer implementation, not an always503 stub. No assignment, system/canonical grant or role metadata is changed.
+
+## Exact HTTP/DTO contract
+
+POST /api/roles/{roleId:long}/permissions/initial-v1
+HTTPS + existing cookie authentication + antiforgery + no-store; RequestSizeLimit16384. Candidate controller is NonController. No Program.cs/DI activation.
+Request: {contractVersion:1,grants:[{permissionId:positive long,dataScope:"OWN"|"BRANCH"}]}. 1..32 entries, unique PermissionIds, strict unknown-member rejection at both levels. No role name, actor, branch, timestamp, permission code or authorization fields accepted. Client additionally uses JS-safe IDs. Version1 is the DTO/operation contract version, NOT an aggregate concurrency revision. If-Match is explicitly rejected400 instead of pretending Role has a version.
+Success201: {contractVersion:1,roleId,grants:[{permissionId,dataScope}]}, sorted by PermissionId; Location /api/roles/{id}/permissions. No ETag or EF entities.
+400 invalid shape/version/catalog/ceiling;401 invalid SQL session;403 missing global authority/restricted;404 role absent after authority admission;409 protected/inactive/history/configured/final state change/last admin conflict;503 lock/data/session store unavailable. Unexpected errors fail closed. Public errors use sanitized ProblemDetails title; client never relies on optional code or raw title/detail. Preflight failure is NOT_DISPATCHED with actual HTTP status only. Post-dispatch5xx/network/cancel/malformed success is OUTCOME_UNKNOWN; UI locks replay. No automatic POST retry or refresh-and-replay.
+
+## Security evidence and ceiling
+
+Canonical identity registry is taken from current accepted scripts/database/release/02_HotelOps_Upgrade_Auth_To_RBAC.sql seed roles (including DEPT_MANAGER/RECEPTION and inactive canonical roles with IsSystemRole=false). Case-insensitive trimmed canonical code matches and SYS_/SYSTEM_/ADMIN/OWNER prefixes are protected. No hard-coded role IDs. Registry must be reviewed if canonical catalog changes; this PR does not edit seed/catalog.
+The three pairs are from existing UserRoleDelegationPolicy envelopes, PermissionService branch/ownership semantics, WorkdayPermissionResourceResolver and existing ROOM_VIEW consumers. Ceiling is an explicit restrictive V1 policy, not inferred from actor current grants or labels. Client scope options are presentation only; backend checks every persisted ID/code/scope. ALL, USER_MANAGE/ROLE_MANAGE and all unsupported combinations are rejected. A role assigned to the actor is blocked by the same any-history predicate. The five UC010 AssignV1 canonical envelopes cannot be edited; custom roles remain unassignable under that existing policy.
+
+## Schema/race proof plan (no migration)
+
+Existing RolePermission unique index(role_id,permission_id) matches request duplicate constraints. No new fields/indexes/versioning.
+Begin clean local SQL Serializable transaction -> GlobalAdminSerialization.Acquire FIRST -> retained authoritative User/UserRole/Role/RolePermission/Permission universe snapshot -> initial cookie/SQL session + dual-global authority -> target Role UPDLOCK/HOLDLOCK -> UserRole any-history range read with UPDLOCK/HOLDLOCK (no active/expiry filter) -> RolePermission role range UPDLOCK/HOLDLOCK -> persisted catalog HOLDLOCK -> insert all grants + one audit -> reread protected/active/code/history and exact grant set -> global durable-admin poststate -> final SQL session/dual authority -> commit. Scope disposal rolls back every unsuccessful result/error/cancellation. Tracked inserted rows/audit detached before final guard snapshot.
+All cooperating initial configurations share the global serialization lock. Winner moves empty to nonempty atomically; loser reads nonempty and returns409, even for a different requested set. SQL Serializable retained namespace/range protection plus target locks is the no-new-schema plan. The global foundation already trades broad locks for proof; do not claim this PR SQL race/deadlock acceptance from a fake semaphore test. External metadata/grant/assignment writers must participate/be excluded from release; no DEV1/DEV2 source is changed.
+
+## Executable evidence
+
+- dotnet build HotelOps.slnx: exit0, 0 errors/warnings.
+- InitialRolePermissions verification: 45 PASS, exit0. Executes real domain service through a deterministic transaction adapter with success, one-winner concurrency, authorization before lookup, canonical/history blockers, scope/admin denial, duplicate, final admission expiry, audit/durable/commit rollback seams and actual cancellation; strict DTO parsing, actual MVC exclusion, HTTPS/CSRF/no-fake-ETag guards; offline EF projection translation and no-rowversion model check. Fake transaction tests prove orchestration, NOT physical SQL locks, permission/session query execution or audit atomicity.
+- Accepted RoleCatalog verification38 PASS and CustomRole25 PASS, exit0; includes actual dual-global authority helper regression cases. SQL execution remains NOT_RUN.
+- Node: initial API/browser + RoleCatalog API/browser + CustomRole API/browser + Auth HTTP/state:193/193 PASS, 0 fail/cancelled/skipped, exit0. New initial permission suite39 cases. Workspace links to the existing read-only matrix instead of rendering it as a sibling, so a mutation401 cannot leave a separate stale protected matrix visible. Covers positive review/save/authoritative refresh, unsupported admin UI, HTTP400/401/403/404/409/503, CSRF statuses/network, malformed success, cancellation/unknown lock, synchronous exclusion, role/session replacement and late responses. Role replacement is the target race in this global-role operation; no branchId field/context is accepted or inferred.
+- Frontend typecheck/build/scoped Prettier exit0. Two inherited React Router use-client bundling warnings.
+- Scoped C# whitespace format and git diff --check exit0. dotnet test solution exit0 but no test projects discovered; not counted as test evidence.
+- SQL/HTTPS, actual concurrent writers, real audit-fault rollback, real session-expiry/durable-admin races: NOT_RUN. No disposable lease, SQL schema change, environment change or production activation performed.
+
+## Remaining acceptance gates / whole UC scope
+
+One named disposable database owner, GUID/isolation proof, accepted schema/fixtures, restricted identity, trusted SQL/HTTPS, exclusive lease and trial mutation/fault-injection approval required. SQL tests must cover: valid initial201 with granted actor/server UTC and one exact audit; two simultaneous identical AND differing configurations -> one201/one409; inactive/expired/self assignment history; canonical flag=false role; denied global/branch-bound authority; stale session after waits; final authority revocation; injected audit save/commit failure -> empty grants/no audit; cancelled transaction; exact poststate and next-request evaluator semantics. Deadlock1205 is FAIL, never retried to PASS. Source review of index/range and external writer compatibility must precede activation.
+Broad reconfiguration/revocation of grants, in-use roles, ALL/admin ceilings, custom-role assignment and durable aggregate revisions are not implemented/approved by this V1. No fake role version or permission expansion added. Therefore UC009_IMPLEMENTATION_STATUS=RESTRICTED_V1_IMPLEMENTED_SOURCE_ONLY; UC_COMPLETE_VERIFIED=NO; historical18/31 remains unchanged.
+NEXT_UC: UC007 remaining scope-management operation only after a short contract eligibility check; do not bypass pending policies or reopen accepted modules. Immediate completion gate remains this V1 source review + isolated SQL/HTTPS acceptance.

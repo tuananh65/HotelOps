@@ -23,7 +23,6 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
 {
     private Guid? lockedTransaction;
     private long[] lockedIds = [];
-    private static readonly TimeZoneInfo HotelTimezone = TimeZoneInfo.FindSystemTimeZoneById("Asia/Ho_Chi_Minh");
 
     public Task LockUsersAsync(IReadOnlyCollection<long> actorAndOwnerIds, CancellationToken cancellationToken) => RunAsync(async () =>
     {
@@ -73,9 +72,9 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
         var shift = await db.WorkShifts.FromSqlInterpolated(
             $"SELECT * FROM dbo.work_shifts WITH(UPDLOCK,HOLDLOCK) WHERE shift_id={assignment.ShiftId}")
             .AsNoTracking().SingleOrDefaultAsync(ct);
-        var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
-        if (shift is null || shift.BranchId != branchId || shift.Status != "PLANNED" || shift.ShiftDate != today
+        if (shift is null || shift.BranchId != branchId || shift.Status != "PLANNED"
             || shift.ScheduledEndAt < shift.ScheduledStartAt) throw Failure("TIME_STATE_CONFLICT");
+        ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
         if (!await db.ShiftTemplates.FromSqlInterpolated(
                 $"SELECT * FROM dbo.shift_templates WITH(HOLDLOCK) WHERE shift_template_id={shift.ShiftTemplateId}")
                 .AsNoTracking().AnyAsync(x => x.ShiftTemplateId == shift.ShiftTemplateId
@@ -84,10 +83,23 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
                 $"SELECT * FROM dbo.departments WITH(HOLDLOCK) WHERE department_id={shift.DepartmentId}")
                 .AsNoTracking().AnyAsync(x => x.DepartmentId == shift.DepartmentId
                 && x.BranchId == branchId && x.IsActive, ct)) throw Failure("TIME_SCOPE_DENIED");
+        // User/time and assignment locks remain held through audit and caller commit.
+        if (!await ScheduledWorkdayClaims.Unclaimed(db.ShiftAssignments.AsNoTracking()
+                .Where(a => a.ShiftAssignmentId == shiftAssignmentId), db.Workdays.AsNoTracking()).AnyAsync(ct))
+            throw Failure("TIME_ASSIGNMENT_ALREADY_RECORDED");
         now = await NowAsync(ct);
-        var day = new Workday { UserId = actorUserId, BranchId = branchId, DepartmentId = shift.DepartmentId,
-            WorkDate = shift.ShiftDate, ShiftAssignmentId = shiftAssignmentId, IsUnscheduled = false,
-            Status = "WORKING", StartedAt = now };
+        ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
+        var day = new Workday
+        {
+            UserId = actorUserId,
+            BranchId = branchId,
+            DepartmentId = shift.DepartmentId,
+            WorkDate = shift.ShiftDate,
+            ShiftAssignmentId = shiftAssignmentId,
+            IsUnscheduled = false,
+            Status = "WORKING",
+            StartedAt = now
+        };
         db.Workdays.Add(day);
         await db.SaveChangesAsync(ct);
         Audit(branchId, actorUserId, "workdays", day.WorkdayId, "CREATE", null,
@@ -137,9 +149,17 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
         now = await NowAsync(cancellationToken);
         if (now < day.StartedAt || await db.WorkIntervals.AsNoTracking().AnyAsync(x => x.UserId == operation.OwnerUserId
             && x.EffectiveEndedAt > now, cancellationToken)) throw Failure("TIME_STATE_CONFLICT");
-        var interval = new WorkInterval { WorkdayId = day.WorkdayId, UserId = operation.OwnerUserId,
-            BranchId = operation.BranchId, WorkItemKind = operation.WorkItemKind, WorkItemId = operation.WorkItemId,
-            OpenedBy = operation.ActorUserId, OpenedAt = now, EffectiveStartedAt = now };
+        var interval = new WorkInterval
+        {
+            WorkdayId = day.WorkdayId,
+            UserId = operation.OwnerUserId,
+            BranchId = operation.BranchId,
+            WorkItemKind = operation.WorkItemKind,
+            WorkItemId = operation.WorkItemId,
+            OpenedBy = operation.ActorUserId,
+            OpenedAt = now,
+            EffectiveStartedAt = now
+        };
         db.WorkIntervals.Add(interval);
         await db.SaveChangesAsync(cancellationToken);
         Audit(operation.BranchId, operation.ActorUserId, "work_intervals", interval.IntervalId, "CREATE", null,
@@ -239,9 +259,17 @@ public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IW
     private async Task<DateTime> NowAsync(CancellationToken ct) => DateTime.SpecifyKind(
         await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct), DateTimeKind.Utc);
     private void Audit(long branch, long actor, string entity, long id, string action, object? before, object after, DateTime now)
-        => db.AuditLogs.Add(new AuditLog { BranchId = branch, ActorUserId = actor, EntityType = entity,
-            EntityId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Action = action, OccurredAt = now,
-            OldValues = before is null ? null : JsonSerializer.Serialize(before), NewValues = JsonSerializer.Serialize(after) });
+        => db.AuditLogs.Add(new AuditLog
+        {
+            BranchId = branch,
+            ActorUserId = actor,
+            EntityType = entity,
+            EntityId = id.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            Action = action,
+            OccurredAt = now,
+            OldValues = before is null ? null : JsonSerializer.Serialize(before),
+            NewValues = JsonSerializer.Serialize(after)
+        });
     private static WorkTimeIntervalResult Result(WorkInterval row)
         => new(row.IntervalId, row.WorkdayId, DateTime.SpecifyKind(row.OpenedAt, DateTimeKind.Utc),
             row.ClosedAt is { } end ? DateTime.SpecifyKind(end, DateTimeKind.Utc) : null, row.RowVersion.ToArray());
