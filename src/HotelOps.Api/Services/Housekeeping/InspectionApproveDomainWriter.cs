@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.HotelStructure;
 
 // Internal uncommitted domain step. Not an issuer receipt, replay result or public writer.
-internal sealed record InspectionApproveDomainResult(long InspectionId, string Revision)
+internal sealed record InspectionApproveDomainResult(long InspectionId, string Revision, PassedInspectionRecipient NotificationRecipient)
 {
     internal bool AuthoritativeCommitAccepted => false;
 }
@@ -50,6 +50,7 @@ public sealed partial class RoomTypeCreationService
                 {oldJson},{newJson},SYSUTCDATETIME());
             """, ct);
         var revision = await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.room_inspections WHERE inspection_id={inspection}").SingleAsync(ct);
-        return new(inspection, WorkflowTag(revision));
+        var recipient = await ReadPassedInspectionRecipientAsync(inspection, branch, ct);
+        return new(inspection, WorkflowTag(revision), recipient);
     }
 }

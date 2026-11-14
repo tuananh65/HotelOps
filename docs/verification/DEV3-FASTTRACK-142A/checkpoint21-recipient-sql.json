@@ -1,0 +1,92 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "scenario": "execution-catalog",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "approve",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "duplicate",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "mandatory-fail",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "stale",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "wrong-branch",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "permission-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "session-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "cleaner-conflict",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "invalid-state",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "audit-failure",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-eligible",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-no-read",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-inactive",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-expired",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-wrong-branch",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-access-revoked",
+      "success": false,
+      "rollbackVerified": true
+    }
+  ],
+  "failure": "recipient-access-revoked: SqlException: Invalid column name \u0027is_active\u0027.",
+  "scope": "Real SQL credentials/session/permissions, internal approval and original-cleaner recipient selection; all data and candidate DDL rolled back; no public API or room/notification delivery/replay acceptance"
+}

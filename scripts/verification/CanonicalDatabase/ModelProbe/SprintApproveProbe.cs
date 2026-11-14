@@ -25,7 +25,8 @@ internal static class SprintApproveProbe
         var method = typeof(RoomTypeCreationService).GetMethod("ApproveDomainInCallerTransactionAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
         var checks = new List<object>();
         string? failure = null;
-        foreach (var scenario in new[] { "execution-catalog", "approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure" })
+        foreach (var scenario in new[] { "execution-catalog", "approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure",
+            "recipient-eligible", "recipient-no-read", "recipient-inactive", "recipient-expired", "recipient-wrong-branch", "recipient-access-revoked", "recipient-missing-attribution" })
         {
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
             try
@@ -62,6 +63,14 @@ internal static class SprintApproveProbe
                 }
                 var tag=await Tag();
                 var audits=await db.AuditLogs.CountAsync(ct);
+                long? originalCleaner = null;
+                if (scenario.StartsWith("recipient-"))
+                {
+                    // The recovered candidate is installed only in this rollback transaction.
+                    await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync(
+                        "scripts/verification/CanonicalDatabase/ModelProbe/SprintCleanerAttribution.sql", ct), ct);
+                    originalCleaner = await SeedCleanerAsync(db, actor, branch, task, scenario, ct);
+                }
                 if(scenario=="mandatory-fail")
                 {
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status='INSPECTING' WHERE inspection_id={inspection}; UPDATE dbo.inspection_results SET outcome='FAIL' WHERE inspection_id={inspection}; UPDATE dbo.room_inspections SET workflow_status='PENDING_CONCLUSION' WHERE inspection_id={inspection}",ct);
@@ -109,7 +118,7 @@ internal static class SprintApproveProbe
                     try { await Apply(tag,branch); throw new Exception("Audit fault was ignored"); }
                     catch(Microsoft.Data.SqlClient.SqlException error) when(error.Number==51994) { }
                 }
-                else if(scenario is "approve" or "duplicate")
+                else if(scenario is "approve" or "duplicate" || scenario.StartsWith("recipient-"))
                 {
                     var result=await Apply(tag,branch);
                     var row=await db.RoomInspections.AsNoTracking().SingleAsync(i=>i.InspectionId==inspection,ct);
@@ -118,6 +127,16 @@ internal static class SprintApproveProbe
                         throw new Exception("Atomic inspection/task/audit mismatch");
                     if((bool)result.GetType().GetProperty("AuthoritativeCommitAccepted",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(result)!)
                         throw new Exception("Internal component claimed authoritative acceptance");
+                    var recipient=result.GetType().GetProperty("NotificationRecipient")!.GetValue(result)!;
+                    var expectedRecipient = scenario == "recipient-eligible" ? "ELIGIBLE"
+                        : scenario.StartsWith("recipient-") && scenario != "recipient-missing-attribution" ? "RECIPIENT_READ_DENIED" : "ATTRIBUTION_UNAVAILABLE";
+                    if ((string)recipient.GetType().GetProperty("Status")!.GetValue(recipient)! != expectedRecipient)
+                        throw new Exception("Unexpected explicit-recipient authorization decision");
+                    var cleaner=(HotelOps.Api.Services.Housekeeping.CleanerAttribution?)recipient.GetType().GetProperty("Cleaner")!.GetValue(recipient);
+                    if (expectedRecipient != "ATTRIBUTION_UNAVAILABLE" && (cleaner?.CleanerUserId != originalCleaner || cleaner?.CleanerUserId == actor))
+                        throw new Exception("Original cleaner binding was replaced by actor/current identity");
+                    if (await db.Notifications.AnyAsync(ct) || await db.NotificationRecipients.AnyAsync(ct))
+                        throw new Exception("Source resolution unexpectedly published a notification");
                     if(scenario=="duplicate") await Deny(()=>Apply(tag,branch),"Stale");
                     if(await db.AuditLogs.CountAsync(ct)!=audits+1) throw new Exception("Duplicate audit");
                     if(await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!="INSPECTION")
@@ -138,13 +157,56 @@ internal static class SprintApproveProbe
                 throw new Exception("Synthetic rollback cleanup failed");
             if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.triggers WHERE name='TR_DEV3_142A_AuditFault'").SingleAsync(ct)!=0)
                 throw new Exception("Synthetic fault trigger survived rollback");
+            if (scenario.StartsWith("recipient-") && await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.objects WHERE name IN('fe04_cleaner_attributions','fe04_capture_cleaner_attribution','TR_fe04_cleaner_immutable')").SingleAsync(ct)!=0)
+                throw new Exception("Attribution rehearsal schema survived rollback");
             checks.Add(new {scenario,success=failure==null,rollbackVerified=true});
             Console.WriteLine((failure==null?"PASS ":"FAIL ")+scenario);
             if(failure!=null)break;
         }
         await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {success=failure==null,checks,failure,
-            scope="Real SQL credentials/session/permissions and internal approval domain participant; all writes rolled back; no public API or room/notification/replay acceptance"},new JsonSerializerOptions{WriteIndented=true}),ct);
+            scope="Real SQL credentials/session/permissions, internal approval and original-cleaner recipient selection; all data and candidate DDL rolled back; no public API or room/notification delivery/replay acceptance"},new JsonSerializerOptions{WriteIndented=true}),ct);
         return failure==null?0:1;
+    }
+    private static async Task<long> SeedCleanerAsync(HotelOpsDbContext db, long actor, long branch, long task, string scenario, CancellationToken ct)
+    {
+        // Separate historical cleaner. Existing catalog grants are fixture-only, never production seeds.
+        var cleaner = await db.Database.SqlQuery<long>($"""
+            INSERT dbo.users(employee_code,username,email,full_name,created_at)
+            OUTPUT INSERTED.user_id AS Value
+            VALUES('D3-CLEANER','D3-CLEANER','d3-cleaner@example.invalid','Synthetic original cleaner',SYSUTCDATETIME())
+            """).ToArrayAsync(ct);
+        var id = cleaner.Single();
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DECLARE @completed datetime2(7)=DATEADD(minute,-1,SYSUTCDATETIME());
+            UPDATE dbo.cleaning_tasks SET actual_start_at=DATEADD(minute,-10,@completed),actual_end_at=@completed
+              WHERE cleaning_task_id={task};
+            INSERT dbo.cleaning_assignments(cleaning_task_id,assignee_user_id,assigned_by,assigned_at,assignment_status)
+              VALUES({task},{id},{actor},DATEADD(minute,-11,@completed),'ACTIVE');
+            DECLARE @assignment bigint=SCOPE_IDENTITY();
+            INSERT dbo.cleaning_progress_logs(cleaning_task_id,logged_by,logged_at,status,progress_percent)
+              VALUES({task},{id},@completed,'COMPLETED',100);
+            DECLARE @progress bigint=SCOPE_IDENTITY();
+            IF {scenario}<>'recipient-missing-attribution'
+              EXEC dbo.fe04_capture_cleaner_attribution @task={task},@assignment=@assignment,@cleaner={id},@progress=@progress;
+            INSERT dbo.user_branch_access(user_id,branch_id,granted_at) VALUES({id},{branch},DATEADD(minute,-1,SYSUTCDATETIME()));
+            IF {scenario}<>'recipient-no-read'
+              INSERT dbo.user_roles(user_id,role_id,branch_id,assigned_at)
+              SELECT {id},role_id,{branch},DATEADD(minute,-2,SYSUTCDATETIME()) FROM dbo.roles WHERE role_code='HK_SUPERVISOR' AND is_active=1;
+            """, ct);
+        if (scenario == "recipient-inactive")
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET account_status='INACTIVE' WHERE user_id={id}", ct);
+        if (scenario == "recipient-expired")
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_roles SET expires_at=DATEADD(minute,-1,SYSUTCDATETIME()) WHERE user_id={id}", ct);
+        if (scenario == "recipient-access-revoked")
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={id}", ct);
+        if (scenario == "recipient-wrong-branch")
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                INSERT dbo.branches(branch_code,branch_name) VALUES('D3-OTHER','Synthetic other branch');
+                DECLARE @other bigint=SCOPE_IDENTITY();
+                INSERT dbo.user_branch_access(user_id,branch_id,granted_at) VALUES({id},@other,DATEADD(minute,-1,SYSUTCDATETIME()));
+                UPDATE dbo.user_roles SET branch_id=@other WHERE user_id={id};
+                """, ct);
+        return id;
     }
     private static async Task Deny(Func<Task<object>> run,string status)
     {
