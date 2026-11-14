@@ -1,3 +1,4 @@
+using HotelOps.Api.Hosting;
 using HotelOps.Api.Data;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Security;
@@ -115,6 +116,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCanonicalFrontend();
 
 app.UseAuthentication();
 app.UseMiddleware<InvalidCookieMiddleware>();

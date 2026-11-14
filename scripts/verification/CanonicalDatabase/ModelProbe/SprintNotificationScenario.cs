@@ -4,7 +4,7 @@ using HotelOps.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 internal static class SprintNotificationScenario
 {
- internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,string csrf,List<object> checks,CancellationToken ct)
+ internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,string csrf,List<object> checks,CancellationToken ct,string? browserUsername=null,string? browserPassword=null)
  {
   if(await db.Notifications.AnyAsync(ct)||await db.NotificationRecipients.AnyAsync(ct))throw new Exception("Empty notification fixture required");
   var prefix="D3NOTE"+Guid.NewGuid().ToString("N")[..10];
@@ -34,6 +34,15 @@ internal static class SprintNotificationScenario
    page=await Call("/api/notifications",200);if(page.GetProperty("unreadCount").GetInt32()!=0)throw new Exception("Read all mismatch");
    if(await db.NotificationRecipients.AnyAsync(r=>r.NotificationId!=own.NotificationId&&r.NotificationId!=second.NotificationId&&r.ReadAt!=null,ct))throw new Exception("Read all affected invisible recipients");
    if(await db.Notifications.CountAsync(n=>ids.Contains(n.NotificationId)&&n.ActionUrl=="https://untrusted.invalid/PRIVATE",ct)!=6)throw new Exception("Read mutated source content");
+   if(browserUsername!=null&&browserPassword!=null)
+   {
+    await db.NotificationRecipients.Where(r=>r.UserId==actor&&(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,(DateTime?)null),ct);
+    var browser=await SprintNotificationBrowser.RunAsync(browserUsername,browserPassword,own.NotificationId,own.Title,foreign.Title,ct);checks.Add(new{browser});
+    if(!browser.GetProperty("success").GetBoolean())throw new Exception("Browser acceptance failed at "+browser.GetProperty("failureStage").GetString());
+    if(await db.NotificationRecipients.CountAsync(r=>r.UserId==actor&&r.ReadAt!=null,ct)!=2)throw new Exception("Browser read markers absent in SQL");
+    if(await db.UserSessions.CountAsync(s=>s.UserId==actor&&s.RevokedAt==null,ct)!=1)throw new Exception("Browser logout did not revoke its SQL session");
+    checks.Add(new{browserReadMarkersPersistedInSql=true,browserSessionRevoked=true});
+   }
    checks.Add(new{recipientIsolation=true,retention365=true,expiredAndPendingHidden=true,readTimestampOnce=true,readAllOwnOnly=true,sourceLinksWithheld=true});
   }
   finally

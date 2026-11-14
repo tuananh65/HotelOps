@@ -1,0 +1,5 @@
+
+Hash                                                             Path
+----                                                             ----
+D2D39E340F392ED0BB880E10DF1FEB78E343C966C76E2F7F0E3956D31916799D D:\HotelOps\HotelOps_Fullstack_Shared\frontend\dist\index.html
+737529E54A92E1B1E69B995849FDF1844CE775B9049A93290E1A49E6233AF37D D:\HotelOps\HotelOps_Fullstack_Shared\frontend\dist\assets\index-C5AlqnWZ.js

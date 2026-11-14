@@ -1,3 +1,4 @@
+using HotelOps.Api.Hosting;
 using HotelOps.Api.Security;
 using HotelOps.Api.Services.Authentication;
 
@@ -7,7 +8,7 @@ public sealed class RestrictedSessionMiddleware(RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        if (context.User.Identity?.IsAuthenticated == true)
+        if (!CanonicalFrontendHosting.IsShellRequest(context) && context.User.Identity?.IsAuthenticated == true)
         {
             if (context.Items[typeof(SessionSnapshot)] is not SessionSnapshot snapshot)
             {
