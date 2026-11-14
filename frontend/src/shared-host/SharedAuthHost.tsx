@@ -1,3 +1,7 @@
+import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
+import { UserDirectoryPage } from "../users/UserDirectoryPage";
+import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
+import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { loginDestination } from "./returnUrl";
@@ -36,9 +40,24 @@ function Protected({ children }: { children: ReactNode }) {
 /** Local candidate only. Server APIs authorize resources independently of route admission. */
 export function SharedAuthHost({
   checklistEnabled = false,
-}: { checklistEnabled?: boolean } = {}) {
+  usersReadEnabled = false,
+  structureReadEnabled = false,
+}: {
+  checklistEnabled?: boolean;
+  usersReadEnabled?: boolean;
+  structureReadEnabled?: boolean;
+} = {}) {
   return (
     <Routes>
+      {usersReadEnabled && (
+        <Route element={<UsersRouteBoundary />}>
+          <Route path="/users" element={<UserDirectoryPage />} />
+          <Route path="/users/:id" element={<UserAccessReviewPage />} />
+        </Route>
+      )}
+      {structureReadEnabled && (
+        <Route path="/hotel" element={<BranchStructureTree />} />
+      )}
       <Route
         path="/inspections/checklists"
         element={<ChecklistAuthRoute enabled={checklistEnabled} />}
@@ -90,6 +109,8 @@ export function SharedAuthHost({
         element={
           <Protected>
             <Link to="/profile">Profile</Link>
+            {usersReadEnabled && <Link to="/users">Users</Link>}
+            {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             <OperationsRoutes />
           </Protected>
         }
