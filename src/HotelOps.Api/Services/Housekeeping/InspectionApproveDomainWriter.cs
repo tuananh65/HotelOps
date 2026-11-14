@@ -1,5 +1,6 @@
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Housekeeping;
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.HotelStructure;
@@ -21,7 +22,6 @@ public sealed partial class RoomTypeCreationService
         var source = loaded.Source!;
         var i = source.Domain.Inspection;
         var oldJson = "{\"workflow_status\":\"PENDING_CONCLUSION\"}";
-        var newJson = "{\"workflow_status\":\"PASSED\",\"result\":\"PASS\"}";
         // Preflight owns authorization/SOD and retained source locks. SQL repeats the critical
         // persisted predicates; client snapshots and ETag comparison are not concurrency authority.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -45,12 +45,29 @@ public sealed partial class RoomTypeCreationService
             WHERE cleaning_task_id={i.CleaningTaskId} AND room_id={i.RoomId}
                 AND workflow_status='PENDING_INSPECTION' AND status='IN_PROGRESS';
             IF @@ROWCOUNT<>1 THROW 51990,'CLEANING_PHASE_CONFLICT',1;
+            """, ct);
+        var revision = await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.room_inspections WHERE inspection_id={inspection}").SingleAsync(ct);
+        var recipient = await ReadPassedInspectionRecipientAsync(inspection, branch, ct);
+        // The committed audit event is the durable retry source. Inbox creation runs separately,
+        // so a delivery failure cannot undo an already committed approval (GBR-010).
+        // A missing original attribution is recorded explicitly, never guessed by the publisher.
+        var cleaner = recipient.Cleaner;
+        var newJson = JsonSerializer.Serialize(new
+        {
+            workflow_status = "PASSED", result = "PASS",
+            notification = new
+            {
+                schemaVersion = 1, kind = "INSPECTION_PASSED", recipientUserId = cleaner?.CleanerUserId,
+                cleaningTaskId = cleaner?.CleaningTaskId, roomId = cleaner?.RoomId,
+                assignmentId = cleaner?.AssignmentId, completionProgressId = cleaner?.CompletionProgressId,
+                completionRevision = cleaner == null ? null : Convert.ToHexString(cleaner.CompletionRevision)
+            }
+        });
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
             INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,occurred_at)
             VALUES({branch},{ticket.UserId},'INSPECTION',CONVERT(nvarchar(50),{inspection}),'UPDATE',
                 {oldJson},{newJson},SYSUTCDATETIME());
             """, ct);
-        var revision = await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.room_inspections WHERE inspection_id={inspection}").SingleAsync(ct);
-        var recipient = await ReadPassedInspectionRecipientAsync(inspection, branch, ct);
         return new(inspection, WorkflowTag(revision), recipient);
     }
 }

@@ -26,7 +26,8 @@ internal static class SprintApproveProbe
         var checks = new List<object>();
         string? failure = null;
         foreach (var scenario in new[] { "execution-catalog", "approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure",
-            "recipient-eligible", "recipient-no-read", "recipient-inactive", "recipient-expired", "recipient-wrong-branch", "recipient-access-revoked", "recipient-missing-attribution" })
+            "recipient-eligible", "recipient-no-read", "recipient-inactive", "recipient-expired", "recipient-wrong-branch", "recipient-access-revoked", "recipient-missing-attribution",
+            "recipient-revoked-after-stage", "recipient-retry", "recipient-stale-source", "recipient-delivery-conflict", "recipient-delivery-fault", "recipient-committed-delivery" })
         {
             await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
             try
@@ -128,8 +129,8 @@ internal static class SprintApproveProbe
                     if((bool)result.GetType().GetProperty("AuthoritativeCommitAccepted",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(result)!)
                         throw new Exception("Internal component claimed authoritative acceptance");
                     var recipient=result.GetType().GetProperty("NotificationRecipient")!.GetValue(result)!;
-                    var expectedRecipient = scenario == "recipient-eligible" ? "ELIGIBLE"
-                        : scenario.StartsWith("recipient-") && scenario != "recipient-missing-attribution" ? "RECIPIENT_READ_DENIED" : "ATTRIBUTION_UNAVAILABLE";
+                    var expectedRecipient = scenario is "recipient-no-read" or "recipient-inactive" or "recipient-expired" or "recipient-wrong-branch" or "recipient-access-revoked"
+                        ? "RECIPIENT_READ_DENIED" : scenario.StartsWith("recipient-") && scenario != "recipient-missing-attribution" ? "ELIGIBLE" : "ATTRIBUTION_UNAVAILABLE";
                     if ((string)recipient.GetType().GetProperty("Status")!.GetValue(recipient)! != expectedRecipient)
                         throw new Exception("Unexpected explicit-recipient authorization decision");
                     var cleaner=(HotelOps.Api.Services.Housekeeping.CleanerAttribution?)recipient.GetType().GetProperty("Cleaner")!.GetValue(recipient);
@@ -141,6 +142,8 @@ internal static class SprintApproveProbe
                     if(await db.AuditLogs.CountAsync(ct)!=audits+1) throw new Exception("Duplicate audit");
                     if(await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!="INSPECTION")
                         throw new Exception("Domain participant changed room projection");
+                    if (originalCleaner is { } receiver && expectedRecipient != "ATTRIBUTION_UNAVAILABLE")
+                        await CheckDeliveryAsync(db, scenario, actor, receiver, inspection, ct);
                 }
                 else
                 {
@@ -149,23 +152,77 @@ internal static class SprintApproveProbe
                     if(await db.AuditLogs.CountAsync(ct)!=audits || await db.RoomInspections.Where(i=>i.InspectionId==inspection).Select(i=>i.Result).SingleAsync(ct)!=null)
                         throw new Exception("Rejected operation mutated domain/audit");
                 }
-                if(!ReferenceEquals(db.Database.CurrentTransaction?.GetDbTransaction(),tx.GetDbTransaction())) throw new Exception("Caller transaction replaced");
+                if(scenario!="recipient-committed-delivery" && !ReferenceEquals(db.Database.CurrentTransaction?.GetDbTransaction(),tx.GetDbTransaction())) throw new Exception("Caller transaction replaced");
             }
             catch(Exception error){failure=scenario+": "+error.GetType().Name+": "+error.Message;}
             finally { if(tx.GetDbTransaction().Connection!=null) await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); }
-            if(await db.Users.AnyAsync(ct)||await db.Branches.AnyAsync(ct)||await db.RoomInspections.AnyAsync(ct)||await db.UserSessions.AnyAsync(ct)||await db.AuditLogs.AnyAsync(ct))
+            if(await db.Users.AnyAsync(ct)||await db.Branches.AnyAsync(ct)||await db.RoomInspections.AnyAsync(ct)||await db.UserSessions.AnyAsync(ct)||await db.AuditLogs.AnyAsync(ct)
+                ||await db.Notifications.AnyAsync(ct)||await db.NotificationRecipients.AnyAsync(ct))
                 throw new Exception("Synthetic rollback cleanup failed");
-            if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.triggers WHERE name='TR_DEV3_142A_AuditFault'").SingleAsync(ct)!=0)
+            if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.objects WHERE name IN('TR_DEV3_142A_AuditFault','CK_DEV3_142A_NotificationFault')").SingleAsync(ct)!=0)
                 throw new Exception("Synthetic fault trigger survived rollback");
             if (scenario.StartsWith("recipient-") && await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.objects WHERE name IN('fe04_cleaner_attributions','fe04_capture_cleaner_attribution','TR_fe04_cleaner_immutable')").SingleAsync(ct)!=0)
                 throw new Exception("Attribution rehearsal schema survived rollback");
-            checks.Add(new {scenario,success=failure==null,rollbackVerified=true});
+            checks.Add(new {scenario,success=failure==null,rollbackVerified=scenario!="recipient-committed-delivery",cleanupVerified=true});
             Console.WriteLine((failure==null?"PASS ":"FAIL ")+scenario);
             if(failure!=null)break;
         }
         await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {success=failure==null,checks,failure,
-            scope="Real SQL credentials/session/permissions, internal approval and original-cleaner recipient selection; all data and candidate DDL rolled back; no public API or room/notification delivery/replay acceptance"},new JsonSerializerOptions{WriteIndented=true}),ct);
+            scope="Real SQL approval/notification components; rollback cases plus committed delivery fault/retry/concurrency with cleanup. No public approval API, room projection or hosted worker acceptance."},new JsonSerializerOptions{WriteIndented=true}),ct);
         return failure==null?0:1;
+    }
+    private static async Task CheckDeliveryAsync(HotelOpsDbContext db, string scenario, long actor, long receiver, long inspection, CancellationToken ct)
+    {
+        var audit = await db.AuditLogs.AsNoTracking().SingleAsync(a => a.EntityType == "INSPECTION" && a.EntityId == inspection.ToString(), ct);
+        using var json = JsonDocument.Parse(audit.NewValues!);
+        if (json.RootElement.GetProperty("notification").GetProperty("recipientUserId").GetInt64() != receiver)
+            throw new Exception("Durable intent lost original recipient");
+        var type = typeof(RoomTypeCreationService).Assembly.GetType("HotelOps.Api.Services.Notifications.InspectionPassedNotificationDelivery")!;
+        var delivery = Activator.CreateInstance(type, db, TimeProvider.System)!;
+        var method = type.GetMethod("DeliverInCallerTransactionAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        async Task<string> Send(long hint) => await (Task<string>)method.Invoke(delivery, [audit.AuditId, hint, ct])!;
+        if (scenario == "recipient-committed-delivery")
+        {
+            await SprintNotificationCommitProbe.CheckAsync(db, audit, receiver, inspection, ct);
+            return;
+        }
+        if (await Send(actor) != "SOURCE_DENIED") throw new Exception("Producer identity authorized as recipient");
+        if (scenario is "recipient-revoked-after-stage" or "recipient-retry")
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={receiver}", ct);
+        if (scenario == "recipient-stale-source")
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status='FAILED',result='FAIL' WHERE inspection_id={inspection}", ct);
+        if (scenario == "recipient-delivery-conflict")
+        {
+            var wrong = new Notification { NotificationType="INSPECTION_PASSED",Title="Synthetic conflict",Message="Synthetic",Priority="NORMAL",SourceType="INSPECTION",SourceId=inspection,CreatedBy=actor,CreatedAt=DateTime.UtcNow };
+            db.Notifications.Add(wrong); await db.SaveChangesAsync(ct);
+            db.NotificationRecipients.Add(new() {NotificationId=wrong.NotificationId,UserId=actor,DeliveryChannel="IN_APP",DeliveryStatus="DELIVERED",DeliveredAt=DateTime.UtcNow});
+            await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+            try { await Send(receiver); } catch (InvalidOperationException e) when(e.Message=="INSPECTION_NOTIFICATION_RECEIPT_CONFLICT") { return; }
+            throw new Exception("Conflicting persisted delivery receipt accepted");
+        }
+        if (scenario == "recipient-delivery-fault")
+        {
+            await db.Database.ExecuteSqlRawAsync("ALTER TABLE dbo.notification_recipients ADD CONSTRAINT CK_DEV3_142A_NotificationFault CHECK(user_id<0)", ct);
+            try { await Send(receiver); }
+            catch (DbUpdateException e) when(e.InnerException is Microsoft.Data.SqlClient.SqlException sql && sql.Number==547 && sql.Message.Contains("CK_DEV3_142A_NotificationFault")) { return; }
+            throw new Exception("Notification insertion fault ignored");
+        }
+        var expected = scenario is "recipient-eligible" ? "DELIVERED" : scenario=="recipient-stale-source" ? "SOURCE_DENIED" : "RECIPIENT_READ_DENIED";
+        if (await Send(receiver) != expected) throw new Exception("Unexpected delivery decision: "+scenario);
+        if (scenario == "recipient-retry")
+        {
+            if (await db.Notifications.AnyAsync(ct)) throw new Exception("Denied recipient received notice");
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={receiver}", ct);
+            if (await Send(receiver) != "DELIVERED") throw new Exception("Durable event could not retry after access restored");
+            expected = "DELIVERED";
+        }
+        if (expected == "DELIVERED")
+        {
+            if (await Send(receiver) != "ALREADY_DELIVERED" || await db.Notifications.CountAsync(ct)!=1 || await db.NotificationRecipients.CountAsync(ct)!=1)
+                throw new Exception("Notification retry duplicated inbox rows");
+        }
+        else if (await db.Notifications.AnyAsync(ct) || await db.NotificationRecipients.AnyAsync(ct))
+            throw new Exception("Denied delivery wrote inbox");
     }
     private static async Task<long> SeedCleanerAsync(HotelOpsDbContext db, long actor, long branch, long task, string scenario, CancellationToken ct)
     {

@@ -1,4 +1,4 @@
-using HotelOps.Api.Security.Authorization;
+using HotelOps.Api.Services.Notifications;
 using HotelOps.Api.Services.Housekeeping;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -34,18 +34,7 @@ public sealed partial class RoomTypeCreationService
 
         // Match the canonical inspection-history branch policy for this explicit recipient.
         // Historical cleaner identity does not grant current read access (GBR-010).
-        var data = new EfPermissionDataSource(db);
-        if (!await data.IsActiveUserAsync(cleaner.CleanerUserId, ct)
-            || !await data.IsActiveBranchAsync(branch, ct))
-            return new("RECIPIENT_READ_DENIED", cleaner);
-        var now = clock.GetUtcNow().UtcDateTime;
-        foreach (var grant in await data.ReadPathsAsync(cleaner.CleanerUserId, "INSPECTION_VIEW", now, ct))
-        {
-            if (grant.PermissionCode != "INSPECTION_VIEW" || !PermissionGrantRules.IsEligible(grant, now)) continue;
-            var scope = PermissionGrantRules.EffectiveScope(grant);
-            if (scope == "GLOBAL" || scope == "BRANCH" && grant.BranchId == branch)
-                return new("ELIGIBLE", cleaner);
-        }
-        return new("RECIPIENT_READ_DENIED", cleaner);
+        return new(await InspectionRecipientReadAccess.CanReadAsync(db, cleaner.CleanerUserId, branch,
+            clock.GetUtcNow().UtcDateTime, ct) ? "ELIGIBLE" : "RECIPIENT_READ_DENIED", cleaner);
     }
 }

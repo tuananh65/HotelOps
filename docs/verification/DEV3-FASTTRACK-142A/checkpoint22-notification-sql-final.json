@@ -1,0 +1,145 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "scenario": "execution-catalog",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "approve",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "duplicate",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "mandatory-fail",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "stale",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "wrong-branch",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "permission-revoked",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "session-revoked",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "cleaner-conflict",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "invalid-state",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "audit-failure",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-eligible",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-no-read",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-inactive",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-expired",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-wrong-branch",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-access-revoked",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-missing-attribution",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-revoked-after-stage",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-retry",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-stale-source",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-delivery-conflict",
+      "success": true,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    },
+    {
+      "scenario": "recipient-delivery-fault",
+      "success": false,
+      "rollbackVerified": true,
+      "cleanupVerified": true
+    }
+  ],
+  "failure": "recipient-delivery-fault: DbUpdateException: Could not save changes because the target table has database triggers. Please configure your table accordingly, see https://aka.ms/efcore-docs-sqlserver-save-changes-and-output-clause for more information.",
+  "scope": "Real SQL approval/notification components; rollback cases plus committed delivery fault/retry/concurrency with cleanup. No public approval API, room projection or hosted worker acceptance."
+}

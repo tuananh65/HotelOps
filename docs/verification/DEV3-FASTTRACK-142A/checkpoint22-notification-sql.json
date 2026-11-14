@@ -1,0 +1,112 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "scenario": "execution-catalog",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "approve",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "duplicate",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "mandatory-fail",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "stale",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "wrong-branch",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "permission-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "session-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "cleaner-conflict",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "invalid-state",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "audit-failure",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-eligible",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-no-read",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-inactive",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-expired",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-wrong-branch",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-access-revoked",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-missing-attribution",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-revoked-after-stage",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-retry",
+      "success": true,
+      "rollbackVerified": true
+    },
+    {
+      "scenario": "recipient-stale-source",
+      "success": false,
+      "rollbackVerified": true
+    }
+  ],
+  "failure": "recipient-stale-source: SqlException: The UPDATE statement conflicted with the CHECK constraint \u0022CK_inspection_workflow_v1\u0022. The conflict occurred in database \u0022HotelOps_DEV3_142A_20261114_cc78c13f\u0022, table \u0022dbo.room_inspections\u0022.",
+  "scope": "Real SQL internal approval, durable audit intent and in-transaction notification delivery/idempotency/authorization; all data and candidate DDL rolled back; not post-commit worker/concurrency or public approval acceptance"
+}
