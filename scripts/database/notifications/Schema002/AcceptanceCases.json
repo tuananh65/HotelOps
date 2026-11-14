@@ -1,0 +1,159 @@
+﻿{
+    "target":  "DESKTOP-JI8U50T\\SQLEXPRESS / HotelOps_ENVNOTIF001_Trial_20261109",
+    "executed":  false,
+    "requiredBeforeMutation":  [
+                                   "valid exclusive lease/database GUID",
+                                   "one runner with session application lock",
+                                   "approved writer identity and intact runtime guards",
+                                   "producers/workers OFF",
+                                   "owned authorized fixtures"
+                               ],
+    "cases":  [
+                  {
+                      "id":  1,
+                      "name":  "Assignment + mandatory publication",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Owned PENDING_ASSIGNMENT task, authorized actor/session and eligible assignee; baseline graph/audit snapshots.",
+                      "execute":  "Invoke composed UC029 once through the real caller, mandatory notification stage and exact caller transaction.",
+                      "assert":  "One assignment/audit/operation/assignment publication and exactly one IN_APP intent; owner result IDs/revision/deadline match persisted source. Include valid/invalid assignment source and FS016/N01 source-arm subcases."
+                  },
+                  {
+                      "id":  2,
+                      "name":  "Assignment rollback removes publication",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Same setup; snapshot IDs/counts before write.",
+                      "execute":  "Force caller rollback after staging, before commit.",
+                      "assert":  "No new assignment, task transition, audit, operation, publication or intent survives; previous source rowversion/readiness preserved."
+                  },
+                  {
+                      "id":  3,
+                      "name":  "Staging failure prevents assignment commit",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Same setup; inject required-stage failure through approved harness seam.",
+                      "execute":  "Catch mapped failure at API boundary; also test caller catching failure before commit.",
+                      "assert":  "Caller commit cannot succeed; all assignment and notification mutations absent; no orphan records."
+                  },
+                  {
+                      "id":  4,
+                      "name":  "Identical operation retry",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "One committed successful assignment and original lossless receipt.",
+                      "execute":  "Retry same actor/key/fingerprint through real caller.",
+                      "assert":  "Byte-equivalent original receipt; original assignment/publication/intent IDs; zero new graph/audit records."
+                  },
+                  {
+                      "id":  5,
+                      "name":  "Conflicting fingerprint replay",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "One committed successful operation.",
+                      "execute":  "Retry same actor/key with changed assignee/due/source fingerprint.",
+                      "assert":  "Conflict; no source mutation, retargeted recipient or new graph; original receipt remains unchanged."
+                  },
+                  {
+                      "id":  6,
+                      "name":  "Concurrent identical assignment",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Two connections, one authorized owned task, same actor/key/fingerprint; coordinated barriers.",
+                      "execute":  "Race same assignment; exercise both lock acquisition orderings.",
+                      "assert":  "One committed result, other original replay; no duplicate graph/audit; any SQL1205 fails case."
+                  },
+                  {
+                      "id":  7,
+                      "name":  "Concurrent conflicting assignment",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Two connections with same key and differing fingerprints, plus distinct-key race on same task.",
+                      "execute":  "Execute both contender orderings through real caller.",
+                      "assert":  "One winner, loser conflict/stale; one active assignment and required graph; no SQL1205, no extra intent."
+                  },
+                  {
+                      "id":  8,
+                      "name":  "Cancellation",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Owned assigned task/publication; approved cancellation fixture supplied by owner without enabling provisional writer.",
+                      "execute":  "Exercise cancellation-versus-contained-delivery ordering in both directions through approved harness.",
+                      "assert":  "No unauthorized delivery of obsolete source; graph remains immutable and terminal outcome matches accepted contract; no invented CANCELLED event."
+                  },
+                  {
+                      "id":  9,
+                      "name":  "Superseded assignment",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Owned prior assignment/publication plus legitimate authoritative replacement fixture.",
+                      "execute":  "Exercise supersession before/after stage and before delivery; both orderings.",
+                      "assert":  "Old recipient never retargeted; stale source cannot commit/deliver; immutable prior history retained."
+                  },
+                  {
+                      "id":  10,
+                      "name":  "Recipient revocation",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Owned candidate recipient with initial eligible access.",
+                      "execute":  "Revoke/deactivate through approved fixture seam before commit and before delivery in both orderings.",
+                      "assert":  "Commit reread or delivery refuses recipient as appropriate; no unauthorized Inbox record; original graph retained."
+                  },
+                  {
+                      "id":  11,
+                      "name":  "Source-read branch isolation",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Two synthetic branches, actor/recipient limited to one branch and owned sources.",
+                      "execute":  "Attempt staging/source read across other branch through real authorization path.",
+                      "assert":  "Denied without source disclosure; no cross-branch intent, graph, delivery or Inbox leak."
+                  },
+                  {
+                      "id":  12,
+                      "name":  "Delivery retry/recovery",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Owned valid committed graph and approved contained delivery harness; shared worker stays OFF.",
+                      "execute":  "Transient failure, retry/recovery, and concurrent claim orderings.",
+                      "assert":  "No duplicate Inbox recipient; retry counters/claims and durable outcome agree; exactly-once recipient mapping; SQL1205 fails."
+                  },
+                  {
+                      "id":  13,
+                      "name":  "Inbox read authorization",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Owned delivered synthetic notification, eligible viewer and foreign/revoked viewer.",
+                      "execute":  "GET list/detail and approved mark-read harness with branch/OWN constraints.",
+                      "assert":  "Only eligible viewer can see/read own source; denied viewer creates no read-state or cross-branch disclosure."
+                  },
+                  {
+                      "id":  14,
+                      "name":  "Transaction guard enforcement",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Real composed guard attached to exact DbContext/physical transaction.",
+                      "execute":  "Missing Enter, missing Stage, wrong context/transaction, caught verification failure, and direct commit attempts; read-only SQL verifier outside transaction already checked separately.",
+                      "assert":  "All forbidden commits rejected and rolled back; positive proof only with exact transaction; no guard disabling."
+                  },
+                  {
+                      "id":  15,
+                      "name":  "Cleanup and preserved fixtures",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable",
+                      "arrange":  "Lease expiry, retained evidence, owner-confirmed owned consumers stopped, exact GUID/token and zero target sessions.",
+                      "execute":  "Owner performs separately approved cleanup only for this disposable target; never KILL or force disconnect.",
+                      "assert":  "Owned fixtures removed only by approved cleanup; all shared/FE04/FE05 databases and unrelated fixtures untouched; evidence retained."
+                  }
+              ],
+    "sql1205":  "ANY_OBSERVED_1205_IS_FAIL",
+    "schemaRegressionRequirements":  [
+                                         "assignment revision and missing/wrong dueAt rejected",
+                                         "valid REWORK_SUBMITTED has no assignment and passes its own source arm",
+                                         "stale rework revision/wrong state/foreign inspection or cycle rejected",
+                                         "both existing N01 event source arms and mixed inserted set checked",
+                                         "unknown event and swapped nullable source arms rejected",
+                                         "tampered prior/installed trigger capture refuses rollback",
+                                         "rollback with N01 or multi-event history refuses without deleting rows",
+                                         "clean rollback restores exact prior UTF-16 SQL definition SHA256"
+                                     ]
+}

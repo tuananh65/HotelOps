@@ -12,6 +12,7 @@ public partial class HotelOpsDbContext
         ConfigureChecklists(modelBuilder);
         ConfigureWorkTime(modelBuilder);
         ConfigureNotificationCandidate(modelBuilder);
+        ConfigureNotifications(modelBuilder);
         // SQL triggers enforce scoped assignments after deployment. This also works
         // before deployment and prevents SQL334 from EF's bare OUTPUT on rooms.
         modelBuilder.Entity<Room>().ToTable("rooms", table => table.UseSqlOutputClause(false));

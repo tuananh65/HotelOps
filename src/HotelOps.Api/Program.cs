@@ -9,15 +9,14 @@ using HotelOps.Api.Services.Incidents;
 using HotelOps.Api.Services.Maintenance;
 using HotelOps.Api.Services.Inventory;
 using Microsoft.EntityFrameworkCore;
+using HotelOps.Api.Services.Housekeeping;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddScoped<StartupSchemaValidator>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 
-builder.Services.AddDbContext<HotelOpsDbContext>(options =>
-    options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance).UseSqlServer(
-        builder.Configuration.GetConnectionString("HotelOpsDb")));
+builder.Services.AddHotelOpsFe04CleaningNotificationConsumer(builder.Configuration);
 
 // Add services to the container.
 // FE-04: additive registrations; provisional execution remains opt-in and isolated.

@@ -1,0 +1,240 @@
+﻿{
+    "package":  "FE04_NOTIFICATION_FINAL_APPROVAL_PACKAGE",
+    "state":  "CONTRACT_PREPARED_NOT_ACCEPTED",
+    "parentSource":  "22b005b106e8dc1eeb75205b98c0b341af23c697",
+    "dev2Source":  "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+    "target":  {
+                   "server":  "DESKTOP-JI8U50T\\SQLEXPRESS",
+                   "guid":  "a138fa48-cc14-4070-9ca4-793f1b60c5c1",
+                   "database":  "HotelOps_ENVNOTIF001_Trial_20261109"
+               },
+    "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+    "artifacts":  [
+                      {
+                          "path":  "scripts/database/notifications/Fe04UnblockP0/01_ReconcileCandidate.sql",
+                          "sha256":  "B9EA47F3082A10703ECEB953543ED1D989971CF9AD3395BAB544C87C878374C5"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/Fe04UnblockP0/02_RollbackCandidate.sql",
+                          "sha256":  "2C00301A9E09B8D45749C8A4CF3163B9F009D10B46038121ECDA462F3B30C15D"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/N01Implement06/01_ForwardCandidate.sql",
+                          "sha256":  "34F0DAFBDBDD564397366030752DC78E3534D1240ABA8F80513D18ED6DF13957"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/N01Implement06/02_RollbackCandidate.sql",
+                          "sha256":  "6EA1BB756E27B643716A8632E7B529B8C24477F343938585B7C4DB293204E24D"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/Schema002/AcceptanceCases.json",
+                          "sha256":  "FD81DB5C3F10A8E463669636EE19953A3F89D01D0FAB9CEE413C79942A9AEA36"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/Schema002/Install.ps1",
+                          "sha256":  "6DE478B3B05007829B01914BCDA23D3409A321971C9554FBC6D232C72C3729EF"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/Schema002/Preflight.sql",
+                          "sha256":  "D42DEC94ED1457F53D838D99B469C53E93E78B39F453927D20215EEC152B9E05"
+                      },
+                      {
+                          "path":  "scripts/database/notifications/Schema002/Verify.sql",
+                          "sha256":  "5ABE8B493F2F2F6B60CD6652929AA97507560ECA9B60794DD094C0791896BAAA"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/APPROVAL_PACKAGE.md",
+                          "sha256":  "C1875D562ED3A150E0C3508AA2A1D4A144AB63B81B9914A0D66594C30EA7C5D0"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/FE04NotificationRuntime.csproj",
+                          "sha256":  "40803EDC4DDDED2A778CA14B3F6FE9D2F9C33968F4517B8E63D18D0461068B92"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/Invoke-Preflight.ps1",
+                          "sha256":  "067E55C9118950D2421C5B4C1A9403282A718FBD8F411CF44419353308225BAD"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/New-ApprovalPackage.ps1",
+                          "sha256":  "C5D09326BC0F514F4D787220CCDD6B731690706B7AB065A2200FA1A1C3974F1D"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/PERMISSION_CONTRACT.json",
+                          "sha256":  "01B20124CC67FE4522320096A1618F0B58712A1D7EA1C291F31B9B64BF96637B"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/Program.cs",
+                          "sha256":  "637710C2919194A8D3698CDDCD0F61E3504C8B30EB6D37850BBF1EAC333CD8C7"
+                      },
+                      {
+                          "path":  "scripts/verification/FE04NotificationRuntime/Test-Launcher.ps1",
+                          "sha256":  "ABB9EBD99D4FEC52A198D1BA09D38C3CDCA29B65D69339E76D7116FC1E8AB1CE"
+                      },
+                      {
+                          "path":  "scripts/verification/Schema002CorrectionFix02/ActualEvidence.cs",
+                          "sha256":  "2B823C1EA949AA059C888F078BF1C21435E9F17E4BA2A1F366FB344D67FA20C5"
+                      },
+                      {
+                          "path":  "scripts/verification/Schema002CorrectionFix02/NamedIndexContract.json",
+                          "sha256":  "D5AADCDD341BA46CA57AD0B9FCF5C557D6FBA78E7BFE1ECA343AAAEEB1A6BDE4"
+                      },
+                      {
+                          "path":  "scripts/verification/Schema002CorrectionFix02/README.md",
+                          "sha256":  "A647D01B2E187BF0E9FD8C575D359CD7FD06E1E18CC14CAF7BF6BCC77ECD766C"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Data/IntegrationSqlGuard.cs",
+                          "sha256":  "3CE18BF2C893FB1BCBFB022C2660F4ED85F086AF483477E677993500FA2A7B3E"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04AcceptanceTransaction.cs",
+                          "sha256":  "7AF7014798019735B1735E7E0749AEA0086FB95E4B36F9C36BC52C2B5FE03CAD"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04CleaningSourceAuthority.cs",
+                          "sha256":  "3959064C806AF851C583D2D746D7ABBA836937B489F583FCABA127749A8CF532"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationApproval.cs",
+                          "sha256":  "CD5435AB4B09AB5B368814C320EBCB19E6FFB0E319EE6B98145C843864F91366"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Housekeeping/Acceptance/Fe04NotificationRuntimeAdapter.cs",
+                          "sha256":  "66ADEBD4522F7A2305C1A473AF728061E4C02287A90FFC2DE80D8BB32EE7D2D0"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Notifications/CleaningAssignmentStore.cs",
+                          "sha256":  "23D459A5211B5AA9307B5FF02A7C1DC3919C18321EFC5F34461E1CA9C95932F1"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Notifications/CleaningNotificationRuntime.cs",
+                          "sha256":  "3F582B7FB4BF46EFFB2C2472EC2EAF7DE2A9124F71428C9B7250010FB52002A3"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Notifications/NotifWriter004AContract.cs",
+                          "sha256":  "B09D16168882F4D3D9EF1C6A065771552B04B4CA07CAA3734645753B58B434BF"
+                      },
+                      {
+                          "path":  "src/HotelOps.Api/Services/Notifications/ProvisionalCleaningNotification.cs",
+                          "sha256":  "BFAB3E070CC5DDB8F2DA64CCA5C0CAFFC13647EDB77395B34402EF3023F859C1"
+                      },
+                      {
+                          "path":  "tests/HotelOps.Dev1.RegressionTests/Fe04NotificationRuntimeTests.cs",
+                          "sha256":  "9623F73176CE8EE5055E5B45C8CB2D0CF593E2AAF6FB74494FC593D27D3BF888"
+                      }
+                  ],
+    "decisions":  [
+                      {
+                          "id":  "D01_AUTH",
+                          "responsibleOwner":  "ENV-001",
+                          "approvalAuthority":  "SecurityOwner + ProjectLeader",
+                          "status":  "PENDING",
+                          "proposedContract":  "SQL_LOGIN; mixed mode already present; no server roles/restart.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "ENV OWNER-DECISIONS and authentication-mode evidence.",
+                          "requiredNextAction":  "Approve authentication and named-login provisioning scope."
+                      },
+                      {
+                          "id":  "D02_MAPPING",
+                          "responsibleOwner":  "ENV-001",
+                          "approvalAuthority":  "SecurityOwner + RuntimeOwner",
+                          "status":  "PENDING",
+                          "proposedContract":  "One HotelOps_DEV2_FullStack_Runtime login and same-named authenticated user in exact GUID; fs013_app remains WITHOUT LOGIN.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "ENV reports runtime login/user absent.",
+                          "requiredNextAction":  "Approve mapping, then ENV verifies SID/authentication under real restricted connection."
+                      },
+                      {
+                          "id":  "D03_PERMISSIONS",
+                          "responsibleOwner":  "DEV1 FE04 proposal / ENV execution",
+                          "approvalAuthority":  "SecurityOwner + NotificationOwner",
+                          "status":  "PENDING",
+                          "proposedContract":  "Exact PERMISSION_CONTRACT.json; native module ownership chain and retained explicit graph/assignment DENYs; no direct EF graph staging.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Prior 49-entry baseline not accepted full 15-case profile.",
+                          "requiredNextAction":  "Approve object/operation rights, scoped metadata observation and delivery/inbox profile; no grants yet."
+                      },
+                      {
+                          "id":  "D04_ADAPTER",
+                          "responsibleOwner":  "DEV1 FE04",
+                          "approvalAuthority":  "ProjectLeader + RuntimeOwner + SecurityOwner",
+                          "status":  "PENDING",
+                          "proposedContract":  "Accept signed owner/source/fixture/catalog preflight, protected trust policy/credential pipe and rollback-only probe API. No production DI.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Source files and focused receipts; no owner signatures shipped.",
+                          "requiredNextAction":  "Accept exact adapter/launcher hashes and OS-protected trust transport."
+                      },
+                      {
+                          "id":  "D05_NOTIFICATION_HOOK",
+                          "responsibleOwner":  "DEV2 Notification exact store/runtime hook; DEV1 isolated caller wiring",
+                          "approvalAuthority":  "NotificationOwner + DEV1 FE04",
+                          "status":  "BLOCKED",
+                          "proposedContract":  "Exact-GUID approved runtime guard hook required in CleaningAssignmentStore.EnsureAsync and CleaningNotificationRuntime.RequireClean; leave historical guard intact.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Pinned KIENPC/HotelOps_DEV2_FullStack_Trial guards; published Writer004A is predicate only.",
+                          "requiredNextAction":  "Owner approve concrete hook/permission lane; DEV1 wires accepted isolated candidate only, no public activation."
+                      },
+                      {
+                          "id":  "D06_SCHEMA",
+                          "responsibleOwner":  "FS013 Schema Owner",
+                          "approvalAuthority":  "SchemaOwner",
+                          "status":  "PENDING",
+                          "proposedContract":  "Choose existing assignment-only FE04 lane vs full Fix02 probe lane. No guessed index/filter DDL; prior trigger capture/restoration mandatory.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Schema002 Verify.sql and Fix02 NamedIndexContract.json describe different index filters.",
+                          "requiredNextAction":  "Approve exact installer/rollback/catalog; provide missing preserved workspace if full Fix02 lane required."
+                      },
+                      {
+                          "id":  "D07_FIXTURES_OBSERVER",
+                          "responsibleOwner":  "Schema/Runtime owners",
+                          "approvalAuthority":  "SchemaOwner + RuntimeOwner",
+                          "status":  "BLOCKED",
+                          "proposedContract":  "Signed actual fixture bytes/IDs/ownership; accepted independent SqlException.Errors observer; no TRY/CATCH-derived provider proof.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Missing preserved .fe04schema002/.n01sql09/.n01decision08 manifests and trust/provider implementations.",
+                          "requiredNextAction":  "Provide exact fixture manifest, source/assembly provenance, provider observer and owned authoritative scenario flows."
+                      },
+                      {
+                          "id":  "D08_LEASE",
+                          "responsibleOwner":  "ENV-001",
+                          "approvalAuthority":  "RuntimeOwner + NotificationOwner",
+                          "status":  "BLOCKED",
+                          "proposedContract":  "Original lease expired. New accepted lease plus versioned Writer successor required; published hard expiry remains enforced.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Original expiry 2026-11-10T11:44:09.1792768Z; Writer004A HardExpiry.",
+                          "requiredNextAction":  "Owner reissue lease and publish accepted versioned expiry contract; no timestamp edits by DEV1."
+                      },
+                      {
+                          "id":  "D09_MUTATION_SCOPE",
+                          "responsibleOwner":  "DEV1 FE04 runner / ENV fixtures",
+                          "approvalAuthority":  "RuntimeOwner + ProjectLeader",
+                          "status":  "PENDING",
+                          "proposedContract":  "Exactly cases 01-15, sole central runner, real session/branch/fixture authorization; no worker/public producer; cleanup separate.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "AcceptanceCases.json, all 15 NOT_RUN.",
+                          "requiredNextAction":  "Approve case-specific mutation/fixture scope and concurrency subcase lane after prior gates."
+                      },
+                      {
+                          "id":  "D10_RUNTIME_HANDOFF",
+                          "responsibleOwner":  "ENV-001",
+                          "approvalAuthority":  "RuntimeOwner",
+                          "status":  "BLOCKED",
+                          "proposedContract":  "Protected DPAPI credential + real TLS/permissions/GUID/catalog verification; matching source/assembly owned 7029 only after release.",
+                          "artifactSetSha256":  "BE43FDBEB87CDF8A59A970D02EB9372EC895ED9394E586879025461DEAAF3E9C",
+                          "evidence":  "Existing 7029 source e76d6fc uses hax, not restricted acceptance runtime.",
+                          "requiredNextAction":  "Provision only after decisions ACCEPTED; verify actual connection and then owned runtime handoff. Do not stop another module."
+                      }
+                  ],
+    "contractAccepted":  false,
+    "provisioningHandoff":  "NOT_READY_DO_NOT_PROVISION",
+    "sqlAcceptanceReady":  false,
+    "sql":  {
+                "pass":  0,
+                "notRun":  15,
+                "fail":  0
+            },
+    "https":  "NOT_RUN",
+    "unitFixturesAreOwnerAuthority":  false,
+    "runtimeAssemblyBinding":  "After exact source build: owners sign actual loaded API and launcher hashes; no placeholder accepted.",
+    "expectedCatalog":  "Existing assignment-only schema unchanged until explicit owner decision. Capture actual ordered CatalogSql output and module UTF-16 hashes; never infer from source."
+}

@@ -1,0 +1,108 @@
+﻿{
+    "target":  "DESKTOP-JI8U50T\\SQLEXPRESS / HotelOps_ENVNOTIF001_Trial_20261109",
+    "connectionsOpened":  0,
+    "executed":  false,
+    "cases":  [
+                  {
+                      "id":  1,
+                      "name":  "Assignment + mandatory publication",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  2,
+                      "name":  "Assignment rollback removes publication",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  3,
+                      "name":  "Staging failure prevents assignment commit",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  4,
+                      "name":  "Identical operation retry",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  5,
+                      "name":  "Conflicting fingerprint replay",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  6,
+                      "name":  "Concurrent identical assignment",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  7,
+                      "name":  "Concurrent conflicting assignment",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  8,
+                      "name":  "Cancellation",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  9,
+                      "name":  "Superseded assignment",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  10,
+                      "name":  "Recipient revocation",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  11,
+                      "name":  "Source-read branch isolation",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  12,
+                      "name":  "Delivery retry/recovery",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  13,
+                      "name":  "Inbox read authorization",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  14,
+                      "name":  "Transaction guard enforcement",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  },
+                  {
+                      "id":  15,
+                      "name":  "Cleanup and preserved fixtures",
+                      "status":  "NOT_RUN",
+                      "bothRelevantOrderings":  "NOT_RUN where applicable"
+                  }
+              ],
+    "sql1205":  "NOT_RUN; any observed 1205 = FAIL",
+    "cleanup":  "NOT_RUN",
+    "componentProbe":  "tests/HotelOps.Notification.Cleaning.NoSql/CleaningSqlProbe.cs is runnable, NOT_RUN; not a full final-writer/delivery suite",
+    "candidateReferenceTargetOnly":  false,
+    "authorizedRuntimeTarget":  "a138fa48-cc14-4070-9ca4-793f1b60c5c1",
+    "exclusiveLeaseAvailable":  false,
+    "runtimeHandoff":  "TARGET_SCHEMA_AVAILABLE_RESTRICTED_WRITER_APPROVAL_MISSING",
+    "httpsStatus":  "READONLY_HEALTH_200_ANONYMOUS_401_BUSINESS_NOT_RUN",
+    "schemaSourceCommit":  "9cda7997416281c1af41e69704ed3bbda1d36eb9",
+    "restrictedWriterApproved":  false,
+    "activeLeaseEndUtc":  "2026-11-10T11:44:09.1792768Z"
+}

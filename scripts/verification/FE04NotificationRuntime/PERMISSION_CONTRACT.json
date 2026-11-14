@@ -1,0 +1,463 @@
+﻿{
+    "version":  "FE04_NATIVE_PERMISSION_PROPOSAL_V1",
+    "status":  "PENDING_NOT_EXECUTABLE",
+    "login":  "HotelOps_DEV2_FullStack_Runtime",
+    "databaseUser":  "HotelOps_DEV2_FullStack_Runtime",
+    "authentication":  "SQL_LOGIN",
+    "roles":  [
+
+              ],
+    "scope":  "Native UC029 plus separately approved delivery/inbox. Not an installer or accepted all-15-case rights profile.",
+    "excluded":  "No schema-wide SELECT, broad server metadata grant, direct EF graph/assignment writes, ALTER/CONTROL/IMPERSONATE or DENY removal.",
+    "metadataVisibility":  "PENDING: restricted GUID/login/TLS queries must work with scoped observer approved by schema/security owner; never elevate to pass.",
+    "entries":  [
+                    {
+                        "Object":  "dbo.users",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.user_sessions",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.user_branch_access",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.user_roles",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.roles",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.role_permissions",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.permissions",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.branches",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.departments",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.rooms",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.floors",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.areas",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.room_types",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.shift_assignments",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.work_shifts",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.shift_templates",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.cleaning_tasks",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.cleaning_assignments",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.room_cleaning_cycle_state",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.audit_logs",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_operation_reservations",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_publications",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029_SOURCE_READ",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.fs013_assign_with_evidence",
+                        "Permission":  "EXECUTE",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.fs013_assign_with_evidence",
+                        "Permission":  "VIEW DEFINITION",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "PREFLIGHT_METADATA",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.fs009_verify_assignment_guard",
+                        "Permission":  "EXECUTE",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "NATIVE_UC029",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.fs009_verify_assignment_guard",
+                        "Permission":  "VIEW DEFINITION",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "PREFLIGHT_METADATA",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_operation_reservations",
+                        "Permission":  "INSERT",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_operation_reservations",
+                        "Permission":  "DELETE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_operation_reservations",
+                        "Permission":  "UPDATE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_operation_reservations",
+                        "Permission":  "VIEW DEFINITION",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "PREFLIGHT_METADATA",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_publications",
+                        "Permission":  "INSERT",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_publications",
+                        "Permission":  "DELETE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_publications",
+                        "Permission":  "UPDATE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_publications",
+                        "Permission":  "VIEW DEFINITION",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "PREFLIGHT_METADATA",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "INSERT",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "DELETE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "VIEW DEFINITION",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "PREFLIGHT_METADATA",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.cleaning_assignments",
+                        "Permission":  "INSERT",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.cleaning_assignments",
+                        "Permission":  "DELETE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.cleaning_assignments",
+                        "Permission":  "UPDATE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.cleaning_assignments",
+                        "Permission":  "VIEW DEFINITION",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "PREFLIGHT_METADATA",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.audit_logs",
+                        "Permission":  "UPDATE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.audit_logs",
+                        "Permission":  "DELETE",
+                        "Column":  null,
+                        "Allowed":  false,
+                        "phase":  "RETAIN_EXPLICIT_DENY",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notifications",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notifications",
+                        "Permission":  "INSERT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_recipients",
+                        "Permission":  "SELECT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_recipients",
+                        "Permission":  "INSERT",
+                        "Column":  null,
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_recipients",
+                        "Permission":  "UPDATE",
+                        "Column":  "read_at",
+                        "Allowed":  true,
+                        "phase":  "INBOX_MARK_READ_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "status",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "attempt_count",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "next_attempt_at",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "claim_id",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "claimed_until",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "failure_code",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    },
+                    {
+                        "Object":  "dbo.notification_delivery_intents",
+                        "Permission":  "UPDATE",
+                        "Column":  "inbox_notification_id",
+                        "Allowed":  true,
+                        "phase":  "CONTAINED_DELIVERY_INBOX_REQUIRES_OWNER_ACCEPTANCE",
+                        "status":  "PENDING"
+                    }
+                ]
+}
