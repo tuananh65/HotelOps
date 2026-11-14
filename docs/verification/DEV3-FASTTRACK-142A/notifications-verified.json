@@ -1,0 +1,160 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 360093,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/notifications",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "path": "/api/notifications",
+      "post": false,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/notifications/7/read",
+      "post": true,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "path": "/api/notifications/9/read",
+      "post": true,
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "path": "/api/notifications/9223372036854775807/read",
+      "post": true,
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "path": "/api/notifications/7/read",
+      "post": true,
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "path": "/api/notifications/7/read",
+      "post": true,
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "path": "/api/notifications?unread=true",
+      "post": false,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/notifications?search=SECOND\u0026pageSize=1",
+      "post": false,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "path": "/api/notifications?from=2026-11-15\u0026to=2026-11-14",
+      "post": false,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "path": "/api/notifications?pageSize=101",
+      "post": false,
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "path": "/api/notifications/read-all",
+      "post": true,
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "path": "/api/notifications",
+      "post": false,
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "recipientIsolation": true,
+      "retention365": true,
+      "expiredAndPendingHidden": true,
+      "readTimestampOnce": true,
+      "readAllOwnOnly": true,
+      "sourceLinksWithheld": true
+    },
+    {
+      "notificationCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "success": true,
+  "scope": "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
+}

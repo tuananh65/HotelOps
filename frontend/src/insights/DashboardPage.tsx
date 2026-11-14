@@ -74,6 +74,7 @@ export function DashboardPage() {
       <nav>
         <Link to="/users">Users</Link> <Link to="/hotel">Structure</Link>{" "}
         <Link to="/rooms/status">Room status board</Link>{" "}
+        <Link to="/notifications">Notifications</Link>{" "}
         <Link to="/audit">Audit history</Link>{" "}
         <Link to="/profile">Profile</Link>
       </nav>

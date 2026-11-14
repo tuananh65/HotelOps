@@ -1,3 +1,4 @@
+import { NotificationCenter } from "../notifications/NotificationCenter";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
 import { UserDirectoryPage } from "../users/UserDirectoryPage";
 import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
@@ -48,6 +49,7 @@ export function SharedAuthHost({
   auditReadEnabled = false,
   roleAssignmentEnabled = false,
   dashboardEnabled = false,
+  notificationsEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -55,6 +57,7 @@ export function SharedAuthHost({
   auditReadEnabled?: boolean;
   roleAssignmentEnabled?: boolean;
   dashboardEnabled?: boolean;
+  notificationsEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
@@ -102,6 +105,16 @@ export function SharedAuthHost({
           </Protected>
         }
       />
+      {notificationsEnabled && (
+        <Route
+          path="/notifications"
+          element={
+            <Protected>
+              <NotificationCenter />
+            </Protected>
+          }
+        />
+      )}
       <Route path="/login" element={<LoginRoute />} />
       <Route
         path="/profile"
@@ -149,6 +162,9 @@ export function SharedAuthHost({
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
             {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
+            {notificationsEnabled && (
+              <Link to="/notifications">Notifications</Link>
+            )}
             <OperationsRoutes />
           </Protected>
         }

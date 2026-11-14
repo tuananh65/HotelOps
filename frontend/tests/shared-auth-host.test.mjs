@@ -103,6 +103,7 @@ for (const path of [
   "/hotel?branchId=7",
   "/audit",
   "/dashboard",
+  "/notifications",
 ]) {
   for (const state of [
     "INITIALIZING",
@@ -902,6 +903,146 @@ test("dashboard options 401 expires current session", async () => {
     window.optionsStatus = 401;
     window.fixture.set("AUTHENTICATED");
   });
+  await p.waitForURL("**/login**");
+  await p.close();
+});
+
+const notificationFixture = {
+  items: [
+    {
+      id: 71,
+      type: "CLEANING_TASK_ASSIGNED",
+      title: "Assigned room",
+      message: "Private recipient text",
+      priority: "NORMAL",
+      createdAt: "2026-11-15T00:00:00Z",
+      readAt: null,
+    },
+  ],
+  totalCount: 1,
+  unreadCount: 1,
+  page: 1,
+  pageSize: 25,
+  snapshot: "2026-11-15T00:01:00Z",
+};
+test("notification center marks read through CSRF and refreshes only after success", async () => {
+  const p = await pageAt("/notifications", "INITIALIZING");
+  await p.evaluate((body) => {
+    window.inbox = body;
+    window.fetch = async (url, init) => {
+      window.calls.push(String(url));
+      if (String(url) === "/api/auth/csrf")
+        return new Response(
+          JSON.stringify({
+            csrfToken: "synthetic-token",
+            headerName: "X-CSRF-TOKEN",
+          }),
+        );
+      if (init?.method === "POST") {
+        if (init.headers["X-CSRF-TOKEN"] !== "synthetic-token")
+          throw Error("CSRF missing");
+        window.inbox.items[0].readAt = "2026-11-15T00:02:00Z";
+        window.inbox.unreadCount = 0;
+        return new Response(null, { status: 204 });
+      }
+      return new Response(JSON.stringify(window.inbox));
+    };
+    window.fixture.set("AUTHENTICATED");
+  }, notificationFixture);
+  await p
+    .getByRole("button", { name: "Mark notification 71 as read", exact: true })
+    .click();
+  await p.getByText("Marked as read. Source records are unchanged.").waitFor();
+  await p.waitForFunction(() => document.body.innerText.includes("Unread: 0"));
+  assert.equal(
+    await p
+      .getByRole("button", {
+        name: "Mark notification 71 as read",
+        exact: true,
+      })
+      .isDisabled(),
+    true,
+  );
+  assert.equal(
+    await p.evaluate(
+      () =>
+        window.calls.filter((x) => x === "/api/notifications/71/read").length,
+    ),
+    1,
+  );
+  await p.evaluate(() => window.fixture.set("ERROR_UNAVAILABLE"));
+  await p
+    .getByText("Private recipient text", { exact: true })
+    .waitFor({ state: "hidden" });
+  await p.close();
+});
+test("notification authority replacement during CSRF bootstrap cannot send old write", async () => {
+  const p = await pageAt("/notifications", "INITIALIZING");
+  await p.evaluate((body) => {
+    window.fetch = (url, init) => {
+      window.calls.push(String(url));
+      if (String(url) === "/api/auth/csrf")
+        return new Promise((resolve) => (window.finishInboxCsrf = resolve));
+      return Promise.resolve(new Response(JSON.stringify(body)));
+    };
+    window.fixture.set("AUTHENTICATED");
+  }, notificationFixture);
+  await p
+    .getByRole("button", { name: "Mark notification 71 as read", exact: true })
+    .click();
+  await p.waitForFunction(() => !!window.finishInboxCsrf);
+  await p.evaluate(() => {
+    window.fixture.set("ANONYMOUS");
+    window.finishInboxCsrf(
+      new Response(
+        JSON.stringify({ csrfToken: "stale", headerName: "X-CSRF-TOKEN" }),
+      ),
+    );
+  });
+  await p.waitForURL("**/login**");
+  assert.equal(
+    await p.evaluate(() => window.calls.some((x) => x.endsWith("/read"))),
+    false,
+  );
+  await p.close();
+});
+test("notification uncertain write is not replayed and current 401 expires authority", async () => {
+  const p = await pageAt("/notifications", "INITIALIZING");
+  await p.evaluate((body) => {
+    window.fetch = async (url, init) => {
+      window.calls.push(String(url));
+      if (String(url) === "/api/auth/csrf")
+        return new Response(
+          JSON.stringify({
+            csrfToken: "synthetic",
+            headerName: "X-CSRF-TOKEN",
+          }),
+        );
+      if (init?.method === "POST") throw Error("SQL-PRIVATE-ERROR");
+      return new Response(JSON.stringify(body));
+    };
+    window.fixture.set("AUTHENTICATED");
+  }, notificationFixture);
+  await p
+    .getByRole("button", { name: "Mark all as read", exact: true })
+    .click();
+  await p
+    .getByText(
+      "Read status could not be confirmed. Refresh before trying again.",
+    )
+    .waitFor();
+  assert.equal(
+    await p.evaluate(
+      () =>
+        window.calls.filter((x) => x === "/api/notifications/read-all").length,
+    ),
+    1,
+  );
+  assert.doesNotMatch(await p.locator("body").innerText(), /SQL-PRIVATE-ERROR/);
+  await p.evaluate(() => {
+    window.fetch = async () => new Response("{}", { status: 401 });
+  });
+  await p.getByRole("button", { name: "Refresh", exact: true }).click();
   await p.waitForURL("**/login**");
   await p.close();
 });
