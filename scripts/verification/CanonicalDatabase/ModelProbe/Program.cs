@@ -20,6 +20,8 @@ if (args.Length == 2 && args[0] == "--sprint-role-assignment")
     return await SprintAuthProbe.RunAsync(args[1], roleAssignment: true);
 if (args.Length == 2 && args[0] == "--sprint-reinspection")
     return await SprintReinspectionProbe.RunAsync(args[1]);
+if (args.Length == 2 && args[0] == "--sprint-dashboard")
+    return await SprintAuthProbe.RunAsync(args[1], dashboard: true);
 if (args.Length == 2 && args[0] == "--sprint-schema")
     return await SprintSchemaProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-evidence-guard")

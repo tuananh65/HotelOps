@@ -9,6 +9,7 @@ export function AuthRouteHost() {
       structureReadEnabled
       auditReadEnabled
       roleAssignmentEnabled
+      dashboardEnabled
     />
   );
 }

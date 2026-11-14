@@ -1,0 +1,8 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  HotelOps.Api -> D:\HotelOps\HotelOps_Fullstack_Shared\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Dev1.RegressionTests -> D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll
+Test run for D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+
+Passed!  - Failed:     0, Passed:     7, Skipped:     0, Total:     7, Duration: 40 ms - HotelOps.Dev1.RegressionTests.dll (net10.0)

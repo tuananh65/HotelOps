@@ -98,6 +98,7 @@ for (const path of [
   "/users/42/roles/assign",
   "/hotel?branchId=7",
   "/audit",
+  "/dashboard",
 ]) {
   for (const state of [
     "INITIALIZING",
@@ -330,7 +331,7 @@ for (const destination of [
       "/login?" + new URLSearchParams({ returnTo: destination }),
       "AUTHENTICATED",
     );
-    await p.waitForURL(origin + "/rooms/status");
+    await p.waitForURL(origin + "/dashboard");
     await p.close();
   });
 test("failed revalidation does not restore destination; explicit recovery required", async () => {
@@ -491,7 +492,7 @@ for (const next of [
     assert.equal(await p.getByRole("navigation").count(), 0);
     await p.evaluate(() => window.finishRevalidation());
     await p.waitForURL(
-      origin + (next.startsWith("/rework") ? next : "/rooms/status"),
+      origin + (next.startsWith("/rework") ? next : "/dashboard"),
     );
     await p.close();
   });
@@ -674,5 +675,128 @@ test("audit 401 invalidates the current authority without automatic business rep
       .count(),
     0,
   );
+  await p.close();
+});
+
+const dashboardFixture = {
+  snapshot: "2026-11-15T01:00:00Z",
+  filters: {
+    branchIds: [7],
+    departmentId: null,
+    from: "2026-11-01",
+    to: "2026-11-15",
+    calendar: "UTC",
+  },
+  metrics: [
+    { key: "activeRooms", label: "Active rooms", value: 2, unit: "count" },
+    {
+      key: "firstInspectionPassRate",
+      label: "First-time inspection pass rate",
+      value: null,
+      unit: "unavailable",
+    },
+  ],
+  distributions: [
+    {
+      source: "rooms.operational_status",
+      status: "READY",
+      count: 1,
+      severity: null,
+    },
+  ],
+  quantities: [
+    {
+      kind: "netStockMovement",
+      itemId: 1,
+      uomId: 2,
+      warehouseId: 3,
+      quantity: "123456789012345.1234",
+    },
+  ],
+  missingSources: ["INTERNAL-CONTRACT-DETAIL"],
+};
+
+test("dashboard renders unknown metrics and precise quantities with explicit filter refresh", async () => {
+  const p = await pageAt("/dashboard", "INITIALIZING");
+  await p.evaluate((body) => {
+    window.businessReply = { status: 200, body };
+    window.fixture.set("AUTHENTICATED");
+  }, dashboardFixture);
+  await p.getByText("123456789012345.1234", { exact: true }).waitFor();
+  const content = await p.locator("main").innerText();
+  assert.match(content, /N\/A/);
+  assert.match(content, /Incomplete dashboard/);
+  assert.doesNotMatch(content, /INTERNAL-CONTRACT-DETAIL/);
+  await p.getByLabel("Branch ID", { exact: true }).fill("7");
+  await p.getByRole("button", { name: "Apply filters", exact: true }).click();
+  await p.waitForFunction(() =>
+    window.calls.includes("/api/dashboards/operations?branchId=7"),
+  );
+  await p.evaluate(() => window.fixture.set("ERROR_UNAVAILABLE"));
+  await p
+    .getByText("123456789012345.1234", { exact: true })
+    .waitFor({ state: "hidden" });
+  await p.close();
+});
+for (const status of [403, 503]) {
+  test(`dashboard ${status} hides raw errors without automatic retry`, async () => {
+    const p = await pageAt("/dashboard", "INITIALIZING");
+    await p.evaluate((status) => {
+      window.businessReply = {
+        status,
+        body: { message: "SQL-PRIVATE-DETAIL" },
+      };
+      window.fixture.set("AUTHENTICATED");
+    }, status);
+    await p.getByRole("alert").waitFor();
+    assert.doesNotMatch(
+      await p.locator("main").innerText(),
+      /SQL-PRIVATE-DETAIL/,
+    );
+    assert.equal((await p.evaluate(() => window.calls)).length, 1);
+    await p.close();
+  });
+}
+test("dashboard rejects numeric quantities instead of rounding", async () => {
+  const p = await pageAt("/dashboard", "INITIALIZING");
+  await p.evaluate((body) => {
+    body.quantities[0].quantity = 1.25;
+    window.businessReply = { status: 200, body };
+    window.fixture.set("AUTHENTICATED");
+  }, dashboardFixture);
+  await p.getByRole("alert").waitFor();
+  assert.equal(
+    await p.getByRole("region", { name: "Dashboard indicators" }).count(),
+    0,
+  );
+  await p.close();
+});
+test("dashboard current 401 invalidates authority without business replay", async () => {
+  const p = await pageAt("/dashboard", "INITIALIZING");
+  await p.evaluate(() => {
+    window.businessReply = { status: 401, body: {} };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.waitForURL("**/login**");
+  assert.equal((await p.evaluate(() => window.calls)).length, 1);
+  await p.close();
+});
+test("dashboard late 401 cannot invalidate replacement authority", async () => {
+  const p = await pageAt("/dashboard", "INITIALIZING");
+  await p.evaluate(() => {
+    window.fetch = () =>
+      new Promise((resolve) => (window.finishDashboard = resolve));
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.waitForFunction(() => !!window.finishDashboard);
+  await p.evaluate((body) => {
+    const stale = window.finishDashboard;
+    window.fetch = async () =>
+      new Response(JSON.stringify(body), { status: 200 });
+    window.fixture.set("AUTHENTICATED");
+    stale(new Response("{}", { status: 401 }));
+  }, dashboardFixture);
+  await p.getByText("123456789012345.1234", { exact: true }).waitFor();
+  assert.equal(new URL(p.url()).pathname, "/dashboard");
   await p.close();
 });

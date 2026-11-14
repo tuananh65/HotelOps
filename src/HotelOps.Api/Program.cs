@@ -25,6 +25,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.InsightAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Insights.DashboardService>();
 
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
     options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance).UseSqlServer(

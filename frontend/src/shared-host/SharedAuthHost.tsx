@@ -3,6 +3,7 @@ import { UserDirectoryPage } from "../users/UserDirectoryPage";
 import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
 import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { AuditPage } from "../audit/AuditPage";
+import { DashboardPage } from "../insights/DashboardPage";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
@@ -46,12 +47,14 @@ export function SharedAuthHost({
   structureReadEnabled = false,
   auditReadEnabled = false,
   roleAssignmentEnabled = false,
+  dashboardEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
   structureReadEnabled?: boolean;
   auditReadEnabled?: boolean;
   roleAssignmentEnabled?: boolean;
+  dashboardEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
@@ -113,7 +116,11 @@ export function SharedAuthHost({
         path="/dashboard"
         element={
           <Protected>
-            <Navigate replace to="/rooms/status" />
+            {dashboardEnabled ? (
+              <DashboardPage />
+            ) : (
+              <Navigate replace to="/rooms/status" />
+            )}
           </Protected>
         }
       />
@@ -141,6 +148,7 @@ export function SharedAuthHost({
             {usersReadEnabled && <Link to="/users">Users</Link>}
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
+            {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
             <OperationsRoutes />
           </Protected>
         }
