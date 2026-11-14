@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
+import { TaskProgressPanel } from "./TaskProgressPanel";
 import {
   readTasks,
   TaskReadFailure,
@@ -147,6 +148,14 @@ export function TaskReadPage() {
           </p>
           <p>{detail.description}</p>
           <p>{detail.completionNote}</p>
+          {detail.task.status === "IN_PROGRESS" && (
+            <TaskProgressPanel
+              key={`${owner}:${detail.task.branchId}:${detail.task.id}`}
+              branch={detail.task.branchId}
+              task={detail.task.id}
+              owner={owner}
+            />
+          )}
           <h3>Progress history</h3>
           <p>{detail.progressTotalCount} recorded updates</p>
           <ul>

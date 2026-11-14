@@ -115,7 +115,7 @@ internal static class SprintAuthProbe
                 checks, failure, cleanup = cleaned, success = failure == null && cleaned,
                 scope = browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"
-                    : taskRead ? "Real HTTPS/SQL and canonical production browser task list/detail/progress reads with OWN and branch permission; no create/lifecycle acceptance"
+                    : taskRead ? "Real HTTPS/SQL and canonical browser task reads and percent/note writes, paused execution, audit, stale/concurrent writes and scope denials; criteria/evidence mutation and create/lifecycle acceptance excluded"
                     : notifications ? "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
                     : activation ? "Real HTTPS/SQL account activation, concurrency preconditions and credential preservation; deactivation remains unavailable"
                     : dashboard ? "Real HTTPS/SQL auth and scoped dashboard reads; no browser or all-KPI acceptance"

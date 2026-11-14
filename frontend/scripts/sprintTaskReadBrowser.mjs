@@ -41,6 +41,16 @@ try {
   await page.getByText("Latest synthetic update", { exact: true }).waitFor();
   await page.getByText("Earlier synthetic update", { exact: true }).waitFor();
   checks.push(stage);
+  stage = "paused task progress save";
+  await page.getByText("Task execution state: PAUSED", { exact: true }).waitFor();
+  await page.getByLabel("Progress (%)", { exact: true }).fill("75");
+  await page.getByLabel("Progress note", { exact: true }).fill("Browser synthetic progress");
+  await page.getByRole("button", { name: "Save progress", exact: true }).click();
+  await page.getByText("Progress saved. Reaching 100% does not complete this task.", { exact: true }).waitFor();
+  await page.getByRole("button", { name: "Reload progress (discard edits)", exact: true }).click();
+  await page.getByText("Task execution state: PAUSED", { exact: true }).waitFor();
+  if(await page.getByLabel("Progress (%)", { exact: true }).inputValue()!=="75") throw new Error("Saved progress missing after reload");
+  checks.push(stage);
   stage = "search and empty result";
   await page
     .getByRole("button", { name: "Back to tasks", exact: true })

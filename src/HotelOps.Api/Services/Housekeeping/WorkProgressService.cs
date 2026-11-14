@@ -42,7 +42,10 @@ public sealed partial class RoomTypeCreationService
                 && a.EndedAt == null && a.AssignedAt <= now).Select(a => a.AssigneeUserId).Take(2).ToArrayAsync(ct);
             return owners.Length == 1 && owners[0] == actor;
         }
-        if (!await db.OperationalTasks.AsNoTracking().AnyAsync(t => t.TaskId == id && t.BranchId == branch, ct)) return false;
+        if (!await db.OperationalTasks.AsNoTracking().AnyAsync(t => t.TaskId == id && t.BranchId == branch
+            && t.Department.BranchId == branch
+            && (t.RoomId == null || t.Room!.BranchId == branch)
+            && (t.AreaId == null || t.Area!.BranchId == branch), ct)) return false;
         var assigned = await db.OperationalTaskAssignments.AsNoTracking().Where(a => a.TaskId == id && a.AssignmentStatus == "ACTIVE"
             && a.EndedAt == null && a.AssignedAt <= now).Select(a => a.AssigneeId).Take(2).ToArrayAsync(ct);
         return assigned.Length == 1 && assigned[0] == actor;
