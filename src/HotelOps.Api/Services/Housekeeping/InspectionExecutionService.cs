@@ -30,7 +30,8 @@ public sealed partial class RoomTypeCreationService
     {
         if (id <= 0 || operation is not ("read" or "start" or "save" or "finish" or "defect")) throw new ValidationException("Invalid inspection operation.");
         if (operation != "read" && !WorkflowStrongTag(expected)) throw new ValidationException("A strong rowversion If-Match is required.");
-        var files = new List<string>(); var committed = false;
+        var evidence = new HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime();
+        var files = evidence.Files;
         try
         {
             var response = await BatchAsync(ticket, sid, branch, async (actor, token) =>
@@ -111,13 +112,13 @@ public sealed partial class RoomTypeCreationService
                 var after = await ExecutionDto(source, afterState, branch, token);
                 await BatchAuditAsync(actor, branch, "room_inspections", id, before, new { reason = auditReason, operation, entity = after }, [operation, "workflowStatus", "criteria", "defects", "evidence"], token);
                 return new(RoomTypeBatchStatus.Success, after, WorkflowTag(afterState.Revision));
-            }, ct, permissionCode: "INSPECTION_PERFORM");
-            committed = response.Status == RoomTypeBatchStatus.Success;
+            }, ct, permissionCode: "INSPECTION_PERFORM", preserveCommitErrors: true,
+                beforeCommit: evidence.BeforeCommitAsync);
             return response;
         }
         finally
         {
-            if (!committed) foreach (var file in files) File.Delete(file); // Only server-generated files owned by this invocation.
+            evidence.Dispose();
         }
     }
     private async Task<InspectionExecutionDto> ExecutionDto(RoomInspection source, HousekeepingState state, long branch, CancellationToken ct)

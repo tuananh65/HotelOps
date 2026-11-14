@@ -125,7 +125,8 @@ public sealed partial class RoomTypeCreationService
             || input.Items.Count > 100 || input.Items.Any(x => x == null) || input.Items.Select(x => x.Id).Distinct().Count() != input.Items.Count
             || (input.Photos?.Count ?? 0) > 5)) throw new ValidationException("Invalid progress or rowversion.");
         var note = input == null ? null : ChecklistText(input.Note, 4000, false);
-        var ownedFiles = new List<string>(); var committed = false;
+        var evidence = new HotelOps.Api.Services.Housekeeping.EvidenceFileLifetime();
+        var ownedFiles = evidence.Files;
         try
         {
             var result = await BatchAsync(ticket, sid, branch, async (actor, token) =>
@@ -185,11 +186,11 @@ public sealed partial class RoomTypeCreationService
                 var after = await ProgressDto(cleaning, id, branch, version.State, token);
                 await BatchAuditAsync(actor, branch, cleaning ? "cleaning_tasks" : "operational_tasks", id, before, after, ["progress", "criteria", "notes", "evidence"], token);
                 return new(RoomTypeBatchStatus.Success, after, WorkflowTag((await ProgressRevision(cleaning, id, token))!.Revision));
-            }, ct, requireRoomTypeSchema: false, featurePermission: token => ProgressAccess(cleaning, id, branch, ticket.UserId, token));
-            committed = result.Status == RoomTypeBatchStatus.Success;
+            }, ct, requireRoomTypeSchema: false, featurePermission: token => ProgressAccess(cleaning, id, branch, ticket.UserId, token),
+                preserveCommitErrors: true, beforeCommit: evidence.BeforeCommitAsync);
             return result;
         }
-        finally { if (!committed) foreach (var file in ownedFiles) File.Delete(file); }
+        finally { evidence.Dispose(); }
     }
 
     private async Task<WorkProgressDto> ProgressDto(bool cleaning, long id, long branch, string state, CancellationToken ct)
