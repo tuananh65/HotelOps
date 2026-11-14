@@ -1,0 +1,20 @@
+{
+  "success": true,
+  "checks": [
+    "caller scope excludes foreign request",
+    "deadline order with null last",
+    "strict overdue boundary and terminal exclusion",
+    "non-overdue includes deadline equal null and closed",
+    "keyword percent is literal",
+    "pagination retains scoped count",
+    "timeline timestamp tie ordered by event ID",
+    "foreign history withheld",
+    "missing history indistinguishable",
+    "invalid pagination rejected",
+    "invalid pagination rejected",
+    "invalid pagination rejected"
+  ],
+  "failure": null,
+  "rollback": true,
+  "scope": "Internal query component over caller-scoped SQL, not authorization/HTTP/UC acceptance"
+}

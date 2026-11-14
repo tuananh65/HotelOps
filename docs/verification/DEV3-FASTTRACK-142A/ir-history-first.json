@@ -1,0 +1,7 @@
+{
+  "success": false,
+  "checks": [],
+  "failure": "The LINQ expression \u0027DbSet\u003CInternalRequest\u003E()\r\n    .Where(i =\u003E i.BranchId == @branch \u0026\u0026 i.RequesterId == @actor)\r\n    .OrderBy(i =\u003E new InternalRequestHistoryRow(\r\n        i.InternalRequestId, \r\n        i.RequestNo, \r\n        i.BranchId, \r\n        i.Subject, \r\n        i.Status, \r\n        i.RequestTypeId, \r\n        i.PriorityId, \r\n        i.ReceivingDepartmentId, \r\n        i.DueAt, \r\n        i.DueAt != null \u0026\u0026 i.DueAt \u003C @snapshotUtc \u0026\u0026 i.Status != \u0022CLOSED\u0022 \u0026\u0026 i.Status != \u0022REJECTED\u0022 \u0026\u0026 i.Status != \u0022CANCELLED\u0022\r\n    ).Deadline == null)\u0027 could not be translated. Either rewrite the query in a form that can be translated, or switch to client evaluation explicitly by inserting a call to \u0027AsEnumerable\u0027, \u0027AsAsyncEnumerable\u0027, \u0027ToList\u0027, or \u0027ToListAsync\u0027. See https://go.microsoft.com/fwlink/?linkid=2101038 for more information.",
+  "rollback": true,
+  "scope": "Internal query component over caller-scoped SQL, not authorization/HTTP/UC acceptance"
+}
