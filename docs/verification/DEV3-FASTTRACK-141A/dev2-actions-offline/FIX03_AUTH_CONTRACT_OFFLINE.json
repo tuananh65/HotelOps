@@ -1,0 +1,62 @@
+{
+  "status": "PASS",
+  "assertions": 17,
+  "timeZone": "SE Asia Standard Time",
+  "localOffsetMinutes": 420,
+  "oldCookieAlreadyExpired": true,
+  "repairedCookieFuture": true,
+  "rows": [
+    {
+      "authenticated": false,
+      "snapshot": false,
+      "restricted": false,
+      "cookie": false,
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "code": "AUTHENTICATION_REQUIRED",
+      "businessDelegateReached": true
+    },
+    {
+      "authenticated": false,
+      "snapshot": false,
+      "restricted": false,
+      "cookie": true,
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "code": "SESSION_INVALID",
+      "businessDelegateReached": false
+    },
+    {
+      "authenticated": true,
+      "snapshot": false,
+      "restricted": true,
+      "cookie": true,
+      "expectedStatus": 401,
+      "actualStatus": 401,
+      "code": "SESSION_INVALID",
+      "businessDelegateReached": false
+    },
+    {
+      "authenticated": true,
+      "snapshot": true,
+      "restricted": true,
+      "cookie": true,
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "code": "PASSWORD_CHANGE_REQUIRED",
+      "businessDelegateReached": false
+    },
+    {
+      "authenticated": true,
+      "snapshot": true,
+      "restricted": false,
+      "cookie": true,
+      "expectedStatus": 403,
+      "actualStatus": 403,
+      "code": "FORBIDDEN",
+      "businessDelegateReached": true
+    }
+  ],
+  "sqlConnections": 0,
+  "scope": "Actual cookie ticket, deadline policy and invalid/restricted middleware; terminal permission denial is a test delegate, SQL business acceptance NOT_RUN"
+}

@@ -1,0 +1,97 @@
+{
+  "range": "'THAY ĐỔI v3'!A1:E14",
+  "majorDimension": "ROWS",
+  "values": [
+    [
+      "Loại thay đổi",
+      "UC ID",
+      "Use Case Name",
+      "Nội dung",
+      "Lý do / Ghi chú"
+    ],
+    [
+      "Sửa actor",
+      "UC-013",
+      "View Branch Structure",
+      "Primary Actor: \"Operations Manager\" → \"Administrator, Operations Manager\"",
+      "Administrator dùng UC-013 làm điểm khởi đầu cho UC-012, UC-015, UC-016 (thay cho View Branches List và View Floors/Areas List)"
+    ],
+    [
+      "Sửa mô tả",
+      "UC-013",
+      "View Branch Structure",
+      "Thêm câu: Quản trị dùng làm điểm khởi đầu để cập nhật cơ sở, tầng/khu vực (UC-012, UC-015, UC-016)",
+      "Ghi nhận quan hệ extend"
+    ],
+    [
+      "Bổ sung Data Field",
+      "UC-013",
+      "View Branch Structure",
+      "Thêm floor_area_id, floor_area_code, floor_area_name, parent_floor_id",
+      "Mô tả UC có \"danh sách tầng, khu vực\" nhưng Data Field chưa có trường nào. Trường phòng và bộ phận chưa thêm vì chưa chốt (xem mục chờ xác nhận)"
+    ],
+    [
+      "Sửa actor",
+      "UC-089",
+      "View Stock Balance and Movement Ledger",
+      "Primary Actor: \"Storekeeper\" → \"Storekeeper, Operations Manager\"",
+      "Thay cho View Stock Transactions List; Operations Manager chọn chứng từ đã ghi sổ từ UC-089 để thực hiện UC-088"
+    ],
+    [
+      "Sửa mô tả",
+      "UC-089",
+      "View Stock Balance and Movement Ledger",
+      "Thêm câu: Quản lý vận hành dùng danh sách chứng từ này để chọn chứng từ đã ghi sổ cần đảo (UC-088)",
+      "Ghi nhận quan hệ extend"
+    ],
+    [
+      "Sửa actor",
+      "UC-123",
+      "View Internal Request History",
+      "Primary Actor: thêm \"Operations Manager\" ở đầu danh sách",
+      "Thay cho View Internal Requests List; UC-122 của Operations Manager cần chọn yêu cầu từ danh sách này"
+    ],
+    [
+      "Sửa mô tả",
+      "UC-123",
+      "View Internal Request History",
+      "Thêm câu: Là danh sách gốc để xử lý yêu cầu nội bộ (UC-115, 116, 117, 119, 120, 121, 122)",
+      "Ghi nhận quan hệ extend. Chưa đổi tên UC (đang cân nhắc)"
+    ],
+    [
+      "Sửa tham chiếu",
+      "UC-139",
+      "Record Workday Start and End",
+      "Mô tả: \"UC-098\" → \"UC-111\"",
+      "UC-098 là Manage Partial Material Fulfillment; UC ghi thời gian tác vụ là UC-111 Record Actual Working Time"
+    ],
+    [
+      "Thêm UC mới",
+      "UC-141",
+      "View User List",
+      "FE: FE-01; Actor: Administrator",
+      "Nhóm \"View … List\" cần thiết, không trùng UC có sẵn"
+    ],
+    [
+      "Thêm UC mới",
+      "UC-142",
+      "View Room Types List",
+      "FE: FE-02; Actor: Administrator",
+      "Nhóm \"View … List\" cần thiết, không trùng UC có sẵn"
+    ],
+    [
+      "Thêm UC mới",
+      "UC-143",
+      "View Incidents List",
+      "FE: FE-06; Actor: Maintenance Lead, Maintenance Staff",
+      "Nhóm \"View … List\" cần thiết, không trùng UC có sẵn"
+    ],
+    [
+      "Thêm UC mới",
+      "UC-144",
+      "View Maintenance List",
+      "FE: FE-06; Actor: Maintenance Lead, Maintenance Staff",
+      "Nhóm \"View … List\" cần thiết, không trùng UC có sẵn"
+    ]
+  ]
+}

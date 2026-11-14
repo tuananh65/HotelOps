@@ -1,0 +1,500 @@
+{
+  "passed": true,
+  "assertions": 1156,
+  "actionComponents": 61,
+  "readBindings": 26,
+  "mutationBindings": 35,
+  "results": [
+    {
+      "id": "A004A-001",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-002",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-003",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-004",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-005",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-006",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-007",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-008",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-009",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-010",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-011",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-012",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-013",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-014",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-015",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-016",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-017",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-018",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-019",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-020",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-021",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-022",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-023",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-024",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-025",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-026",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-027",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-028",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-029",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-030",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-031",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-032",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-033",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-034",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-035",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-036",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-037",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-038",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-039",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-040",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-041",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-042",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-043",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-044",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-045",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-046",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-047",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-048",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-049",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-050",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-051",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-052",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-053",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-054",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-055",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-056",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-057",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-058",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-059",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-060",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    },
+    {
+      "id": "A004A-061",
+      "permissionCorePositive": true,
+      "permissionCoreNegative": true,
+      "contractShape": true,
+      "businessAcceptance": "NOT_RUN_OFFLINE",
+      "sql": "NOT_RUN"
+    }
+  ],
+  "sqlConnections": 0,
+  "apiStartups": 0,
+  "fullyAcceptedBusinessActions": 0
+}

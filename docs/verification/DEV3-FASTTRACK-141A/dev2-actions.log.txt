@@ -1,0 +1,1 @@
+{"passed":true,"assertions":1156,"actionComponents":61,"readBindings":26,"mutationBindings":35,"sqlConnections":0,"fullyAcceptedBusinessActions":0}

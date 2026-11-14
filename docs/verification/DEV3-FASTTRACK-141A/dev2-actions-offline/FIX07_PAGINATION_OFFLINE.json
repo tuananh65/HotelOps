@@ -1,0 +1,74 @@
+{
+  "status": "PASS",
+  "assertions": 23,
+  "cases": [
+    {
+      "arguments": {
+        "id": 34
+      },
+      "expectedStatus": 200,
+      "actualStatus": 200
+    },
+    {
+      "arguments": {
+        "page": 3,
+        "pageSize": 7,
+        "id": 34
+      },
+      "expectedStatus": 200,
+      "actualStatus": 200
+    },
+    {
+      "arguments": {
+        "page": 2,
+        "id": 34
+      },
+      "expectedStatus": 200,
+      "actualStatus": 200
+    },
+    {
+      "arguments": {
+        "pageSize": 5,
+        "id": 34
+      },
+      "expectedStatus": 200,
+      "actualStatus": 200
+    },
+    {
+      "arguments": {
+        "page": 0,
+        "id": 34
+      },
+      "expectedStatus": 400,
+      "actualStatus": 400
+    },
+    {
+      "arguments": {
+        "pageSize": 101,
+        "id": 34
+      },
+      "expectedStatus": 400,
+      "actualStatus": 400
+    },
+    {
+      "arguments": {
+        "pageSize": 0,
+        "id": 34
+      },
+      "expectedStatus": 400,
+      "actualStatus": 400
+    },
+    {
+      "arguments": {
+        "page": 2147483647,
+        "pageSize": 100,
+        "id": 34
+      },
+      "expectedStatus": 400,
+      "actualStatus": 400
+    }
+  ],
+  "sqlConnections": 0,
+  "sqlAcceptance": "NOT_RUN",
+  "note": "Actual binding with service probe; invalid inputs execute real service validation before SQL. Auth negatives remain in host acceptance and existing offline security suites."
+}

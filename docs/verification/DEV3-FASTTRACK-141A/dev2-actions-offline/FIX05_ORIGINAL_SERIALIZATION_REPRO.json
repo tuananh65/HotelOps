@@ -1,0 +1,1 @@
+{"operation":"JsonSerializer.Serialize(old precondition receipt anonymous type)","expectedException":"InvalidOperationException","actualException":"InvalidOperationException","conflictingMembers":["status","Status"],"constructorParameter":"status","jsonNumericRead":"PASS","sqlConnections":0}

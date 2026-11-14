@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "document": {
+    "documentId": 220,
+    "documentStatus": "DRAFT",
+    "documentType": "RECEIPT"
+  },
+  "steps": [
+    {
+      "Id": "invariant",
+      "Kind": "INVARIANT",
+      "Status": "PASS",
+      "ExceptionType": null,
+      "Category": null,
+      "Diagnostic": null
+    }
+  ]
+}

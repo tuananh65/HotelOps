@@ -1,0 +1,9 @@
+{
+  "status": "PASS",
+  "assertions": 62,
+  "originalNumericRead": "PASS_NOT_CAUSE",
+  "oldReceiptSerialization": "INVALID_OPERATION_STATUS_CONSTRUCTOR_COLLISION_REPRODUCED",
+  "sqlConnections": 0,
+  "exactSourceFailedOperation": "JsonSerializer.Serialize(new { status, ..., doc.Status, ... })",
+  "scope": "Original serializer exception reproduced; corrected metadata, parser/cardinality/partial persistence/fail-closed and SQL translation tested; real SQL acceptance NOT_RUN"
+}

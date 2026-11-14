@@ -1,0 +1,1024 @@
+﻿[
+    {
+        "branch":  "origin/DEV/pushcodetocombine3dev",
+        "sha":  "830362c17032ae10013bc166d8fd34aed14b9de6",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  0
+    },
+    {
+        "branch":  "origin/FE+BE/integration/dev1-fe-handoff",
+        "sha":  "0006f471c190eaf3536cc022dfb63efbf3db60fa",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  773
+    },
+    {
+        "branch":  "origin/FE+BE/inventory-authz",
+        "sha":  "1cf8d71692207e01f34b57d1daf5cec3b5b1e40b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  804
+    },
+    {
+        "branch":  "origin/develop",
+        "sha":  "c588e0a320ea988f06f27c79482c23a5fab568c8",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  341
+    },
+    {
+        "branch":  "origin/feature/BE2-asset",
+        "sha":  "67f44260a8fec40da9d3ea3303bb0240201a41a1",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  715
+    },
+    {
+        "branch":  "origin/feature/BE2-incident",
+        "sha":  "5615b826c0f1a93241658da0e7b4abb88d21fd86",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  748
+    },
+    {
+        "branch":  "origin/feature/BE2-incident-corrective-integrity",
+        "sha":  "a10e94f8edc07d941453a9fa51c5e2c2a687c936",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  678
+    },
+    {
+        "branch":  "origin/feature/BE2-maintenance",
+        "sha":  "0d101313b66273d9fb7b8e88a4f1e6aec0313742",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  732
+    },
+    {
+        "branch":  "origin/feature/BE2-replenishment",
+        "sha":  "2177c93c4669be13a6891cf005ba05df844d7878",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  678
+    },
+    {
+        "branch":  "origin/feature/DEV2-core08-trial-preconditions",
+        "sha":  "d902335f7c8010adebd38d1380db4ad1824ed217",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  512
+    },
+    {
+        "branch":  "origin/feature/DEV2-deactivation-writer-coordination",
+        "sha":  "1a63e8e0a49f8482069eb64087412e570a57d65d",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  630
+    },
+    {
+        "branch":  "origin/feature/DEV2-deactivation-writer-coordination-clean",
+        "sha":  "01bceb80b8589bba81b2318b3e679021bc13f641",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  577
+    },
+    {
+        "branch":  "origin/feature/DEV2-fe14-fe15-scoped-review",
+        "sha":  "4ce3c4703ad621475d4da97ee2d4fc7e4a56276b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  523
+    },
+    {
+        "branch":  "origin/feature/DEV2-inventory-authz-clean",
+        "sha":  "a2e6d68924ddc47ba855aeac90c8959b713f175e",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  565
+    },
+    {
+        "branch":  "origin/feature/DEV2-maintenance-returnwork-coordination",
+        "sha":  "51df1c9dbf0f6dc7df65d93ecff2525a6b5b3b20",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  565
+    },
+    {
+        "branch":  "origin/feature/FE+BE/develop2",
+        "sha":  "a13263717694e70f1ae8056d742659091e45f611",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  2,
+        "sourceTreeDifferenceCount":  774
+    },
+    {
+        "branch":  "origin/feature/dev1-env-fe04-m0-installer-fasttrack109a",
+        "sha":  "7bc2c68c4e0c0bf6b8c88ace9e6a5dade99256e6",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  356
+    },
+    {
+        "branch":  "origin/feature/dev1-env-fe04-m0-r07-fasttrack119a",
+        "sha":  "7a34c5b530fe8e8963b9092b6a5c8f8018ac0d2c",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  355
+    },
+    {
+        "branch":  "origin/feature/dev1-env-fe04-security-fasttrack125a",
+        "sha":  "d4aeec8d2fdcd405d38f681ff4fb76fa8aa43316",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  353
+    },
+    {
+        "branch":  "origin/feature/dev1-fe03-fasttrack033-navigation-safety",
+        "sha":  "4417861d8b348af5e841130524502b6310d2eff2",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  396
+    },
+    {
+        "branch":  "origin/feature/dev1-fe03-fasttrack038-linked-cleaning-source",
+        "sha":  "dd8e31558d6fda5e4f25d08549c65ea2497a91b6",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  393
+    },
+    {
+        "branch":  "origin/feature/dev1-fe03-fasttrack107a-canonical-writer",
+        "sha":  "70603dcaf28b998d88a7bb7e7cbb8e45d9957a7a",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  372
+    },
+    {
+        "branch":  "origin/feature/dev1-fe03-uc027-actions",
+        "sha":  "7e7efe31016b9b5f8405a61c2b91634cef343b63",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  397
+    },
+    {
+        "branch":  "origin/feature/dev1-fe03-uc027-completion",
+        "sha":  "d4bdf229539f6425292adc0b4e72c77a1da2985f",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  398
+    },
+    {
+        "branch":  "origin/feature/dev1-fe03-uc027-implementation",
+        "sha":  "68ae8f74612360cc0537a06a5a274e7bebead6dd",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  404
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-m0-entrypoint-fasttrack112a",
+        "sha":  "0cfe056c7f422a8250314c4c10974f2f8ad1f19a",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  356
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-original-cleaner-binding",
+        "sha":  "a8b10701f67df787315115e3824d659ea03929db",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  9,
+        "sourceTreeDifferenceCount":  410
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-real-rework-authority",
+        "sha":  "d37e99f42eaaf3089eb510c6298296a0f0743faa",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  2,
+        "sourceTreeDifferenceCount":  411
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-rework-trusted-execute01",
+        "sha":  "9959262c805d8c390b42aff5240cc7ca30667e06",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  372
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-s0-source-integration-r1",
+        "sha":  "0b8a8d5fe45c26e374f752227cfdf5e12da83e9f",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  391
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-s1-rework-authority-reader",
+        "sha":  "b143a0460ed5c807526536fc2f85888d5e4f10d4",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  381
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-uc034-attribution-fasttrack100a",
+        "sha":  "c895fd2aa8cf14422ab716c7b971f9e2d7a89880",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  373
+    },
+    {
+        "branch":  "origin/feature/dev1-fe04-uc034-full-command",
+        "sha":  "59a6f3cd843207f98745b710a901c9bf035958ee",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  8,
+        "sourceTreeDifferenceCount":  410
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-approve-reinspection",
+        "sha":  "96b1681e86bd41677972ca67410af446a62b3cfc",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  10,
+        "sourceTreeDifferenceCount":  453
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-approve-reinspection-accept010",
+        "sha":  "c235e23e5f52428554490cab2fc93c65164533ff",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  12,
+        "sourceTreeDifferenceCount":  462
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-approve-reinspection-composition",
+        "sha":  "d8d9195e13e0a5edb1edc79050ee56f24525209e",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  11,
+        "sourceTreeDifferenceCount":  461
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-assignment-readiness",
+        "sha":  "6fcfe5529efeb027d379a4e1c1fe02cdfbfb1a7e",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  15,
+        "sourceTreeDifferenceCount":  477
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-authoritative-composition",
+        "sha":  "5a6eea8645a54d231724caee0fa0a258f55dc2d3",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  410
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-authority-closure",
+        "sha":  "53531b71e41b1796cc2c05b6e91114307c41cc46",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  9,
+        "sourceTreeDifferenceCount":  450
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-authority-wiring",
+        "sha":  "c3fe6bba1716ea54ace0f769b3b9bbf9e2ed234f",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  3,
+        "sourceTreeDifferenceCount":  410
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-checklist-ui-a",
+        "sha":  "8081b5996891fb5c27a1d3fe99a9e6482ab85b33",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  376
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-cleaner-attribution",
+        "sha":  "7e18caaf095fd6677dfb4fc1d3b002151feb17d9",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  8,
+        "sourceTreeDifferenceCount":  446
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-complete-composition",
+        "sha":  "dd1dc1d19df75aa13a5bde37c76911063ed1d871",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  5,
+        "sourceTreeDifferenceCount":  438
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-conclusion-integration",
+        "sha":  "a5048a72670df18050992ed4ff7895cc07b6ee1e",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  2,
+        "sourceTreeDifferenceCount":  409
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-contract-blockers",
+        "sha":  "e393da22a202c7768cfc9ecb13d343755aa6ef53",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  17,
+        "sourceTreeDifferenceCount":  497
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-execution-history",
+        "sha":  "3502ef74e7d8ce7172823c4fe750689b4095259c",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  10,
+        "sourceTreeDifferenceCount":  673
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-failed-rework",
+        "sha":  "d87d1b9008699d4315e4427317fb273bafdf8d33",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  412
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-reinspection-conclusion",
+        "sha":  "7f4624751217ac0f1ea35929aadceb1c48c248da",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  14,
+        "sourceTreeDifferenceCount":  474
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-reinspection-workflow",
+        "sha":  "6dac65a63430ce6da07c2245a112f6f6118b3290",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  13,
+        "sourceTreeDifferenceCount":  470
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-source-consolidation",
+        "sha":  "104dcdf55fde2b924509032f920a3266157f5fdc",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  18,
+        "sourceTreeDifferenceCount":  493
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-source-publication-fasttrack139a",
+        "sha":  "c461f935a8174079d3a3c79dffc31c7aef7cc8a9",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  323
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-supervisor-coordination",
+        "sha":  "3a1a16888ab487670335f7cf15cd777645e23ae2",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  6,
+        "sourceTreeDifferenceCount":  444
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-trusted-responsibility",
+        "sha":  "90bc660167620e2ccc7eef532123214023a2c655",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  7,
+        "sourceTreeDifferenceCount":  446
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-uc039-uc040-source",
+        "sha":  "6eeee8754dbcafb66c6f8951597be031383386de",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  387
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-uc042-uc043-fasttrack127c",
+        "sha":  "8f42b39db7d63c677508a3e496591390cb1b1f41",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  341
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-uc048-history-ui",
+        "sha":  "4fd4f93e7aaf1dc1d27ef99277bd7de8de590382",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  369
+    },
+    {
+        "branch":  "origin/feature/dev1-room-ops",
+        "sha":  "8d49a9087ce75fa39c89f35be9a90cd27faa3216",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  43,
+        "sourceTreeDifferenceCount":  661
+    },
+    {
+        "branch":  "origin/feature/dev2-dev3-master001-responsibility-readers",
+        "sha":  "9eec8e4f6f0c651c90a22e5fe5cd3ecba54cb897",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  91,
+        "sourceTreeDifferenceCount":  581
+    },
+    {
+        "branch":  "origin/feature/dev2-fe04-notif-owner007",
+        "sha":  "e2faeb835c36cf76b4ade3401302ad36b124923b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  6,
+        "sourceTreeDifferenceCount":  442
+    },
+    {
+        "branch":  "origin/feature/dev2-fe06-fasttrack112d",
+        "sha":  "b18d19dc4e8be4a82c78bdd6a062190ed9452ff4",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  356
+    },
+    {
+        "branch":  "origin/feature/dev2-fe06-uc049-integration025b",
+        "sha":  "1536f7265781ec139e4e952fe0fe89cfe95c4880",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  2,
+        "sourceTreeDifferenceCount":  519
+    },
+    {
+        "branch":  "origin/feature/dev2-notif-fe04-schema-002",
+        "sha":  "d60022b487b5b59e84d6551a0ee5162c9fd32164",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  440
+    },
+    {
+        "branch":  "origin/feature/dev3-checklist-host063",
+        "sha":  "d9412cca88afb7f92c6dc06a61049246da1fe930",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  5,
+        "sourceTreeDifferenceCount":  385
+    },
+    {
+        "branch":  "origin/feature/dev3-custom-role",
+        "sha":  "1d8a8ab1f02accd1a88124a41b7576cd3456c8fe",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  23,
+        "sourceTreeDifferenceCount":  623
+    },
+    {
+        "branch":  "origin/feature/dev3-env001-live",
+        "sha":  "5504896654a1b881bdca4daf187ecf3c714323d2",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  10,
+        "sourceTreeDifferenceCount":  644
+    },
+    {
+        "branch":  "origin/feature/dev3-fasttrack062",
+        "sha":  "e945d5cb42a01f688237a55ef2b50ccd3eda9869",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  136,
+        "sourceTreeDifferenceCount":  541
+    },
+    {
+        "branch":  "origin/feature/dev3-fasttrack068-hc03-hc04",
+        "sha":  "859455bb52bd976326e2df90e5498399850df6d1",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  366
+    },
+    {
+        "branch":  "origin/feature/dev3-fe01-csrf092",
+        "sha":  "a81bea61ec1319c2924d4e4dd5a1b4bc87830c05",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  140,
+        "sourceTreeDifferenceCount":  531
+    },
+    {
+        "branch":  "origin/feature/dev3-fe01-fe02-publication133a",
+        "sha":  "ad63426bf9913843309bc0c5ceea5eae3957d8a8",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  322
+    },
+    {
+        "branch":  "origin/feature/dev3-fe01-read092",
+        "sha":  "953c14d187cbc0c3268204fba854fd4eed77d24e",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  140,
+        "sourceTreeDifferenceCount":  531
+    },
+    {
+        "branch":  "origin/feature/dev3-fe01-working-responsibility",
+        "sha":  "425b31c0a1321c195c93100a6959069ef9b56777",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  107,
+        "sourceTreeDifferenceCount":  568
+    },
+    {
+        "branch":  "origin/feature/dev3-fe02-recovery089",
+        "sha":  "7c8354c98e33d5d59b8c8c90869ed8c80cac1671",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  135,
+        "sourceTreeDifferenceCount":  535
+    },
+    {
+        "branch":  "origin/feature/dev3-hotel-session074",
+        "sha":  "d6a980dcd1d47382dd4cb630a168f891b0a2b276",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  556
+    },
+    {
+        "branch":  "origin/feature/dev3-independent-001",
+        "sha":  "660057e1df32eb6fe022cadd948f4256bfdb5002",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  13,
+        "sourceTreeDifferenceCount":  639
+    },
+    {
+        "branch":  "origin/feature/dev3-next018",
+        "sha":  "cbfdf72e5481411327a4e98106cfc4fc8ad54032",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  76,
+        "sourceTreeDifferenceCount":  602
+    },
+    {
+        "branch":  "origin/feature/dev3-next022",
+        "sha":  "41fba01c5cc8416b58084a454054bb3ecefe09e5",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  78,
+        "sourceTreeDifferenceCount":  602
+    },
+    {
+        "branch":  "origin/feature/dev3-next024-revoke",
+        "sha":  "455f61ff129bfedd64edfb3137226ec6f81bfbf9",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  80,
+        "sourceTreeDifferenceCount":  598
+    },
+    {
+        "branch":  "origin/feature/dev3-platform",
+        "sha":  "8cdb63f27b1d0f62eec8b56e29e8dea730d063db",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  7,
+        "sourceTreeDifferenceCount":  655
+    },
+    {
+        "branch":  "origin/feature/dev3-profile-recovery092",
+        "sha":  "58bccfa225debec64ad8314f220948ae26140636",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  140,
+        "sourceTreeDifferenceCount":  533
+    },
+    {
+        "branch":  "origin/feature/dev3-rbac-directory",
+        "sha":  "45d0f6d30f476e2a0ec62015087ee5aaf33076a4",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  21,
+        "sourceTreeDifferenceCount":  626
+    },
+    {
+        "branch":  "origin/feature/dev3-role-csrf075",
+        "sha":  "b739f243af561ca02c835a5021cd15a40fa800ce",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  555
+    },
+    {
+        "branch":  "origin/feature/dev3-shared-auth-host-030",
+        "sha":  "aa44a0e4a0c5a5ca9f2deed47f01aa93b86082e3",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  3,
+        "sourceTreeDifferenceCount":  394
+    },
+    {
+        "branch":  "origin/feature/dev3-shared-host068",
+        "sha":  "04e4ee74f0f01eab919613127fa9bf08ca02d27d",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  358
+    },
+    {
+        "branch":  "origin/feature/dev3-shared-router-029b",
+        "sha":  "f96dd50b94b9fe4cde45f5c49cda92cecc045803",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  398
+    },
+    {
+        "branch":  "origin/feature/dev3-shift-preview-csrf082",
+        "sha":  "55d788ba7a7b334702307dbe872f65dbd45db5af",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  556
+    },
+    {
+        "branch":  "origin/feature/dev3-uc001-forgot-password-regression-20261109",
+        "sha":  "93b800d2c87bf86b9cb0678277a8559dad6db88b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  27,
+        "sourceTreeDifferenceCount":  623
+    },
+    {
+        "branch":  "origin/feature/dev3-uc004-completion",
+        "sha":  "e7a577b29a5b519d0e6feeb948b61b9e544ce360",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  66,
+        "sourceTreeDifferenceCount":  613
+    },
+    {
+        "branch":  "origin/feature/dev3-uc004-fault065",
+        "sha":  "8b863a87e14bd26a2ed34ba272e18d7f250ee3c4",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  125,
+        "sourceTreeDifferenceCount":  559
+    },
+    {
+        "branch":  "origin/feature/dev3-uc004-guards067",
+        "sha":  "5b3312b05c6d55fc4bc2c382c13f0af56b4a056d",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  126,
+        "sourceTreeDifferenceCount":  559
+    },
+    {
+        "branch":  "origin/feature/dev3-uc004-http064",
+        "sha":  "9d46a6d08bab3481068e2af7084fb1619a4249b0",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  124,
+        "sourceTreeDifferenceCount":  559
+    },
+    {
+        "branch":  "origin/feature/dev3-uc004-trial063",
+        "sha":  "25d85e2468b7dadcef440adaa9f1511ed5702208",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  559
+    },
+    {
+        "branch":  "origin/feature/dev3-uc004-unreadable-401-recovery",
+        "sha":  "4a39abb72184b08f0fda15b17bd586b258fa77c7",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  111,
+        "sourceTreeDifferenceCount":  565
+    },
+    {
+        "branch":  "origin/feature/dev3-uc005-credential-reset",
+        "sha":  "905d17524060b4c4479e9136fb1e4e8630f2c1e9",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  102,
+        "sourceTreeDifferenceCount":  574
+    },
+    {
+        "branch":  "origin/feature/dev3-uc006-deactivation-candidate",
+        "sha":  "9e92a0bc65d2d435324df0ff252ca47a942d898b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  99,
+        "sourceTreeDifferenceCount":  577
+    },
+    {
+        "branch":  "origin/feature/dev3-uc007-change-department",
+        "sha":  "7346f72f3480ddc6612f60a2a4c2c4f63384e122",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  82,
+        "sourceTreeDifferenceCount":  594
+    },
+    {
+        "branch":  "origin/feature/dev3-uc007-preflight071",
+        "sha":  "2006cc01f64efe31f8e37f5258435edcd832b73c",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  556
+    },
+    {
+        "branch":  "origin/feature/dev3-uc007-unknown-401-recovery",
+        "sha":  "4dd3ac26557b93fa7de92348fc6db2d9fcebf518",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  111,
+        "sourceTreeDifferenceCount":  567
+    },
+    {
+        "branch":  "origin/feature/dev3-uc008-create-hardening",
+        "sha":  "41ba5b63cf516ea15d215a5d4a977650f55e06ac",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  31,
+        "sourceTreeDifferenceCount":  623
+    },
+    {
+        "branch":  "origin/feature/dev3-uc009-initial-permissions",
+        "sha":  "c66e2192762eccd9c58cecb784fa9b5c08218ed3",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  105,
+        "sourceTreeDifferenceCount":  570
+    },
+    {
+        "branch":  "origin/feature/dev3-uc009-session076",
+        "sha":  "ee150f8bbcd93c4ddf3ad43c675ea3d5e65da7f2",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  124,
+        "sourceTreeDifferenceCount":  555
+    },
+    {
+        "branch":  "origin/feature/dev3-uc010-revoke",
+        "sha":  "50b06848b29add24308dfbb8ebef56bf238d790b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  68,
+        "sourceTreeDifferenceCount":  613
+    },
+    {
+        "branch":  "origin/feature/dev3-uc012-acceptance-runner",
+        "sha":  "cedaadbcd180b27ad9dfd2be98e80d954bf8adba",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  109,
+        "sourceTreeDifferenceCount":  568
+    },
+    {
+        "branch":  "origin/feature/dev3-uc012-completion",
+        "sha":  "be6c7278e1f5749211e97b55c8c21c0727b31fba",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  74,
+        "sourceTreeDifferenceCount":  614
+    },
+    {
+        "branch":  "origin/feature/dev3-uc012-d5-classifier",
+        "sha":  "ff3e9599fb0ba1fcda543f8ac925ab925c71d58a",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  111,
+        "sourceTreeDifferenceCount":  568
+    },
+    {
+        "branch":  "origin/feature/dev3-uc012-fixture-seeder",
+        "sha":  "c636b42bf82a2702cc79ac5871e9c0586775cc26",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  112,
+        "sourceTreeDifferenceCount":  568
+    },
+    {
+        "branch":  "origin/feature/dev3-uc016-dependency-preview",
+        "sha":  "0825b0fe48d8d17475358f4c35c87d74184feb8e",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  17,
+        "sourceTreeDifferenceCount":  634
+    },
+    {
+        "branch":  "origin/feature/dev3-uc016-dependency-review",
+        "sha":  "1d15a192bd8c8d6238d019d8386ce9761586b320",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  64,
+        "sourceTreeDifferenceCount":  613
+    },
+    {
+        "branch":  "origin/feature/dev3-uc016-preparation",
+        "sha":  "1b85b0286e75ba2b5f73627e114803d904c0e023",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  15,
+        "sourceTreeDifferenceCount":  638
+    },
+    {
+        "branch":  "origin/feature/dev3-uc016-transaction-writer",
+        "sha":  "c496bee0bf0bdf20d8ec9bc69e3aaa4b2f648f51",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  121,
+        "sourceTreeDifferenceCount":  559
+    },
+    {
+        "branch":  "origin/feature/dev3-uc022-room-lifecycle",
+        "sha":  "00ecd9785232e408ba25a2b365595b7c741a2cda",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  70,
+        "sourceTreeDifferenceCount":  608
+    },
+    {
+        "branch":  "origin/feature/dev3-uc023-room-directory-results",
+        "sha":  "ce6fcd1a7c02fce4aa5d54d4fc83c31b11e150a5",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  51,
+        "sourceTreeDifferenceCount":  621
+    },
+    {
+        "branch":  "origin/feature/dev3-uc026-department-deactivation",
+        "sha":  "d5a37088a96356324a652c5bd9f035dc814ffa0a",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  72,
+        "sourceTreeDifferenceCount":  605
+    },
+    {
+        "branch":  "origin/feature/dev3-uc026-transaction-writer",
+        "sha":  "89d9fda70d1713a993dd6a716a6b236e816fc4c7",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  119,
+        "sourceTreeDifferenceCount":  560
+    },
+    {
+        "branch":  "origin/feature/dev3-uc138-final-future-validation",
+        "sha":  "f9e00ddc1fdaf512ae54830d600107016f416af0",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  111,
+        "sourceTreeDifferenceCount":  567
+    },
+    {
+        "branch":  "origin/feature/dev3-uc138-next017",
+        "sha":  "05f5405f2c7966d8c2fe00be3cb2a5add401f5ef",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  74,
+        "sourceTreeDifferenceCount":  602
+    },
+    {
+        "branch":  "origin/feature/dev3-uc138-plan-preview",
+        "sha":  "b729e4051808bcbcd27a205db0341245726d7440",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  60,
+        "sourceTreeDifferenceCount":  616
+    },
+    {
+        "branch":  "origin/feature/dev3-uc138-secure-preview",
+        "sha":  "c9a39c7556331978622eb6424bf055973c1edd3c",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  84,
+        "sourceTreeDifferenceCount":  589
+    },
+    {
+        "branch":  "origin/feature/dev3-uc138-shift-planning",
+        "sha":  "9d601f4f4eea3c21307659e79030de67e7ecd1dd",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  55,
+        "sourceTreeDifferenceCount":  619
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-client-mutation-exclusion",
+        "sha":  "f207891290250a8a22612a11f60c27210e924dcc",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  47,
+        "sourceTreeDifferenceCount":  622
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-completion032",
+        "sha":  "5c6666ab61f7f71b00cf51f57b234fe3b01112c8",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  86,
+        "sourceTreeDifferenceCount":  587
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-csrf-preflight-status",
+        "sha":  "02aa6184f47ed408758506d880e52dcb701f2f59",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  43,
+        "sourceTreeDifferenceCount":  623
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-end-response-validation",
+        "sha":  "cf078527b2f4d66cba312a407d6d03562d54c8f6",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  36,
+        "sourceTreeDifferenceCount":  623
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-final-calendar-admission",
+        "sha":  "ae0131dfccde4645077f74e3f0f3b31adeb891bf",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  117,
+        "sourceTreeDifferenceCount":  561
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-preflight071",
+        "sha":  "c9c43eb7b93fb52b1e44a714836ec719001a3756",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  556
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-scheduled",
+        "sha":  "3e4235d74767d646ede14b3e70073798c2d16de5",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  19,
+        "sourceTreeDifferenceCount":  634
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-session-invalidation",
+        "sha":  "4dd4634319f9c8cf83caf418af74b00eb4bb156b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  39,
+        "sourceTreeDifferenceCount":  623
+    },
+    {
+        "branch":  "origin/feature/dev3-uc139-trial-package",
+        "sha":  "fc172b88b64d38b9cd217448f8c59b5506634ffb",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  88,
+        "sourceTreeDifferenceCount":  587
+    },
+    {
+        "branch":  "origin/feature/dev3-user-management-http093",
+        "sha":  "fbddbe11f96dd987611162107bab084d0ea831c5",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  146,
+        "sourceTreeDifferenceCount":  519
+    },
+    {
+        "branch":  "origin/feature/dev3-workday-read082",
+        "sha":  "a4a7981b22da7fb92aa6c1ec983462bf2bcac2b4",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  123,
+        "sourceTreeDifferenceCount":  557
+    },
+    {
+        "branch":  "origin/feature/env-fasttrack122d-m0-composition-repin",
+        "sha":  "8818cc1b0f1f2914b1f3e4bdfbc68abf070dfa69",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  355
+    },
+    {
+        "branch":  "origin/feature/react-frontend",
+        "sha":  "9d220a94509e650464406a9b83099d24cb568220",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  1012
+    },
+    {
+        "branch":  "origin/fix/frontend-auth",
+        "sha":  "76c49ae251b293512acbc31a2f3e5ed6178a0ed5",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  3,
+        "sourceTreeDifferenceCount":  1045
+    },
+    {
+        "branch":  "origin/fron-end",
+        "sha":  "7ef64727290389edb4788bcf96c0a1e18ac39bb0",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  1045
+    },
+    {
+        "branch":  "origin/frontend_authen_test",
+        "sha":  "c9d7d532769e35b300356fa9614b2652ba4c5dd9",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  804
+    },
+    {
+        "branch":  "origin/handoff/codex-a-20261105",
+        "sha":  "28f0a5e4f582bc56ba101b48915d33baadeb7b95",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  2,
+        "sourceTreeDifferenceCount":  543
+    },
+    {
+        "branch":  "origin/handoff/codex-b-20261105",
+        "sha":  "21c06bf51bcbcf0c99e8c711302b71682590e41f",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  565
+    },
+    {
+        "branch":  "origin/handoff/dev2-fullstack-source-20261114",
+        "sha":  "e997b25195b8749090c7049f7a80c50a73368b61",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  280
+    },
+    {
+        "branch":  "origin/handoff/fe04-fasttrack139a-20261114",
+        "sha":  "6a47868684548dba417b9bd96457b0b45adb32e5",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  338
+    },
+    {
+        "branch":  "origin/integration/dev1-dev2-dev3-unblock-20261114",
+        "sha":  "3268e4628b9ef4897827ff611a2be2d221a4189d",
+        "ancestorOfBaseline":  true,
+        "exclusiveCommits":  0,
+        "sourceTreeDifferenceCount":  0
+    },
+    {
+        "branch":  "origin/integration/dev1-fe04-cleaning-notification-20261109",
+        "sha":  "54d75a634005afb8d42704f761a820ed16b1b9d4",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  444
+    },
+    {
+        "branch":  "origin/integration/dev1-fe05-checklists",
+        "sha":  "5f1cde86b5b6b730832da6207ef6eb3d3b15cfc9",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  3,
+        "sourceTreeDifferenceCount":  688
+    },
+    {
+        "branch":  "origin/integration/fullstack-base",
+        "sha":  "b85743af975b42ea34aae6fa5ef4a4eb9945f22c",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  150,
+        "sourceTreeDifferenceCount":  515
+    },
+    {
+        "branch":  "origin/main",
+        "sha":  "8f4059d7e8019d58df43e92012801c736699996b",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  5,
+        "sourceTreeDifferenceCount":  809
+    },
+    {
+        "branch":  "origin/release/fe04-housekeeping-20261108",
+        "sha":  "29fd338eef3495258371764c9ac2c510fe64a41f",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  406
+    },
+    {
+        "branch":  "origin/revert-2-fron-end",
+        "sha":  "67c4ec18b08b5e419de18f1aa8f108c7ff4a0920",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  4,
+        "sourceTreeDifferenceCount":  809
+    },
+    {
+        "branch":  "origin/test_report",
+        "sha":  "4ae692cd9e248e1e72701fba26aa229d97a15feb",
+        "ancestorOfBaseline":  false,
+        "exclusiveCommits":  1,
+        "sourceTreeDifferenceCount":  804
+    }
+]

@@ -1,0 +1,1 @@
+{"status":"PASS_OFFLINE_ONLY","assertions":25,"sqlConnections":0,"source":"Integration pure invariant fragments composed with Demo business authority","businessSqlAcceptance":"NOT_RUN_AUTHORIZATION_REQUIRED"}

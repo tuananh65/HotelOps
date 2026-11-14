@@ -1,0 +1,37 @@
+PASS Valid persisted-shaped load fails closed on missing current-cycle contract
+PASS Retired assigned version is retained
+PASS Permission denied prevents reading source
+PASS Invalid session prevents reading source
+PASS Authorization unavailable fails closed
+PASS Revocation on final read gate fails closed
+PASS Assigned inspector required
+PASS Source missing or outside branch scope
+PASS Invalid request identity prevents reads
+PASS Requested inspection differs from loaded graph
+PASS Stale persisted root revision rejected
+PASS Persisted graph with wrong cycle room rejected
+PASS Persisted criterion version mismatch rejected
+PASS Cross-source evidence rejected
+PASS Caller transaction required before authorization/read
+PASS Cancelled load rejected
+PASS Real SQL adapter rejects absent caller transaction before opening connection
+PASS Persisted current cycle makes validated source available
+PASS Wrong current cycle rejected
+PASS UC044 mandatory PASS with no defects
+PASS UC044 mandatory FAIL rejected
+PASS UC044 missing mandatory result
+PASS UC044 stale snapshot
+PASS UC044 weak tag
+PASS UC044 invalid state
+PASS UC044 wrong criterion version
+PASS UC044 duplicate results
+PASS UC044 cross-source result
+PASS UC044 optional FAIL with defect follows GBR062 mandatory rule
+PASS UC044 optional FAIL still needs defect
+PASS UC044 foreign defect rejected
+PASS UC044 reader valid retired version
+PASS UC044 reader forbidden
+PASS UC044 reader final auth revoked
+PASS UC044 reader wrong current cycle
+PASS UC044 reader evidence owner mismatch
+36 PASS / 0 FAIL — read orchestration doubles, no SQL execution

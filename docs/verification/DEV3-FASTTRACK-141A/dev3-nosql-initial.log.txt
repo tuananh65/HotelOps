@@ -1,0 +1,26 @@
+dotnet : Unhandled exception. HotelOps.Api.Services.Dev2Authorization.Dev2AccessDenied: DEV2 access denied.
+At line:2 char:1
++ dotnet run --project tests/HotelOps.Dev3Unblock.NoSql *> docs/verific ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Unhandled excep... access denied.:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+   at HotelOps.Api.Services.Dev2Authorization.Dev2ServiceAuthority.CurrentIdentity(IHttpContextAccessor accessor) in
+D:\HotelOps\HotelOps_Fullstack_Shared\src\HotelOps.Api\Services\Dev2Authorization\Dev2ServiceAuthority.cs:line 17
+   at HotelOps.Api.Services.Dev2Authorization.Dev2ServiceAuthority.RequireEntry(IHttpContextAccessor accessor, String
+controller, String[] allowedActions, Int64 claimedActor, Nullable`1 rootId, Object input) in
+D:\HotelOps\HotelOps_Fullstack_Shared\src\HotelOps.Api\Services\Dev2Authorization\Dev2ServiceAuthority.cs:line 46
+   at HotelOps.Api.Services.Assets.AssetService.AssignLocationAsync(Int64 id, AssignAssetLocationRequest request,
+CancellationToken cancellationToken) in
+D:\HotelOps\HotelOps_Fullstack_Shared\src\HotelOps.Api\Services\Assets\AssetService.Location.cs:line 12
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__64() in
+D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev3Unblock.NoSql\Program.cs:line 114
+   at Program.<<Main>$>g__Reject|0_2[T](Action run) in
+D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev3Unblock.NoSql\Program.cs:line 19
+   at Program.<>c__DisplayClass0_0.<<Main>$>b__39() in
+D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev3Unblock.NoSql\Program.cs:line 114
+   at Program.<>c__DisplayClass0_0.<<Main>$>g__Check|0(String name, Action run) in
+D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev3Unblock.NoSql\Program.cs:line 17
+   at Program.<Main>$(String[] args) in
+D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev3Unblock.NoSql\Program.cs:line 113
+   at Program.<Main>(String[] args)

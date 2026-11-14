@@ -1,0 +1,1312 @@
+{
+  "source": "https://docs.google.com/spreadsheets/d/1k_N0SF_Np-stuxECS_ESUYZldsAo_DjX3KdUTfh1xsM/edit",
+  "readDate": "2026-11-15",
+  "range": "'UC DETAIL'!A1:G165",
+  "values": [
+    [
+      "UC ID",
+      "Use Case Name",
+      "FE",
+      "Primary Actor",
+      "Description",
+      "Data Field (tên trường — ý nghĩa)",
+      "Data Rule / Validation"
+    ],
+    [
+      "UC-001",
+      "Login",
+      "FE-01",
+      "Owner, Administrator, Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Đăng nhập bằng tài khoản được cấp, kiểm tra thông tin xác thực và trạng thái tài khoản.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • login_identifier: Tên đăng nhập hoặc email.\n • password: Mật khẩu đầu vào, tuyệt đối không ghi log.\n • session_id: Mã phiên sau xác thực.\n • login_at: Thời điểm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-002",
+      "Logout",
+      "FE-01",
+      "Owner, Administrator, Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Đăng xuất và kết thúc phiên làm việc hiện tại.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • session_id: Phiên cần kết thúc.\n • logout_at: Thời điểm.\n • revoked_at: Thời điểm thu hồi phiên.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-003",
+      "Change Password",
+      "FE-01",
+      "Owner, Administrator, Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Thay đổi mật khẩu cá nhân sau khi xác minh thông tin theo chính sách bảo mật.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • current_password: Mật khẩu hiện tại, không lưu log.\n • new_password: Mật khẩu mới, chỉ lưu hash.\n • changed_at: Thời điểm cập nhật.\n • sessions_revoked: Các phiên bị hủy nếu áp dụng.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-004",
+      "Create User Account",
+      "FE-01",
+      "Administrator",
+      "Tạo tài khoản cho nhân sự nội bộ, khai báo thông tin cơ bản và trạng thái ban đầu.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • initial_password_method: Phương thức cấp mật khẩu.\n • created_at: Ngày tạo.\n • created_by: Quản trị tạo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-005",
+      "Update User Account",
+      "FE-01",
+      "Administrator",
+      "Cập nhật thông tin và các thuộc tính quản lý của tài khoản.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • updated_at: Ngày sửa.\n • updated_by: Người sửa.\n • update_reason: Lý do nếu có.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-006",
+      "Activate/Deactivate User Account",
+      "FE-01",
+      "Administrator",
+      "Kích hoạt hoặc vô hiệu hóa tài khoản, chặn truy cập khi vô hiệu hóa nhưng giữ lịch sử thao tác.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • new_status: Trạng thái mới.\n • status_reason: Lý do.\n • changed_at: Ngày đổi.\n • changed_by: Quản trị.",
+      "Không xóa cứng; đối chiếu đối tượng phụ thuộc và lưu lịch sử."
+    ],
+    [
+      "UC-007",
+      "Assign User to Branch/Department",
+      "FE-01",
+      "Administrator",
+      "Gắn tài khoản với cơ sở, bộ phận, phạm vi trách nhiệm và điều chỉnh khi nhân sự được điều chuyển.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • branch_id: Cơ sở công tác.\n • department_id: Bộ phận.\n • effective_from: Ngày bắt đầu.\n • effective_to: Ngày kết thúc nếu điều chuyển.\n • assigned_by: Quản trị gán.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-008",
+      "Create/Update User Role",
+      "FE-01",
+      "Administrator",
+      "Khai báo và cập nhật các vai trò sử dụng hệ thống theo trách nhiệm vận hành.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • role_id: Định danh vai trò.\n • role_code: Mã vai trò.\n • role_name: Tên vai trò.\n • description: Mô tả trách nhiệm.\n • is_active: Có hiệu lực.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-009",
+      "Configure Role Permissions",
+      "FE-01",
+      "Administrator",
+      "Thiết lập quyền xem, tạo, cập nhật, phê duyệt và quyền xử lý đặc thù theo Feature hoặc nhóm chức năng.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • role_id: Vai trò cấu hình.\n • permission_id: Quyền theo nghiệp vụ.\n • action_code: Hành động view/create/update/approve/....\n • scope_type: Phạm vi cơ sở/bộ phận.\n • enabled: Có cấp quyền.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-010",
+      "Assign/Revoke User Roles",
+      "FE-01",
+      "Administrator",
+      "Gán hoặc thu hồi vai trò người dùng, kiểm tra phạm vi quyền sau khi thay đổi.",
+      "• user_id: Người áp dụng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • role_id: Vai trò gán/thu hồi.\n • operation: ASSIGN/REVOKE.\n • effective_at: Thời điểm hiệu lực.\n • changed_by: Quản trị.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-011",
+      "Review User Access Permissions",
+      "FE-01",
+      "Administrator",
+      "Tra cứu quyền hiệu lực của người dùng, bao gồm vai trò, cơ sở, bộ phận và các giới hạn truy cập.",
+      "• user_id: Nhân viên được kiểm tra.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • effective_role_ids: Vai trò hiệu lực.\n • effective_permissions: Quyền hợp nhất.\n • branch_scopes: Cơ sở được xem.\n • department_scopes: Bộ phận được xem.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-012",
+      "Update Branch Information",
+      "FE-02",
+      "Administrator",
+      "Cập nhật thông tin cơ sở khách sạn, tên, địa chỉ, thông tin liên hệ và trạng thái hoạt động.",
+      "• branch_id: Mã định danh cơ sở.\n • branch_code: Mã cơ sở duy nhất.\n • branch_name: Tên cơ sở.\n • address: Địa chỉ cơ sở.\n • contact_phone: Số điện thoại liên hệ.\n • contact_email: Email liên hệ.\n • is_active: Trạng thái hoạt động.\n • updated_by: Người sửa.\n • updated_at: Thời điểm sửa.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-013",
+      "View Branch Structure",
+      "FE-02",
+      "Operations Manager",
+      "Xem cơ cấu tổ chức, danh sách tầng, khu vực, phòng và bộ phận theo từng cơ sở. Quản trị dùng làm điểm khởi đầu để cập nhật cơ sở, tầng/khu vực (UC-012, UC-015, UC-016).",
+      "• branch_id: Mã định danh cơ sở.\n • branch_code: Mã cơ sở duy nhất.\n • branch_name: Tên cơ sở.\n • address: Địa chỉ cơ sở.\n • contact_phone: Số điện thoại liên hệ.\n • contact_email: Email liên hệ.\n • is_active: Trạng thái hoạt động.\n • room_count: Số phòng theo cơ cấu.\n • department_count: Số bộ phận.\n • floor_area_id: Định danh tầng/khu vực.\n • floor_area_code: Mã tầng/khu vực.\n • floor_area_name: Tên tầng/khu vực.\n • parent_floor_id: Tầng cha nếu là khu vực.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-014",
+      "Create Floor/Area",
+      "FE-02",
+      "Administrator",
+      "Tạo tầng hoặc khu vực mới thuộc một cơ sở, khai báo mã, tên và vị trí.",
+      "• floor_area_id: Định danh tầng hoặc khu vực.\n • branch_id: Cơ sở trực thuộc.\n • parent_floor_id: Tầng chứa khu vực nếu có.\n • code: Mã tầng hoặc khu vực.\n • name: Tên tầng hoặc khu vực.\n • location_note: Mô tả vị trí.\n • is_active: Trạng thái sử dụng.\n • created_by: Người tạo.\n • created_at: Ngày tạo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-015",
+      "Update Floor/Area",
+      "FE-02",
+      "Administrator",
+      "Chỉnh sửa thông tin tầng, khu vực và các thông tin mô tả liên quan.",
+      "• floor_area_id: Định danh tầng hoặc khu vực.\n • branch_id: Cơ sở trực thuộc.\n • parent_floor_id: Tầng chứa khu vực nếu có.\n • code: Mã tầng hoặc khu vực.\n • name: Tên tầng hoặc khu vực.\n • location_note: Mô tả vị trí.\n • is_active: Trạng thái sử dụng.\n • change_reason: Lý do cập nhật.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-016",
+      "Deactivate Floor/Area",
+      "FE-02",
+      "Administrator",
+      "Ngừng sử dụng tầng hoặc khu vực; kiểm tra phòng và các công việc liên quan trước khi vô hiệu hóa.",
+      "• floor_area_id: Định danh tầng hoặc khu vực.\n • branch_id: Cơ sở trực thuộc.\n • parent_floor_id: Tầng chứa khu vực nếu có.\n • code: Mã tầng hoặc khu vực.\n • name: Tên tầng hoặc khu vực.\n • location_note: Mô tả vị trí.\n • is_active: Trạng thái sử dụng.\n • deactivation_reason: Lý do ngừng dùng.\n • deactivated_at: Thời gian ngừng.",
+      "Không xóa cứng; đối chiếu đối tượng phụ thuộc và lưu lịch sử."
+    ],
+    [
+      "UC-017",
+      "Create Room Type",
+      "FE-02",
+      "Administrator",
+      "Khai báo loại phòng và các thông tin phân loại phục vụ quản lý vận hành.",
+      "• room_type_id: Định danh loại phòng.\n • type_code: Mã loại phòng duy nhất.\n • type_name: Tên loại phòng.\n • description: Mô tả và đặc điểm.\n • standard_capacity: Sức chứa tiêu chuẩn nếu quản lý.\n • is_active: Trạng thái sử dụng.\n • created_by: Người khai báo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-018",
+      "Update Room Type",
+      "FE-02",
+      "Administrator",
+      "Cập nhật mã, tên, mô tả và các thuộc tính quản lý của loại phòng.",
+      "• room_type_id: Định danh loại phòng.\n • type_code: Mã loại phòng duy nhất.\n • type_name: Tên loại phòng.\n • description: Mô tả và đặc điểm.\n • standard_capacity: Sức chứa tiêu chuẩn nếu quản lý.\n • is_active: Trạng thái sử dụng.\n • updated_at: Ngày cập nhật.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-019",
+      "Deactivate Room Type",
+      "FE-02",
+      "Administrator",
+      "Ngừng sử dụng loại phòng nhưng vẫn giữ dữ liệu lịch sử.",
+      "• room_type_id: Định danh loại phòng.\n • type_code: Mã loại phòng duy nhất.\n • type_name: Tên loại phòng.\n • description: Mô tả và đặc điểm.\n • standard_capacity: Sức chứa tiêu chuẩn nếu quản lý.\n • is_active: Trạng thái sử dụng.\n • deactivation_reason: Lý do ngừng dùng.",
+      "Không xóa cứng; đối chiếu đối tượng phụ thuộc và lưu lịch sử."
+    ],
+    [
+      "UC-020",
+      "Create Room",
+      "FE-02",
+      "Administrator",
+      "Tạo hồ sơ phòng, khai báo số phòng, loại phòng, tầng và cơ sở quản lý.",
+      "• room_id: Định danh phòng.\n • room_number: Số phòng trong cơ sở.\n • branch_id: Cơ sở quản lý.\n • floor_id: Tầng.\n • area_id: Khu vực.\n • room_type_id: Loại phòng.\n • operational_status: Trạng thái vận hành thực tế.\n • is_active: Cờ quản lý phòng.\n • created_at: Ngày khai báo.\n • note: Ghi chú phòng.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-021",
+      "Update Room Information",
+      "FE-02",
+      "Administrator",
+      "Cập nhật loại phòng, khu vực và các thuộc tính vận hành của phòng.",
+      "• room_id: Định danh phòng.\n • room_number: Số phòng trong cơ sở.\n • branch_id: Cơ sở quản lý.\n • floor_id: Tầng.\n • area_id: Khu vực.\n • room_type_id: Loại phòng.\n • operational_status: Trạng thái vận hành thực tế.\n • is_active: Cờ quản lý phòng.\n • change_reason: Lý do thay đổi.\n • updated_at: Thời điểm cập nhật.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-022",
+      "Deactivate Room",
+      "FE-02",
+      "Operations Manager",
+      "Ngừng quản lý vận hành một phòng sau khi kiểm tra và xử lý các công việc đang mở.",
+      "• room_id: Định danh phòng.\n • room_number: Số phòng trong cơ sở.\n • branch_id: Cơ sở quản lý.\n • floor_id: Tầng.\n • area_id: Khu vực.\n • room_type_id: Loại phòng.\n • operational_status: Trạng thái vận hành thực tế.\n • is_active: Cờ quản lý phòng.\n • deactivation_reason: Lý do ngừng vận hành.\n • open_work_count: Số việc chưa đóng.",
+      "Không xóa cứng; đối chiếu đối tượng phụ thuộc và lưu lịch sử."
+    ],
+    [
+      "UC-023",
+      "View Room Directory",
+      "FE-02",
+      "Operations Manager",
+      "Tra cứu, tìm kiếm và lọc phòng theo cơ sở, tầng, loại phòng hoặc trạng thái.",
+      "• room_id: Định danh phòng.\n • room_number: Số phòng trong cơ sở.\n • branch_id: Cơ sở quản lý.\n • floor_id: Bộ lọc tầng.\n • area_id: Khu vực.\n • room_type_id: Loại phòng.\n • operational_status: Trạng thái vận hành thực tế.\n • is_active: Cờ quản lý phòng.\n • filter_status: Bộ lọc trạng thái.\n • search_text: Từ khóa.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-024",
+      "Create Department",
+      "FE-02",
+      "Administrator",
+      "Khai báo bộ phận vận hành nội bộ, gắn với cơ sở và phạm vi quản lý.",
+      "• department_id: Định danh bộ phận.\n • department_code: Mã bộ phận.\n • department_name: Tên bộ phận.\n • branch_id: Cơ sở phụ trách.\n • scope_description: Phạm vi vận hành.\n • is_active: Trạng thái hoạt động.\n • manager_user_id: Người phụ trách nếu có.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-025",
+      "Update Department",
+      "FE-02",
+      "Administrator",
+      "Cập nhật thông tin và phạm vi phụ trách của bộ phận.",
+      "• department_id: Định danh bộ phận.\n • department_code: Mã bộ phận.\n • department_name: Tên bộ phận.\n • branch_id: Cơ sở phụ trách.\n • scope_description: Phạm vi vận hành.\n • is_active: Trạng thái hoạt động.\n • manager_user_id: Người quản lý.\n • updated_at: Ngày sửa.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-026",
+      "Deactivate Department",
+      "FE-02",
+      "Administrator",
+      "Ngừng sử dụng bộ phận sau khi kiểm tra các tài khoản, công việc và yêu cầu còn liên quan.",
+      "• department_id: Định danh bộ phận.\n • department_code: Mã bộ phận.\n • department_name: Tên bộ phận.\n • branch_id: Cơ sở phụ trách.\n • scope_description: Phạm vi vận hành.\n • is_active: Trạng thái hoạt động.\n • open_task_count: Số công việc đang mở.\n • deactivation_reason: Lý do ngừng.",
+      "Không xóa cứng; đối chiếu đối tượng phụ thuộc và lưu lịch sử."
+    ],
+    [
+      "UC-027",
+      "Manage Operational Room Status",
+      "FE-03",
+      "Housekeeping Supervisor",
+      "Theo dõi và xử lý trạng thái phòng dựa trên tiến độ vệ sinh, kết quả kiểm tra và các sự cố còn mở.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng được điều phối.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • target_status: Trạng thái đích.\n • blocking_incident_count: Số sự cố chặn.\n • latest_inspection_result: Kết quả nghiệm thu cuối.\n • status_reason: Căn cứ đổi trạng thái.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-028",
+      "Create Cleaning Task",
+      "FE-04",
+      "Housekeeping Supervisor",
+      "Tạo công việc vệ sinh cho phòng, xác định loại vệ sinh, mức độ ưu tiên, yêu cầu và thời hạn hoàn thành.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • created_by: Người tạo.\n • created_at: Thời điểm tạo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-029",
+      "Assign Cleaning Task",
+      "FE-04",
+      "Housekeeping Supervisor",
+      "Phân công công việc theo cơ sở, khu vực phụ trách và khối lượng công việc hiện tại.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • assignee_user_id: Nhân viên được giao.\n • assigned_by: Người phân công.\n • assigned_at: Thời điểm phân công.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-030",
+      "Reassign Cleaning Task",
+      "FE-04",
+      "Housekeeping Supervisor",
+      "Thay đổi người thực hiện khi nhân viên được giao không thể tiếp tục hoặc cần điều phối lại.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • previous_assignee_id: Người phụ trách cũ.\n • assignee_user_id: Người mới.\n • reassignment_reason: Lý do điều chuyển.\n • reassigned_at: Thời điểm đổi.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-031",
+      "Start Cleaning Task",
+      "FE-04",
+      "Housekeeping Staff",
+      "Tiếp nhận, bắt đầu công việc vệ sinh và ghi nhận thời điểm bắt đầu thực tế.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • accepted_at: Thời điểm tiếp nhận.\n • actual_start_at: Bắt đầu thực tế.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-032",
+      "Update Cleaning Progress",
+      "FE-04",
+      "Housekeeping Staff",
+      "Cập nhật tiến độ, ghi chú, thời gian thực hiện và các vấn đề phát sinh.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • progress_percent: Phần trăm tiến độ.\n • progress_note: Ghi chú cập nhật.\n • progress_at: Thời điểm cập nhật.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-033",
+      "Report Cleaning Blocker",
+      "FE-04",
+      "Housekeeping Staff",
+      "Ghi nhận tình trạng không thể hoàn thành vệ sinh do thiết bị hỏng, thiếu vật tư hoặc điều kiện phòng không phù hợp.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • blocker_type_id: Loại trở ngại.\n • blocker_description: Mô tả.\n • blocked_at: Thời điểm bị chặn.\n • linked_incident_id: Sự cố liên quan.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-034",
+      "Complete Cleaning Task",
+      "FE-04",
+      "Housekeeping Staff",
+      "Xác nhận vệ sinh hoàn thành, ghi nhận thời điểm kết thúc, bằng chứng nếu có và chuyển phòng sang chờ kiểm tra.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • actual_end_at: Thời điểm hoàn tất.\n • completion_note: Kết quả.\n • evidence_file_ids: Các tệp minh chứng.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-035",
+      "Receive Rework Task",
+      "FE-04",
+      "Housekeeping Staff",
+      "Tiếp nhận các hạng mục vệ sinh không đạt được trả về từ quy trình kiểm tra chất lượng.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • inspection_id: Lượt kiểm tra trả lại.\n • defect_ids: Danh sách lỗi cần làm lại.\n • accepted_at: Thời điểm nhận.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-036",
+      "Complete Cleaning Rework",
+      "FE-04",
+      "Housekeeping Staff",
+      "Hoàn thành các hạng mục cần sửa và gửi lại phòng để kiểm tra.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • rework_note: Nội dung khắc phục.\n • rework_completed_at: Thời điểm sửa xong.\n • evidence_file_ids: Minh chứng sau sửa.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-037",
+      "Monitor Cleaning Tasks",
+      "FE-04",
+      "Housekeeping Supervisor",
+      "Theo dõi công việc chưa nhận, đang thực hiện, quá hạn, chờ kiểm tra hoặc phải làm lại.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • assignee_user_id: Lọc theo nhân viên.\n • overdue_flag: Cờ quá hạn.\n • date_from: Từ ngày.\n • date_to: Đến ngày.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-038",
+      "View Room Turnover History",
+      "FE-04",
+      "Housekeeping Supervisor",
+      "Tra cứu lịch sử vệ sinh, nhân viên thực hiện, thời gian, kết quả kiểm tra và số lần làm lại của từng phòng.",
+      "• cleaning_task_id: Định danh phiếu vệ sinh.\n • room_id: Phòng cần vệ sinh.\n • cleaning_type_id: Loại vệ sinh.\n • priority_id: Mức ưu tiên.\n • instruction: Yêu cầu thực hiện.\n • due_at: Hạn hoàn thành.\n • status: Trạng thái phiếu.\n • turnover_id: Lượt quay vòng phòng.\n • cleaning_duration_minutes: Thời lượng vệ sinh.\n • rework_count: Số lần làm lại.\n • inspection_result: Kết quả kiểm tra.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-039",
+      "Create Room Inspection Checklist",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Tạo mẫu checklist kiểm tra chất lượng phòng, bao gồm tiêu chí, hạng mục và điều kiện đạt yêu cầu.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • checklist_id: Mã mẫu checklist.\n • checklist_name: Tên mẫu.\n • room_type_id: Loại phòng áp dụng.\n • criteria: Các tiêu chí và điều kiện đạt.\n • version_no: Phiên bản.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-040",
+      "Update Room Inspection Checklist",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Điều chỉnh tiêu chí kiểm tra và quản lý phiên bản checklist, bảo toàn nội dung của các lần kiểm tra đã hoàn tất.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • checklist_id: Mẫu cần chỉnh.\n • new_version_no: Phiên bản mới.\n • effective_at: Ngày hiệu lực.\n • criteria: Danh sách tiêu chí sửa.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-041",
+      "Assign Room Inspection",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Phân công người kiểm tra đối với phòng đã hoàn thành vệ sinh và đang chờ nghiệm thu.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người nhận kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • assigned_at: Thời điểm giao.\n • due_at: Hạn kiểm tra.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-042",
+      "Perform Room Inspection",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Kiểm tra theo checklist áp dụng và ghi nhận kết quả đạt hoặc không đạt của từng tiêu chí.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • inspection_item_results: Tập kết quả từng tiêu chí.\n • result_note: Ghi chú.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-043",
+      "Record Inspection Defects",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Ghi nhận các hạng mục không đạt, mô tả lỗi, hình ảnh và bằng chứng liên quan.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • inspection_defect_id: Mã lỗi.\n • checklist_item_id: Tiêu chí không đạt.\n • defect_description: Mô tả lỗi.\n • evidence_file_ids: Ảnh/tài liệu.\n • severity_id: Mức độ lỗi.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-044",
+      "Approve Room Inspection",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Xác nhận phòng đạt yêu cầu và kiểm tra các điều kiện chặn trước khi chuyển sang trạng thái Ready.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • approved_by: Người duyệt.\n • approved_at: Thời điểm duyệt.\n • open_blocker_count: Số chặn chưa xử lý, phải bằng 0.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-045",
+      "Reject Room Inspection",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Xác nhận phòng không đạt, ghi nhận nguyên nhân và các hạng mục cần xử lý lại.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • rejection_reason: Lý do không đạt.\n • defect_ids: Danh sách lỗi.\n • rejected_at: Thời gian từ chối.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-046",
+      "Request Cleaning Rework",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Trả công việc không đạt cho nhân viên vệ sinh hoặc phân công lại, kèm danh sách lỗi cần khắc phục.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • rework_task_id: Lượt làm lại.\n • defect_ids: Lỗi cần sửa.\n • assignee_user_id: Nhân viên nhận sửa.\n • due_at: Hạn làm lại.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-047",
+      "Reinspect Room",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Kiểm tra lại các hạng mục đã khắc phục và xác nhận các điều kiện bắt buộc trước khi kết luận.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • reinspection_of_id: Lượt kiểm tra trước.\n • defect_result_updates: Kết quả kiểm lại từng lỗi.\n • reinspected_at: Thời điểm kiểm lại.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-048",
+      "View Room Inspection History",
+      "FE-05",
+      "Housekeeping Supervisor",
+      "Tra cứu lịch sử kiểm tra, kết quả, số lần không đạt, nhân viên liên quan và bằng chứng.",
+      "• inspection_id: Định danh lượt kiểm tra.\n • cleaning_task_id: Phiếu vệ sinh liên quan.\n • room_id: Phòng được kiểm tra.\n • checklist_version_id: Phiên bản checklist áp dụng.\n • inspector_user_id: Người kiểm tra.\n • result: Kết luận kiểm tra.\n • inspected_at: Thời gian kiểm tra.\n • date_from: Khoảng thời gian bắt đầu.\n • date_to: Khoảng thời gian kết thúc.\n • defect_count: Số lỗi.\n • reinspection_count: Số lần kiểm lại.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-049",
+      "Report Incident",
+      "FE-06",
+      "Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Tạo phiếu báo sự cố, xác định cơ sở, phòng/khu vực hoặc tài sản liên quan, mô tả vấn đề và thời điểm phát hiện.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • reported_by: Người báo.\n • discovered_at: Thời điểm phát hiện.\n • evidence_file_ids: Hình ảnh đính kèm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-050",
+      "Classify Incident",
+      "FE-06",
+      "Maintenance Lead",
+      "Phân loại sự cố theo nhóm kỹ thuật, mức độ nghiêm trọng, ảnh hưởng vận hành và yêu cầu xử lý.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • incident_category_id: Nhóm sự cố.\n • severity_id: Mức nghiêm trọng.\n • operational_impact: Ảnh hưởng vận hành.\n • classified_by: Người phân loại.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-051",
+      "Attach Incident Evidence",
+      "FE-06",
+      "Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Bổ sung hình ảnh, tài liệu hoặc ghi chú để làm rõ hiện trạng sự cố.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • attachment_ids: Danh sách tệp mới.\n • attachment_note: Diễn giải bằng chứng.\n • uploaded_at: Thời điểm tải.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-052",
+      "Triage Incident",
+      "FE-06",
+      "Maintenance Lead",
+      "Đánh giá sự cố, xác định mức độ ưu tiên, thời hạn phản hồi/xử lý và hướng xử lý ban đầu.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • priority_id: Mức ưu tiên.\n • response_due_at: Hạn phản hồi.\n • resolution_due_at: Hạn xử lý.\n • initial_action: Định hướng xử lý.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-053",
+      "Assign Maintenance Work",
+      "FE-06",
+      "Maintenance Lead",
+      "Phân công kỹ thuật viên, xác định trách nhiệm xử lý và thời hạn hoàn thành dự kiến.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • assignee_user_id: Người được giao.\n • assigned_by: Trưởng nhóm.\n • assigned_at: Ngày giao.\n • planned_end_at: Hạn dự kiến.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-054",
+      "Accept and Start Maintenance",
+      "FE-06",
+      "Maintenance Staff",
+      "Tiếp nhận công việc bảo trì và ghi nhận thời điểm bắt đầu xử lý.",
+      "• maintenance_work_id: Định danh công việc bảo trì.\n • incident_id: Sự cố nguồn nếu có.\n • asset_id: Thiết bị liên quan nếu có.\n • assignee_user_id: Kỹ thuật viên xử lý.\n • planned_end_at: Thời hạn xử lý.\n • status: Trạng thái công việc.\n • resolution_note: Kết quả sửa chữa.\n • accepted_at: Thời điểm nhận.\n • actual_start_at: Thời điểm bắt đầu.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-055",
+      "Update Maintenance Progress",
+      "FE-06",
+      "Maintenance Staff",
+      "Cập nhật tiến độ, kết quả kiểm tra kỹ thuật, thao tác sửa chữa, vật tư sử dụng và vấn đề phát sinh.",
+      "• maintenance_work_id: Định danh công việc bảo trì.\n • incident_id: Sự cố nguồn nếu có.\n • asset_id: Thiết bị liên quan nếu có.\n • assignee_user_id: Kỹ thuật viên xử lý.\n • planned_end_at: Thời hạn xử lý.\n • status: Trạng thái công việc.\n • resolution_note: Kết quả sửa chữa.\n • work_log_id: Dòng nhật ký sửa chữa.\n • action_note: Thao tác.\n • spent_minutes: Thời lượng.\n • material_issue_id: Phiếu vật tư sử dụng.\n • progress_percent: Tiến độ.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-056",
+      "Block Room Due to Incident",
+      "FE-06",
+      "Maintenance Lead",
+      "Đánh dấu sự cố có ảnh hưởng đến điều kiện sử dụng phòng, ngăn phòng chuyển sang Ready cho đến khi được xử lý.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng cần chặn.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • block_reason: Nguyên nhân chặn.\n • blocked_at: Thời điểm chặn.\n • blocking_status: Trạng thái chặn.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-057",
+      "Escalate Critical Incident",
+      "FE-06",
+      "Maintenance Lead",
+      "Chuyển sự cố nghiêm trọng hoặc có nguy cơ quá hạn đến cấp quản lý để điều phối nguồn lực.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • escalated_to_user_id: Quản lý nhận chuyển.\n • escalation_reason: Lý do.\n • escalated_at: Thời gian.\n • new_priority_id: Ưu tiên điều chỉnh.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-058",
+      "Resolve Maintenance Incident",
+      "FE-06",
+      "Maintenance Staff",
+      "Ghi nhận kết quả sửa chữa, thời điểm hoàn thành thực tế và bằng chứng, sau đó gửi xác nhận.",
+      "• maintenance_work_id: Định danh công việc bảo trì.\n • incident_id: Sự cố nguồn nếu có.\n • asset_id: Thiết bị liên quan nếu có.\n • assignee_user_id: Kỹ thuật viên xử lý.\n • planned_end_at: Thời hạn xử lý.\n • status: Trạng thái công việc.\n • resolution_note: Biện pháp sửa chữa.\n • resolved_at: Thời điểm khắc phục.\n • evidence_file_ids: Bằng chứng.\n • materials_used: Vật tư đã dùng.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-059",
+      "Verify and Close Incident",
+      "FE-06",
+      "Maintenance Lead",
+      "Kiểm tra kết quả khắc phục, xác nhận hoàn tất, đóng phiếu và cập nhật điều kiện chặn phòng nếu có.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • verified_by: Người xác minh.\n • verification_result: Kết quả xác minh.\n • closed_at: Thời điểm đóng.\n • unblock_room_flag: Cho phép bỏ chặn sau xác minh.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-060",
+      "Reopen Incident",
+      "FE-06",
+      "Maintenance Lead",
+      "Mở lại sự cố khi kết quả sửa chữa chưa đạt hoặc lỗi tái phát, bảo toàn lịch sử xử lý trước đó.",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • reopen_reason: Lý do mở lại.\n • reopened_at: Thời điểm.\n • reopened_by: Người mở.\n • reopen_count: Số lần tái mở.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-061",
+      "Create Preventive Maintenance Schedule",
+      "FE-06",
+      "Maintenance Lead",
+      "Lập kế hoạch bảo trì phòng ngừa hoặc định kỳ cho thiết bị, tài sản, phòng hoặc khu vực.",
+      "• maintenance_work_id: Định danh công việc bảo trì.\n • incident_id: Sự cố nguồn nếu có.\n • asset_id: Thiết bị liên quan nếu có.\n • assignee_user_id: Kỹ thuật viên xử lý.\n • planned_end_at: Thời hạn xử lý.\n • status: Trạng thái công việc.\n • resolution_note: Kết quả sửa chữa.\n • maintenance_schedule_id: Mã kế hoạch.\n • target_type: Loại đối tượng phòng/khu vực/tài sản.\n • target_id: ID đối tượng.\n • frequency: Chu kỳ.\n • next_due_at: Lần tới.\n • instruction: Nội dung bảo trì.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-062",
+      "Execute Scheduled Maintenance",
+      "FE-06",
+      "Maintenance Staff",
+      "Thực hiện công việc từ lịch bảo trì, ghi nhận kết quả và cập nhật lần bảo trì tiếp theo.",
+      "• maintenance_work_id: Định danh công việc bảo trì.\n • incident_id: Sự cố nguồn nếu có.\n • asset_id: Thiết bị liên quan nếu có.\n • assignee_user_id: Kỹ thuật viên xử lý.\n • planned_end_at: Thời hạn xử lý.\n • status: Trạng thái công việc.\n • resolution_note: Kết quả sửa chữa.\n • maintenance_schedule_id: Kế hoạch gốc.\n • planned_at: Lịch dự kiến.\n • performed_at: Thực hiện thực tế.\n • maintenance_result: Kết quả.\n • next_due_at: Hạn tiếp theo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-063",
+      "Manage Work Categories",
+      "FE-06 + FE-11",
+      "Administrator",
+      "Quản lý danh mục nhóm công việc như vệ sinh, kiểm tra phòng, bảo trì và hỗ trợ vận hành.",
+      "• department_id: Định danh bộ phận.\n • department_code: Mã bộ phận.\n • department_name: Tên bộ phận.\n • branch_id: Cơ sở phụ trách.\n • scope_description: Phạm vi vận hành.\n • is_active: Trạng thái.\n • category_id: ID nhóm công việc.\n • category_code: Mã nhóm.\n • category_name: Tên nhóm.\n • applicable_department_id: Bộ phận áp dụng.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-064",
+      "Manage Operational Reference Data",
+      "FE-06 + FE-11",
+      "Administrator",
+      "Quản lý các danh mục dùng chung như mức độ ưu tiên, nhóm trạng thái và nguyên nhân gián đoạn.",
+      "• department_id: Định danh bộ phận.\n • department_code: Mã bộ phận.\n • department_name: Tên bộ phận.\n • branch_id: Cơ sở phụ trách.\n • scope_description: Phạm vi vận hành.\n • is_active: Cờ sử dụng.\n • reference_group: Nhóm danh mục.\n • reference_code: Mã giá trị.\n • reference_label: Tên giá trị.\n • display_order: Thứ tự hiển thị.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-065",
+      "Register Asset/Equipment",
+      "FE-07",
+      "Operations Manager",
+      "Tạo hồ sơ tài sản, khai báo mã, tên, loại, thông tin nhận diện và cơ sở quản lý.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • purchase_date: Ngày mua nếu quản lý.\n • initial_condition: Tình trạng tiếp nhận.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-066",
+      "Update Asset Information",
+      "FE-07",
+      "Operations Manager",
+      "Chỉnh sửa thông tin nhận diện, mô tả và thông tin quản lý tài sản hoặc thiết bị.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • description: Thông tin mô tả.\n • updated_by: Người sửa.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-067",
+      "Assign Asset to Location",
+      "FE-07",
+      "Operations Manager",
+      "Gắn tài sản với cơ sở, phòng, khu vực hoặc bộ phận đang sử dụng.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • location_type: Loại vị trí đích.\n • room_id: Phòng.\n • area_id: Khu vực.\n • custodian_department_id: Bộ phận giữ.\n • effective_at: Hiệu lực.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-068",
+      "Transfer Asset Location",
+      "FE-07",
+      "Operations Manager",
+      "Ghi nhận di chuyển tài sản giữa phòng, khu vực, bộ phận hoặc cơ sở; lưu vị trí trước và sau.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • from_location_type: Loại vị trí trước.\n • from_location_id: Vị trí cũ.\n • to_location_type: Loại vị trí sau.\n • to_location_id: Vị trí mới.\n • transfer_at: Ngày chuyển.\n • transfer_reason: Lý do.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-069",
+      "Record Asset Handover",
+      "FE-07",
+      "Department Head",
+      "Xác nhận bàn giao tài sản giữa cá nhân hoặc bộ phận, ghi nhận người giao, người nhận, thời gian và tình trạng.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • handover_id: Phiếu bàn giao.\n • giver_user_id: Người giao.\n • receiver_user_id: Người nhận.\n • condition_at_handover: Tình trạng.\n • handover_at: Thời điểm.\n • acceptance_note: Ghi chú.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-070",
+      "Update Asset Condition",
+      "FE-07",
+      "Department Head",
+      "Cập nhật tình trạng tài sản như đang hoạt động, hư hỏng, đang sửa chữa hoặc ngừng sử dụng.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • previous_condition: Tình trạng trước.\n • new_condition: Tình trạng sau.\n • condition_note: Ghi chú.\n • effective_at: Thời điểm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-071",
+      "View Asset Profile",
+      "FE-07",
+      "Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Tra cứu hồ sơ, vị trí hiện tại, tình trạng sử dụng và bộ phận phụ trách tài sản theo quyền truy cập.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • custodian_department_id: Bộ phận sử dụng.\n • current_location_id: Vị trí hiện tại.\n • latest_handover_at: Lần bàn giao gần nhất.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-072",
+      "Review Asset Maintenance History",
+      "FE-07",
+      "Maintenance Lead",
+      "Tra cứu sự cố, lượt sửa chữa, kết quả và lịch sử bảo trì định kỳ của từng tài sản.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • incident_count: Số sự cố liên quan.\n • maintenance_count: Số lần bảo trì.\n • last_maintenance_at: Lần gần nhất.\n • next_due_at: Lần dự kiến.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-073",
+      "Review Assets by Location",
+      "FE-07",
+      "Operations Manager",
+      "Thống kê tài sản theo cơ sở, phòng, khu vực, bộ phận, loại hoặc tình trạng sử dụng.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • filter_branch_id: Lọc cơ sở.\n • filter_asset_type_id: Lọc loại.\n • filter_condition: Lọc tình trạng.\n • item_count: Số tài sản.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-074",
+      "Retire/Deactivate Asset",
+      "FE-07",
+      "Operations Manager",
+      "Ngừng quản lý vận hành tài sản sau khi kiểm tra các công việc, bàn giao và hồ sơ còn mở.",
+      "• asset_id: Định danh tài sản.\n • asset_code: Mã tài sản duy nhất.\n • asset_name: Tên tài sản.\n • asset_type_id: Nhóm tài sản.\n • serial_number: Số sê-ri hoặc mã nhận diện nếu có.\n • branch_id: Cơ sở quản lý.\n • condition_status: Tình trạng vật lý.\n • lifecycle_status: Trạng thái vòng đời.\n • retirement_reason: Lý do thanh lý/ngừng dùng.\n • retired_at: Ngày ngừng.\n • open_work_count: Số công việc chưa kết thúc.",
+      "Không xóa cứng; đối chiếu đối tượng phụ thuộc và lưu lịch sử."
+    ],
+    [
+      "UC-075",
+      "Manage Warehouses",
+      "FE-08",
+      "Administrator",
+      "Khai báo, cập nhật và ngừng sử dụng kho; xác định cơ sở quản lý, bộ phận phụ trách và trạng thái hoạt động.",
+      "• stock_document_line_id: Dòng chứng từ.\n • stock_document_id: Chứng từ cha.\n • item_id: Vật tư.\n • uom_id: Đơn vị giao dịch.\n • requested_qty: Số lượng đề nghị.\n • actual_qty: Số lượng thực tế.\n • base_qty: Số lượng quy đổi đơn vị gốc.\n • warehouse_id: Định danh kho.\n • warehouse_code: Mã kho.\n • warehouse_name: Tên kho.\n • branch_id: Cơ sở.\n • department_id: Bộ phận quản lý.\n • is_active: Trạng thái.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-076",
+      "Manage Inventory Items",
+      "FE-08",
+      "Storekeeper",
+      "Khai báo và cập nhật danh mục vật tư, mã vật tư, loại, mô tả và thông tin quản lý tồn kho.",
+      "• stock_document_line_id: Dòng chứng từ.\n • stock_document_id: Chứng từ cha.\n • item_id: Định danh vật tư.\n • uom_id: Đơn vị giao dịch.\n • requested_qty: Số lượng đề nghị.\n • actual_qty: Số lượng thực tế.\n • base_qty: Số lượng quy đổi đơn vị gốc.\n • item_code: Mã vật tư.\n • item_name: Tên vật tư.\n • item_category_id: Nhóm vật tư.\n • base_uom_id: Đơn vị cơ sở.\n • is_active: Trạng thái.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-077",
+      "Manage Units of Measurement",
+      "FE-08",
+      "Storekeeper",
+      "Quản lý đơn vị tính và các quy tắc quy đổi khi vật tư được quản lý bằng nhiều đơn vị.",
+      "• stock_document_line_id: Dòng chứng từ.\n • stock_document_id: Chứng từ cha.\n • item_id: Vật tư.\n • uom_id: Đơn vị đo.\n • requested_qty: Số lượng đề nghị.\n • actual_qty: Số lượng thực tế.\n • base_qty: Số lượng quy đổi đơn vị gốc.\n • uom_code: Mã đơn vị.\n • uom_name: Tên đơn vị.\n • conversion_from_uom_id: Đơn vị nguồn.\n • conversion_to_uom_id: Đơn vị đích.\n • factor: Hệ số quy đổi.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-078",
+      "Configure Minimum Stock Levels",
+      "FE-08",
+      "Storekeeper",
+      "Thiết lập ngưỡng tồn kho tối thiểu theo vật tư và kho để phục vụ cảnh báo, bổ sung hàng.",
+      "• stock_document_line_id: Dòng chứng từ.\n • stock_document_id: Chứng từ cha.\n • item_id: Vật tư.\n • uom_id: Đơn vị giao dịch.\n • requested_qty: Số lượng đề nghị.\n • actual_qty: Số lượng thực tế.\n • base_qty: Số lượng quy đổi đơn vị gốc.\n • warehouse_id: Kho áp dụng.\n • minimum_qty: Ngưỡng tối thiểu theo đơn vị gốc.\n • alert_enabled: Bật cảnh báo.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-079",
+      "Create Stock Receipt",
+      "FE-08",
+      "Storekeeper",
+      "Lập phiếu nhập kho, xác định nguồn nhập, kho nhận, vật tư, số lượng và chứng từ liên quan.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • receipt_source: Nguồn nhập.\n • reference_no: Số chứng từ liên quan.\n • stock_document_lines: Dòng vật tư, SL đề nghị.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-080",
+      "Verify and Post Stock Receipt",
+      "FE-08",
+      "Storekeeper",
+      "Kiểm tra số lượng thực nhận, xác nhận phiếu và cập nhật tăng tồn kho.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • verified_by: Người đối chiếu.\n • stock_document_lines: Các dòng SL thực nhận.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-081",
+      "Issue Stock",
+      "FE-08",
+      "Storekeeper",
+      "Lập và xác nhận phiếu xuất kho cho nhu cầu hợp lệ, ghi nhận vật tư, số lượng, bộ phận và công việc liên quan.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • request_id: Yêu cầu xuất nguồn.\n • issuing_department_id: Bộ phận nhận.\n • related_work_id: Công việc sử dụng.\n • stock_document_lines: Các dòng số lượng xuất.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-082",
+      "Return Materials to Stock",
+      "FE-08",
+      "Storekeeper",
+      "Tiếp nhận vật tư còn dư hoặc được hoàn trả, kiểm tra số lượng và ghi nhận nhập lại kho.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • original_issue_id: Phiếu xuất gốc.\n • return_reason: Lý do trả.\n • stock_document_lines: Vật tư thực nhận lại.\n • inspected_by: Người kiểm tra.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-083",
+      "Create Stock Transfer",
+      "FE-08",
+      "Storekeeper",
+      "Tạo phiếu điều chuyển vật tư giữa các kho trong cùng cơ sở hoặc giữa hai cơ sở.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho nguồn.\n • destination_warehouse_id: Kho đích.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • stock_document_lines: Vật tư, số lượng đề nghị.\n • shipped_at: Ngày xuất chuyển.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-084",
+      "Confirm Stock Transfer Receipt",
+      "FE-08",
+      "Storekeeper",
+      "Kiểm tra và xác nhận số lượng thực nhận tại kho đích, hoàn tất điều chuyển và ghi nhận sai lệch.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • transfer_id: Phiếu điều chuyển gốc.\n • received_qty_by_line: SL nhận theo từng dòng.\n • discrepancy_reason: Lý do sai lệch.\n • received_at: Thời gian nhận.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-085",
+      "Conduct Stocktake",
+      "FE-08",
+      "Storekeeper",
+      "Tạo đợt kiểm kê và ghi nhận số lượng thực tế của vật tư tại kho được kiểm kê.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • stocktake_id: Mã đợt kiểm kê.\n • warehouse_id: Kho kiểm kê.\n • snapshot_at: Thời điểm chốt tồn.\n • counted_by: Người kiểm.\n • counted_qty_by_item: SL đếm theo vật tư.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-086",
+      "Reconcile Stocktake Discrepancies",
+      "FE-08",
+      "Storekeeper",
+      "Đối chiếu tồn kho hệ thống và thực tế, ghi nhận mức chênh lệch và nguyên nhân.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • stocktake_id: Đợt đối chiếu.\n • system_qty_by_item: SL sổ sách.\n • counted_qty_by_item: SL thực tế.\n • variance_qty_by_item: Chênh lệch.\n • discrepancy_reason: Nguyên nhân.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-087",
+      "Adjust Stock Balance",
+      "FE-08",
+      "Operations Manager",
+      "Xem xét và xác nhận điều chỉnh tồn kho từ kết quả kiểm kê hoặc giao dịch điều chỉnh hợp lệ.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • stocktake_id: Đợt kiểm kê nguồn.\n • adjustment_reason: Lý do điều chỉnh.\n • adjustment_lines: Dòng chênh lệch.\n • approved_by: Người duyệt.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-088",
+      "Reverse Stock Transaction",
+      "FE-08",
+      "Operations Manager",
+      "Thực hiện giao dịch đảo đối với chứng từ đã ghi sổ cần sửa sai, giữ nguyên chứng từ gốc và lịch sử.",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • original_document_id: Chứng từ phải đảo.\n • reversal_document_id: Chứng từ đảo mới.\n • reversal_reason: Lý do.\n • reversed_by: Người thực hiện.\n • reversed_at: Thời điểm.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-089",
+      "View Stock Balance and Movement Ledger",
+      "FE-08",
+      "Storekeeper, Operations Manager",
+      "Tra cứu tồn hiện tại, lịch sử nhập/xuất, hoàn trả, điều chuyển và điều chỉnh theo kho, vật tư và thời gian. Quản lý vận hành dùng danh sách chứng từ này để chọn chứng từ đã ghi sổ cần đảo (UC-088).",
+      "• stock_document_id: Định danh chứng từ kho.\n • document_no: Số chứng từ duy nhất.\n • document_type: Loại nhập/xuất/chuyển/trả/điều chỉnh.\n • source_warehouse_id: Kho xuất nếu có.\n • destination_warehouse_id: Kho nhập nếu có.\n • status: Trạng thái chứng từ.\n • posted_at: Thời điểm ghi sổ.\n • warehouse_id: Kho tra cứu.\n • item_id: Vật tư.\n • date_from: Từ ngày.\n • date_to: Đến ngày.\n • on_hand_qty: Tồn hiện tại.\n • movement_qty: Biến động theo loại.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-090",
+      "Return Unused Materials",
+      "FE-08",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff",
+      "Yêu cầu hoàn trả vật tư chưa sử dụng hoặc còn dư, gửi kho xác nhận nhập lại.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • material_return_id: Phiếu yêu cầu trả.\n • item_id: Vật tư.\n • return_qty: SL trả.\n • return_reason: Lý do.\n • original_issue_id: Phiếu cấp gốc.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-091",
+      "Create Material Request",
+      "FE-09",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff",
+      "Tạo phiếu yêu cầu vật tư, khai báo vật tư, số lượng, mục đích, bộ phận và thời điểm cần cấp.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • material_request_lines: Danh sách vật tư và SL.\n • created_at: Thời điểm tạo.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-092",
+      "Link Material Request to Work",
+      "FE-09",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff",
+      "Liên kết yêu cầu vật tư với công việc vệ sinh, sự cố, bảo trì hoặc công việc vận hành tương ứng.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • related_work_type: Loại công việc.\n • related_work_id: Mã việc liên quan.\n • link_note: Ghi chú liên kết.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-093",
+      "Update/Cancel Material Request",
+      "FE-09",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff",
+      "Chỉnh sửa hoặc hủy yêu cầu chưa xử lý, bảo toàn lịch sử khi phiếu đã đi vào quy trình phê duyệt.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • update_reason: Lý do sửa hoặc hủy.\n • cancellation_reason: Lý do hủy.\n • updated_at: Thời gian thao tác.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-094",
+      "Review Material Request",
+      "FE-09",
+      "Department Head",
+      "Kiểm tra nhu cầu vật tư, đánh giá mục đích sử dụng và xác minh số lượng yêu cầu.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • reviewed_by: Người kiểm tra.\n • reviewed_at: Thời điểm.\n • review_note: Nhận xét.\n • verified_qty_by_line: Số lượng đã kiểm tra.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-095",
+      "Approve/Reject Material Request",
+      "FE-09",
+      "Department Head",
+      "Phê duyệt, điều chỉnh số lượng được duyệt hoặc từ chối yêu cầu kèm lý do.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • decision: Duyệt/từ chối.\n • approved_qty_by_line: SL duyệt từng dòng.\n • decision_reason: Lý do.\n • decided_by: Người ra quyết định.\n • decided_at: Ngày xử lý.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-096",
+      "Check Material Availability",
+      "FE-09",
+      "Storekeeper",
+      "Kiểm tra số lượng khả dụng của vật tư được duyệt và xác định khả năng đáp ứng.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • warehouse_id: Kho kiểm tra.\n • item_id: Vật tư.\n • approved_qty: SL đã duyệt.\n • available_qty: SL khả dụng.\n • shortage_qty: SL thiếu.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-097",
+      "Issue Approved Materials",
+      "FE-09",
+      "Storekeeper",
+      "Cấp phát vật tư theo số lượng được duyệt và tồn khả dụng, sử dụng nghiệp vụ xuất kho FE-06.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • stock_document_id: Phiếu xuất liên kết.\n • issued_qty_by_line: SL cấp theo dòng.\n • issued_at: Thời điểm cấp.\n • issued_by: Thủ kho.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-098",
+      "Manage Partial Material Fulfillment",
+      "FE-09",
+      "Storekeeper",
+      "Ghi nhận số lượng cấp phát một phần, số lượng còn thiếu và trạng thái cấp phát còn lại.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • issued_qty_by_line: SL cấp lần này.\n • pending_qty_by_line: SL chờ cấp.\n • partial_reason: Lý do chưa đủ.\n • next_expected_at: Dự kiến cấp tiếp.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-099",
+      "Track Material Request History",
+      "FE-09",
+      "Department Head",
+      "Tra cứu toàn bộ vòng đời yêu cầu vật tư từ tạo, phê duyệt, cấp phát, hoàn trả đến hoàn tất hoặc hủy.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • date_from: Từ ngày.\n • date_to: Đến ngày.\n • approval_history: Lịch sử duyệt.\n • fulfillment_history: Lịch sử cấp phát.\n • return_history: Lịch sử hoàn trả.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-100",
+      "Create Replenishment Request",
+      "FE-10",
+      "Storekeeper",
+      "Lập yêu cầu bổ sung khi vật tư không đủ đáp ứng hoặc tồn kho dưới ngưỡng tối thiểu.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • replenishment_id: Phiếu đề nghị bổ sung.\n • warehouse_id: Kho cần.\n • item_id: Vật tư.\n • shortage_qty: SL thiếu.\n • required_at: Ngày cần.\n • reason: Lý do.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-101",
+      "Track Material Replenishment",
+      "FE-10",
+      "Storekeeper",
+      "Theo dõi nhu cầu bổ sung, số lượng đang chờ, số lượng đã nhận và khả năng đáp ứng yêu cầu còn thiếu.",
+      "• material_request_id: Định danh phiếu yêu cầu.\n • request_no: Mã yêu cầu.\n • requester_user_id: Người yêu cầu.\n • department_id: Bộ phận yêu cầu.\n • branch_id: Cơ sở.\n • purpose: Mục đích.\n • needed_at: Thời điểm cần.\n • status: Trạng thái phiếu.\n • replenishment_id: Phiếu bổ sung.\n • requested_qty: SL đề nghị.\n • received_qty: SL đã nhận.\n • outstanding_qty: SL đang chờ.\n • linked_receipt_ids: Phiếu nhập liên quan.",
+      "Số lượng không âm theo dòng; kiểm tra đơn vị gốc và tồn khả dụng; chỉ thay đổi tồn khi ghi sổ hợp lệ."
+    ],
+    [
+      "UC-102",
+      "Create Operational Task",
+      "FE-11",
+      "Department Head",
+      "Tạo công việc vận hành độc lập, khai báo nội dung, loại công việc, địa điểm và kết quả cần hoàn thành.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • requested_result: Kết quả đầu ra yêu cầu.\n • location_type: Loại vị trí.\n • location_id: Vị trí thực hiện.\n • created_by: Người tạo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-103",
+      "Set Task Priority and Deadline",
+      "FE-11",
+      "Department Head",
+      "Thiết lập mức độ ưu tiên, thời điểm bắt đầu dự kiến, hạn hoàn thành và yêu cầu thời gian xử lý.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • priority_id: Mức ưu tiên.\n • planned_start_at: Dự kiến bắt đầu.\n • due_at: Hạn chót.\n • sla_minutes: Thời lượng xử lý mục tiêu.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-104",
+      "Assign/Reassign Task",
+      "FE-11",
+      "Department Head",
+      "Phân công hoặc điều chỉnh người phụ trách theo cơ sở, bộ phận và khối lượng công việc.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • previous_assignee_id: Người cũ.\n • assignee_user_id: Người mới.\n • assignment_reason: Lý do.\n • assigned_at: Thời điểm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-105",
+      "Review and Verify Task Completion",
+      "FE-11",
+      "Department Head",
+      "Kiểm tra kết quả, xác nhận hoàn thành hoặc trả lại công việc để tiếp tục xử lý.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • reviewer_user_id: Người nghiệm thu.\n • review_result: Đạt/trả lại.\n • review_note: Nhận xét.\n • reviewed_at: Thời điểm.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-106",
+      "Reopen Assigned Task",
+      "FE-11",
+      "Department Head",
+      "Mở lại công việc chưa đạt, xác định nội dung khắc phục và người chịu trách nhiệm.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • reopened_by: Người mở.\n • reopen_reason: Lý do.\n • corrective_action: Yêu cầu sửa.\n • new_assignee_user_id: Người chịu trách nhiệm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-107",
+      "Accept Assigned Task",
+      "FE-11 + FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Tiếp nhận công việc được giao, xem yêu cầu và xác nhận trách nhiệm thực hiện.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • assignee_user_id: Người nhận.\n • accepted_at: Thời điểm nhận.\n • acceptance_note: Ghi chú.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-108",
+      "Start Assigned Task",
+      "FE-11 + FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Bắt đầu công việc và ghi nhận thời điểm bắt đầu thực tế.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • actual_start_at: Thời điểm bắt đầu thực tế.\n • started_by: Nhân viên thực hiện.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-109",
+      "Update Task Progress",
+      "FE-11 + FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Cập nhật tiến độ, kết quả từng giai đoạn, ghi chú và bằng chứng công việc.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • progress_percent: Tiến độ.\n • progress_note: Cập nhật thực hiện.\n • evidence_file_ids: Minh chứng.\n • updated_at: Thời gian.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-110",
+      "Pause/Resume Task",
+      "FE-11 + FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Tạm dừng hoặc tiếp tục công việc, ghi nhận thời gian gián đoạn và nguyên nhân.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • pause_started_at: Bắt đầu tạm dừng.\n • resumed_at: Tiếp tục.\n • pause_reason: Lý do.\n • interruption_minutes: Thời gian gián đoạn.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-111",
+      "Record Actual Working Time",
+      "FE-11 + FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Ghi nhận thời gian làm việc thực tế, bao gồm bắt đầu, kết thúc và các khoảng gián đoạn.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • time_log_id: Nhật ký thời gian.\n • started_at: Mốc bắt đầu.\n • ended_at: Mốc kết thúc.\n • break_minutes: Thời gian nghỉ.\n • actual_minutes: Phút làm việc.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-112",
+      "Complete Assigned Task",
+      "FE-11 + FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Xác nhận công việc hoàn thành, cập nhật kết quả, thời gian thực hiện và thông tin bàn giao bắt buộc.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • completion_result: Kết quả hoàn tất.\n • actual_end_at: Thời điểm hoàn tất.\n • evidence_file_ids: Minh chứng.\n • handover_note: Ghi chú bàn giao.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-113",
+      "Review Task Workload and Time Logs",
+      "FE-11 + FE-12",
+      "Department Head",
+      "Tra cứu công việc theo nhân viên, bộ phận, trạng thái, mức ưu tiên, thời hạn và thời gian thực hiện.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • assignee_user_id: Nhân viên lọc.\n • date_from: Từ ngày.\n • date_to: Đến ngày.\n • actual_minutes: Thời gian thực tế.\n • overdue_flag: Quá hạn.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-114",
+      "Create Internal Request",
+      "FE-13",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Tạo yêu cầu hỗ trợ nội bộ, xác định bộ phận gửi, loại yêu cầu, nội dung, cơ sở, ưu tiên và hạn mong muốn.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • priority_id: Mức ưu tiên.\n • desired_due_at: Hạn mong muốn.\n • created_at: Ngày tạo.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-115",
+      "Route and Assign Internal Request",
+      "FE-13",
+      "Department Head",
+      "Tiếp nhận yêu cầu, xác định người xử lý hoặc chuyển đến bộ phận có trách nhiệm.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • assigned_user_id: Người được giao.\n • assigned_department_id: Bộ phận tiếp nhận.\n • routed_at: Thời điểm chuyển.\n • routing_note: Nội dung chuyển.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-116",
+      "Accept/Reject Internal Request",
+      "FE-13",
+      "Department Head",
+      "Chấp nhận hoặc từ chối yêu cầu, ghi nhận lý do và thời gian phản hồi.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • decision: Chấp nhận/từ chối.\n • decision_reason: Lý do.\n • decided_by: Người quyết định.\n • responded_at: Thời gian phản hồi.",
+      "Ghi nhận người xử lý, thời điểm; kiểm tra trạng thái và các điều kiện chặn trước khi chuyển bước."
+    ],
+    [
+      "UC-117",
+      "Update Internal Request Progress",
+      "FE-13",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Cập nhật tiến độ, ghi chú, kết quả xử lý và các vấn đề ảnh hưởng đến thời hạn.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • progress_note: Diễn biến.\n • progress_percent: Tiến độ.\n • updated_at: Lần cập nhật.\n • delay_reason: Lý do chậm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-118",
+      "Create Linked Operational Work",
+      "FE-13",
+      "Department Head",
+      "Tạo hoặc liên kết công việc vệ sinh, sửa chữa, cấp phát vật tư hoặc công việc vận hành tương ứng.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • linked_work_type: Loại việc tạo/liên kết.\n • linked_work_id: Mã việc.\n • linking_note: Ghi chú.\n • created_at: Ngày tạo liên kết.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-119",
+      "Record Request Handover",
+      "FE-13",
+      "Department Head",
+      "Ghi nhận bàn giao yêu cầu giữa nhân viên hoặc bộ phận, bao gồm người giao, nhận, thời điểm và nội dung.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • handover_id: Phiếu bàn giao.\n • from_user_id: Người bàn giao.\n • to_user_id: Người nhận.\n • from_department_id: Bộ phận gửi.\n • to_department_id: Bộ phận nhận.\n • handed_over_at: Thời điểm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-120",
+      "Complete Internal Request",
+      "FE-13",
+      "Department Head",
+      "Xác nhận các công việc liên quan hoàn thành, ghi nhận kết quả và đóng yêu cầu.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • linked_work_completion: Kết quả các việc liên quan.\n • completion_note: Kết luận.\n • completed_by: Người đóng.\n • completed_at: Thời điểm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-121",
+      "Reopen Internal Request",
+      "FE-13",
+      "Department Head",
+      "Mở lại yêu cầu khi kết quả chưa đáp ứng, bảo lưu lịch sử xử lý và bàn giao trước đó.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • reopen_reason: Lý do mở.\n • reopened_by: Người mở lại.\n • reopened_at: Ngày mở.\n • previous_closure_id: Lượt hoàn thành trước.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-122",
+      "Escalate Overdue Internal Request",
+      "FE-13",
+      "Operations Manager",
+      "Xử lý yêu cầu quá hạn hoặc có nguy cơ vi phạm thời hạn, điều phối lại nguồn lực hoặc mức ưu tiên.",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • escalation_reason: Lý do quá hạn.\n • escalated_to: Quản lý nhận.\n • new_priority_id: Mức ưu tiên mới.\n • action_plan: Phương án.\n • escalated_at: Thời điểm.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-123",
+      "View Internal Request History",
+      "FE-13",
+      "Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Tra cứu trạng thái, người phụ trách, thời hạn, lịch sử xử lý và kết quả yêu cầu theo phạm vi được cấp quyền. Là danh sách gốc để xử lý yêu cầu nội bộ (UC-115, UC-116, UC-117, UC-119, UC-120, UC-121, UC-122).",
+      "• internal_request_id: Định danh phiếu hỗ trợ.\n • request_no: Mã phiếu.\n • requester_user_id: Người gửi.\n • source_department_id: Bộ phận gửi.\n • target_department_id: Bộ phận tiếp nhận.\n • request_type_id: Loại yêu cầu.\n • description: Nội dung.\n • status: Trạng thái.\n • date_from: Từ ngày.\n • date_to: Đến ngày.\n • status_history: Lịch sử trạng thái.\n • handover_history: Lịch sử bàn giao.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-124",
+      "Receive Assignment Notifications",
+      "FE-14",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Nhận thông báo về công việc mới, công việc được phân công lại hoặc thay đổi quan trọng liên quan đến nhiệm vụ.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đọc.\n • assignment_id: Phân công gây sự kiện.\n • assigned_by: Người giao.\n • assignment_change_type: Loại thay đổi.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-125",
+      "Receive Approval Notifications",
+      "FE-14",
+      "Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Nhận thông báo khi yêu cầu vật tư, yêu cầu nội bộ hoặc công việc cần xác nhận được duyệt, từ chối hoặc trả lại.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đọc.\n • decision: Kết quả duyệt.\n • approver_id: Người duyệt.\n • decision_at: Ngày duyệt.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-126",
+      "Receive Inspection and Incident Alerts",
+      "FE-14",
+      "Housekeeping Supervisor, Maintenance Lead",
+      "Nhận cảnh báo về phòng kiểm tra không đạt, sự cố nghiêm trọng hoặc sự cố ảnh hưởng điều kiện vận hành phòng.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đọc.\n • inspection_id: Lượt kiểm tra liên quan.\n • incident_id: Sự cố liên quan.\n • severity_id: Độ nghiêm trọng.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-127",
+      "Receive Overdue Work Alerts",
+      "FE-14",
+      "Department Head",
+      "Nhận cảnh báo về công việc, sự cố hoặc yêu cầu nội bộ đã quá hạn.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đọc.\n • deadline_at: Hạn công việc.\n • overdue_minutes: Số phút quá hạn.\n • responsible_user_id: Người phụ trách.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-128",
+      "Receive Low Stock Alerts",
+      "FE-14",
+      "Storekeeper",
+      "Nhận cảnh báo khi vật tư giảm dưới ngưỡng tồn kho tối thiểu đã khai báo.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đọc.\n • warehouse_id: Kho bị thiếu.\n • item_id: Vật tư dưới ngưỡng.\n • available_qty: SL tồn khả dụng.\n • minimum_qty: Ngưỡng tối thiểu.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-129",
+      "View Notification Center",
+      "FE-14",
+      "Owner, Administrator, Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Xem, tìm kiếm và lọc thông báo theo loại, thời gian, mức ưu tiên và trạng thái đọc.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đọc.\n • notification_type: Loại hiển thị.\n • is_read: Đã đọc chưa.\n • date_from: Từ ngày.\n • date_to: Đến ngày.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-130",
+      "Acknowledge Notifications",
+      "FE-14",
+      "Owner, Administrator, Operations Manager, Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Đánh dấu thông báo đã đọc hoặc đã tiếp nhận, truy cập bản ghi nghiệp vụ liên quan.",
+      "• notification_id: Định danh thông báo.\n • recipient_user_id: Người nhận.\n • event_type: Sự kiện phát sinh.\n • reference_type: Loại chứng từ nguồn.\n • reference_id: ID chứng từ nguồn.\n • title: Tiêu đề.\n • body: Nội dung.\n • created_at: Thời điểm phát sinh.\n • read_at: Thời điểm đánh dấu đọc.\n • acknowledged_at: Thời điểm xác nhận.\n • target_url: Điểm dẫn đến nghiệp vụ.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-131",
+      "View Room Readiness Dashboard",
+      "FE-14",
+      "Operations Manager",
+      "Theo dõi số lượng và tỷ lệ phòng Ready, chờ vệ sinh, đang vệ sinh, chờ kiểm tra, không đạt hoặc bị chặn.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở cần xem.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • snapshot_at: Mốc thống kê.\n • ready_count: Phòng sẵn sàng.\n • pending_clean_count: Phòng chờ vệ sinh.\n • inspection_pending_count: Chờ nghiệm thu.\n • blocked_count: Phòng bị chặn.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-132",
+      "View Task Workload Dashboard",
+      "FE-14",
+      "Operations Manager",
+      "Thống kê công việc theo trạng thái, bộ phận, nhân viên, mức ưu tiên, thời gian và tình trạng quá hạn.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận lọc.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • assignee_user_id: Nhân sự lọc.\n • status_counts: Số công việc theo trạng thái.\n • overdue_count: Số việc quá hạn.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-133",
+      "View Incident and Maintenance Dashboard",
+      "FE-14",
+      "Operations Manager",
+      "Theo dõi sự cố đang mở, mức độ nghiêm trọng, thời gian phản hồi/hoàn thành, sự cố lặp lại và bảo trì định kỳ.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • open_incident_count: Sự cố mở.\n • critical_incident_count: Sự cố nghiêm trọng.\n • avg_response_minutes: Thời gian phản hồi TB.\n • upcoming_maintenance_count: Bảo trì sắp đến.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-134",
+      "View Inventory and Material Dashboard",
+      "FE-14",
+      "Operations Manager",
+      "Theo dõi tồn kho, vật tư dưới định mức, nhập/xuất, yêu cầu cấp phát và nhu cầu bổ sung chưa đáp ứng.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Cơ sở.\n • department_id: Bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • warehouse_id: Kho lọc.\n • low_stock_count: Số vật tư dưới ngưỡng.\n • stock_value: Giá trị tồn nếu ghi nhận giá.\n • pending_material_qty: SL chưa cấp.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-135",
+      "Generate and Export Operational Reports",
+      "FE-15",
+      "Operations Manager, Owner",
+      "Tạo và xuất báo cáo theo thời gian, cơ sở hoặc bộ phận về phòng, công việc, sự cố, bảo trì, tài sản và kho.",
+      "• task_id: Định danh công việc.\n • task_code: Mã công việc.\n • branch_id: Lọc cơ sở.\n • department_id: Lọc bộ phận.\n • category_id: Loại công việc.\n • title: Tiêu đề.\n • description: Nội dung yêu cầu.\n • status: Trạng thái thực hiện.\n • report_type: Loại báo cáo.\n • date_from: Ngày bắt đầu.\n • date_to: Ngày kết thúc.\n • export_format: CSV/XLSX/PDF.\n • generated_by: Người xuất.",
+      "Kiểm tra mã tham chiếu, quyền thao tác và trạng thái hiện tại; lưu dấu vết thay đổi."
+    ],
+    [
+      "UC-136",
+      "View Audit Logs",
+      "FE-15",
+      "Administrator",
+      "Tra cứu lịch sử tạo, sửa, phê duyệt, từ chối, hoàn thành và các thao tác quan trọng theo người dùng, thời gian và đối tượng.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • actor_user_id: Người thao tác lọc.\n • action_type: Loại hành động.\n • entity_type: Loại bản ghi.\n • entity_id: ID bản ghi.\n • occurred_from: Từ ngày.\n • occurred_to: Đến ngày.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-137",
+      "Inspect Record Change History",
+      "FE-15",
+      "Administrator",
+      "Xem chi tiết thay đổi, người thao tác, thời điểm, hành động, đối tượng và dữ liệu trước/sau nếu có.",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • audit_log_id: Mã log.\n • actor_user_id: Người thao tác.\n • action_type: Loại hành động.\n • entity_type: Loại đối tượng.\n • entity_id: ID bản ghi.\n • changed_at: Thời điểm.\n • before_json: Dữ liệu trước, đã che bí mật.\n • after_json: Dữ liệu sau, đã che bí mật.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-138",
+      "Manage Operational Workday and Shift Records",
+      "FE-12",
+      "Department Head",
+      "Quản lý thông tin ngày làm việc, định nghĩa ca và danh sách người phụ trách theo bộ phận/cơ sở; dữ liệu chỉ phục vụ điều phối vận hành, không tính lương.",
+      "• workday_id: Định danh ngày vận hành.\n• branch_id: Cơ sở.\n• department_id: Bộ phận.\n• work_date: Ngày vận hành.\n• shift_id: Định danh ca làm việc.\n• shift_name: Tên ca.\n• planned_start_at: Thời gian bắt đầu dự kiến.\n• planned_end_at: Thời gian kết thúc dự kiến.\n• assigned_user_ids: Nhân viên được phân vào ca.\n• status: Trạng thái ca/ngày vận hành.\n• updated_by: Người quản lý thay đổi.\n• updated_at: Thời điểm cập nhật.",
+      "Ngày và khung giờ ca phải hợp lệ, hỗ trợ ca qua nửa đêm; không tạo phân công trùng bất hợp lệ cho cùng người và khoảng thời gian; chỉ quản lý dữ liệu vận hành, không dùng cho payroll."
+    ],
+    [
+      "UC-139",
+      "Record Workday Start and End",
+      "FE-12",
+      "Housekeeping Staff, Maintenance Staff, Storekeeper",
+      "Ghi nhận thời điểm bắt đầu và kết thúc ngày/ca làm việc thực tế; phân biệt tổng thời gian trong ca với thời gian tác vụ ghi tại UC-111.",
+      "• workday_record_id: Nhật ký ngày/ca cá nhân.\n• user_id: Nhân viên thực hiện.\n• branch_id: Cơ sở.\n• department_id: Bộ phận.\n• shift_id: Ca được phân công.\n• work_date: Ngày vận hành.\n• actual_start_at: Mốc bắt đầu thực tế.\n• actual_end_at: Mốc kết thúc thực tế.\n• deviation_note: Lý do sai lệch nếu có.\n• recorded_at: Thời điểm hệ thống ghi nhận.",
+      "Chỉ ghi nhận ca được phân công hoặc có quyền hợp lệ; không cho hai ca đang mở trùng thời gian của cùng nhân viên; kết thúc ≥ bắt đầu theo múi giờ cơ sở; không tính lương."
+    ],
+    [
+      "UC-140",
+      "Manage Operational Shift Handover",
+      "FE-12",
+      "Department Head, Housekeeping Supervisor, Housekeeping Staff, Maintenance Lead, Maintenance Staff, Storekeeper",
+      "Ghi nhận nội dung bàn giao ca, các công việc chưa hoàn tất, phòng chưa sẵn sàng, sự cố còn mở và yêu cầu nội bộ tồn đọng; người nhận xác nhận tiếp nhận.",
+      "• handover_id: Định danh lượt bàn giao.\n• branch_id: Cơ sở.\n• department_id: Bộ phận.\n• from_shift_id: Ca bàn giao.\n• to_shift_id: Ca nhận.\n• handed_over_by: Người bàn giao.\n• received_by: Người nhận.\n• handover_at: Thời điểm bàn giao.\n• open_task_ids: Công việc chưa hoàn thành.\n• blocked_room_ids: Phòng chưa sẵn sàng.\n• open_incident_ids: Sự cố còn mở.\n• pending_request_ids: Yêu cầu nội bộ chưa giải quyết.\n• handover_notes: Nội dung lưu ý.\n• acknowledgment_status: Trạng thái xác nhận bàn giao.",
+      "Ca bàn giao và ca nhận phải có quan hệ thời gian/vị trí hợp lệ; chỉ hiển thị bản ghi trong phạm vi quyền; bắt buộc ghi nhận người giao, người nhận, thời điểm và xác nhận; không xóa lịch sử bàn giao."
+    ],
+    [
+      "UC-141",
+      "View User List",
+      "FE-01",
+      "Administrator",
+      "Tra cứu, tìm kiếm và lọc danh sách tài khoản người dùng theo trạng thái, cơ sở, bộ phận hoặc vai trò; là điểm khởi đầu để cập nhật, kích hoạt/vô hiệu hóa hoặc gán phạm vi cho tài khoản (UC-005, UC-006, UC-007).",
+      "• user_id: Định danh người dùng.\n • username: Tên đăng nhập duy nhất.\n • full_name: Họ tên nhân sự.\n • email: Email liên hệ/đăng nhập.\n • phone: Điện thoại.\n • account_status: Trạng thái tài khoản.\n • branch_id: Cơ sở công tác.\n • department_id: Bộ phận.\n • role_id: Vai trò hiện có.\n • filter_status: Bộ lọc trạng thái.\n • search_text: Từ khóa.",
+      "Không hiển thị mật khẩu hay thông tin xác thực; hỗ trợ tìm kiếm, bộ lọc và phân trang."
+    ],
+    [
+      "UC-142",
+      "View Room Types List",
+      "FE-02",
+      "Administrator",
+      "Tra cứu, tìm kiếm và lọc danh sách loại phòng theo mã, tên hoặc trạng thái; là điểm khởi đầu để cập nhật hoặc ngừng sử dụng loại phòng (UC-018, UC-019).",
+      "• room_type_id: Định danh loại phòng.\n • type_code: Mã loại phòng.\n • type_name: Tên loại phòng.\n • description: Mô tả.\n • standard_capacity: Sức chứa chuẩn.\n • is_active: Trạng thái sử dụng.\n • filter_status: Bộ lọc trạng thái.\n • search_text: Từ khóa.",
+      "Hỗ trợ tìm kiếm theo mã/tên và lọc theo trạng thái hoạt động; loại phòng đã ngừng sử dụng vẫn tra cứu được."
+    ],
+    [
+      "UC-143",
+      "View Incidents List",
+      "FE-06",
+      "Maintenance Lead, Maintenance Staff",
+      "Tra cứu, tìm kiếm và lọc phiếu sự cố theo cơ sở, vị trí, mức nghiêm trọng, trạng thái hoặc khoảng thời gian; là điểm khởi đầu để phân loại, ưu tiên, chặn phòng, leo thang, xử lý, xác minh, đóng và mở lại sự cố (UC-050, UC-052, UC-056, UC-057, UC-058, UC-059, UC-060).",
+      "• incident_id: Mã phiếu sự cố.\n • branch_id: Cơ sở phát sinh.\n • location_type: Đối tượng vị trí phòng/khu vực.\n • room_id: Phòng liên quan nếu có.\n • area_id: Khu vực liên quan nếu có.\n • asset_id: Tài sản liên quan nếu có.\n • description: Mô tả hiện trạng.\n • status: Trạng thái sự cố.\n • severity_id: Mức nghiêm trọng.\n • priority_id: Mức ưu tiên.\n • reported_by: Người báo sự cố.\n • discovered_at: Thời điểm phát hiện.\n • filter_status: Bộ lọc trạng thái.\n • date_from: Từ ngày.\n • date_to: Đến ngày.\n • search_text: Từ khóa.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; kỹ thuật viên chỉ xem sự cố thuộc công việc bảo trì được giao cho mình; hỗ trợ bộ lọc tương ứng."
+    ],
+    [
+      "UC-144",
+      "View Maintenance List",
+      "FE-06",
+      "Maintenance Lead, Maintenance Staff",
+      "Tra cứu, tìm kiếm và lọc công việc bảo trì (phát sinh từ sự cố hoặc lịch bảo trì định kỳ) theo người thực hiện, trạng thái, hạn xử lý hoặc khoảng thời gian; là điểm khởi đầu để phân công, tiếp nhận, cập nhật tiến độ và thực hiện bảo trì (UC-053, UC-054, UC-055, UC-062).",
+      "• maintenance_work_id: Định danh công việc bảo trì.\n • incident_id: Sự cố nguồn nếu có.\n • maintenance_schedule_id: Lịch bảo trì nguồn nếu có.\n • asset_id: Thiết bị liên quan nếu có.\n • assignee_user_id: Kỹ thuật viên xử lý.\n • planned_end_at: Thời hạn xử lý.\n • status: Trạng thái công việc.\n • progress_percent: Tiến độ.\n • overdue_flag: Cờ quá hạn.\n • filter_status: Bộ lọc trạng thái.\n • date_from: Từ ngày.\n • date_to: Đến ngày.\n • search_text: Từ khóa.",
+      "Chỉ trả dữ liệu theo phạm vi cơ sở/bộ phận của người dùng; kỹ thuật viên chỉ xem công việc được giao cho mình; hỗ trợ bộ lọc tương ứng."
+    ]
+  ]
+}

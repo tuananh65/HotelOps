@@ -1,0 +1,43 @@
+{
+  "status": "FAIL",
+  "document": null,
+  "steps": [
+    {
+      "Id": "previous-passed",
+      "Kind": "HARNESS",
+      "Status": "PASS",
+      "ExceptionType": null,
+      "Category": null,
+      "Diagnostic": null
+    },
+    {
+      "Id": "exact-failing-step",
+      "Kind": "HARNESS",
+      "Status": "FAIL",
+      "ExceptionType": "InvalidOperationException",
+      "Category": "HARNESS_OPERATION",
+      "Diagnostic": {
+        "Phase": "A004A-059 / exact-failing-step",
+        "FixtureStage": null,
+        "SaveChangesBoundary": null,
+        "ExceptionType": "InvalidOperationException",
+        "InnerExceptionType": null,
+        "ExceptionChain": [
+          "InvalidOperationException"
+        ],
+        "SqlErrors": [],
+        "EntityTypes": [],
+        "AffectedTables": [],
+        "ConstraintNames": [],
+        "PendingEntityTypes": [],
+        "TransactionCommitted": false,
+        "TransactionScope": "FIXTURE_CREATION",
+        "CleanupCompleted": false,
+        "FailureCategory": "HARNESS_OR_PREFLIGHT",
+        "FailedOperation": null,
+        "ValidationCategory": null,
+        "DetailAvailability": "No raw exception messages, entity values or HTTP bodies are persisted."
+      }
+    }
+  ]
+}

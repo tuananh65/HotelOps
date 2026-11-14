@@ -1,0 +1,35 @@
+{
+  "status": "FAIL",
+  "document": null,
+  "steps": [
+    {
+      "Id": "wrong-state",
+      "Kind": "INVARIANT",
+      "Status": "FAIL",
+      "ExceptionType": "PreconditionFault",
+      "Category": "BUSINESS_INVARIANT",
+      "Diagnostic": {
+        "Phase": "A004A-059 / wrong-state",
+        "FixtureStage": null,
+        "SaveChangesBoundary": null,
+        "ExceptionType": "PreconditionFault",
+        "InnerExceptionType": null,
+        "ExceptionChain": [
+          "PreconditionFault"
+        ],
+        "SqlErrors": [],
+        "EntityTypes": [],
+        "AffectedTables": [],
+        "ConstraintNames": [],
+        "PendingEntityTypes": [],
+        "TransactionCommitted": false,
+        "TransactionScope": "FIXTURE_CREATION",
+        "CleanupCompleted": false,
+        "FailureCategory": "HARNESS_OR_PREFLIGHT",
+        "FailedOperation": null,
+        "ValidationCategory": null,
+        "DetailAvailability": "No raw exception messages, entity values or HTTP bodies are persisted."
+      }
+    }
+  ]
+}

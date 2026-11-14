@@ -1,0 +1,135 @@
+﻿[
+    {
+        "file":  "auth-router-verified.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "8714E502D150177E6EF9EDC08CA7FA55705B56BAAF6017BBAE7B049995FCEC0E",
+        "rawLocalLogSha256":  "C5FFF025D547DBFA3E14514C24347A6A2A5C27F46DBF067180CC2CEFAFE3C72F",
+        "bytes":  19938
+    },
+    {
+        "file":  "backend-build-final.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "4F938F2F8C620DDBFF4797B33C278A3FC1C5F71C7DA5F2D08103BB4C39906D73",
+        "rawLocalLogSha256":  "5269A6669279AF1D2869DAABC57D663C1E251A21165BB176438818BD42D49687",
+        "bytes":  264
+    },
+    {
+        "file":  "backend-restore.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "40D104602671164AB3958225DA3E1C8CABD55F0251D6DF6BC911D9D5A24F44CE",
+        "rawLocalLogSha256":  "DDF68DB3D8D2F9572A71C51F3F3FDB8D71553978FEA549CDE378875132E4B7B4",
+        "bytes":  80
+    },
+    {
+        "file":  "canonical-session-replacement.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "0BF39483B53BD19FCC60DCAA88CFE6EDCF8F6B6A74A93E2BBF0795C9AEC0091C",
+        "rawLocalLogSha256":  "B77AD305C686A746678E3DD4A45CD1FF354FF8C5CA0172BDEBE84A1EB4EA874B",
+        "bytes":  212
+    },
+    {
+        "file":  "checklist-collection-test.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "98F5B25ECAB97942F1A345F81B39831DCBC7CFDB31672AFCC1CE30F64F3F3561",
+        "rawLocalLogSha256":  "EB29E64BB9D9C25C2D6E505B8DBAA5C3BE086189B068F47E7593DCE12A29464D",
+        "bytes":  733
+    },
+    {
+        "file":  "dev1-regression.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "CA874901AFAD1F68D3D53DB4B56487697102610065C518463F51A237F90CA6D5",
+        "rawLocalLogSha256":  "D9C53FBFA5CCAED37CB039CD575AFE15D47E74DA469A6660FA7AF134666E4CCA",
+        "bytes":  4031
+    },
+    {
+        "file":  "dev2-actions.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "4FFE8437DD6442A98670599BB8D9343C6B50C747BE0F6E50E6496F4D56EFCE05",
+        "rawLocalLogSha256":  "B66163C58CD8954147223CE40A9033AC8B91A7A1BB4AF981BB8F1A4621594A7A",
+        "bytes":  148
+    },
+    {
+        "file":  "dev2-offline.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "7E79F417C6ADAFF9C7B9179569B07935844F81A607154F417A6B2AB00FF831D7",
+        "rawLocalLogSha256":  "5F54F5B71713A54B04E00F1C74D42763859B476A4E0DAA852E2E5BDDF395EA0D",
+        "bytes":  209
+    },
+    {
+        "file":  "dev3-nosql-final.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "8E8435FAE6AD321964881E2B7AF8B83C5F6B24E213B5E3E96801D5B200CA8DDF",
+        "rawLocalLogSha256":  "9EC26A96152E3D5B9B51FADF95972248A601EF9660D7A42B9378551CC38A599D",
+        "bytes":  6456
+    },
+    {
+        "file":  "dev3-nosql-initial.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "9F6BCE5167266B6E5F1890741F4570CFDE37F7A733A271C5E5A8CF207F4E71C4",
+        "rawLocalLogSha256":  "3A4004D3002EFD163254B2FC4EA026611DE8374CEAE6BA6955E448DF4DDEC1FB",
+        "bytes":  2021
+    },
+    {
+        "file":  "frontend-build-final.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "EBF0AD56A75B133BF2663B3348FF8048902D6A4FB4FBBB48610AFA106DF2995B",
+        "rawLocalLogSha256":  "BF57ECE417C2946C22201FDFEDF6854CDE02D08F9354F82CCACDD67CB37CA2B5",
+        "bytes":  1445
+    },
+    {
+        "file":  "frontend-tests-bounded.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "F49FB1416053DF4D8550E878F0F05BF8D2A1C76F8683F14F86C606E6D4CBE7AB",
+        "rawLocalLogSha256":  "B51A19FF4710B61E55EDC7A29F462883FC16A2517588927C23D48DCA8FAA3970",
+        "bytes":  235472
+    },
+    {
+        "file":  "frontend-tests-initial.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "4769DCCDE8862FD2E18820F3AC7BC5E2A09D11F0B7C5249EECF6B4484ABC9F22",
+        "rawLocalLogSha256":  "CE06FACD532E2645187F5DA00B65381E6512BEA9BF2A82164E99D3D285F38483",
+        "bytes":  235727
+    },
+    {
+        "file":  "frontend-tests-verified.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "F85B95E54E049D44A397492B6B35C64399D945DCD60A26322F964BDA02BE5C92",
+        "rawLocalLogSha256":  "66A136E868B76411DA939123EB6E6C72835689D2EA1BEA6D1680E1C0E4788EBF",
+        "bytes":  234698
+    },
+    {
+        "file":  "inspection-domain.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "5FE6257A5FBAEB69B1FE10AF985287E40F28DE3A414D39A42B59CABE4974C3A2",
+        "rawLocalLogSha256":  "5C3663919DE1168F3E4A0C2E94C6C18D6C65C757593C241B160925C4E102190D",
+        "bytes":  1587
+    },
+    {
+        "file":  "inspection-loader.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "9E19D0141D1DFAF6962970D3E4FDDEC4D04E0C095ED00591948CEFFA306B847E",
+        "rawLocalLogSha256":  "A2F21547BB4F4BE83419937AECDA3F8A041F1E826D8FABC4581C2E9F2B6EFF06",
+        "bytes":  1605
+    },
+    {
+        "file":  "npm-ci.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "E3A0A713573B0B3A718E64D622ED6268EC6B7E851CABEA7864CEFCE96ACCAD44",
+        "rawLocalLogSha256":  "ED8187A0362B6B4B8BF37D4F5E2F28BA39AFAD1936C2407E03DC8F6F4CC158AF",
+        "bytes":  775
+    },
+    {
+        "file":  "solution-test.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "40D104602671164AB3958225DA3E1C8CABD55F0251D6DF6BC911D9D5A24F44CE",
+        "rawLocalLogSha256":  "DDF68DB3D8D2F9572A71C51F3F3FDB8D71553978FEA549CDE378875132E4B7B4",
+        "bytes":  80
+    },
+    {
+        "file":  "typecheck-final.log.txt",
+        "normalization":  "UTF-8; LF; trailing whitespace removed; final newline",
+        "sha256":  "D19787D5667C80ECFABAE9033751CCAFBFE51F3A2508FD8157078C0D62838527",
+        "rawLocalLogSha256":  "7D4C876A080D03DA93D23633A35C457A74D343270B515A77897E6EEB97A0FB9D",
+        "bytes":  43
+    }
+]

@@ -1,0 +1,7 @@
+{
+  "status": "PASS",
+  "assertions": 11,
+  "sqlConnections": 0,
+  "scope": "Synthetic in-memory snapshot built from actual EF metadata and deterministic synthetic manifest; no historical trial data or recovery SQL",
+  "orphanRecoverySql": "NOT_RUN"
+}

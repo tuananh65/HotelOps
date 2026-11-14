@@ -1,0 +1,131 @@
+﻿[
+    {
+        "branch":  "origin/feature/DEV2-fe14-fe15-scoped-review",
+        "sha":  "4ce3c4703ad621475d4da97ee2d4fc7e4a56276b",
+        "addedPathsRelativeToCanonical":  [
+                                              "src/HotelOps.Api/Controllers/AuditLogsController.cs",
+                                              "src/HotelOps.Api/Controllers/DashboardsController.cs",
+                                              "src/HotelOps.Api/Controllers/InsightErrorsAttribute.cs",
+                                              "src/HotelOps.Api/Controllers/ReportsController.cs",
+                                              "src/HotelOps.Api/DTOs/Insights/InsightContracts.cs",
+                                              "src/HotelOps.Api/Security/Authorization/Resources/MaintenanceWorkAccessReader.cs",
+                                              "src/HotelOps.Api/Services/Insights/AuditReadService.cs",
+                                              "src/HotelOps.Api/Services/Insights/AuditRedaction.cs",
+                                              "src/HotelOps.Api/Services/Insights/DashboardService.cs",
+                                              "src/HotelOps.Api/Services/Insights/InsightAccess.cs",
+                                              "src/HotelOps.Api/Services/Insights/InsightRegistration.cs",
+                                              "src/HotelOps.Api/Services/Insights/InsightUtcJson.cs",
+                                              "src/HotelOps.Api/Services/Insights/ReportReadService.cs",
+                                              "src/HotelOps.Api/Services/Insights/ReportSnapshotStore.cs"
+                                          ],
+        "recentCommits":  [
+                              "4ce3c47 feat(insights): add scoped read-only dashboard reports and audit candidate",
+                              "6aee2a0 Merge pull request #15 from tuananh65/integration/dev1-fe-handoff",
+                              "cf8fb02 chore: snapshot DEV1 backend for frontend integration"
+                          ]
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-approve-reinspection-composition",
+        "sha":  "d8d9195e13e0a5edb1edc79050ee56f24525209e",
+        "addedPathsRelativeToCanonical":  [
+                                              "frontend/src/features/inspectionReinspection/ReinspectionReviewCandidate.tsx",
+                                              "frontend/tests/fe05-fast013-reinspection.test.mjs",
+                                              "src/HotelOps.Api/Controllers/InspectionConclusionController.cs",
+                                              "src/HotelOps.Api/Controllers/ReinspectionReviewCandidateController.cs",
+                                              "src/HotelOps.Api/DTOs/Housekeeping/InspectionConclusionDtos.cs",
+                                              "src/HotelOps.Api/DTOs/Housekeeping/ReinspectionReviewDtos.cs",
+                                              "src/HotelOps.Api/Data/HotelOpsDbContext.Notifications.cs",
+                                              "src/HotelOps.Api/Data/IntegrationSqlGuard.cs",
+                                              "src/HotelOps.Api/Data/NotificationSchemaValidator.cs",
+                                              "src/HotelOps.Api/Entities/Notifications/NotificationIntent.cs",
+                                              "src/HotelOps.Api/Security/Authorization/Resources/MaintenanceWorkAccessReader.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionApproveComposition.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionApproveDomainWriter.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionAuthorityIntegration.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionClosedTrialExecution.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionCompositionRegistration.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionPreparation.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionService.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionSql.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionDecision08Candidate.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionN01Composition.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionOutcomeRecovery.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionOwnerSourceCoordination.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionR05CleanerSource.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionRecipientPermissionContract.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionRecipientRoster.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionRecipientSourceReadCandidate.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionReworkSourceService.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionRoomProjectionAdapter.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionSupervisorBinding.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionTrustedIssuer.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionUsersPrelock.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionVersionedEvidenceBinding.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionVersionedEvidenceCandidate.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/ReinspectionDecisionValidator.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/ReinspectionLifecycleCandidate.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/ReinspectionPersistenceCandidate.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/ReinspectionReviewCandidateService.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/ReinspectionSourceCandidate.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05CallerIntegration.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05Decision08Recipients.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05Fs013CandidateStore.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05NotificationContracts.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05NotificationStaging.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05OperationStaging.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05RecipientResolution.cs",
+                                              "src/HotelOps.Api/Services/Notifications/Fe05SourceCoordination.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationCleaningReadQuery.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationContracts.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationDelivery.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationDeliveryFailures.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationDeliveryWorker.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationInbox.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationPublisher.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationRegistration.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationSourcePolicy.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationSourceReference.cs",
+                                              "src/HotelOps.Api/Services/Notifications/NotificationTransactionParticipant.cs"
+                                          ],
+        "recentCommits":  [
+                              "d8d9195 feat(fe05): compose approve and prepare reinspection lifecycle candidates",
+                              "96b1681 feat(fe05): prepare approve and reinspection domain steps",
+                              "53531b7 feat(inspection): close candidate recipient replay and versioned evidence seams"
+                          ]
+    },
+    {
+        "branch":  "origin/feature/dev1-fe05-authoritative-composition",
+        "sha":  "5a6eea8645a54d231724caee0fa0a258f55dc2d3",
+        "addedPathsRelativeToCanonical":  [
+                                              "src/HotelOps.Api/Controllers/InspectionConclusionController.cs",
+                                              "src/HotelOps.Api/DTOs/Housekeeping/InspectionConclusionDtos.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionAuthorityIntegration.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionPreparation.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionService.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionSql.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionReworkSourceService.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionRoomProjectionAdapter.cs",
+                                              "src/HotelOps.Api/Services/Housekeeping/InspectionTrustedIssuer.cs"
+                                          ],
+        "recentCommits":  [
+                              "5a6eea8 feat(inspection): prepare trusted SQL issuer and isolated N01 composition",
+                              "c3fe6bb feat(inspection): wire pinned rework authority preparation and projection adapter",
+                              "a5048a7 feat(inspection): prepare approval and caller transaction preflights"
+                          ]
+    },
+    {
+        "branch":  "origin/feature/DEV2-deactivation-writer-coordination",
+        "sha":  "1a63e8e0a49f8482069eb64087412e570a57d65d",
+        "addedPathsRelativeToCanonical":  [
+                                              "src/HotelOps.Api/DTOs/Maintenance/MaintenanceCycleContracts.cs",
+                                              "src/HotelOps.Api/Entities/MaintenanceWorkCycle.cs",
+                                              "src/HotelOps.Api/Services/Maintenance/MaintenanceOptions.cs",
+                                              "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Cycles.cs"
+                                          ],
+        "recentCommits":  [
+                              "1a63e8e fix(deactivation): coordinate responsibility writers",
+                              "95ff88c test(integration): add authenticated DEV2 runner client",
+                              "79af4ce Merge branch \u0027feature/BE2-maintenance-reopen-cycle\u0027 into develop"
+                          ]
+    }
+]
