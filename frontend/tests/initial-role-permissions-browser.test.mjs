@@ -1,14 +1,32 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { build } from "esbuild";
+import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 import { session } from "./workday-fixtures.mjs";
 const bundle = await build({
   stdin: {
     loader: "tsx",
     resolveDir: process.cwd(),
-    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{InitialRolePermissionsPanel}from'./src/roles/InitialRolePermissionsPanel';const s=window.scenario,calls=[],grants=new Map();let finish;const permission={permissionId:10,permissionCode:'ROOM_VIEW',permissionName:'View rooms',moduleCode:'ROOM',resourceCode:'room',actionCode:'view',description:null};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json(s.anonymous?{}:{...${JSON.stringify(session())},mustChangePassword:!!s.restricted},{status:s.anonymous?401:200});if(u==='/api/auth/csrf'){const run=()=>{const r=Response.json(s.csrfStatus?{detail:'SECRET'}:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC'},{status:s.csrfStatus??200});if(s.csrfUnreadable)r.text=async()=>{throw Error('SECRET')};return r;};if(s.deferCsrf)return new Promise(r=>finish=()=>r(run()));return run();}if(u.startsWith('/api/permissions/catalog'))return Response.json({items:[permission,{...permission,permissionId:11,permissionCode:'USER_MANAGE',permissionName:'Manage users',moduleCode:'ADMIN'}],page:1,pageSize:25,total:2});const roleId=Number(u.split('/')[3]);if(o.method==='GET'&&s.readStatus)return Response.json({detail:'SECRET'},{status:s.readStatus});if(o.method==='POST'){const run=()=>{if(s.network)throw Error('SECRET');if(s.status){const r=Response.json({detail:'SECRET',traceId:'SECRET'},{status:s.status});if(s.postUnreadable)r.text=async()=>{throw Error('SECRET')};return r;}const g=JSON.parse(o.body).grants;grants.set(roleId,g);return Response.json(s.malformed?{}:{contractVersion:1,roleId,grants:g},{status:201})};if(s.defer)return new Promise(r=>finish=()=>r(run()));return run();}const g=grants.get(roleId)??[];return Response.json({role:{roleId,roleCode:'CUSTOM_TEST',roleName:'Custom '+roleId,description:null,isSystemRole:!!s.system,isActive:true,assignedUserCount:0,permissionGrantCount:g.length},grants:g.map((v,i)=>({rolePermissionId:60+i,permission,dataScope:v.dataScope}))});};const store=createAuthStore(createAuthApi(window.fetch));function App(){const[id,setId]=useState(7);return <><button onClick={()=>setId(8)}>Change role</button><InitialRolePermissionsPanel roleId={id} dispatchEnabled={s.enabled??false}/></>};const app=<App/>;createRoot(document.getElementById('root')).render(<AuthProvider store={store} fallback={<p>Checking session</p>}>{app}</AuthProvider>);window.fixture={calls,finish:()=>finish(),replace:()=>store.revalidate()};`,
+    contents: `import React,{useState}from'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import{InitialRolePermissionsPanel}from'./src/roles/InitialRolePermissionsPanel';const s=window.scenario,calls=[],grants=new Map();let finish;const permission={permissionId:10,permissionCode:'ROOM_VIEW',permissionName:'View rooms',moduleCode:'ROOM',resourceCode:'room',actionCode:'view',description:null};window.fetch=async(u,o)=>{calls.push({url:u,method:o.method});if(u==='/api/auth/session')return Response.json(s.anonymous?{}:{...${JSON.stringify(session())},user:{id:s.actorId??"7",username:"synthetic",name:"Synthetic"},mustChangePassword:!!s.restricted},{status:s.anonymous?401:200});if(u==='/api/auth/csrf'){const run=()=>{const r=Response.json(s.csrfStatus?{detail:'SECRET'}:{headerName:'X-CSRF-TOKEN',csrfToken:'SYNTHETIC'},{status:s.csrfStatus??200});if(s.csrfUnreadable)r.text=async()=>{throw Error('SECRET')};return r;};if(s.deferCsrf)return new Promise(r=>finish=()=>r(run()));return run();}if(u.startsWith('/api/permissions/catalog'))return Response.json({items:[permission,{...permission,permissionId:11,permissionCode:'USER_MANAGE',permissionName:'Manage users',moduleCode:'ADMIN'}],page:1,pageSize:25,total:2});const roleId=Number(u.split('/')[3]);if(o.method==='GET'&&s.readStatus)return Response.json({detail:'SECRET'},{status:s.readStatus});if(o.method==='POST'){const run=()=>{if(s.network)throw Error('SECRET');if(s.status){const r=Response.json({detail:'SECRET',traceId:'SECRET'},{status:s.status});if(s.postUnreadable)r.text=async()=>{throw Error('SECRET')};return r;}const g=JSON.parse(o.body).grants;grants.set(roleId,g);return Response.json(s.malformed?{}:{contractVersion:1,roleId,grants:g},{status:201})};if(s.defer)return new Promise(r=>finish=()=>r(run()));return run();}const g=grants.get(roleId)??[];return Response.json({role:{roleId,roleCode:'CUSTOM_TEST',roleName:'Custom '+roleId,description:null,isSystemRole:!!s.system,isActive:true,assignedUserCount:0,permissionGrantCount:g.length},grants:g.map((v,i)=>({rolePermissionId:60+i,permission,dataScope:v.dataScope}))});};let store=createAuthStore(createAuthApi(window.fetch));function App(){const[id,setId]=useState(7);const[visible,setVisible]=useState(true);return <><button onClick={()=>setVisible(v=>!v)}>Toggle editor</button><button onClick={()=>setId(v=>v===7?8:7)}>Change role</button>{visible&&<InitialRolePermissionsPanel roleId={id} dispatchEnabled={s.enabled??false}/>}</>};const app=<App/>,root=createRoot(document.getElementById('root'));let revision=0;const render=()=>root.render(<AuthProvider key={revision} store={store} fallback={<p>Checking session</p>}>{app}</AuthProvider>);render();window.fixture={calls,finish:()=>finish(),replace:()=>store.revalidate(),replaceProvider:()=>{store=createAuthStore(createAuthApi(window.fetch));revision++;render();}};`,
   },
+  plugins: [
+    {
+      name: "observe-operation-results",
+      setup(b) {
+        b.onLoad({ filter: /initialRolePermissionsApi\.ts$/ }, (args) => ({
+          loader: "ts",
+          contents:
+            readFileSync(args.path, "utf8").replace(
+              "export function createInitialRolePermissionsApi",
+              "function baseInitialRolePermissionsApi",
+            ) +
+            `
+export function createInitialRolePermissionsApi(...args: Parameters<typeof baseInitialRolePermissionsApi>){const api=baseInitialRolePermissionsApi(...args);return {...api,async save(...input: Parameters<typeof api.save>){(window as any).operationStates.push('PENDING');const r=await api.save(...input);(window as any).operationStates.push(r.outcome);return r;}}}`,
+        }));
+      },
+    },
+  ],
   bundle: true,
   write: false,
   format: "iife",
@@ -38,6 +56,7 @@ async function run(s, fn) {
     await p.goto("https://offline.test");
     await p.evaluate((s) => {
       window.scenario = s;
+      window.operationStates = [];
       for (const k of ["localStorage", "sessionStorage"])
         Object.defineProperty(window, k, {
           get() {
@@ -307,3 +326,251 @@ for (const status of [403, 503])
         assert.equal((await posts(p)).length, 0);
       },
     ));
+
+async function start080(p) {
+  await review(p);
+  await p.getByRole("button", { name: "Confirm and save" }).click();
+}
+async function settled080(p, outcome) {
+  await p.waitForFunction((o) => window.operationStates.includes(o), outcome);
+}
+async function noReplay080(p) {
+  const c = p.getByLabel("ROOM_VIEW", { exact: true });
+  if ((await c.count()) && (await c.isEnabled())) {
+    const reviewButton = p.getByRole("button", {
+      name: "Review permissions",
+      exact: true,
+    });
+    if (await reviewButton.isDisabled()) {
+      // A stale editor may still let the user inspect/select permissions, but not review/save.
+      await reviewButton.evaluate((button) => button.click());
+      assert.equal(
+        await p.getByRole("button", { name: "Confirm and save" }).count(),
+        0,
+      );
+    } else {
+      await start080(p);
+    }
+    await p
+      .waitForFunction(
+        () =>
+          window.fixture.calls.filter((c) => c.method === "POST").length > 1,
+        undefined,
+        { timeout: 1000 },
+      )
+      .catch(() => {});
+  }
+  assert.equal(
+    (await posts(p)).length,
+    1,
+    "uncertain operation must not allow second POST",
+  );
+}
+for (const mode of ["unmount", "provider", "role"])
+  test(`080 pending ${mode} late unknown lock`, () =>
+    run(
+      {
+        enabled: true,
+        defer: true,
+        status: mode === "provider" ? 401 : 503,
+        postUnreadable: true,
+      },
+      async (p) => {
+        await start080(p);
+        await p.waitForFunction(() =>
+          window.fixture.calls.some((c) => c.method === "POST"),
+        );
+        if (mode === "unmount")
+          await p.getByRole("button", { name: "Toggle editor" }).click();
+        if (mode === "provider")
+          await p.evaluate(() => window.fixture.replaceProvider());
+        if (mode === "provider")
+          await p.getByText("Custom 7", { exact: true }).waitFor();
+        if (mode === "role")
+          await p.getByRole("button", { name: "Change role" }).click();
+        await p.evaluate(() => window.fixture.finish());
+        await settled080(p, "OUTCOME_UNKNOWN");
+        if (mode === "unmount")
+          await p.getByRole("button", { name: "Toggle editor" }).click();
+        if (mode === "role")
+          await p.getByRole("button", { name: "Change role" }).click();
+        await p.getByText("Custom 7", { exact: true }).waitFor();
+        assert.equal(
+          await p.getByText("Confirmed unrestricted session required.").count(),
+          0,
+        );
+        await noReplay080(p);
+      },
+    ));
+for (const mode of ["revalidate", "role"])
+  test(`080 unknown survives ${mode}`, () =>
+    run({ enabled: true, network: true }, async (p) => {
+      await start080(p);
+      await settled080(p, "OUTCOME_UNKNOWN");
+      if (mode === "revalidate")
+        await p.evaluate(() => window.fixture.replace());
+      else {
+        await p.getByRole("button", { name: "Change role" }).click();
+        await p.getByText("Custom 8", { exact: true }).waitFor();
+        assert.equal(
+          await p.getByLabel("ROOM_VIEW", { exact: true }).isEnabled(),
+          true,
+        );
+        await p.getByRole("button", { name: "Change role" }).click();
+      }
+      await p.getByText("Custom 7", { exact: true }).waitFor();
+      await noReplay080(p);
+    }));
+test("080 different principal same role characterization", () =>
+  run({ enabled: true, status: 401, postUnreadable: true }, async (p) => {
+    await start080(p);
+    await settled080(p, "OUTCOME_UNKNOWN");
+    await p.evaluate(() => {
+      window.scenario.actorId = "8";
+      window.fixture.replaceProvider();
+    });
+    await p.getByText("Custom 7", { exact: true }).waitFor();
+    assert.equal((await posts(p)).length, 1);
+    assert.equal(
+      await p.getByLabel("ROOM_VIEW", { exact: true }).isEnabled(),
+      true,
+    );
+  }));
+test("080 pending duplicate blocked then CONFIRMED", () =>
+  run({ enabled: true, defer: true }, async (p) => {
+    await review(p);
+    await p.getByRole("button", { name: "Confirm and save" }).evaluate((b) => {
+      b.click();
+      b.click();
+    });
+    await p.waitForFunction(() =>
+      window.fixture.calls.some((c) => c.method === "POST"),
+    );
+    assert.deepEqual(await p.evaluate(() => window.operationStates), [
+      "PENDING",
+    ]);
+    assert.equal((await posts(p)).length, 1);
+    await p.evaluate(() => window.fixture.finish());
+    await settled080(p, "CONFIRMED");
+  }));
+for (const [s, o, n] of [
+  [{ status: 409 }, "REJECTED", 1],
+  [{ csrfStatus: 401 }, "NOT_DISPATCHED", 0],
+])
+  test(`080 ${o}`, () =>
+    run({ enabled: true, ...s }, async (p) => {
+      await start080(p);
+      await settled080(p, o);
+      assert.equal((await posts(p)).length, n);
+    }));
+test("080 reload limitation characterization", () =>
+  run({ enabled: true, network: true }, async (p) => {
+    await start080(p);
+    await settled080(p, "OUTCOME_UNKNOWN");
+    await p.reload();
+    await p.evaluate(() => {
+      window.scenario = { enabled: true };
+      window.operationStates = [];
+    });
+    await p.addScriptTag({ content: bundle.outputFiles[0].text });
+    await p.getByText("Custom 7", { exact: true }).waitFor();
+    assert.equal(
+      await p.getByLabel("ROOM_VIEW", { exact: true }).isEnabled(),
+      true,
+    );
+    assert.equal((await posts(p)).length, 0);
+  }));
+
+// B03: pending exclusion must hold BEFORE the original response arrives.
+for (const mode of ["unmount", "provider", "session", "role"])
+  test("B03 pending reservation before completion: " + mode, () =>
+    run(
+      { enabled: true, defer: true, status: 503, postUnreadable: true },
+      async (p) => {
+        await start080(p);
+        await p.waitForFunction(() =>
+          window.fixture.calls.some((c) => c.method === "POST"),
+        );
+        if (mode === "unmount") {
+          await p.getByRole("button", { name: "Toggle editor" }).click();
+          await p.getByRole("button", { name: "Toggle editor" }).click();
+        } else if (mode === "role") {
+          await p.getByRole("button", { name: "Change role" }).click();
+          await p.getByText("Custom 8", { exact: true }).waitFor();
+          await p.getByRole("button", { name: "Change role" }).click();
+        } else
+          await p.evaluate(
+            (mode) =>
+              mode === "provider"
+                ? window.fixture.replaceProvider()
+                : window.fixture.replace(),
+            mode,
+          );
+        await p.getByText("Custom 7", { exact: true }).waitFor();
+        const select = p.getByLabel("ROOM_VIEW", { exact: true });
+        if (await select.isEnabled()) await select.check();
+        assert.equal(
+          await p
+            .getByRole("button", { name: "Review permissions", exact: true })
+            .isDisabled(),
+          true,
+        );
+        await noReplay080(p);
+        await p.evaluate(() => window.fixture.finish());
+        await settled080(p, "OUTCOME_UNKNOWN");
+        await noReplay080(p);
+      },
+    ),
+  );
+for (const profile of [
+  { status: 401, postUnreadable: true },
+  { status: 503, postUnreadable: true },
+  { network: true },
+  { malformed: true },
+])
+  test(
+    "B03 provider round trip retains unknown " + JSON.stringify(profile),
+    () =>
+      run({ enabled: true, ...profile }, async (p) => {
+        await start080(p);
+        await settled080(p, "OUTCOME_UNKNOWN");
+        await p.evaluate(() => window.fixture.replaceProvider());
+        await p.getByText(/Outcome unknown/).waitFor();
+        await noReplay080(p);
+        await p.evaluate(() => {
+          window.scenario.actorId = "8";
+          window.fixture.replaceProvider();
+        });
+        await p.getByText("Custom 7", { exact: true }).waitFor();
+        assert.equal(await p.getByText(/Outcome unknown/).count(), 0);
+        if (profile.malformed) {
+          // This fixture committed the grants but returned malformed success.
+          // Another principal sees the server's configured role, not an uncertainty lock.
+          await p.getByText("Existing grants: 1", { exact: true }).waitFor();
+          assert.equal(
+            await p
+              .getByRole("button", { name: "Review permissions", exact: true })
+              .count(),
+            0,
+          );
+        } else {
+          await review(p);
+          assert.equal(
+            await p
+              .getByRole("button", { name: "Confirm and save" })
+              .isEnabled(),
+            true,
+          );
+        }
+        await p.evaluate(() => {
+          window.scenario.actorId = "7";
+          window.fixture.replaceProvider();
+        });
+        await p.getByText(/Outcome unknown/).waitFor();
+        assert.equal(
+          await p.getByRole("button", { name: "Confirm and save" }).count(),
+          0,
+        );
+        await noReplay080(p);
+      }),
+  );
