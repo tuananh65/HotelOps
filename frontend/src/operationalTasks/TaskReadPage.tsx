@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 import { TaskProgressPanel } from "./TaskProgressPanel";
+import { TaskCriteriaSetup } from "./TaskCriteriaSetup";
 import {
   readTasks,
   TaskReadFailure,
@@ -21,6 +22,7 @@ export function TaskReadPage() {
       : null;
   const [branch, setBranch] = useState("");
   const [search, setSearch] = useState("");
+  const [progressRevision, setProgressRevision] = useState(0);
   const [query, setQuery] = useState<{
     branch: number;
     search: string;
@@ -149,8 +151,17 @@ export function TaskReadPage() {
           <p>{detail.description}</p>
           <p>{detail.completionNote}</p>
           {detail.task.status === "IN_PROGRESS" && (
+            <TaskCriteriaSetup
+              key={`setup:${owner}:${detail.task.branchId}:${detail.task.id}`}
+              branch={detail.task.branchId}
+              task={detail.task.id}
+              owner={owner}
+              onInitialized={() => setProgressRevision((n) => n + 1)}
+            />
+          )}
+          {detail.task.status === "IN_PROGRESS" && (
             <TaskProgressPanel
-              key={`${owner}:${detail.task.branchId}:${detail.task.id}`}
+              key={`${owner}:${detail.task.branchId}:${detail.task.id}:${progressRevision}`}
               branch={detail.task.branchId}
               task={detail.task.id}
               owner={owner}

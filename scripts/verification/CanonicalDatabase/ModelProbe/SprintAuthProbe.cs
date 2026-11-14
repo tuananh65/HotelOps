@@ -16,9 +16,9 @@ internal static class SprintAuthProbe
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var ct = budget.Token;
-        var database=taskCriteria?"HotelOps_DEV3_142A_CriteriaTrial_e84a22ee":Database;
-        var guid=taskCriteria?"dd2d43c2-bcea-4a95-abd8-aee38fbac050":new Guid("1D5A9B53"+"-7D19"+"-435A"+"-96AB"+"-9FDFF447B6E0").ToString();
-        var run=taskCriteria?"e84a22eef066442ba40af7b8e00641bb":"cc78c13ffc124efcad67b3d804baa84c";
+        var database=taskCriteria?"HotelOps_DEV3_142A_CriteriaTrial_037b659a":Database;
+        var guid=taskCriteria?"57748c4c-9803-49bf-bc30-508e6ea8bd3e":new Guid("1D5A9B53"+"-7D19"+"-435A"+"-96AB"+"-9FDFF447B6E0").ToString();
+        var run=taskCriteria?"037b659ad5d348e783301e5d3e1ed3d5":"cc78c13ffc124efcad67b3d804baa84c";
         await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
             .UseSqlServer($"Server=localhost;Database={database};Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         await db.Database.OpenConnectionAsync(ct);

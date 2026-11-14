@@ -105,7 +105,9 @@ public sealed partial class RoomTypeCreationService
             }
             else
             {
-                var task = await db.OperationalTasks.AsNoTracking().SingleOrDefaultAsync(t => t.TaskId == id && t.BranchId == branch, token);
+                var task = await db.OperationalTasks.AsNoTracking().SingleOrDefaultAsync(t => t.TaskId == id && t.BranchId == branch
+                    && t.Department.BranchId == branch && (t.RoomId == null || t.Room!.BranchId == branch)
+                    && (t.AreaId == null || t.Area!.BranchId == branch), token);
                 if (task == null) return new(RoomTypeBatchStatus.NotFound);
                 if (task.Status != "IN_PROGRESS" || task.ActualStartAt == null) return new(RoomTypeBatchStatus.Inactive);
                 if (await ProgressRevision(false, id, token) != null) return new(RoomTypeBatchStatus.Duplicate);

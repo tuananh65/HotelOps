@@ -132,6 +132,68 @@ export async function readTaskProgress(
 ) {
   return snapshot(await request(path(branch, task), signal), branch, task);
 }
+export async function initializeTaskProgress(
+  branch: number,
+  task: number,
+  items: { label: string; required: boolean }[],
+  reason: string,
+  signal: AbortSignal,
+) {
+  const url = path(branch, task).replace(
+    /\/progress$/,
+    "/progress-initialization",
+  );
+  if (
+    !Array.isArray(items) ||
+    items.length < 1 ||
+    items.length > 100 ||
+    items.some(
+      (i) =>
+        !i ||
+        typeof i.label !== "string" ||
+        !i.label.trim() ||
+        !text(i.label, 250) ||
+        typeof i.required !== "boolean",
+    ) ||
+    new Set(items.map((i) => i.label.trim().toLowerCase())).size !==
+      items.length ||
+    typeof reason !== "string" ||
+    reason.trim().length < 10 ||
+    !text(reason, 500)
+  )
+    throw new Error("Invalid task criteria input");
+  const csrf = await (await request("/api/auth/csrf", signal)).json();
+  if (
+    csrf?.headerName !== "X-CSRF-TOKEN" ||
+    typeof csrf.csrfToken !== "string" ||
+    !csrf.csrfToken.trim() ||
+    /[\r\n]/.test(csrf.csrfToken)
+  )
+    throw new Error("Invalid CSRF response");
+  signal.throwIfAborted();
+  const response = await request(url, signal, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRF-TOKEN": csrf.csrfToken,
+    },
+    body: JSON.stringify({
+      items: items.map((i) => ({
+        label: i.label.trim(),
+        required: i.required,
+      })),
+      reason: reason.trim(),
+    }),
+  });
+  const result = await response.json();
+  if (
+    response.status !== 201 ||
+    result?.id !== task ||
+    result?.kind !== "task" ||
+    result?.initialized !== true
+  )
+    throw new Error("Invalid task initialization response");
+}
 export async function saveTaskProgress(
   branch: number,
   task: number,

@@ -14,7 +14,7 @@ const source = ts.transpileModule(
     },
   },
 ).outputText;
-const { readTaskProgress, saveTaskProgress, TaskProgressError } = await import(
+const { readTaskProgress, saveTaskProgress, initializeTaskProgress, TaskProgressError } = await import(
   "data:text/javascript;base64," + Buffer.from(source).toString("base64")
 );
 const data = {
@@ -197,4 +197,25 @@ test("saved evidence must belong to this exact task and use its protected downlo
   assert.deepEqual((await readTaskProgress(2, 4, signal)).data.evidence, [
     file,
   ]);
+});
+
+test('initialization validates definitions before dispatch',async t=>{
+ t.mock.method(globalThis,'fetch',()=>assert.fail('network'));
+ for(const items of [[],[{label:'A',required:true},{label:' a ',required:false}],[{label:'',required:true}]])
+  await assert.rejects(initializeTaskProgress(2,4,items,'Valid setup reason',signal),/Invalid task criteria input/);
+});
+test('initialization uses fresh CSRF and validates created task identity',async t=>{
+ const calls=[];
+ t.mock.method(globalThis,'fetch',async(url,options)=>{
+  calls.push(url);if(url==='/api/auth/csrf')return Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'});
+  assert.equal(url,'/api/branches/2/operational-tasks/4/progress-initialization');assert.equal(options.method,'POST');
+  assert.equal(options.headers['X-CSRF-TOKEN'],'synthetic');assert.deepEqual(JSON.parse(options.body),{items:[{label:'A',required:true}],reason:'Valid setup reason'});
+  return Response.json({id:4,kind:'task',initialized:true},{status:201});
+ });
+ await initializeTaskProgress(2,4,[{label:' A ',required:true}],' Valid setup reason ',signal);assert.equal(calls.length,2);
+});
+test('duplicate initialization is not retried',async t=>{
+ const mock=t.mock.method(globalThis,'fetch',async url=>url==='/api/auth/csrf'?Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'}):new Response('',{status:409}));
+ await assert.rejects(initializeTaskProgress(2,4,[{label:'A',required:true}],'Valid setup reason',signal),e=>e instanceof TaskProgressError&&e.status===409);
+ assert.equal(mock.mock.callCount(),2);
 });

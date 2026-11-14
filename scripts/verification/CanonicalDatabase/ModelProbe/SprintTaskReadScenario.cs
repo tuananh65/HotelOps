@@ -33,14 +33,15 @@ internal static class SprintTaskReadScenario
             db.Departments.AddRange(d1,d2);await db.SaveChangesAsync(ct);department=d1.DepartmentId;
             var rows=Enumerable.Range(0,4).Select(i=>new OperationalTask{TaskCode=prefix+i,Title="Synthetic task "+i,
                 BranchId=i==2?b2.BranchId:b1.BranchId,DepartmentId=i>=2?d2.DepartmentId:d1.DepartmentId,
-                Status=i is 0 or 3?"IN_PROGRESS":"TODO",Description="Synthetic description",CreatedBy=actor,CreatedAt=DateTime.UtcNow}).ToArray();
+                Status=i is 0 or 3?"IN_PROGRESS":"TODO",ActualStartAt=i==0?DateTime.UtcNow.AddMinutes(-5):null,Description="Synthetic description",CreatedBy=actor,CreatedAt=DateTime.UtcNow}).ToArray();
             db.OperationalTasks.AddRange(rows);await db.SaveChangesAsync(ct);tasks=rows.Select(t=>t.TaskId).ToArray();
             var a=new OperationalTaskAssignment{TaskId=tasks[0],AssigneeId=actor,AssignedBy=actor,AssignedAt=DateTime.UtcNow.AddMinutes(-1),AssignmentStatus="ACTIVE"};
             db.OperationalTaskAssignments.Add(a);
             db.OperationalTaskProgresses.AddRange(new OperationalTaskProgress{TaskId=tasks[0],ReportedBy=actor,ReportedAt=DateTime.UtcNow.AddMinutes(-1),ProgressPercent=10,NewStatus="TODO",Description="Earlier synthetic update"},
                 new OperationalTaskProgress{TaskId=tasks[0],ReportedBy=actor,ReportedAt=DateTime.UtcNow,ProgressPercent=20,NewStatus="TODO",Description="Latest synthetic update"});
             await db.SaveChangesAsync(ct);assignment=a.AssignmentId;db.ChangeTracker.Clear();
-            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[0]},'IN_PROGRESS'),({tasks[3]},'IN_PROGRESS')",ct);
+            if(!criteria)await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[0]},'IN_PROGRESS')",ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[3]},'IN_PROGRESS')",ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.operational_task_assignments(task_id,assignee_id,assigned_by,assigned_at,assignment_status) VALUES({tasks[3]},{actor},{actor},SYSUTCDATETIME(),'ACTIVE')",ct);
         }
         async Task Cleanup(CancellationToken token)
@@ -73,11 +74,6 @@ internal static class SprintTaskReadScenario
         try
         {
             await using(var seed=await db.Database.BeginTransactionAsync(ct)){await Seed();await seed.CommitAsync(ct);}
-            if(criteria)
-            {
-                if(!await ProgressSchema.InstalledAsync(db,ct))throw new Exception("Progress schema incompatible");
-                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_completion_criteria(task_id,label,is_required,sort_order) VALUES({tasks[0]},'Synthetic required criterion',1,0),({tasks[0]},'Synthetic optional criterion',0,1)",ct);
-            }
             var root=$"/api/branches/{branches[0]}/operational-tasks";
             await Get(root,403);
             var role=await db.Roles.Where(r=>r.RoleCode=="HK_STAFF"&&r.IsActive).Select(r=>r.RoleId).SingleAsync(ct);
@@ -89,6 +85,40 @@ internal static class SprintTaskReadScenario
             if(detail.GetProperty("progressTotalCount").GetInt32()!=2||detail.GetProperty("progress")[0].GetProperty("description").GetString()!="Latest synthetic update")throw new Exception("History order/page mismatch");
             await Get(root+"/"+tasks[1],404);await Get(root+"/"+tasks[2],404);await Get($"/api/branches/{branches[1]}/operational-tasks",403);
             await Get(root+"?page=0",400);await Get(root+"?pageSize=101",400);await Get(root+"?page=2147483647",400);
+            if(criteria)
+            {
+                if(!await ProgressSchema.InstalledAsync(db,ct))throw new Exception("Progress schema incompatible");
+                using var setupCsrfResponse=await http.GetAsync("/api/auth/csrf",ct);setupCsrfResponse.EnsureSuccessStatusCode();
+                using var setupCsrfJson=JsonDocument.Parse(await setupCsrfResponse.Content.ReadAsStringAsync(ct));
+                var setupCsrf=setupCsrfJson.RootElement.GetProperty("csrfToken").GetString()!;
+                async Task Initialize(long id,int expected,bool token=true)
+                {
+                    using var req=new HttpRequestMessage(HttpMethod.Post,root+"/"+id+"/progress-initialization"){
+                        Content=JsonContent.Create(new{items=new[]{new{label="Synthetic duplicate attempt",required=true}},reason="Synthetic initialization authority check"})};
+                    if(token)req.Headers.Add("X-CSRF-TOKEN",setupCsrf);
+                    using var response=await http.SendAsync(req,ct);checks.Add(new{initializationExpected=expected,actual=(int)response.StatusCode});
+                    if((int)response.StatusCode!=expected)throw new Exception("Initialization status mismatch: "+(int)response.StatusCode);
+                }
+                await Initialize(tasks[0],403);await Initialize(tasks[0],400,false);
+                var managerRole=await db.Roles.Where(r=>r.RoleCode=="DEPT_MANAGER"&&r.IsActive).Select(r=>r.RoleId).SingleAsync(ct);
+                var manager=new UserRole{UserId=actor,RoleId=managerRole,BranchId=branches[0],IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-2)};
+                db.UserRoles.Add(manager);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+                await Initialize(tasks[3],404);await Initialize(tasks[1],409);
+                var setup=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};
+                setup.ArgumentList.Add("frontend/scripts/sprintTaskInitializeBrowser.mjs");
+                using(var process=Process.Start(setup)??throw new Exception("Setup browser unavailable"))
+                {
+                    try{
+                        await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch=branches[0],code=prefix+"0"}).AsMemory(),ct);process.StandardInput.Close();
+                        var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);await process.WaitForExitAsync(ct);
+                        using var json=JsonDocument.Parse(await output);await errors;checks.Add(new{taskInitializationBrowser=json.RootElement.Clone()});
+                        if(!json.RootElement.GetProperty("success").GetBoolean())throw new Exception("Initialization browser failed at "+json.RootElement.GetProperty("stage").GetString());
+                    }finally{if(!process.HasExited)process.Kill(entireProcessTree:true);}
+                }
+                await Initialize(tasks[0],409);
+                await db.UserRoles.Where(r=>r.UserRoleId==manager.UserRoleId).ExecuteDeleteAsync(ct);
+                checks.Add(new{criteriaInitializedThroughBrowserAndApi=true});
+            }
             var progressPath=root+"/"+tasks[0]+"/progress";
             using var initial=await http.GetAsync(progressPath,ct);initial.EnsureSuccessStatusCode();
             var version=initial.Headers.ETag?.ToString()??throw new Exception("Missing progress ETag");
@@ -128,7 +158,7 @@ internal static class SprintTaskReadScenario
                 throw new Exception("Progress persisted incorrectly or duplicate was applied");
             checks.Add(new{taskProgressPersisted=true,percent=100,status=persisted.Status,duplicateRejected=true});
             var taskKey=tasks[0].ToString(System.Globalization.CultureInfo.InvariantCulture);
-            if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=1)
+            if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=(criteria?2:1))
                 throw new Exception("Progress audit missing or failed requests produced audit");
             using var raceRead=await http.GetAsync(progressPath,ct);raceRead.EnsureSuccessStatusCode();
             var raceVersion=raceRead.Headers.ETag!.ToString();
@@ -140,7 +170,7 @@ internal static class SprintTaskReadScenario
             }
             var race=await Task.WhenAll(Race("Concurrent synthetic A"),Race("Concurrent synthetic B"));
             if(!race.Order().SequenceEqual(new[]{200,412})||await db.OperationalTaskProgresses.CountAsync(p=>p.TaskId==tasks[0],ct)!=4
-                ||await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=2)
+                ||await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=(criteria?3:2))
                 throw new Exception("Concurrent progress lost update or duplicate audit");
             checks.Add(new{concurrentProgressStatuses=race,singleWinnerAndAudit=true});
             await db.OperationalTaskAssignments.Where(a=>a.AssignmentId==assignment).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.EndedAt,DateTime.UtcNow),ct);
@@ -178,7 +208,7 @@ internal static class SprintTaskReadScenario
             if(!await db.OperationalTaskProgresses.AnyAsync(p=>p.TaskId==tasks[0]&&p.Description=="Browser synthetic progress"&&p.ProgressPercent==75,ct)
                 ||!await db.OperationalTasks.AnyAsync(t=>t.TaskId==tasks[0]&&t.ProgressPercent==75&&t.Status=="IN_PROGRESS"&&t.CompletedAt==null,ct))
                 throw new Exception("Browser progress not persisted");
-            if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=3)
+            if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=(criteria?4:3))
                 throw new Exception("Browser progress audit missing");
             checks.Add(new{browserProgressPersisted=true,pausedProgressAccepted=true,threeSuccessfulWriteAudits=true});
             if(criteria)
