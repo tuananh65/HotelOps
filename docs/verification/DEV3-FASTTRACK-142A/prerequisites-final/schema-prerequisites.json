@@ -1,0 +1,16 @@
+[
+    {
+        "source":  "scripts/database/release/housekeeping/01_Housekeeping.sql",
+        "sourceSha256":  "89A04F356E2DC65B17FAB408B775F49DE484BC4AE6A582FE95690B6E7365D50C",
+        "derivedSha256":  "F95A13E0E4EB93BEADDBA50FF04DC01BAE5BD6BA0A5C6B79A23B313521740C56",
+        "exitCode":  0,
+        "log":  "schema-01_Housekeeping.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/progress/01_Progress.sql",
+        "sourceSha256":  "8E404EF3C3404F5F50CEA444426BEAF681AB8B33DF8EEB1FC16589065273FBFB",
+        "derivedSha256":  "74C3CF87C6D1A168B21577D2429714B76EE9DF7DA0DB41696B3F2997EA5FEEF2",
+        "exitCode":  0,
+        "log":  "schema-01_Progress.log.txt"
+    }
+]

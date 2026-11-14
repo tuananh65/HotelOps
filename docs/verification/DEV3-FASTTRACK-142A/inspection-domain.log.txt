@@ -43,4 +43,4 @@ PASS Invalid ETag "000000000000000Z"
 PASS Invalid ETag "0000000000000001","0000000000000002"
 PASS Missing source revision
 PASS Validation leaves entities and request unchanged
-45 PASS / 0 FAIL — in-memory domain checks only
+45 PASS / 0 FAIL â€” in-memory domain checks only

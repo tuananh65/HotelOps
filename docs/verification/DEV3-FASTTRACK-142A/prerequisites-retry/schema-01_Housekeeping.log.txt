@@ -1,0 +1,2 @@
+Msg 51730, Level 16, State 1, Server meita, Line 5
+Checklist V1 prerequisite required.

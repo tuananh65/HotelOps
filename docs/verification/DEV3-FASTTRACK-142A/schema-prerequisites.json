@@ -1,0 +1,37 @@
+[
+    {
+        "source":  "database/patches/20261019_inventory_contract.sql",
+        "sourceSha256":  "55437D8B08767C9722D323B808231552837C561663E6EDC192CE4670979A0D8E",
+        "derivedSha256":  "02FA95E93314D825624F999DAF03F7C387D0A4024A0A2538382BB9D8666C6A6D",
+        "exitCode":  0,
+        "log":  "schema-20261019_inventory_contract.log.txt"
+    },
+    {
+        "source":  "database/patches/20261020_material_request_contract.sql",
+        "sourceSha256":  "097AAA19389EAA137685EB1A078E55521EA16C20274D386C62B5BF182835B939",
+        "derivedSha256":  "0AA2A7D0FCD56C74DC4AAF515DBABFB9F2040D6472F9950107EF08F49E902652",
+        "exitCode":  0,
+        "log":  "schema-20261020_material_request_contract.log.txt"
+    },
+    {
+        "source":  "database/patches/20261021_replenishment_contract.sql",
+        "sourceSha256":  "2CD673D0EE393FEB8FE0D7F340E5068F4858A853C2C9551B0D2394B27232B787",
+        "derivedSha256":  "E5B9D7991AC78E40FBFC847DDCAEFAAC4081980039B11FFF33CEEB11ECF0A641",
+        "exitCode":  0,
+        "log":  "schema-20261021_replenishment_contract.log.txt"
+    },
+    {
+        "source":  "database/patches/20261022_maintenance_material_usage_contract.sql",
+        "sourceSha256":  "132A69FC2C8C260BAF3249B2E9DCED4DB4A7DD46F919647D9CD6A5A6164F67F2",
+        "derivedSha256":  "13D4A78BACD155DF8ED7BA2FC549C1D7675A6CF447EE5E0A5035C802AE160FDE",
+        "exitCode":  0,
+        "log":  "schema-20261022_maintenance_material_usage_contract.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+        "sourceSha256":  "C1A56FFAED6C096E5F64A6C746552E3DC6BF76BAC1F5209C4CCCC65902420929",
+        "derivedSha256":  "B0F9EB7152E33EC42B7710F1E782BDDCED7E069E104D4832AAE540FF008B1994",
+        "exitCode":  1,
+        "log":  "schema-05_UC017_Branch_RoomTypes.log.txt"
+    }
+]

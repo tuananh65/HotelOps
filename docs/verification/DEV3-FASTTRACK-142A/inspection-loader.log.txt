@@ -61,4 +61,4 @@ PASS UC044 reader forbidden
 PASS UC044 reader final auth revoked
 PASS UC044 reader wrong current cycle
 PASS UC044 reader evidence owner mismatch
-63 PASS / 0 FAIL — read orchestration doubles, no SQL execution
+63 PASS / 0 FAIL â€” read orchestration doubles, no SQL execution

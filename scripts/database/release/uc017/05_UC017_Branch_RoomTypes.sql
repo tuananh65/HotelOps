@@ -1,4 +1,12 @@
 -- UC017 explicit deployment package. Disposable canonical trials only; never run at API startup.
+-- Filtered indexes require these session options, including when invoked through sqlcmd.
+SET QUOTED_IDENTIFIER ON;
+SET ANSI_NULLS ON;
+SET ANSI_PADDING ON;
+SET ANSI_WARNINGS ON;
+SET ARITHABORT ON;
+SET CONCAT_NULL_YIELDS_NULL ON;
+SET NUMERIC_ROUNDABORT OFF;
 SET NOCOUNT ON;
 SET XACT_ABORT ON;
 IF (DB_NAME() NOT LIKE N'HotelOps[_]Canonical[_]%[_]Fresh' AND DB_NAME() NOT LIKE N'HotelOps[_]Canonical[_]%[_]Upgrade' AND DB_NAME() NOT LIKE N'HotelOps[_]Canonical[_]%[_]AuthUpgrade')

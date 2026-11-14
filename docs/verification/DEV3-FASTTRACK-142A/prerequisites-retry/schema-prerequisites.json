@@ -1,0 +1,23 @@
+[
+    {
+        "source":  "scripts/database/release/uc017/05_UC017_Branch_RoomTypes.sql",
+        "sourceSha256":  "F5AF3EA6E41048EC83748A473875B04A0E4991F3F579DD515BC5A5F423E9AEA7",
+        "derivedSha256":  "FFBBEF91D475F9A5E8D43C8CE1A9BABE6DD78D99A2267C2010E4C2389DB0936F",
+        "exitCode":  0,
+        "log":  "schema-05_UC017_Branch_RoomTypes.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/checklists/01_Checklists.sql",
+        "sourceSha256":  "2E9FD953D1BA3D8B7479CF2713934DA61A21C73546A3C18138B33B3895D1F534",
+        "derivedSha256":  "6CFC414EEEB9E86E0B2C516C872051226D0D2C85381DED87E4CA428306532B72",
+        "exitCode":  0,
+        "log":  "schema-01_Checklists.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/housekeeping/01_Housekeeping.sql",
+        "sourceSha256":  "89A04F356E2DC65B17FAB408B775F49DE484BC4AE6A582FE95690B6E7365D50C",
+        "derivedSha256":  "A491139D6BAB8478164EC286AF7CF06EE28155D65180503FBC2F5516DEFB2927",
+        "exitCode":  1,
+        "log":  "schema-01_Housekeeping.log.txt"
+    }
+]
