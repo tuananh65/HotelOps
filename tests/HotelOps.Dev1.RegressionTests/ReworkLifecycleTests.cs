@@ -10,6 +10,38 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class ReworkLifecycleTests
 {
     [Theory]
+    [InlineData("actor")][InlineData("operation")][InlineData("fingerprint")]
+    [InlineData("incomplete")][InlineData("version")][InlineData("json")]
+    [InlineData("synthetic-complete")][InlineData("source")]
+    public void Trusted_executor_replay_rejects_unauthenticated_or_foreign_operation(string changed)
+    {
+        var operation = Guid.NewGuid();
+        var fingerprint = System.Security.Cryptography.SHA256.HashData("request"u8);
+        var receipt = new ReworkCommandResult(1,2,3,4,5,"accept","ACCEPTED",operation,
+            "\"0000000000000001\"",DateTime.UtcNow,null,null,"REWORK_REQUIRED","NOT_REQUIRED");
+        var stored = new HotelOps.Api.Models.NotificationOperationCandidate
+        {
+            ActorUserId=5,OperationKey=operation,Fingerprint=fingerprint,Completed=true,
+            ResultJson=JsonSerializer.Serialize(receipt,new JsonSerializerOptions(JsonSerializerDefaults.Web))
+        };
+        ReworkCommandResult? Read(string action="accept") => RoomTypeCreationService.ReadTrustedReworkReceipt(
+            stored,5,fingerprint,2,1,3,4,operation,action);
+        Assert.Equal(receipt,Read());
+        switch(changed)
+        {
+            case "actor": stored.ActorUserId=9; break;
+            case "operation": stored.OperationKey=Guid.NewGuid(); break;
+            case "fingerprint": stored.Fingerprint=new byte[31]; break;
+            case "incomplete": stored.Completed=false; break;
+            case "version": stored.FingerprintVersion=2; break;
+            case "json": stored.ResultJson="{"; break;
+            case "source": stored.ResultJson=JsonSerializer.Serialize(receipt with { InspectionId=99 },new JsonSerializerOptions(JsonSerializerDefaults.Web)); break;
+            case "synthetic-complete": Assert.Null(Read("complete")); return;
+        }
+        Assert.Null(Read());
+    }
+
+    [Theory]
     [InlineData("PENDING_ACCEPTANCE", "accept", "ACCEPTED")]
     [InlineData("ACCEPTED", "start", "IN_PROGRESS")]
     [InlineData("IN_PROGRESS", "complete", "PENDING_REINSPECTION")]

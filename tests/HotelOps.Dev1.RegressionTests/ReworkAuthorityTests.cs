@@ -16,6 +16,43 @@ public sealed class ReworkAuthorityTests
     private static ReworkAuthorityObservation Observed => new(Binding,3,true,true,true,true,true,20,Hash("source"),Hash("evidence"));
 
     [Fact]
+    public void Executor_requires_the_readers_trusted_binding_without_a_synthetic_fallback()
+    {
+        string? Conflict(ReworkAuthorityProof? proof) => RoomTypeCreationService.TrustedReworkExecutionConflict(
+            proof, 1, 2, 3, 4, 5, Binding.InspectionRevision);
+        Assert.Null(Conflict(Proof));
+        Assert.NotNull(Conflict(null));
+        Assert.NotNull(Conflict(Proof with { Origin = "SYNTHETIC_TEST_ONLY" }));
+        Assert.NotNull(Conflict(Proof with { Binding = Binding with { RoomId = 99 } }));
+        Assert.NotNull(Conflict(Proof with { Binding = Binding with { BranchId = 99 } }));
+        Assert.NotNull(Conflict(Proof with { Binding = Binding with { CleaningTaskId = 99 } }));
+        Assert.NotNull(Conflict(Proof with { Binding = Binding with { InspectionRevision = new byte[8] } }));
+        // This proves the callable executor binding guard, not SQL commitment or locks.
+    }
+
+    [Theory]
+    [InlineData("operation")][InlineData("writer")][InlineData("issuer-actor")]
+    [InlineData("source")][InlineData("evidence")][InlineData("inspection")]
+    [InlineData("version")][InlineData("synthetic")][InlineData("missing")]
+    public void Executor_precommit_guard_rejects_changed_authority_identity(string changed)
+    {
+        Assert.True(RoomTypeCreationService.SameTrustedReworkAuthority(Proof, Proof));
+        var current = changed switch
+        {
+            "operation" => Proof with { OperationId = Guid.NewGuid() },
+            "writer" => Proof with { WriterTransactionId = 11 },
+            "issuer-actor" => Proof with { ActorUserId = 8 },
+            "source" => Proof with { SourceDigest = Hash("changed") },
+            "evidence" => Proof with { EvidenceDigest = Hash("changed") },
+            "inspection" => Proof with { Binding = Binding with { InspectionId = 99 } },
+            "version" => Proof with { Binding = Binding with { VersionId = 99 } },
+            "synthetic" => Proof with { Origin = "SYNTHETIC_TEST_ONLY" },
+            _ => null
+        };
+        Assert.False(RoomTypeCreationService.SameTrustedReworkAuthority(Proof, current));
+    }
+
+    [Fact]
     public void Valid_trusted_committed_binding_is_accepted_by_pure_contract_only()
         => Assert.Null(ReworkAuthorityContract.Validate(Proof,Observed));
 
