@@ -1,7 +1,7 @@
 {
   "contract_id": "FE04_M0_SINGLE_TARGET_V1",
   "source_commit": "084d06596d5026a050c18bc47df19942114755de",
-  "accepted_fe04_composition": "084d06596d5026a050c18bc47df19942114755de",
+  "accepted_fe04_composition": "2dfb252c1177238956b47f4cbbe4110889f34112",
   "sql": {
     "server": "DESKTOP-JI8U50T\\SQLEXPRESS",
     "database": "HotelOps_FE04_Trial_20261113_ENV001_U107_7e94a2bf",
