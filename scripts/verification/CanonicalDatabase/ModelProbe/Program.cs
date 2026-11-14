@@ -10,6 +10,10 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 2 && args[0] == "--sprint-activation")
+    return await SprintAuthProbe.RunAsync(args[1], activation: true);
+if (args.Length == 2 && args[0] == "--sprint-activation-browser")
+    return await SprintAuthProbe.RunAsync(args[1], activation: true, browser: true);
 if (args.Length == 2 && args[0] == "--sprint-ir-history")
     return await SprintInternalRequestHistoryProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-notifications")

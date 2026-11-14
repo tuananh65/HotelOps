@@ -33,6 +33,7 @@ const unknown =
   "Account activation outcome could not be confirmed. The account may already have been activated. Do not retry automatically. Ask an authorized administrator to verify the current account status before making another change.";
 
 const bundle = await build({
+  loader: { ".css": "empty" },
   stdin: {
     loader: "tsx",
     resolveDir: process.cwd(),
@@ -41,7 +42,7 @@ const bundle = await build({
   import { createRoot } from "react-dom/client";
   import { BrowserRouter } from "react-router-dom";
   import { AuthProvider } from "./src/auth/AuthProvider";
-  import { StandaloneAuthRouteHost as AuthRouteHost } from "./src/auth/StandaloneAuthRouteHost";
+  import { AuthRouteHost } from "./src/auth/AuthRouteHost";
   import { createAuthStore } from "./src/auth/authStore";
   import { createAuthApi } from "./src/auth/authApi";
   const s=window.scenario, calls=[], unexpected=[], waiting=new Map();
@@ -69,7 +70,7 @@ const bundle = await build({
   format: "iife",
   platform: "browser",
   jsx: "automatic",
-  define: { "process.env.NODE_ENV": '"development"' },
+  define: { "process.env.NODE_ENV": '"development"', "import.meta.env": "{}" },
 });
 let browser;
 before(async () => {
@@ -94,13 +95,15 @@ async function settle(page) {
   );
 }
 
-test("real activation graph excludes mock Shell and includes accepted clients", () => {
+test("canonical activation graph includes the actual host and accepted clients", () => {
   const paths = Object.keys(bundle.metafile.inputs).map((p) =>
     p.replaceAll("\\", "/"),
   );
   for (const path of [
     "auth/authStore.ts",
     "auth/AuthProvider.tsx",
+    "auth/AuthRouteHost.tsx",
+    "shared-host/SharedAuthHost.tsx",
     "users/userProfileApi.ts",
     "users/userActivationApi.ts",
     "users/ActivateUserFlowBoundary.tsx",
@@ -108,7 +111,7 @@ test("real activation graph excludes mock Shell and includes accepted clients", 
     assert.ok(paths.some((p) => p.endsWith(path)));
   assert.ok(
     !paths.some((p) =>
-      /src\/(services(?:\/|\.ts)|ui\.tsx|i18n\.tsx|mocks\/|screens\/users\/)/.test(
+      /src\/(mocks\/|screens\/users\/)/.test(
         p,
       ),
     ),

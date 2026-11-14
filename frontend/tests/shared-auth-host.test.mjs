@@ -174,6 +174,45 @@ test("canonical account navigation reaches the role assignment boundary without 
   await p.close();
 });
 
+test("canonical account navigation reaches activation without dispatching a mutation", async () => {
+  const p = await pageAt("/users/42", "AUTHENTICATED");
+  await p.getByRole("link", { name: "Activate account", exact: true }).click();
+  await p
+    .getByRole("heading", { name: "Activate user account 42", exact: true })
+    .waitFor();
+  await p.waitForFunction(() => window.calls.includes("/api/users/42/profile"));
+  assert.ok(
+    (await p.evaluate(() => window.methods)).every(
+      (method) => method === "GET",
+    ),
+  );
+  await p.close();
+});
+
+for (const status of [
+  "INITIALIZING",
+  "ERROR_UNAVAILABLE",
+  "ANONYMOUS",
+  "RESTRICTED",
+]) {
+  test(`canonical activation does not load management data for ${status}`, async () => {
+    const p = await pageAt("/users/42/activate", status);
+    if (status === "ANONYMOUS") await p.waitForURL("**/login");
+    else if (status === "RESTRICTED") await p.waitForURL("**/change-password");
+    else
+      await p
+        .getByRole("main", { name: "Activation session recovery" })
+        .waitFor();
+    assert.equal(
+      (await p.evaluate(() => window.calls)).some((url) =>
+        url.startsWith("/api/users/"),
+      ),
+      false,
+    );
+    await p.close();
+  });
+}
+
 test("canonical user read renders permission denial without granting access", async () => {
   const p = await pageAt("/users");
   await p.evaluate(() => {

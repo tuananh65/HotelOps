@@ -185,9 +185,11 @@ function Report({ report }: { report: UserAccessReviewDto }) {
 function UserReads({
   userId,
   roleAssignmentEnabled,
+  accountActivationEnabled,
 }: {
   userId: number;
   roleAssignmentEnabled: boolean;
+  accountActivationEnabled: boolean;
 }) {
   const { api } = useUsersContext();
   const [draft, setDraft] = useState({ feature: "", permissionCode: "" });
@@ -220,6 +222,9 @@ function UserReads({
         <Link to="/profile">Profile</Link>
         {roleAssignmentEnabled && (
           <Link to={`/users/${userId}/roles/assign`}>Assign role</Link>
+        )}
+        {accountActivationEnabled && (
+          <Link to={`/users/${userId}/activate`}>Activate account</Link>
         )}
       </header>
       <section aria-label="Minimal account detail">
@@ -283,7 +288,11 @@ function UserReads({
 
 export function UserAccessReviewPage({
   roleAssignmentEnabled = false,
-}: { roleAssignmentEnabled?: boolean } = {}) {
+  accountActivationEnabled = false,
+}: {
+  roleAssignmentEnabled?: boolean;
+  accountActivationEnabled?: boolean;
+} = {}) {
   const { id } = useParams();
   const numeric = id !== undefined && /^\d+$/.test(id) ? Number(id) : NaN;
   if (!Number.isSafeInteger(numeric) || numeric <= 0)
@@ -299,6 +308,7 @@ export function UserAccessReviewPage({
       key={numeric}
       userId={numeric}
       roleAssignmentEnabled={roleAssignmentEnabled}
+      accountActivationEnabled={accountActivationEnabled}
     />
   );
 }

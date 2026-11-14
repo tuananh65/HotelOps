@@ -6,6 +6,7 @@ import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { AuditPage } from "../audit/AuditPage";
 import { DashboardPage } from "../insights/DashboardPage";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
+import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { loginDestination } from "./returnUrl";
@@ -48,6 +49,7 @@ export function SharedAuthHost({
   structureReadEnabled = false,
   auditReadEnabled = false,
   roleAssignmentEnabled = false,
+  accountActivationEnabled = false,
   dashboardEnabled = false,
   notificationsEnabled = false,
 }: {
@@ -56,11 +58,18 @@ export function SharedAuthHost({
   structureReadEnabled?: boolean;
   auditReadEnabled?: boolean;
   roleAssignmentEnabled?: boolean;
+  accountActivationEnabled?: boolean;
   dashboardEnabled?: boolean;
   notificationsEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {accountActivationEnabled && (
+        <Route
+          path="/users/:id/activate"
+          element={<ActivateUserFlowBoundary />}
+        />
+      )}
       {roleAssignmentEnabled && (
         <Route
           path="/users/:id/roles/assign"
@@ -85,6 +94,7 @@ export function SharedAuthHost({
             element={
               <UserAccessReviewPage
                 roleAssignmentEnabled={roleAssignmentEnabled}
+                accountActivationEnabled={accountActivationEnabled}
               />
             }
           />
