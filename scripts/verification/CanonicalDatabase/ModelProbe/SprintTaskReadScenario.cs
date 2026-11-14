@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintTaskReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false)
     {
         if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct)||await db.Attachments.AnyAsync(ct))throw new Exception("Empty task/evidence fixture required");
         var evidenceRoot=Path.GetFullPath("TestResults/sprint25-evidence");
@@ -73,6 +73,11 @@ internal static class SprintTaskReadScenario
         try
         {
             await using(var seed=await db.Database.BeginTransactionAsync(ct)){await Seed();await seed.CommitAsync(ct);}
+            if(criteria)
+            {
+                if(!await ProgressSchema.InstalledAsync(db,ct))throw new Exception("Progress schema incompatible");
+                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_completion_criteria(task_id,label,is_required,sort_order) VALUES({tasks[0]},'Synthetic required criterion',1,0),({tasks[0]},'Synthetic optional criterion',0,1)",ct);
+            }
             var root=$"/api/branches/{branches[0]}/operational-tasks";
             await Get(root,403);
             var role=await db.Roles.Where(r=>r.RoleCode=="HK_STAFF"&&r.IsActive).Select(r=>r.RoleId).SingleAsync(ct);
@@ -162,7 +167,7 @@ internal static class SprintTaskReadScenario
             {
                 try
                 {
-                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch=branches[0],foreign=branches[1],code=prefix+"0"}).AsMemory(),ct);process.StandardInput.Close();
+                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch=branches[0],foreign=branches[1],code=prefix+"0",criteria}).AsMemory(),ct);process.StandardInput.Close();
                     var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);
                     await process.WaitForExitAsync(ct);var result=await output;await errors;
                     using var json=JsonDocument.Parse(result);checks.Add(new{taskBrowser=json.RootElement.Clone()});
@@ -176,6 +181,14 @@ internal static class SprintTaskReadScenario
             if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey,ct)!=3)
                 throw new Exception("Browser progress audit missing");
             checks.Add(new{browserProgressPersisted=true,pausedProgressAccepted=true,threeSuccessfulWriteAudits=true});
+            if(criteria)
+            {
+                var results=await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.task_completion_criteria WHERE task_id={tasks[0]} AND ((sort_order=0 AND outcome='PASS' AND note='Browser required checked') OR (sort_order=1 AND outcome='FAIL' AND note='Browser optional issue'))").SingleAsync(ct);
+                if(results!=2)throw new Exception("Criterion outcomes/notes were not persisted");
+                var audit=await db.AuditLogs.AsNoTracking().Where(a=>a.ActorUserId==actor&&a.EntityType=="operational_tasks"&&a.EntityId==taskKey).OrderByDescending(a=>a.AuditId).Select(a=>a.NewValues).FirstAsync(ct);
+                if(audit==null||!audit.Contains("Browser required checked")||!audit.Contains("Browser optional issue"))throw new Exception("Criterion audit incomplete");
+                checks.Add(new{criteriaPassFailAndNotesPersisted=true,criteriaAuditVerified=true});
+            }
             var attachment=await db.Attachments.AsNoTracking().SingleAsync(a=>a.EntityType=="TASK"&&a.EntityId==tasks[0]&&a.UploadedBy==actor,ct);
             var stored=EvidencePath(attachment.StorageKey);ownedFiles.Add(stored);
             var bytes=Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=");
@@ -200,12 +213,24 @@ internal static class SprintTaskReadScenario
         }
         finally
         {
+            if(criteria)
+            {
+                // Immutable criteria remain until the owner drops this entire clone.
+                foreach(var key in await db.Attachments.AsNoTracking().Where(a=>a.EntityType=="TASK"&&tasks.Contains(a.EntityId)&&a.UploadedBy==actor).Select(a=>a.StorageKey).ToArrayAsync(CancellationToken.None))
+                    ownedFiles.Add(EvidencePath(key));
+                foreach(var file in ownedFiles)File.Delete(file);
+                if(!await ProgressSchema.InstalledAsync(db,CancellationToken.None))throw new Exception("Progress schema changed during criteria trial");
+                checks.Add(new{criteriaTriggerPreserved=true,wholeCloneDropRequired=true});
+            }
+            else
+            {
             await using var cleanup=await db.Database.BeginTransactionAsync(CancellationToken.None);await Cleanup(CancellationToken.None);await cleanup.CommitAsync(CancellationToken.None);
             foreach(var file in ownedFiles)File.Delete(file);
             if(Directory.Exists(evidenceRoot)&&Directory.EnumerateFileSystemEntries(evidenceRoot).Any())throw new Exception("Evidence cleanup incomplete");
             if(await db.Attachments.AnyAsync())throw new Exception("Attachment cleanup incomplete");
             if(await db.OperationalTasks.AnyAsync()||await db.Branches.AnyAsync())throw new Exception("Task fixture cleanup incomplete");
             checks.Add(new{taskFixtureCleanup=true});
+            }
         }
     }
 }

@@ -1,0 +1,223 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_5f8c27a5",
+  "fixtureUserId": 950279,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/operational-tasks",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/61?pageSize=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/62",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/63",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60284/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks?page=0",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks?pageSize=101",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks?page=2147483647",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 428,
+      "actual": 428
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "invalidSecondEvidenceRollsBackSqlAndPrivateFile": true
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 412,
+      "actual": 412
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/64/progress",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/64/progress",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskProgressPersisted": true,
+      "percent": 100,
+      "status": "IN_PROGRESS",
+      "duplicateRejected": true
+    },
+    {
+      "concurrentProgressStatuses": [
+        200,
+        412
+      ],
+      "singleWinnerAndAudit": true
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/61",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskProgressPath": "/api/branches/60283/operational-tasks/61/progress",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/64",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks?search=D3-TASK-4907c1c61",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60283/operational-tasks/62",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskBrowser": {
+        "success": false,
+        "stage": "paused task progress save",
+        "checks": [
+          "canonical deep link login",
+          "branch task list",
+          "detail and persisted progress"
+        ],
+        "diagnostic": "locator.selectOption: Timeout 15000ms exceeded."
+      }
+    },
+    {
+      "criteriaTriggerPreserved": true,
+      "wholeCloneDropRequired": true
+    }
+  ],
+  "failure": "Exception: Task browser failed at paused task progress save",
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": false,
+  "scope": "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
+}

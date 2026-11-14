@@ -51,6 +51,12 @@ try {
     .getByText("Task execution state: PAUSED", { exact: true })
     .waitFor();
   await page.getByLabel("Progress (%)", { exact: true }).fill("75");
+  if(fixture.criteria){
+    await page.getByLabel("Criterion result: Synthetic required criterion", { exact: true }).selectOption("PASS");
+    await page.getByLabel("Criterion note: Synthetic required criterion", { exact: true }).fill("Browser required checked");
+    await page.getByLabel("Criterion result: Synthetic optional criterion", { exact: true }).selectOption("FAIL");
+    await page.getByLabel("Criterion note: Synthetic optional criterion", { exact: true }).fill("Browser optional issue");
+  }
   await page
     .getByLabel("Progress note", { exact: true })
     .fill("Browser synthetic progress");
@@ -87,6 +93,13 @@ try {
     throw new Error("Saved progress missing after reload");
   checks.push(stage);
   stage = "saved private evidence download after reload";
+  if(fixture.criteria){
+    if(await page.getByLabel("Criterion result: Synthetic required criterion", { exact: true }).inputValue()!=="PASS" ||
+       await page.getByLabel("Criterion result: Synthetic optional criterion", { exact: true }).inputValue()!=="FAIL" ||
+       await page.getByLabel("Criterion note: Synthetic required criterion", { exact: true }).inputValue()!=="Browser required checked" ||
+       await page.getByLabel("Criterion note: Synthetic optional criterion", { exact: true }).inputValue()!=="Browser optional issue") throw new Error("Criterion results missing after reload");
+    checks.push("criterion results and notes survive reload");
+  }
   const downloadReady = page.waitForEvent("download");
   await page
     .getByRole("link", { name: "synthetic-task.png", exact: true })

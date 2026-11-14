@@ -183,6 +183,7 @@ export function TaskProgressPanel({
                   {item.label}
                   {item.required ? " (required for completion)" : ""}
                   <select
+                    aria-label={`Criterion result: ${item.label}`}
                     value={item.outcome ?? ""}
                     onChange={(e) =>
                       setItems((rows) =>

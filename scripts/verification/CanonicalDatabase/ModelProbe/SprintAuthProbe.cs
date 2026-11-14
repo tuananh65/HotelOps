@@ -11,23 +11,26 @@ internal static class SprintAuthProbe
 {
     // Exact target from this sprint's independently verified provision receipt; no arbitrary connection input.
     private const string Database = "HotelOps_DEV3_142A_20261114_cc78c13f";
-    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false)
+    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
         var ct = budget.Token;
+        var database=taskCriteria?"HotelOps_DEV3_142A_CriteriaTrial_e84a22ee":Database;
+        var guid=taskCriteria?"dd2d43c2-bcea-4a95-abd8-aee38fbac050":new Guid("1D5A9B53"+"-7D19"+"-435A"+"-96AB"+"-9FDFF447B6E0").ToString();
+        var run=taskCriteria?"e84a22eef066442ba40af7b8e00641bb":"cc78c13ffc124efcad67b3d804baa84c";
         await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
-            .UseSqlServer($"Server=localhost;Database={Database};Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
+            .UseSqlServer($"Server=localhost;Database={database};Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         await db.Database.OpenConnectionAsync(ct);
         await using (var identity = db.Database.GetDbConnection().CreateCommand())
         {
-            identity.CommandText = """
+            identity.CommandText = $"""
                 SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='meita'
-                  AND DB_NAME()='HotelOps_DEV3_142A_20261114_cc78c13f'
+                  AND DB_NAME()='{database}'
                   AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID()
-                    AND database_guid='1D5A9B53-7D19-435A-96AB-9FDFF447B6E0')
+                    AND database_guid='{guid}')
                   AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='DEV3.Sprint142A.Run'
-                    AND CONVERT(nvarchar(128),value)='cc78c13ffc124efcad67b3d804baa84c')
+                    AND CONVERT(nvarchar(128),value)='{run}')
                   THEN 1 ELSE 0 END
                 """;
             if (!Equals(await identity.ExecuteScalarAsync(ct), 1)) throw new InvalidOperationException("Disposable identity rejected");
@@ -86,7 +89,7 @@ internal static class SprintAuthProbe
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (dashboard) await SprintDashboardScenario.RunAsync(db, http, user.UserId, checks, ct);
-            if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password);
+            if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password,taskCriteria);
             await Check(HttpMethod.Post, "/api/auth/logout", 400);
             await Check(HttpMethod.Post, "/api/auth/logout", 204, csrf: sessionCsrf);
             await Check(HttpMethod.Get, "/api/auth/session", 401);
@@ -100,7 +103,7 @@ internal static class SprintAuthProbe
         finally
         {
             // HTTP commits cannot be rolled back by a test transaction. Compensate only owned fixture rows.
-            if (user.UserId > 0)
+            if (user.UserId > 0 && !taskCriteria)
             {
                 await using var cleanup = await db.Database.BeginTransactionAsync(CancellationToken.None);
                 await db.UserSessions.Where(s => s.UserId == user.UserId).ExecuteDeleteAsync(CancellationToken.None);
@@ -111,9 +114,10 @@ internal static class SprintAuthProbe
                 await cleanup.CommitAsync(CancellationToken.None);
                 cleaned = !await db.Users.AnyAsync() && !await db.UserSessions.AnyAsync() && !await db.AuditLogs.AnyAsync();
             }
-            await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { database = Database, fixtureUserId = user.UserId,
-                checks, failure, cleanup = cleaned, success = failure == null && cleaned,
-                scope = browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
+            await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { database, fixtureUserId = user.UserId,
+                checks, failure, cleanup = cleaned, cleanupRequiresDatabaseDrop=taskCriteria, success = failure == null && (cleaned || taskCriteria),
+                scope = taskCriteria ? "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
+                    : browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"
                     : taskRead ? "Real HTTPS/SQL and canonical browser task progress, evidence upload/private download, paused execution, audit, stale/concurrent writes and scope denials; criteria mutation and create/lifecycle acceptance excluded"
                     : notifications ? "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
@@ -124,7 +128,7 @@ internal static class SprintAuthProbe
                     : "Real HTTPS/SQL login-session-logout; no privileged roles or browser workflow acceptance" },
                 new JsonSerializerOptions { WriteIndented = true }));
         }
-        Console.WriteLine($"Sprint HTTPS auth: {(failure == null && cleaned ? "PASS" : "FAIL")}; checks={checks.Count}; cleanup={cleaned}");
-        return failure == null && cleaned ? 0 : 1;
+        Console.WriteLine($"Sprint HTTPS auth checks: {(failure == null && (cleaned || taskCriteria) ? "PASS" : "FAIL")}; checks={checks.Count}; cleanup={cleaned}; wholeCloneDropRequired={taskCriteria}");
+        return failure == null && (cleaned || taskCriteria) ? 0 : 1;
     }
 }
