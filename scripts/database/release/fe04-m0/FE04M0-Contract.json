@@ -1,0 +1,103 @@
+{
+  "contract_id": "FE04_M0_SINGLE_TARGET_V1",
+  "source_commit": "084d06596d5026a050c18bc47df19942114755de",
+  "accepted_fe04_composition": "084d06596d5026a050c18bc47df19942114755de",
+  "sql": {
+    "server": "DESKTOP-JI8U50T\\SQLEXPRESS",
+    "database": "HotelOps_FE04_Trial_20261113_ENV001_U107_7e94a2bf",
+    "tls_hostname": "DESKTOP-JI8U50T",
+    "encrypt": true,
+    "trust_server_certificate": false
+  },
+  "install_mode": "FRESH_ONE_DATABASE_ONLY",
+  "schema_artifacts": [
+    {
+      "id": "full_schema",
+      "path": "scripts/database/release/01_HotelOps_Full_Schema.sql",
+      "sha256": "df7a293a37c81865eb81903a283d60170b792a801e92e8e5363b6003b935444d"
+    },
+    {
+      "id": "rbac_catalog",
+      "path": "scripts/database/release/03_HotelOps_RBAC_Catalog_Seed.sql",
+      "sha256": "ef9db25794f8183946f0b34bbd1ead13eb54ccc8b117f75b1a959b5c1bd17401"
+    },
+    {
+      "id": "patch_inventory",
+      "path": "database/patches/20261019_inventory_contract.sql",
+      "sha256": "017e77a62c7af85a819e6027d1643b92ca1b54706f1075182a9e5c62620f4cd6"
+    },
+    {
+      "id": "patch_material_request",
+      "path": "database/patches/20261020_material_request_contract.sql",
+      "sha256": "ef9f510a7a266fa9ca6726a37f66da6550526f30f649c31af4a064ccebc02125"
+    },
+    {
+      "id": "patch_replenishment",
+      "path": "database/patches/20261021_replenishment_contract.sql",
+      "sha256": "121c76d3a83d904619c44822d75028f544bb27350cfeace9011cba75265c2689"
+    },
+    {
+      "id": "patch_maintenance",
+      "path": "database/patches/20261022_maintenance_material_usage_contract.sql",
+      "sha256": "4a788e05f168f1dd76a2f96145a05af4fb3e86ce2d8200e2019712cce6f7907c"
+    },
+    {
+      "id": "canonical_reference",
+      "path": "scripts/database/release/canonical/00_Canonical_Reference_Contract.sql",
+      "sha256": "7ba7f2204f5ed7c9a28d89e03975aadd56c4c91a9de43088115d5269b33bedb3"
+    },
+    {
+      "id": "canonical_seed",
+      "path": "scripts/database/release/canonical/01_Canonical_Seed.sql",
+      "sha256": "b14b510483b4655c0f18fe55f5bf2d8906c6e20f158700bc3928f0ac19de1035"
+    },
+    {
+      "id": "read_only_verify",
+      "path": "scripts/database/release/04_HotelOps_Verification_ReadOnly.sql",
+      "sha256": "f4988e787ec77ab72588284fd2b5530b1a17c9f184c5ccfd0ba1828c73168265"
+    },
+    {
+      "id": "canonical_verify_reference_only",
+      "path": "scripts/database/release/canonical/02_Canonical_Verify.sql",
+      "sha256": "c6ca47a8d083c112d98e5992c61e87825dd300a11c70f25562dc59d5c577d327"
+    },
+    {
+      "id": "task26_forward",
+      "path": "scripts/verification/UserProfileUpdate/rowversion-forward.sql",
+      "sha256": "11ec75d8b94940abe054f2f8db70907e2b06b2d61a27538120a8c10a5601f18e"
+    }
+  ],
+  "operation_allowlist": [
+    "B1",
+    "B2",
+    "B3"
+  ],
+  "gate_b": {
+    "provisioning_granted": false,
+    "project_leader_reference": null,
+    "signature_cert_sha256": null,
+    "B1": "APPROVED_READ_ONLY_PREFLIGHT",
+    "B2": "NOT_GRANTED",
+    "B3": "NOT_GRANTED",
+    "B4_to_B8": "SEPARATE_APPROVAL_REQUIRED"
+  },
+  "gate_c": {
+    "runtime_granted": false,
+    "project_leader_reference": null
+  },
+  "post_provision": {
+    "database_guid": null,
+    "owner_sid_hex": null,
+    "marker": null,
+    "fixture_ids": null,
+    "deployed_api_sha256": null,
+    "deployed_spa_sha256": null,
+    "exclusive_lease": null
+  },
+  "fixture_proposal_sha256": null,
+  "restricted_app_principal": null,
+  "restricted_observer_principal": null,
+  "https_origin": null,
+  "evidence_acl_owner": "DEV1 ENV — exact identity pending",
+  "notes": "NO SQL/HTTPS operation is approved by this contract. Signed external Gate B authorization required. Task26 guard adaptation requires source-owner acceptance. Full canonical verifier has fixed 82-table/9-rowversion expectations and is NOT executed for M0; M0 minimum read-only verifier requires detached PL review flag. FE04 FASTTRACK-108B accepts this source checkpoint for handoff only; deployed API/SPA hashes, exclusive lease, schema/fixture owner signoffs and Gate B/C remain pending."
+}
