@@ -1,4 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { Link, useParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { createRoleCatalogApi } from "./roleCatalogApi";
@@ -20,6 +26,61 @@ export function InitialRolePermissionsWorkspace() {
     </>
   );
 }
+// Same-origin, page-lifetime reservation, not permission authority or durable idempotency.
+// Principal IDs come from the authenticated session; each record is the original operation.
+// Reload/restart loses this memory: never use reload to retry an unresolved write.
+// An authorized owner must reconcile it with backend evidence before a later trial.
+// There is deliberately no timeout, session-change, or client-side unlock for UNKNOWN.
+type Reservation = Readonly<{
+  operationId: symbol;
+  state: "PENDING" | "UNKNOWN";
+  hideEditor: boolean;
+}>;
+const operations = new Map<string, Map<number, Reservation>>();
+const listeners = new Set<() => void>();
+function subscribe(listener: () => void) {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+}
+function operation(principal: string, role: number) {
+  return operations.get(principal)?.get(role);
+}
+function notify() {
+  for (const listener of listeners) listener();
+}
+function reserve(principal: string, role: number): Reservation | undefined {
+  if (operation(principal, role)) return;
+  const original: Reservation = {
+    operationId: Symbol("initial-role-permissions"),
+    state: "PENDING",
+    hideEditor: false,
+  };
+  const roles = operations.get(principal) ?? new Map<number, Reservation>();
+  roles.set(role, original);
+  operations.set(principal, roles);
+  notify();
+  return original;
+}
+function settle(
+  principal: string,
+  role: number,
+  original: Reservation,
+  unknown: boolean,
+  hideEditor: boolean,
+) {
+  if (operation(principal, role) !== original) return;
+  if (unknown)
+    operations
+      .get(principal)!
+      .set(role, { ...original, state: "UNKNOWN", hideEditor });
+  else {
+    operations.get(principal)!.delete(role);
+    if (operations.get(principal)!.size === 0) operations.delete(principal);
+  }
+  notify();
+}
 const keys = new WeakMap<object, number>();
 let next = 0;
 function key(o: object) {
@@ -37,6 +98,12 @@ export function InitialRolePermissionsPanel({
   const identity = useMemo(
     () => ({}),
     [state.session, state.status, state.pending],
+  );
+  const principal = state.session?.user.id ?? "";
+  const reservation = useSyncExternalStore(
+    subscribe,
+    () => operation(principal, roleId),
+    () => undefined,
   );
   const [invalid, setInvalid] = useState<object | null>(null);
   const binding = useMemo(() => ({}), [identity, roleId, dispatchEnabled]);
@@ -59,10 +126,16 @@ export function InitialRolePermissionsPanel({
       </section>
     );
   if (!id(roleId)) return <p role="alert">Invalid role ID.</p>;
+  if (reservation?.hideEditor)
+    return (
+      <p role="alert">
+        Outcome unknown. Do not replay. Verify with an authorized owner.
+      </p>
+    );
   return (
     <Editor
       key={key(binding)}
-      {...{ roleId, dispatchEnabled, current }}
+      {...{ roleId, dispatchEnabled, current, principal, reservation }}
       invalidate={() => setInvalid(identity)}
     />
   );
@@ -72,11 +145,15 @@ function Editor({
   dispatchEnabled,
   current,
   invalidate,
+  principal,
+  reservation,
 }: {
   roleId: number;
   dispatchEnabled: boolean;
   current: () => boolean;
   invalidate: () => void;
+  principal: string;
+  reservation: Reservation | undefined;
 }) {
   const [read] = useState(() => createRoleCatalogApi());
   const [write] = useState(() =>
@@ -173,6 +250,7 @@ function Editor({
       !eligible ||
       !dispatchEnabled ||
       busy.current ||
+      operation(principal, roleId) ||
       locked ||
       selected.length === 0
     )
@@ -184,18 +262,35 @@ function Editor({
   async function confirm() {
     const snapshot = reviewed.current;
     if (!snapshot || busy.current || locked || !current()) return;
+    const original = reserve(principal, roleId);
+    if (!original) return;
     busy.current = true;
     reviewed.current = null;
     setReview(null);
     setPending(true);
     controller.current = new AbortController();
-    const r = await write.save(
+    let r: Awaited<ReturnType<typeof write.save>>;
+    try {
+      r = await write.save(
+        roleId,
+        snapshot,
+        () => mounted.current && current(),
+        controller.current.signal,
+      );
+    } catch {
+      // Unexpected transport failure cannot prove that no POST reached the server.
+      r = { outcome: "OUTCOME_UNKNOWN", reason: "UNCONFIRMED" };
+    }
+    const live = mounted.current && current();
+    // Bookkeeping belongs to the original operation even after the UI authority changes.
+    settle(
+      principal,
       roleId,
-      snapshot,
-      () => mounted.current && current(),
-      controller.current.signal,
+      original,
+      r.outcome === "OUTCOME_UNKNOWN",
+      live && r.outcome === "OUTCOME_UNKNOWN" && r.status === 401,
     );
-    if (!mounted.current || !current()) return;
+    if (!live) return;
     setPending(false);
     if (r.outcome !== "CONFIRMED" && r.status === 401) {
       invalidate();
@@ -229,6 +324,19 @@ function Editor({
       </p>
       {!dispatchEnabled && (
         <p>Mutation dispatch OFF pending runtime approval.</p>
+      )}
+      {reservation && !message && (
+        <p role="status">
+          {reservation.state === "PENDING"
+            ? "Original operation pending. Do not replay."
+            : "Outcome unknown. Do not replay. Verify with an authorized owner."}
+        </p>
+      )}
+      {reservation && (
+        <p>
+          Reloading or restarting does not reconcile this operation. Obtain
+          backend-authoritative verification before any later attempt.
+        </p>
       )}
       {message && <p role="status">{message}</p>}
       {!detail ? (
@@ -306,7 +414,11 @@ function Editor({
               ))}
               <button
                 disabled={
-                  !dispatchEnabled || pending || locked || selected.length === 0
+                  !dispatchEnabled ||
+                  pending ||
+                  locked ||
+                  !!reservation ||
+                  selected.length === 0
                 }
                 onClick={prepare}
               >
@@ -327,7 +439,10 @@ function Editor({
               Permission {g.permissionId}: {g.dataScope}
             </p>
           ))}
-          <button disabled={pending || locked} onClick={() => void confirm()}>
+          <button
+            disabled={pending || locked || !!reservation}
+            onClick={() => void confirm()}
+          >
             Confirm and save
           </button>
           <button

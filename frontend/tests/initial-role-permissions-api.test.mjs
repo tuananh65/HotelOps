@@ -193,3 +193,91 @@ test("cancel after POST is unknown without replay or invented status", async () 
   assert.equal(posts, 1);
   assert.ok(!JSON.stringify(r).includes("SECRET"));
 });
+for (const phase of ["csrf", "post"])
+  for (const status of [401, 403, 503])
+    for (const unreadable of [false, true])
+      test(`${phase} ${status} unreadable=${unreadable} preserves status and outcome`, async () => {
+        const calls = [];
+        const api = createInitialRolePermissionsApi(async (u, o) => {
+          calls.push(o.method);
+          if (phase === "post" && o.method === "GET") return reply(token);
+          const r = reply({ detail: "SECRET" }, status);
+          if (unreadable)
+            r.text = async () => {
+              throw Error("SECRET");
+            };
+          return r;
+        }, true);
+        const r = await api.save(7, [grant], () => true);
+        assert.equal(r.status, status);
+        assert.equal(
+          r.outcome,
+          phase === "csrf"
+            ? "NOT_DISPATCHED"
+            : unreadable || status === 503
+              ? "OUTCOME_UNKNOWN"
+              : "REJECTED",
+        );
+        assert.deepEqual(calls, phase === "csrf" ? ["GET"] : ["GET", "POST"]);
+        assert.ok(!JSON.stringify(r).includes("SECRET"));
+      });
+for (const phase of ["csrf", "post"])
+  for (const mode of ["network", "malformed", "unreadable"])
+    test(`${phase} ${mode} has no invented status`, async () => {
+      const calls = [];
+      const r = await createInitialRolePermissionsApi(async (u, o) => {
+        calls.push(o.method);
+        if (phase === "post" && o.method === "GET") return reply(token);
+        if (mode === "network") throw Error("SECRET");
+        const response = new Response("{", {
+          status: phase === "post" ? 201 : 200,
+          headers: { "Content-Type": "application/json" },
+        });
+        if (mode === "unreadable")
+          response.text = async () => {
+            throw Error("SECRET");
+          };
+        return response;
+      }, true).save(7, [grant], () => true);
+      assert.equal(r.status, undefined);
+      assert.equal(
+        r.outcome,
+        phase === "csrf" ? "NOT_DISPATCHED" : "OUTCOME_UNKNOWN",
+      );
+      assert.equal(calls.length, phase === "csrf" ? 1 : 2);
+      assert.ok(!JSON.stringify(r).includes("SECRET"));
+    });
+for (const replacement of ["branch", "session"])
+  test(`pending CSRF ${replacement} authority replacement blocks POST`, async () => {
+    let finish;
+    let current = true;
+    const calls = [];
+    const api = createInitialRolePermissionsApi(async (u, o) => {
+      calls.push(o.method);
+      return new Promise((r) => (finish = r));
+    }, true);
+    const saving = api.save(7, [grant], () => current);
+    current = false;
+    finish(reply(token));
+    assert.equal((await saving).outcome, "NOT_DISPATCHED");
+    assert.deepEqual(calls, ["GET"]);
+  });
+test("observed failure belongs to one operation and phase only", async () => {
+  let n = 0;
+  const api = createInitialRolePermissionsApi(async () => {
+    if (++n === 1) {
+      const r = reply({}, 401);
+      r.text = async () => {
+        throw Error("SECRET");
+      };
+      return r;
+    }
+    if (n === 2) return reply(token);
+    throw Error("SECRET");
+  }, true);
+  assert.equal((await api.save(7, [grant], () => true)).status, 401);
+  const r = await api.save(7, [grant], () => true);
+  assert.equal(r.outcome, "OUTCOME_UNKNOWN");
+  assert.equal(r.status, undefined);
+  assert.equal(n, 3);
+});

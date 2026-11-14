@@ -21,7 +21,6 @@ export function createInitialRolePermissionsApi(
   fetcher: typeof fetch = globalThis.fetch.bind(globalThis),
   enabled = false,
 ) {
-  const http = createHttpClient(fetcher);
   let busy = false;
   return {
     async save(
@@ -49,6 +48,13 @@ export function createInitialRolePermissionsApi(
       const desired = grants
         .map((g) => ({ permissionId: g.permissionId, dataScope: g.dataScope }))
         .sort((a, b) => a.permissionId - b.permissionId);
+      let observedFailureStatus: number | undefined;
+      const http = createHttpClient(async (url, options) => {
+        const response = await fetcher(url, options);
+        if (response.status >= 400 && response.status <= 599)
+          observedFailureStatus = response.status;
+        return response;
+      });
       busy = true;
       try {
         const token = await http({
@@ -70,12 +76,13 @@ export function createInitialRolePermissionsApi(
           return {
             outcome: "NOT_DISPATCHED",
             reason: "CSRF",
-            ...(token.error.kind === "http"
-              ? { status: token.error.status }
-              : {}),
+            ...(observedFailureStatus === undefined
+              ? {}
+              : { status: observedFailureStatus }),
           };
         if (signal?.aborted || !current())
           return { outcome: "NOT_DISPATCHED", reason: "STALE" };
+        observedFailureStatus = undefined;
         const result = await http({
           method: "POST",
           url: `/api/roles/${roleId}/permissions/initial-v1`,
@@ -129,7 +136,13 @@ export function createInitialRolePermissionsApi(
             reason: "HTTP",
             status: result.error.status,
           };
-        return { outcome: "OUTCOME_UNKNOWN", reason: "UNCONFIRMED" };
+        return {
+          outcome: "OUTCOME_UNKNOWN",
+          reason: "UNCONFIRMED",
+          ...(observedFailureStatus === undefined
+            ? {}
+            : { status: observedFailureStatus }),
+        };
       } finally {
         busy = false;
       }
