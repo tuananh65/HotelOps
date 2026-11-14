@@ -92,7 +92,7 @@ async function pageAt(path, status) {
   return page;
 }
 
-for (const path of ["/users", "/users/42", "/hotel?branchId=7"]) {
+for (const path of ["/users", "/users/42", "/hotel?branchId=7", "/audit"]) {
   for (const state of [
     "INITIALIZING",
     "ANONYMOUS",
@@ -553,5 +553,107 @@ test("031 real store navigation change requires a fresh GET for current query", 
   const calls = await p.evaluate(() => window.calls);
   assert.equal(calls.filter((x) => x === "/api/auth/session").length, 3);
   assert.equal(calls.filter((x) => x === "/api/auth/login").length, 1);
+  await p.close();
+});
+
+test("canonical audit reads list and redacted detail then hides data on authority loss", async () => {
+  const p = await pageAt("/audit", "INITIALIZING");
+  const row = {
+    id: 71,
+    actor: "Audit fixture actor",
+    action: "UPDATE",
+    entityType: "rooms",
+    entityId: "9",
+    occurredAt: "2026-11-15T00:00:00Z",
+  };
+  await p.evaluate((row) => {
+    window.businessReply = {
+      status: 200,
+      body: { items: [row], totalCount: 1, page: 1, pageSize: 25 },
+    };
+    window.fixture.set("AUTHENTICATED");
+  }, row);
+  await p.getByRole("button", { name: "View entry 71" }).waitFor();
+  await p.evaluate((row) => {
+    window.businessReply = {
+      status: 200,
+      body: {
+        entry: row,
+        before: { status: "DIRTY" },
+        after: { status: "READY" },
+        redacted: true,
+      },
+    };
+  }, row);
+  await p.getByRole("button", { name: "View entry 71" }).click();
+  await p.getByRole("region", { name: "Audit entry" }).waitFor();
+  assert.match(await p.locator("main").innerText(), /READY/);
+  assert.ok(
+    (await p.evaluate(() => window.calls)).includes("/api/audit-logs/71"),
+  );
+  await p.evaluate(() => window.fixture.set("ERROR_UNAVAILABLE"));
+  await p
+    .getByRole("region", { name: "Audit entry" })
+    .waitFor({ state: "hidden" });
+  assert.doesNotMatch(
+    await p.locator("body").innerText(),
+    /Audit fixture actor|READY/,
+  );
+  await p.close();
+});
+
+test("canonical audit ignores late data after authority replacement", async () => {
+  const p = await pageAt("/audit", "INITIALIZING");
+  await p.evaluate(() => {
+    window.fetch = () =>
+      new Promise((resolve) => (window.completeAudit = resolve));
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.waitForFunction(() => !!window.completeAudit);
+  await p.evaluate(() => {
+    window.fixture.set("ANONYMOUS");
+    window.completeAudit(
+      new Response(
+        JSON.stringify({
+          items: [
+            {
+              id: 1,
+              actor: "LATE-AUDIT-SECRET",
+              action: "UPDATE",
+              entityType: "rooms",
+              entityId: "1",
+              occurredAt: "2026-11-15T00:00:00Z",
+            },
+          ],
+          totalCount: 1,
+          page: 1,
+          pageSize: 25,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    );
+  });
+  await p.waitForURL("**/login**");
+  assert.doesNotMatch(await p.locator("body").innerText(), /LATE-AUDIT-SECRET/);
+  await p.close();
+});
+
+test("audit 401 invalidates the current authority without automatic business replay", async () => {
+  const p = await pageAt("/audit", "INITIALIZING");
+  await p.evaluate(() => {
+    window.businessReply = { status: 401, body: { status: 401 } };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.waitForURL("**/login**");
+  const calls = await p.evaluate(() =>
+    window.calls.filter((x) => x.startsWith("/api/audit-logs")),
+  );
+  assert.equal(calls.length, 1);
+  assert.equal(
+    await p
+      .getByRole("heading", { name: "Audit history", exact: true })
+      .count(),
+    0,
+  );
   await p.close();
 });

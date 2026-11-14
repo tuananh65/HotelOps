@@ -2,6 +2,7 @@ import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
 import { UserDirectoryPage } from "../users/UserDirectoryPage";
 import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
 import { BranchStructureTree } from "../hotel/BranchStructureTree";
+import { AuditPage } from "../audit/AuditPage";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { loginDestination } from "./returnUrl";
@@ -42,13 +43,25 @@ export function SharedAuthHost({
   checklistEnabled = false,
   usersReadEnabled = false,
   structureReadEnabled = false,
+  auditReadEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
   structureReadEnabled?: boolean;
+  auditReadEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {auditReadEnabled && (
+        <Route
+          path="/audit"
+          element={
+            <Protected>
+              <AuditPage />
+            </Protected>
+          }
+        />
+      )}
       {usersReadEnabled && (
         <Route element={<UsersRouteBoundary />}>
           <Route path="/users" element={<UserDirectoryPage />} />
@@ -111,6 +124,7 @@ export function SharedAuthHost({
             <Link to="/profile">Profile</Link>
             {usersReadEnabled && <Link to="/users">Users</Link>}
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
+            {auditReadEnabled && <Link to="/audit">Audit history</Link>}
             <OperationsRoutes />
           </Protected>
         }

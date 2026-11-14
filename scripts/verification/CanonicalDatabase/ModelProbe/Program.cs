@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 if (args.Length == 2 && args[0] == "--sprint-auth")
     return await SprintAuthProbe.RunAsync(args[1]);
+if (args.Length == 2 && args[0] == "--sprint-audit")
+    return await SprintAuthProbe.RunAsync(args[1], audit: true);
 if (args.Length == 2 && args[0] == "--sprint-schema")
     return await SprintSchemaProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-evidence-guard")
