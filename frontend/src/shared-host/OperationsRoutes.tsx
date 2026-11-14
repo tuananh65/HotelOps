@@ -7,10 +7,13 @@ import ReworkTaskListScreen from "../screens/housekeeping/ReworkTaskListScreen";
 import ReworkTaskDetailScreen from "../screens/housekeeping/ReworkTaskDetailScreen";
 import RoomTurnoverHistoryScreen from "../screens/housekeeping/RoomTurnoverHistoryScreen";
 import RoomStatusBoardScreen from "../screens/rooms/RoomStatusBoardScreen";
+import { Dev2Workspace } from "../dev2/Workspace";
+import { InventoryRoute } from "../inventory/InventoryRoute";
 export function OperationsRoutes() {
   return (
     <>
       <nav aria-label="Hotel operations">
+        <Link to="/operations/incidents">DEV2 Operations</Link> ·{" "}
         <Link to="/rooms/status">Room Status</Link> ·{" "}
         <Link to="/cleaning/tasks">Cleaning Tasks</Link> ·{" "}
         <Link to="/cleaning/assignment">Assignment</Link> ·{" "}
@@ -19,6 +22,9 @@ export function OperationsRoutes() {
       </nav>
       <main>
         <Routes>
+          <Route path="/operations/*" element={<Dev2Workspace />} />
+          <Route path="/inventory/items" element={<InventoryRoute mode="list" />} />
+          <Route path="/inventory/items/:id" element={<InventoryRoute mode="detail" />} />
           <Route path="/" element={<Navigate to="/cleaning/tasks" replace />} />
           <Route path="/cleaning/tasks" element={<CleaningTaskListScreen />} />
           <Route

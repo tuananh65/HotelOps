@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Incidents;
 using Microsoft.EntityFrameworkCore;
@@ -10,17 +11,22 @@ namespace HotelOps.Api.Services.Incidents;
 
 public sealed class IncidentService : IIncidentService
 {
+    private readonly IHttpContextAccessor? _authorityHttp;
+    private long TrustedActorId => Dev2ServiceAuthority.ActorId(_authorityHttp);
+
     private readonly HotelOpsDbContext _dbContext;
 
-    public IncidentService(HotelOpsDbContext dbContext)
+    public IncidentService(HotelOpsDbContext dbContext, IHttpContextAccessor? authorityHttp = null)
     {
         _dbContext = dbContext;
+        _authorityHttp = authorityHttp;
     }
 
     public async Task<IncidentDetailDto?> ChangeIncidentStatusAsync(long id, ChangeIncidentStatusRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Incidents", ["ChangeIncidentStatus"], request.ActorUserId, id, request);
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         var incident = await _dbContext.Incidents
             .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
             .AsTracking()
@@ -31,7 +37,7 @@ public sealed class IncidentService : IIncidentService
         }
 
         if (!await _dbContext.Users.AsNoTracking()
-            .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+            .AnyAsync(user => user.UserId == TrustedActorId, cancellationToken))
             throw new ValidationException("ActorUserId does not exist.");
 
         var status = request.Status.Trim().ToUpperInvariant();
@@ -101,7 +107,7 @@ public sealed class IncidentService : IIncidentService
                 EventType = "STATUS_CHANGED",
                 FromStatus = previousStatus,
                 ToStatus = status,
-                ActorId = request.ActorUserId,
+                ActorId = TrustedActorId,
                 Note = note,
                 OccurredAt = occurredAt
             });
@@ -110,7 +116,7 @@ public sealed class IncidentService : IIncidentService
                 EntityType = "incidents",
                 EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
                 Action = "UPDATE",
-                ActorUserId = request.ActorUserId,
+                ActorUserId = TrustedActorId,
                 BranchId = incident.BranchId,
                 OccurredAt = occurredAt,
                 OldValues = oldValues,
@@ -123,12 +129,12 @@ public sealed class IncidentService : IIncidentService
                 }),
                 ChangedFields = JsonSerializer.Serialize(changedFields)
             });
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         }
 
         var result = await GetIncidentAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("Incident could not be read after status operation.");
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 
@@ -141,8 +147,9 @@ public sealed class IncidentService : IIncidentService
 
     public async Task<IncidentDetailDto?> TriageIncidentAsync(long id, TriageIncidentRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Incidents", ["TriageIncident"], request.ActorUserId, id, request);
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
 
         // Hold the target row's update lock through validation, change detection, and commit.
         var incident = await _dbContext.Incidents
@@ -155,7 +162,7 @@ public sealed class IncidentService : IIncidentService
         }
 
         if (!await _dbContext.Users.AsNoTracking()
-            .AnyAsync(user => user.UserId == request.ActorUserId, cancellationToken))
+            .AnyAsync(user => user.UserId == TrustedActorId, cancellationToken))
             throw new ValidationException("ActorUserId does not exist.");
         if (incident.Status is not ("OPEN" or "IN_PROGRESS"))
             throw new ValidationException("Triage is allowed only for OPEN or IN_PROGRESS incidents.");
@@ -193,14 +200,14 @@ public sealed class IncidentService : IIncidentService
                 EventType = "TRIAGED",
                 FromStatus = null,
                 ToStatus = null,
-                ActorId = request.ActorUserId,
+                ActorId = TrustedActorId,
                 Note = null,
                 OccurredAt = occurredAt
             });
             _dbContext.AuditLogs.Add(new AuditLog
             {
                 BranchId = incident.BranchId,
-                ActorUserId = request.ActorUserId,
+                ActorUserId = TrustedActorId,
                 EntityType = "incidents",
                 EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
                 Action = "UPDATE",
@@ -213,23 +220,24 @@ public sealed class IncidentService : IIncidentService
                 ChangedFields = JsonSerializer.Serialize(changedFields),
                 OccurredAt = occurredAt
             });
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         }
 
         var result = await GetIncidentAsync(id, cancellationToken)
             ?? throw new InvalidOperationException("Triaged incident could not be read.");
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 
     public async Task<IncidentDetailDto> CreateIncidentAsync(CreateIncidentRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Incidents", ["CreateIncident"], request.ReportedBy, null, request);
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         await ValidateCreateAsync(request, cancellationToken);
 
         var reportedAt = DateTime.UtcNow;
         var prefix = "INC-" + reportedAt.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-";
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
 
         // Serialize allocation across application instances until this transaction ends.
         // Asset -> Incident number allocation. Retirement and handover writers also
@@ -265,7 +273,7 @@ public sealed class IncidentService : IIncidentService
         {
             IncidentNo = number,
             BranchId = request.BranchId,
-            ReportedBy = request.ReportedBy,
+            ReportedBy = TrustedActorId,
             IncidentTitle = request.IncidentTitle,
             Description = request.Description,
             DiscoveredAt = request.DiscoveredAt!.Value,
@@ -285,17 +293,17 @@ public sealed class IncidentService : IIncidentService
             EventType = "CREATED",
             FromStatus = null,
             ToStatus = "OPEN",
-            ActorId = request.ReportedBy,
+            ActorId = TrustedActorId,
             OccurredAt = reportedAt,
             Note = null
         });
         _dbContext.Incidents.Add(incident);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
 
         _dbContext.AuditLogs.Add(new AuditLog
         {
             BranchId = incident.BranchId,
-            ActorUserId = request.ReportedBy,
+            ActorUserId = TrustedActorId,
             EntityType = "incidents",
             EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
             Action = "CREATE",
@@ -309,10 +317,10 @@ public sealed class IncidentService : IIncidentService
                 room_id = incident.RoomId
             })
         });
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await GetIncidentAsync(incident.IncidentId, cancellationToken)
             ?? throw new InvalidOperationException("Created incident could not be read.");
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 
@@ -320,7 +328,7 @@ public sealed class IncidentService : IIncidentService
     {
         if (!await _dbContext.Branches.AsNoTracking().AnyAsync(x => x.BranchId == request.BranchId, cancellationToken))
             throw new ValidationException("BranchId does not exist.");
-        if (!await _dbContext.Users.AsNoTracking().AnyAsync(x => x.UserId == request.ReportedBy, cancellationToken))
+        if (!await _dbContext.Users.AsNoTracking().AnyAsync(x => x.UserId == TrustedActorId, cancellationToken))
             throw new ValidationException("ReportedBy does not exist.");
         if (request.RoomId is long roomId && !await _dbContext.Rooms.AsNoTracking()
             .AnyAsync(x => x.RoomId == roomId && x.BranchId == request.BranchId, cancellationToken))

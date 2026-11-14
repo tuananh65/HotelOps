@@ -2,10 +2,12 @@ using HotelOps.Api.DTOs.Incidents;
 using HotelOps.Api.Services.Incidents;
 using Microsoft.AspNetCore.Mvc;
 using System.ComponentModel.DataAnnotations;
+using HotelOps.Api.Controllers.Filters;
 
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[Dev2AuthorityPending]
 [Route("api/incidents")]
 public class IncidentsController : ControllerBase
 {

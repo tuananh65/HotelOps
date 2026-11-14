@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Maintenance;
 using HotelOps.Api.Entities;
@@ -76,7 +77,7 @@ public sealed partial class MaintenanceWorkService
     private async Task SaveUsages(MaintenanceWorkLog log, List<PreparedUsage> prepared, Incident incident, long actor, DateTime now, CancellationToken ct)
     {
         foreach (var item in prepared) { item.Row.MaintenanceWorkLogId = log.LogId; _dbContext.MaintenanceMaterialUsages.Add(item.Row); }
-        await _dbContext.SaveChangesAsync(ct);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, ct);
         foreach (var item in prepared)
         {
             var u = item.Row; var f = item.Source.FulfillmentLine; var s = item.Source.Line;
@@ -107,7 +108,7 @@ public sealed partial class MaintenanceWorkService
     public async Task<MaintenanceMaterialAvailability?> MaterialAvailabilityAsync(long id, int page, int pageSize, CancellationToken cancellationToken)
     {
         if (page < 1 || pageSize is < 1 or > 100 || (long)(page - 1) * pageSize > int.MaxValue) throw new ValidationException("Invalid paging.");
-        await using var tx = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var tx = _dbContext.Database.CurrentTransaction is null ? await _dbContext.Database.BeginTransactionAsync(cancellationToken) : null;
         await _issueCapacity.AcquireCatalog(cancellationToken);
         var discovered = await _dbContext.MaintenanceWorks.AsNoTracking().Where(x => x.MaintenanceWorkId == id).Select(x => new { x.IncidentId }).SingleOrDefaultAsync(cancellationToken);
         if (discovered is null) return null;
@@ -136,7 +137,7 @@ public sealed partial class MaintenanceWorkService
             catch (ValidationException) { /* Unsafe candidates are excluded, never repaired. Infrastructure/cancellation propagate. */ }
         }
         var ordered = result.OrderBy(x => x.PostedAt).ThenBy(x => x.DocumentId).ThenBy(x => x.LineNo).ThenBy(x => x.StockDocumentLineId).ToArray();
-        await tx.CommitAsync(cancellationToken);
+        if (tx is not null) await tx.CommitAsync(cancellationToken);
         return new(page, pageSize, ordered.Length, ordered.Skip((page - 1) * pageSize).Take(pageSize).ToArray());
     }
 }

@@ -1,0 +1,102 @@
+[
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-008-SAFETY-IMPLEMENT-01/AUTHORIZATION_TEMPLATE.json",
+    "sha256": "36af47f3d2c65aeecdd0c277ec917735ec8e445d5fd26500bdba482dfb161663",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-008-SAFETY-IMPLEMENT-01/RUN_WINDOWS_SAFETY_ACCEPTANCE.ps1",
+    "sha256": "3328d935d48e23d611444828a0853f2dd36f3366beec76b8e589e91211ec5f61",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-008-SAFETY-IMPLEMENT-01/VALIDATE_STATIC.ps1",
+    "sha256": "78709891645e7e9467fdd836079698a226747928321272aba863a34e3e330758",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-008-SAFETY-IMPLEMENT-01/review-candidate.cjs",
+    "sha256": "20a191bf4d2b51452d86c3d845ed70fa0feef899d4f6fad3daf1858ea1710942",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-008-SAFETY-IMPLEMENT-01/seal-candidate.cjs",
+    "sha256": "b2d76c0c3822f3d98ef5f30db1a96ccda01ba864cafeb58b274c5df65fbfe663",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Authorization.cs",
+    "sha256": "9c7de4dc30a9e45dc16ab529c105a486350fba4464a5c090f4b881e4488a1d4a",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Cleanup.cs",
+    "sha256": "ec3a8d683b7254de5e382e6aa9277345cbcaa2ce46e037ab09d7c303ce8df6d4",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Dev2Safety008.csproj",
+    "sha256": "698abc801656c731443e5a832192afa8aba565eb9ae6750ad7f8867b87373258",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Durable.cs",
+    "sha256": "ef658f4fcf1b3dfe0b8d78d7e0f642a7dc17db6bbee8f81285ff4ec5185966e0",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Graph.cs",
+    "sha256": "2c6f4b53795eb269546ab6e15c6d8fbe3624f7e7f6ead8fcbc7a896bc3b76d97",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Ledger.cs",
+    "sha256": "76f41688088cda31df80dfa41ac11f2bdd5aa9541bf4ee6ad1f766ef2e6ff1b0",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Lifecycle.cs",
+    "sha256": "1ff4970f723895deb4473fa6b5aecbf4c7d8e475089c22c912f0bae4e5119e1f",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Offline.cs",
+    "sha256": "255f0d9c2fb7d1364d681c142d5acbefe84328420a2b15d9e2bb92dc7c9f7781",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/ProcessTree.cs",
+    "sha256": "7e2ed12eba7de0e1ad57127faddd8fd98260132dfc7dda2a0267d889a144dd41",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Program.cs",
+    "sha256": "689a22d6570588c8c5bbc16fee4f4e3416c458d50386ce544c3545baf2afe8ca",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/SqlStore.cs",
+    "sha256": "80e119b8cc739f78dafa7500dd889859802ecc4b04b84bf02f156c9af1909d09",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/Worker.cs",
+    "sha256": "895ebb5062de34aca61ec7ed9a5868b552993aa3e426c540bde0c09390cc8ce5",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/browser/child.mjs",
+    "sha256": "795f56f532771f888e60c02278b6982aee8566ec2ba7776008c1ce54d7591adc",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/browser/protocol.mjs",
+    "sha256": "713d07cf7d61d79a3b3e23c743f7dff2dfb7205c14f7491875a736bc1093ed25",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  },
+  {
+    "path": "scripts/verification/Dev2Safety008/browser/protocol.test.mjs",
+    "sha256": "85db311b09289136fee9c457fe40f706c86f35df0865b6afbf05028b8e67b911",
+    "kind": "CANDIDATE_RUNTIME_OR_TOOLING"
+  }
+]

@@ -2,10 +2,12 @@ using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Assets;
 using HotelOps.Api.Services.Assets;
 using Microsoft.AspNetCore.Mvc;
+using HotelOps.Api.Controllers.Filters;
 
 namespace HotelOps.Api.Controllers;
 
 [ApiController]
+[Dev2AuthorityPending]
 [Route("api/assets")]
 public sealed class AssetsController(IAssetService service) : ControllerBase
 {

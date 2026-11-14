@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Maintenance;
 using HotelOps.Api.Entities;
@@ -7,43 +8,48 @@ namespace HotelOps.Api.Services.Maintenance;
 public sealed partial class MaintenanceWorkService
 {
     public Task<MaintenanceWorkDetailDto?> HoldWorkAsync(long id,
-        HoldMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
-        ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+        HoldMaintenanceWorkRequest request, CancellationToken cancellationToken) {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["HoldWork"], request.ActorUserId, id, request);
+        return ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
         {
             RequireState(work, "IN_PROGRESS");
-            RequireAssignee(work, request.ActorUserId);
+            RequireAssignee(work, TrustedActorId);
             var reason = RequiredNote(request.Reason, "Reason", 10);
             work.Status = "ON_HOLD";
-            AddWorkLog(work, request.ActorUserId, reason, 0, now);
+            AddWorkLog(work, TrustedActorId, reason, 0, now);
             return Task.CompletedTask;
         }, cancellationToken);
+    }
 
     public Task<MaintenanceWorkDetailDto?> ResumeWorkAsync(long id,
-        ResumeMaintenanceWorkRequest request, CancellationToken cancellationToken) =>
-        ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
+        ResumeMaintenanceWorkRequest request, CancellationToken cancellationToken) {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["ResumeWork"], request.ActorUserId, id, request);
+        return ExecuteCorrectiveAsync(id, request, null, (work, incident, now, token) =>
         {
             RequireState(work, "ON_HOLD");
-            RequireAssignee(work, request.ActorUserId);
+            RequireAssignee(work, TrustedActorId);
             work.Status = "IN_PROGRESS";
             var note = NormalizeNote(request.Note);
             if (note is not null)
-                AddWorkLog(work, request.ActorUserId, note, 0, now);
+                AddWorkLog(work, TrustedActorId, note, 0, now);
             return Task.CompletedTask;
         }, cancellationToken);
+    }
 
     public async Task<MaintenanceWorkLogDto?> CreateLogAsync(long id,
         CreateMaintenanceWorkLogRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["CreateLog"], request.ActorUserId, id, request);
         MaintenanceWorkLog? log = null;
         var result = await ExecuteCorrectiveAsync(id, request, null, async (work, incident, now, token) =>
         {
             RequireState(work, "IN_PROGRESS", "ON_HOLD");
-            RequireAssignee(work, request.ActorUserId);
+            RequireAssignee(work, TrustedActorId);
             var note = RequiredNote(request.WorkNote, "WorkNote");
             var materials = request.MaterialUsages is { Count: > 0 } ? await PrepareUsages(work, incident, request.MaterialUsages, token) : [];
-            log = AddWorkLog(work, request.ActorUserId, note, request.SpentMinutes, now);
-            await _dbContext.SaveChangesAsync(token);
-            if (materials.Count > 0) await SaveUsages(log, materials, incident, request.ActorUserId, now, token);
+            log = AddWorkLog(work, TrustedActorId, note, request.SpentMinutes, now);
+            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, token);
+            if (materials.Count > 0) await SaveUsages(log, materials, incident, TrustedActorId, now, token);
             // The technical log is a business record, not a substitute for its CREATE audit.
             var values = new Dictionary<string, object?>
                 {
@@ -56,7 +62,7 @@ public sealed partial class MaintenanceWorkService
                     ["logged_at"] = log.LoggedAt
                 };
             if (materials.Count > 0) values["material_usages"] = materials.Select(x => new { x.Row.UsageId, x.Row.StockDocumentLineId, x.Row.UsedBaseQty }).ToArray();
-            AddAudit("maintenance_work_logs", log.LogId, incident.BranchId, request.ActorUserId, now, null, values);
+            AddAudit("maintenance_work_logs", log.LogId, incident.BranchId, TrustedActorId, now, null, values);
         }, cancellationToken, request.MaterialUsages is { Count: > 0 } ? token => PrepareMaterialLocks(request.MaterialUsages, token) : null);
         if (result is null)
             return null;

@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using HotelOps.Api.DTOs.Maintenance;
@@ -11,15 +12,16 @@ public sealed partial class MaintenanceWorkService
     public async Task<MaintenanceWorkDetailDto?> CreateWorkAsync(long incidentId,
         CreateMaintenanceWorkRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaintenanceWorks", ["CreateWork"], request.ActorUserId, incidentId, request);
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         ValidatePlannedTimes(request.PlannedStartAt, request.PlannedEndAt);
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         var incident = await LockIncidentAsync(incidentId, cancellationToken);
         if (incident is null)
             return null;
         if (incident.Status != "OPEN")
             throw new ValidationException("Corrective work can be created only for an OPEN incident.");
-        await RequireUserAsync(request.ActorUserId, "ActorUserId", cancellationToken);
+        await RequireUserAsync(TrustedActorId, "ActorUserId", cancellationToken);
         if (request.DepartmentId is long departmentId && !await _dbContext.Departments.AsNoTracking()
             .AnyAsync(department => department.DepartmentId == departmentId &&
                 department.BranchId == incident.BranchId, cancellationToken))
@@ -49,16 +51,16 @@ public sealed partial class MaintenanceWorkService
             Status = "PENDING",
             PlannedStartAt = request.PlannedStartAt,
             PlannedEndAt = request.PlannedEndAt,
-            CreatedBy = request.ActorUserId,
+            CreatedBy = TrustedActorId,
             CreatedAt = now
         };
         _dbContext.MaintenanceWorks.Add(work);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         AddAudit("maintenance_works", work.MaintenanceWorkId, incident.BranchId,
-            request.ActorUserId, now, null, WorkSnapshot(work));
-        await _dbContext.SaveChangesAsync(cancellationToken);
+            TrustedActorId, now, null, WorkSnapshot(work));
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await RequireDetailAsync(work.MaintenanceWorkId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 

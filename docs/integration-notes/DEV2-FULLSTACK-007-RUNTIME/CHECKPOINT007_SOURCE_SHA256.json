@@ -1,0 +1,2730 @@
+[
+  {
+    "path": "HotelOps.slnx",
+    "sha256": "c44d7c708a9caaffce8426f70a52cbe0065dd4c0a895ea497f2c1a905a043481"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-004-ACTION-IMPLEMENTATION/DEV2_DEMO_AUTHORITY_V2.json",
+    "sha256": "456249493fc4ee7eb81ba18ef18ff44a0b55a70064736fbdb78bae1784cf74be"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-004-ACTION-IMPLEMENTATION/NATIVE_PROCESS_WRAPPER.ps1",
+    "sha256": "927d6f37525931154b715c1f8f6c8e5f456b46b5fea5b080054bda1fd87b9e35"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-004-ACTION-IMPLEMENTATION/VERIFY_NO_TRIAL_PROCESSES.ps1",
+    "sha256": "8a8932ffa2194c846b43a2ef9c9b65f90acf9ab8ca072a0b65f81c395eb8a6c1"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-004-FINAL-ACCEPTANCE/RUN_FRONTEND_HOST.ps1",
+    "sha256": "86676fb3f8bdb878782c719e09689b168fbe18ac600b8daa3b706c469575b1d1"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-004-FINAL-ACCEPTANCE/sql-preflight.ps1",
+    "sha256": "f86ac92e4e07b6128a750afbb036833244c6e20e345308949ff58cffddfdf4b3"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/MAKE_HANDOFF.ps1",
+    "sha256": "6dff518a62b9820a9c1870b82f659d2f77c8c0b5d4013bd2c6dd2d902ce1acfa"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/RUN_CHECKPOINT005_WINDOWS_HOST.ps1",
+    "sha256": "13877e4d7e602bfd55a20cc6279e359e673df659359c95f2184b37c33056dddf"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/VERIFY_HANDOFF.ps1",
+    "sha256": "c4d6efd1afb0f506eb43c09faf7a79a843bfa84662ca230294b5b44f9a44dbce"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/VERIFY_RUNNER_OFFLINE.ps1",
+    "sha256": "27c6d7ee55a5b1fe2999147217579a324529a1a7496e98a30a93c93d8685c418"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/generate-contracts.cjs",
+    "sha256": "17ad3fbbd82e90216599475c7101e860d6844f34292a083733e635030f462f25"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/prepare-handoff.cjs",
+    "sha256": "c15dcd639dafbc097076d64db696a56afe9f15360368affb500545b56429b5cb"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/prepare-host.cjs",
+    "sha256": "2ab40286222654db4137dc89f1c95e64ffb62dc310ae5c39d14a40427d637fde"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/run-check.cjs",
+    "sha256": "cd4507080d1d8c09cf6b4e7ad224ef72a03ad2bd8cd7552134e0a47583a8254e"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-005-FRONTEND/seal.cjs",
+    "sha256": "fe489e701dce906c204ef525c269c89351b1a25f1fb333886947373c312a20d6"
+  },
+  {
+    "path": "frontend/index.html",
+    "sha256": "923a68cd377d6f2ecb18e9affb227f349ae1f5c626e41baf2b6aa9e2fabb3e87"
+  },
+  {
+    "path": "frontend/package-lock.json",
+    "sha256": "0eeb547cf539086a4b461de97789e1f54041545677e49231085b1d43d91fbdbb"
+  },
+  {
+    "path": "frontend/package.json",
+    "sha256": "bf1662bcd09fcb0967b40afee2107307797fd47f7c5f826c2dd8ee3e5addadfd"
+  },
+  {
+    "path": "frontend/src/auth/AuthProvider.tsx",
+    "sha256": "629a5df40b0284d988a60c3a005a3d2665afe90ba1a1c2cb31f2425099ccd5e6"
+  },
+  {
+    "path": "frontend/src/auth/AuthRouteHost.tsx",
+    "sha256": "6cb4786535e424bae6c874af04b8d4c722d8a99938b30d5e0da838982f0fab1f"
+  },
+  {
+    "path": "frontend/src/auth/authApi.ts",
+    "sha256": "523af036b07b8907e90e03f4ba8736792d2b6ae5e7239ee556461b6e711bb2d4"
+  },
+  {
+    "path": "frontend/src/auth/authStore.ts",
+    "sha256": "5fded5a80570141314fd5e553661a97e3a8c120830901cf6ff086e30eca70060"
+  },
+  {
+    "path": "frontend/src/auth/contracts.ts",
+    "sha256": "a2e16d1897d793fb134b4c372994f4e0493d196f6d6a5e2bca94620cbcbf9a1a"
+  },
+  {
+    "path": "frontend/src/auth/http.ts",
+    "sha256": "f7725ddec330e7ffe68776d693124381f40c650a18ad2e9f9033e5a644755972"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/BranchMaintenancePanel.tsx",
+    "sha256": "abb121a74da785e430d4cafb80cfee5f049d2458a4aea9494c998bc4c3daabd5"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/BranchMaintenanceRoute.tsx",
+    "sha256": "47d2426774ab70bdc17e8a5d30556973e80b47c40e11948d8e9ae1d31fc4a463"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/CreateBranchRoute.tsx",
+    "sha256": "942e7dba1c88dd8df6e84c723bf299bacfb14d87d8c4216da180147bbfea2f94"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/branchMaintenanceApi.ts",
+    "sha256": "b12bd59f5e03380960f90e4201ecddc1e9f7e820203ef226c3214d2bfb2edec4"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/contracts.ts",
+    "sha256": "84cbf791ebec19a73671c96d7c13f22b60fc916817838b84970f654af4b17cb5"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/createBranchApi.ts",
+    "sha256": "4ba5e1d9bcaff81af577a2eb4a0e454e0c1a9b0fbab6dee26c8ea87d61631e10"
+  },
+  {
+    "path": "frontend/src/branch-maintenance/createBranchContracts.ts",
+    "sha256": "8b4ad45c4efe1c3dbab62754b6f6611caa508b79312c34a05d80a05c586db01c"
+  },
+  {
+    "path": "frontend/src/catalog.json",
+    "sha256": "865fbb12416902dd048ca139704f85492969d604737405c8e9f4c169b5e89ede"
+  },
+  {
+    "path": "frontend/src/components/ScreenBoundary.tsx",
+    "sha256": "1887b19527f4bbf08d1b70fb22281cfe648fa92e5030ad15a53711f96d313fb5"
+  },
+  {
+    "path": "frontend/src/components/StatusChart.tsx",
+    "sha256": "588ccdc32e0c7cca81d89438615541146299b5a065f1ae53d0d74a5a0e8650f2"
+  },
+  {
+    "path": "frontend/src/components/ThemeToggle.tsx",
+    "sha256": "3440c1d8ddd84c758abb56b968d0a3c82cc306ee56d83d0acd505fd6cbe86fef"
+  },
+  {
+    "path": "frontend/src/dev2/DataView.tsx",
+    "sha256": "5f7a65c0ae9f2d28803b7c73b404f4be1c044d8d198cbf87f935961f2b2affbd"
+  },
+  {
+    "path": "frontend/src/dev2/Fields.tsx",
+    "sha256": "ded80e2aae0efdb99cc473b839ec002c77b46b3465c9f97f75d019cbc7bf8d6b"
+  },
+  {
+    "path": "frontend/src/dev2/Workspace.tsx",
+    "sha256": "93be11caabcb286b2416b41e57238500d56d05ede975418228d8e97b59f8e5b5"
+  },
+  {
+    "path": "frontend/src/dev2/api.ts",
+    "sha256": "c3b3368c82a6a9088e3797cdbf5aa715c95506c6d0974cb3065430ed6faf845d"
+  },
+  {
+    "path": "frontend/src/dev2/catalog.generated.ts",
+    "sha256": "662ede811ba35c1f29cdc96b4acd0da0cd343f0ff1858b442a08ad3b11710d52"
+  },
+  {
+    "path": "frontend/src/dev2/contracts.ts",
+    "sha256": "5280d7b8309f889a256dc3074fa66b7b4d49c23803682769f76ba4b4988f7797"
+  },
+  {
+    "path": "frontend/src/dev2/dev2.css",
+    "sha256": "d826bf5e342cf1e8a27891df47d0314060899d022dce6f55256ce0ac2aca1821"
+  },
+  {
+    "path": "frontend/src/domain.ts",
+    "sha256": "cfc73c455b5056fc9154fe125b254b734b5fb1b50c629b06aa900f55fc28e945"
+  },
+  {
+    "path": "frontend/src/evidence.ts",
+    "sha256": "c0cfe1b3357d458e5f0341507dd2b08e282ef3dde866fde990364aabfad42a83"
+  },
+  {
+    "path": "frontend/src/hotel/BranchStructureTree.tsx",
+    "sha256": "1926782fe93332db78cb9b2b1681fc773a7899eab7c9e1495c6eef5f31244463"
+  },
+  {
+    "path": "frontend/src/hotel/HotelRouteHost.tsx",
+    "sha256": "13b41f31a0a1ee14f4807f148533a771bf543cf785b6592be32bdaefb79c8b7f"
+  },
+  {
+    "path": "frontend/src/hotel/HotelWorkspace.tsx",
+    "sha256": "1201aa5827c303b6925a8e77272d570aa08073fb401a83a438c88c16125c167a"
+  },
+  {
+    "path": "frontend/src/hotel/RoomDirectoryResults.tsx",
+    "sha256": "d82c0af532c30d6a6d5ba16d1e8a87b55f58478971a3001d557e56366fed554e"
+  },
+  {
+    "path": "frontend/src/hotel/contracts.ts",
+    "sha256": "e76f20f48b7c335ef063ff7cc973964a83443cdc086ac158817d9aa0ef0f9910"
+  },
+  {
+    "path": "frontend/src/hotel/hotel.css",
+    "sha256": "750cd7fa8e00426020094a1ed0e486928f396c2a768667d3f4dafbc9d05d1403"
+  },
+  {
+    "path": "frontend/src/hotel/hotelApi.ts",
+    "sha256": "161457bd1db8cb5492e8410ac14f50bd861397abe307475af1b782bc70f24d5e"
+  },
+  {
+    "path": "frontend/src/hotel/main.tsx",
+    "sha256": "7f0a7200e80fe1e0f02c8536df6742ba2b7e314c04e0a351ff618636f822d6db"
+  },
+  {
+    "path": "frontend/src/hotel/operations.ts",
+    "sha256": "7d2f3966babbd848e4c715e84347baaa60c8f1fc31ac32fddf7f238aedeeb21a"
+  },
+  {
+    "path": "frontend/src/hotel/structureView.ts",
+    "sha256": "a22fe0def446f9d9c1f40cecbb4327f2e2a87eac5b5a018bf974225fc5b3fc72"
+  },
+  {
+    "path": "frontend/src/hotel/useHotelFlow.ts",
+    "sha256": "3a728fe4310d4336352f37811d5a76a6af1d6398beb97de0f032544562a067c7"
+  },
+  {
+    "path": "frontend/src/i18n.tsx",
+    "sha256": "97241238b08967dd7da73ab1915a7d19d947511549d94f87b283e52ca2290286"
+  },
+  {
+    "path": "frontend/src/insights.tsx",
+    "sha256": "ee13469481219cd18bfbb9fe3b7c08afcf33979a9ddad20d24cb03436fbe5009"
+  },
+  {
+    "path": "frontend/src/inventory/InventoryRoute.tsx",
+    "sha256": "ef0c010baf86b1f61ec573f414e91acf48d94d1e64d365c38ce28e2abe436105"
+  },
+  {
+    "path": "frontend/src/inventory/contracts.ts",
+    "sha256": "b08ab4e032b099059e9c362c7d2e35670bef1c36f470a0cf7dfbb8b4060bd2b7"
+  },
+  {
+    "path": "frontend/src/inventory/inventory.css",
+    "sha256": "8fa40029da124c6fb81f2e5edc28e028845ab22e1b2b81bc9ec24725bfa96631"
+  },
+  {
+    "path": "frontend/src/inventory/inventoryApi.ts",
+    "sha256": "f85e3dc7b6ae632b82b3273bbe0177affc66715691b171378c237c99452d08fb"
+  },
+  {
+    "path": "frontend/src/layouts/AuthLayout.tsx",
+    "sha256": "cccf615d6b61c93803a65c880aa7de383fb28e5e162064fa52499d01654f8708"
+  },
+  {
+    "path": "frontend/src/locales/fields.vi.ts",
+    "sha256": "d8feb08477670f89a9fdf8d72beef25e06b995a3fe69184eea442dbcc53b1590"
+  },
+  {
+    "path": "frontend/src/locales/metrics.vi.ts",
+    "sha256": "99c159d0b898278fdb670b0d50d5ca8e0a1d68adcdd368080e0fb5c48d841c02"
+  },
+  {
+    "path": "frontend/src/locales/screen-descriptions.vi.ts",
+    "sha256": "02f88dae583b930aa9ffe9165da436f30419f008d326d44e3604ee8e5f7b2eca"
+  },
+  {
+    "path": "frontend/src/locales/vi-extra.ts",
+    "sha256": "7c9c3f1886203b6e4c507306f79a82a0659a9d17d9971cbc7edb85717bdf94c4"
+  },
+  {
+    "path": "frontend/src/locales/workflows.vi.ts",
+    "sha256": "1e40ffafc65152befebe3e74444d787a09d9c06d6dfb8f9238d122fad7e2de6c"
+  },
+  {
+    "path": "frontend/src/main.tsx",
+    "sha256": "b867fc06942a564d9b4b113e32c82df2e8e3f8c4b8feee183676574d67b10760"
+  },
+  {
+    "path": "frontend/src/mocks/createDatabase.ts",
+    "sha256": "8a9940eab3d9e7cefde7a1465f4585827a006254e6da3c3a8dd91a95004b88e1"
+  },
+  {
+    "path": "frontend/src/mocks/enrichDatabase.ts",
+    "sha256": "0fc7d8286bb5f8be5b9723d977df550bde7f36a4299dadb84a2ef199181b725c"
+  },
+  {
+    "path": "frontend/src/mocks/prototypeData.ts",
+    "sha256": "9ffa7e9b24943b6fea5b799760605c9c95166293b468dca30bf4c26331dc5007"
+  },
+  {
+    "path": "frontend/src/report-engine.ts",
+    "sha256": "9b1a097c4a6097352fa6e3f6307ed3c9115f0519a333f7f4ab5d253a4c8816a5"
+  },
+  {
+    "path": "frontend/src/report-export.ts",
+    "sha256": "5de6e63e042c993b46a42d3177a3b8a358400dd4b0770615b83e270bce41dadd"
+  },
+  {
+    "path": "frontend/src/roles/CustomRoleForm.tsx",
+    "sha256": "314cf2c2c020ce9519afd43179e57df6789f835c132034bc2fcc1f3a8c654b5f"
+  },
+  {
+    "path": "frontend/src/roles/RoleCatalogRoute.tsx",
+    "sha256": "a120d633b4784cb809eaa865fdf191a3dfa67e7861846d2568478f7d689beb11"
+  },
+  {
+    "path": "frontend/src/roles/contracts.ts",
+    "sha256": "f088e01b2b1bd823fc6be0d492f2a7c9a4c32249cae05198691989f2fe4006dc"
+  },
+  {
+    "path": "frontend/src/roles/customRoleApi.ts",
+    "sha256": "992623f2fe7805447b0a83fd63de7943b8c7078d6bbb26126f171b6eeb12b357"
+  },
+  {
+    "path": "frontend/src/roles/roleCatalogApi.ts",
+    "sha256": "c16d094c19602fb1ca0de0c86b9f566f414a01853b67f8c1890e7b75391eb41e"
+  },
+  {
+    "path": "frontend/src/routes/DesignSystem.tsx",
+    "sha256": "dee756073c9cb725799eaa3a92e36d62700b17b2a6d1eb0157ddac3601125e2d"
+  },
+  {
+    "path": "frontend/src/routes/ScreenIndex.tsx",
+    "sha256": "65b2fa63c539f76ac96e47c9a749ed447776e77d40d1615faffa63a2c7eb6e96"
+  },
+  {
+    "path": "frontend/src/routes/demoPaths.ts",
+    "sha256": "cf26350e09cc9ab25c8e85756613ada151892998762098a6b47955017e35c167"
+  },
+  {
+    "path": "frontend/src/routes/routeConfig.ts",
+    "sha256": "b4f534ed4997af853c8639b07e194543313bfc7468a5b8a67e315f6b569687d8"
+  },
+  {
+    "path": "frontend/src/screens/assets/AssetDetailScreen.tsx",
+    "sha256": "95e4f76de509bdd64c6a024ac0c2bed981c58f61438fedbc7ee0d47337cbf012"
+  },
+  {
+    "path": "frontend/src/screens/assets/AssetListScreen.tsx",
+    "sha256": "8befb39dbd6e395b721f6269e77d357db03c3af0fa20308c2360c19c73bcda25"
+  },
+  {
+    "path": "frontend/src/screens/assets/AssetMaintenanceHistoryScreen.tsx",
+    "sha256": "00e7a8d760b5f9b9340138e8a344a8ac15f10841692a3aafede479ba54738ec7"
+  },
+  {
+    "path": "frontend/src/screens/audit/AuditLogDetailScreen.tsx",
+    "sha256": "7b929ab2d85da88c0d8408abaa31b3bdfb17d8b680468910845c183de2dde655"
+  },
+  {
+    "path": "frontend/src/screens/audit/AuditLogScreen.tsx",
+    "sha256": "8159a6842137b9797d4ca19642ec4de0e78fecde530b5e870ee0ecedcb7f3263"
+  },
+  {
+    "path": "frontend/src/screens/auth/ChangePasswordScreen.tsx",
+    "sha256": "fc3e8634677e7049b328dc58e487bb7a759f6ccf6124e41a92b0d52e28bfafa3"
+  },
+  {
+    "path": "frontend/src/screens/auth/ForgotPasswordScreen.tsx",
+    "sha256": "1aaf6f7c8aebbd5498ae6d9cb255f5b45dc0d59cbd55e9fac4a4c0736e979290"
+  },
+  {
+    "path": "frontend/src/screens/auth/ProfileScreen.tsx",
+    "sha256": "cb3980ebd75bbaa56b057e194bb72aa1576049639a103956b1e7f4418f9efb1d"
+  },
+  {
+    "path": "frontend/src/screens/auth/SignInScreen.tsx",
+    "sha256": "8a4072853c26cf8a585bcc6cea4ca30ccd18a9ab88bab701d73020b5f063257c"
+  },
+  {
+    "path": "frontend/src/screens/dashboard/DashboardScreen.tsx",
+    "sha256": "58950e7c211cdcc070cbe7e5f7d3a0418260890d0898076deda543ce148cdba4"
+  },
+  {
+    "path": "frontend/src/screens/hotel/BranchDetailScreen.tsx",
+    "sha256": "728e996d93a4e258fb430783fe99f59fe2924f1edf5f9e12f3ffdb44e541598e"
+  },
+  {
+    "path": "frontend/src/screens/hotel/BranchListScreen.tsx",
+    "sha256": "23497692436323b745a606d620e6b60f5f871dae2da46616b7bed449ca01ae3c"
+  },
+  {
+    "path": "frontend/src/screens/hotel/DepartmentDetailScreen.tsx",
+    "sha256": "268a4e7696c05b64de4f953403cd4a384620d1dc3b5683732b9a8e5b24ce01c6"
+  },
+  {
+    "path": "frontend/src/screens/hotel/DepartmentListScreen.tsx",
+    "sha256": "3f55aedf11d1f3b72ace73254617db0f94779ddfd78f8ebb1cd18cc610ca9d54"
+  },
+  {
+    "path": "frontend/src/screens/hotel/FloorAreaDetailScreen.tsx",
+    "sha256": "390181cef5b54e7802c1b60b3e2e00b54d3f19e6e788b9590f83a5870f9b3031"
+  },
+  {
+    "path": "frontend/src/screens/hotel/FloorAreaListScreen.tsx",
+    "sha256": "48b51acabcc58e1f88dbeb70dab33efb0d532c3e1f9d4772ffe336dfbc52fdb4"
+  },
+  {
+    "path": "frontend/src/screens/hotel/RoomDetailScreen.tsx",
+    "sha256": "095eeb48dcab544195cb9a0c7809cc8a384a9f9ec3d52e8838e2f564bd13e34f"
+  },
+  {
+    "path": "frontend/src/screens/hotel/RoomListScreen.tsx",
+    "sha256": "bb6f75803069a64fda34a26ded93b05b3d59680ac4e199c617370b7bd8faa151"
+  },
+  {
+    "path": "frontend/src/screens/hotel/RoomReadinessBoardScreen.tsx",
+    "sha256": "5a90e6c1b20e22dacaad3342a0dc60c0cc4928962276e5a08244e56d0ce689f4"
+  },
+  {
+    "path": "frontend/src/screens/hotel/RoomTypeDetailScreen.tsx",
+    "sha256": "57999980005c4378ea69c217529136fd0ff8d535212fffb9165d25bc00720485"
+  },
+  {
+    "path": "frontend/src/screens/hotel/RoomTypeListScreen.tsx",
+    "sha256": "e464aeef14f0f463c4858db2511434bf198e881349d4187313c0270eecd7b88f"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningAssignmentScreen.tsx",
+    "sha256": "aed2ac60971300db5f347c3a9d564bdbe23ffcdc2f91633414d5ce77b589875e"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningTaskDetailScreen.tsx",
+    "sha256": "178b1482176472703418a9b02a425ff15d95ed18c7e98ce359a1163d6c74bf49"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CleaningTaskListScreen.tsx",
+    "sha256": "bbd733be2326eca91dfdbeefcca14201a0e76aeb2827603dd9f6eb86d24d0a43"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/CreateCleaningTaskScreen.tsx",
+    "sha256": "c5c5ab50196e56354c160ebce52528922a75364e25946a3109e68de49fc49aff"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/ReworkTaskDetailScreen.tsx",
+    "sha256": "49c84deb38452db015ade32084f724dcfe13be0df6e36fe2be119cdeb587b346"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/ReworkTaskListScreen.tsx",
+    "sha256": "02bc6619562c071b23e23a1c256dd68f5ef4339f8eece9417871687ab06c656a"
+  },
+  {
+    "path": "frontend/src/screens/housekeeping/RoomTurnoverHistoryScreen.tsx",
+    "sha256": "9fb7d20444b74240012d703042d1c19ab0ef1350675c8d7aa9107e35e01e3f08"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionChecklistDetailScreen.tsx",
+    "sha256": "27263ccbcec90f9158374630a7477c06444852684a80b298cf758e0d773d6516"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionChecklistListScreen.tsx",
+    "sha256": "3d4de13d7a36759f5baa0da632f919813147300a6223e16e5b187515ecbb7aee"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionHistoryScreen.tsx",
+    "sha256": "21ae60d2f6b632b79170408b901c460362f35a1434b432d20fb3e3e9faa8b5be"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionQueueScreen.tsx",
+    "sha256": "cfd47878a0f836cde9afbe546c9820a56a5f29766093adaffbe1ed74a829c784"
+  },
+  {
+    "path": "frontend/src/screens/inspections/InspectionResultScreen.tsx",
+    "sha256": "ccf8efbb28881730c52b6935fb9a4a8aed6ba5f8de4fe48e48b3dac013733c73"
+  },
+  {
+    "path": "frontend/src/screens/inspections/ReinspectionScreen.tsx",
+    "sha256": "28ddedf39d9209184f0ddacd180c9d076b752d0d616ecc459c1ec0d4c9edb266"
+  },
+  {
+    "path": "frontend/src/screens/inspections/RequestReworkScreen.tsx",
+    "sha256": "144992954ae32faa8a3130f5eddf4694827df93ff35d93322d0cf932696c8ff2"
+  },
+  {
+    "path": "frontend/src/screens/inspections/RoomInspectionScreen.tsx",
+    "sha256": "2f8cd31f48900df5b787836a8a52c985e98e10cb9369a2345c9b3b9f610158a5"
+  },
+  {
+    "path": "frontend/src/screens/internalRequests/InternalRequestDetailScreen.tsx",
+    "sha256": "85136626e26a4776306aef2df9184f16794de817d9501d15aab75f63a9c06189"
+  },
+  {
+    "path": "frontend/src/screens/internalRequests/InternalRequestListScreen.tsx",
+    "sha256": "6f3b65ec093cafd96e93b71cc075754dde4dc3342dc5b15e081c8a8e03d5e837"
+  },
+  {
+    "path": "frontend/src/screens/inventory/InventoryDashboardScreen.tsx",
+    "sha256": "8e12c35a10cd3fc539704516252e2b72a2bec61c2bcf3b032ba75f49d3f993b5"
+  },
+  {
+    "path": "frontend/src/screens/inventory/ItemDetailScreen.tsx",
+    "sha256": "768f5b546d852054b483ff47b3ffeea5d919a0923cc1cdc750fb298e628d416b"
+  },
+  {
+    "path": "frontend/src/screens/inventory/ItemListScreen.tsx",
+    "sha256": "61151c18bcbfe90fe80b9e6aafea194f67982e015fa6e81319258cecf4052408"
+  },
+  {
+    "path": "frontend/src/screens/inventory/StockBalanceLedgerScreen.tsx",
+    "sha256": "faa98fb31ca2147addaadeaa86a275bdc93ac988a425ce8ab47952b80706e2a0"
+  },
+  {
+    "path": "frontend/src/screens/inventory/StockTransactionDetailScreen.tsx",
+    "sha256": "cc2d849ef71aaa8f2f85f031f6b368314364ad23fff2fa82dbd961ed44f3439c"
+  },
+  {
+    "path": "frontend/src/screens/inventory/StockTransactionListScreen.tsx",
+    "sha256": "0eea425197460eacfb3d5756afe32765fd5cbe3057721ecaed71b9262c181187"
+  },
+  {
+    "path": "frontend/src/screens/inventory/StocktakeDetailScreen.tsx",
+    "sha256": "490ac35df1ad8e7836a269828c941df0db029ddeb2181eaab5e394b3ffd3099a"
+  },
+  {
+    "path": "frontend/src/screens/inventory/StocktakeListScreen.tsx",
+    "sha256": "332c81b105cdcf4a657a7ce1a05d1d03b690c79d993406d5a435d8515ee046e7"
+  },
+  {
+    "path": "frontend/src/screens/inventory/UnitofMeasurementScreen.tsx",
+    "sha256": "fdc2275a74c047689127aa46da190a12e23c70cbc41b664c4520ae61fc94362d"
+  },
+  {
+    "path": "frontend/src/screens/inventory/WarehouseDetailScreen.tsx",
+    "sha256": "9350c450ae4159cbf29c1df131aaf7873e92b0f6c0e9ebb0daf055673bb8a4d6"
+  },
+  {
+    "path": "frontend/src/screens/inventory/WarehouseListScreen.tsx",
+    "sha256": "73907e927099aec22bed33988993b97c15d8ebff3cdaa04d9f380bfc675ccc5f"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/IncidentDetailScreen.tsx",
+    "sha256": "5b1e2985905a32f933c604cf4a3fa6ea9bf006aea430fb126867e19f9f5db8aa"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/IncidentListScreen.tsx",
+    "sha256": "6cda48ab062edf3fd90b5962b34b419721c9422cea662b58fd5e13cd0e82e206"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/MaintenanceAssignmentScreen.tsx",
+    "sha256": "bcdff52d36dbc342ecdfc9bf2b0cd1999fb5ea28157e41028956ddbbb8964c05"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/MaintenanceTaskDetailScreen.tsx",
+    "sha256": "7cb6fde690224770332e03c83c332a6e7a4e65a90a983c7dcb2821c9906c2123"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/MaintenanceTaskListScreen.tsx",
+    "sha256": "e99af72c89842df0d4822ef801d96cb76000303e58b611ee8325d47199b46bed"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/PreventiveMaintenanceScheduleDetailScreen.tsx",
+    "sha256": "8cf00cedb0502dc6572d6be3236c4c7df59c282a87c87833e8cd9b3fcdd25be1"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/PreventiveMaintenanceScheduleListScreen.tsx",
+    "sha256": "14d1ceeec534267f91538349e73c8136c3324b08c3336d7d0ab5494332457db2"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/ReferenceDataScreen.tsx",
+    "sha256": "e3f548018f61c40d9170983e925d83605886c3477171e64c7ada0d07e6b12ce2"
+  },
+  {
+    "path": "frontend/src/screens/maintenance/ReportIncidentScreen.tsx",
+    "sha256": "7cc490c5d89b930afa51e9c20415012e58d148a897c21f57aec2b94d3ad46139"
+  },
+  {
+    "path": "frontend/src/screens/materialRequests/MaterialRequestDetailScreen.tsx",
+    "sha256": "1f59407ff384321300b48c79348fb7bc1fbe3c914e1bc5deb546f1e4b3960d5b"
+  },
+  {
+    "path": "frontend/src/screens/materialRequests/MaterialRequestListScreen.tsx",
+    "sha256": "22b73652a0ebf86d71c466a8b064f9692f946b99a19c4f8c698ac962af31abd2"
+  },
+  {
+    "path": "frontend/src/screens/notifications/NotificationCenterScreen.tsx",
+    "sha256": "d0ac0be717e974621954e33bba7f3ccd62d2f376d580bd1a62dd50887f9dafe9"
+  },
+  {
+    "path": "frontend/src/screens/notifications/NotificationDetailScreen.tsx",
+    "sha256": "4b0d9f9b2c50d40b780a048200a9a7be77e7e37c8ba3cb69943cf599bac19b88"
+  },
+  {
+    "path": "frontend/src/screens/replenishment/ReplenishmentDetailScreen.tsx",
+    "sha256": "bb84558e8a2d4b553cc8427e61180e3f3d46499767b202d4208d860e8060cb11"
+  },
+  {
+    "path": "frontend/src/screens/replenishment/ReplenishmentListScreen.tsx",
+    "sha256": "62dee67c6876f81baba541f09cf6f0991f93b381ae685413e80b731900605908"
+  },
+  {
+    "path": "frontend/src/screens/reports/OperationalReportsScreen.tsx",
+    "sha256": "603cc46127bf6a6a7347ae50fbf46a1b247fd44cb3cc1a791b3d9333bc36f4c4"
+  },
+  {
+    "path": "frontend/src/screens/roles/PermissionMatrixScreen.tsx",
+    "sha256": "959ebf1b480264cf1a9717325db80a3bfaeb3d2286663177b4707be4834b8743"
+  },
+  {
+    "path": "frontend/src/screens/roles/RoleDetailScreen.tsx",
+    "sha256": "d295c28c221d6a1e96290cf5b6c1816d8f87929460e9f806f18c9ba16607c316"
+  },
+  {
+    "path": "frontend/src/screens/roles/RoleListScreen.tsx",
+    "sha256": "6d53e38a939b02095b071968dd731f26666542b60882db61cb2cd9919b2b1e89"
+  },
+  {
+    "path": "frontend/src/screens/tasks/OverdueWorkScreen.tsx",
+    "sha256": "6fff0fb2b785ca0141c16d16a2601b1c819289b7afc6254a0c03e79d15b8c4ca"
+  },
+  {
+    "path": "frontend/src/screens/tasks/TaskAssignmentScreen.tsx",
+    "sha256": "7efbf30199e13514bf0f64efb544b14cdcbef13f76834df884eebbddb4289813"
+  },
+  {
+    "path": "frontend/src/screens/tasks/TaskDetailScreen.tsx",
+    "sha256": "e67d10a769a51c85e6c127a2b0ac4dd38e6a08686154061903685d3f7741e1c8"
+  },
+  {
+    "path": "frontend/src/screens/tasks/TaskListScreen.tsx",
+    "sha256": "6095afc2a048de04367f02573da197755a49ee62363a44f09fc7e5d73c62d018"
+  },
+  {
+    "path": "frontend/src/screens/tasks/WorkloadTimeLogsScreen.tsx",
+    "sha256": "2decfdaefa4f09802803480cd9eef140606239431814c1ece32f1ea0d0162bf0"
+  },
+  {
+    "path": "frontend/src/screens/users/UserDetailScreen.tsx",
+    "sha256": "7f966071aef66972335e4a57c971f25fa74c0806ea335afec04048ac6efb739c"
+  },
+  {
+    "path": "frontend/src/screens/users/UserListScreen.tsx",
+    "sha256": "a5c1d38c4e9e8006875779a61ab7f95c56f9966f2ab3930d741636ad21bd76e7"
+  },
+  {
+    "path": "frontend/src/screens/workTime/ShiftDetailScreen.tsx",
+    "sha256": "02947dc94a18e53a761625ce47abf7cde1404f406592c2b2c954c9e34aba66c1"
+  },
+  {
+    "path": "frontend/src/screens/workTime/ShiftHandoverDetailScreen.tsx",
+    "sha256": "118909020feffe5e483053fe52e112e95ecfff1a8fd51b03c937c9d4f5bab66e"
+  },
+  {
+    "path": "frontend/src/screens/workTime/ShiftHandoverListScreen.tsx",
+    "sha256": "ebd3c2b70f903710051268573592038bcfa9e01860ac6a093933920f41a91516"
+  },
+  {
+    "path": "frontend/src/screens/workTime/ShiftManagementScreen.tsx",
+    "sha256": "6baf68908a83bc4917ee9112f94ee4d688b040fbcf3fa40bfbfec208e576ede3"
+  },
+  {
+    "path": "frontend/src/screens/workTime/WorkdayRecordScreen.tsx",
+    "sha256": "d2e386a56b148c872bad9fa24d2252b9a6867eb98722c5f7aed81f22cac929da"
+  },
+  {
+    "path": "frontend/src/services.ts",
+    "sha256": "8f246a80659771938abe03df79aaeb2932039f66121f22689df4209b2b59541e"
+  },
+  {
+    "path": "frontend/src/services/readModels.ts",
+    "sha256": "71e89e765ef44d09af0b51b7fbe18092ab86952f400d7caaf8735a9002f7e34f"
+  },
+  {
+    "path": "frontend/src/structure-deactivation/StructureDeactivationPanel.tsx",
+    "sha256": "57c9d76f632b5bec6129b07eaf5df8833a34454a4b043faa09b057326b819a45"
+  },
+  {
+    "path": "frontend/src/structure-deactivation/contracts.ts",
+    "sha256": "0f637d7e4f97c5c5180db55048e16934fc866d99ce3ca7651b8c317d1c8b9ff0"
+  },
+  {
+    "path": "frontend/src/structure-deactivation/deactivationPreviewApi.ts",
+    "sha256": "23f893810e16e9d9b9c09d18c852474c26985066fb943c6e46fefec1c106b13d"
+  },
+  {
+    "path": "frontend/src/structure-deactivation/structureDeactivationApi.ts",
+    "sha256": "b60b7087ca39e52b590cc7d9db7eb433b7bf54b2f47c80badb7b644c0b2a0da0"
+  },
+  {
+    "path": "frontend/src/styles.css",
+    "sha256": "c8dfb00192ecec46b784e3130b0f1ae3d8350146403e4499815097482079d069"
+  },
+  {
+    "path": "frontend/src/styles/operations.css",
+    "sha256": "5344cc0424ef579c52335faa72a477f6bc4522983329efba297dcc7a5d3e0899"
+  },
+  {
+    "path": "frontend/src/styles/theme.css",
+    "sha256": "9d075700f01e4a9a13c8addaaac03f297487e1f6547b178f20cb1d9f3d22bedb"
+  },
+  {
+    "path": "frontend/src/styles/tokens.css",
+    "sha256": "e594f19d55e49f8c24e384282b043fc3134127abb0542ca4d5b63808ca380b81"
+  },
+  {
+    "path": "frontend/src/types/entities.ts",
+    "sha256": "fec7998176b0e22f3dc8a1751efe776d0680eeb761ccde4851beffa614145dc8"
+  },
+  {
+    "path": "frontend/src/ui.tsx",
+    "sha256": "723c70d0945156195cec27f073b7ec26a70a2035b3315873e1e1e18dea02391a"
+  },
+  {
+    "path": "frontend/src/users/ActivateUserFlowBoundary.tsx",
+    "sha256": "5f9a9d7e2a15f9bbe4341afc37c929ad4cbc7c279ebd48683f511fa407e3d5f5"
+  },
+  {
+    "path": "frontend/src/users/ActivateUserPage.tsx",
+    "sha256": "396520d761288c21a37477904de9d159633bf60b039a0054ba8eea68f7233dc5"
+  },
+  {
+    "path": "frontend/src/users/AddUserBranchFlowBoundary.tsx",
+    "sha256": "0d9f5e6751d5defab573ddf275b69d7839afa56b0b8a5493aadf5234c13efac3"
+  },
+  {
+    "path": "frontend/src/users/AddUserBranchPage.tsx",
+    "sha256": "1bc77293d8893450c9d3e2db93548036adde82cdb65ae270d5b9b6ef0a378504"
+  },
+  {
+    "path": "frontend/src/users/AssignUserRoleFlowBoundary.tsx",
+    "sha256": "23e9c8251f4009b3b70feeb5c4c121c4d925d3d83c254bb9be08cc705a59ff7f"
+  },
+  {
+    "path": "frontend/src/users/AssignUserRolePage.tsx",
+    "sha256": "23c57b2119421ead871af7e717cf344c8aaa48799a82c66bbe7948c6028274a9"
+  },
+  {
+    "path": "frontend/src/users/CreateUserFlowBoundary.tsx",
+    "sha256": "1a3589f8d1cb72dd628c56ecaa7cd4387dc682fe422751713a5548f32fe7eeeb"
+  },
+  {
+    "path": "frontend/src/users/CreateUserPage.tsx",
+    "sha256": "8b72093eefca45209665f3146e5324ec8f16e43b60ba9b5086f95f362e806f3e"
+  },
+  {
+    "path": "frontend/src/users/InitialCredentialHandoff.tsx",
+    "sha256": "8204867409f876a76e0d5fec1caefd5efa9d0118fb76e29602ee368f276a6064"
+  },
+  {
+    "path": "frontend/src/users/UpdateUserFlowBoundary.tsx",
+    "sha256": "5525b7a6bc7c7b3792120c6630ce6739a0cec6ad09d929add75934a2e45572e6"
+  },
+  {
+    "path": "frontend/src/users/UpdateUserPage.tsx",
+    "sha256": "87dfcb181b1ade954048f0e71670ffad9725ecc3dfc3e8de4379a03341483860"
+  },
+  {
+    "path": "frontend/src/users/UserAccessReviewPage.tsx",
+    "sha256": "52c67c04dce15fef876daaf03e7b7d84cd418f9dc08eaeeac6f1220d99cef89a"
+  },
+  {
+    "path": "frontend/src/users/UserDirectoryPage.tsx",
+    "sha256": "d4cfde2f852e128792b42805492aa9143ea0438e7edfb565f71b5540189bc704"
+  },
+  {
+    "path": "frontend/src/users/UsersRouteBoundary.tsx",
+    "sha256": "0c1d9606a2aee4909c9c60c1bc194c60013809b412bb01cc51bf382ad0adf08e"
+  },
+  {
+    "path": "frontend/src/users/contracts.ts",
+    "sha256": "eaceb08947b9fc8c395a7a572d97e939d450aff95bea505c1054be0483f911ae"
+  },
+  {
+    "path": "frontend/src/users/createUserApi.ts",
+    "sha256": "697bb3f5147ce8f56a10c8e91ebf1748bca02a7b1353a026683fc9bd603a5a29"
+  },
+  {
+    "path": "frontend/src/users/createUserContracts.ts",
+    "sha256": "aff7edfded924ac2608639972e0ad8e0c4e77994097fd498136437c217d899a0"
+  },
+  {
+    "path": "frontend/src/users/useActivateUser.ts",
+    "sha256": "0c9c3c76a90e0e5e29335ff0d73a68961cb8b070b28d83bf630cd5f6e23ba4da"
+  },
+  {
+    "path": "frontend/src/users/useAddUserBranch.ts",
+    "sha256": "f335d13070623a5147ed3ede75cefaf844d9a8810e2f4248502730db4f1ab61f"
+  },
+  {
+    "path": "frontend/src/users/useAssignUserRole.ts",
+    "sha256": "e79ceb14b4235354adca8658c9aee227cc7631adf72a6456300467b55a015687"
+  },
+  {
+    "path": "frontend/src/users/useCreateUser.ts",
+    "sha256": "4fc8471533b304e345ce2967fb69ba1e60d497240c082bcea737d187319aec84"
+  },
+  {
+    "path": "frontend/src/users/useUpdateUserProfile.ts",
+    "sha256": "0468c285522f65f55c21aea9ed9bc29ea516a368c0e4fcd262924d49a27dba2a"
+  },
+  {
+    "path": "frontend/src/users/useUserRead.ts",
+    "sha256": "e66eb0c05da2f2abd7454a2c586c76fe2052f8c2f651280be8a65b8c0b92a957"
+  },
+  {
+    "path": "frontend/src/users/userActivationApi.ts",
+    "sha256": "ea628e96c7aa386bdfb65006fbb219fa5b53a7717e12821e3c4bbe087f8270ed"
+  },
+  {
+    "path": "frontend/src/users/userActivationContracts.ts",
+    "sha256": "3b6a752d4104032015fe4c59080e0987ffb270e8eecd47d5720c063c0553da65"
+  },
+  {
+    "path": "frontend/src/users/userBranchMembershipApi.ts",
+    "sha256": "3fcd2123b65bd396ed0b411234754ff84fbb4edd6b943e260ad1c65bb6ab0338"
+  },
+  {
+    "path": "frontend/src/users/userBranchMembershipContracts.ts",
+    "sha256": "ee5122581e3ee02adc410882866e6f10f6cf6da1c93ac309f466c291ddf04fa5"
+  },
+  {
+    "path": "frontend/src/users/userProfileApi.ts",
+    "sha256": "3d7e7605331ab447447f0b9b31cf1077d3cd6ca6dd45002c03827642a64e9865"
+  },
+  {
+    "path": "frontend/src/users/userProfileContracts.ts",
+    "sha256": "82e9ce0fa1e7ccb50d84d7cd4ba857e91d3970571e72e672d87c1e27f91a7602"
+  },
+  {
+    "path": "frontend/src/users/userRoleAssignmentApi.ts",
+    "sha256": "1dbfbbe9f6cd2ec80855a5a62274bbeab184ca9b63377486d48d7931843102ce"
+  },
+  {
+    "path": "frontend/src/users/userRoleAssignmentContracts.ts",
+    "sha256": "89f13b5494bae78a4fbf0bbd77015463a3332b8b15839a2d9330ab9aac3a1c47"
+  },
+  {
+    "path": "frontend/src/users/usersApi.ts",
+    "sha256": "16fbc4a5d81911860e7af7f1dd07016648d9101f412bd8056a53093c6e9baf77"
+  },
+  {
+    "path": "frontend/src/vite-env.d.ts",
+    "sha256": "424faf9241dd699dda995b367ed36665732da1e6ec1f33b2fd40394488ecac92"
+  },
+  {
+    "path": "frontend/src/workday/ScheduledWorkdayPanel.tsx",
+    "sha256": "b645b351283172ede6ce79414fe8ecb55925f78acb8f73666677f7ab67d62299"
+  },
+  {
+    "path": "frontend/src/workday/WorkdayReadPanel.tsx",
+    "sha256": "70cda839e2d098285dbcd87fbad10194e12debdf5d179b5d19be92b2c5ac0c82"
+  },
+  {
+    "path": "frontend/src/workday/WorkdayRoute.tsx",
+    "sha256": "b7c98240d6453eb9df34c943ccd0e9471a8ece1b15ae8131df8178aae1c21c69"
+  },
+  {
+    "path": "frontend/src/workday/contracts.ts",
+    "sha256": "5361b328501a4f840f9c13ab954376c7bf13f3f8779f0a1e062da8f098a4a96c"
+  },
+  {
+    "path": "frontend/src/workday/readFeature.ts",
+    "sha256": "b9cdd67e46800e1a2b7b45e651e05f3c9cbe171a169f9354b75483a5cf1493dc"
+  },
+  {
+    "path": "frontend/src/workday/scheduledContracts.ts",
+    "sha256": "6ff69ac79da84000a41ae832d0515a36dee46c13082e19abfee1c5b9edaeeff4"
+  },
+  {
+    "path": "frontend/src/workday/scheduledWorkdayApi.ts",
+    "sha256": "80e90538488d373699d6d410c883aa2e3116bcc80332d2f0752653651ada79a2"
+  },
+  {
+    "path": "frontend/src/workday/workdayApi.ts",
+    "sha256": "bc93abaf7cd4c742664e37e7410236a386194634fe4bb055c331db1a594ba8d9"
+  },
+  {
+    "path": "frontend/tests/auth-router-integration.test.mjs",
+    "sha256": "f8bcf4a0d656283d46b222740b9555daa86490372f49346a966eb95a1392dc12"
+  },
+  {
+    "path": "frontend/tests/dev2-api.test.mjs",
+    "sha256": "2bf8b4479a529fc49de36415a0f0d08a875ccc5a1cf7ec0ebc9d402836707ea7"
+  },
+  {
+    "path": "frontend/tests/dev2-demo-inputs.mjs",
+    "sha256": "82c17f310c349f61d505262636db1921951fb37b6da6e8e2c34eea3704fdfa45"
+  },
+  {
+    "path": "frontend/tests/dev2-live-browser.mjs",
+    "sha256": "25f520fd938f886016c90b65829fe35e69b5bc8f13c4c60f0c6398c39e761341"
+  },
+  {
+    "path": "frontend/tests/dev2-needed-at.test.mjs",
+    "sha256": "f041ac25ad37cec501e1063a28642a280152dbc2210cb665bc6147f60b278979"
+  },
+  {
+    "path": "frontend/tests/dev2-ts-loader.mjs",
+    "sha256": "4d9e0e1d392452e19f3c0338769432495fbd1fc74ad6f69effccc08617c51a75"
+  },
+  {
+    "path": "frontend/tests/dev2-ui.test.mjs",
+    "sha256": "18898cd4ef766f0ef6cd5d641325f2eca3a76fe185d1011c4947d69c2611891b"
+  },
+  {
+    "path": "frontend/tsconfig.json",
+    "sha256": "4e0117cf76e7d00b83f10b5dc09ea50a0053415b0b76f8f9ae217acad5460324"
+  },
+  {
+    "path": "frontend/vite.config.ts",
+    "sha256": "eae3ed4082f37a0cb9781c723d67773a879bda901f844bbac773cabc8b53b986"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/ActionReceipt.cs",
+    "sha256": "705a57e6b24c3fd4ebd4105ee85dc7824b18de5ad740d08351a14dba64e57416"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/BrowserAcceptance.cs",
+    "sha256": "b31fc01df23ecb642183a656b7016065760b12c90389af125f6b5b74d48596b2"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/Cases.cs",
+    "sha256": "7b9de5b7f98f83fe55b88a6e607269090515682a5ba29e6064bd8bcb815604d6"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/Dev2AllActions.csproj",
+    "sha256": "780716b1ef0bc6b20dc701b9eb9891ce4e15f4d7e2517528a8888052233675cf"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/DiagnosticsVerification.cs",
+    "sha256": "1302e13ab9fa9c17e3c74a839d862fe9edb29df2b6215e04912787a70e6863b4"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/Effects.cs",
+    "sha256": "52cdc96036de28b86384b067e19a85c025deeb7d998e2282522ad0f529e3ab44"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/FailureDiagnostics.cs",
+    "sha256": "f35dac5a5344d21689594e44fa319294148dd3b08f68f471d3c17534c31aa57f"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/FixtureInspection.cs",
+    "sha256": "14739c0632e4b048e440bbf79c9016fb39fd20dc7397e4fdb717e462980d8693"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/FixtureReferenceVerification.cs",
+    "sha256": "791b135c325555526c9ba4361591ff104e1491a229de4fdda95621fc8e3dbdb1"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/FixtureReferences.cs",
+    "sha256": "da0148199ecf8223ed31066de79ff940bd4a1df6952575064844ea334a940002"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/FixtureRunSafety.cs",
+    "sha256": "b6985e340c822f1fa787ffb30c29eb374817051ef655b2d35ec2bcd8572f9d6a"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/FixtureStages.cs",
+    "sha256": "8ed170abab287c977beec32791c41da2ef6d28b91a07661a43eca787878d8149"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/Fixtures.cs",
+    "sha256": "9cbd8954e5651e3c1437098e2207d1353f2c3f5abeabefb930fdc182e547580d"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/HostAcceptance.cs",
+    "sha256": "160a0f75525042221a9c9e26a08baf2576dc090bf132a58253df8a03d5538245"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/LeaseVerification.cs",
+    "sha256": "d2c38b74d0487f6d0774cc16c487ed40555d7cddd9b47a3f190ca35acc82094b"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/NormalModeVerification.cs",
+    "sha256": "08c43aef4628453af7d3d3721fa36a8223ef86a34acea97f4618f132ff6d9444"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/Offline.cs",
+    "sha256": "7f91d0d6fd9ca8aa3d97339603a143badfb900c8034ccf77472b06046711cdb9"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/OrphanRecovery.cs",
+    "sha256": "94c96c2565ddd8cc05b04d27cbd162290f4a25baa9d7b0bbe12f3fb27bc56889"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/PaginationVerification.cs",
+    "sha256": "840093ebbd9a45ee451560f56614fa0f4e68cdec9bde4554a6f06af1ab9079dc"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/PreconditionTrace.cs",
+    "sha256": "cbe1a1d9b1a55599571fcf5ef42a5028204073f0ceb5d7806233fe8fee8ca8f8"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/PreconditionTraceVerification.cs",
+    "sha256": "e51eed4113c518eb6405f57c968095c55cacfbe324f6d034d0c3396ef7385451"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/Program.cs",
+    "sha256": "8ffec0f69cf4947d9c12c5c1db567929c10c634da6bf1e9472f60b8716a78dfe"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/ReceiptPostingVerification.cs",
+    "sha256": "242d1082a86350e5dfc198a37e186e6928f0c1659962eaa9a94f1c80a258318e"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/ReceiptPreconditionDiagnostics.cs",
+    "sha256": "bbd85ef9e4afba71c562a6846cbce101e1786eda7b0b09ad8e52ac1542c06068"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/RecoveryOwnership.cs",
+    "sha256": "59b41199833c164d8210b19441fdcd569249b61c85368be4a7a646a3930702e0"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/RecoverySnapshot.cs",
+    "sha256": "cd4ea638210b579a23b6ab725d89e0cfa7094e0bdc7bc596e23a18f402a04752"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/RecoveryVerification.cs",
+    "sha256": "8230c382d56d59b717f04bfb39855916355ac1f936dec875614ae2b2a55722b7"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/RestrictedSessionVerification.cs",
+    "sha256": "ed04c147dc344925ac691071ff5c97a734ef38daff7fb140ddb272e6e7f6aab1"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/TrialHooks.cs",
+    "sha256": "007256ffd4381990ef1beefc6852b51516bd1c2d5b48236ad96cf7c8edc58adb"
+  },
+  {
+    "path": "scripts/verification/Dev2AllActions/ValidationDiagnostics.cs",
+    "sha256": "5e7a3b233a2729b517c431b8ec29f5b8ef15d339f0d821a189261bf1a4e0467a"
+  },
+  {
+    "path": "scripts/verification/Dev2FinalHost/Dev2FinalHost.csproj",
+    "sha256": "ef882408483a19c7270f9f96324b148d585ed512db342ed80644ee24e0c285ac"
+  },
+  {
+    "path": "scripts/verification/Dev2FinalHost/Program.cs",
+    "sha256": "4ab30311e2c72edd266b3cfef8fd8badfa064615546bba787aa626e441852765"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+    "sha256": "08e74a14666565c33dc5a7e0415fc7826a2420402a6f7a00bfb87137fbeb0e0a"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+    "sha256": "4f9e692948e5e30b5b942949ec3f8d24516c3f0163bec7f1c27d2914b62361fc"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AssetsController.cs",
+    "sha256": "9bad1ffafb56ed9ddb86c284e00a3f59cca46af8bfd170d5349af3dcd98b09d1"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/AuthController.cs",
+    "sha256": "a2f110f3eb581723a5bb635032f86c197a1bf13426f517dfdac8ac4856c568a6"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/BranchAdministrationController.cs",
+    "sha256": "9018234533d306e75a00222dd5f0cf64779277ff6c78002014dbf317b1dfb9b6"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/BranchMaintenanceController.cs",
+    "sha256": "0f8e05346c0bbe7f3ddcccdaac7882411e622a5b4d3a19c55ca2cd151ef8fccb"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/BranchStructureController.cs",
+    "sha256": "397da96643d189bb921e43f79b66d8bd434ed5c6cff69b4c67056a213e680433"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/CleaningMonitorController.cs",
+    "sha256": "ce58c8b28b1b281ce48ce70e3c3e15a1f8352c0f911a4e724e7cce564afecb2a"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/CsrfController.cs",
+    "sha256": "b04324eb3189eaca22b3499f47f5f4def3946956be74c6bc35d36f64d4e6fede"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/CustomRoleCandidateController.cs",
+    "sha256": "21f9af8701caec22ef19881cd089103221a30836174377e6704340cf96e9cd19"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/Filters/Dev2ActionAdmissionGuard.cs",
+    "sha256": "90caf03f77cee62250b7e567cf7c443debb52ba02488996c9342a63d7478b54c"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/Filters/Dev2ActionAdmissionRegistry.cs",
+    "sha256": "29659d446d7c75a98483183b103cf270116feab56ccb58be28c6494da3deda08"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/Filters/Dev2AuthorityPendingAttribute.cs",
+    "sha256": "54eb2193e5f2f4afbc73ae03c95b66f17b097ca1c878e65bd5c221ea8263ca5a"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/Filters/RoleCatalogReadFilter.cs",
+    "sha256": "667daf639f9f475f70e5a16b41243a6c444a6a8d57abca83ab6b5ee9b5f24486"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/Filters/UserAccessReviewAttribute.cs",
+    "sha256": "409729f78a570e51d6c4fc47e4fc745e2a8a8e29fa00ea2c695ed6b186083a34"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/Filters/UserDirectoryReadFilter.cs",
+    "sha256": "fd10c7482f62b39179806a2dc7b25aeadc5690f1366fb13476a2cc0c69e26ef5"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HealthController.cs",
+    "sha256": "4aef7e892e5e6968ef2c05fc3af5b060dadc5df436cda8c64b8b6573546f6868"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HotelStructureCreationController.cs",
+    "sha256": "dab42f6a83babf7950f62eed1c76be0c3afd8bad84eaa952b3e1306cd3680ac8"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HotelStructureUpdateController.cs",
+    "sha256": "b9fdf9b2dd3ee0f2de56dbc4cfdc5ec8a07ba8d1aad00a416c5ad8eadb49f69f"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HousekeepingPlanningController.cs",
+    "sha256": "61bfbafd39cfd1ab3a278eb3060b2cf717fa4bb1da07eb86e740912ad361df10"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/HousekeepingWorkflowController.cs",
+    "sha256": "b817f622a33684a450a439f9506004bfcf0eb95ac614f9440575a1ce8d55d4fa"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/IncidentsController.cs",
+    "sha256": "126ad3d0bac53a38b94fd3645005a5e910ea017419b8ee683644bb12ff54cde6"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/InspectionChecklistsController.cs",
+    "sha256": "089ab531e0bc46c1ee6207578955f60d7f7712ac0ddfa26757efd2b3499227ec"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/InventoryController.cs",
+    "sha256": "8acf5ad9c2dec77edd0419f172bdb632e5d11d2c96168e281ffdffedb149a63a"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/MaintenanceWorksController.cs",
+    "sha256": "4c37975eabf5a996e6cfadea7b6ad980ee1bd1091046ddf062567698d798c200"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/MaterialRequestsController.cs",
+    "sha256": "6be513e4c100d9cb427e037b498cab2705e42003b45f595bd80e21020753a8bc"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/OperationalHistoryController.cs",
+    "sha256": "3ecb631c276e16914209abbb6f3407a1acc8d69cb2eaf211b8f9706967d03a3a"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/ReplenishmentsController.cs",
+    "sha256": "c245eb25787a9ef83735b1681eccc8a8c815d88fbb400a3b8f76c8bc9d6ea051"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/RoleCatalogController.cs",
+    "sha256": "1003358b42e38d6e73dab4fb352cd92c01c30358775d50f24aee61f2046e1efa"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/RoomTypeBatchController.cs",
+    "sha256": "e48b161b20661310c9279670ab7a0dfbd20d8e33db71f6d1925d9449b011b028"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/RoomTypeDirectoryController.cs",
+    "sha256": "d36e041ab77a9ff16a72933a96f25335ab702780cf76f73e89314c9f50665df2"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/RoomTypesController.cs",
+    "sha256": "9e0ee190dd4a933129539e31f101d64f7005b0b668b484d577f22725eea7be35"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/RoomsController.cs",
+    "sha256": "56a9ef1f32bc291d240e8fd2a8672fdfec43191ec3e633de802c4e73fc67698c"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/TurnoverHistoryController.cs",
+    "sha256": "c19a0bc7e4a4c7f373a8f18dcc93b9a02dfb48abd97449548b2a253c98f160ba"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserAccessReviewController.cs",
+    "sha256": "ff000d79eb1d70bf1e5e33db6dfc39909f7c52f3c57cb874d2a6fa7bb54dd692"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserAccountActivationController.cs",
+    "sha256": "a640ffce766566706dd17b9fb4248615b85872c92e7b0e0eed5299cacd276769"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserAccountCreationController.cs",
+    "sha256": "33d6c9f69080ef6460146a77b00974c0cfe18379593c017dcdfd9300b014323f"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserBranchAssignmentController.cs",
+    "sha256": "8948da8e5e35776384a5b0eeee590dfbd58da9c5930ae3c6d43ebe994d6066b3"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserProfileController.cs",
+    "sha256": "5c21d1ff1184e0f90d7ffe529cf34c1298d240d1ba11a2672594fd0cfd73b563"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UserRoleAssignmentController.cs",
+    "sha256": "c3b762e1b924175f7cb9feecccf688a16fb05b769c7207fc35660016bbe9ab3e"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/UsersController.cs",
+    "sha256": "286bfe389cef168abbe3018c1a70bac7132dc0d1df1d36f17c5818e539860ac6"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/WeatherForecastController.cs",
+    "sha256": "ca1584e11eaff689036bbde67e9891c6746cce5afbe7681031a28369c9b99be6"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/WorkProgressController.cs",
+    "sha256": "719263653adfcd470cdfafc103a9d598dd354b5dda3f8075da73d570817ceda7"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/WorkdayReadsController.cs",
+    "sha256": "3164a1cb71380d5223bdfb71105dde36c5132e469e815f499e517d7d6e7d347f"
+  },
+  {
+    "path": "src/HotelOps.Api/Controllers/WorkdaysController.cs",
+    "sha256": "2b042265b357d52e8d475748018c1e569356f054717fb5a6f0d704f57013627c"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AcceptAssetHandoverRequest.cs",
+    "sha256": "272f545db58f99397b8c3caba6db76038dc0240b22f565012921ba99a92b7754"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetActorRequest.cs",
+    "sha256": "0ad030af8c00cd4a5f770eea83267917372379312e8d3dad0b1588d0ca6aa7a2"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetConditionHistoryDto.cs",
+    "sha256": "0392ffac8060ba07c895b5a062e1b6f05757e36449e46a4601d6fd0617d7a5a9"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetDetailDto.cs",
+    "sha256": "07ed70d9fa1315ef20e0284086842ddeec50f873b08d8d35519da92a1babd7a2"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetHandoverDto.cs",
+    "sha256": "6acff260bf07b14ab7df8f4b5c53eee3194d81b3951e11657869db1e4c385d99"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetListDto.cs",
+    "sha256": "eb739b3d16b495947a05cb2adc520d34e94bfde073b2c3e4937895af71d8a10a"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetLocationHistoryDto.cs",
+    "sha256": "5c5d2b0213c562929b0e9e6b9427a503aac02ce0c2f1ad2673ef20e6f754d9bd"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetLocationStatisticsResponse.cs",
+    "sha256": "656f441c770f4065b13813929d397b67d05527fa8ead3fc1dcc499057c160a58"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryDto.cs",
+    "sha256": "6161e94f1adb834ab9e0298999c3e57bae2ce489737ab32be703a831d3e4a325"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetMaintenanceHistoryRequest.cs",
+    "sha256": "14eb14e15c8f1d81af4e4e48a2963378e4eca6d4de177dbd1b018bcdfe5d0318"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetMasterRequest.cs",
+    "sha256": "6683c0d2f3856e7ab8d998336bd109251ee9f96d8a3a94547ebcccd14b4d640f"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetPageRequest.cs",
+    "sha256": "d9129750953e5931d875a8080750aca1fc957cd5888322b14931ba006e343deb"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetPagedResponse.cs",
+    "sha256": "f85f80f5ca7f7fe115826147ad7212df175a72c71c359673fb011de789b57255"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetQueryRequest.cs",
+    "sha256": "83348384d393dcdd3eaba57302fe08d1f4c058be3d7f12f31976f2a2afaa0d4b"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetStatisticsRequest.cs",
+    "sha256": "fc7ca13e231575fb78df1dc8ce2e66179692d0eb7046734d8912c189ada1e64a"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssetTypeLookupDto.cs",
+    "sha256": "87d96d0be0b3442427520e973ff45198993c348a4ef373c1ba26d2c37ac88f29"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/AssignAssetLocationRequest.cs",
+    "sha256": "c499c658090b8b7ce82b47ab822155b9dc9fe78c841e719aa7da851dd48e3914"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/ChangeAssetConditionRequest.cs",
+    "sha256": "a05cc1a40bf3a203bdb124559a987ae8df230a6c8d62e781e7ad94d4dc3bf762"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/CreateAssetHandoverRequest.cs",
+    "sha256": "9c4f7ff2e365f74c8d324c6cda107537a229b41695b4de353c6ae564fbb3cd20"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/CreateAssetRequest.cs",
+    "sha256": "5c02a22f5ae730b05916a8af1f554e1c3480497bde8b6aa52ab2332f9b37e422"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/RejectAssetHandoverRequest.cs",
+    "sha256": "765f8119dc14e0560ba9df9651ff899c569829bdcb23074f25bb2a16944a760f"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/RetireAssetRequest.cs",
+    "sha256": "59da79a416724893df559e82ba35a64269deaa7c0418c3d7c743650b0e57e550"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/TransferAssetLocationRequest.cs",
+    "sha256": "e765d93ccc9179b230caf071e3774deedf9b8d7ddcf41ef26d0f2cf590d8fed8"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Assets/UpdateAssetRequest.cs",
+    "sha256": "dad12b2e39b9fc9fe229c8cdf813e7ae8af72080972bac1d95b4cc3d302323c5"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Authentication/AuthenticationDtos.cs",
+    "sha256": "af1e6ffa553c33f654cb7a3a9fd1999b2c91ecba89a8b8ff4cd1886ba4d07a10"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/Batch2Dtos.cs",
+    "sha256": "058cc2e5f5c0307d9cf04793cdb3f042f3b9a78d597e1cb9746d03f5555993db"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/BranchMaintenanceDtos.cs",
+    "sha256": "31922256dd826b6012e19e097355ef0d07e1ea52070c488018f9e4658715164b"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/BranchStructureDtos.cs",
+    "sha256": "814cf326307f43f7e933ba8e59b468b86f3a709413f3e80d5cf316672a88b5d2"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/ChecklistDtos.cs",
+    "sha256": "bcdb877e52cfb4513bdede4f3488062f022b03e002cecb40004ae1715ed45bf0"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/CreateRoomTypeDtos.cs",
+    "sha256": "dd49c2a3455c28b9bbb5bcf5edd4f41bbfc88fb2dcf64bd2091d93c5fb1ed0a7"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/CreateStructureDtos.cs",
+    "sha256": "9ccfb1d4871090df6932ffd884f2c1a4ac74999008ae98a5e5f8acff7be7cd7d"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/DeactivateStructureRequest.cs",
+    "sha256": "350a0ec465963ed5aa5535926f20ea16617539b472c02c04c47ba568d1bce7b4"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/OperationalHistoryDtos.cs",
+    "sha256": "fe2794917ba71fdc3c3104bfbfc5d1491aac4be57ce4cab3579ad71c69e7a0fd"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/RoomTypeBatchDtos.cs",
+    "sha256": "8fd0a406688e2325fa70277b931c4c1c45f21896830879faea8f1891bc8fac82"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/HotelStructure/UpdateStructureDtos.cs",
+    "sha256": "17824c9b888b1e85e7c850ab604810cec7099f4aa6955774b5b5e4e428fba15d"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/CleaningMonitorDtos.cs",
+    "sha256": "aa69d2cfaebc9e837bdb702214750bd760ad7db272e9620a889869ad92223f86"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/HousekeepingPlanningDtos.cs",
+    "sha256": "5648a15cb553497685d69d81b4b65ec7b2bce528bb259e368d63331474c4f9f8"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/InspectionWorkflowDtos.cs",
+    "sha256": "ab1690eac059a81b5d343fc750cb5ffc9fd38ea998d08736e285609a0a8147ff"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Housekeeping/ProgressDtos.cs",
+    "sha256": "e8d937dd01bd3860c590208c40532b4e9130d5160f97c62f96900950a5760ad6"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/ChangeIncidentStatusRequest.cs",
+    "sha256": "32fafdccf31d0e32d0858011eadf0506f72b3f4be61a4d9c709eeb3a3e7e76f2"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/CreateIncidentRequest.cs",
+    "sha256": "1501153628b09893e3606fece3cf9a3914c720f60ac85efe41f18cc82b2dea4e"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentDetailDto.cs",
+    "sha256": "08b8afe022c056ebc5e227b3952ef0ff432925e6c59555e8ce92b405b5817d19"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentEventDto.cs",
+    "sha256": "c7c9ea054ceaaca89066e9566869053dbba36021f41d2977a1256074c9b6207b"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentListDto.cs",
+    "sha256": "77fcb6f4d4449e3c1226b6e93f24ff84af57b7b819a44b85362b512e0500d5ab"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentPagedResponse.cs",
+    "sha256": "d1e4e8c61078927bdb3fc1595c50e65aaa09b07c2487e78dd033a40759c82e2c"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/IncidentQueryRequest.cs",
+    "sha256": "772974491ed7fce6734ca69a4f9cd949d87ca031c3c714807160d3ca08b62fb6"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Incidents/TriageIncidentRequest.cs",
+    "sha256": "5b8fdf36ef489a4c9f31f94ed25a77769cc9ed4c4209fbceaf66334bb76ce275"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Inventory/InventoryContracts.cs",
+    "sha256": "c90008a5b9dbd093abd86f007d25dede3949e9bdfc7b2f4c8e53ac643e11ee43"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/AssignMaintenanceWorkRequest.cs",
+    "sha256": "8ed201b5a71d1a754203d8f4b8fd865b42b699f741ff3242471a4f28dfd56c76"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/CancelMaintenanceWorkRequest.cs",
+    "sha256": "78e511d1c2b7d813861f0617f5abc08466820737d9d37cd5185e4abaa489760c"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkLogRequest.cs",
+    "sha256": "73a8a2920ef6493c86c78b73d3a58e76bb3bedc9e9da5d7a9290eb0602286137"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/CreateMaintenanceWorkRequest.cs",
+    "sha256": "7165fc0400557ebd5d2d5719e0c892dac46323da96d7df06bd81805bbd98fb2f"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/HoldMaintenanceWorkRequest.cs",
+    "sha256": "d6a879410fc44650a3b85acf8c2e8d123e5aefd50652a519ff6e7f2ab9635b43"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceActorRequest.cs",
+    "sha256": "e66cd0a6a59fcefd543566845cc2e104eacda81c2b0ea5c90f656cfcf1416f54"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceMaterialUsageContracts.cs",
+    "sha256": "f98f6dcdfe2bdc206c6f05fffe97731c51272127ed8a939d666176fc75e4a548"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenancePagedResponse.cs",
+    "sha256": "e4c9e95ac0ebcd368d4ad6f854e60d2344505fc30b22f40b0ca7a148a84760a9"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceQueryRequest.cs",
+    "sha256": "8fa14e5f4834c0b797397c67028194cbe710cb9d3815032ebf2dbd57e2df556d"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkDetailDto.cs",
+    "sha256": "4c7eb8012a9344e3d91eeacd8e35678f72034fbd6f3b71b6d205b3a7f6ac7257"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkListDto.cs",
+    "sha256": "33b209c56b1cb97035a0b9031922522db5f20c3c8fc2616fb187af0d66e18e79"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/MaintenanceWorkLogDto.cs",
+    "sha256": "02ddbf0204a190d744cf7e5ddb212d9a5f67b485d0cc086b909871f11b93b177"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/ResumeMaintenanceWorkRequest.cs",
+    "sha256": "25dd351d97b4e483865ca6ec399dc721d4fbac2a34178d28fd86f26fb2b8fee0"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/ReturnMaintenanceWorkRequest.cs",
+    "sha256": "0231adcc6573b26ac298e806ee0c64b00cf7e060c1babc852269ee0ace2622a0"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/StartMaintenanceWorkRequest.cs",
+    "sha256": "59c9ae3c52a403fcc7b2d1d013132a9777cbfd68debdeb4ab019ecaed77b4224"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/SubmitMaintenanceResultRequest.cs",
+    "sha256": "030c195e56c879789c72f34eb722fadd402d63c33aa8e9266a81a6d6b0bdf0c4"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Maintenance/VerifyMaintenanceWorkRequest.cs",
+    "sha256": "22ffb9a71c4e9ef78f2aa20d00a7f87940f7a8fb4c7857b199e06f6cc9cf57a6"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/MaterialRequests/MaterialRequestContracts.cs",
+    "sha256": "55eded9b96f0136a93d3065cd69a79c202b16c3fc95b1ddd5cdccaab00c987a3"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Rbac/CustomRoleRequests.cs",
+    "sha256": "3b3815ddfe3c14935dcbbf3bcbdad5790d72f6531da382743d270eb12addba0a"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Rbac/RoleCatalogDtos.cs",
+    "sha256": "f6b4c108136c257cd915c24f195b45cf616ba2b8dc9ea5e63e4af02116eaca34"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Replenishments/ReplenishmentContracts.cs",
+    "sha256": "9ef8bc66303567d1c20134ccadbb527635b31cb6661293df77545d9d6f991120"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Rooms/RoomDirectoryContracts.cs",
+    "sha256": "c19b8ea1be510e9a5b07c015de37201f92ac382deed0c8d3048d94611a47d89f"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/AddUserBranchRequest.cs",
+    "sha256": "b4703da237924244d592acda795ab4487862bee140185cd66ef9ff910d4c9dbe"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/AssignUserRoleRequest.cs",
+    "sha256": "7fd9b93ad59d010abf441b28aa6d5509a84b690e7b8f103bb7004b3593dce8a2"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/CreateEmployeeAccountRequest.cs",
+    "sha256": "331878566bb13c703da2652348f26e521aa99d57bc5d768c90783db06b425275"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccessReviewDto.cs",
+    "sha256": "977dec05014d34af07aee711bde813624c31b23fb413b50f44c10c66c6515296"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountActivationRequest.cs",
+    "sha256": "3fa51815d89ffe01219b48ffe9da5b4a2b7a103f158638a8a97956e5a213949c"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountDeactivationRequest.cs",
+    "sha256": "f4b38cc1a23dc2981d0cbe2df090f8d4399b3991c977268710a8502095ec935e"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountDetailDto.cs",
+    "sha256": "a85cfd9f5d44343607e0a591f9b4c366d493bd2561c86239a6babd0477b0531c"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserAccountStatusChange.cs",
+    "sha256": "15178e3f8df51bb209904c714c8d61a9cac200bd494134cf0c5c27c16e3617df"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserDirectoryContracts.cs",
+    "sha256": "7e7b656666da7b60711020f18f6691d7a3cc60e676e93a79e9e2105005937c18"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/Users/UserProfileContracts.cs",
+    "sha256": "91cef6e096475a3b6c6088d0d2c5a02aa8e4be53da8eae3e20207b1ab87f3498"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/WorkTime/ShiftPlanPreview.cs",
+    "sha256": "8adb652fd2b14ffd208d2cc3a34c17f3db7222e11ad36ee7fad056128fa41a0b"
+  },
+  {
+    "path": "src/HotelOps.Api/DTOs/WorkTime/WorkdayRequests.cs",
+    "sha256": "694e6172535282c009f6bc6d6cdcb98f4f1ad0714fe80a861744a18c7494d3d8"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/ChecklistSchema.cs",
+    "sha256": "f4e1c185b2554affd1ea5b60af867e87603b743f479a3205f4bf15b764ea6f6b"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.Checklists.cs",
+    "sha256": "ba4a675f54a6bb01cff9bc71f131808bd02c91c7d455bcface6a923b8a41d539"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.RoomTypes.cs",
+    "sha256": "ce5858ede7e2424cf1907550be9a526aa95f3c24c1987e514ae857b5b52db764"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.WorkTime.cs",
+    "sha256": "3d89708ef9d1c052f9c5f12135a8c7d62ad27c42f9f368f0f579173834ddf65c"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HotelOpsDbContext.cs",
+    "sha256": "fba0fe330b5c32a7d66d6112c23a5e003fd9deb49097630a47d2c42373276bbd"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/HousekeepingSchema.cs",
+    "sha256": "7b9b61984594ed40be6b97ef47d9a6b20e192f0dd17f7d2df2b82898cdc27549"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/ProgressSchema.cs",
+    "sha256": "c7dd59402b4cfd1a2e4aa5f347bf7a510b5de72dd56d915c53ba61c73a61e79b"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/RoomTypeSchema.cs",
+    "sha256": "38c7673749fc30f8f0ffbfd3cbed7cb3b6f7399882ee6a4c2347bfc8726beabd"
+  },
+  {
+    "path": "src/HotelOps.Api/Data/StartupSchemaValidator.cs",
+    "sha256": "3fa7d59323d3c7f126278436dd37f4cebe064cf72f45a7500ada51b1e90faf22"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Area.cs",
+    "sha256": "9245f211d25e6eb3867ff1bb6d58aca50f06eb7d5adca2af945d6e35b004e602"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Asset.cs",
+    "sha256": "e31ee14a6264e35064782c73f058cb4c043ba941b87ad55fd600c9c7fffb4247"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetConditionHistory.cs",
+    "sha256": "1e008913f8e920b545c61f9e9d0ab1ca72e21f035eb9a7ca6233e27ee442e833"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetHandover.cs",
+    "sha256": "52cddc26e905b7e346e011d793b032a42f929e00d69036b788909fb786cddd89"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetLocationHistory.cs",
+    "sha256": "bfd571fd6972bcec5a2c5ecd2265151fce562544ded8bb92c53c27bc2df7706f"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AssetType.cs",
+    "sha256": "7e9080b670815bf88b4390a9238f5734ac36ab8d872ed3810ebbcee91cf8c7c9"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Attachment.cs",
+    "sha256": "281a9c0849125f86d5ba3122379d5627b0ed02c0ed81cd72872bf1d3fa44628b"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/AuditLog.cs",
+    "sha256": "9cb4e239e19ccc0ca88707b8d3c59d6208082ed12c672a1e68fb2188613ce7a8"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Branch.cs",
+    "sha256": "acf4962acdea8d59df8285617270663fc56b2c5d0e52ab58da81a826c132bad3"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ChecklistV1.cs",
+    "sha256": "b7b2567e10700348b18596a537750153e3785ddfa69661c780ae1be4175d021f"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningAssignment.cs",
+    "sha256": "38581c3e0ecbfe35297d74d7f6eb4a12319252d0c0d7e6246e2d9f3d75cbdc90"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningProgressLog.cs",
+    "sha256": "7189e7c99c985455c24c35303b655600650d51a8752c954656197db84652e8fd"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningRework.cs",
+    "sha256": "7ca65722909366305c4243edaf691595f36a303398722ae0b6688a5cccf9802e"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/CleaningTask.cs",
+    "sha256": "7d62d0e91f277b57cefef15b91e4f602f21ed3d16f4fd99480d4e171dfefdf94"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Department.cs",
+    "sha256": "b5824d9d7db9d5183a32eb2da292cc705b6c93c20d63f040416392efd2ae3a49"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Floor.cs",
+    "sha256": "3286b41c3248c93d137f13204e3f56f405959b4c4ece18e44356e47d64c856a7"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Incident.cs",
+    "sha256": "afd7f929d6370de684c726d360005ecc780b3ca77d3533e0395e78f4a5979cbc"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/IncidentEvent.cs",
+    "sha256": "328450bc6a93571f754d877ca9dffbe8ab6a9fe28172b0d60e4d8ec277d6d90a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionChecklist.cs",
+    "sha256": "3e35a847f6bd95e81b3f82c74e9592e11179e5a678b9a925bfc6813ac02ec3b3"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionChecklistItem.cs",
+    "sha256": "1851d1fdbf27dfaaf59de844be78ef11e5f7a4ecd4217c2171b6a97fed943de5"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionChecklistVersion.cs",
+    "sha256": "9b17653e5dc3241d505bcdeac4ded2d5d8abfb010cfdf788d28cfa11a2944ba0"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionDefect.cs",
+    "sha256": "84abc5a781dd4008ac1a0129fed0e6d4ed2e1fc3a3df2e1c444b1c74959e5297"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InspectionResult.cs",
+    "sha256": "e1c6b11c478fa2d229c5e83cbd2ea89bac13be86f95bd5b6312b52eaa5be8027"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequest.cs",
+    "sha256": "b25ac2e5cb3f9c87e4ad091a5db58fa5d40011a587da0f2a81729359746e7c6a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestAssignment.cs",
+    "sha256": "1edf1a01e8b8a0e2ef6acfd16f8ad4aed814b4b22af9c026e4cc4421a517b7b6"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestEvent.cs",
+    "sha256": "40f10470076ab65c4256db05fea7d4243a8ca83f1e96a39dae5fe9ec24e135ae"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestFeedback.cs",
+    "sha256": "11789438ba8629c87ca0be1afba1be14e08d9a3eecc768f0c9859be25d910bba"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InternalRequestType.cs",
+    "sha256": "4e32c84fadda236422b5251542c88f8522450136df4cb79939d17bebeea1d0f0"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/InventoryItem.cs",
+    "sha256": "72467bc26a3b5cc5a25c449bb55bc0f0669902b15325ae15c1e961c77eed98ea"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ItemCategory.cs",
+    "sha256": "509ed136a1fc4dcfeedca35a205565aac8f8f46e4dae01eb1d8ee9800a09cd4d"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaintenanceMaterialUsage.cs",
+    "sha256": "6dc4f5c93c12d145a16a3bd76f9858a90a1c515ef44276d145bdd1d395c6300a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaintenanceWork.cs",
+    "sha256": "88656f48168e7e7a9d8ebe5e9d2fd6b777786cdaf748319bf275524ca80e2828"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaintenanceWorkLog.cs",
+    "sha256": "60f438170fab59781e52fba32511eb077c70876fb47093321af9207ae9d170e8"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialFulfillment.cs",
+    "sha256": "40a573d6e437559a6fe7c2bfa6fe979403686cc312c65f8c1ed9e3e9af06f2b7"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialFulfillmentLine.cs",
+    "sha256": "c77c7a35a671c42e75182dd8679c1ba4ae39efe7d8260ce369038b36b8a819b7"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialReplenishment.cs",
+    "sha256": "078a38549fa36f24ddc2b9b06bb1eeb0bb4a6b1a63124023177288c9ae3cbc4c"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialReplenishmentLine.cs",
+    "sha256": "6bb3d6c14e491f4a9040c5d56a99038c08c828c4f56a40cbdaf01d3be1319aac"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialReplenishmentReceiptLine.cs",
+    "sha256": "5b092502b92dc4f47f77b6b762f5788fbe25b8e5a2bfa2811006f45f59be809e"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequest.cs",
+    "sha256": "3d64f4081ee7c05ca878c91f0fc1c30bc82f745a49ca1b1e65aa669f928c9141"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestApproval.cs",
+    "sha256": "0d992eeadff59d45d19e062f3f5b44fb3340e0f77748cd372914715ea6b3186e"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestApprovalCycle.cs",
+    "sha256": "78eaa8eb4e51d81a1ea59873171a1329f29276546101283c853691f5d288ad65"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestApprovalLineSnapshot.cs",
+    "sha256": "da007d3650f5567cd8727392bc532f1aae893974ea481c16f77ff6d6d3bd121a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/MaterialRequestLine.cs",
+    "sha256": "2dd00b1db8c87d666033f5f240af79b3a6a035e7671f588ddca97707c1117b92"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Notification.cs",
+    "sha256": "01271cc573ca39f65ea2b9a7620080df7eccd9c97f195f42e4f26d8d6a1a30fa"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/NotificationRecipient.cs",
+    "sha256": "ef26a77eda1225c019cbe8659663f555d9e7ef2e0c93b330f7dc1e352812b344"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTask.cs",
+    "sha256": "5305c402fe9f317b6b429d8b1231c20113860141a860677f47993f538e9c9f23"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTaskAssignment.cs",
+    "sha256": "11a7e892301d9f75a8b8749b3ec088eeeff07986aa46ab0ad9fc4d6de1bf6abf"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTaskDependency.cs",
+    "sha256": "f6f35bfec469f69ab3fdd48e6597b3423fc410b17ee87a1b533f441f894a0e2c"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/OperationalTaskProgress.cs",
+    "sha256": "bf1fe5d4b430c990df9b33b2b1c2a5f02213bb0a35d94bd6d2a2645da97a9cda"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Permission.cs",
+    "sha256": "44c0917f354241482479abf65b0a4fa0154bb9c60485c2dc9c4e7aaa915290ba"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/PreventiveMaintenanceRun.cs",
+    "sha256": "43f4d112eaac765775aa9ff49a513fc2e6a17895851de75563dcb87761f8360d"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/PreventiveMaintenanceSchedule.cs",
+    "sha256": "41c30cd82d54a2e5ff14e62458b5753d76c50a38ee6fcbbfd4529896e0e602c0"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ReferenceValue.cs",
+    "sha256": "130a34653744f8060abf4a76f41373c218eb7d07ff5a7890043e61e171751bf3"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Role.cs",
+    "sha256": "02bcf587dd619aa35c042c87f52b87c38d7e52ed9468750bd61691009b002d7a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RolePermission.cs",
+    "sha256": "dba207b1c86c1b2da741d8d30c75f5469129a5d7fe0e75b80ccfd813a894811d"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Room.cs",
+    "sha256": "3c4baf71f2070e837892c170fcc9953cb4febbb890e0cde746a3ac14ebcda5f0"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomBlock.cs",
+    "sha256": "7a62f2dbf728e2db7d6962ee0346dd69075d318c18f822f2b22467e0b9c4e7c6"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomInspection.cs",
+    "sha256": "5ae5c94ec3a544024d09831ad559e82de0e8a7e4807eec78a07d69c47d33b0d0"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomStatusHistory.cs",
+    "sha256": "7a82eb18cb2d0ce47d9075cc53661b4b8e8cece4e11639274fba586faada94a6"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomType.cs",
+    "sha256": "76f62fd391985f0291b7bab38f599bf23bbea2152c8d76b39edc231f329a7d70"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/RoomTypeBranchV1.cs",
+    "sha256": "cc805cc7870d1bf5b25037622aa067d843a48b49376fa9b61930df3ecd8ef233"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ShiftAssignment.cs",
+    "sha256": "efb664b2cdefcaad8298d1b67f2127b778c615ff02ffe2742e611e28911a9b58"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ShiftAttendance.cs",
+    "sha256": "277a19cf689720ff98f1b9e2d5ab12506189a59de047a3ecd4ee5bc216bc484c"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/ShiftTemplate.cs",
+    "sha256": "4a1f1deb0eb616a2f66327cf09ef05430c0a5924596583c4a5323d7171e3b3bc"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockDocument.cs",
+    "sha256": "2544239342ca591131dfb54ac4063e20eb2fca2c068ff71698a47bc3d47184c1"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockDocumentLine.cs",
+    "sha256": "7096fb7b33248bafc13dbae531c6fe5439d32edb89f6a9d730c7c92e8ac20ad0"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockMovement.cs",
+    "sha256": "e12a3acb5b6ef3858cb6d7c534801ebbd06b399d0b15f00d6ccbf8bd9c3412fb"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockReceiptLineDetail.cs",
+    "sha256": "2041d817a4897a1868aa3a6ccbf57f12c395dbc18a85a85af427d3333f441015"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockReturnLineDetail.cs",
+    "sha256": "5d315c0fade84370b612160fc9b4c13b143b697e72a3960d851dfd65e423e0c6"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockThreshold.cs",
+    "sha256": "93a1c71dea844a8a2921fe73a9d6d1bfbb4ae14f343f79bc38915541f9a3d64a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockTransferReceipt.cs",
+    "sha256": "fd3c28eb79fe5d945ffaf2f30e82b8843a59d51e39b27962cffcf714a0531f0e"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StockTransferReceiptLine.cs",
+    "sha256": "14ff87be8d236deda1a50a55deb6abf6f3d2276a7f252e66b5b3f4c1344747ef"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Stocktake.cs",
+    "sha256": "98a51dfd9cb16ef342e933a15ee78ca5c3ad65c192627ef606e9410902564d39"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/StocktakeLine.cs",
+    "sha256": "28dd4b0ed62418722ee735618079467f1a08c8da9fb93f0ae62fdb3cf846f35d"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/SystemSetting.cs",
+    "sha256": "1711d80646813b53b77b90eb9b4535794883393c868b060057616cefbdd97ec7"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/TimeCorrectionRequest.cs",
+    "sha256": "14d6d49a853762cf4c3c4fd058bfd3615b9005f5684a100ceaf001cc8d91b0fc"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UnitsOfMeasure.cs",
+    "sha256": "abe955a82151dcf95f783e9828d6a62593e7cf8d4bd8af90bc1e7ff41525c797"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UomConversion.cs",
+    "sha256": "06e0bb436448d2c53feaf102920410be10551a5a1e1da582542174b351fa69f9"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/User.ProfileConcurrency.cs",
+    "sha256": "2ae89bea248fd3db407508955556452b67495f7dcfbe8408404f20af721630bd"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/User.cs",
+    "sha256": "c7fbc76fcd23095d7267af249846b8e47da66c04628df530d5af45b34ad940e5"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UserBranchAccess.cs",
+    "sha256": "4401eed69716ab0b134e4b9e2cd2abdec06d098b76ee51e7444de260e182810b"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UserRole.cs",
+    "sha256": "e704dd41f2df6c1ca8a355977fb637a5d2b727480e7d1dde5acd0c4c4cb227d5"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/UserSession.cs",
+    "sha256": "7036a7e1ea1040182404b46a8f54d779b1e9660a1e1e4422758cb9a97ba6933a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Warehouse.cs",
+    "sha256": "b6ed2da300858bbd6b0c133ec38ad5af672679e2133d13e2238e2ab0259cec31"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/WorkCategory.cs",
+    "sha256": "ee2ef8b935a0419bd5266eeffbf723b8f20bea48b381b26a7664f3422371bb6a"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/WorkInterval.cs",
+    "sha256": "aaec0e06812273cb487e8caf784a652fff7c0185021a8dc6f6503212d5b1b091"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/WorkShift.cs",
+    "sha256": "48051783270de1fed36abcd2b8daaeeffbdf053ac7c7aa92a8256f26135bbf20"
+  },
+  {
+    "path": "src/HotelOps.Api/Entities/Workday.cs",
+    "sha256": "7f7b31b121d9ccbf1072c2ca1bcd1fbd0b69b1a8e9345ebea9554c826dd6884b"
+  },
+  {
+    "path": "src/HotelOps.Api/HotelOps.Api.csproj",
+    "sha256": "dbda3208ae12b4c9ed8bec102684afed1e0ec4fb792b0a38c3e0928012e828d4"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/ApiCsrfMiddleware.cs",
+    "sha256": "406670dfb35aadf4263e7b6c54048b65203919b0110a4e498f229667ac465834"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/AuthenticationExceptionMiddleware.cs",
+    "sha256": "6b3b26f09b9bfb2d12ea9d819518f00b0fed4b543f094a56a5b043fe8eb297f6"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/InvalidCookieMiddleware.cs",
+    "sha256": "c497c24e8c0d3a9e456ce8fb0ef237af3fee25f6a5c7fbf9cc2e794b6aa60ab7"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/RestrictedSessionMiddleware.cs",
+    "sha256": "ae601abeb503e3dd9811ce494eb06149cdef36939104c1c25085c00feafa413c"
+  },
+  {
+    "path": "src/HotelOps.Api/Middleware/SessionTouchMiddleware.cs",
+    "sha256": "7725377121f8fc4473dcf512da874f98309e1979cd03d323af1086fb2ee6a474"
+  },
+  {
+    "path": "src/HotelOps.Api/Program.cs",
+    "sha256": "5d58bb323811a36bc8acd9aebbd9847b2818202fed49521b927b4e4633988584"
+  },
+  {
+    "path": "src/HotelOps.Api/Properties/launchSettings.json",
+    "sha256": "b4b31d5fdf9165fed1d4e6683c866fa6f4935884f93e0c32fb08e582e7cf3145"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/AuthenticationApiBehavior.cs",
+    "sha256": "9355e7be71443d33d093b3276cb5a22a03b138011f3b04ab2bd230f28821cc09"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/AuthenticationProblem.cs",
+    "sha256": "da2bc3838b8f6a6fc45a1148f3cb09cb7107994f113ddac4014045f1e8a43007"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/CurrentUserAccessor.cs",
+    "sha256": "8c272556558a9aa55ffc682733242368afd5c261b55ec8b6d86a43d692649fa0"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/ICurrentUserAccessor.cs",
+    "sha256": "2f1eea71c338f5a9f982c445f4d23cf3f618ae80d25bc62158e9da4c412c9627"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/IPermissionService.cs",
+    "sha256": "5acee41f8ca7d4333543bd5629b35fcca3f5fbb6d1a7a994d6cb2050c4f970b5"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationHandler.cs",
+    "sha256": "b5226c9a39995e6ca24cdee92011524796514340eff6d7540fa15d7c7d620377"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionAuthorizationRegistration.cs",
+    "sha256": "c65776cd228c7813b38f4969749a7807140434053bd1d1687f552ca0df8ec721"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionDataSource.cs",
+    "sha256": "ea42f6c7f1f44453cb3316bd04cb8bf25d397cbdbddea5f83b1fdf69d89cd4f8"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionGrantRules.cs",
+    "sha256": "9986867e11f8c576c9ca5fa21c479c80adcc7c76d8191f72a48598840aabd7e1"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionPolicyProvider.cs",
+    "sha256": "e43a6b9b45f704bf6522e8b64cef6688c4765f1b21c8920da2b7853e44e0ab8f"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionRequirement.cs",
+    "sha256": "dccf3b7aa63db0e605cf7b87a045f1ad7e1fd0b9adca2edc049bee5d2c3d89f7"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/PermissionService.cs",
+    "sha256": "49a56bd245777e569f7ef831ae7842c968fbe6d3fd96888109922b9203d9ddc7"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/Resources/CleaningTaskAccessReader.cs",
+    "sha256": "abcf50a94257ee6c262d2e01725dda75d6055666545a1061543fd09269ed4ddf"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/Authorization/Resources/CleaningTaskResourceResolver.cs",
+    "sha256": "d401bbdf7c0348be9af123df3e2ac53a24e045da9a2f85d4e93ee80141cee2b8"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/CookieRequestRules.cs",
+    "sha256": "6a46e413b860a81f582d74705a0eddeabd1359e2d3d36f015647e4f238d15272"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/CookieSessionValidator.cs",
+    "sha256": "aec5944219d4b0a3a867805833c2b974828c5f4c3dfd59ededc5e8e357ee1a19"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsAntiforgery.cs",
+    "sha256": "2f98e415ef1804cdcdf9efa3e508449a29cc2056fa076d16028d96bb144ca337"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieEvents.cs",
+    "sha256": "a94c35ab8b80b267689ce863498beb9c3df5616c3239bf7be8a4306d0c26e5d3"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieInfrastructure.cs",
+    "sha256": "9cb618efc8e0a42c955122794a5db85e90845e409f163a1565def4e5323f1eeb"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/HotelOpsCookieTicket.cs",
+    "sha256": "9c6f7dcd0070b0724a5d85601cde4de2cf095c320bfcccfd55404aab57162865"
+  },
+  {
+    "path": "src/HotelOps.Api/Security/SessionAntiforgeryAdditionalDataProvider.cs",
+    "sha256": "e6a12291dda66d77638c6a96fa843be9d741076a1b8f80b508686c2285609064"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Auditing.cs",
+    "sha256": "c25918aedeaa5e2c1b0df62b5770f377df4d8cb15668ac267d02dce5d6bb38af"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Condition.cs",
+    "sha256": "3c16e0e6e1394f8dca8883b308d83ea7f3a44b12fd2ac604ac8161f2434a38d9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Create.cs",
+    "sha256": "9b89c23af9347f169ea085804e2ee1039b45ef8ebeb72aa9ae2d4a2e5a51da96"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Handover.cs",
+    "sha256": "a1de9bbcc6331d541ef64174f2734e209a6251c0b397429306d67f5d6bf42b58"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Location.cs",
+    "sha256": "fda4b0bb07e8c10b5dd929f48be3e0d68e8c82ef58b8b65c0286bc7eea7fb4ed"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.MaintenanceHistory.cs",
+    "sha256": "80c7fc996df23160890d205566320da3d44d437430fa83b8f9cc2c6f81adc951"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Queries.cs",
+    "sha256": "e7eace46133036ea3bfd5db923262100368e646e7ce428c0e46edce6e095a4b1"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Retirement.cs",
+    "sha256": "50f52ca4e7ce05ac3ee45b47222f8ba7ae4afd79a7eeba6dce77196eb7fef100"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Statistics.cs",
+    "sha256": "7d9cafd29f24be27096643b1e5d0197a1df270b8064715292a2683866985e165"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Update.cs",
+    "sha256": "8394d081a65c04522f06d8ae9df9b8c4706b9c4bb963b4c8af9c61d6d59ed5aa"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.Validation.cs",
+    "sha256": "3fe1e2bb3382a69a3d770fd00f0af9aed6ac5a720a82df9e0eb5694290980848"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/AssetService.cs",
+    "sha256": "6e0dd32a4c672a1ab0b556d4aede5b6fb83dc73445471df9e305dcf2b00c3250"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Assets/IAssetService.cs",
+    "sha256": "b6ceeddffc60313d4994cdc18e859095eaaca284c4ffda888527ecf6c522cf18"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AdminReauthenticationService.cs",
+    "sha256": "83d412f7d5460f2f123c627e890e78a9a1fc723baf9cd9af1793b5140718633d"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AuthenticationAudit.cs",
+    "sha256": "9fcffdf69b2bf1096ba426728d6f7117eda25190df187e50eb108c08cc7d2c1e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AuthenticationCredentialWorkflow.cs",
+    "sha256": "028a58068d1ca373a5890d09e7d37c28ea17453351f806db114a33689fdfcaf5"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/AuthenticationLoginService.cs",
+    "sha256": "bb5ae6606957b1af94006ea75f7ac50d46ac7d57c2b48756c139764b27ef87a9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/CredentialLockoutPolicy.cs",
+    "sha256": "5df5d1a9211d0db9996c81df74b81d829824bd45ad641b1d5cf766025d5b5633"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/CredentialLockoutService.cs",
+    "sha256": "254ad1f0ab84ab692f03c980128668db3e54fe21c828215a1fc204d3e4f4dbef"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IAuthenticationCredentialWorkflow.cs",
+    "sha256": "259fae556d2b26a08ad18ed362528c7d0cf454a155fddd44a71b3ae71a000747"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IAuthenticationLoginService.cs",
+    "sha256": "28c16d7ed96dfe317e66bea7210c34982c92d80fe60f16cc3417fcccef300296"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IConditionalCredentialResetService.cs",
+    "sha256": "86ca70c1af5bb71890140fef7860fe411ef04a334d330c28e066d2d6d6864341"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ICredentialLockoutService.cs",
+    "sha256": "bd936f15a91c22b7d228259879c4dc0b84daac6b00b2eaa9536c1d634acce3b9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IInitialCredentialTransactionParticipant.cs",
+    "sha256": "75051dc1df127be22c0afe0a3adcc7e9373d25ccec38843321824f58215019c5"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/IPasswordCredentialService.cs",
+    "sha256": "2392436b1f22d1169036638ee680cb0dabc70b92dba2113c860261f4434824b6"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ISqlSessionService.cs",
+    "sha256": "26141aad4bd3a1060b799483ccf207ba53fd882f13e0656601a100ed65d88f96"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ITemporaryCredentialService.cs",
+    "sha256": "b8156d2020745f414c9a75f3704934d1949887194242fbf98f02f0129bdf9e7c"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/PasswordChangePolicy.cs",
+    "sha256": "f279dc8129daf92dddd77717ba99e55e2c5c521e1192d58b2d246c51739ced32"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/PasswordCredentialService.cs",
+    "sha256": "50facbbfde270eb1d0479eb4e6447ef9db44446b6e465fa5f8225b841b608333"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/ReauthenticationProofStore.cs",
+    "sha256": "65692d96b859b53c1b1513bc26c595e2afa1504550fbc60658a657f16883a171"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SessionCredential.cs",
+    "sha256": "ee587fc2b470c7abd2269a5afc6b5b39022179b6ba1647fc303bdeee89b8c083"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SessionRevocationService.cs",
+    "sha256": "f528086f260ee2a77736eaa3d04f3a6038eef436c0bcf211be8bd415c4995d76"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SessionStoreUnavailableException.cs",
+    "sha256": "a592ef384c8a17308e0fab641363992407de591e8fac828178c0ad814637c9f2"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionPolicy.cs",
+    "sha256": "0002d6411fc080f2ba7c480f9451f248afc239096df9427a3237399eec0ac14e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/SqlSessionService.cs",
+    "sha256": "7227f5d33cb9a1981f4a4708c1884e6daa1cd3966249931fcc5c9df69df49325"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+    "sha256": "f39ce310a4b91d2bae53597da90c8cdd44bdcea0e0379eec49d77e9893f76b2e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2ActionContracts.cs",
+    "sha256": "33bdef91571989c78159d2a57ac6ee06f940a1d70be044a2dbebe40c7ddafd77"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2DemoBindings.Expanded.cs",
+    "sha256": "c850a099e3bd66f7b17cb4a8b3853612928e6d5489db1a5d56c9a9f1611f8760"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2DemoBindings.cs",
+    "sha256": "d6094fdcaa345f9e11c76bbed9ada99aa43580e71fbef83132ee7b8ecdd67439"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2DemoPolicyIdentity.cs",
+    "sha256": "fa961665ee421eb40d90d44cdef721d93b9eb5b851ce97efcc7536efb1690e8b"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2ExpandedCatalog.cs",
+    "sha256": "2a0a57bcbf03d9ae171c656a3716c11f9fd93a61e906c6a976a551274da3d2eb"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2FactPermissionResolver.cs",
+    "sha256": "2129376f1ce714a14189e4d8b2c5d767b31dd3d3bc7de7d876f9be8a84026ae2"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2PermissionGate.cs",
+    "sha256": "30b68103428cbf984211e5bcd566cca4c9151e506493bf439e04f34e511b1443"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2ReadQuery.cs",
+    "sha256": "ced6ca878d8d935d01874a31e76604797b0c90ba38d19a80ca1d505291131f4a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2ResourceFacts.cs",
+    "sha256": "6bc06ab25a522bf0a5e7c2581d1e6361899eb20a2866e1243bc0bef95746021a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Dev2Authorization/Dev2ServiceAuthority.cs",
+    "sha256": "8431ab6aa471262f1639fa1fc8f3866341accfd9ff40502cd3d326b4fa27d39f"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationSchema.cs",
+    "sha256": "0e3877f916d40b894893db18c92454bf894d28a461d3a4bde2b474acc93fcdcf"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchAdministrationService.cs",
+    "sha256": "9ba9a9c49e5ba1d830d880fc0f68ffbe91f716430bffa90f99561df6681aaac9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchDeactivationDependencyReader.cs",
+    "sha256": "e416e7518c93137f30ce1b9ed613f68117159fbdfd0b110f844694c4744c3c51"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchMaintenanceService.cs",
+    "sha256": "182cddabf1a9d30af2256d149c36068370f5a00f0c7c0469e67fb88e40540b61"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/BranchStructureService.cs",
+    "sha256": "6c567e5968df1622076cf5741533511fd0bff8ac9b691ded9e1c56969bd2e900"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/ChecklistService.cs",
+    "sha256": "3fac18acc9867a7963c9c1c40c70e5a79471feeaa4e81c06cc3a8d3c6a2d2f1d"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/DepartmentBatch2Service.cs",
+    "sha256": "ef10716602c06982d29c344537ef7c631ffbb9fae47f09ff99c43a50e601cb5e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/HotelStructureCreationService.cs",
+    "sha256": "b4ba4eb6dcb9eaa0a5e875889879521703d06843fc109b60fcbabf1700932e97"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/HotelStructureUpdateService.cs",
+    "sha256": "9436ced74905cc6f1e73fb18809d252284c0ea6a5162217d6ce4973acb33d1e7"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryFiles.cs",
+    "sha256": "c7843877960760daff792e26de9124fe51af8cb4a27ba51d0092fd98207349bc"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/OperationalHistoryService.cs",
+    "sha256": "b8c0910dbda19971292c4917b1e248794140f7c7663f7871a6ce44a1e3cd2299"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomBatch2Service.cs",
+    "sha256": "b23b4cc20d122d3499b24b7ac2191d8977b174d03b9e83b666e3815fafe7a964"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomCreationService.cs",
+    "sha256": "492db75be7f62e9a56b1895783aeb763d9ef9e5c6e3a54d3c3ef8b114a033b0b"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeBatchService.cs",
+    "sha256": "2f0e9e944a906f5cf9dcf2465c72e0b9908da462ab1ce192e69de2c59a3d9ed9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeCreationService.cs",
+    "sha256": "f75e7c9583655868694a615bf35b062d53559d56a74a540b85aa3d00822295b7"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectorySchema.cs",
+    "sha256": "072e41a655a870c6544ae6401826f03239dc6ad067d10a94993ab5d5bc77c34e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/RoomTypeDirectoryService.cs",
+    "sha256": "6dda8422ffbcfd937cd32e8c283bae684f823292e2851e162c4e94423c5ae173"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/StructureDeactivationDependencies.cs",
+    "sha256": "30f8300d1f354d7dc3026cf0f1b452f3ad03f458617341a5eece5f52125ee337"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryBoundary.cs",
+    "sha256": "a77ee4ea9879df27f371cae1a0b9e3caa8baaa93c3e56293755a5b60cf32b280"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryFiles.cs",
+    "sha256": "85cae60b8d6ad93f5bb31d7bfaffc4bfefa46599012d584d641983f53b64324c"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistorySchema.cs",
+    "sha256": "4374454d9a05640fed038588b414e87a67f846cb261e2058910a3dadd2bce3bc"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/HotelStructure/TurnoverHistoryService.cs",
+    "sha256": "60834f41bedec9563a97316300e04b364c45347a993a16d4816bd7dc8405d84c"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/CleaningMonitorService.cs",
+    "sha256": "e2f8e63f7ab26511d0c00c74b12ea4153c21a862873a1dd705b372be0202051b"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingAssignmentsService.cs",
+    "sha256": "99a00e9a923d1c2eca2d801063d5b51ab96266082e6af9a1f23cd35c83d944f6"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/HousekeepingPlanningService.cs",
+    "sha256": "535af449a41f74db8ed60c0441c3a614c3a7f4dfbafceefcf388ca67be5fb6aa"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/InspectionExecutionService.cs",
+    "sha256": "f89ece2fd15566d2631253e7851f653194bc87259a555c86aa231552c35b2c6b"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Housekeeping/WorkProgressService.cs",
+    "sha256": "aa562f7338cc452d5b3303a520611d286ff1314189e12a750e73d7fdf1f3c6ae"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Incidents/IIncidentService.cs",
+    "sha256": "01df2c035df1ec0a89a6c1d08cbdb5c15cc1852fb323362ba6989b58ee7ffc0d"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Incidents/IncidentService.cs",
+    "sha256": "9661ae80327a982f93cb744ab776eb41d5c196a0958326dcd3496f1686a98d57"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/IInventoryIssueCapacity.cs",
+    "sha256": "2f744c3867888ec5f7af6c6b7abe4070fa2774b5ff597d04abc7e5abc87f20d6"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/IInventoryIssuePosting.cs",
+    "sha256": "40d69e1375e74bfe292c9fe2803a296cef03a5fab09a90762879c57b80da24ba"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/IInventoryReceiptPosting.cs",
+    "sha256": "b926a65fba85cc03dc01d1f9dc6e1d7c391668eda06ab3f0bf54b5fd15845516"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryAccess.cs",
+    "sha256": "78e229141af16a1257bbc1035c4592464446a752a2a2b6838b609f3275e64ac3"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Adjustments.cs",
+    "sha256": "816c029745501e5d395bcda1dc7fffa82034560fca1f94bc68ebb301a18b3b69"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Documents.cs",
+    "sha256": "67a17d28da8cf33abe270eae43988269ecd9155b2a07fbf0d21a9c39a35119b2"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.IssueCapacity.cs",
+    "sha256": "60d3bf83dbc02b2f7df2e0ed9ecf378362291a551d87aded0e2cb69c2d99eccb"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Issues.cs",
+    "sha256": "3dcdf7960e38bd3e4aa1da598200650936e7e5ff952f204fbdebb3de23c194b2"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Masters.cs",
+    "sha256": "bbcec08905fe2b3b4745b835431c098d6f02284dd0a0e255c4218876205e95f7"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Queries.cs",
+    "sha256": "e4acdf87bb02f329fc06079be5e6fdd267949fca65c2b525ed7d2af85edb694b"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.ReadScope.cs",
+    "sha256": "6033738681e001692571674fc2160bca31ae3a7b527f287fd802baf84cd10f6a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.ReceiptIntegration.cs",
+    "sha256": "c0c11ec3cfe606350e6421345c8729cda8e004140208313ba8c6d0b919aa999f"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.Stocktakes.cs",
+    "sha256": "b7b66255bef6c715f617039252530df5e7adb2a92a8e56a6af86a464d2ea21ff"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Inventory/InventoryService.cs",
+    "sha256": "8d74f714682ca980b93f5a1f48f3ab2be4b45d4ff83e47627e9e5da5bb61fea9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/IMaintenanceWorkService.cs",
+    "sha256": "adce72d9ce5d0c67280d7c65e1f305fb4de8cf390b434ae4cdf9433e3c2b7c6f"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Auditing.cs",
+    "sha256": "7555c8f7cb3dec35b3279f3bdc7e36347a4a0922cd4c17adc7f1b87ebcbcf31a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Commands.cs",
+    "sha256": "c73a19d14a475d72ca554f04007979ed7562e0dda0b1e7a7c3ce8b10c026d95f"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Create.cs",
+    "sha256": "57b894a46a484acf37803c0e5f82a22ae3181b69a8975edad3fe3ae2f0475cf4"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Logs.cs",
+    "sha256": "81dd5ebfb1a126c55619da5707e55a8ff7af1cf80b917c57ad2559a08ca4b32f"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Materials.cs",
+    "sha256": "3f021b479cdfaff5ae108c11434b2e05192cc2bd83f928eaa0ae438e533e0f51"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Queries.cs",
+    "sha256": "7ab112ffdb2a1667c68344c335d7f676cdb997ceafa78747b8b0c8806a379284"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.Workflow.cs",
+    "sha256": "4111189c210e88fb3f2582404fc66d3b60edd64c07fc314ee9801ac57d65f978"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Maintenance/MaintenanceWorkService.cs",
+    "sha256": "f82dbe25550d467bc5f461ef4ce51b1232138dc8f947643bd27534faee6b1a53"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Commands.cs",
+    "sha256": "90502ff1a23b4a98a9c070d1762df9fdea33db036e1f4e558cc3eca3ab4c5219"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.Queries.cs",
+    "sha256": "a01c86fd115003232fd3868fdf657231f455e7a470213d49422cbde434293b08"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/MaterialRequests/MaterialRequestService.cs",
+    "sha256": "53019610fbf05017ea1f6e0921e07fef6d6c8c8198789a851af7cb3173b25d4a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Rbac/CustomRoleService.cs",
+    "sha256": "3159e47574f8d8d6eae287c7abcc9b04017383ed76fbcef9cce54aeff6b30bda"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Rbac/RoleCatalogAuthority.cs",
+    "sha256": "2204041851d39138e9c66f499959d0741d478a9ef94175f43e4f620f60e4dc84"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Rbac/RoleCatalogService.cs",
+    "sha256": "5ea4063e00b035508fe6caae4a730c055b2f5ba20cf01afde6a05e31639ea760"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Replenishments/ReplenishmentRules.cs",
+    "sha256": "96ed23a0a33ccedab4d845d09e8821207e5fd4f525ee3ba305ad05d363f1d4c6"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.Queries.cs",
+    "sha256": "d6a9cb40b49503831ee8a4bd245700672c04eddeaa8eb4a5af6cc6352aa4dbb0"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Replenishments/ReplenishmentService.cs",
+    "sha256": "fb22a348a4b49ad0c200538d666ae683b826929b272d6f7a2be880e477fb8a4a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Rooms/RoomDirectoryService.cs",
+    "sha256": "329a5f952dd9ef21beccd80397bd06727c9ba6ea4ed56b8150e4381ba19cbd41"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/AccountWriterSessionGate.cs",
+    "sha256": "331224689531bb6f839d6b983bb264c4579a3877cc063ea05ef0751d6aa07058"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/AdminCredentialResetWorkflow.cs",
+    "sha256": "bb9e673579a5b6f9af06d8cc8502bfd06158d78acc8b52535de7a9d67ebee6f2"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/ApprovedDev1ResponsibilityQueries.cs",
+    "sha256": "f9f5b4c672bda7737fbfa443c71e523033ffb10fbcd44afc402b049f61c9e7e9"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/DeactivationResponsibilityQueries.cs",
+    "sha256": "f8e6356dc9d905b787335ed29974b8dac107970fd3b081fae4fc9781a558289a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/Dev1DeactivationPredicates.cs",
+    "sha256": "40175fdb1797a93408b557cdf3f1d6eb49f578d8dea6f9ecfdb1c98829ae2043"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/Dev2ResponsibilityStateQueries.cs",
+    "sha256": "dee11cb712709c81d42f5045fc2946426f0bd31afc7308dc17b559f11abe0460"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/GlobalAdminSerialization.cs",
+    "sha256": "b46768d2fbfed65a503131e879002815f89a582bde73a5f12b1f9f82f9f8144b"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/IUserDirectoryService.cs",
+    "sha256": "f7108a652d80fa84a93b984bef0029a828a76bdf08754f76460884d12e455e93"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/IntegratedDeactivationResponsibilityQueries.cs",
+    "sha256": "c4ae24063872c07245c026eabe1d4476cf3f346f47ae76aebedc5e5515dc2081"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccessReviewService.cs",
+    "sha256": "f5126b2589fc0caebaf48e88f28ab2bd4a7fa5353172a17ced501cfb4d925237"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountActivationService.cs",
+    "sha256": "89f06ea3e7e190c74d7bf3ff271afd4eb125a7d57c31c396c5eb6c5ef3ea55f7"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountCreationService.cs",
+    "sha256": "10818a2c88a5e20a9ae4982cb99ee1b358c3d5cbd0f32aae441c5cf921c5ddb5"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountDeactivationReleaseAcceptance.cs",
+    "sha256": "26e2c1a1fca8ca660b41ca420f4fb62db77ca70959fedae2c7c8acc371824970"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountDeactivationService.cs",
+    "sha256": "7269b8a796d6203863bce832d2a927cb912e1615357867d2d75adeb14e3b4a68"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserAccountStatusAccess.cs",
+    "sha256": "3944aa0795f5e213a90e403640320fc642d2d5c76f63a27820c9e58820ec226c"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserBranchAssignmentAccess.cs",
+    "sha256": "19e857c154514984bc0fb3b28edae67b1e46692d677e3674bb932a20f78d181f"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserBranchAssignmentService.cs",
+    "sha256": "814edd0c7ec19f6d67a67bd70b721d0039f2d6723db3e470101cc252a6996ac0"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+    "sha256": "5f316abc946517ca1ee02e3917e0677766c03be0c26e8e2f79c69a50c03c9644"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserDirectoryQueries.cs",
+    "sha256": "82868aec11130f2bc73e6ed265cae5d9b65fa532eb6e60af15cf5498913fd5df"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserDirectoryReadGuard.cs",
+    "sha256": "1d6fbafdfd6808ffc1778db7c433a03d264facfadc3186d622215229c5d1064c"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserDirectoryService.cs",
+    "sha256": "5b26ba7476a231f3d8af7c62609e2a916820b4ddcd8d6411f2f7b058ef5cb5ff"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserEligibilityLock.cs",
+    "sha256": "f1ee64f3b6713dc18568f4c095ad94000ccfa47f146982a609e20f75ea27a5a6"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserProfileAccess.cs",
+    "sha256": "3ecc501687a3a4738ea056d4acd033aff1f02e0ab6cb739996c4f0fe9fdc62c0"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserProfileService.cs",
+    "sha256": "52922fd6d88f15154c0dad5791c83ee087ad51f53f59d78446c2855fa73c4bbb"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserRoleAssignmentService.cs",
+    "sha256": "c4911fb08434bf7fbffe44fe3076fe38a9db77125386a32d6f7bbab12f22273d"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/Users/UserRoleDelegationPolicy.cs",
+    "sha256": "0a21a2f32f51e0d9cdbff13a445fceb0de515e069e550cd084627e5848d7736d"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/IWorkTimeTransactionParticipant.cs",
+    "sha256": "b108c0f05ca4a9dd6659430151670273460a32fccfd11aa0402cf5b975a5f58c"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/OwnWorkdaySnapshotReader.cs",
+    "sha256": "7c926e4b641a84571e8cf48499699fad4045375c22fea93541fdab3a34941282"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/ShiftAssignmentConflictReader.cs",
+    "sha256": "8d6d2bc45f17e19d88ed99e5053c122758390efc544712ec9d1b8cfd1688a15e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/ShiftPlanPreviewService.cs",
+    "sha256": "65f93f8cf1e7a3f5fe9271b37cd0c7064f30f3df40c9cfc6d59d6058e4ac1d84"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/ShiftSchedulePlanner.cs",
+    "sha256": "1cfe3652884f13619f62478926ce1bfbee90ee0dfe68975f6bd079a486a41a4a"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/SqlShiftPlanPreviewReader.cs",
+    "sha256": "7e4a2cf84b1eb0a90033a42cd856d2e97546f8e5d907500076ff6d9a5fecd476"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/SqlWorkTimeTransactionParticipant.cs",
+    "sha256": "0eef6dfe431f70ec6decda97cce2afad5ac464e99b5aedfda8f95b3e421505a2"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkIntervalMath.cs",
+    "sha256": "31f379a367c8d7ba7dff7a988ffd4f8b3529b4c6af86acc26ccd0121214c4a3d"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkdayPermissionResourceResolver.cs",
+    "sha256": "0e60ffa75e4447e99974c9ed3546bf13e084c06ac2a580fda266f66e11e8af6e"
+  },
+  {
+    "path": "src/HotelOps.Api/Services/WorkTime/WorkdayService.cs",
+    "sha256": "92ffc2550809c147bed51320550a1e48a036fcf30e856092ae66aaa3d8d96f7f"
+  },
+  {
+    "path": "src/HotelOps.Api/WeatherForecast.cs",
+    "sha256": "c486961c911a8fa566e14315d2e87fc724e0d8fd6c5f207fbb9297d3c887c70e"
+  },
+  {
+    "path": "src/HotelOps.Api/appsettings.Development.json",
+    "sha256": "73f95f9e0ceb205fc1c4dc50c07697fcfa29d7087868c2aef1d504cb38c771ec"
+  },
+  {
+    "path": "src/HotelOps.Api/appsettings.json",
+    "sha256": "5dd118838e1a1c9cadf12cbacb280575574fe914c6709759c18a204d342040df"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-006-DEPENDENCIES/build-package.cjs",
+    "sha256": "0459d678cdeae631db805035fab39a6c2d0a579efe33d62bbc2592261ecff69e"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-006-DEPENDENCIES/run-check.cjs",
+    "sha256": "d946b228e7f57b3c8fc426dbc0ab331ba5569ec94106efebb1e3cb538f09f5c0"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-006-DEPENDENCIES/RUN_CHECKPOINT006_OFFLINE_WINDOWS_HOST.ps1",
+    "sha256": "7b038e535ed13cb042e559090cf0b6893c98955814da486b4ecab88ac6121c5d"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-006-DEPENDENCIES/consolidate-final-gate.cjs",
+    "sha256": "8eca6840a27966cdd1f11737d726a577185f4723f72c3b24a117d26aafa934ab"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/RUNTIME_VERIFIER.json",
+    "sha256": "3191ebd37e9c78fb69712328f726367391c4dfd89f9d61de10b13057bc54e416"
+  },
+  {
+    "path": "scripts/verification/Dev2Runtime007/Dev2Runtime007.csproj",
+    "sha256": "2437bdb8dd07df2109c26772e14e946bcad426004f5f468479ce1d70e0bcd9d1"
+  },
+  {
+    "path": "scripts/verification/Dev2Runtime007/Program.cs",
+    "sha256": "f83527e0b74cde79399bbc460e51a790db71a83331c627478d628285a7c60843"
+  },
+  {
+    "path": "scripts/verification/Dev2Runtime007/Runtime007.cs",
+    "sha256": "faf53fd331709c752f4369b442063a83372181e1658e8ed6da0d79f871514512"
+  },
+  {
+    "path": "frontend/tests/dev2-runtime007-browser.mjs",
+    "sha256": "e37532e423872a3efd3003ba3a37c7c42b9fab4e2fdb2cc19b849ac9e385bc60"
+  },
+  {
+    "path": "frontend/tests/dev2-runtime007-interactive.mjs",
+    "sha256": "4acf7dacd120604d54e26a1414648a7872dee188af73250a2a4bc32b0af805a7"
+  },
+  {
+    "path": "frontend/tests/dev2-runtime007-review.test.mjs",
+    "sha256": "95a4e82768007cc8ba2d50c2bb9ea0564aa29d671bab18bb5b4e6f38eb074c2f"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/FRONTEND_VALIDATION.ps1",
+    "sha256": "3e8a47d4062962910ab75394f01ebf77bdc31c0dfca9e2c307d1f8befc679da2"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/prepare-host.cjs",
+    "sha256": "6e8389841979a668bdf0ff1ad162aee809a64c6aae82a6ef7c833266cb2d4448"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/prepare-runtime.cjs",
+    "sha256": "fcb93a5dbb32ad498c97a46adbede0c9011e8c8cd366873b9f6c211fa2b72591"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/review-runtime.cjs",
+    "sha256": "e187a4b00c8fb4b9583ed6435e0857a29ff9550602851ea9d28ddb93da85c1fb"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/run-check.cjs",
+    "sha256": "d946b228e7f57b3c8fc426dbc0ab331ba5569ec94106efebb1e3cb538f09f5c0"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/RUNTIME_ARTIFACT.ps1",
+    "sha256": "569b33113e7f3817b9dfda536bacb9b0bf390f7f39fe945e8dafe724897a6d88"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/RUN_CHECKPOINT007_WINDOWS_HOST.ps1",
+    "sha256": "ecf742f7880066bf2373499b598e07a06860da921e0cc0c56ca57725688df7a8"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/RUN_FRONTEND_VALIDATION_ONLY.ps1",
+    "sha256": "f6cd8b17332c96c8adb08a900c493ab57ed7323c23f5945afc9e2db7db4afba6"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/seal-runtime.cjs",
+    "sha256": "5d3f13943c9c2fd4932af473f485a08cceed2736d3f4091697e18e5538988325"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/STOP_INTERACTIVE_DEMO.ps1",
+    "sha256": "75e8287c141e24c9dc27199b566feafe6c993ec976472db07340de75b4d6bd67"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/VERIFY_FIX002_RERUN_SAFETY.ps1",
+    "sha256": "9b8b69c5fe2f617faefbaeab6743345d92c590988da2c3faf4dd223098a091c8"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/VERIFY_NO_RUNTIME_PROCESSES.ps1",
+    "sha256": "a509d02056874f3da7bcc334c3990691424b9c7711d3200f20cb161809e11513"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-007-RUNTIME/VERIFY_RUNTIME_ARTIFACT_ONLY.ps1",
+    "sha256": "49d325b18a156e57907c1bf92047e70a6f9b311645e0862e8519924bfe910c9f"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-006-FINAL-CLOSURE/FINAL_CHECKPOINT006_ACCEPTANCE.json",
+    "sha256": "c9e64a7891b656e4b00bd2355c6b77e20ae52fdbb9701212b9c45688e433106c"
+  },
+  {
+    "path": "docs/integration-notes/DEV2-FULLSTACK-006-FINAL-CLOSURE/OWNER_DECISION.txt",
+    "sha256": "143520d918077502b3477bfcc0fca3aa9903756ecea68a136025b23a0f8d0bd8"
+  }
+]

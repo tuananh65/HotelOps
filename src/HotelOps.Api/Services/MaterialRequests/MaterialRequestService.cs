@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Numerics;
@@ -12,8 +13,11 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelOps.Api.Services.MaterialRequests;
 
-public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInventoryIssuePosting posting, InventoryService inventory)
+public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInventoryIssuePosting posting, InventoryService inventory, IHttpContextAccessor? authorityHttp = null)
 {
+    private readonly IHttpContextAccessor? _authorityHttp = authorityHttp;
+    private long TrustedActorId => Dev2ServiceAuthority.ActorId(_authorityHttp);
+
     private static ValidationException Invalid(string message) => new(message);
     private static decimal Qty(decimal q)
     {
@@ -148,6 +152,9 @@ public sealed partial class MaterialRequestService(HotelOpsDbContext db, IInvent
         }
         db.MaterialRequestApprovalCycles.Add(cycle); r.Status = "PENDING_APPROVAL"; r.SubmittedAt = cycle.SubmittedAt;
     }
+    private static bool RequiresCycle(string status, bool submit) =>
+        status is "PENDING_APPROVAL" or "APPROVED" || submit && status is "DRAFT" or "NEEDS_INFORMATION";
+
     private async Task ValidateContent(MaterialRequest r, bool submit, bool changedIncident, CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(r.Purpose)) throw Invalid("Purpose is required.");

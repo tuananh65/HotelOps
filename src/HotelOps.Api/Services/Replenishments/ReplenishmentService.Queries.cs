@@ -49,20 +49,20 @@ public sealed partial class ReplenishmentService
     {
         // RCSI/SNAPSHOT are off locally: short Catalog-owned read gives a consistent multi-query aggregate.
         if (db.Database.CurrentTransaction != null) return await Read(id, ct);
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct); var r = await Read(id, ct); await tx.CommitAsync(ct); return r;
+        await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null; await Catalog(ct); var r = await Read(id, ct); if (tx is not null) await tx.CommitAsync(ct); return r;
     }
     public async Task<IReadOnlyList<ReplenishmentReceiptDto>?> Receipts(long id, CancellationToken ct) => (await Get(id, ct))?.Receipts;
     public async Task<ReplenishmentHistory?> History(long id, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct); var r = await Read(id, ct); if (r is null) return null;
+        await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null; await Catalog(ct); var r = await Read(id, ct); if (r is null) return null;
         var docs = r.Receipts.Select(x => x.StockDocumentId.ToString()).Concat(r.Receipts.Where(x => x.ReversalDocumentId != null).Select(x => x.ReversalDocumentId!.Value.ToString())).ToArray();
         var rows = await db.AuditLogs.AsNoTracking().Where(x => x.EntityType == "material_replenishments" && x.EntityId == id.ToString() || x.EntityType == "stock_documents" && docs.Contains(x.EntityId))
             .OrderBy(x => x.OccurredAt).ThenBy(x => x.AuditId).Select(x => new ReplenishmentAuditDto(x.AuditId, x.EntityType, x.EntityId, x.Action, x.ActorUserId, x.BranchId, x.OccurredAt, x.OldValues, x.NewValues, x.ChangedFields)).ToListAsync(ct);
-        await tx.CommitAsync(ct); return new(r, rows.Select(x => x with { OccurredAt = Utc(x.OccurredAt) }).ToArray());
+        if (tx is not null) await tx.CommitAsync(ct); return new(r, rows.Select(x => x with { OccurredAt = Utc(x.OccurredAt) }).ToArray());
     }
     public async Task<ReplenishmentPaged<LowStockShortage>> LowStock(ReplenishmentPage p, CancellationToken ct)
     {
-        var offset = Offset(p); await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct);
+        var offset = Offset(p); await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null; await Catalog(ct);
         var thresholds = await db.StockThresholds.AsNoTracking().Include(x => x.Warehouse).Include(x => x.Item).ThenInclude(x => x.BaseUom)
             .Where(x => x.Warehouse.IsActive && x.Warehouse.Branch.IsActive && x.Item.IsActive && x.Item.Category.IsActive && x.Item.BaseUom.IsActive && (p.WarehouseId == null || x.WarehouseId == p.WarehouseId) && (p.BranchId == null || x.Warehouse.BranchId == p.BranchId) && (p.ItemId == null || x.ItemId == p.ItemId)).OrderBy(x => x.WarehouseId).ThenBy(x => x.ItemId).ToListAsync(ct);
         var result = new List<LowStockShortage>();
@@ -72,7 +72,7 @@ public sealed partial class ReplenishmentService
             var coverage = await db.MaterialReplenishmentLines.AsNoTracking().Include(x => x.MaterialReplenishment).SingleOrDefaultAsync(x => x.WarehouseId == t.WarehouseId && x.ItemId == t.ItemId && x.IsOpenCoverage, ct);
             result.Add(new(t.WarehouseId, t.Warehouse.BranchId, t.ItemId, t.Item.BaseUomId, balance, t.MinimumQty, t.MinimumQty - balance, t.ThresholdId, coverage?.ReplenishmentId, coverage?.MaterialReplenishment.Status));
         }
-        await tx.CommitAsync(ct); return new(p.Page, p.PageSize, result.Count, result.Skip(offset).Take(p.PageSize).ToArray());
+        if (tx is not null) await tx.CommitAsync(ct); return new(p.Page, p.PageSize, result.Count, result.Skip(offset).Take(p.PageSize).ToArray());
     }
     private async Task<List<MaterialRequestShortage>> MaterialCandidates(long? warehouse, long? item, CancellationToken ct)
     {
@@ -95,8 +95,8 @@ public sealed partial class ReplenishmentService
     }
     public async Task<ReplenishmentPaged<MaterialRequestShortage>> MaterialShortages(ReplenishmentPage p, CancellationToken ct)
     {
-        var offset = Offset(p); await using var tx = await db.Database.BeginTransactionAsync(ct); await Catalog(ct);
+        var offset = Offset(p); await using var tx = db.Database.CurrentTransaction is null ? await db.Database.BeginTransactionAsync(ct) : null; await Catalog(ct);
         var rows = (await MaterialCandidates(p.WarehouseId, p.ItemId, ct)).Where(x => p.BranchId == null || x.BranchId == p.BranchId).ToArray();
-        await tx.CommitAsync(ct); return new(p.Page, p.PageSize, rows.Length, rows.Skip(offset).Take(p.PageSize).ToArray());
+        if (tx is not null) await tx.CommitAsync(ct); return new(p.Page, p.PageSize, rows.Length, rows.Skip(offset).Take(p.PageSize).ToArray());
     }
 }

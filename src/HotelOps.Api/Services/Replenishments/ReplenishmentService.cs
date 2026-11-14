@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.Globalization;
 using System.Numerics;
 using HotelOps.Api.Data;
@@ -10,8 +11,11 @@ using static HotelOps.Api.Services.Replenishments.ReplenishmentRules;
 
 namespace HotelOps.Api.Services.Replenishments;
 
-public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventoryReceiptPosting posting, IInventoryQuantityContext quantities)
+public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventoryReceiptPosting posting, IInventoryQuantityContext quantities, IHttpContextAccessor? authorityHttp = null)
 {
+    private readonly IHttpContextAccessor? _authorityHttp = authorityHttp;
+    private long TrustedActorId => Dev2ServiceAuthority.ActorId(_authorityHttp);
+
     private async Task Catalog(CancellationToken ct) => await Gate(db, "HotelOps:Inventory:Catalog", ct);
     private async Task<Warehouse> Warehouse(long id, bool locking, CancellationToken ct)
     {
@@ -45,11 +49,12 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
     }
     public async Task<ReplenishmentDto> Create(ReplenishmentCreate input, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Replenishments", ["Create"], input.ActorUserId, null, input);
+        await using var tx = await Dev2ServiceAuthority.BeginTransactionAsync(db, _authorityHttp, ct);
         try
         {
             await Catalog(ct); var warehouse = await Warehouse(input.WarehouseId, false, ct);
-            await Actor(db, input.ActorUserId, warehouse.BranchId, ct);
+            await Actor(db, TrustedActorId, warehouse.BranchId, ct);
             var supplier = input.SupplierName?.Trim(); if (supplier?.Length > 200) throw Invalid("SupplierName exceeds 200 characters.");
             if (input.Lines is null || input.Lines.Count == 0 || input.Lines.Any(x => x is null) || input.Lines.Any(x => x.LineNo <= 0) || input.Lines.Select(x => x.LineNo).Distinct().Count() != input.Lines.Count || input.Lines.Select(x => x.ItemId).Distinct().Count() != input.Lines.Count) throw Invalid("Nonempty lines with unique positive LineNo and unique ItemId per warehouse are required.");
             var sources = input.Lines.Where(x => x.SourceMaterialRequestLineId != null).Select(x => x.SourceMaterialRequestLineId!.Value).ToArray();
@@ -59,7 +64,7 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
                 await Gate(db, $"HotelOps:MaterialRequest:Request:{id}", ct);
                 await db.MaterialRequests.FromSqlInterpolated($"SELECT * FROM dbo.material_requests WITH (UPDLOCK,HOLDLOCK) WHERE request_id={id}").SingleAsync(ct);
             }
-            var root = new MaterialReplenishment { WarehouseId = warehouse.WarehouseId, Warehouse = warehouse, RequestedBy = input.ActorUserId, SupplierName = string.IsNullOrEmpty(supplier) ? null : supplier, ExpectedOn = input.ExpectedOn, Status = "REQUESTED", CreatedAt = DateTime.UtcNow };
+            var root = new MaterialReplenishment { WarehouseId = warehouse.WarehouseId, Warehouse = warehouse, RequestedBy = TrustedActorId, SupplierName = string.IsNullOrEmpty(supplier) ? null : supplier, ExpectedOn = input.ExpectedOn, Status = "REQUESTED", CreatedAt = DateTime.UtcNow };
             foreach (var l in input.Lines) root.MaterialReplenishmentLines.Add(new() { LineNo = l.LineNo, WarehouseId = warehouse.WarehouseId, ItemId = l.ItemId, BaseUomId = await BaseUom(l.ItemId, ct), SourceType = l.SourceType, SourceThresholdId = l.SourceThresholdId, SourceMaterialRequestLineId = l.SourceMaterialRequestLineId, RequestedBaseQty = Quantity(l.RequestedBaseQty), IsOpenCoverage = true, Note = l.Note?.Trim() });
             await Claims(db, root.MaterialReplenishmentLines, ct);
             root.Warehouse = await Warehouse(warehouse.WarehouseId, true, ct);
@@ -82,31 +87,34 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
             }
             root.ReplenishmentNo = await Number(ct);
             // Keep header/line Save boundaries observable by SQL fault-injection tests.
-            var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await db.SaveChangesAsync(ct);
-            foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await db.SaveChangesAsync(ct);
-            Audit(db, root, input.ActorUserId, "REPLENISHMENT_CREATED", null);
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return (await Get(root.ReplenishmentId, ct))!;
+            var lines = root.MaterialReplenishmentLines.ToArray(); root.MaterialReplenishmentLines.Clear(); db.MaterialReplenishments.Add(root); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
+            foreach (var l in lines) root.MaterialReplenishmentLines.Add(l); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
+            Audit(db, root, TrustedActorId, "REPLENISHMENT_CREATED", null);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return (await Get(root.ReplenishmentId, ct))!;
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
     public async Task<ReplenishmentDto?> Close(long id, ReplenishmentClose input, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Replenishments", ["Close"], input.ActorUserId, id, input);
+        await using var tx = await Dev2ServiceAuthority.BeginTransactionAsync(db, _authorityHttp, ct);
         try
         {
             await Catalog(ct); var r = await Owner(db, id, ct); if (r is null) return null;
-            Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, input.ActorUserId, r.Warehouse.BranchId, ct); await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
+            Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, TrustedActorId, r.Warehouse.BranchId, ct); await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
             if (!r.MaterialReplenishmentLines.Any(x => x.RequestedBaseQty > x.ReceivedBaseQty)) throw Invalid("Positive remaining is required.");
             var reason = input.Reason?.Trim(); if (reason is not { Length: >= 10 }) throw Invalid("Close reason must contain at least 10 characters.");
-            var before = Snapshot(r); r.Status = "CLOSED"; r.CloseReason = reason; r.ClosedBy = input.ActorUserId; r.ClosedAt = r.UpdatedAt = DateTime.UtcNow;
+            var before = Snapshot(r); r.Status = "CLOSED"; r.CloseReason = reason; r.ClosedBy = TrustedActorId; r.ClosedAt = r.UpdatedAt = DateTime.UtcNow;
             foreach (var l in r.MaterialReplenishmentLines) l.IsOpenCoverage = false;
-            Audit(db, r, input.ActorUserId, "REMAINDER_CLOSED", before); await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+            Audit(db, r, TrustedActorId, "REMAINDER_CLOSED", before); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(id, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
     public async Task<ReplenishmentDto?> Receive(long id, ReplenishmentLink input, CancellationToken ct, ReplenishmentPost? post = null)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Replenishments", [post is null ? "Link" : "Post"], input.ActorUserId, id, (object?)post ?? input);
+        if (post is not null) Dev2ServiceAuthority.RequireClaim(_authorityHttp, post.ActorUserId);
+        await using var tx = await Dev2ServiceAuthority.BeginTransactionAsync(db, _authorityHttp, ct);
         try
         {
             await Catalog(ct);
@@ -121,13 +129,14 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
                 await Gate(db, $"HotelOps:Inventory:Document:{doc}", ct);
                 await db.StockDocuments.FromSqlInterpolated($"SELECT * FROM dbo.stock_documents WITH (UPDLOCK,HOLDLOCK) WHERE document_id={doc}").SingleAsync(ct);
             }
-            var r = (await Owner(db, id, ct))!; Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, input.ActorUserId, r.Warehouse.BranchId, ct);
+            var r = (await Owner(db, id, ct))!; Version(r.RowVersion, input.ExpectedRowVersion); Open(r); await Actor(db, TrustedActorId, r.Warehouse.BranchId, ct);
             await Reconcile(db, r, ct); await Claims(db, r.MaterialReplenishmentLines, ct);
             var before = Snapshot(r);
             if (post != null)
             {
                 if (documents.Any(x => x != post.ReceiptDocumentId)) throw Invalid("Coordinated mappings must belong to ReceiptDocumentId.");
-                await posting.PostReceipt(post.ReceiptDocumentId, new(input.ActorUserId, post.ReceiptExpectedRowVersion, post.ReceiptLines), ct);
+                await Dev2ServiceAuthority.RevalidateAsync(db, _authorityHttp, Dev2AuthorizationPhase.BeforeStockPosting, ct);
+                await posting.PostReceipt(post.ReceiptDocumentId, new(TrustedActorId, post.ReceiptExpectedRowVersion, post.ReceiptLines), ct);
             }
             await Warehouse(r.WarehouseId, true, ct);
             var linked = new List<object>();
@@ -139,14 +148,14 @@ public sealed partial class ReplenishmentService(HotelOpsDbContext db, IInventor
                 if (post != null && line.BaseQty == 0) continue; // rejected-only delivery persists in Inventory but gives no positive credit.
                 await ProveReceipt(db, line, r.WarehouseId, l.ItemId, l.BaseUomId, ct);
                 if (await db.MaterialReplenishmentReceiptLines.AnyAsync(x => x.StockDocumentLineId == line.LineId, ct)) throw Invalid("Receipt line already credited globally.");
-                db.MaterialReplenishmentReceiptLines.Add(new() { ReplenishmentLineId = l.ReplenishmentLineId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty, LinkedAt = DateTime.UtcNow, LinkedBy = input.ActorUserId });
+                db.MaterialReplenishmentReceiptLines.Add(new() { ReplenishmentLineId = l.ReplenishmentLineId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty, LinkedAt = DateTime.UtcNow, LinkedBy = TrustedActorId });
                 linked.Add(new { l.ReplenishmentLineId, StockDocumentId = line.DocumentId, StockDocumentLineId = line.LineId, CreditedBaseQty = line.BaseQty });
             }
-            await db.SaveChangesAsync(ct);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             await Refresh(db, r, null, ct); await NoConflictingClaims(db, [r], ct);
-            Audit(db, r, input.ActorUserId, "RECEIPT_LINKED", before, new { Links = linked });
-            if (r.Status == "FULLY_RECEIVED" || r.Status == "PARTIALLY_RECEIVED") Audit(db, r, input.ActorUserId, r.Status == "FULLY_RECEIVED" ? "REPLENISHMENT_FULLY_RECEIVED" : "REPLENISHMENT_PARTIALLY_RECEIVED", before, new { Links = linked });
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+            Audit(db, r, TrustedActorId, "RECEIPT_LINKED", before, new { Links = linked });
+            if (r.Status == "FULLY_RECEIVED" || r.Status == "PARTIALLY_RECEIVED") Audit(db, r, TrustedActorId, r.Status == "FULLY_RECEIVED" ? "REPLENISHMENT_FULLY_RECEIVED" : "REPLENISHMENT_PARTIALLY_RECEIVED", before, new { Links = linked });
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(id, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }

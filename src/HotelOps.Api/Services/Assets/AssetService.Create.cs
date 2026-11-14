@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Assets;
 using HotelOps.Api.Entities;
@@ -9,8 +10,9 @@ public sealed partial class AssetService
 {
     public async Task<AssetDetailDto> CreateAssetAsync(CreateAssetRequest request, CancellationToken cancellationToken)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Assets", ["CreateAsset"], request.ActorUserId, null, request);
         await ValidateMasterAsync(request, cancellationToken);
-        await using var transaction = await _dbContext.Database.BeginTransactionAsync(cancellationToken);
+        await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
         if (!await _dbContext.Branches.AsNoTracking()
             .AnyAsync(b => b.BranchId == request.BranchId && b.IsActive, cancellationToken))
             throw new ValidationException("BranchId must identify an active Branch.");
@@ -27,16 +29,16 @@ public sealed partial class AssetService
         _dbContext.Assets.Add(asset);
         try
         {
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         }
         catch (DbUpdateException exception) when (IsDuplicateAssetCode(exception))
         {
             throw new ValidationException("AssetCode already exists.", exception);
         }
-        Audit("assets", asset.AssetId, asset, request.ActorUserId, now, null, Snapshot(asset));
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        Audit("assets", asset.AssetId, asset, TrustedActorId, now, null, Snapshot(asset));
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
         var result = await RequireDetailAsync(asset.AssetId, cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }
 }

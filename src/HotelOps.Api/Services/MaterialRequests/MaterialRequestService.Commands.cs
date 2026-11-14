@@ -1,3 +1,4 @@
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.DTOs.MaterialRequests;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Services.Inventory;
@@ -11,25 +12,26 @@ public sealed partial class MaterialRequestService
 {
     public async Task<MaterialRequestDto?> Save(long? id, MaterialRequestWrite input, CancellationToken ct)
     {
-        var discovered = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = input.ActorUserId, Status = "DRAFT" }
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaterialRequests", [id is null ? "Create" : "Edit"], input.ActorUserId, id, input);
+        var discovered = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = TrustedActorId, Status = "DRAFT" }
             : await db.MaterialRequests.AsNoTracking().SingleOrDefaultAsync(x => x.RequestId == id.Value, ct);
         if (discovered is null) return null;
-        var needsCycle = discovered.Status is "PENDING_APPROVAL" or "APPROVED" || id is null && input.Submit;
+        var needsCycle = RequiresCycle(discovered.Status, input.Submit);
         var discoveredCycle = id != null && needsCycle ? await db.MaterialRequestApprovalCycles.AsNoTracking()
             .Where(x => x.RequestId == id.Value).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct) : null;
         // Preserve the BASE explicit selector / latest-cycle edit fallback.
         var approver = input.AssignedApproverUserId ?? discoveredCycle?.AssignedApproverId;
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await Dev2ServiceAuthority.BeginTransactionAsync(db, _authorityHttp, ct);
         try
         {
             long[] ids = needsCycle && approver is long candidate
-                ? [input.ActorUserId, discovered.RequesterId, candidate] : [input.ActorUserId, discovered.RequesterId];
+                ? [TrustedActorId, discovered.RequesterId, candidate] : [TrustedActorId, discovered.RequesterId];
             var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);
-            UserEligibilityLock.RequireEligible(input.ActorUserId, lockedUsers);
+            UserEligibilityLock.RequireEligible(TrustedActorId, lockedUsers);
             UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);
             if (needsCycle && approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);
             await Gate("HotelOps:Inventory:Catalog", ct);
-            var r = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = input.ActorUserId, Status = "DRAFT", CreatedAt = DateTime.UtcNow } : await Locked(id.Value, input.ExpectedRowVersion, ct);
+            var r = id is null ? new MaterialRequest { BranchId = input.BranchId, RequesterId = TrustedActorId, Status = "DRAFT", CreatedAt = DateTime.UtcNow } : await Locked(id.Value, input.ExpectedRowVersion, ct);
             if (r is null) return null;
             if (id != null) RecheckDiscovery(r, discovered);
             if (id != null && needsCycle)
@@ -41,24 +43,24 @@ public sealed partial class MaterialRequestService
                     throw Invalid("Approval context changed during User lock acquisition. Reload.");
             }
             if (input.NeededAt is DateTime time && time.Kind != DateTimeKind.Utc) throw Invalid("NeededAt must use UTC (Z).");
-            await Participant(input.ActorUserId, r.BranchId, ct);
-            if (input.ActorUserId != r.RequesterId || r.BranchId != input.BranchId) throw Invalid("Requester identity and branch are immutable.");
+            await Participant(TrustedActorId, r.BranchId, ct);
+            if (TrustedActorId != r.RequesterId || r.BranchId != input.BranchId) throw Invalid("Requester identity and branch are immutable.");
             State(r, "DRAFT", "PENDING_APPROVAL", "NEEDS_INFORMATION", "APPROVED");
             if (await EverIssued(r, ct)) throw Invalid("Content/work attribution is immutable after first ISSUE.");
             var before = id is null ? null : Snapshot(r); var previousState = r.Status; var oldIncident = r.IncidentId;
             Apply(r, input);
             await ValidateContent(r, false, oldIncident != r.IncidentId || id is null, ct);
             var changed = before is null || JsonSerializer.Serialize(before) != JsonSerializer.Serialize(Snapshot(r));
-            if (!changed) { await tx.CommitAsync(ct); return await Get(r.RequestId, ct); }
-            if (id is null) { r.RequestNo = await Number(false, ct); db.MaterialRequests.Add(r); await db.SaveChangesAsync(ct); }
-            if (needsCycle) await Cycle(r, input.ActorUserId, approver, lockedUsers, ct);
+            if (!changed) { await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(r.RequestId, ct); }
+            if (id is null) { r.RequestNo = await Number(false, ct); db.MaterialRequests.Add(r); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); }
+            if (needsCycle) await Cycle(r, TrustedActorId, approver, lockedUsers, ct);
             if (id != null) r.UpdatedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == r.RequestId).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
-            Audit(r, input.ActorUserId, id is null ? "CREATE" : "UPDATE", id is null ? "REQUEST_CREATED" : previousState == "APPROVED" ? "REQUEST_REAPPROVAL_REQUIRED" : "REQUEST_EDITED", before,
+            Audit(r, TrustedActorId, id is null ? "CREATE" : "UPDATE", id is null ? "REQUEST_CREATED" : previousState == "APPROVED" ? "REQUEST_REAPPROVAL_REQUIRED" : "REQUEST_EDITED", before,
                 new { CycleId = currentCycle?.ApprovalCycleId, Revision = currentCycle?.RevisionNo, AssignedApproverId = currentCycle?.AssignedApproverId, Submitted = r.Status == "PENDING_APPROVAL" });
-            if (oldIncident != r.IncidentId && id != null) Audit(r, input.ActorUserId, "UPDATE", "WORK_LINK_CHANGED", before);
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(r.RequestId, ct);
+            if (oldIncident != r.IncidentId && id != null) Audit(r, TrustedActorId, "UPDATE", "WORK_LINK_CHANGED", before);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(r.RequestId, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
@@ -85,34 +87,36 @@ public sealed partial class MaterialRequestService
     }
     public async Task<MaterialRequestDto?> Command(long id, string command, MaterialCommand input, CancellationToken ct, MaterialApproval? approval = null)
     {
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaterialRequests", [command switch { "submit" => "Submit", "request-information" => "Information", "approve" => "Approve", "reject" => "Reject", "cancel" => "Cancel", "close-remainder" => "Close", _ => "" }], input.ActorUserId, id, (object?)approval ?? input);
+        if (approval is not null) Dev2ServiceAuthority.RequireClaim(_authorityHttp, approval.ActorUserId);
         var discovered = await db.MaterialRequests.AsNoTracking().SingleOrDefaultAsync(x => x.RequestId == id, ct);
         if (discovered is null) return null;
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        await using var tx = await Dev2ServiceAuthority.BeginTransactionAsync(db, _authorityHttp, ct);
         try
         {
             // Returning for information creates requester responsibility again.
             var needsRequester = command is "submit" or "cancel" or "request-information";
             var approver = command == "submit" ? input.AssignedApproverUserId : null;
-            long[] ids = needsRequester ? [input.ActorUserId, discovered.RequesterId] : [input.ActorUserId];
+            long[] ids = needsRequester ? [TrustedActorId, discovered.RequesterId] : [TrustedActorId];
             if (approver is long candidate) ids = [.. ids, candidate];
             var lockedUsers = await new UserEligibilityLock(db).LockAsync(ids, ct);
-            UserEligibilityLock.RequireEligible(input.ActorUserId, lockedUsers);
+            UserEligibilityLock.RequireEligible(TrustedActorId, lockedUsers);
             if (needsRequester) UserEligibilityLock.RequireEligible(discovered.RequesterId, lockedUsers);
             if (approver is long selected) UserEligibilityLock.RequireEligible(selected, lockedUsers);
             var r = await Locked(id, input.ExpectedRowVersion, ct); if (r is null) return null;
             RecheckDiscovery(r, discovered);
-            await Participant(input.ActorUserId, r.BranchId, ct); var before = Snapshot(r);
+            await Participant(TrustedActorId, r.BranchId, ct); var before = Snapshot(r);
             var action = "UPDATE"; var evt = "";
             if (command == "submit")
             {
-                State(r, "DRAFT", "NEEDS_INFORMATION"); if (r.RequesterId != input.ActorUserId) throw Invalid("Only requester may submit.");
+                State(r, "DRAFT", "NEEDS_INFORMATION"); if (r.RequesterId != TrustedActorId) throw Invalid("Only requester may submit.");
                 var resubmit = r.Status == "NEEDS_INFORMATION";
-                await Cycle(r, input.ActorUserId, approver, lockedUsers, ct); evt = resubmit ? "REQUEST_RESUBMITTED" : "REQUEST_SUBMITTED";
+                await Cycle(r, TrustedActorId, approver, lockedUsers, ct); evt = resubmit ? "REQUEST_RESUBMITTED" : "REQUEST_SUBMITTED";
             }
             else if (command == "cancel")
             {
                 State(r, "DRAFT", "PENDING_APPROVAL", "NEEDS_INFORMATION", "APPROVED");
-                if (r.RequesterId != input.ActorUserId || await EverIssued(r, ct)) throw Invalid("Only requester may cancel before first ISSUE.");
+                if (r.RequesterId != TrustedActorId || await EverIssued(r, ct)) throw Invalid("Only requester may cancel before first ISSUE.");
                 r.CancellationReason = Reason(input.Reason); r.Status = "CANCELLED"; action = "CANCEL"; evt = "REQUEST_CANCELLED";
                 var cycle = await db.MaterialRequestApprovalCycles.Where(x => x.RequestId == id && x.Status == "PENDING").SingleOrDefaultAsync(ct);
                 if (cycle != null) { cycle.Status = "SUPERSEDED"; cycle.ResolvedAt = DateTime.UtcNow; }
@@ -120,11 +124,11 @@ public sealed partial class MaterialRequestService
             else
             {
                 var cycle = await Latest(id, ct);
-                if (cycle.AssignedApproverId != input.ActorUserId || input.ActorUserId == r.RequesterId || input.ActorUserId == cycle.SubmittedBy) throw Invalid("Current independent assigned approver is required.");
+                if (cycle.AssignedApproverId != TrustedActorId || TrustedActorId == r.RequesterId || TrustedActorId == cycle.SubmittedBy) throw Invalid("Current independent assigned approver is required.");
                 if (command == "close-remainder")
                 {
                     State(r, "PARTIALLY_ISSUED"); if (cycle.Status != "APPROVED" || !r.MaterialRequestLines.Any(x => x.IsActive && x.FulfilledQty > 0) || !r.MaterialRequestLines.Any(x => x.IsActive && x.ApprovedQty > x.FulfilledQty)) throw Invalid("Issued quantity and open approved remainder are required.");
-                    r.RemainderCloseReason = Reason(input.Reason); r.RemainderClosedBy = input.ActorUserId; r.RemainderClosedAt = DateTime.UtcNow; r.Status = "REMAINDER_CLOSED"; evt = "REMAINDER_CLOSED";
+                    r.RemainderCloseReason = Reason(input.Reason); r.RemainderClosedBy = TrustedActorId; r.RemainderClosedAt = DateTime.UtcNow; r.Status = "REMAINDER_CLOSED"; evt = "REMAINDER_CLOSED";
                 }
                 else
                 {
@@ -142,27 +146,28 @@ public sealed partial class MaterialRequestService
                     }
                     else throw Invalid("Unknown command.");
                     cycle.ResolvedAt = DateTime.UtcNow;
-                    db.MaterialRequestApprovals.Add(new() { RequestId = id, ApprovalCycleId = cycle.ApprovalCycleId, ApprovalLevel = 1, ApproverId = input.ActorUserId, Decision = decision, DecisionNote = note, DecidedAt = cycle.ResolvedAt.Value });
+                    db.MaterialRequestApprovals.Add(new() { RequestId = id, ApprovalCycleId = cycle.ApprovalCycleId, ApprovalLevel = 1, ApproverId = TrustedActorId, Decision = decision, DecisionNote = note, DecidedAt = cycle.ResolvedAt.Value });
                 }
             }
             r.UpdatedAt = DateTime.UtcNow;
-            await db.SaveChangesAsync(ct);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             var currentCycle = await db.MaterialRequestApprovalCycles.AsNoTracking().Where(x => x.RequestId == id).OrderByDescending(x => x.RevisionNo).FirstOrDefaultAsync(ct);
-            Audit(r, input.ActorUserId, action, evt, before, new { CycleId = currentCycle?.ApprovalCycleId, Revision = currentCycle?.RevisionNo, AssignedApproverId = currentCycle?.AssignedApproverId });
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Get(id, ct);
+            Audit(r, TrustedActorId, action, evt, before, new { CycleId = currentCycle?.ApprovalCycleId, Revision = currentCycle?.RevisionNo, AssignedApproverId = currentCycle?.AssignedApproverId });
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Get(id, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
     public async Task<MaterialFulfillmentDto?> Issue(long id, MaterialIssue input, CancellationToken ct)
     {
-        await using var tx = await db.Database.BeginTransactionAsync(ct);
+        Dev2ServiceAuthority.RequireEntry(_authorityHttp, "MaterialRequests", ["Issue"], input.ActorUserId, id, input);
+        await using var tx = await Dev2ServiceAuthority.BeginTransactionAsync(db, _authorityHttp, ct);
         try
         {
-            await new UserEligibilityLock(db).RequireEligibleAsync(input.ActorUserId, ct);
+            await new UserEligibilityLock(db).RequireEligibleAsync(TrustedActorId, ct);
             var r = await Locked(id, input.ExpectedRowVersion, ct); if (r is null) return null;
-            State(r, "APPROVED", "PARTIALLY_ISSUED"); await Participant(input.ActorUserId, r.BranchId, ct);
+            State(r, "APPROVED", "PARTIALLY_ISSUED"); await Participant(TrustedActorId, r.BranchId, ct);
             var cycle = await Latest(id, ct);
-            if (cycle.Status != "APPROVED" || cycle.AssignedApproverId == input.ActorUserId) throw Invalid("Issuer must differ from approving actor of approved cycle.");
+            if (cycle.Status != "APPROVED" || cycle.AssignedApproverId == TrustedActorId) throw Invalid("Issuer must differ from approving actor of approved cycle.");
             await Reconcile(r, ct);
             await ValidateContent(r, true, false, ct);
             var active = r.MaterialRequestLines.Where(x => x.IsActive).ToArray();
@@ -173,22 +178,23 @@ public sealed partial class MaterialRequestService
             if (entries.Count == 0 || entries.Any(x => x is null) || entries.Select(x => x.RequestLineId).Distinct().Count() != entries.Count) throw Invalid("A nonempty batch of distinct request lines is required.");
             foreach (var e in entries) { var l = active.SingleOrDefault(x => x.LineId == e.RequestLineId) ?? throw Invalid("Invalid request line."); if (Qty(e.Quantity) == 0 || e.Quantity > l.ApprovedQty - l.FulfilledQty) throw Invalid("Issue quantity exceeds remaining or is nonpositive."); }
             var before = Snapshot(r);
-            var f = new MaterialFulfillment { RequestId = id, FulfillmentNo = await Number(true, ct), WarehouseId = r.SourceWarehouseId!.Value, FulfilledBy = input.ActorUserId, Status = "ISSUED", CreatedAt = DateTime.UtcNow };
-            db.MaterialFulfillments.Add(f); await db.SaveChangesAsync(ct);
+            var f = new MaterialFulfillment { RequestId = id, FulfillmentNo = await Number(true, ct), WarehouseId = r.SourceWarehouseId!.Value, FulfilledBy = TrustedActorId, Status = "ISSUED", CreatedAt = DateTime.UtcNow };
+            db.MaterialFulfillments.Add(f); await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
             foreach (var e in entries) { var l = active.Single(x => x.LineId == e.RequestLineId); f.MaterialFulfillmentLines.Add(new() { RequestLineId = l.LineId, ItemId = l.ItemId, UomId = l.UomId, IssuedQty = e.Quantity }); }
-            await db.SaveChangesAsync(ct);
-            var result = await posting.PostIssue(new(input.ActorUserId, f.FulfillmentId, f.WarehouseId, input.DocumentDate,
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct);
+            await Dev2ServiceAuthority.RevalidateAsync(db, _authorityHttp, Dev2AuthorizationPhase.BeforeStockPosting, ct);
+            var result = await posting.PostIssue(new(TrustedActorId, f.FulfillmentId, f.WarehouseId, input.DocumentDate,
                 f.MaterialFulfillmentLines.Select(x => new InventoryIssueLine(x.RequestLineId, x.ItemId, x.UomId, x.IssuedQty)).ToArray()), ct);
             f.StockDocumentId = result.DocumentId;
             f.FulfilledAt = await db.StockDocuments.Where(x => x.DocumentId == result.DocumentId).Select(x => x.PostedAt).SingleAsync(ct);
             foreach (var l in f.MaterialFulfillmentLines) { l.StockDocumentLineId = result.Lines.Single(x => x.RequestLineId == l.RequestLineId).StockDocumentLineId; active.Single(x => x.LineId == l.RequestLineId).FulfilledQty += l.IssuedQty; }
             r.Status = active.All(x => x.FulfilledQty == x.ApprovedQty) ? "FULLY_ISSUED" : "PARTIALLY_ISSUED"; r.UpdatedAt = f.FulfilledAt; if (r.Status == "FULLY_ISSUED") r.CompletedAt = f.FulfilledAt;
             var extra = new { f.FulfillmentId, f.FulfillmentNo, result.DocumentId, CycleId = cycle.ApprovalCycleId, Lines = result.Lines };
-            Audit(r, input.ActorUserId, "CREATE", "FULFILLMENT_ISSUED", null, extra, "material_fulfillments", f.FulfillmentId,
+            Audit(r, TrustedActorId, "CREATE", "FULFILLMENT_ISSUED", null, extra, "material_fulfillments", f.FulfillmentId,
                 new { f.FulfillmentId, f.FulfillmentNo, f.RequestId, f.WarehouseId, f.FulfilledBy, f.Status, f.CreatedAt, f.FulfilledAt, f.StockDocumentId,
                     Lines = f.MaterialFulfillmentLines.Select(x => new { x.FulfillmentLineId, x.RequestLineId, x.ItemId, x.UomId, x.IssuedQty, x.StockDocumentLineId }).ToArray() });
-            Audit(r, input.ActorUserId, "UPDATE", r.Status == "FULLY_ISSUED" ? "MATERIALS_FULLY_ISSUED" : "MATERIALS_PARTIALLY_ISSUED", before, extra);
-            await db.SaveChangesAsync(ct); await tx.CommitAsync(ct); return await Fulfillment(id, f.FulfillmentId, ct);
+            Audit(r, TrustedActorId, "UPDATE", r.Status == "FULLY_ISSUED" ? "MATERIALS_FULLY_ISSUED" : "MATERIALS_PARTIALLY_ISSUED", before, extra);
+            await Dev2ServiceAuthority.SaveChangesAsync(db, _authorityHttp, ct); await Dev2ServiceAuthority.CommitAsync(db, _authorityHttp, tx, ct); return await Fulfillment(id, f.FulfillmentId, ct);
         }
         catch { await tx.RollbackAsync(CancellationToken.None); db.ChangeTracker.Clear(); throw; }
     }
@@ -196,15 +202,24 @@ public sealed partial class MaterialRequestService
     {
         var batches = await db.MaterialFulfillments.AsNoTracking().Include(x => x.StockDocument).ThenInclude(x => x!.StockDocumentLines)
             .Include(x => x.MaterialFulfillmentLines).Where(x => x.RequestId == r.RequestId).ToListAsync(ct);
+        ValidateFulfillments(r, batches);
+    }
+    private static void ValidateFulfillments(MaterialRequest r, IReadOnlyCollection<MaterialFulfillment> batches)
+    {
+        if (batches.Select(x => x.StockDocumentId).Distinct().Count() != batches.Count)
+            throw Invalid("Each fulfillment requires its own ISSUE document.");
         foreach (var f in batches)
         {
-            if (f.Status != "ISSUED" || f.StockDocument is not { DocumentType: "ISSUE", Status: "POSTED", ReferenceType: "MATERIAL_FULFILLMENT" } doc || doc.ReferenceId != f.FulfillmentId || f.WarehouseId != r.SourceWarehouseId || doc.SourceWarehouseId != f.WarehouseId || f.MaterialFulfillmentLines.Count != doc.StockDocumentLines.Count)
+            if (f.RequestId != r.RequestId || f.Status != "ISSUED" || f.StockDocument is not { DocumentType: "ISSUE", Status: "POSTED", ReferenceType: "MATERIAL_FULFILLMENT" } doc || doc.DocumentId != f.StockDocumentId || doc.ReferenceId != f.FulfillmentId || f.WarehouseId != r.SourceWarehouseId || doc.SourceWarehouseId != f.WarehouseId || f.MaterialFulfillmentLines.Count == 0 || f.MaterialFulfillmentLines.Count != doc.StockDocumentLines.Count
+                || f.MaterialFulfillmentLines.Select(x => x.RequestLineId).Distinct().Count() != f.MaterialFulfillmentLines.Count
+                || f.MaterialFulfillmentLines.Select(x => x.StockDocumentLineId).Distinct().Count() != f.MaterialFulfillmentLines.Count)
                 throw Invalid("Fulfillment/ISSUE history cannot be reconciled safely.");
             foreach (var l in f.MaterialFulfillmentLines)
             {
                 var requestLine = r.MaterialRequestLines.SingleOrDefault(x => x.LineId == l.RequestLineId);
                 var issueLine = doc.StockDocumentLines.SingleOrDefault(x => x.LineId == l.StockDocumentLineId);
-                if (requestLine is null || !requestLine.IsActive || issueLine is null || l.ItemId != requestLine.ItemId || l.UomId != requestLine.UomId || issueLine.ItemId != l.ItemId || issueLine.UomId != l.UomId || issueLine.ActualQty != l.IssuedQty || l.IssuedQty <= 0)
+                if (requestLine is null || !requestLine.IsActive || issueLine is null || l.FulfillmentId != f.FulfillmentId || issueLine.DocumentId != doc.DocumentId || l.ItemId != requestLine.ItemId || l.UomId != requestLine.UomId || issueLine.ItemId != l.ItemId || issueLine.UomId != l.UomId || issueLine.ActualQty != l.IssuedQty || l.IssuedQty <= 0
+                    || issueLine.ConversionFactor <= 0 || issueLine.BaseQty <= 0 || issueLine.BaseQty != l.IssuedQty * issueLine.ConversionFactor)
                     throw Invalid("Fulfillment line correlation is unsafe.");
             }
         }

@@ -17,3 +17,6 @@ createRoot(document.getElementById("root")!).render(
     </BrowserRouter>
   </React.StrictMode>,
 );
+
+import "./inventory/inventory.css";
+import "./dev2/dev2.css";

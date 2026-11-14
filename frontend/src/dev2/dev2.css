@@ -1,0 +1,112 @@
+.dev2-workspace {
+  max-width: 1440px;
+  margin: auto;
+  padding: 24px;
+  color: #172e40;
+  background: #f8fafb;
+}
+.dev2-workspace header,
+.dev2-workspace nav,
+.dev2-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+.dev2-workspace header h1 {
+  margin-right: auto;
+}
+.dev2-workspace nav a {
+  padding: 10px;
+  border-radius: 6px;
+  background: #e9f0f5;
+}
+.dev2-workspace a[aria-current="page"] {
+  background: #173f5c;
+  color: white;
+}
+.dev2-workspace fieldset {
+  border: 1px solid #b8cbd5;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 12px 0;
+  min-width: 0;
+}
+.dev2-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+.dev2-fields fieldset {
+  grid-column: 1 / -1;
+}
+.dev2-workspace label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dev2-workspace input,
+.dev2-workspace select,
+.dev2-workspace button {
+  padding: 9px;
+  border: 1px solid #8ca6b7;
+  border-radius: 5px;
+  font: inherit;
+}
+.dev2-workspace input[type="checkbox"] {
+  align-self: start;
+}
+.dev2-workspace button {
+  cursor: pointer;
+  margin-top: 12px;
+  background: #fff;
+}
+.dev2-workspace button:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+.dev2-workspace [role="alert"] {
+  background: #fff0e9;
+  padding: 16px;
+  border-left: 4px solid #ac4b24;
+}
+.dev2-workspace [role="status"] {
+  background: #e6f4ef;
+  padding: 14px;
+}
+.dev2-permission,
+.dev2-workspace small {
+  color: #445c6d;
+  font-size: 0.9rem;
+}
+.dev2-record {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+.dev2-record dt {
+  font-weight: 600;
+}
+.dev2-record dd {
+  margin: 4px 0;
+  overflow-wrap: anywhere;
+}
+.dev2-table {
+  overflow-x: auto;
+}
+.dev2-table table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 12px 0;
+}
+.dev2-table td,
+.dev2-table th {
+  padding: 10px;
+  border-bottom: 1px solid #d5e0e7;
+  text-align: left;
+  white-space: nowrap;
+}
+.dev2-workspace footer {
+  padding: 24px 0;
+}
