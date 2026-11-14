@@ -91,6 +91,7 @@ public sealed partial class RoomTypeCreationService
 
         async Task<RoomTypeBatchResult> Core(bool recoveryOnly, CancellationToken token)
         {
+            ReworkAuthorityProof? authority = null;
             var enabled = candidateNotification != null && await candidateNotification.ReworkAvailableAsync(token);
             var recipients = enabled && action == "complete" ? await candidateNotification!.ClosureRecipientsAsync(branch, token) : [];
             var time = new SqlWorkTimeTransactionParticipant(db); var users = recipients.Append(ticket.UserId).Distinct().Order().ToArray();
@@ -114,8 +115,12 @@ public sealed partial class RoomTypeCreationService
                     || await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId}").SingleOrDefaultAsync(inner) != row.CleaningTaskId
                     || await db.RoomInspections.AnyAsync(i => i.CleaningTaskId == row.CleaningTaskId && i.InspectionId > row.InspectionId, inner))
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "REWORK_SOURCE_NOT_CURRENT");
-                var proof = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.fs016_rework_source_proofs WHERE rework_id={id} AND inspection_id={row.InspectionId} AND inspection_revision={inspection.Revision} AND source_digest={await ReworkSourceDigestAsync(id, inner)} AND origin='SYNTHETIC_TEST_ONLY'").SingleAsync(inner);
-                if (proof != 1) return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "INSPECTION_AUTHORITY_UNPROVEN");
+                // Only the existing reader can establish committed issuer/receipt/source authority.
+                // A persisted FAIL or synthetic proof is never a fallback for this executor.
+                authority = await ReadTrustedReworkAuthorityAsync(actor, branch, id, root, inner);
+                if (TrustedReworkExecutionConflict(authority, id, row.InspectionId, row.CleaningTaskId,
+                        row.RoomId, branch, inspection.Revision) is { } authorityFailure)
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable, authorityFailure);
                 if (await db.CleaningReworks.CountAsync(w => w.InspectionId == row.InspectionId && w.Status != "COMPLETED" && w.Status != "CANCELLED", inner) != 1)
                     return LifecycleFailure(RoomTypeBatchStatus.Inactive, "DUPLICATE_REWORK_SOURCE");
                 var defects = await db.Database.SqlQuery<long>($"SELECT defect_id AS [Value] FROM dbo.cleaning_rework_defects WHERE rework_id={id}").ToArrayAsync(inner);
@@ -147,14 +152,19 @@ public sealed partial class RoomTypeCreationService
                     }
                     return new(RoomTypeBatchStatus.Success, new ReworkExecutionDto(id, branch, row.CleaningTaskId, row.InspectionId, row.RoomId,
                         actor, state.State!, state.DueAt is { } due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null,
-                        WorkflowTag(state.Revision), WorkflowTag(inspection.Revision), output), WorkflowTag(state.Revision));
+                        WorkflowTag(state.Revision), WorkflowTag(inspection.Revision), output,
+                        SourceAuthority: ReworkAuthorityContract.Origin), WorkflowTag(state.Revision));
                 }
+                // The protected FE14 producer still labels completion payloads SYNTHETIC_TEST_ONLY.
+                // Do not stage a trusted completion through it or return its historical synthetic receipt.
+                if (action == "complete")
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REWORK_TRUSTED_NOTIFICATION_CONTRACT_REQUIRED");
                 var stored = await candidateNotification!.FindAsync(actor, operation, inner);
                 if (stored != null)
                 {
-                    if (!stored.Fingerprint.SequenceEqual(fingerprint)) return new(RoomTypeBatchStatus.Duplicate);
-                    var receipt = JsonSerializer.Deserialize<ReworkCommandResult>(stored.ResultJson!, Json);
-                    if (!ValidReworkReceipt(receipt, actor, branch, id, row.CleaningTaskId, row.InspectionId, operation, action))
+                    var receipt = ReadTrustedReworkReceipt(stored, actor, fingerprint, branch, id,
+                        row.CleaningTaskId, row.InspectionId, operation, action);
+                    if (receipt == null || !await TrustedReworkReplaySourceAsync(actor, branch, id, operation, authority!, inner))
                         return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REWORK_DURABLE_RESULT_INVALID");
                     await candidateNotification.VerifyReworkAsync(actor, operation, action == "complete", inner);
                     return new(RoomTypeBatchStatus.Success, receipt, receipt!.SourceETag);
@@ -201,7 +211,11 @@ public sealed partial class RoomTypeCreationService
                     WorkflowTag((await ReworkState(id, inner)).Revision), now, interval, action == "complete" ? Guid.NewGuid() : null,
                     readiness, action == "complete" ? "PENDING_DELIVERY" : "NOT_REQUIRED");
                 await BatchAuditAsync(actor, branch, "cleaning_reworks", id, new { state.State }, new { operationId = operation,
-                    action, note = input.Note.Trim(), sourceAuthority = "SYNTHETIC_TEST_ONLY", entity = result }, ["workflowStatus", "remediation", "workInterval", "readiness", "notification"], inner);
+                    action, note = input.Note.Trim(), sourceAuthority = ReworkAuthorityContract.Origin,
+                    authorityOperationId = authority!.OperationId, authorityWriterTransactionId = authority.WriterTransactionId,
+                    authoritySourceDigest = Convert.ToHexString(authority.SourceDigest),
+                    authorityEvidenceDigest = Convert.ToHexString(authority.EvidenceDigest), entity = result },
+                    ["workflowStatus", "remediation", "workInterval", "readiness", "notification"], inner);
                 await candidateNotification.RememberReworkAsync(actor, fingerprint, row.RoomId, recipients, result, inner);
                 return new(RoomTypeBatchStatus.Success, result, result.SourceETag);
             }, token, requireRoomTypeSchema: false, additionalUsers: users, preserveCommitErrors: true,
@@ -210,12 +224,77 @@ public sealed partial class RoomTypeCreationService
                 beforeCommit: async inner =>
                 {
                     if (!await candidateNotification!.ReworkAvailableAsync(inner)) throw new InvalidOperationException("REWORK_CANDIDATE_DISABLED");
+                    var currentAuthority = await ReadTrustedReworkAuthorityAsync(ticket.UserId, branch, id, root, inner);
+                    if (authority == null || !SameTrustedReworkAuthority(authority, currentAuthority)
+                        || !await DueHousekeeper(ticket.UserId, branch, DateTime.MaxValue, inner))
+                        throw new InvalidOperationException("REWORK_AUTHORITY_CHANGED_BEFORE_COMMIT");
                     if (!read && action == "complete" && !(await candidateNotification.ClosureRecipientsAsync(branch, inner)).SequenceEqual(recipients))
                         throw new InvalidOperationException("SUPERVISOR_SCOPE_CHANGED");
                     commitAttempted = true;
                 });
         }
     }
+
+    // Binding checks on a proof already authenticated by ReadTrustedReworkAuthorityAsync.
+    // This callable boundary does not itself prove SQL commitment or issuer authenticity.
+    public static string? TrustedReworkExecutionConflict(ReworkAuthorityProof? proof, long id, long inspection,
+        long task, long room, long branch, byte[] inspectionRevision)
+    {
+        if (proof == null || proof.Origin != ReworkAuthorityContract.Origin
+            || proof.ContractVersion != ReworkAuthorityContract.Version || proof.Issuer != ReworkAuthorityContract.Issuer
+            || proof.IssuerVersion != ReworkAuthorityContract.Version || proof.ActorUserId <= 0
+            || proof.OperationId == Guid.Empty || proof.WriterTransactionId <= 0
+            || proof.SourceDigest is not { Length: 32 } || proof.EvidenceDigest is not { Length: 32 })
+            return "INSPECTION_AUTHORITY_UNPROVEN";
+        var binding = proof.Binding;
+        return id > 0 && inspection > 0 && task > 0 && room > 0 && branch > 0
+            && binding.ReworkId == id && binding.InspectionId == inspection && binding.CleaningTaskId == task
+            && binding.RoomId == room && binding.BranchId == branch && binding.VersionId > 0
+            && binding.InspectionRevision is { Length: 8 } && inspectionRevision is { Length: 8 }
+            && CryptographicOperations.FixedTimeEquals(binding.InspectionRevision, inspectionRevision)
+                ? null : "REWORK_AUTHORITY_SOURCE_NOT_CURRENT";
+    }
+
+    public static bool SameTrustedReworkAuthority(ReworkAuthorityProof expected, ReworkAuthorityProof? current)
+        => TrustedReworkExecutionConflict(expected, expected.Binding.ReworkId, expected.Binding.InspectionId,
+                expected.Binding.CleaningTaskId, expected.Binding.RoomId, expected.Binding.BranchId, expected.Binding.InspectionRevision) == null
+            && TrustedReworkExecutionConflict(current, expected.Binding.ReworkId, expected.Binding.InspectionId,
+                expected.Binding.CleaningTaskId, expected.Binding.RoomId, expected.Binding.BranchId, expected.Binding.InspectionRevision) == null
+            && current!.Binding.VersionId == expected.Binding.VersionId && current.ActorUserId == expected.ActorUserId
+            && current.OperationId == expected.OperationId && current.WriterTransactionId == expected.WriterTransactionId
+            && CryptographicOperations.FixedTimeEquals(current.SourceDigest, expected.SourceDigest)
+            && CryptographicOperations.FixedTimeEquals(current.EvidenceDigest, expected.EvidenceDigest);
+
+    public static ReworkCommandResult? ReadTrustedReworkReceipt(HotelOps.Api.Models.NotificationOperationCandidate stored,
+        long actor, byte[] fingerprint, long branch, long id, long task, long inspection, Guid operation, string action)
+    {
+        if (actor <= 0 || branch <= 0 || id <= 0 || task <= 0 || inspection <= 0 || operation == Guid.Empty
+            || action is not ("accept" or "start") || stored.ActorUserId != actor || stored.OperationKey != operation
+            || stored.FingerprintVersion != 1 || !stored.Completed || fingerprint is not { Length: 32 }
+            || stored.Fingerprint is not { Length: 32 }
+            || !CryptographicOperations.FixedTimeEquals(stored.Fingerprint, fingerprint)
+            || string.IsNullOrWhiteSpace(stored.ResultJson)) return null;
+        try
+        {
+            var receipt = JsonSerializer.Deserialize<ReworkCommandResult>(stored.ResultJson, Json);
+            return ValidReworkReceipt(receipt, actor, branch, id, task, inspection, operation, action) ? receipt : null;
+        }
+        catch (JsonException) { return null; }
+    }
+
+    private async Task<bool> TrustedReworkReplaySourceAsync(long actor, long branch, long id, Guid operation,
+        ReworkAuthorityProof authority, CancellationToken ct)
+        => await db.Database.SqlQuery<int>($"""
+            SELECT COUNT(*) AS [Value] FROM dbo.audit_logs
+            WHERE actor_user_id={actor} AND branch_id={branch} AND entity_type='cleaning_reworks'
+              AND entity_id={id.ToString(System.Globalization.CultureInfo.InvariantCulture)}
+              AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operationId'))={operation}
+              AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.sourceAuthority')='FE05_COMMITTED_V1'
+              AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.authorityOperationId'))={authority.OperationId}
+              AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.authorityWriterTransactionId'))={authority.WriterTransactionId}
+              AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.authoritySourceDigest')={Convert.ToHexString(authority.SourceDigest)}
+              AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.authorityEvidenceDigest')={Convert.ToHexString(authority.EvidenceDigest)}
+            """).SingleAsync(ct) == 1;
 
     public static bool ValidReworkReceipt(ReworkCommandResult? r, long actor, long branch, long id, long task, long inspection, Guid op, string action)
         => r != null && r.Id == id && r.BranchId == branch && r.AssigneeId == actor && r.CleaningTaskId == task
