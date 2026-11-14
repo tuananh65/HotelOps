@@ -1,0 +1,7 @@
+{
+  "success": false,
+  "checks": [],
+  "failure": "InvalidCastException: Unable to cast object of type \u0027System.Int16\u0027 to type \u0027System.Int32\u0027.",
+  "cleanup": true,
+  "scope": "Physical SQL coordination primitives only; synthetic account status commit compensated by deletion; no deactivation/revocation release acceptance"
+}

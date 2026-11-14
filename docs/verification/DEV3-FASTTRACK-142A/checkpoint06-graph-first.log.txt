@@ -1,0 +1,37 @@
+▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+
+    src/api/dev1/client.ts:21:9:
+      21 │   base = import.meta.env.VITE_DEV1_API_BASE_URL || "/api",
+         ╵          ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+✖ real graph includes accepted clients without mock Shell or assignment prototypes (343.8732ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 797.3776
+
+✖ failing tests:
+
+test at tests\assign-user-role-router-integration.test.mjs:219:1
+✖ real graph includes accepted clients without mock Shell or assignment prototypes (343.8732ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(
+
+      at TestContext.<anonymous> (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/assign-user-role-router-integration.test.mjs:231:10)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

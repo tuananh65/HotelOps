@@ -39,6 +39,7 @@ const unknown =
   "Role assignment outcome could not be confirmed. The role may already have been assigned. Do not retry automatically. Ask an authorized administrator to verify the current role assignment before making another change.";
 
 const bundle = await build({
+  loader: { ".css": "empty" },
   stdin: {
     loader: "tsx",
     resolveDir: process.cwd(),
@@ -47,7 +48,7 @@ const bundle = await build({
   import { createRoot } from "react-dom/client";
   import { BrowserRouter } from "react-router-dom";
   import { AuthProvider } from "./src/auth/AuthProvider";
-  import { StandaloneAuthRouteHost as AuthRouteHost } from "./src/auth/StandaloneAuthRouteHost";
+  import { AuthRouteHost } from "./src/auth/AuthRouteHost";
   import { createAuthStore } from "./src/auth/authStore";
   import { createAuthApi } from "./src/auth/authApi";
   import { assignmentBranchId, normalizeAssignmentRole } from "./src/users/useAssignUserRole";
@@ -76,7 +77,7 @@ const bundle = await build({
   format: "iife",
   platform: "browser",
   jsx: "automatic",
-  define: { "process.env.NODE_ENV": '"development"' },
+  define: { "process.env.NODE_ENV": '"development"', "import.meta.env": "{}" },
 });
 let browser;
 before(async () => {
@@ -215,7 +216,7 @@ const posts = async (p) =>
   (await calls(p)).filter(
     (c) => c.method === "POST" && c.url.startsWith("/api/users/"),
   );
-test("real graph includes accepted clients without mock Shell or assignment prototypes", () => {
+test("canonical graph includes accepted clients without mock Shell or assignment prototypes", () => {
   const paths = Object.keys(bundle.metafile.inputs).map((p) =>
     p.replaceAll("\\", "/"),
   );
@@ -229,11 +230,14 @@ test("real graph includes accepted clients without mock Shell or assignment prot
     assert.ok(paths.some((p) => p.endsWith(file)));
   assert.ok(
     !paths.some((p) =>
-      /src\/(services(?:\/|\.ts)|ui\.tsx|i18n\.tsx|mocks\/|screens\/users\/)/.test(
+      /src\/(services(?:\/|\.ts)|i18n\.tsx|mocks\/|prototypes\/|screens\/users\/)/.test(
         p,
       ),
     ),
   );
+  // Canonical FE04 uses ui.tsx for static PageHeader metadata, not prototype storage.
+  assert.ok(paths.some((p) => p.endsWith("shared-host/SharedAuthHost.tsx")));
+  assert.ok(!paths.some((p) => p.endsWith("auth/StandaloneAuthRouteHost.tsx")));
 });
 for (const [restricted, path] of [
   [false, "/login"],

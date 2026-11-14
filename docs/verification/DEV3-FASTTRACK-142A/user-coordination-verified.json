@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "scenario": "global-first",
+      "physicalWait": true,
+      "freshSqlEligibility": true,
+      "inactiveRejected": true
+    },
+    {
+      "scenario": "receiver-first",
+      "physicalWait": true,
+      "completedAfterRelease": true
+    },
+    {
+      "scenario": "cancelled-wait",
+      "physicalWait": true,
+      "cancellationObserved": true,
+      "rolledBack": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "scope": "Physical SQL coordination primitives only; synthetic account status commit compensated by deletion; no deactivation/revocation release acceptance"
+}

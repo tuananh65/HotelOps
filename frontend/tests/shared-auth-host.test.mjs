@@ -92,7 +92,13 @@ async function pageAt(path, status) {
   return page;
 }
 
-for (const path of ["/users", "/users/42", "/hotel?branchId=7", "/audit"]) {
+for (const path of [
+  "/users",
+  "/users/42",
+  "/users/42/roles/assign",
+  "/hotel?branchId=7",
+  "/audit",
+]) {
   for (const state of [
     "INITIALIZING",
     "ANONYMOUS",
@@ -146,6 +152,19 @@ test("canonical operations navigation reaches integrated Users and Structure rea
     })
     .waitFor();
   assert.equal(await p.getByText("Page not found", { exact: true }).count(), 0);
+  await p.close();
+});
+
+test("canonical account navigation reaches the role assignment boundary without a mutation", async () => {
+  const p = await pageAt("/users/42", "AUTHENTICATED");
+  await p.getByRole("link", { name: "Assign role", exact: true }).click();
+  await p.waitForFunction(() => location.pathname === "/users/42/roles/assign");
+  await p.waitForFunction(() => window.calls.includes("/api/users/42/profile"));
+  assert.ok(
+    (await p.evaluate(() => window.methods)).every(
+      (method) => method === "GET",
+    ),
+  );
   await p.close();
 });
 

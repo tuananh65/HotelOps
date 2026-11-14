@@ -3,6 +3,7 @@ import { UserDirectoryPage } from "../users/UserDirectoryPage";
 import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
 import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { AuditPage } from "../audit/AuditPage";
+import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { loginDestination } from "./returnUrl";
@@ -44,14 +45,22 @@ export function SharedAuthHost({
   usersReadEnabled = false,
   structureReadEnabled = false,
   auditReadEnabled = false,
+  roleAssignmentEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
   structureReadEnabled?: boolean;
   auditReadEnabled?: boolean;
+  roleAssignmentEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {roleAssignmentEnabled && (
+        <Route
+          path="/users/:id/roles/assign"
+          element={<AssignUserRoleFlowBoundary />}
+        />
+      )}
       {auditReadEnabled && (
         <Route
           path="/audit"
@@ -65,7 +74,14 @@ export function SharedAuthHost({
       {usersReadEnabled && (
         <Route element={<UsersRouteBoundary />}>
           <Route path="/users" element={<UserDirectoryPage />} />
-          <Route path="/users/:id" element={<UserAccessReviewPage />} />
+          <Route
+            path="/users/:id"
+            element={
+              <UserAccessReviewPage
+                roleAssignmentEnabled={roleAssignmentEnabled}
+              />
+            }
+          />
         </Route>
       )}
       {structureReadEnabled && (

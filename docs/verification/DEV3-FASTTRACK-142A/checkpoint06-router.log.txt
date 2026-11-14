@@ -1,0 +1,180 @@
+▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+
+    src/api/dev1/client.ts:21:9:
+      21 │   base = import.meta.env.VITE_DEV1_API_BASE_URL || "/api",
+         ╵          ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+X [ERROR] Cannot import "src/features/inspectionChecklists/checklists.css" into a JavaScript file without an output path configured
+
+    src/features/inspectionChecklists/ChecklistWorkspace.tsx:11:7:
+      11 │ import "./checklists.css";
+         ╵        ~~~~~~~~~~~~~~~~~~
+
+D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:1467
+  let error = new Error(text);
+              ^
+
+Error: Build failed with 1 error:
+src/features/inspectionChecklists/ChecklistWorkspace.tsx:11:7: ERROR: Cannot import "src/features/inspectionChecklists/checklists.css" into a JavaScript file without an output path configured
+    at failureErrorWithLog (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:1467:15)
+    at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:926:25
+    at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:878:52
+    at buildResponseToResult (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:924:7)
+    at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:951:16
+    at responseCallbacks.<computed> (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:603:9)
+    at handleIncomingPacket (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:658:12)
+    at Socket.readFromStdout (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\node_modules\esbuild\lib\main.js:581:7)
+    at Socket.emit (node:events:514:20)
+    at addChunk (node:internal/streams/readable:605:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+Node.js v26.13.0
+✖ tests\assign-user-role-router-integration.test.mjs (342.8476ms)
+▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+
+    src/api/dev1/client.ts:21:9:
+      21 │   base = import.meta.env.VITE_DEV1_API_BASE_URL || "/api",
+         ╵          ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+✔ entry and auth-only import graphs exclude prototype/storage initializers (684.9533ms)
+✔ actual main entry mounts provider once and renders anonymous login without mock storage (2648.5548ms)
+✔ startup GET pending fails closed and StrictMode initializes once (2448.302ms)
+✔ startup 200 redirects login according to confirmed session: restricted=false (2384.3742ms)
+✔ confirmed profile shows only public identity: restricted=false (2434.375ms)
+✔ startup 200 redirects login according to confirmed session: restricted=true (2451.457ms)
+✔ confirmed profile shows only public identity: restricted=true (2438.1981ms)
+✔ anonymous direct URL is guarded: /profile (2474.6913ms)
+✔ anonymous direct URL is guarded: /change-password (2490.9582ms)
+✔ anonymous direct URL is guarded: /dashboard (2430.077ms)
+✔ anonymous direct URL is guarded: /users (2335.6456ms)
+✔ anonymous direct URL is guarded: /roles (2348.793ms)
+✔ anonymous direct URL is guarded: /permissions (2348.0987ms)
+✔ anonymous direct URL is guarded: /rooms/42 (2349.1649ms)
+✔ anonymous direct URL is guarded: /workdays (2356.4395ms)
+✔ restricted business URL cannot render business placeholder (2333.587ms)
+✔ authenticated business URL shows only unintegrated placeholder (2326.6035ms)
+✔ startup unavailable stays unknown until explicit recovery: 503 (2368.6619ms)
+✔ startup unavailable stays unknown until explicit recovery: network (2362.3152ms)
+✔ login success actual transport: deferred=false, restricted=false (2393.8735ms)
+✔ login success actual transport: deferred=false, restricted=true (2428.1667ms)
+✔ login 401 preserves local error and DOM form: deferred=false (2392.8995ms)
+✔ logout success hides identity while pending and redirects: deferred=false (2394.3304ms)
+✔ password success preserves form pending and accepts fresh session: deferred=false, restricted=false (2417.9005ms)
+✔ password success preserves form pending and accepts fresh session: deferred=false, restricted=true (2402.5251ms)
+✔ password policy error remains visible without remount: deferred=false (2440.6252ms)
+✔ login success actual transport: deferred=true, restricted=false (2420.168ms)
+✔ login success actual transport: deferred=true, restricted=true (2408.9289ms)
+✔ login 401 preserves local error and DOM form: deferred=true (2403.2744ms)
+✔ logout success hides identity while pending and redirects: deferred=true (2388.2216ms)
+✔ password success preserves form pending and accepts fresh session: deferred=true, restricted=false (2388.9181ms)
+✔ password success preserves form pending and accepts fresh session: deferred=true, restricted=true (2433.4024ms)
+✔ password policy error remains visible without remount: deferred=true (2428.364ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: network (2429.7327ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: 503 (2444.5614ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: CSRF (2439.5524ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: cancellation (2421.5456ms)
+✔ prototype unavailable regardless of identity: /dev/screens, anonymous (2333.9252ms)
+✔ prototype unavailable regardless of identity: /dev/screens, false (2331.2137ms)
+✔ prototype unavailable regardless of identity: /dev/screens, true (2322.2343ms)
+✔ prototype unavailable regardless of identity: /dev/design-system, anonymous (2352.2654ms)
+✔ prototype unavailable regardless of identity: /dev/design-system, false (2327.1778ms)
+✔ prototype unavailable regardless of identity: /dev/design-system, true (2360.9245ms)
+✔ forgot password shows instruction only after identifier confirmation without recovery request (2405.0027ms)
+✔ late GET cannot replace completed login session (2447.3985ms)
+✔ revalidation 401 removes confirmed identity and guards back/forward history (2418.0135ms)
+✔ late login response after user navigation cannot hijack informational route (2410.8704ms)
+✔ an unresolved logout remains pending with identity hidden and no revocation claim (2374.9811ms)
+✔ session GET 403 is unavailable rather than proof of anonymous or deleted identity (2395.6433ms)
+✔ deny redirect "https://evil.test" (0.7668ms)
+✔ deny redirect "//evil.test" (0.0915ms)
+✔ deny redirect "/\\evil" (0.0826ms)
+✔ deny redirect "/%5cevil" (0.0847ms)
+✔ deny redirect "/%2f%2fevil" (0.0943ms)
+✔ deny redirect "/%252fevil" (0.0492ms)
+✔ deny redirect "/a\n" (0.0501ms)
+✔ deny redirect "/a%0d" (0.0543ms)
+✔ deny redirect "/%" (0.0967ms)
+✔ deny redirect "/%GG" (0.0956ms)
+✔ deny redirect "/a#fragment" (0.0557ms)
+✔ deny redirect "/a/../b" (0.069ms)
+✔ deny redirect "/%2e%2e/a" (0.0615ms)
+✔ preserve local query but require fresh session and enabled destination (0.3672ms)
+✔ canonical read route /users denies business reads for INITIALIZING (931.2032ms)
+✔ canonical read route /users denies business reads for ANONYMOUS (427.4059ms)
+✔ canonical read route /users denies business reads for RESTRICTED (286.6263ms)
+✔ canonical read route /users denies business reads for ERROR_UNAVAILABLE (266.6952ms)
+✔ canonical read route /users/42 denies business reads for INITIALIZING (266.0407ms)
+✔ canonical read route /users/42 denies business reads for ANONYMOUS (277.4797ms)
+✔ canonical read route /users/42 denies business reads for RESTRICTED (294.7376ms)
+✔ canonical read route /users/42 denies business reads for ERROR_UNAVAILABLE (312.6346ms)
+✔ canonical read route /hotel?branchId=7 denies business reads for INITIALIZING (294.4095ms)
+✔ canonical read route /hotel?branchId=7 denies business reads for ANONYMOUS (284.5481ms)
+✔ canonical read route /hotel?branchId=7 denies business reads for RESTRICTED (290.5447ms)
+✔ canonical read route /hotel?branchId=7 denies business reads for ERROR_UNAVAILABLE (274.6653ms)
+✔ canonical read route /audit denies business reads for INITIALIZING (260.0666ms)
+✔ canonical read route /audit denies business reads for ANONYMOUS (282.7773ms)
+✔ canonical read route /audit denies business reads for RESTRICTED (277.2766ms)
+✔ canonical read route /audit denies business reads for ERROR_UNAVAILABLE (281.1845ms)
+✔ canonical operations navigation reaches integrated Users and Structure reads (424.9629ms)
+✔ canonical user read renders permission denial without granting access (265.9036ms)
+✔ canonical user directory discards data after same-account authority replacement (292.633ms)
+✔ bootstrap fail closed and explicit recovery (300.1665ms)
+✔ anonymous deep link then login restores default only (330.1866ms)
+✔ restricted cannot render operations; profile logout removes protected navigation (321.395ms)
+✔ existing operations route preserved /rooms/status (273.4125ms)
+✔ existing operations route preserved /rooms/turnover (277.0747ms)
+✔ existing operations route preserved /cleaning/tasks (315.2932ms)
+✔ existing operations route preserved /cleaning/tasks/new (278.8169ms)
+✔ existing operations route preserved /cleaning/tasks/12 (267.784ms)
+✔ existing operations route preserved /cleaning/assignment (288.5213ms)
+✔ existing operations route preserved /rework (306.7395ms)
+✔ existing operations route preserved /rework/12 (305.7356ms)
+✔ disabled destination no API /inspections/assignment?branchId=7&roomId=11 (283.7015ms)
+✔ disabled destination no API /incidents/new?branchId=7&roomId=11 (329.4032ms)
+✔ login restores local path and query /rooms/status?branchId=7&roomId=11 (384.5222ms)
+✔ login restores local path and query /cleaning/tasks/12?branchId=7 (334.8692ms)
+✔ login restores local path and query /rework?branchId=7 (341.8803ms)
+✔ invalid or inactive return falls back https://evil.test (291.3745ms)
+✔ invalid or inactive return falls back //evil.test (277.7745ms)
+✔ invalid or inactive return falls back /login (277.5897ms)
+✔ invalid or inactive return falls back /forgot-password (274.0009ms)
+✔ invalid or inactive return falls back /incidents/new?branchId=7 (288.2472ms)
+✔ invalid or inactive return falls back /inspections/assignment?branchId=7 (293.1832ms)
+✔ invalid or inactive return falls back /rooms/status?token=private (291.5562ms)
+✔ invalid or inactive return falls back /rooms/status?branchId=0 (268.0397ms)
+✔ failed revalidation does not restore destination; explicit recovery required (407.542ms)
+✔ post-login revalidation blocks destination until completion (324.925ms)
+✔ real AuthApi/store StrictMode login revalidates before return URL and strips token (317.3733ms)
+✔ real AuthApi/store revalidation 401 denies restoration and explicit GET recovers (373.8758ms)
+✔ real restricted session cannot restore business destination (387.0308ms)
+✔ 031 query A to B before login uses B (369.1331ms)
+✔ 031 pending old GET cannot restore A after query /rework?branchId=7 (459.0587ms)
+✔ 031 pending old GET cannot restore A after query https://evil.test (545.3303ms)
+✔ 031 pending old GET cannot restore A after query /incidents/new?branchId=7 (541.9446ms)
+✔ 031 pending old GET cannot restore A after query /inspections/assignment?branchId=7 (535.2214ms)
+✔ 031 real same-account session replacement invalidates old GET without replaying login (463.2534ms)
+✔ 031 real logout during pending revalidation cannot restore protected destination (494.6457ms)
+✔ 031 real store navigation change requires a fresh GET for current query (543.4155ms)
+✔ canonical audit reads list and redacted detail then hides data on authority loss (447.6217ms)
+✔ canonical audit ignores late data after authority replacement (434.6785ms)
+✔ audit 401 invalidates the current authority without automatic business replay (407.567ms)
+ℹ tests 123
+ℹ suites 0
+ℹ pass 122
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 116590.6117
+
+✖ failing tests:
+
+test at tests\assign-user-role-router-integration.test.mjs:1:1
+✖ tests\assign-user-role-router-integration.test.mjs (342.8476ms)
+  'test failed'

@@ -182,7 +182,13 @@ function Report({ report }: { report: UserAccessReviewDto }) {
     </>
   );
 }
-function UserReads({ userId }: { userId: number }) {
+function UserReads({
+  userId,
+  roleAssignmentEnabled,
+}: {
+  userId: number;
+  roleAssignmentEnabled: boolean;
+}) {
   const { api } = useUsersContext();
   const [draft, setDraft] = useState({ feature: "", permissionCode: "" });
   const [query, setQuery] = useState<UserAccessReviewQuery>({});
@@ -212,6 +218,9 @@ function UserReads({ userId }: { userId: number }) {
         <h1>User account {userId}</h1>
         <Link to="/users">User directory</Link>
         <Link to="/profile">Profile</Link>
+        {roleAssignmentEnabled && (
+          <Link to={`/users/${userId}/roles/assign`}>Assign role</Link>
+        )}
       </header>
       <section aria-label="Minimal account detail">
         <h2>Minimal account detail</h2>
@@ -272,7 +281,9 @@ function UserReads({ userId }: { userId: number }) {
   );
 }
 
-export function UserAccessReviewPage() {
+export function UserAccessReviewPage({
+  roleAssignmentEnabled = false,
+}: { roleAssignmentEnabled?: boolean } = {}) {
   const { id } = useParams();
   const numeric = id !== undefined && /^\d+$/.test(id) ? Number(id) : NaN;
   if (!Number.isSafeInteger(numeric) || numeric <= 0)
@@ -283,5 +294,11 @@ export function UserAccessReviewPage() {
         <Link to="/users">User directory</Link>
       </main>
     );
-  return <UserReads key={numeric} userId={numeric} />;
+  return (
+    <UserReads
+      key={numeric}
+      userId={numeric}
+      roleAssignmentEnabled={roleAssignmentEnabled}
+    />
+  );
 }

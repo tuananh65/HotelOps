@@ -11,7 +11,7 @@ internal static class SprintAuthProbe
 {
     // Exact target from this sprint's independently verified provision receipt; no arbitrary connection input.
     private const string Database = "HotelOps_DEV3_142A_20261114_cc78c13f";
-    internal static async Task<int> RunAsync(string reportPath, bool audit = false)
+    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
@@ -80,6 +80,7 @@ internal static class SprintAuthProbe
             await Check(HttpMethod.Get, "/api/auth/session", 200);
             await Check(HttpMethod.Get, "/api/users", 403);
             if (audit) await SprintAuditScenario.RunAsync(db, http, user.UserId, checks, ct);
+            if (roleAssignment) await SprintRoleAssignmentScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct);
             await Check(HttpMethod.Post, "/api/auth/logout", 400);
             await Check(HttpMethod.Post, "/api/auth/logout", 204, csrf: sessionCsrf);
             await Check(HttpMethod.Get, "/api/auth/session", 401);
@@ -106,7 +107,8 @@ internal static class SprintAuthProbe
             }
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { database = Database, fixtureUserId = user.UserId,
                 checks, failure, cleanup = cleaned, success = failure == null && cleaned,
-                scope = audit ? "Real HTTPS/SQL auth and audit list/detail with temporary branch-scoped SYS_ADMIN grant; no browser acceptance"
+                scope = roleAssignment ? "Real HTTPS/SQL auth and supported role assignment with temporary synthetic admin grant; revocation not tested"
+                    : audit ? "Real HTTPS/SQL auth and audit list/detail with temporary branch-scoped SYS_ADMIN grant; no browser acceptance"
                     : "Real HTTPS/SQL login-session-logout; no privileged roles or browser workflow acceptance" },
                 new JsonSerializerOptions { WriteIndented = true }));
         }
