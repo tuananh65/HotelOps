@@ -9,7 +9,7 @@
     "provenanceBaseCommit": "a5048a72670df18050992ed4ff7895cc07b6ee1e",
     "originalBlob": "b5ab45b7f155c9cf6308047b44e4809f73f3a739",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "src/HotelOps.Api/Services/Housekeeping/InspectionConclusionValidation.cs",
@@ -21,7 +21,7 @@
     "provenanceBaseCommit": "a5048a72670df18050992ed4ff7895cc07b6ee1e",
     "originalBlob": "3ec5c56628dd1cb33ab8921c1d9ec7e3db85ddd7",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "src/HotelOps.Api/Services/Housekeeping/ApproveInspectionValidator.cs",
@@ -33,7 +33,7 @@
     "provenanceBaseCommit": "a5048a72670df18050992ed4ff7895cc07b6ee1e",
     "originalBlob": "97b00eac876eb4dc6b1c29c7c5a77f3993da37d8",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionLoading.cs",
@@ -45,7 +45,7 @@
     "provenanceBaseCommit": "a5048a72670df18050992ed4ff7895cc07b6ee1e",
     "originalBlob": "b2176adb7a3174eb6a22487a0b998ec403199631",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "src/HotelOps.Api/Services/Housekeeping/RejectInspectionSourceLoader.cs",
@@ -57,7 +57,7 @@
     "provenanceBaseCommit": "d87d1b9008699d4315e4427317fb273bafdf8d33",
     "originalBlob": "0a8b642ae24e7a0d4c4f7ae3aa909b612289d661",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/src/api/dev1/client.ts",
@@ -69,7 +69,7 @@
     "provenanceBaseCommit": "bc0110e97ffcb1e32f907302cf16ee45bcc5bb0c",
     "originalBlob": "78a82ae7737174e6b4243cf10744344ba24631f3",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "c588e0a320ea988f06f27c79482c23a5fab568c8"
   },
   {
     "path": "frontend/src/features/inspectionReinspection/candidateClient.ts",
@@ -81,79 +81,79 @@
     "provenanceBaseCommit": "7f4624751217ac0f1ea35929aadceb1c48c248da",
     "originalBlob": "9810ee19008272534b58c3baa8d902be9d4be38c",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentCandidate.tsx",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "da60a41e83a77a846beeda785cd784b43e375688",
     "sha256": "DBE28C07038AEC844F2E8888A0CD989413C51FA6871CCAE9FDFA7D886E01BA51",
     "newSha256": "DBE28C07038AEC844F2E8888A0CD989413C51FA6871CCAE9FDFA7D886E01BA51",
     "provenanceBaseCommit": "e393da22a202c7768cfc9ecb13d343755aa6ef53",
     "originalBlob": "9f29441006e1aff85b400c84ada4b0bb09381aa0",
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/src/features/inspectionAssignment/client.ts",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "3254e07ffb771ee754ab130d3f6e939d813c39f6",
     "sha256": "C8AD44187843F23796D090E6B968D578600736BB97905F1F0662DA5F13D37361",
     "newSha256": "C8AD44187843F23796D090E6B968D578600736BB97905F1F0662DA5F13D37361",
     "provenanceBaseCommit": "e393da22a202c7768cfc9ecb13d343755aa6ef53",
     "originalBlob": "5034abe975d04f563718267d7456a5b096a53b25",
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/src/features/inspectionAssignment/InspectionAssignmentDestination.tsx",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "475d7ba47d6778772be95e299d21ab5af661192c",
     "sha256": "5A72F0250288E71348AA0DB27DF6F6FADA4496DCAF6AF659F602C1421E00A679",
     "newSha256": "5A72F0250288E71348AA0DB27DF6F6FADA4496DCAF6AF659F602C1421E00A679",
-    "provenanceBaseCommit": {},
+    "provenanceBaseCommit": null,
     "originalBlob": null,
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/src/features/inspectionAssignment/navigation.ts",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "335df179b56d93a5a09191710d17aaa8479bf4b9",
     "sha256": "4976E78130AD7AFEE9B4F4D98FA1AAC0D9F4050B3A7DCF76D748171AF1DEE78F",
     "newSha256": "4976E78130AD7AFEE9B4F4D98FA1AAC0D9F4050B3A7DCF76D748171AF1DEE78F",
-    "provenanceBaseCommit": {},
+    "provenanceBaseCommit": null,
     "originalBlob": null,
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/tests/inspection-assignment.test.mjs",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "82212305242cdc3edea3594c5a51dea4af225c2b",
     "sha256": "E83C591924A68971C845E6AF72060750DE4130D92BAD408A758949794420AF21",
     "newSha256": "E83C591924A68971C845E6AF72060750DE4130D92BAD408A758949794420AF21",
     "provenanceBaseCommit": "e393da22a202c7768cfc9ecb13d343755aa6ef53",
     "originalBlob": "55c6d66162e94854d70df8ea1d8c75c5751e53e7",
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/tests/inspection-assignment.spec.ts",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "e90cbca357e58f1fcacf8f6ce147a93a31feef5a",
     "sha256": "F223707EF42CB3561B7CF98EC10B399FBD3934702A09BED3768DC0977BB85638",
     "newSha256": "F223707EF42CB3561B7CF98EC10B399FBD3934702A09BED3768DC0977BB85638",
     "provenanceBaseCommit": "e393da22a202c7768cfc9ecb13d343755aa6ef53",
     "originalBlob": "49e812a7d0b7bb262adbd8726729ca269c96190a",
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/tests/fixtures/inspection-assignment.html",
@@ -165,7 +165,7 @@
     "provenanceBaseCommit": "6fcfe5529efeb027d379a4e1c1fe02cdfbfb1a7e",
     "originalBlob": "ddb6bbaadf4bbf9e05deb6e7503c76d5f001fdb6",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/tests/fixtures/inspection-assignment.tsx",
@@ -177,31 +177,31 @@
     "provenanceBaseCommit": "6fcfe5529efeb027d379a4e1c1fe02cdfbfb1a7e",
     "originalBlob": "248d6b8388429d600fb4a597bbb33c7738c2652d",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/tests/fixtures/inspection-assignment-destination.html",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "362f3b85ba0b525c808cac374887f41d214e6aaf",
     "sha256": "B5982AF23C3B745A90C07E38724F3F105813596FF3B44140FF11A000783EA6BC",
     "newSha256": "B5982AF23C3B745A90C07E38724F3F105813596FF3B44140FF11A000783EA6BC",
-    "provenanceBaseCommit": {},
+    "provenanceBaseCommit": null,
     "originalBlob": null,
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/tests/fixtures/inspection-assignment-destination.tsx",
     "originalWorkspace": "D:/SEP490/Projects/HotelOps-DEV1-FE05/obj/fe05-source-021",
-    "originalCommit": null,
+    "originalCommit": "NONE",
     "workingBlob": "45bd5ceff483925ff5d2a9244cf0088b8cd96e9c",
     "sha256": "9BBEC036B71A2253B0DCBB1AB85330D8B14C7EEC3C97D611B75AE216E87B4DD9",
     "newSha256": "9BBEC036B71A2253B0DCBB1AB85330D8B14C7EEC3C97D611B75AE216E87B4DD9",
-    "provenanceBaseCommit": {},
+    "provenanceBaseCommit": null,
     "originalBlob": null,
     "originalSourceState": "UNCOMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "frontend/playwright.fe05-fast017.config.ts",
@@ -213,7 +213,7 @@
     "provenanceBaseCommit": "6fcfe5529efeb027d379a4e1c1fe02cdfbfb1a7e",
     "originalBlob": "63f8dd45a9299d620a18e774b524439cf8d9cffe",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "tests/HotelOps.Inspection.DomainTests/HotelOps.Inspection.DomainTests.csproj",
@@ -225,7 +225,7 @@
     "provenanceBaseCommit": "d87d1b9008699d4315e4427317fb273bafdf8d33",
     "originalBlob": "8c478cb6485681bd659a341804e4a30e9841202b",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "tests/HotelOps.Inspection.DomainTests/Program.cs",
@@ -237,7 +237,7 @@
     "provenanceBaseCommit": "d87d1b9008699d4315e4427317fb273bafdf8d33",
     "originalBlob": "596ce8c91902439cc95577f44c784a7aafbe330e",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "tests/HotelOps.Inspection.DomainTests/README.md",
@@ -249,7 +249,7 @@
     "provenanceBaseCommit": "d87d1b9008699d4315e4427317fb273bafdf8d33",
     "originalBlob": "33bb927e0e057a3051fce810a63403f20d2a9c9c",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "tests/HotelOps.Inspection.LoaderTests/HotelOps.Inspection.LoaderTests.csproj",
@@ -261,7 +261,7 @@
     "provenanceBaseCommit": "d87d1b9008699d4315e4427317fb273bafdf8d33",
     "originalBlob": "8c478cb6485681bd659a341804e4a30e9841202b",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "tests/HotelOps.Inspection.LoaderTests/Program.cs",
@@ -273,7 +273,7 @@
     "provenanceBaseCommit": "a5048a72670df18050992ed4ff7895cc07b6ee1e",
     "originalBlob": "d816941a212f9eb9f40994afc2090092605bf3e3",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "tests/HotelOps.Inspection.LoaderTests/README.md",
@@ -285,7 +285,7 @@
     "provenanceBaseCommit": "d87d1b9008699d4315e4427317fb273bafdf8d33",
     "originalBlob": "ce494a561e21600983d07c5eedae3ceccf34910c",
     "originalSourceState": "COMMITTED",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5"
   },
   {
     "path": "src/HotelOps.Api/Services/Housekeeping/InspectionEvidenceRevisionReadGuard.cs",
@@ -297,6 +297,7 @@
     "transformation": "Extract existing private read-only schema guard verbatim; namespace/import wrapper only. Avoid importing conclusion writers.",
     "sha256": "3D8F0121133E823E67F4B56FBE6650824D3DAB8D1BD7A1ADA40217B60F32F593",
     "newSha256": "3DCE4DFC78422F44AB7CCE50A7FC83AD18063739762E9D9B2B60430878EA92CA",
-    "destinationCommit": "SOURCE_COMMIT_CONTAINING_THIS_MAPPING"
+    "destinationCommit": "0c1562faa4c13ab33d467071c8899df774ab3de5",
+    "provenanceBaseCommit": null
   }
 ]
