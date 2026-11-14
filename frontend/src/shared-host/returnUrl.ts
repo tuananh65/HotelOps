@@ -56,6 +56,13 @@ export function approvedReturnDestination(
   const safe = validateReturnUrl(value);
   if (!safe || !revalidated) return null;
   const path = safe.split("?")[0];
+  const inspection =
+    /^\/inspections\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(path);
+  if (
+    inspection &&
+    inspection.slice(1).every((id) => Number.isSafeInteger(Number(id)))
+  )
+    return safe;
   // UC041/049 and unintegrated features remain excluded; flags are OFF.
   return [
     "/rooms/status",

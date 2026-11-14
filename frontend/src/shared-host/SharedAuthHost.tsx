@@ -9,6 +9,7 @@ import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary"
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
+import { InspectionExecutionAuthRoute } from "./InspectionExecutionAuthRoute";
 import { loginDestination } from "./returnUrl";
 import { useRef } from "react";
 import { type ReactNode } from "react";
@@ -52,6 +53,7 @@ export function SharedAuthHost({
   accountActivationEnabled = false,
   dashboardEnabled = false,
   notificationsEnabled = false,
+  inspectionExecutionEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -61,6 +63,7 @@ export function SharedAuthHost({
   accountActivationEnabled?: boolean;
   dashboardEnabled?: boolean;
   notificationsEnabled?: boolean;
+  inspectionExecutionEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
@@ -110,9 +113,13 @@ export function SharedAuthHost({
       <Route
         path="/inspections/:branch/:id/execution"
         element={
-          <Protected>
-            <OwnerDestination />
-          </Protected>
+          inspectionExecutionEnabled ? (
+            <InspectionExecutionAuthRoute />
+          ) : (
+            <Protected>
+              <OwnerDestination />
+            </Protected>
+          )
         }
       />
       {notificationsEnabled && (

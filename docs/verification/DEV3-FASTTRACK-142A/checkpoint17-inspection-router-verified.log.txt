@@ -1,0 +1,15 @@
+✔ canonical inspection authority change during csrf cannot replay a write (711.9743ms)
+✔ canonical inspection authority change during mutation cannot replay a write (382.8206ms)
+✔ canonical inspection deep link returns after login without granting permission (0.6155ms)
+✔ canonical inspection mounts only after scoped API admission and requires explicit authority recovery (320.3008ms)
+✔ canonical inspection admission 403 cannot mount forms (286.7702ms)
+✔ canonical inspection admission 503 cannot mount forms (274.6563ms)
+✔ canonical inspection invalid route IDs never read protected resources (261.7073ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2775.9381

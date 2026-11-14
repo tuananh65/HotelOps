@@ -53,7 +53,7 @@ const bundle = await build({
     resolveDir: process.cwd(),
     contents: `
 import{createAuthStore}from'./src/auth/authStore';import{createAuthApi}from'./src/auth/authApi';import React,{StrictMode}from'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';import{AuthProvider}from'./src/auth/AuthProvider';import{AuthRouteHost}from'./src/auth/AuthRouteHost';
-let snapshot={authorityGeneration:Object.freeze({}),status:'INITIALIZING',session:null,pending:null,error:null};const listeners=new Set();const session={user:{id:'7',username:'staff',name:'Staff'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:false};window.calls=[];window.fetch=async(url,init)=>{window.calls.push(String(url));(window.methods??=[]).push(init?.method??"GET");if(String(url)==="/api/dashboards/options")return new Response(JSON.stringify(window.dashboardOptions??{branches:[{id:7,code:"B7",name:"Permitted branch"},{id:8,code:"B8",name:"Second branch"}],departments:[{id:11,branchId:7,name:"Housekeeping"},{id:12,branchId:8,name:"Engineering"}]}),{status:window.optionsStatus??200});if(window.businessReply)return new Response(JSON.stringify(window.businessReply.body),{status:window.businessReply.status,headers:{"Content-Type":"application/json"}});if(window.realAuth){const response=window.realReplies[String(url)]?.shift();if(!response)throw Error("Unexpected offline request");if(response.deferred)await new Promise(r=>window.finishRealRevalidation=r);return new Response(response.status===204?null:JSON.stringify(response.body),{status:response.status,headers:{"Content-Type":"application/json"}})}return new Response('{}',{status:503})};function set(status){snapshot={authorityGeneration:Object.freeze({}),status,session:['AUTHENTICATED','RESTRICTED'].includes(status)?{...session,mustChangePassword:status==='RESTRICTED'}:null,pending:null,error:null};listeners.forEach(f=>f())}const store={invalidateSession(expected){if(expected===snapshot.authorityGeneration)set("EXPIRED_INVALID")},subscribe(f){listeners.add(f);return()=>listeners.delete(f)},getSnapshot:()=>snapshot,initialize:async()=>({ok:false,error:{kind:'network'}}),revalidate:async()=>{window.revalidationCalls=(window.revalidationCalls??0)+1;if(window.revalidationMode==="fail"){set("ERROR_UNAVAILABLE");return{ok:false,error:{kind:"network"}}}if(window.revalidationMode==="defer")await new Promise(r=>window.finishRevalidation=r);set('AUTHENTICATED');return{ok:true,data:snapshot.session}},login:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}},logout:async()=>{set('ANONYMOUS');return{ok:true}},changePassword:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}}};window.fixture={set,navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};const host=<AuthRouteHost/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={window.realAuth?window.realStore??(window.realStore=createAuthStore(createAuthApi(window.fetch))):store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
+let snapshot={authorityGeneration:Object.freeze({}),status:'INITIALIZING',session:null,pending:null,error:null};const listeners=new Set();const session={user:{id:'7',username:'staff',name:'Staff'},expiresAt:'2030-01-01T00:00:00Z',absoluteExpiresAt:'2030-01-02T00:00:00Z',mustChangePassword:false};window.calls=[];window.fetch=async(url,init)=>{window.calls.push(String(url));(window.methods??=[]).push(init?.method??"GET");if(String(url)==="/api/dashboards/options")return new Response(JSON.stringify(window.dashboardOptions??{branches:[{id:7,code:"B7",name:"Permitted branch"},{id:8,code:"B8",name:"Second branch"}],departments:[{id:11,branchId:7,name:"Housekeeping"},{id:12,branchId:8,name:"Engineering"}]}),{status:window.optionsStatus??200});if(window.businessReply)return new Response(JSON.stringify(window.businessReply.body),{status:window.businessReply.status,headers:{"Content-Type":"application/json",...window.businessReply.headers}});if(window.realAuth){const response=window.realReplies[String(url)]?.shift();if(!response)throw Error("Unexpected offline request");if(response.deferred)await new Promise(r=>window.finishRealRevalidation=r);return new Response(response.status===204?null:JSON.stringify(response.body),{status:response.status,headers:{"Content-Type":"application/json"}})}return new Response('{}',{status:503})};function set(status){snapshot={authorityGeneration:Object.freeze({}),status,session:['AUTHENTICATED','RESTRICTED'].includes(status)?{...session,mustChangePassword:status==='RESTRICTED'}:null,pending:null,error:null};listeners.forEach(f=>f())}const store={invalidateSession(expected){if(expected===snapshot.authorityGeneration)set("EXPIRED_INVALID")},subscribe(f){listeners.add(f);return()=>listeners.delete(f)},getSnapshot:()=>snapshot,initialize:async()=>({ok:false,error:{kind:'network'}}),revalidate:async()=>{window.revalidationCalls=(window.revalidationCalls??0)+1;if(window.revalidationMode==="fail"){set("ERROR_UNAVAILABLE");return{ok:false,error:{kind:"network"}}}if(window.revalidationMode==="defer")await new Promise(r=>window.finishRevalidation=r);set('AUTHENTICATED');return{ok:true,data:snapshot.session}},login:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}},logout:async()=>{set('ANONYMOUS');return{ok:true}},changePassword:async()=>{set('AUTHENTICATED');return{ok:true,data:snapshot.session}}};window.fixture={set,navigate(path){history.pushState(null,'',path);dispatchEvent(new PopStateEvent('popstate'))}};const host=<AuthRouteHost/>;createRoot(document.getElementById('root')).render(<StrictMode><BrowserRouter><AuthProvider store={window.realAuth?window.realStore??(window.realStore=createAuthStore(createAuthApi(window.fetch))):store} fallback={host}>{host}</AuthProvider></BrowserRouter></StrictMode>);
 `,
   },
   bundle: true,
@@ -96,6 +96,187 @@ async function pageAt(path, status) {
   return page;
 }
 
+const inspectionReply = {
+  status: 200,
+  headers: { ETag: '"0123456789ABCDEF"' },
+  body: {
+    id: 42,
+    branchId: 7,
+    roomId: 11,
+    cleaningTaskId: 22,
+    inspectorId: 7,
+    versionId: 55,
+    state: "ASSIGNED",
+    dueAt: null,
+    criteria: [],
+    defects: [],
+    evidence: [],
+    severities: [{ id: 617, code: "MAJOR", name: "Database major" }],
+  },
+};
+
+for (const phase of ["csrf", "mutation"])
+  test(`canonical inspection authority change during ${phase} cannot replay a write`, async () => {
+    const p = await pageAt("/inspections/7/42/execution");
+    await p.evaluate((reply) => {
+      window.businessReply = reply;
+      window.fixture.set("AUTHENTICATED");
+    }, inspectionReply);
+    await p
+      .getByRole("heading", { name: "Inspection #42", exact: true })
+      .waitFor();
+    await p.evaluate((phase) => {
+      const send = window.fetch;
+      window.inspectionWrites = 0;
+      window.fetch = async (url, init) => {
+        if (url === "/api/auth/csrf") {
+          if (phase === "csrf")
+            await new Promise((r) => (window.releaseInspection = r));
+          return new Response(
+            JSON.stringify({
+              csrfToken: "test-csrf",
+              headerName: "X-CSRF-TOKEN",
+            }),
+          );
+        }
+        if (init?.method === "POST") {
+          window.inspectionWrites++;
+          await new Promise((r) => (window.releaseInspection = r));
+        }
+        return send(url, init);
+      };
+    }, phase);
+    await p.getByLabel("Reason", { exact: true }).fill("Start inspection");
+    await p
+      .getByRole("button", { name: "Start Inspection", exact: true })
+      .click();
+    await p.waitForFunction(
+      () => typeof window.releaseInspection === "function",
+    );
+    const reads = await p.evaluate(() => window.calls.length);
+    await p.evaluate(() => window.fixture.set("AUTHENTICATED"));
+    await p
+      .getByRole("button", { name: "Verify inspection access", exact: true })
+      .waitFor();
+    await p.evaluate(() => window.releaseInspection());
+    await p.evaluate(
+      () =>
+        new Promise((r) =>
+          requestAnimationFrame(() => requestAnimationFrame(r)),
+        ),
+    );
+    assert.equal(
+      await p.evaluate(() => window.inspectionWrites),
+      phase === "csrf" ? 0 : 1,
+    );
+    assert.equal(
+      await p.evaluate(() => window.calls.length),
+      reads + (phase === "mutation" ? 1 : 0),
+    );
+    assert.equal(
+      await p
+        .getByRole("heading", { name: "Inspection #42", exact: true })
+        .count(),
+      0,
+    );
+    await p
+      .getByRole("button", { name: "Verify inspection access", exact: true })
+      .click();
+    await p
+      .getByRole("heading", { name: "Inspection #42", exact: true })
+      .waitFor();
+    assert.equal(
+      await p.evaluate(() => window.inspectionWrites),
+      phase === "csrf" ? 0 : 1,
+    );
+    await p.close();
+  });
+
+test("canonical inspection deep link returns after login without granting permission", () => {
+  assert.equal(
+    approvedReturnDestination("/inspections/7/42/execution", true),
+    "/inspections/7/42/execution",
+  );
+  assert.equal(
+    approvedReturnDestination("/inspections/7/42/execution", false),
+    null,
+  );
+  assert.equal(
+    approvedReturnDestination(
+      "/inspections/9007199254740992/42/execution",
+      true,
+    ),
+    null,
+  );
+});
+
+test("canonical inspection mounts only after scoped API admission and requires explicit authority recovery", async () => {
+  const p = await pageAt("/inspections/7/42/execution");
+  await p.evaluate((reply) => {
+    window.businessReply = reply;
+    window.fixture.set("AUTHENTICATED");
+  }, inspectionReply);
+  await p
+    .getByRole("heading", { name: "Inspection #42", exact: true })
+    .waitFor();
+  assert.ok(
+    (await p.evaluate(() => window.calls)).every(
+      (u) => u === "/api/branches/7/inspections/42/execution",
+    ),
+  );
+  const before = await p.evaluate(() => window.calls.length);
+  await p.evaluate(() => window.fixture.set("AUTHENTICATED"));
+  await p
+    .getByRole("button", { name: "Verify inspection access", exact: true })
+    .waitFor();
+  assert.equal(
+    await p
+      .getByRole("heading", { name: "Inspection #42", exact: true })
+      .count(),
+    0,
+  );
+  assert.equal(await p.evaluate(() => window.calls.length), before);
+  await p
+    .getByRole("button", { name: "Verify inspection access", exact: true })
+    .click();
+  await p
+    .getByRole("heading", { name: "Inspection #42", exact: true })
+    .waitFor();
+  assert.ok((await p.evaluate(() => window.methods)).every((m) => m === "GET"));
+  await p.close();
+});
+
+for (const status of [403, 503])
+  test(`canonical inspection admission ${status} cannot mount forms`, async () => {
+    const p = await pageAt("/inspections/7/42/execution");
+    await p.evaluate((s) => {
+      window.businessReply = { status: s, body: {} };
+      window.fixture.set("AUTHENTICATED");
+    }, status);
+    await p
+      .getByText("Inspection access could not be confirmed.", { exact: true })
+      .waitFor();
+    assert.equal(
+      await p
+        .getByRole("button", { name: "Start Inspection", exact: true })
+        .count(),
+      0,
+    );
+    assert.ok(
+      (await p.evaluate(() => window.methods)).every((m) => m === "GET"),
+    );
+    await p.close();
+  });
+
+test("canonical inspection invalid route IDs never read protected resources", async () => {
+  const p = await pageAt("/inspections/0/42/execution", "AUTHENTICATED");
+  await p
+    .getByText("Invalid inspection or branch ID.", { exact: true })
+    .waitFor();
+  assert.deepEqual(await p.evaluate(() => window.calls), []);
+  await p.close();
+});
+
 for (const path of [
   "/users",
   "/users/42",
@@ -104,6 +285,7 @@ for (const path of [
   "/audit",
   "/dashboard",
   "/notifications",
+  "/inspections/7/42/execution",
 ]) {
   for (const state of [
     "INITIALIZING",

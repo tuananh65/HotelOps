@@ -12,6 +12,7 @@ export function AuthRouteHost() {
       accountActivationEnabled
       dashboardEnabled
       notificationsEnabled
+      inspectionExecutionEnabled
     />
   );
 }
