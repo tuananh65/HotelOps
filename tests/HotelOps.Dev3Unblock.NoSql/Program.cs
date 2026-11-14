@@ -4,6 +4,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Dependencies;
+using HotelOps.Api.Services.Dev2Authorization;
 using HotelOps.Api.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 
@@ -111,17 +112,21 @@ Check("Final reread cannot reuse a lease across resources or transactions",()=>{
  Reject<InvalidOperationException>(()=>reader.RevalidateInCallerTransactionAsync(Dev2DependencyReader.Canonical("ROOM",1,7,[],[]),default).GetAwaiter().GetResult());
 });
 Check("UC016 missing trusted writer authority rejects before SQL",()=>{
- Reject<Dev2PlacementDeniedException>(()=>new HotelOps.Api.Services.Assets.AssetService(db).AssignLocationAsync(1,new(){ActorUserId=9,RoomId=1},default).GetAwaiter().GetResult());
- Reject<Dev2PlacementDeniedException>(()=>new HotelOps.Api.Services.Incidents.IncidentService(db).CreateIncidentAsync(new(){BranchId=7,ReportedBy=9,IncidentTitle="Test",Description="Test",DiscoveredAt=DateTime.UtcNow,RoomId=1},default).GetAwaiter().GetResult());
+ Reject<Dev2AccessDenied>(()=>new HotelOps.Api.Services.Assets.AssetService(db).AssignLocationAsync(1,new(){ActorUserId=9,RoomId=1},default).GetAwaiter().GetResult());
+ Reject<Dev2AccessDenied>(()=>new HotelOps.Api.Services.Incidents.IncidentService(db).CreateIncidentAsync(new(){BranchId=7,ReportedBy=9,IncidentTitle="Test",Description="Test",DiscoveredAt=DateTime.UtcNow,RoomId=1},default).GetAwaiter().GetResult());
  Require(db.Database.GetDbConnection().State==System.Data.ConnectionState.Closed);
 });
-Check("Three placement actions retain route and require cookie authorization plus CSRF",()=>{
+Check("Three placement actions retain POST routes and controller cookie authorization",()=>{
  foreach(var item in new[]{(typeof(HotelOps.Api.Controllers.AssetsController),"AssignLocation"),(typeof(HotelOps.Api.Controllers.AssetsController),"TransferLocation"),(typeof(HotelOps.Api.Controllers.IncidentsController),"CreateIncident")}){
   var m=item.Item1.GetMethod(item.Item2)!;
-  Require(m.IsDefined(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute),false)&&m.IsDefined(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute),false)&&m.IsDefined(typeof(Microsoft.AspNetCore.Mvc.ValidateAntiForgeryTokenAttribute),false));
+  Require(m.IsDefined(typeof(Microsoft.AspNetCore.Mvc.HttpPostAttribute),false));
+  Require(m.IsDefined(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute),true)
+    || item.Item1.IsDefined(typeof(Microsoft.AspNetCore.Authorization.AuthorizeAttribute),true));
+  Require(item.Item1.IsDefined(typeof(HotelOps.Api.Controllers.Filters.Dev2AuthorityPendingAttribute),true));
  }
 });
 checks.AddRange(await ExpansionChecks.RunAsync(db));
+checks.AddRange(await PlacementCsrfChecks.RunAsync());
 checks.AddRange(await WriterOrderChecks.RunAsync());
 checks.AddRange(await Uc006InactiveBranchChecks.RunAsync());
 Console.WriteLine(JsonSerializer.Serialize(new{pass=true,tests=checks.Count,checks,sqlConnections=0,sqlConcurrency="NOT_RUN",qualification="Actual production validator and transaction guard tests; not SQL writer/concurrency acceptance."}));
