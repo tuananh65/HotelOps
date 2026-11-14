@@ -1,0 +1,22 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "scenario": "fixed",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "not-fixed",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "different-version",
+      "success": false,
+      "schemaAndDataRollback": true
+    }
+  ],
+  "failure": "different-version: SqlException: Owned inspection source/version is immutable.",
+  "scope": "Actual internal reinspection binding/per-defect persistence, real SQL session/permission, schema and data rolled back; no public conclusion/notification/room/replay acceptance"
+}

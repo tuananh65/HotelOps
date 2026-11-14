@@ -1,0 +1,12 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "scenario": "fixed",
+      "success": false,
+      "schemaAndDataRollback": true
+    }
+  ],
+  "failure": "fixed: SqlException: Cannot insert the value NULL into column \u0027requested_at\u0027, table \u0027HotelOps_DEV3_142A_20261114_cc78c13f.dbo.cleaning_reworks\u0027; column does not allow nulls. INSERT fails.",
+  "scope": "Actual internal reinspection binding/per-defect persistence, real SQL session/permission, schema and data rolled back; no public conclusion/notification/room/replay acceptance"
+}

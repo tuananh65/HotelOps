@@ -1,0 +1,6 @@
+database_name database_guid
+------------- -------------
+HotelOps_DEV3_142A_20261114_cc78c13f 1D5A9B53-7D19-435A-96AB-9FDFF447B6E0
+users_count branches_count audits_count sessions_count binding_table result_table remediation_column
+----------- -------------- ------------ -------------- ------------- ------------ ------------------
+0 0 0 0 NULL NULL NULL

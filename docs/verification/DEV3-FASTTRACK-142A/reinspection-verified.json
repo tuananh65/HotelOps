@@ -1,0 +1,97 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "scenario": "fixed",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "not-fixed",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "different-version",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "missing-remediation",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "cleaner-conflict",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "duplicate-binding",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "stale-binding",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "stale-inspection",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "stale-rework",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "missing-decision",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "foreign-defect",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "duplicate-decision",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "permission-revoked",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "session-revoked",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "wrong-branch",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "cycle-changed",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "trigger-disabled",
+      "success": true,
+      "schemaAndDataRollback": true
+    },
+    {
+      "scenario": "audit-failure",
+      "success": true,
+      "schemaAndDataRollback": true
+    }
+  ],
+  "failure": null,
+  "scope": "Actual internal reinspection binding/per-defect persistence, real SQL session/permission, schema and data rolled back; no public conclusion/notification/room/replay acceptance"
+}
