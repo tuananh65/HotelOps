@@ -6,6 +6,7 @@ using HotelOps.Api.DTOs.Users;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Dependencies;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -26,7 +27,7 @@ public sealed record AccountDeactivationResult(AccountDeactivationStatus Status,
 /// Current unresolved contracts always prevent mutation, including direct service calls.
 /// </summary>
 public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAccountStatusAccess access,
-    ICurrentUserAccessor current, ISqlSessionService sessions, TimeProvider clock)
+    ICurrentUserAccessor current, ISqlSessionService sessions, TimeProvider clock, Dev2DependencyReader? dependencyReader = null)
 {
     public async Task<AccountDeactivationResult> DeactivateAsync(SessionReference reference, long sessionId,
         long targetId, byte[] expectedVersion, UserAccountDeactivationRequest request, CancellationToken ct)
@@ -38,9 +39,9 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         if (expectedVersion.Length != 8) throw new ArgumentException("An eight-byte rowversion is required.", nameof(expectedVersion));
         if (!request.IsValid) throw new ArgumentException("A trimmed reason of at least ten characters is required.", nameof(request));
         ct.ThrowIfCancellationRequested();
-        if (!current.TryGetCurrentUser(out var actor) || actor.UserId != reference.UserId || actor.SessionId != sessionId)
+        if (sessionId <= 0 || !current.TryGetCurrentUser(out var actor) || actor.UserId <= 0 || actor.UserId != reference.UserId || actor.SessionId != sessionId)
             return new(AccountDeactivationStatus.SessionInvalid);
-        if (actor.IsRestricted || actor.UserId == targetId) return new(AccountDeactivationStatus.Forbidden);
+        if (actor.IsRestricted || reference.IsRestricted || actor.UserId == targetId) return new(AccountDeactivationStatus.Forbidden);
         if (!db.Database.IsSqlServer() || db.Database.CurrentTransaction is not null || Transaction.Current is not null
             || db.ChangeTracker.Entries().Any())
             throw new InvalidOperationException("Deactivation requires a clean context and its own SQL transaction.");
@@ -67,7 +68,14 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         if (target is null) return new(AccountDeactivationStatus.NotFound);
         if (!target.RowVersion.AsSpan().SequenceEqual(expected)) return new(AccountDeactivationStatus.Stale);
         if (target.AccountStatus != "ACTIVE") return new(AccountDeactivationStatus.Conflict);
-        var review = await new IntegratedDeactivationResponsibilityQueries(db).ReadAsync(targetId, ct);
+        var responsibilities = new TransactionalUserResponsibilities(db, dependencyReader);
+        async Task<AccountDeactivationStatus?> Review(bool afterMutation = false)
+        {
+            var facts = await responsibilities.ReadAsync(targetId, afterMutation, ct);
+            if (facts.Unsupported.Count != 0 || facts.Unresolved.Count != 0) return AccountDeactivationStatus.ResponsibilitiesUnresolved;
+            return facts.Blockers.Count != 0 ? AccountDeactivationStatus.ResponsibilitiesBlocked : null;
+        }
+        var review = await responsibilities.ReadAsync(targetId, false, ct);
         // Unresolved takes precedence: a known blocker never masks incomplete coverage.
         if (review.Unsupported.Count != 0 || review.Unresolved.Count != 0)
             return new(AccountDeactivationStatus.ResponsibilitiesUnresolved);
@@ -76,6 +84,8 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         // is fully clear, no direct service call may mutate before release acceptance.
         try { UserAccountDeactivationReleaseAcceptance.EnsureAccepted(); }
         catch (DeactivationReleaseNotAcceptedException) { return new(AccountDeactivationStatus.ReleaseAcceptanceRequired); }
+        if (await Gate() is { } preWriteDenied) return new(preWriteDenied);
+        if (await Review() is { } changedWork) return new(changedWork);
         var now = clock.GetUtcNow().UtcDateTime;
         var count = await db.Users.Where(u => u.UserId == targetId && u.DeletedAt == null
                 && u.AccountStatus == "ACTIVE" && u.RowVersion == expected)
@@ -85,11 +95,19 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         var version = await db.Users.AsNoTracking().Where(u => u.UserId == targetId).Select(u => u.RowVersion).SingleAsync(ct);
         var audit = new AuditLog
         {
-            ActorUserId = actor.UserId, EntityType = "users", EntityId = targetId.ToString(CultureInfo.InvariantCulture),
-            Action = "UPDATE", OccurredAt = now,
+            ActorUserId = actor.UserId,
+            EntityType = "users",
+            EntityId = targetId.ToString(CultureInfo.InvariantCulture),
+            Action = "UPDATE",
+            OccurredAt = now,
             OldValues = JsonSerializer.Serialize(new { accountStatus = target.AccountStatus, rowVersion = Convert.ToHexString(expected) }),
-            NewValues = JsonSerializer.Serialize(new { accountStatus = "INACTIVE", rowVersion = Convert.ToHexString(version),
-                reason = request.Reason, revokedSessions = revoked }),
+            NewValues = JsonSerializer.Serialize(new
+            {
+                accountStatus = "INACTIVE",
+                rowVersion = Convert.ToHexString(version),
+                reason = request.Reason,
+                revokedSessions = revoked
+            }),
             ChangedFields = JsonSerializer.Serialize(new[] { "accountStatus" })
         };
         db.AuditLogs.Add(audit);
@@ -98,6 +116,7 @@ public sealed class UserAccountDeactivationService(HotelOpsDbContext db, UserAcc
         try { await guard.EnsurePreservedAsync(before, ct); }
         catch (GlobalAdministrationInvariantException) { return new(AccountDeactivationStatus.LastAdministrator); }
         if (await Gate() is { } finalDenied) return new(finalDenied);
+        if (await Review(afterMutation: true) is { } finalWork) return new(finalWork);
         await transaction.CommitAsync(ct);
         return new(AccountDeactivationStatus.Success, version);
         // Every early return / exception disposes the uncommitted transaction (rollback).

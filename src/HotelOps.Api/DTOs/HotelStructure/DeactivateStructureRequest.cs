@@ -9,3 +9,7 @@ public sealed record DeactivateStructureRequest(
     bool Confirmation);
 
 public sealed record StructureDependencyDto(string Kind, long Count, IReadOnlyList<long> Ids);
+
+// Current read snapshot only; never an authorization or mutation-readiness certificate.
+public sealed record StructureDeactivationPreviewDto(EditableStructureDto Record,
+    IReadOnlyList<StructureDependencyDto> Dependencies, bool WriterCoordinationRequired);

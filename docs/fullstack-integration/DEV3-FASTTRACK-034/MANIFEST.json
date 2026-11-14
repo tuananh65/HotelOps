@@ -1,0 +1,104 @@
+{
+  "task": "DEV3-FASTTRACK-034",
+  "baseline": "70e1d4ee2c4b63b14543f90c1e315bec39585d80",
+  "branch": "feature/dev3-uc005-credential-reset",
+  "selectedOperation": "UC005 Reset Password alternative using existing active backend",
+  "uc007": "BLOCKED_CONTRACT_AND_WRITER_COVERAGE; existing Department V1 unchanged",
+  "files": [
+    {
+      "path": "frontend/src/auth/AuthRouteHost.tsx",
+      "sha256": "3D1F99800BBCF99E3FDA3932AA4052B57BFCC0F13F1DC4421A12FE8C8AAF74F1"
+    },
+    {
+      "path": "frontend/src/users/UserAccessReviewPage.tsx",
+      "sha256": "71874AC27FBEA4A4B0222B80DB8652735301E3CF4950B106865FC6A63E63D435"
+    },
+    {
+      "path": "frontend/src/users/credentialResetApi.ts",
+      "sha256": "AD0BFD9D4CB0975B2C95A66C5C3D86A317DD24F82D55CEDF0E03AD669BD4BD9C"
+    },
+    {
+      "path": "frontend/src/users/CredentialResetRoute.tsx",
+      "sha256": "52B3C1C89BDC0176FD92FCA92B1E3DBD2E086F874A41EAC7F426CD5A9F1C3F56"
+    },
+    {
+      "path": "frontend/tests/credential-reset-api.test.mjs",
+      "sha256": "40D358182937813669874670F9B578DFB10B206286A38B493EFC978FBA1928B8"
+    },
+    {
+      "path": "frontend/tests/credential-reset-browser.test.mjs",
+      "sha256": "C6243D5C5A45462D985E8D3A337D3BB78D39E8AFCCB4C3BD3E2828D45F12992E"
+    },
+    {
+      "path": "docs/fullstack-integration/DEV3-FASTTRACK-034/HANDOFF.md",
+      "sha256": "5128DFC837D2E15EB7A8C949EB2306C85E26F836359F27E6A3F7EE15FA100A06"
+    }
+  ],
+  "preserved": [
+    {
+      "path": "src/HotelOps.Api/Controllers/AdminCredentialResetController.cs",
+      "gitBlobSha256": "2E57D56D19C5D22D98FF1A6AEA000C602D70969AC73F7CC67AA9E14494294BAC",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Controllers/AdminReauthenticationController.cs",
+      "gitBlobSha256": "2751D2A6AC958BD143FC41CC2930EED3A7453A6B7AF5EB4CC56B2E0571BAEB3B",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Users/AdminCredentialResetWorkflow.cs",
+      "gitBlobSha256": "FE6FA0E22396CC8FF859BBE882D438B39FC402FE0FB5FFD259912D5208A513C1",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Users/UserCredentialResetAccess.cs",
+      "gitBlobSha256": "EEA7F632416B63B161F86AF33546A68021FF6CD3EC01CC8538D75C1D533FE231",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Authentication/TemporaryCredentialService.cs",
+      "gitBlobSha256": "78E30BCA839CDBBC3319FB4CF27934BD5707203434CD26C2B7437EB7BF799854",
+      "unchanged": true
+    },
+    {
+      "path": "src/HotelOps.Api/Services/Users/UserDepartmentChangeService.cs",
+      "gitBlobSha256": "72C207B8E65CA2FE71FD5840A146F86713676F0EA6B808CB07F9F22D5B8B2704",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/users/ChangeDepartmentFlow.tsx",
+      "gitBlobSha256": "75E70A93280668EDEC78E41367F6BB5DAD6382C72FEB54622FF43D57FBE23994",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/users/userBranchMembershipApi.ts",
+      "gitBlobSha256": "C0250730B3A2815C2B3708BCB61527E98CDA88234013391C7EDDFF5F035DAAB4",
+      "unchanged": true
+    },
+    {
+      "path": "frontend/src/users/AddUserBranchFlowBoundary.tsx",
+      "gitBlobSha256": "F8745051B113120A387D2AA74EC15D8E338B69F47EA0C9A3BF6418CDE5D886C6",
+      "unchanged": true
+    }
+  ],
+  "verification": {
+    "newTests": 57,
+    "newPass": 57,
+    "newFail": 0,
+    "newCancelled": 0,
+    "regressions": 459,
+    "regressionPass": 459,
+    "regressionFail": 0,
+    "backendBuildExit": 0,
+    "backendBuildWarnings": 0,
+    "frontendTypecheckExit": 0,
+    "frontendBuildExit": 0,
+    "scopedPrettierExit": 0,
+    "secretPatternFindings": 0,
+    "sql": "NOT_RUN",
+    "https": "NOT_RUN",
+    "backendSqlHarness": "NOT_RUN"
+  },
+  "productionDeployment": false,
+  "wholeUcCompletionCredit": 0
+}

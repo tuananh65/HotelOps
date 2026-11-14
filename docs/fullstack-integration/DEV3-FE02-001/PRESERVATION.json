@@ -1,0 +1,699 @@
+﻿{
+    "task":  "DEV3-FE02-001",
+    "branch":  "feature/dev3-platform",
+    "head":  "e7f84422a33a8a65c771efdfb248e8231e83bb6a",
+    "statusBefore":  [
+                         " M frontend/src/main.tsx",
+                         " M frontend/src/screens/auth/ChangePasswordScreen.tsx",
+                         " M frontend/src/screens/auth/ProfileScreen.tsx",
+                         " M frontend/src/screens/auth/SignInScreen.tsx",
+                         "?? D3-AUTH-02-REVIEW.zip",
+                         "?? frontend/src/auth/AuthProvider.tsx",
+                         "?? frontend/src/auth/AuthRouteHost.tsx",
+                         "?? frontend/src/auth/authApi.ts",
+                         "?? frontend/src/auth/authStore.ts",
+                         "?? frontend/src/auth/contracts.ts",
+                         "?? frontend/src/auth/http.ts",
+                         "?? frontend/src/users/ActivateUserFlowBoundary.tsx",
+                         "?? frontend/src/users/ActivateUserPage.tsx",
+                         "?? frontend/src/users/AddUserBranchFlowBoundary.tsx",
+                         "?? frontend/src/users/AddUserBranchPage.tsx",
+                         "?? frontend/src/users/AssignUserRoleFlowBoundary.tsx",
+                         "?? frontend/src/users/AssignUserRolePage.tsx",
+                         "?? frontend/src/users/CreateUserFlowBoundary.tsx",
+                         "?? frontend/src/users/CreateUserPage.tsx",
+                         "?? frontend/src/users/InitialCredentialHandoff.tsx",
+                         "?? frontend/src/users/UpdateUserFlowBoundary.tsx",
+                         "?? frontend/src/users/UpdateUserPage.tsx",
+                         "?? frontend/src/users/UserAccessReviewPage.tsx",
+                         "?? frontend/src/users/UserDirectoryPage.tsx",
+                         "?? frontend/src/users/UsersRouteBoundary.tsx",
+                         "?? frontend/src/users/contracts.ts",
+                         "?? frontend/src/users/createUserApi.ts",
+                         "?? frontend/src/users/createUserContracts.ts",
+                         "?? frontend/src/users/useActivateUser.ts",
+                         "?? frontend/src/users/useAddUserBranch.ts",
+                         "?? frontend/src/users/useAssignUserRole.ts",
+                         "?? frontend/src/users/useCreateUser.ts",
+                         "?? frontend/src/users/useUpdateUserProfile.ts",
+                         "?? frontend/src/users/useUserRead.ts",
+                         "?? frontend/src/users/userActivationApi.ts",
+                         "?? frontend/src/users/userActivationContracts.ts",
+                         "?? frontend/src/users/userBranchMembershipApi.ts",
+                         "?? frontend/src/users/userBranchMembershipContracts.ts",
+                         "?? frontend/src/users/userProfileApi.ts",
+                         "?? frontend/src/users/userProfileContracts.ts",
+                         "?? frontend/src/users/userRoleAssignmentApi.ts",
+                         "?? frontend/src/users/userRoleAssignmentContracts.ts",
+                         "?? frontend/src/users/usersApi.ts",
+                         "?? frontend/tests/activate-user-router-integration.test.mjs",
+                         "?? frontend/tests/add-user-branch-router-integration.test.mjs",
+                         "?? frontend/tests/assign-user-role-router-integration.test.mjs",
+                         "?? frontend/tests/auth-change-password-ui.test.mjs",
+                         "?? frontend/tests/auth-http.test.mjs",
+                         "?? frontend/tests/auth-login-ui.test.mjs",
+                         "?? frontend/tests/auth-profile-logout.test.mjs",
+                         "?? frontend/tests/auth-router-integration.test.mjs",
+                         "?? frontend/tests/auth-state.test.mjs",
+                         "?? frontend/tests/create-user-api.test.mjs",
+                         "?? frontend/tests/create-user-router-integration.test.mjs",
+                         "?? frontend/tests/update-user-router-integration.test.mjs",
+                         "?? frontend/tests/user-activation-api.test.mjs",
+                         "?? frontend/tests/user-branch-membership-api.test.mjs",
+                         "?? frontend/tests/user-profile-api.test.mjs",
+                         "?? frontend/tests/user-role-assignment-api.test.mjs",
+                         "?? frontend/tests/users-api.test.mjs",
+                         "?? frontend/tests/users-router-integration.test.mjs"
+                     ],
+    "accepted":  [
+                     {
+                         "path":  "frontend/src/auth/contracts.ts",
+                         "expectedSha256":  "2164F3781BEFFD2069392A45E237D19F66669EE6EEF3A6E69768B9156F4022C8",
+                         "beforeSha256":  "2164F3781BEFFD2069392A45E237D19F66669EE6EEF3A6E69768B9156F4022C8",
+                         "match":  true,
+                         "afterSha256":  "2164F3781BEFFD2069392A45E237D19F66669EE6EEF3A6E69768B9156F4022C8",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/auth/http.ts",
+                         "expectedSha256":  "8685A418FEDDC2A1330EF46D988C4022AD66569F94735A6B92E352835051337D",
+                         "beforeSha256":  "8685A418FEDDC2A1330EF46D988C4022AD66569F94735A6B92E352835051337D",
+                         "match":  true,
+                         "afterSha256":  "8685A418FEDDC2A1330EF46D988C4022AD66569F94735A6B92E352835051337D",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/auth/authApi.ts",
+                         "expectedSha256":  "8ACE6189E6CF3C7AA07DFB8960DE13C3C9BAB7DDF4B2F2CE13D4A41EC88A7B10",
+                         "beforeSha256":  "8ACE6189E6CF3C7AA07DFB8960DE13C3C9BAB7DDF4B2F2CE13D4A41EC88A7B10",
+                         "match":  true,
+                         "afterSha256":  "8ACE6189E6CF3C7AA07DFB8960DE13C3C9BAB7DDF4B2F2CE13D4A41EC88A7B10",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/auth-http.test.mjs",
+                         "expectedSha256":  "8F36166D2F7AD3559B731A0E81F5BD95F54BD0EC56328005EAC539A790793F0B",
+                         "beforeSha256":  "8F36166D2F7AD3559B731A0E81F5BD95F54BD0EC56328005EAC539A790793F0B",
+                         "match":  true,
+                         "afterSha256":  "8F36166D2F7AD3559B731A0E81F5BD95F54BD0EC56328005EAC539A790793F0B",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/auth/authStore.ts",
+                         "expectedSha256":  "CD510BA52C12F313EF56498C11FBF3B68B61C594B5020EDFF56EDF2B01CB82EE",
+                         "beforeSha256":  "CD510BA52C12F313EF56498C11FBF3B68B61C594B5020EDFF56EDF2B01CB82EE",
+                         "match":  true,
+                         "afterSha256":  "CD510BA52C12F313EF56498C11FBF3B68B61C594B5020EDFF56EDF2B01CB82EE",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/auth/AuthProvider.tsx",
+                         "expectedSha256":  "4A95E5A24DB18E440F6200D3B23F9F85B4B9E306A5BA879BD3AF7BD6EAAE9DE7",
+                         "beforeSha256":  "4A95E5A24DB18E440F6200D3B23F9F85B4B9E306A5BA879BD3AF7BD6EAAE9DE7",
+                         "match":  true,
+                         "afterSha256":  "4A95E5A24DB18E440F6200D3B23F9F85B4B9E306A5BA879BD3AF7BD6EAAE9DE7",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/auth-state.test.mjs",
+                         "expectedSha256":  "CB9C059D2BDA3445C0D8B52374FC4473116AC890E44EDD7E9D83532DB049DB11",
+                         "beforeSha256":  "CB9C059D2BDA3445C0D8B52374FC4473116AC890E44EDD7E9D83532DB049DB11",
+                         "match":  true,
+                         "afterSha256":  "CB9C059D2BDA3445C0D8B52374FC4473116AC890E44EDD7E9D83532DB049DB11",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/screens/auth/SignInScreen.tsx",
+                         "expectedSha256":  "44FD12DA125BFE607D0E70786FAD5F400FF492A8F3714D91D2D931173880FADE",
+                         "beforeSha256":  "44FD12DA125BFE607D0E70786FAD5F400FF492A8F3714D91D2D931173880FADE",
+                         "match":  true,
+                         "afterSha256":  "44FD12DA125BFE607D0E70786FAD5F400FF492A8F3714D91D2D931173880FADE",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/auth-login-ui.test.mjs",
+                         "expectedSha256":  "62ED3784C05F6576C4EB16B37A15EB1FCAB9242EE0D7E6D2C761A1E70416C2AF",
+                         "beforeSha256":  "62ED3784C05F6576C4EB16B37A15EB1FCAB9242EE0D7E6D2C761A1E70416C2AF",
+                         "match":  true,
+                         "afterSha256":  "62ED3784C05F6576C4EB16B37A15EB1FCAB9242EE0D7E6D2C761A1E70416C2AF",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/screens/auth/ProfileScreen.tsx",
+                         "expectedSha256":  "2C91895EFE981337CA7DACAFA30F587FD5C457E72E35406186F09435988BFFD4",
+                         "beforeSha256":  "2C91895EFE981337CA7DACAFA30F587FD5C457E72E35406186F09435988BFFD4",
+                         "match":  true,
+                         "afterSha256":  "2C91895EFE981337CA7DACAFA30F587FD5C457E72E35406186F09435988BFFD4",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/auth-profile-logout.test.mjs",
+                         "expectedSha256":  "0BBD8A1AE8A2B03BA9B3E89B0E7883858D340214036E789C26497CC30AFD3813",
+                         "beforeSha256":  "0BBD8A1AE8A2B03BA9B3E89B0E7883858D340214036E789C26497CC30AFD3813",
+                         "match":  true,
+                         "afterSha256":  "0BBD8A1AE8A2B03BA9B3E89B0E7883858D340214036E789C26497CC30AFD3813",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/screens/auth/ChangePasswordScreen.tsx",
+                         "expectedSha256":  "1050146ADD680B62DFBBEC2314DB2B428DDD0416FC37611CEFE240A2CACAE6DB",
+                         "beforeSha256":  "1050146ADD680B62DFBBEC2314DB2B428DDD0416FC37611CEFE240A2CACAE6DB",
+                         "match":  true,
+                         "afterSha256":  "1050146ADD680B62DFBBEC2314DB2B428DDD0416FC37611CEFE240A2CACAE6DB",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/auth-change-password-ui.test.mjs",
+                         "expectedSha256":  "6BE68FA2A859472E9BB924F347777F0A68FE2B782FBF37FB778A49B243307534",
+                         "beforeSha256":  "6BE68FA2A859472E9BB924F347777F0A68FE2B782FBF37FB778A49B243307534",
+                         "match":  true,
+                         "afterSha256":  "6BE68FA2A859472E9BB924F347777F0A68FE2B782FBF37FB778A49B243307534",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/main.tsx",
+                         "expectedSha256":  "E0CDAA4D240885CBEEDCE405E143779C3CD2A429ABCA207E6973C972DF5F2A79",
+                         "beforeSha256":  "E0CDAA4D240885CBEEDCE405E143779C3CD2A429ABCA207E6973C972DF5F2A79",
+                         "match":  true,
+                         "afterSha256":  "E0CDAA4D240885CBEEDCE405E143779C3CD2A429ABCA207E6973C972DF5F2A79",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/auth/AuthRouteHost.tsx",
+                         "expectedSha256":  "C9965130CD3DF13FB41B1AB75E97532248830AFD13B72D5A550DA4527D9579D4",
+                         "beforeSha256":  "C9965130CD3DF13FB41B1AB75E97532248830AFD13B72D5A550DA4527D9579D4",
+                         "match":  true,
+                         "afterSha256":  "C9965130CD3DF13FB41B1AB75E97532248830AFD13B72D5A550DA4527D9579D4",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/auth-router-integration.test.mjs",
+                         "expectedSha256":  "36E3898E31448F0F86C1A166584273134A6A8DDE9C258A7EE715B78C9ABE429C",
+                         "beforeSha256":  "36E3898E31448F0F86C1A166584273134A6A8DDE9C258A7EE715B78C9ABE429C",
+                         "match":  true,
+                         "afterSha256":  "36E3898E31448F0F86C1A166584273134A6A8DDE9C258A7EE715B78C9ABE429C",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/contracts.ts",
+                         "expectedSha256":  "48D86C02800E5C7C0463981C3262C74DE7C18992357E3A591CBA6CA3C2A04EF1",
+                         "beforeSha256":  "48D86C02800E5C7C0463981C3262C74DE7C18992357E3A591CBA6CA3C2A04EF1",
+                         "match":  true,
+                         "afterSha256":  "48D86C02800E5C7C0463981C3262C74DE7C18992357E3A591CBA6CA3C2A04EF1",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/usersApi.ts",
+                         "expectedSha256":  "7C2C26F9DEB022EFF004A4AC8B0FA5F8C4D4FD6294FE0F1D00B69A331C9C7DEE",
+                         "beforeSha256":  "7C2C26F9DEB022EFF004A4AC8B0FA5F8C4D4FD6294FE0F1D00B69A331C9C7DEE",
+                         "match":  true,
+                         "afterSha256":  "7C2C26F9DEB022EFF004A4AC8B0FA5F8C4D4FD6294FE0F1D00B69A331C9C7DEE",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/users-api.test.mjs",
+                         "expectedSha256":  "D7945CAFE9ED73D3E3845807254CDEF1159AF964B687969C5A9ECA7852C69C56",
+                         "beforeSha256":  "D7945CAFE9ED73D3E3845807254CDEF1159AF964B687969C5A9ECA7852C69C56",
+                         "match":  true,
+                         "afterSha256":  "D7945CAFE9ED73D3E3845807254CDEF1159AF964B687969C5A9ECA7852C69C56",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/useUserRead.ts",
+                         "expectedSha256":  "726731F2F01DD6AB763DC7F4CC61B1D00B1D96331A8A66BCEC2609A1477AC182",
+                         "beforeSha256":  "726731F2F01DD6AB763DC7F4CC61B1D00B1D96331A8A66BCEC2609A1477AC182",
+                         "match":  true,
+                         "afterSha256":  "726731F2F01DD6AB763DC7F4CC61B1D00B1D96331A8A66BCEC2609A1477AC182",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/UsersRouteBoundary.tsx",
+                         "expectedSha256":  "979574054D5D6C9A55E3CEFA2A9EBDD83F515C40DFF5F99283DB5F3185C9A4A3",
+                         "beforeSha256":  "979574054D5D6C9A55E3CEFA2A9EBDD83F515C40DFF5F99283DB5F3185C9A4A3",
+                         "match":  true,
+                         "afterSha256":  "979574054D5D6C9A55E3CEFA2A9EBDD83F515C40DFF5F99283DB5F3185C9A4A3",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/UserDirectoryPage.tsx",
+                         "expectedSha256":  "5F80C810E8987C997AAC4A29F4A3132481882F742BD820EFB4DDB3BEE8CFC27A",
+                         "beforeSha256":  "5F80C810E8987C997AAC4A29F4A3132481882F742BD820EFB4DDB3BEE8CFC27A",
+                         "match":  true,
+                         "afterSha256":  "5F80C810E8987C997AAC4A29F4A3132481882F742BD820EFB4DDB3BEE8CFC27A",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/UserAccessReviewPage.tsx",
+                         "expectedSha256":  "2438AC8FD1BE13DD79146809FE835031A45C7E048CA96EA68DAB3512C5CD0A9A",
+                         "beforeSha256":  "2438AC8FD1BE13DD79146809FE835031A45C7E048CA96EA68DAB3512C5CD0A9A",
+                         "match":  true,
+                         "afterSha256":  "2438AC8FD1BE13DD79146809FE835031A45C7E048CA96EA68DAB3512C5CD0A9A",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/users-router-integration.test.mjs",
+                         "expectedSha256":  "A940B9B3D5E2E59542A8865D545B9E1FA365E6051038120C7EA1C83ECB0B5881",
+                         "beforeSha256":  "A940B9B3D5E2E59542A8865D545B9E1FA365E6051038120C7EA1C83ECB0B5881",
+                         "match":  true,
+                         "afterSha256":  "A940B9B3D5E2E59542A8865D545B9E1FA365E6051038120C7EA1C83ECB0B5881",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/createUserContracts.ts",
+                         "expectedSha256":  "EE94A055CCFD24712E322C20EC14A71C1B82DCC6EF4E96FCD91AD3892BC3E34D",
+                         "beforeSha256":  "EE94A055CCFD24712E322C20EC14A71C1B82DCC6EF4E96FCD91AD3892BC3E34D",
+                         "match":  true,
+                         "afterSha256":  "EE94A055CCFD24712E322C20EC14A71C1B82DCC6EF4E96FCD91AD3892BC3E34D",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/createUserApi.ts",
+                         "expectedSha256":  "27D625B3342710B50C7D42DF12C6052A7C9346D6805A5EEC643382269B790B1C",
+                         "beforeSha256":  "27D625B3342710B50C7D42DF12C6052A7C9346D6805A5EEC643382269B790B1C",
+                         "match":  true,
+                         "afterSha256":  "27D625B3342710B50C7D42DF12C6052A7C9346D6805A5EEC643382269B790B1C",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/create-user-api.test.mjs",
+                         "expectedSha256":  "739F5842FB548A79A7E2DB283DB87D5769B482D2EEF05191181C1F7A91EEE043",
+                         "beforeSha256":  "739F5842FB548A79A7E2DB283DB87D5769B482D2EEF05191181C1F7A91EEE043",
+                         "match":  true,
+                         "afterSha256":  "739F5842FB548A79A7E2DB283DB87D5769B482D2EEF05191181C1F7A91EEE043",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/CreateUserPage.tsx",
+                         "expectedSha256":  "5B46F8F137D23925B78608BB4869189F8D9B372391B5FA4FC74E94EB4A34B5FC",
+                         "beforeSha256":  "5B46F8F137D23925B78608BB4869189F8D9B372391B5FA4FC74E94EB4A34B5FC",
+                         "match":  true,
+                         "afterSha256":  "5B46F8F137D23925B78608BB4869189F8D9B372391B5FA4FC74E94EB4A34B5FC",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/InitialCredentialHandoff.tsx",
+                         "expectedSha256":  "96A0ED50E03B5D723E5DCE2A7F63592EE5157E09B4E4C910CE5375C277357C6A",
+                         "beforeSha256":  "96A0ED50E03B5D723E5DCE2A7F63592EE5157E09B4E4C910CE5375C277357C6A",
+                         "match":  true,
+                         "afterSha256":  "96A0ED50E03B5D723E5DCE2A7F63592EE5157E09B4E4C910CE5375C277357C6A",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/useCreateUser.ts",
+                         "expectedSha256":  "CBBF1CCAB0EE6776E085C9F3027A44AB0ACC3C23647D9CF8262E51CE0880D2FA",
+                         "beforeSha256":  "CBBF1CCAB0EE6776E085C9F3027A44AB0ACC3C23647D9CF8262E51CE0880D2FA",
+                         "match":  true,
+                         "afterSha256":  "CBBF1CCAB0EE6776E085C9F3027A44AB0ACC3C23647D9CF8262E51CE0880D2FA",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/CreateUserFlowBoundary.tsx",
+                         "expectedSha256":  "C2D2BEA7824310B81FF72B20C09F2FC46C76BA6C235FD75BAF92084F09549E8C",
+                         "beforeSha256":  "C2D2BEA7824310B81FF72B20C09F2FC46C76BA6C235FD75BAF92084F09549E8C",
+                         "match":  true,
+                         "afterSha256":  "C2D2BEA7824310B81FF72B20C09F2FC46C76BA6C235FD75BAF92084F09549E8C",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/create-user-router-integration.test.mjs",
+                         "expectedSha256":  "7453AF3A44F59313301DBCFD8F63BB875029EF2B85D222078CFF0267907950D5",
+                         "beforeSha256":  "7453AF3A44F59313301DBCFD8F63BB875029EF2B85D222078CFF0267907950D5",
+                         "match":  true,
+                         "afterSha256":  "7453AF3A44F59313301DBCFD8F63BB875029EF2B85D222078CFF0267907950D5",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userProfileContracts.ts",
+                         "expectedSha256":  "F29D1B0EF37DCC0A40C31164E2C362FC0CD8E89C52B6ED727455C5DBFFDEE3A2",
+                         "beforeSha256":  "F29D1B0EF37DCC0A40C31164E2C362FC0CD8E89C52B6ED727455C5DBFFDEE3A2",
+                         "match":  true,
+                         "afterSha256":  "F29D1B0EF37DCC0A40C31164E2C362FC0CD8E89C52B6ED727455C5DBFFDEE3A2",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userProfileApi.ts",
+                         "expectedSha256":  "28B248048B21DD51D5B13505D2379F5F10C5FDF3E0D851FD790B86E079C0ED49",
+                         "beforeSha256":  "28B248048B21DD51D5B13505D2379F5F10C5FDF3E0D851FD790B86E079C0ED49",
+                         "match":  true,
+                         "afterSha256":  "28B248048B21DD51D5B13505D2379F5F10C5FDF3E0D851FD790B86E079C0ED49",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/user-profile-api.test.mjs",
+                         "expectedSha256":  "910B1271CA3BFC3F216DE16B097BD9F329D7FAAEEFD8FD572B745C16DB3F44A3",
+                         "beforeSha256":  "910B1271CA3BFC3F216DE16B097BD9F329D7FAAEEFD8FD572B745C16DB3F44A3",
+                         "match":  true,
+                         "afterSha256":  "910B1271CA3BFC3F216DE16B097BD9F329D7FAAEEFD8FD572B745C16DB3F44A3",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/UpdateUserFlowBoundary.tsx",
+                         "expectedSha256":  "E1C17BC9B73318C5ABB7C9A88D9FB29D4A451816A521024A3106A241F2062A7D",
+                         "beforeSha256":  "E1C17BC9B73318C5ABB7C9A88D9FB29D4A451816A521024A3106A241F2062A7D",
+                         "match":  true,
+                         "afterSha256":  "E1C17BC9B73318C5ABB7C9A88D9FB29D4A451816A521024A3106A241F2062A7D",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/UpdateUserPage.tsx",
+                         "expectedSha256":  "F628AB9E9BE3693C369D7988BC7773260D56A78D9E36382C81B3EE8F364CAF51",
+                         "beforeSha256":  "F628AB9E9BE3693C369D7988BC7773260D56A78D9E36382C81B3EE8F364CAF51",
+                         "match":  true,
+                         "afterSha256":  "F628AB9E9BE3693C369D7988BC7773260D56A78D9E36382C81B3EE8F364CAF51",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/useUpdateUserProfile.ts",
+                         "expectedSha256":  "C1848D36D8F869F3F03292AD0F2B8104178A6A500FDBD84CEA6BE5A4596F9FD0",
+                         "beforeSha256":  "C1848D36D8F869F3F03292AD0F2B8104178A6A500FDBD84CEA6BE5A4596F9FD0",
+                         "match":  true,
+                         "afterSha256":  "C1848D36D8F869F3F03292AD0F2B8104178A6A500FDBD84CEA6BE5A4596F9FD0",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/update-user-router-integration.test.mjs",
+                         "expectedSha256":  "30238A3F5F19E17BB02D13FD70B3E7CFA4AFCD1169F64221403287AE948337A2",
+                         "beforeSha256":  "30238A3F5F19E17BB02D13FD70B3E7CFA4AFCD1169F64221403287AE948337A2",
+                         "match":  true,
+                         "afterSha256":  "30238A3F5F19E17BB02D13FD70B3E7CFA4AFCD1169F64221403287AE948337A2",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userActivationContracts.ts",
+                         "expectedSha256":  "637A6E4E14273BB2169C165D8AFF577E5E723C6550B5E623C1367465C788F8A9",
+                         "beforeSha256":  "637A6E4E14273BB2169C165D8AFF577E5E723C6550B5E623C1367465C788F8A9",
+                         "match":  true,
+                         "afterSha256":  "637A6E4E14273BB2169C165D8AFF577E5E723C6550B5E623C1367465C788F8A9",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userActivationApi.ts",
+                         "expectedSha256":  "F16AA1372069B793B754EE2DFE1D47FCB9E1B6CF16FEAE7D7EDA40B1EEB84F4A",
+                         "beforeSha256":  "F16AA1372069B793B754EE2DFE1D47FCB9E1B6CF16FEAE7D7EDA40B1EEB84F4A",
+                         "match":  true,
+                         "afterSha256":  "F16AA1372069B793B754EE2DFE1D47FCB9E1B6CF16FEAE7D7EDA40B1EEB84F4A",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/user-activation-api.test.mjs",
+                         "expectedSha256":  "8526318A90DEC5A6C6F327A6C17FC71B137BC76149AB92131C62D430DE33EA0F",
+                         "beforeSha256":  "8526318A90DEC5A6C6F327A6C17FC71B137BC76149AB92131C62D430DE33EA0F",
+                         "match":  true,
+                         "afterSha256":  "8526318A90DEC5A6C6F327A6C17FC71B137BC76149AB92131C62D430DE33EA0F",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/ActivateUserFlowBoundary.tsx",
+                         "expectedSha256":  "3E900B128D541EBFFDEE5242814AB43D10378010EAAF1473D266FA9F5467C6E0",
+                         "beforeSha256":  "3E900B128D541EBFFDEE5242814AB43D10378010EAAF1473D266FA9F5467C6E0",
+                         "match":  true,
+                         "afterSha256":  "3E900B128D541EBFFDEE5242814AB43D10378010EAAF1473D266FA9F5467C6E0",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/ActivateUserPage.tsx",
+                         "expectedSha256":  "A12786B9BC7E562A0814B0F69ADAB670E64A87D611407A26AAF548DBB7C005E9",
+                         "beforeSha256":  "A12786B9BC7E562A0814B0F69ADAB670E64A87D611407A26AAF548DBB7C005E9",
+                         "match":  true,
+                         "afterSha256":  "A12786B9BC7E562A0814B0F69ADAB670E64A87D611407A26AAF548DBB7C005E9",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/useActivateUser.ts",
+                         "expectedSha256":  "BA6D0E6A9C391011CC6CC27C1582235A5D2538F502C2BEB85AEADA8B1A6F22DB",
+                         "beforeSha256":  "BA6D0E6A9C391011CC6CC27C1582235A5D2538F502C2BEB85AEADA8B1A6F22DB",
+                         "match":  true,
+                         "afterSha256":  "BA6D0E6A9C391011CC6CC27C1582235A5D2538F502C2BEB85AEADA8B1A6F22DB",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/activate-user-router-integration.test.mjs",
+                         "expectedSha256":  "7570ECC9C1C8F03AA71B76C45BEB152F743ACE34BB9E00BF72BCE81A3A47CEDE",
+                         "beforeSha256":  "7570ECC9C1C8F03AA71B76C45BEB152F743ACE34BB9E00BF72BCE81A3A47CEDE",
+                         "match":  true,
+                         "afterSha256":  "7570ECC9C1C8F03AA71B76C45BEB152F743ACE34BB9E00BF72BCE81A3A47CEDE",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userBranchMembershipContracts.ts",
+                         "expectedSha256":  "8A635305D793AE59310654A8553230E2504A73F6196CCEC0E85D2D0F7D67DDE2",
+                         "beforeSha256":  "8A635305D793AE59310654A8553230E2504A73F6196CCEC0E85D2D0F7D67DDE2",
+                         "match":  true,
+                         "afterSha256":  "8A635305D793AE59310654A8553230E2504A73F6196CCEC0E85D2D0F7D67DDE2",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userBranchMembershipApi.ts",
+                         "expectedSha256":  "2DB7FAA51240126F5EF6664B81A9465BFB55FFA6DBB2D013D220E4CD5C5ABDFE",
+                         "beforeSha256":  "2DB7FAA51240126F5EF6664B81A9465BFB55FFA6DBB2D013D220E4CD5C5ABDFE",
+                         "match":  true,
+                         "afterSha256":  "2DB7FAA51240126F5EF6664B81A9465BFB55FFA6DBB2D013D220E4CD5C5ABDFE",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/user-branch-membership-api.test.mjs",
+                         "expectedSha256":  "09B0BF51D35CABC0BF1AAF8F418D705BDE28061EB497A0DE73630ABC35CD7BEB",
+                         "beforeSha256":  "09B0BF51D35CABC0BF1AAF8F418D705BDE28061EB497A0DE73630ABC35CD7BEB",
+                         "match":  true,
+                         "afterSha256":  "09B0BF51D35CABC0BF1AAF8F418D705BDE28061EB497A0DE73630ABC35CD7BEB",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/AddUserBranchFlowBoundary.tsx",
+                         "expectedSha256":  "F8745051B113120A387D2AA74EC15D8E338B69F47EA0C9A3BF6418CDE5D886C6",
+                         "beforeSha256":  "F8745051B113120A387D2AA74EC15D8E338B69F47EA0C9A3BF6418CDE5D886C6",
+                         "match":  true,
+                         "afterSha256":  "F8745051B113120A387D2AA74EC15D8E338B69F47EA0C9A3BF6418CDE5D886C6",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/AddUserBranchPage.tsx",
+                         "expectedSha256":  "38E5FC812CCB1A1E76B174A6B0C22133D00914C0772CFCD41254981E6DA61E57",
+                         "beforeSha256":  "38E5FC812CCB1A1E76B174A6B0C22133D00914C0772CFCD41254981E6DA61E57",
+                         "match":  true,
+                         "afterSha256":  "38E5FC812CCB1A1E76B174A6B0C22133D00914C0772CFCD41254981E6DA61E57",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/useAddUserBranch.ts",
+                         "expectedSha256":  "31E6CBDAFE167D9516382CF2CD19617B6B5F31D71AA33F4731C1B027400639A8",
+                         "beforeSha256":  "31E6CBDAFE167D9516382CF2CD19617B6B5F31D71AA33F4731C1B027400639A8",
+                         "match":  true,
+                         "afterSha256":  "31E6CBDAFE167D9516382CF2CD19617B6B5F31D71AA33F4731C1B027400639A8",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/add-user-branch-router-integration.test.mjs",
+                         "expectedSha256":  "01EA076FBB2E720402AB443E3361A6A12D705E150AE4F448371654790350981F",
+                         "beforeSha256":  "01EA076FBB2E720402AB443E3361A6A12D705E150AE4F448371654790350981F",
+                         "match":  true,
+                         "afterSha256":  "01EA076FBB2E720402AB443E3361A6A12D705E150AE4F448371654790350981F",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userRoleAssignmentContracts.ts",
+                         "expectedSha256":  "C0032796928447356747B112E4600BD59253A0C7831B73E8C739397BFAE76C17",
+                         "beforeSha256":  "C0032796928447356747B112E4600BD59253A0C7831B73E8C739397BFAE76C17",
+                         "match":  true,
+                         "afterSha256":  "C0032796928447356747B112E4600BD59253A0C7831B73E8C739397BFAE76C17",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/userRoleAssignmentApi.ts",
+                         "expectedSha256":  "EB452FFE35B8FA4FAE46D2D5BECF84CFF7997C796A94A8AADCB345061F3C0B13",
+                         "beforeSha256":  "EB452FFE35B8FA4FAE46D2D5BECF84CFF7997C796A94A8AADCB345061F3C0B13",
+                         "match":  true,
+                         "afterSha256":  "EB452FFE35B8FA4FAE46D2D5BECF84CFF7997C796A94A8AADCB345061F3C0B13",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/user-role-assignment-api.test.mjs",
+                         "expectedSha256":  "F320D586A57469B94A24A9491E5453B4EC611299C936E7E569794B15813FF1B8",
+                         "beforeSha256":  "F320D586A57469B94A24A9491E5453B4EC611299C936E7E569794B15813FF1B8",
+                         "match":  true,
+                         "afterSha256":  "F320D586A57469B94A24A9491E5453B4EC611299C936E7E569794B15813FF1B8",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/AssignUserRoleFlowBoundary.tsx",
+                         "expectedSha256":  "AEC07FA6015CC35C40F5159B6DFDB4C07596B212BE19FBCD5EB8D9A82F420C80",
+                         "beforeSha256":  "AEC07FA6015CC35C40F5159B6DFDB4C07596B212BE19FBCD5EB8D9A82F420C80",
+                         "match":  true,
+                         "afterSha256":  "AEC07FA6015CC35C40F5159B6DFDB4C07596B212BE19FBCD5EB8D9A82F420C80",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/AssignUserRolePage.tsx",
+                         "expectedSha256":  "1C7EF4F4949194C493A22C8E76C494763B8DCFCF320B06CB54B17EFFD9AC326F",
+                         "beforeSha256":  "1C7EF4F4949194C493A22C8E76C494763B8DCFCF320B06CB54B17EFFD9AC326F",
+                         "match":  true,
+                         "afterSha256":  "1C7EF4F4949194C493A22C8E76C494763B8DCFCF320B06CB54B17EFFD9AC326F",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/src/users/useAssignUserRole.ts",
+                         "expectedSha256":  "D81781836D8567FA21DCB65EE51DC2E2D61642CEDDFF2AE577CE65C626DD63D8",
+                         "beforeSha256":  "D81781836D8567FA21DCB65EE51DC2E2D61642CEDDFF2AE577CE65C626DD63D8",
+                         "match":  true,
+                         "afterSha256":  "D81781836D8567FA21DCB65EE51DC2E2D61642CEDDFF2AE577CE65C626DD63D8",
+                         "unchanged":  true
+                     },
+                     {
+                         "path":  "frontend/tests/assign-user-role-router-integration.test.mjs",
+                         "expectedSha256":  "B254B3411C364C5A1A2755EA8A6B6CE124FCD7BDF6A00BFD4D81B116537B0A48",
+                         "beforeSha256":  "B254B3411C364C5A1A2755EA8A6B6CE124FCD7BDF6A00BFD4D81B116537B0A48",
+                         "match":  true,
+                         "afterSha256":  "B254B3411C364C5A1A2755EA8A6B6CE124FCD7BDF6A00BFD4D81B116537B0A48",
+                         "unchanged":  true
+                     }
+                 ],
+    "taskSourceArtifacts":  [
+                                {
+                                    "path":  "frontend/index.html",
+                                    "sha256":  "41E32A37C2287B156F6C388F2153FEC1C2FFE4EAB7F65257AD2BB0DD2AF0DFD0"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/contracts.ts",
+                                    "sha256":  "F547DF24DC7CCA0F5FEAD578D8F1556CC35304E8C742A97E5F02F8BE813C2131"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/hotel.css",
+                                    "sha256":  "6FEC1F2354346E37B1073632A556579D4329D18AB4AE493203EE04778764C506"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/hotelApi.ts",
+                                    "sha256":  "FB0C7F89F440F01C07532EBE070DDD2147C505B28471145E4FAC4D537F049B67"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/HotelRouteHost.tsx",
+                                    "sha256":  "238AE5F1261A7E147799590EE0CE579657CAC14D63B9398A200262170B5D18C6"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/HotelWorkspace.tsx",
+                                    "sha256":  "255CC8214B3AE27AC024EFE9D2BBBB602EA1A1A37528C02DBE35318318BCB924"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/main.tsx",
+                                    "sha256":  "696A2E18688FCC65BA04A17CF4509BFCA49D5B6598AB5D02F4C1893D5A8F4054"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/operations.ts",
+                                    "sha256":  "545CF44856A064F42F0D257EF890B57080EE340B9A25D59127B7A648D79FCE18"
+                                },
+                                {
+                                    "path":  "frontend/src/hotel/useHotelFlow.ts",
+                                    "sha256":  "35756BFB41EFF57695E2AFBAA4C7EF1B01CC439995EF0CA7FB9B3E3813F86EF2"
+                                },
+                                {
+                                    "path":  "frontend/tests/hotel-api.test.mjs",
+                                    "sha256":  "B49A8149594FA674524F8E08B5052371DA236A5294DC8C468709C24C32EEBAA1"
+                                },
+                                {
+                                    "path":  "frontend/tests/hotel-fixtures.mjs",
+                                    "sha256":  "00795C8BD457A6F4DFEB95EACC7E61F4DEFAEEA9AA7A0C00F7866F3E7EF44856"
+                                },
+                                {
+                                    "path":  "frontend/tests/hotel-router-integration.test.mjs",
+                                    "sha256":  "8C11993338F0AD19D12E334CF3C95CE0F66F0F113572407D54434C20A6C7D864"
+                                }
+                            ],
+    "verification":  [
+                         {
+                             "command":  "npm.cmd run typecheck",
+                             "exitCode":  0
+                         },
+                         {
+                             "command":  "node --test tests/hotel-api.test.mjs tests/hotel-router-integration.test.mjs",
+                             "exitCode":  0,
+                             "passed":  124,
+                             "failed":  0,
+                             "cancelled":  0,
+                             "skipped":  0
+                         },
+                         {
+                             "command":  "npm.cmd run build",
+                             "exitCode":  0
+                         },
+                         {
+                             "command":  "npm.cmd exec -- prettier --check src/hotel tests/hotel-fixtures.mjs tests/hotel-api.test.mjs tests/hotel-router-integration.test.mjs index.html",
+                             "exitCode":  0
+                         }
+                     ],
+    "statusAfter":  [
+                        " M frontend/index.html",
+                        " M frontend/src/main.tsx",
+                        " M frontend/src/screens/auth/ChangePasswordScreen.tsx",
+                        " M frontend/src/screens/auth/ProfileScreen.tsx",
+                        " M frontend/src/screens/auth/SignInScreen.tsx",
+                        "?? D3-AUTH-02-REVIEW.zip",
+                        "?? docs/fullstack-integration/DEV3-FE02-001/HANDOFF.md",
+                        "?? docs/fullstack-integration/DEV3-FE02-001/PRESERVATION.json",
+                        "?? frontend/src/auth/AuthProvider.tsx",
+                        "?? frontend/src/auth/AuthRouteHost.tsx",
+                        "?? frontend/src/auth/authApi.ts",
+                        "?? frontend/src/auth/authStore.ts",
+                        "?? frontend/src/auth/contracts.ts",
+                        "?? frontend/src/auth/http.ts",
+                        "?? frontend/src/hotel/HotelRouteHost.tsx",
+                        "?? frontend/src/hotel/HotelWorkspace.tsx",
+                        "?? frontend/src/hotel/contracts.ts",
+                        "?? frontend/src/hotel/hotel.css",
+                        "?? frontend/src/hotel/hotelApi.ts",
+                        "?? frontend/src/hotel/main.tsx",
+                        "?? frontend/src/hotel/operations.ts",
+                        "?? frontend/src/hotel/useHotelFlow.ts",
+                        "?? frontend/src/users/ActivateUserFlowBoundary.tsx",
+                        "?? frontend/src/users/ActivateUserPage.tsx",
+                        "?? frontend/src/users/AddUserBranchFlowBoundary.tsx",
+                        "?? frontend/src/users/AddUserBranchPage.tsx",
+                        "?? frontend/src/users/AssignUserRoleFlowBoundary.tsx",
+                        "?? frontend/src/users/AssignUserRolePage.tsx",
+                        "?? frontend/src/users/CreateUserFlowBoundary.tsx",
+                        "?? frontend/src/users/CreateUserPage.tsx",
+                        "?? frontend/src/users/InitialCredentialHandoff.tsx",
+                        "?? frontend/src/users/UpdateUserFlowBoundary.tsx",
+                        "?? frontend/src/users/UpdateUserPage.tsx",
+                        "?? frontend/src/users/UserAccessReviewPage.tsx",
+                        "?? frontend/src/users/UserDirectoryPage.tsx",
+                        "?? frontend/src/users/UsersRouteBoundary.tsx",
+                        "?? frontend/src/users/contracts.ts",
+                        "?? frontend/src/users/createUserApi.ts",
+                        "?? frontend/src/users/createUserContracts.ts",
+                        "?? frontend/src/users/useActivateUser.ts",
+                        "?? frontend/src/users/useAddUserBranch.ts",
+                        "?? frontend/src/users/useAssignUserRole.ts",
+                        "?? frontend/src/users/useCreateUser.ts",
+                        "?? frontend/src/users/useUpdateUserProfile.ts",
+                        "?? frontend/src/users/useUserRead.ts",
+                        "?? frontend/src/users/userActivationApi.ts",
+                        "?? frontend/src/users/userActivationContracts.ts",
+                        "?? frontend/src/users/userBranchMembershipApi.ts",
+                        "?? frontend/src/users/userBranchMembershipContracts.ts",
+                        "?? frontend/src/users/userProfileApi.ts",
+                        "?? frontend/src/users/userProfileContracts.ts",
+                        "?? frontend/src/users/userRoleAssignmentApi.ts",
+                        "?? frontend/src/users/userRoleAssignmentContracts.ts",
+                        "?? frontend/src/users/usersApi.ts",
+                        "?? frontend/tests/activate-user-router-integration.test.mjs",
+                        "?? frontend/tests/add-user-branch-router-integration.test.mjs",
+                        "?? frontend/tests/assign-user-role-router-integration.test.mjs",
+                        "?? frontend/tests/auth-change-password-ui.test.mjs",
+                        "?? frontend/tests/auth-http.test.mjs",
+                        "?? frontend/tests/auth-login-ui.test.mjs",
+                        "?? frontend/tests/auth-profile-logout.test.mjs",
+                        "?? frontend/tests/auth-router-integration.test.mjs",
+                        "?? frontend/tests/auth-state.test.mjs",
+                        "?? frontend/tests/create-user-api.test.mjs",
+                        "?? frontend/tests/create-user-router-integration.test.mjs",
+                        "?? frontend/tests/hotel-api.test.mjs",
+                        "?? frontend/tests/hotel-fixtures.mjs",
+                        "?? frontend/tests/hotel-router-integration.test.mjs",
+                        "?? frontend/tests/update-user-router-integration.test.mjs",
+                        "?? frontend/tests/user-activation-api.test.mjs",
+                        "?? frontend/tests/user-branch-membership-api.test.mjs",
+                        "?? frontend/tests/user-profile-api.test.mjs",
+                        "?? frontend/tests/user-role-assignment-api.test.mjs",
+                        "?? frontend/tests/users-api.test.mjs",
+                        "?? frontend/tests/users-router-integration.test.mjs"
+                    ]
+}

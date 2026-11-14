@@ -5,5 +5,5 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-  <ItemGroup><ProjectReference Include="../../../../src/HotelOps.Api/HotelOps.Api.csproj" /></ItemGroup>
+  <ItemGroup><ProjectReference Include="../../../../src/HotelOps.Api/HotelOps.Api.csproj" /><Compile Include="../TrialAdmission.cs" Link="TrialAdmission.cs" /><Compile Include="../TrialGuardTests.cs" Link="TrialGuardTests.cs" /></ItemGroup>
 </Project>

@@ -1,0 +1,654 @@
+diff --git a/docs/fullstack-integration/DEV3-NEXT-016/HANDOFF.md b/docs/fullstack-integration/DEV3-NEXT-016/HANDOFF.md
+new file mode 100644
+index 0000000..f5c9879
+--- /dev/null
++++ b/docs/fullstack-integration/DEV3-NEXT-016/HANDOFF.md
+@@ -0,0 +1,59 @@
++# DEV3-NEXT-016 — UC012 metadata integration
++
++UC012_CREATE_UPDATE_SOURCE_STATUS: IMPLEMENTED_SOURCE_ONLY / SOURCE_REVIEW_PENDING.
++UC012_DEACTIVATE_SOURCE_STATUS: PARTIAL / BLOCKED_COORDINATION, unchanged.
++Branch: feature/dev3-uc012-completion.
++Base: e576e33f7d0546227414dacc2598985480df5661 (fresh fetched integration).
++
++## Actual source gap and implementation
++
++Before this change, active BranchMaintenanceController delegated to RoomTypeCreationService.MaintainBranchAsync with quoted SHA-256 document/audit ETag. BranchAdministrationService already implemented SQL RowVersion, fixed timezone, global MASTER_DATA_MANAGE, initial/final SQL-session checks and transactional audit, but BranchAdministrationController was NonController. Existing accepted frontend matched the older active SHA contract, not SQL RowVersion. Do not describe previous frontend tests/Task74 SQL receipts as acceptance for this new wiring.
++
++The existing metadata controller now delegates exactly CreateAsync/ReadAsync/UpdateAsync to the existing BranchAdministrationService, already registered in Program.cs. No new controller/API/business writer or DI change. It retains cookie, HTTPS, no-store, DTO whitelist/limits and adds AutoValidateAntiforgeryToken for unsafe actions alongside unchanged ApiCsrfMiddleware. BranchAdministrationController remains NonController, including its dependency/deactivate actions. No successful deactivation path is added.
++
++Existing routes remain POST /api/branches, GET /api/branches/{id:long}/edit, PUT /api/branches/{id:long}. Create sends only code/name/address/phone/email; server generates identity, Asia/Ho_Chi_Minh timezone and active state. Update sends name/address/phone/email/reason, preserving code/timezone/status. Responses retain EditableBranchDto and 201/200. Existing service maps duplicate 409, denied 403, session 401, not-found 404, stale 412, unavailable 503. Missing If-Match 428 and malformed 400 are controller concerns. ProblemDetails is sanitized without raw validation exception details.
++
++Frontend strongBranchTag now accepts only a quoted canonical eight-byte Base64 SQL RowVersion (14 characters including quotes), rejecting legacy 64-hex documents, weak/list tags, alternate pad bits and wrong lengths. Create's optional ETag and Update's required snapshot ETag share this decoder. API requests otherwise retain reviewed payload, cookies/CSRF, no automatic retry and identity/stale/unknown-outcome guards. Update now preserves CSRF 401/403/503 status; 401 read/preflight/mutation clears fields/review and blocks further reads across branch replacement until explicit successful unrestricted session revalidation. Failure does not unlock; unknown mutation replay stays locked.
++
++## Runtime transition and review gate
++
++This is a coordinated BREAKING ETAG TRANSITION. Integrate/review/deploy the controller and frontend together; do not deploy one side with the old other side. An old SHA If-Match is rejected, never upgraded or automatically replayed. Open browser flows must reload and explicitly read/review fresh state.
++
++BranchAdministrationSchema is unchanged: real dbo.branches.row_version must be non-null SQL rowversion (system type 189, eight bytes); branch_code requires case-insensitive collation and an enabled, unfiltered, single-key unique index. Missing prerequisites return BRANCH_ROWVERSION_SCHEMA_REQUIRED/503. Generated Branch entity intentionally has no invented RowVersion property: the existing service reads/compares raw SQL row_version. No migration, entity or mapping changed. Actual schema availability is NOT_VERIFIED in this task. Do not bypass the schema guard or apply schema changes without separate owner approval.
++
++Existing service ownership/implementation retained: UserEligibilityLock, Serializable caller-owned transaction, initial/final session and global permission admission, feature create applock/unique constraint, row UPDLOCK/HOLDLOCK, conditional UPDATE row_version predicate, no-op preserving version/audit, and audit within the same transaction. Source reuse does not prove live race/atomicity. Required approved trial cases: authorized create/read/update, duplicate code and concurrent create, branch-bound denial, stale/missing/invalid If-Match, two concurrent edits, no-op, fixed timezone, final session/permission revocation, audit-fault rollback and timeout/deadlock outcomes (1205 always FAIL). Legacy Task74BranchCases expects 500 for injected audit fault, while reused Administration service returns sanitized 503: adapt expectations deliberately before future approved trial; no historic receipt is silently carried over.
++
++## Deactivate (GBR-033)
++
++Reused BranchDeactivationDependencyReader observes active rooms, warehouse/item net stock (including negative balances/inactive warehouses), and task/incident/request state groups. It requires retained Serializable transaction. ScopeResolutionComplete and CanDeactivate stay false; unresolved states and empty counts cannot authorize success. BranchAdministrationService.DeactivateAsync still returns confirmed blockers 409 or coordination 503 for active branches. No HTTP deactivate route activated.
++
++Owners/exit criteria: DEV1 task/cleaning/inspection/internal-request current-cycle, terminal/reopen and branch-scope rules; DEV2 stock/warehouse/incident/maintenance/request writer inventory and matching state/lock contracts; DEV3 orchestration/final rereads/atomic audit only after complete coverage; PL/business resolves ambiguous states and notification obligations; PL/trial owner supplies named disposable lease for writer races, rollback and final session checks. No shared writer or dependency predicate was changed.
++
++## Verification (current source, all exit 0)
++
++- dotnet build HotelOps.slnx: PASS, zero warnings/errors.
++- dotnet run --project scripts/verification/BranchMetadataRouting/BranchMetadataRouting.Verification.csproj: 36/36 PASS, no SQL. Actual MVC discovery, exact three metadata routes/no Deactivate, cookies/CSRF/HTTPS/no-store, strict DTO overposting, canonical If-Match admission, existing result status/ETag mapping, missing-CSRF middleware rejection. Synthetic mapping/direct negative service calls are not SQL permission/transaction acceptance.
++- dotnet test HotelOps.slnx --no-build: exit 0, no framework test cases reported.
++- node --test tests/branch-maintenance-api.test.mjs tests/branch-maintenance-browser.test.mjs tests/create-branch-api.test.mjs tests/create-branch-browser.test.mjs: 94/94 PASS (62 API + 32 offline browser). Includes 256 RowVersion final-byte variations within one API case, two explicit recovery/branch-change cases, double-confirm/no retry and unknown/stale/session regression cases.
++- node --test tests/auth-http.test.mjs tests/auth-state.test.mjs tests/hotel-api.test.mjs: 164/164 PASS.
++- node --test --test-name-pattern="actual entry|branch change|new entry|dashboard|UC023" tests/hotel-router-integration.test.mjs: 8/8 PASS.
++- npm.cmd run typecheck and npm.cmd run build: PASS. Two inherited react-router use-client bundling warnings.
++- Scoped Prettier and dotnet format whitespace verify-no-changes: PASS.
++- Exact allowlist, diff whitespace and secret-pattern scan required before commit.
++
++No live SQL/HTTPS, permission SQL, schema trial, race, audit-fault rollback, migration, deployment or merge performed. Workday writes OFF, old WorkdaysController NonController, UC010 Revoke/UC008 Update gates and other FE01/FE02/FE12 business source unchanged. Only UC012 metadata controller/panel/client/contract/tests and new focused verifier/handoff change.
++
++NEXT_UC: UC138, only an approved independent business slice; public preview/writer admission, HTTP/version, transaction/notification policy must not be invented. UC012 whole-UC completion remains PARTIAL until Deactivate coordination and required runtime acceptance are met.
++
++## Exact source/test manifest and SHA-256 (LF)
++- src/HotelOps.Api/Controllers/BranchMaintenanceController.cs: B4F48E6D16E7E371FD020A86480633E62C985303CC3EE849BDAE49C7F1D02867
++- frontend/src/branch-maintenance/contracts.ts: 6C4A2BE2271A7140A7D86B6628C2B9FB12C2F7219AFDF20600E0E36ACE6A19AA
++- frontend/src/branch-maintenance/branchMaintenanceApi.ts: A3E2BBCF7532988E45C608DFAD874C235D13D9CADBB4AEB3116A7F08C4F90DBF
++- frontend/src/branch-maintenance/BranchMaintenancePanel.tsx: 755F9DC298615DACCB7F0E33DF1FAD4F7AEB3CC92561A8A3E7635D25DF0BBFC9
++- frontend/src/branch-maintenance/createBranchContracts.ts: 39D155571082EE266735DE29B260D1652AF7DCAEE14C00A55554E25B54A4772E
++- frontend/tests/branch-maintenance-api.test.mjs: AF0812A731B97151D945531DA2258B01FD6E6DEF6C79658D65618FBE2E4C313D
++- frontend/tests/branch-maintenance-browser.test.mjs: 40BCC3DD45C01A95681B4A9639E52557274240DF429ABE7DE09CE3BC9608ACCE
++- frontend/tests/create-branch-api.test.mjs: F3C3F3151C8715E713CB7006866EF90F5C041D5EB5601728F41EDB2948C45057
++- frontend/tests/create-branch-browser.test.mjs: BF74395A8FC3B394251A9D1B54FEB7128579F3FFD1B87A615CC874BD3FEA0360
++- scripts/verification/BranchMetadataRouting/Program.cs: BC3CC0BC180565B3CB1E253E43E08609DAC4DFECA29C6F8362BC75B0514B0CF0
++- scripts/verification/BranchMetadataRouting/BranchMetadataRouting.Verification.csproj: 720478BD353C02A24462E2FE4F00BD713CC9ABD45A42AE42F904BDF140B13A50
+diff --git a/frontend/src/branch-maintenance/BranchMaintenancePanel.tsx b/frontend/src/branch-maintenance/BranchMaintenancePanel.tsx
+index daf3dfd..070f2ad 100644
+--- a/frontend/src/branch-maintenance/BranchMaintenancePanel.tsx
++++ b/frontend/src/branch-maintenance/BranchMaintenancePanel.tsx
+@@ -25,11 +25,13 @@ type Review = { key: object; input: BranchUpdate; etag: string };
+ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
+   const { state, actions } = useAuth();
+   const [api] = useState(() => createBranchMaintenanceApi());
++  const [needsSession, setNeedsSession] = useState(false);
+   const confirmed =
+     state.status === "AUTHENTICATED" &&
+     state.session !== null &&
+     !state.session.mustChangePassword &&
+-    state.pending === null;
++    state.pending === null &&
++    !needsSession;
+   const key = useMemo(() => ({}), [state.session, branchId, confirmed]);
+   const latest = useRef({ key, confirmed });
+   latest.current = { key, confirmed };
+@@ -72,7 +74,8 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
+           email: result.data.branch.email,
+           reason: "",
+         });
+-      } else
++      } else {
++        if (result.error.status === 401) setNeedsSession(true);
+         setRead({
+           key,
+           error:
+@@ -84,6 +87,7 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
+                   ? "Server denied branch management access."
+                   : "Branch information unavailable.",
+         });
++      }
+     });
+     return () => {
+       active = false;
+@@ -144,6 +148,7 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
+         "Version changed or unavailable. Read again, review the latest values, then confirm a new update.",
+       );
+     } else {
++      if (result.error.status === 401) setNeedsSession(true);
+       if ([401, 403, 404].includes(result.error.status ?? 0)) {
+         setRead({
+           key,
+@@ -166,6 +171,31 @@ export function BranchMaintenancePanel({ branchId }: { branchId: number }) {
+       );
+     }
+   }
++  if (needsSession)
++    return (
++      <section>
++        <p role="alert">
++          Branch data cleared after server rejection. Session invalid.
++          Revalidate before continuing.
++        </p>
++        <button
++          disabled={state.pending !== null}
++          onClick={() =>
++            void (async () => {
++              const result = await actions.revalidate();
++              if (
++                mounted.current &&
++                result.ok &&
++                !result.data.mustChangePassword
++              )
++                setNeedsSession(false);
++            })()
++          }
++        >
++          Check session
++        </button>
++      </section>
++    );
+   if (!confirmed)
+     return <p role="alert">A confirmed unrestricted session is required.</p>;
+   if (!safeId(branchId))
+diff --git a/frontend/src/branch-maintenance/branchMaintenanceApi.ts b/frontend/src/branch-maintenance/branchMaintenanceApi.ts
+index 94ce839..1dd3428 100644
+--- a/frontend/src/branch-maintenance/branchMaintenanceApi.ts
++++ b/frontend/src/branch-maintenance/branchMaintenanceApi.ts
+@@ -8,7 +8,7 @@ import {
+   type BranchWriteResult,
+   type BranchUpdate,
+ } from "./contracts";
+-/** UC012 normal flow only. Targets the active BranchMaintenanceController / MaintainBranchAsync contract.
++/** UC012 normal flow only. Targets the active BranchMaintenanceController / BranchAdministrationService SQL RowVersion contract.
+  * No backend activation is performed by this client.
+  */
+ export function createBranchMaintenanceApi(
+@@ -115,7 +115,10 @@ export function createBranchMaintenanceApi(
+       if (!bootstrap.ok)
+         return {
+           outcome: "NOT_DISPATCHED",
+-          error: { kind: "invalid-response" },
++          error:
++            bootstrap.error.kind === "http"
++              ? { kind: "http", status: bootstrap.error.status }
++              : { kind: "invalid-response" },
+         };
+       if (signal?.aborted || !stillCurrent())
+         return { outcome: "NOT_DISPATCHED", error: { kind: "stale" } };
+diff --git a/frontend/src/branch-maintenance/contracts.ts b/frontend/src/branch-maintenance/contracts.ts
+index 304c89b..b9878c2 100644
+--- a/frontend/src/branch-maintenance/contracts.ts
++++ b/frontend/src/branch-maintenance/contracts.ts
+@@ -40,7 +40,7 @@ export type BranchWriteResult =
+ export const safeId = (v: unknown): v is number =>
+   typeof v === "number" && Number.isSafeInteger(v) && v > 0;
+ export const strongBranchTag = (v: unknown): v is string =>
+-  typeof v === "string" && /^"[0-9A-F]{64}"$/.test(v);
++  typeof v === "string" && /^"[A-Za-z0-9+/]{10}[AEIMQUYcgkosw048]="$/.test(v);
+ const text = (v: unknown, max: number): v is string =>
+   typeof v === "string" && v.length <= max && !/[\u0000-\u001f\u007f]/.test(v);
+ const nullable = (v: unknown, max: number): v is string | null =>
+diff --git a/frontend/src/branch-maintenance/createBranchContracts.ts b/frontend/src/branch-maintenance/createBranchContracts.ts
+index 4d5d96e..be0162c 100644
+--- a/frontend/src/branch-maintenance/createBranchContracts.ts
++++ b/frontend/src/branch-maintenance/createBranchContracts.ts
+@@ -1,4 +1,4 @@
+-﻿import {
++import {
+   decodeBranch,
+   safeId,
+   strongBranchTag,
+@@ -32,7 +32,7 @@ const optional = (v: unknown, max: number) =>
+   (typeof v === "string" &&
+     v.trim().length <= max &&
+     !/[\u0000-\u001f\u007f]/.test(v));
+-/** Code normalization matches MaintainBranchAsync; all other values remain server-owned. */
++/** Code normalization matches BranchAdministrationService.CreateAsync; all other values remain server-owned. */
+ export function createRequest(
+   v: CreateBranchRequest,
+ ): CreateBranchRequest | undefined {
+diff --git a/frontend/tests/branch-maintenance-api.test.mjs b/frontend/tests/branch-maintenance-api.test.mjs
+index 9219f2b..5ba9238 100644
+--- a/frontend/tests/branch-maintenance-api.test.mjs
++++ b/frontend/tests/branch-maintenance-api.test.mjs
+@@ -11,9 +11,8 @@ const { createBranchMaintenanceApi } = await import(
+   "data:text/javascript;base64," +
+     Buffer.from(bundle.outputFiles[0].text).toString("base64")
+ );
+-const tag =
+-    '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
+-  next = '"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"',
++const tag = '"AAAAAAAAAAE="',
++  next = '"AAAAAAAAAAI="',
+   secret = "SYNTHETIC-BRANCH-PRIVATE";
+ const branch = (id = 1) => ({
+   id,
+@@ -160,12 +159,67 @@ test("404 read remains unavailable error, never empty success", async () => {
+     error: { kind: "http", status: 404 },
+   });
+ });
+-test("active UC012 ETag contract rejects legacy base64 rowversion", async () => {
+-  const h = setup({ body: branch(), etag: '"AAAAAAAAAAE="' });
++test("SQL RowVersion contract rejects legacy document-hash ETag", async () => {
++  const h = setup({
++    body: branch(),
++    etag: '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
++  });
+   assert.equal((await h.api.read(1)).ok, false);
+   assert.equal(
+-    (await h.api.update(1, '"AAAAAAAAAAE="', update, () => true)).outcome,
++    (
++      await h.api.update(
++        1,
++        '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
++        update,
++        () => true,
++      )
++    ).outcome,
+     "NOT_DISPATCHED",
+   );
+   assert.equal(h.calls.filter((c) => c.method === "PUT").length, 0);
+ });
++
++for (const status of [401, 403, 503])
++  test(`CSRF ${status} preserves status without PUT`, async () => {
++    const calls = [];
++    const api = createBranchMaintenanceApi(async (url, init) => {
++      calls.push({ url, ...init });
++      return Response.json({ detail: secret }, { status });
++    });
++    assert.deepEqual(await api.update(1, tag, update, () => true), {
++      outcome: "NOT_DISPATCHED",
++      error: { kind: "http", status },
++    });
++    assert.equal(calls.length, 1);
++    assert.equal(calls[0].url, "/api/auth/csrf");
++  });
++
++test("canonical SQL RowVersion validates every final byte without accepting alternate padding", async () => {
++  const { strongBranchTag } = await import(
++    "data:text/javascript;base64," +
++      Buffer.from(
++        (
++          await build({
++            entryPoints: ["src/branch-maintenance/contracts.ts"],
++            bundle: true,
++            write: false,
++            format: "esm",
++          })
++        ).outputFiles[0].text,
++      ).toString("base64")
++  );
++  for (let b = 0; b < 256; b++) {
++    const bytes = Buffer.from([0, 1, 2, 3, 4, 5, 6, b]);
++    assert.equal(strongBranchTag('"' + bytes.toString("base64") + '"'), true);
++  }
++  for (const bad of [
++    '"AAAAAAAAAAB="',
++    '"AAAAAAAAAAA"',
++    '"AAAAAAAAAAA=="',
++    'W/"AAAAAAAAAAE="',
++    '"0011223344556677"',
++    tag + "," + tag,
++    "*",
++  ])
++    assert.equal(strongBranchTag(bad), false);
++});
+diff --git a/frontend/tests/branch-maintenance-browser.test.mjs b/frontend/tests/branch-maintenance-browser.test.mjs
+index c324946..55019ce 100644
+--- a/frontend/tests/branch-maintenance-browser.test.mjs
++++ b/frontend/tests/branch-maintenance-browser.test.mjs
+@@ -3,9 +3,8 @@ import assert from "node:assert/strict";
+ import { existsSync } from "node:fs";
+ import { build } from "esbuild";
+ import { chromium } from "@playwright/test";
+-const tag =
+-    '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
+-  next = '"BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"',
++const tag = '"AAAAAAAAAAE="',
++  next = '"AAAAAAAAAAI="',
+   secret = "SYNTHETIC-BRANCH-PRIVATE";
+ const branch = (id) => ({
+   id,
+@@ -31,7 +30,7 @@ const bundle = await build({
+     contents: `
+ import React,{StrictMode,useState} from 'react';import{createRoot}from'react-dom/client';import{AuthProvider}from'./src/auth/AuthProvider';import{createAuthApi}from'./src/auth/authApi';import{createAuthStore}from'./src/auth/authStore';import{BrowserRouter}from'react-router-dom';import{HotelRouteHost}from'./src/hotel/HotelRouteHost';
+ const calls=[],waiting=new Map(),scenario=window.scenario;const make=r=>new Response(r.status===204?null:JSON.stringify(r.body),{status:r.status??200,headers:{'Content-Type':'application/json',ETag:r.etag??${JSON.stringify(tag)}}});
+-window.fetch=async(url,init)=>{const c={url,method:init.method,credentials:init.credentials,cache:init.cache,body:init.body,headers:Object.fromEntries(init.headers),aborted:false};calls.push(c);init.signal?.addEventListener('abort',()=>c.aborted=true,{once:true});let r;if(url==='/api/auth/session')r=scenario.auth??{body:${JSON.stringify(session())}};else if(url==='/api/auth/csrf')r={body:{csrfToken:${JSON.stringify(secret)},headerName:'X-CSRF-TOKEN'}};else if(init.method==='GET'){const id=Number(url.split('/')[3]);r=scenario.read??{body:{...${JSON.stringify(branch(1))},id,code:'B'+id,name:'Branch '+id,address:'Address '+id}}}else r=scenario.write??{body:{...${JSON.stringify(branch(1))},...JSON.parse(init.body)},etag:${JSON.stringify(next)}};if(r.network)throw Error(${JSON.stringify(secret)});if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r)};
++window.fetch=async(url,init)=>{const c={url,method:init.method,credentials:init.credentials,cache:init.cache,body:init.body,headers:Object.fromEntries(init.headers),aborted:false};calls.push(c);init.signal?.addEventListener('abort',()=>c.aborted=true,{once:true});let r;if(url==='/api/auth/session')r=scenario.auth??{body:${JSON.stringify(session())}};else if(url==='/api/auth/csrf')r=scenario.csrf??{body:{csrfToken:${JSON.stringify(secret)},headerName:'X-CSRF-TOKEN'}};else if(init.method==='GET'){const id=Number(url.split('/')[3]);r=scenario.read??{body:{...${JSON.stringify(branch(1))},id,code:'B'+id,name:'Branch '+id,address:'Address '+id}}}else r=scenario.write??{body:{...${JSON.stringify(branch(1))},...JSON.parse(init.body)},etag:${JSON.stringify(next)}};if(r.network)throw Error(${JSON.stringify(secret)});if(r.deferred)return new Promise(resolve=>waiting.set(r.deferred,resolve));return make(r)};
+ const store=createAuthStore(createAuthApi(window.fetch));function App(){window.selectBranch=id=>{history.pushState(null,'','/branches/'+id+'/edit');dispatchEvent(new PopStateEvent('popstate'))};return <HotelRouteHost/>};const app=<BrowserRouter><App/></BrowserRouter>;createRoot(document.getElementById('root')).render(<StrictMode><AuthProvider store={store} fallback={app}>{app}</AuthProvider></StrictMode>);window.fixture={calls,resolve:(name,r)=>waiting.get(name)(make(r)),scenario,revalidate:()=>store.revalidate()};
+ `,
+   },
+@@ -296,3 +295,107 @@ test("FE02 structure navigation reaches editor; FE01 Profile remains available",
+       .waitFor();
+     assert.equal((await writes(p)).length, 0);
+   }));
++
++test("CSRF 401 clears protected branch fields without sending PUT", () =>
++  pageTest({ csrf: { status: 401, body: { detail: secret } } }, async (p) => {
++    await review(p);
++    await p.getByRole("button", { name: "Confirm update" }).click();
++    await p
++      .getByText("Branch data cleared after server rejection.", {
++        exact: false,
++      })
++      .waitFor();
++    assert.equal(
++      await p.getByRole("textbox", { name: "name", exact: true }).count(),
++      0,
++    );
++    assert.equal((await writes(p)).length, 0);
++  }));
++
++for (const origin of ["read", "csrf"])
++  test(`401 ${origin} recovery survives branch change and failed revalidation`, () =>
++    pageTest(
++      origin === "read"
++        ? { read: { status: 401, body: {} } }
++        : { csrf: { status: 401, body: {} } },
++      async (p) => {
++        if (origin === "csrf") {
++          await review(p);
++          await p.getByRole("button", { name: "Confirm update" }).click();
++        }
++        await p
++          .getByText("Branch data cleared after server rejection.", {
++            exact: false,
++          })
++          .waitFor();
++        const initial = await p.evaluate(
++          () =>
++            window.fixture.calls.filter((c) =>
++              c.url.startsWith("/api/branches"),
++            ).length,
++        );
++        await p.evaluate(() => {
++          window.fixture.scenario.read = {
++            body: {
++              id: 2,
++              code: "B2",
++              name: "Branch 2",
++              address: "Address",
++              phone: null,
++              email: null,
++              timezone: "Asia/Ho_Chi_Minh",
++              isActive: true,
++            },
++          };
++          window.selectBranch(2);
++        });
++        await settle(p);
++        assert.equal(
++          await p.evaluate(
++            () =>
++              window.fixture.calls.filter((c) =>
++                c.url.startsWith("/api/branches"),
++              ).length,
++          ),
++          initial,
++        );
++        await p.evaluate(() => {
++          window.fixture.scenario.auth = {
++            status: 503,
++            body: { detail: "private" },
++          };
++        });
++        await p.getByRole("button", { name: "Check session" }).click();
++        await p.waitForFunction(
++          () =>
++            window.fixture.calls.filter((c) => c.url === "/api/auth/session")
++              .length >= 2,
++        );
++        await settle(p);
++        assert.equal(
++          await p.getByRole("textbox", { name: "name", exact: true }).count(),
++          0,
++        );
++        assert.equal(
++          await p.evaluate(
++            () =>
++              window.fixture.calls.filter((c) =>
++                c.url.startsWith("/api/branches"),
++              ).length,
++          ),
++          initial,
++        );
++        await p.evaluate((s) => {
++          window.fixture.scenario.auth = { body: s };
++        }, session());
++        await p.getByRole("button", { name: "Check session" }).click();
++        await p.getByRole("textbox", { name: "name", exact: true }).waitFor();
++        assert.equal(
++          await p
++            .getByRole("textbox", { name: "name", exact: true })
++            .inputValue(),
++          "Branch 2",
++        );
++        assert.equal((await writes(p)).length, 0);
++      },
++    ));
+diff --git a/frontend/tests/create-branch-api.test.mjs b/frontend/tests/create-branch-api.test.mjs
+index d360c24..95f3920 100644
+--- a/frontend/tests/create-branch-api.test.mjs
++++ b/frontend/tests/create-branch-api.test.mjs
+@@ -1,4 +1,4 @@
+-﻿import { test } from "node:test";
++import { test } from "node:test";
+ import assert from "node:assert/strict";
+ import { build } from "esbuild";
+ const b = await build({
+@@ -11,7 +11,7 @@ const { createBranchApi } = await import(
+   "data:text/javascript;base64," +
+     Buffer.from(b.outputFiles[0].text).toString("base64")
+ );
+-const tag = '"' + "A".repeat(64) + '"',
++const tag = '"AAAAAAAAAAE="',
+   secret = "SYNTHETIC-CREATE-CSRF";
+ const input = {
+   code: " b-new ",
+@@ -103,7 +103,10 @@ for (const reply of [
+   { body: { ...branch, isActive: false } },
+   { body: { ...branch, timezone: "OTHER" } },
+   { body: { ...branch, address: null } },
+-  { body: branch, etag: '"AAAAAAAAAAE="' },
++  {
++    body: branch,
++    etag: '"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"',
++  },
+   { body: branch, etag: "W/" + tag },
+   { body: null },
+   { raw: "{" },
+diff --git a/frontend/tests/create-branch-browser.test.mjs b/frontend/tests/create-branch-browser.test.mjs
+index 99077ae..c6b0353 100644
+--- a/frontend/tests/create-branch-browser.test.mjs
++++ b/frontend/tests/create-branch-browser.test.mjs
+@@ -1,9 +1,9 @@
+-﻿import { test, before, after } from "node:test";
++import { test, before, after } from "node:test";
+ import assert from "node:assert/strict";
+ import { existsSync } from "node:fs";
+ import { build } from "esbuild";
+ import { chromium } from "@playwright/test";
+-const tag = '"' + "A".repeat(64) + '"',
++const tag = '"AAAAAAAAAAE="',
+   secret = "SYNTHETIC-CREATE-CSRF";
+ const branch = {
+   id: 42,
+diff --git a/scripts/verification/BranchMetadataRouting/BranchMetadataRouting.Verification.csproj b/scripts/verification/BranchMetadataRouting/BranchMetadataRouting.Verification.csproj
+new file mode 100644
+index 0000000..c3f7d89
+--- /dev/null
++++ b/scripts/verification/BranchMetadataRouting/BranchMetadataRouting.Verification.csproj
+@@ -0,0 +1,12 @@
++<Project Sdk="Microsoft.NET.Sdk">
++  <PropertyGroup>
++    <OutputType>Exe</OutputType>
++    <TargetFramework>net10.0</TargetFramework>
++    <ImplicitUsings>enable</ImplicitUsings>
++    <Nullable>enable</Nullable>
++  </PropertyGroup>
++  <ItemGroup>
++    <FrameworkReference Include="Microsoft.AspNetCore.App" />
++    <ProjectReference Include="../../../src/HotelOps.Api/HotelOps.Api.csproj" />
++  </ItemGroup>
++</Project>
+diff --git a/scripts/verification/BranchMetadataRouting/Program.cs b/scripts/verification/BranchMetadataRouting/Program.cs
+new file mode 100644
+index 0000000..cf51f9d
+--- /dev/null
++++ b/scripts/verification/BranchMetadataRouting/Program.cs
+@@ -0,0 +1,80 @@
++using System.ComponentModel.DataAnnotations;
++using System.Reflection;
++using System.Text.Json;
++using HotelOps.Api.Controllers;
++using HotelOps.Api.Data;
++using HotelOps.Api.DTOs.HotelStructure;
++using HotelOps.Api.Middleware;
++using HotelOps.Api.Security;
++using HotelOps.Api.Security.Authorization;
++using HotelOps.Api.Services.Authentication;
++using HotelOps.Api.Services.HotelStructure;
++using Microsoft.AspNetCore.Authorization;
++using Microsoft.AspNetCore.Http;
++using Microsoft.AspNetCore.Mvc;
++using Microsoft.AspNetCore.Mvc.ApplicationParts;
++using Microsoft.AspNetCore.Mvc.Controllers;
++using Microsoft.EntityFrameworkCore;
++using Microsoft.Data.SqlClient;
++
++var count = 0;
++void Check(bool value, string label) { if (!value) throw new Exception("FAIL: " + label); count++; Console.WriteLine("PASS: " + label); }
++var manager = new ApplicationPartManager();
++manager.ApplicationParts.Add(new AssemblyPart(typeof(BranchMaintenanceController).Assembly));
++manager.FeatureProviders.Add(new ControllerFeatureProvider());
++var feature = new ControllerFeature(); manager.PopulateFeature(feature);
++Check(feature.Controllers.Any(c => c.AsType() == typeof(BranchMaintenanceController)), "metadata controller active");
++Check(!feature.Controllers.Any(c => c.AsType() == typeof(BranchAdministrationController)), "administration and deactivate remain undiscovered");
++var actions = typeof(BranchMaintenanceController).GetMethods().SelectMany(m => m.GetCustomAttributes<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>().SelectMany(a => a.HttpMethods.Select(v => (Verb:v, Route:a.Template)))).ToArray();
++Check(actions.Length == 3 && actions.Contains(("POST", "api/branches")) && actions.Contains(("GET", "api/branches/{id:long}/edit")) && actions.Contains(("PUT", "api/branches/{id:long}")), "exact Create Read Update inventory");
++var all = feature.Controllers.SelectMany(c => c.GetMethods()).SelectMany(m => m.GetCustomAttributes<Microsoft.AspNetCore.Mvc.Routing.HttpMethodAttribute>().SelectMany(a => a.HttpMethods.Select(v => (v, Route:a.Template)))).ToArray();
++foreach(var action in actions) Check(all.Count(a => a.v == action.Verb && a.Route == action.Route) == 1, "no metadata route collision " + action.Verb);
++Check(!all.Any(a => a.Route == "api/branches/{id:long}/deactivate"), "no branch deactivation route");
++Check(typeof(BranchMaintenanceController).GetCustomAttribute<AuthorizeAttribute>()?.AuthenticationSchemes == HotelOpsCookieTicket.Scheme, "cookie authentication");
++Check(typeof(BranchMaintenanceController).GetCustomAttribute<AutoValidateAntiforgeryTokenAttribute>() != null, "unsafe MVC CSRF guard");
++Check(typeof(BranchMaintenanceController).GetCustomAttribute<ResponseCacheAttribute>()?.NoStore == true, "no-store");
++using var connection = new SqlConnection();
++using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(connection).Options);
++var service = new BranchAdministrationService(db, new NoActor(), null!, null!);
++var controller = new BranchMaintenanceController(service) { ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() } };
++var input = new CreateBranchRequest("TEST", "Name", "Address", null, null);
++var update = new UpdateBranchRequest("Name", "Address", null, null, "Valid change reason");
++async Task<int?> Status(Task<IActionResult> call) => ((ObjectResult)await call).StatusCode;
++Check(await Status(controller.Create(input, default)) == 400, "HTTPS admission");
++controller.Request.Scheme = "https";
++Check(await Status(controller.Create(input, default)) == 401, "anonymous denied before store");
++var ticket = SessionReference.FromProtectedTicket(7, new string('A', 43), false, DateTime.UtcNow);
++controller.HttpContext.User = (System.Security.Claims.ClaimsPrincipal)typeof(HotelOpsCookieTicket).GetMethod("BuildPrincipal", BindingFlags.Static | BindingFlags.NonPublic)!.Invoke(null, [ticket, 70L])!;
++Check(await Status(controller.Update(1, update, default)) == 428, "missing If-Match");
++foreach(var bad in new[]{"*", "W/\"AAAAAAAAAAE=\"", "\""+new string('A',64)+"\"", "\"AAAAAAAAAAB=\"", "\"AAAAAAAAAAE=\",\"AAAAAAAAAAI=\""}) {
++    controller.Request.Headers.IfMatch = bad;
++    Check(await Status(controller.Update(1, update, default)) == 400, "invalid or noncanonical If-Match");
++}
++controller.Request.Headers.IfMatch = "\"AAAAAAAAAAE=\"";
++Check(await Status(controller.Update(1, update, default)) == 401, "valid RowVersion reaches existing service identity gate");
++Check(await Status(controller.Read(1, default)) == 401 && await Status(controller.Create(input, default)) == 401, "metadata uses existing service admission");
++var parse = typeof(BranchMaintenanceController).GetMethod("Version", BindingFlags.Instance | BindingFlags.NonPublic)!;
++for(var i=0;i<256;i++) {
++    var bytes=new byte[]{0,1,2,3,4,5,6,(byte)i}; controller.Request.Headers.IfMatch='"'+Convert.ToBase64String(bytes)+'"';
++    if(!((byte[])parse.Invoke(controller,null)!).SequenceEqual(bytes))throw new Exception("RowVersion mismatch");
++}
++Check(true, "all canonical final-byte RowVersions roundtrip");
++var respond = typeof(BranchMaintenanceController).GetMethod("ResponseFor", BindingFlags.Instance | BindingFlags.NonPublic)!;
++foreach(var status in new[]{200,201,400,401,403,404,409,412,428,503}) {
++    controller.Response.Headers.Clear();
++    var result=(ObjectResult)respond.Invoke(controller,[new BranchAdministrationResult(status, status<400 ? new EditableBranchDto(1,"TEST","Name","Address",null,null,"Asia/Ho_Chi_Minh",true) : null,"SAFE_CODE",status<400?"\"AAAAAAAAAAE=\"":null)])!;
++    Check(result.StatusCode==status && (status>=400 || controller.Response.Headers.ETag=="\"AAAAAAAAAAE=\""), "existing service status/ETag " + status);
++}
++foreach(var method in new[]{"POST","PUT"}) {
++    var reached=false;var middleware=new ApiCsrfMiddleware(_=>{reached=true;return Task.CompletedTask;});
++    var ctx=new DefaultHttpContext();ctx.Request.Path="/api/branches";ctx.Request.Method=method;ctx.Response.Body=new MemoryStream();
++    await middleware.InvokeAsync(ctx,null!);
++    Check(!reached && ctx.Response.StatusCode==400,"global missing-CSRF blocks " + method);
++}
++foreach(var body in new[]{"{\"code\":\"B\",\"name\":\"N\",\"address\":\"A\",\"isActive\":false}","{\"code\":\"B\",\"name\":\"N\",\"address\":\"A\",\"timezone\":\"UTC\"}"}) {
++    try { JsonSerializer.Deserialize<CreateBranchRequest>(body,new JsonSerializerOptions(JsonSerializerDefaults.Web));throw new Exception("Overposting accepted"); }
++    catch(JsonException){Check(true,"strict create DTO rejects server-owned fields");}
++}
++Check(connection.ConnectionString=="" && connection.State==System.Data.ConnectionState.Closed && !db.ChangeTracker.Entries().Any(),"no SQL connection or writes");
++Console.WriteLine($"{count}/{count} PASS; SQL rowversion, permission, audit atomicity and races NOT_RUN.");
++sealed class NoActor : ICurrentUserAccessor { public bool TryGetCurrentUser(out CurrentUserInfo actor) {actor=default;return false;} }
+diff --git a/src/HotelOps.Api/Controllers/BranchMaintenanceController.cs b/src/HotelOps.Api/Controllers/BranchMaintenanceController.cs
+index 8a6a4c6..4bd0819 100644
+--- a/src/HotelOps.Api/Controllers/BranchMaintenanceController.cs
++++ b/src/HotelOps.Api/Controllers/BranchMaintenanceController.cs
+@@ -7,40 +7,59 @@ using Microsoft.AspNetCore.Mvc;
+ 
+ namespace HotelOps.Api.Controllers;
+ 
++/// <summary>UC012 metadata only. Deactivation remains on the undiscovered administration controller.</summary>
+ [ApiController]
+ [Authorize(AuthenticationSchemes = HotelOpsCookieTicket.Scheme)]
++[AutoValidateAntiforgeryToken]
+ [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
+ [UserAccountActivationErrors]
+ [RequestSizeLimit(32 * 1024)]
+-public sealed class BranchMaintenanceController(RoomTypeCreationService service) : ControllerBase
++public sealed class BranchMaintenanceController(BranchAdministrationService service) : ControllerBase
+ {
+     [HttpPost("api/branches")]
+-    public Task<IActionResult> Create(CreateBranchRequest input, CancellationToken ct) => Execute(null, input, null, ct);
++    public Task<IActionResult> Create(CreateBranchRequest input, CancellationToken ct) =>
++        Execute((ticket, sid) => service.CreateAsync(ticket, sid, input, ct), false);
++
+     [HttpGet("api/branches/{id:long}/edit")]
+-    public Task<IActionResult> Read(long id, CancellationToken ct) => Execute(id, null, null, ct);
++    public Task<IActionResult> Read([Range(1, long.MaxValue)] long id, CancellationToken ct) =>
++        Execute((ticket, sid) => service.ReadAsync(ticket, sid, id, ct), false);
++
+     [HttpPut("api/branches/{id:long}")]
+-    public Task<IActionResult> Update(long id, UpdateBranchRequest input, CancellationToken ct) => Execute(id, null, input, ct);
++    public Task<IActionResult> Update([Range(1, long.MaxValue)] long id, UpdateBranchRequest input, CancellationToken ct) =>
++        Execute((ticket, sid) => service.UpdateAsync(ticket, sid, id, Version(), input, ct), true);
++
++    private byte[] Version()
++    {
++        var values = Request.Headers.IfMatch;
++        if (values.Count != 1 || values[0] is not { Length: 14 } text || text[0] != '"' || text[^1] != '"')
++            throw new ValidationException("INVALID_IF_MATCH");
++        try
++        {
++            var bytes = Convert.FromBase64String(text[1..^1]);
++            if (bytes.Length == 8 && Convert.ToBase64String(bytes) == text[1..^1]) return bytes;
++        }
++        catch (FormatException) { }
++        throw new ValidationException("INVALID_IF_MATCH");
++    }
+ 
+-    private async Task<IActionResult> Execute(long? id, CreateBranchRequest? create, UpdateBranchRequest? update, CancellationToken ct)
++    private async Task<IActionResult> Execute(
++        Func<HotelOps.Api.Services.Authentication.SessionReference, long, Task<BranchAdministrationResult>> call,
++        bool conditional)
+     {
+         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
+         if (!HotelOpsCookieTicket.TryRead(User, out var ticket, out var sid)) return Problem(statusCode: 401, title: "SESSION_INVALID");
+-        if (update != null && !Request.Headers.ContainsKey("If-Match")) return Problem(statusCode: 428, title: "IF_MATCH_REQUIRED");
+-        try
++        if (conditional && !Request.Headers.ContainsKey("If-Match")) return Problem(statusCode: 428, title: "IF_MATCH_REQUIRED");
++        try { return ResponseFor(await call(ticket!, sid)); }
++        catch (ValidationException) { return Problem(statusCode: 400, title: "VALIDATION_FAILED"); }
++    }
++
++    private IActionResult ResponseFor(BranchAdministrationResult result)
++    {
++        if (result.Status is >= 200 and < 300)
+         {
+-            var result = await service.MaintainBranchAsync(ticket!, sid, id, Request.Headers.IfMatch.ToString(), create, update, ct);
+-            if (result.Status == RoomTypeBatchStatus.Success)
+-            {
+-                Response.Headers.ETag = result.ETag;
+-                return StatusCode(create == null ? 200 : 201, result.Value);
+-            }
+-            return Problem(statusCode: result.Status switch
+-            {
+-                RoomTypeBatchStatus.SessionInvalid => 401, RoomTypeBatchStatus.Forbidden => 403,
+-                RoomTypeBatchStatus.NotFound => 404, RoomTypeBatchStatus.Stale => 412,
+-                RoomTypeBatchStatus.Duplicate => 409, _ => 503
+-            }, title: result.Status.ToString().ToUpperInvariant());
++            if (result.ETag != null) Response.Headers.ETag = result.ETag;
++            return StatusCode(result.Status, result.Value);
+         }
+-        catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
++        return Problem(statusCode: result.Status, title: result.Code);
+     }
+ }

@@ -14,6 +14,14 @@ namespace HotelOps.Api.Controllers;
 [UserAccountActivationErrors]
 public sealed class HotelStructureUpdateController(HotelStructureUpdateService structures) : ControllerBase
 {
+    [HttpGet("floors/{id}/deactivation-dependencies")]
+    public Task<IActionResult> FloorDeactivationDependencies([FromRoute, Range(1,long.MaxValue)] long branchId,
+        [FromRoute, Range(1,long.MaxValue)] long id, CancellationToken ct) => Execute((ticket,sid) =>
+            structures.ReadDeactivationDependenciesAsync(ticket,sid,branchId,id,false,ct), false);
+    [HttpGet("areas/{id}/deactivation-dependencies")]
+    public Task<IActionResult> AreaDeactivationDependencies([FromRoute, Range(1,long.MaxValue)] long branchId,
+        [FromRoute, Range(1,long.MaxValue)] long id, CancellationToken ct) => Execute((ticket,sid) =>
+            structures.ReadDeactivationDependenciesAsync(ticket,sid,branchId,id,true,ct), false);
     [HttpPost("floors/{id}/deactivate")][RequestSizeLimit(32*1024)]
     public Task<IActionResult> DeactivateFloor([FromRoute, Range(1,long.MaxValue)] long branchId, [FromRoute, Range(1,long.MaxValue)] long id,
         [FromBody] DeactivateStructureRequest request, CancellationToken ct) => Execute((ticket,sid) =>
@@ -43,7 +51,7 @@ public sealed class HotelStructureUpdateController(HotelStructureUpdateService s
         try
         {
             var result = await work(ticket!,sid);
-            if (result.Status == StructureUpdateStatus.Success) { Response.Headers.ETag=result.ETag; return Ok(result.Value); }
+            if (result.Status == StructureUpdateStatus.Success) { Response.Headers.ETag=result.ETag; return Ok((object?)result.Preview ?? result.Value); }
             if (result.Status == StructureUpdateStatus.DependenciesExist)
                 return Problem(statusCode:409,title:"STRUCTURE_DEPENDENCIES_EXIST",extensions:new Dictionary<string,object?>
                 { ["code"]="STRUCTURE_DEPENDENCIES_EXIST", ["dependencies"]=result.Dependencies });

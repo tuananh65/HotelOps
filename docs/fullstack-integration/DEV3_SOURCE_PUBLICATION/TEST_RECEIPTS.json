@@ -1,0 +1,269 @@
+{
+  "backendBuild": {
+    "exitCode": 0,
+    "warnings": 0,
+    "command": "dotnet build HotelOps.slnx --no-restore",
+    "baseline": "d2e23411c396ec0b5219b4f6c15e3e2775ef9764"
+  },
+  "backendRestore": {
+    "exitCode": 0
+  },
+  "dotnetTest": {
+    "exitCode": 0,
+    "discoveredTests": 0,
+    "qualification": "Solution contains API project only; no discovered test PASS claim."
+  },
+  "offlinePrograms": [
+    {
+      "project": "UserRoleRevocation",
+      "exitCode": 0,
+      "logSha256": "ba10642ee33c7a1348a7255ca073deb22ae494cff64a85cba7b5d53960fffba8"
+    },
+    {
+      "project": "UserAccountDeactivation",
+      "exitCode": 0,
+      "logSha256": "4ffc134d970707a7efd0e9317e6d31bf0cc9a3b5c09d16e423c02310370072ca"
+    },
+    {
+      "project": "DepartmentDeactivationCandidate",
+      "exitCode": 0,
+      "logSha256": "c5028e35558ac779e68ae9bf6bcceeb70057ed02aaa0e90c01917d2126c5dcd6"
+    },
+    {
+      "project": "StructureDeactivationPreview",
+      "exitCode": 0,
+      "logSha256": "f92f10ac9d4a006fab91d98b0f131133a06e78d2ebba1d344c0447798aedd13c"
+    },
+    {
+      "project": "ScheduledWorkday",
+      "exitCode": 0,
+      "logSha256": "2ac687078e7894e59b05871fa34e88b3e11aa2894049384ab8637c0b88668c6d"
+    },
+    {
+      "project": "SecureShiftPreview",
+      "exitCode": 0,
+      "logSha256": "c0caf314e9a4f92ca9e404857510fd7bc6b5bb254b0b38fd50b00226fcedefcd"
+    },
+    {
+      "project": "ShiftPlanPreview",
+      "exitCode": 0,
+      "logSha256": "280ff6523579809d4325654bad1ff5d700a1a781f9f3fbe496460a0d52d3c0f5"
+    },
+    {
+      "project": "ShiftSchedulePlanning",
+      "exitCode": 0,
+      "logSha256": "e14601446f1f2519f24872765aa7a50c85d4dd1b8363e58023af2353c82c512a"
+    },
+    {
+      "project": "InitialRolePermissions",
+      "exitCode": 0,
+      "logSha256": "fefbd9411e4ecc6149e1b9bf51809af05bfc1ec8c1f0dd6d23a96b0d0baafa86"
+    },
+    {
+      "project": "CustomRole",
+      "exitCode": 0,
+      "logSha256": "b2f88e1e2d249b30a3b732e7bd9b471eeef05a0db5888ce2f3aae8cb67adfa8a"
+    },
+    {
+      "project": "DepartmentChange",
+      "exitCode": 0,
+      "logSha256": "13a0b314303bb53c6d90311050f18bbe4f6ae63bbc09b34cf297a4249bff2a09"
+    },
+    {
+      "project": "UserDeactivationCandidate",
+      "exitCode": 0,
+      "logSha256": "17024e21af26e8e44ee21a60db923f8635bdd1c61760df91d735f3cd1969293d"
+    },
+    {
+      "project": "UC012D5Classifier",
+      "exitCode": 0,
+      "logSha256": "c86b34fa5895c9a194de143c154a77fa29a15d4cfe0de1e0370eda77f57bf2da"
+    },
+    {
+      "project": "UC012Fixtures",
+      "exitCode": 0,
+      "logSha256": "84fa09c09c50441dc5d69d0e918a37e31d49280216241cfd0190d36ff82cdbc6"
+    },
+    {
+      "project": "UC012Acceptance",
+      "exitCode": 0,
+      "logSha256": "ce4b37b5b016e3b27d69426572632231523381711f660429918620bcb49654a4"
+    },
+    {
+      "project": "UserAccountCreation",
+      "exitCode": 0,
+      "logSha256": "42c569a41cceee3e437abf82077a9f72973dc875e6175e1762afe25504c8a6f2"
+    },
+    {
+      "project": "UserAccountCreation/Http",
+      "exitCode": 0,
+      "logSha256": "3332e3431985ec1d629bcd5a0e2ec08546a0fbf2223b78062c607182bc2411bf"
+    },
+    {
+      "project": "tests/HotelOps.Dev3Unblock.NoSql",
+      "exitCode": -532462766,
+      "logSha256": "0a0122f0134872ea57da9835c17bc86e49a7aa6e1969b4db2eea677df9140d74"
+    },
+    {
+      "project": "tests/HotelOps.Dev2Reconciliation.Offline",
+      "exitCode": 0,
+      "logSha256": "5f54f5b71713a54b04e00f1c74d42763859b476a4e0daa852e2e5bddf395ea0d"
+    }
+  ],
+  "uc012R3": {
+    "command": "dotnet run --project scripts/verification/UC012Fixtures --no-restore -- --self-test",
+    "passed": 45,
+    "exitCode": 0
+  },
+  "frontend": {
+    "npmCi": 0,
+    "typecheck": 0,
+    "build": 0,
+    "warnings": [
+      "React Router use-client directives ignored",
+      "Bundle exceeds 500 kB"
+    ],
+    "broadRun": {
+      "tests": 2697,
+      "pass": 2691,
+      "fail": 4,
+      "cancelled": 1,
+      "skipped": 1,
+      "exitCode": 1,
+      "qualification": "Pre-reconciliation failures retained. Do not add overlapping rerun counts.",
+      "suites": [
+        "tests/activate-user-router-integration.test.mjs",
+        "tests/add-user-branch-router-integration.test.mjs",
+        "tests/assign-user-role-router-integration.test.mjs",
+        "tests/auth-http.test.mjs",
+        "tests/auth-state.test.mjs",
+        "tests/branch-maintenance-api.test.mjs",
+        "tests/branch-maintenance-browser.test.mjs",
+        "tests/change-department-api.test.mjs",
+        "tests/change-department-browser.test.mjs",
+        "tests/create-branch-api.test.mjs",
+        "tests/create-branch-browser.test.mjs",
+        "tests/create-user-api.test.mjs",
+        "tests/create-user-router-integration.test.mjs",
+        "tests/credential-reset-api.test.mjs",
+        "tests/credential-reset-browser.test.mjs",
+        "tests/custom-role-api.test.mjs",
+        "tests/custom-role-browser.test.mjs",
+        "tests/deactivation-preview-api.test.mjs",
+        "tests/department-deactivation-api.test.mjs",
+        "tests/department-deactivation-browser.test.mjs",
+        "tests/dev2-api.test.mjs",
+        "tests/dev2-needed-at.test.mjs",
+        "tests/dev2-runtime007-review.test.mjs",
+        "tests/dev2-ui.test.mjs",
+        "tests/forgot-password.test.mjs",
+        "tests/hotel-api.test.mjs",
+        "tests/initial-role-permissions-api.test.mjs",
+        "tests/initial-role-permissions-browser.test.mjs",
+        "tests/revoke-user-role-api.test.mjs",
+        "tests/revoke-user-role-browser.test.mjs",
+        "tests/role-catalog-api.test.mjs",
+        "tests/role-catalog-browser.test.mjs",
+        "tests/room-lifecycle-api.test.mjs",
+        "tests/room-lifecycle-browser.test.mjs",
+        "tests/scheduled-workday-api.test.mjs",
+        "tests/scheduled-workday-browser.test.mjs",
+        "tests/secure-shift-plan-browser.test.mjs",
+        "tests/shared-auth-host.test.mjs",
+        "tests/shift-plan-api.test.mjs",
+        "tests/shift-plan-preview-browser.test.mjs",
+        "tests/shift-plan-preview.test.mjs",
+        "tests/structure-deactivation-api.test.mjs",
+        "tests/structure-deactivation-browser.test.mjs",
+        "tests/structure-dependency-review.test.mjs",
+        "tests/structure-tree-api.test.mjs",
+        "tests/structure-tree-browser.test.mjs",
+        "tests/update-user-router-integration.test.mjs",
+        "tests/user-activation-api.test.mjs",
+        "tests/user-branch-membership-api.test.mjs",
+        "tests/user-deactivation-candidate-api.test.mjs",
+        "tests/user-deactivation-candidate-browser.test.mjs",
+        "tests/user-profile-api.test.mjs",
+        "tests/user-role-assignment-api.test.mjs",
+        "tests/users-api.test.mjs",
+        "tests/users-router-integration.test.mjs",
+        "tests/workday-api.test.mjs",
+        "tests/workday-browser.test.mjs",
+        "tests/workday-router.test.mjs"
+      ],
+      "runner": "node --test; the five adapted Auth/Hotel suites have a separate receipt"
+    },
+    "adaptedAuthHotel": {
+      "tests": 194,
+      "pass": 194,
+      "exitCode": 0
+    },
+    "failureRerun": {
+      "tests": 4,
+      "pass": 4,
+      "exitCode": 0,
+      "qualification": "Three historical navigation cases fixed in unmounted standalone host; unchanged StrictMode timeout passed serially."
+    },
+    "finalWorkdayStructure": {
+      "tests": 54,
+      "pass": 54,
+      "exitCode": 0
+    },
+    "skip": "Warm-store positive admission SSR probe explicitly skipped; mounted host is covered by browser suites."
+  },
+  "sql": "NOT_RUN",
+  "httpsRuntime": "NOT_RUN",
+  "deployment": "NOT_RUN",
+  "publication": "BRANCH_ONLY_NO_NEW_PR",
+  "evidenceLogs": [
+    {
+      "localFile": "collection-shared-build.local.log",
+      "sha256": "ee710ce3165b401bd53f6ec83f7d3aac4c586ea440ead625b4d00188f1166444"
+    },
+    {
+      "localFile": "collection-restore.local.log",
+      "sha256": "bb959765421d6c2d03e0eb4f98fa5e5839207268d80eb494adc3c85d32d414bd"
+    },
+    {
+      "localFile": "collection-dotnet-test.local.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "localFile": "collection-npm.local.log",
+      "sha256": "989873b52fb0035f684d9376aa6c87ef50c0a8ca91fc5b62eeea471fe3c937d9"
+    },
+    {
+      "localFile": "collection-publish-typecheck.local.log",
+      "sha256": "7d4c876a080d03da93d23633a35c457a74d343270b515a77897e6eeb97a0fb9d"
+    },
+    {
+      "localFile": "collection-publish-build.local.log",
+      "sha256": "5a0127dcf095fb7088e352a62e8984a7ce99554607bcd812f7c912a70c81b32c"
+    },
+    {
+      "localFile": "collection-adapted-tests.local.log",
+      "sha256": "c56a6e7e3e38f257d77d993eb0f41320876ab78b277c0cf6e3e71785a9127975"
+    },
+    {
+      "localFile": "collection-final-tests.local.log",
+      "sha256": "2ea15796fb29bb09b07ba1fd0d4ab9d263aca7d1803c2fb963e39b6bdcb25aaa"
+    },
+    {
+      "localFile": "collection-reconciliation-rerun.local.log",
+      "sha256": "b5e0d3a1732ad6c7eee479f71dc27a48ac151b4beddbc8f429ba9286a27c4b76"
+    },
+    {
+      "localFile": "collection-final-routing.local.log",
+      "sha256": "24a0d9477217325423c12c39dfdc57b363b89661b86676a1173559fa129a6219"
+    },
+    {
+      "localFile": "collection-R3-fixtures.local.log",
+      "sha256": "4eda73b97a1fa69a05ebfaae3b0261d24b4895a3d87f10b92cc06e3ef04cfe90"
+    },
+    {
+      "localFile": "collection-format.local.log",
+      "sha256": "fbdd37869c73ce85afb11ffefa058e0181874c073fdfee7d7a4b5086b7ea3b1b"
+    }
+  ],
+  "offlineCommand": "dotnet run --project <project> --no-restore; acceptance/fixture runners use -- --self-test only"
+}

@@ -13,13 +13,16 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Options;
+using UC004Trial;
+
+if (args.SequenceEqual(new[] { "--self-test" })) { TrialGuardTests.Run(); return; }
+var admission = TrialAdmission.Load(args, "PARTICIPANT");
 
 if (args.Length != 2 || !Regex.IsMatch(args[0], @"^HotelOps_Canonical_\d{8}_\d{6}_[a-f0-9]{8}_Fresh$"))
     throw new ArgumentException("Verified trial and new local evidence path required");
 if (File.Exists(args[1])) throw new InvalidOperationException("Do not overwrite evidence");
-var connection = new SqlConnectionStringBuilder { DataSource = @"DESKTOP-JI8U50T\SQLEXPRESS",
-    InitialCatalog = args[0], IntegratedSecurity = true, TrustServerCertificate = true, ConnectTimeout = 10 };
-using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+var connection = admission.Connection;
+using var budget = admission.Budget(TimeSpan.FromMinutes(5));
 var ct = budget.Token;
 HotelOpsDbContext Open(IInterceptor? interceptor = null)
 {
@@ -28,7 +31,7 @@ HotelOpsDbContext Open(IInterceptor? interceptor = null)
     return new(options.Options);
 }
 await using var db = Open();
-await db.Database.OpenConnectionAsync(ct);
+await TrialAdmission.VerifyAsync(db.Database.GetDbConnection(), admission, ct);
 await using (var command = db.Database.GetDbConnection().CreateCommand())
 {
     command.CommandText = "SELECT DB_NAME(),CONVERT(nvarchar(128),@@SERVERNAME),(SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.UserDirectory.Trial')";
