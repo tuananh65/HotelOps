@@ -1,0 +1,46 @@
+PASS Complete failed inspection is eligible
+PASS Optional unanswered criterion is allowed
+PASS Mandatory PASS with optional FAIL may be rejected
+PASS Reject invalid state NULL
+PASS Reject invalid state ASSIGNED
+PASS Reject invalid state INSPECTING
+PASS Reject invalid state PASSED
+PASS Reject invalid state FAILED
+PASS Reject invalid state CANCELLED
+PASS Reject invalid reason
+PASS Reject invalid reason 0
+PASS Reject invalid reason 2
+PASS Reject invalid reason 10
+PASS Reject invalid reason 501
+PASS Existing 500 character reason boundary
+PASS Reject confirmation
+PASS Reject confirmation False
+PASS Missing mandatory result
+PASS Fail without defect
+PASS All PASS cannot justify Reject
+PASS Wrong cleaning cycle
+PASS Coarse completed status cannot be pending conclusion
+PASS Preexisting result cannot be pending conclusion
+PASS Wrong room
+PASS Wrong version
+PASS Cross-version criterion
+PASS Foreign inspection result
+PASS Foreign criterion result
+PASS Invalid result outcome
+PASS Foreign inspection defect
+PASS Defect on another criterion
+PASS Blank defect description
+PASS Inactive mandatory criterion cannot supply a result
+PASS Duplicate criterion results
+PASS Every failed criterion needs its own valid association
+PASS Missing checklist
+PASS Stale rowversion
+PASS Invalid ETag
+PASS Invalid ETag
+PASS Invalid ETag W/"0000000000000001"
+PASS Invalid ETag *
+PASS Invalid ETag "000000000000000Z"
+PASS Invalid ETag "0000000000000001","0000000000000002"
+PASS Missing source revision
+PASS Validation leaves entities and request unchanged
+45 PASS / 0 FAIL — in-memory domain checks only

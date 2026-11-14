@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 var passed = 0;
 var failed = 0;
+passed += ReinspectionDecisionChecks.Run();
 var command = new RejectInspectionLoadCommand(5, 1, new("Reject reason", true, "\"0000000000000001\""));
 await Check("Valid persisted-shaped load fails closed on missing current-cycle contract", new(), command,
     RoomTypeBatchStatus.Unavailable, "BLOCKED_SPECIFIC_RULE:D3_CURRENT_CYCLE_BINDING");
@@ -40,6 +41,23 @@ await using (var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOps
     try { await service.LoadRejectInspectionSourceAsync(null!, 1, command, default); throw new Exception("Real adapter accepted absent transaction"); }
     catch (InvalidOperationException error) when (error.Message.Contains("caller's clean SERIALIZABLE"))
     { passed++; Console.WriteLine("PASS Real SQL adapter rejects absent caller transaction before opening connection"); }
+    if (db.Database.GetDbConnection().State != System.Data.ConnectionState.Closed) throw new Exception("SQL connection opened");
+    try
+    {
+        await service.ReadReinspectionCandidateInCallerTransactionAsync(null!, 1, 5, 1, 2,
+            "\"0000000000000001\"", "\"0000000000000001\"", default);
+        throw new Exception("Reinspection adapter accepted absent transaction");
+    }
+    catch (InvalidOperationException error) when (error.Message.Contains("caller's clean SERIALIZABLE"))
+    { passed++; Console.WriteLine("PASS Reinspection source adapter rejects absent transaction before SQL"); }
+    try
+    {
+        await service.PrepareReinspectionPersistenceCandidateAsync(null!, 1, 5, 1, 2,
+            "\"0000000000000001\"", "\"0000000000000001\"", [new(11, true)], default);
+        throw new Exception("Reinspection persistence preparation accepted absent transaction");
+    }
+    catch (InvalidOperationException error) when (error.Message.Contains("caller's clean SERIALIZABLE"))
+    { passed++; Console.WriteLine("PASS Reinspection persistence preparation rejects absent transaction before SQL"); }
     if (db.Database.GetDbConnection().State != System.Data.ConnectionState.Closed) throw new Exception("SQL connection opened");
 }
 await Check("Persisted current cycle makes validated source available",new(){Source=FakeSession.SourceGraph() with{CurrentCleaningTaskId=2}},command,RoomTypeBatchStatus.Success);
