@@ -11,7 +11,7 @@ internal static class SprintAuthProbe
 {
     // Exact target from this sprint's independently verified provision receipt; no arbitrary connection input.
     private const string Database = "HotelOps_DEV3_142A_20261114_cc78c13f";
-    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false)
+    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
@@ -62,6 +62,7 @@ internal static class SprintAuthProbe
             await Check(HttpMethod.Get, "/api/auth/session", 401);
             await Check(HttpMethod.Get, "/api/users", 401);
             if (notifications) await Check(HttpMethod.Get, "/api/notifications", 401);
+            if (taskRead) await Check(HttpMethod.Get, "/api/branches/1/operational-tasks", 401);
             await Check(HttpMethod.Post, "/api/auth/login", 400, new { username = name, password });
             using var bootstrap = await http.GetAsync("/api/auth/csrf", ct);
             bootstrap.EnsureSuccessStatusCode();
@@ -85,6 +86,7 @@ internal static class SprintAuthProbe
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (dashboard) await SprintDashboardScenario.RunAsync(db, http, user.UserId, checks, ct);
+            if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password);
             await Check(HttpMethod.Post, "/api/auth/logout", 400);
             await Check(HttpMethod.Post, "/api/auth/logout", 204, csrf: sessionCsrf);
             await Check(HttpMethod.Get, "/api/auth/session", 401);
@@ -113,6 +115,7 @@ internal static class SprintAuthProbe
                 checks, failure, cleanup = cleaned, success = failure == null && cleaned,
                 scope = browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"
+                    : taskRead ? "Real HTTPS/SQL and canonical production browser task list/detail/progress reads with OWN and branch permission; no create/lifecycle acceptance"
                     : notifications ? "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
                     : activation ? "Real HTTPS/SQL account activation, concurrency preconditions and credential preservation; deactivation remains unavailable"
                     : dashboard ? "Real HTTPS/SQL auth and scoped dashboard reads; no browser or all-KPI acceptance"

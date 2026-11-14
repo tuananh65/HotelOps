@@ -71,6 +71,7 @@ export function approvedReturnDestination(
     "/cleaning/assignment",
     "/rework",
     "/profile",
+    "/operational-tasks",
   ].includes(path) || /^\/(?:cleaning\/tasks|rework)\/[1-9][0-9]*$/.test(path)
     ? safe
     : null;

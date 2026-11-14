@@ -1,4 +1,5 @@
 import { NotificationCenter } from "../notifications/NotificationCenter";
+import { TaskReadPage } from "../operationalTasks/TaskReadPage";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
 import { UserDirectoryPage } from "../users/UserDirectoryPage";
 import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
@@ -54,6 +55,7 @@ export function SharedAuthHost({
   dashboardEnabled = false,
   notificationsEnabled = false,
   inspectionExecutionEnabled = false,
+  operationalTasksEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -64,9 +66,20 @@ export function SharedAuthHost({
   dashboardEnabled?: boolean;
   notificationsEnabled?: boolean;
   inspectionExecutionEnabled?: boolean;
+  operationalTasksEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {operationalTasksEnabled && (
+        <Route
+          path="/operational-tasks"
+          element={
+            <Protected>
+              <TaskReadPage />
+            </Protected>
+          }
+        />
+      )}
       {accountActivationEnabled && (
         <Route
           path="/users/:id/activate"
@@ -179,6 +192,9 @@ export function SharedAuthHost({
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
             {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
+            {operationalTasksEnabled && (
+              <Link to="/operational-tasks">Operational tasks</Link>
+            )}
             {notificationsEnabled && (
               <Link to="/notifications">Notifications</Link>
             )}

@@ -1,0 +1,172 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 950273,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks/13?pageSize=1",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks/14",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks/15",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60260/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks?page=0",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks?pageSize=101",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks?page=2147483647",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks/13",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks/16",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks?search=D3-TASK-aad384111",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks/14",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "taskBrowser": {
+        "success": true,
+        "checks": [
+          "canonical deep link login",
+          "branch task list",
+          "detail and persisted progress",
+          "search and empty result",
+          "wrong branch denial",
+          "logout hides task data"
+        ]
+      }
+    },
+    {
+      "taskPath": "/api/branches/60259/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskFixtureCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "success": true,
+  "scope": "Real HTTPS/SQL operational task list/detail/progress reads with OWN and branch permission; no create/lifecycle acceptance"
+}

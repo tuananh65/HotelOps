@@ -12,6 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 if (args.Length == 2 && args[0] == "--sprint-inspection-browser")
     return await SprintInspectionBrowserProbe.RunAsync(args[1]);
+if (args.Length == 2 && args[0] == "--sprint-task-read")
+    return await SprintAuthProbe.RunAsync(args[1], taskRead: true);
 
 if (args.Length == 2 && args[0] == "--sprint-activation")
     return await SprintAuthProbe.RunAsync(args[1], activation: true);
