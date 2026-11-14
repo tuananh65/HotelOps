@@ -1,3 +1,11 @@
+> ## CURRENT STAGING STATUS — 2026-11-14
+>
+> - Shared target HEAD `939017f7ea791a666c1ce95fd4afbc73df061af1` already includes **DEV2 PR #120 merged** (131 changed paths).
+> - The branch now contains **the exact 19-path FE01/FE02 application/test composition from PR #117**: staged via Git object SHA-preserving copy at commit `c35cab26dfd0aff4f024ab29623c800af8156a1a`. All 19 source blobs match PR #117 HEAD `ad63426bf9913843309bc0c5ceea5eae3957d8a8`; all 19 paths matched the shared target's develop baseline before import. PR #121 is Draft, **not merged**.
+> - The four UC010/006/016 local-only commits below remain NOT ON GITHUB and NOT INCLUDED.
+> - The full `integration/fullstack-base` source has **not** been merged. Based on exact common ancestor `6aee2a0e692a7814f41c81224709cddfbe1e2ec4`, historical shared target vs fullstack-base have **36 paths independently changed to different blob SHAs**. A mechanical Git merge may raise further path-level conflicts due to the 19 new FE01/FE02 paths and renames. Resolve in a local integration worktree with full builds/tests; never auto-pick entire Auth/DEV1/DEV2 files.
+> - No runtime, SQL/HTTPS, route activation, merge to shared target, or completed UC acceptance is claimed.
+>
 # DEV3 source consolidation → shared DEV1/DEV2/DEV3 integration (2026-11-14)
 
 ## Purpose and target
