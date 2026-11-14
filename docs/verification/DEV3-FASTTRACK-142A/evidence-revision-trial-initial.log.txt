@@ -1,0 +1,2 @@
+Msg 515, Level 16, State 2, Server meita, Line 17
+Cannot insert the value NULL into column 'created_at', table 'HotelOps_DEV3_142A_20261114_cc78c13f.dbo.users'; column does not allow nulls. INSERT fails.

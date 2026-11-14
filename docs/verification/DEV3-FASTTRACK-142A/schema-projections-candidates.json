@@ -1,0 +1,564 @@
+{
+  "success": true,
+  "entityCount": 93,
+  "failures": 0,
+  "projections": [
+    {
+      "entity": "Area",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Asset",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "AssetConditionHistory",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "AssetHandover",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "AssetLocationHistory",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "AssetType",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Attachment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "AuditLog",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Branch",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ChecklistCriterionV1",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ChecklistRoomTypeV1",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ChecklistScopeV1",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "CleaningAssignment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "CleaningProgressLog",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "CleaningRework",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "CleaningTask",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Department",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Floor",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Incident",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "IncidentEvent",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InspectionChecklist",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InspectionChecklistItem",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InspectionChecklistVersion",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InspectionDefect",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InspectionResult",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InternalRequest",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InternalRequestAssignment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InternalRequestEvent",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InternalRequestFeedback",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InternalRequestType",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "InventoryItem",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ItemCategory",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaintenanceMaterialUsage",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaintenanceWork",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaintenanceWorkLog",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialFulfillment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialFulfillmentLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialReplenishment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialReplenishmentLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialReplenishmentReceiptLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialRequest",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialRequestApproval",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialRequestApprovalCycle",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialRequestApprovalLineSnapshot",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "MaterialRequestLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Notification",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "NotificationRecipient",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "OperationalTask",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "OperationalTaskAssignment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "OperationalTaskDependency",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "OperationalTaskProgress",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Permission",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "PreventiveMaintenanceRun",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "PreventiveMaintenanceSchedule",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ReferenceValue",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Role",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "RolePermission",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Room",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "RoomBlock",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "RoomInspection",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "RoomStatusHistory",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "RoomType",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "RoomTypeBranchV1",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ShiftAssignment",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ShiftAttendance",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "ShiftTemplate",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockDocument",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockDocumentLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockMovement",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockReceiptLineDetail",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockReturnLineDetail",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Stocktake",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StocktakeLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockThreshold",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockTransferReceipt",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "StockTransferReceiptLine",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "SystemSetting",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "TimeCorrectionRequest",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "UnitsOfMeasure",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "UomConversion",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "User",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "UserBranchAccess",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "UserRole",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "UserSession",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Warehouse",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "WorkCategory",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "Workday",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "WorkInterval",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "WorkShift",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "CandidateInboxLink",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "NotificationIntentCandidate",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "NotificationOperationCandidate",
+      "success": true,
+      "error": null
+    },
+    {
+      "entity": "NotificationPublicationCandidate",
+      "success": true,
+      "error": null
+    }
+  ],
+  "triggers": [
+    {
+      "name": "dbo.TR_checklists_scope_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_checklist_types_scope_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_checklist_items_immutable_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_checklist_versions_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_room_types_checklist_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_inspection_checklist_selection_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_inspections_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_results_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_defects_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_rework_links_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_defect_files_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_used_criteria_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_used_version_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_hk_result_files_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_cleaning_progress_items_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_task_progress_criteria_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_progress_evidence_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_progress_cleaning_parent_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_progress_task_parent_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_progress_cleaning_owner_v1",
+      "sourceMatches": true
+    },
+    {
+      "name": "dbo.TR_progress_task_owner_v1",
+      "sourceMatches": true
+    }
+  ],
+  "modules": {
+    "checklist": 1,
+    "housekeeping": true,
+    "progress": true
+  },
+  "scope": "Real SQL zero-row EF SELECT per mapped entity; not full type/constraint/trigger or workflow compatibility"
+}

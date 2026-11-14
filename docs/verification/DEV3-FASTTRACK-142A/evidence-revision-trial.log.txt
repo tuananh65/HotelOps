@@ -1,0 +1,6 @@
+PASS attachment insert invalidates inspection revision
+PASS evidence link invalidates inspection revision
+PASS evidence unlink invalidates inspection revision
+PASS evidence soft deletion invalidates inspection revision
+PASS foreign evidence association rejected
+PASS synthetic transaction rollback cleanup

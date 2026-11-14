@@ -1,0 +1,27 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "name": "Git LF",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "name": "Windows CRLF",
+      "expected": true,
+      "actual": true
+    },
+    {
+      "name": "Unknown package",
+      "expected": false,
+      "actual": false
+    },
+    {
+      "name": "Disabled trigger",
+      "expected": false,
+      "actual": false
+    }
+  ],
+  "restored": true,
+  "scope": "Actual private read guard with rolled-back synthetic marker/trigger negatives; no authority bypass"
+}

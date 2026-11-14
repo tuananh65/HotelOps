@@ -1,0 +1,37 @@
+[
+    {
+        "source":  "scripts/verification/ScheduledWorkdayTrialHost/candidate/01-install-candidate.sql",
+        "sourceSha256":  "685C3808663193552024DE933DE88FE42CFF63F4541331F6E7D638101DEDB9B4",
+        "derivedSha256":  "3E99C3BB3EAA21B63A1950F4E974B61E97BEAB3BDF0A49CF12029D0DA071822B",
+        "exitCode":  0,
+        "log":  "01-install-candidate.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/fs013-candidate/01_Install.sql",
+        "sourceSha256":  "E66452847CB2BF0D35A9C310E182035E8A575963D6A1D44C9D105C8B5375D8D1",
+        "derivedSha256":  "9E6409C73C2AEB024731432836E5409A9D7A694CA62226A5F00E63D96023DFAA",
+        "exitCode":  0,
+        "log":  "01_Install.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/fs013-candidate/05_VerifyLifecycle.sql",
+        "sourceSha256":  "2E42621B43701F035AD9A068FA45BF3FED75E408763CC100202F1690AA85E65D",
+        "derivedSha256":  "2C4E249046998484A772A07D6DC20A444B4D065B6BBF9C9759FC3891684E498B",
+        "exitCode":  0,
+        "log":  "05_VerifyLifecycle.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/fs013-candidate/02_NotificationProposal.sql",
+        "sourceSha256":  "A516545C1986561CAD8C011B7CB95BEEA45B52DC72142B4503455CB144FA2BAA",
+        "derivedSha256":  "340C820F54AD13CEA817FBDC20A4A65F24BC53D8C48DC0E18FEA342BAC3B7A64",
+        "exitCode":  0,
+        "log":  "02_NotificationProposal.log.txt"
+    },
+    {
+        "source":  "scripts/database/release/fs013-candidate/03_VerifyNotificationProposal.sql",
+        "sourceSha256":  "0CC2466E165AAB1D5BD750FD9B9397B57929045E946E3887342FA166028FF544",
+        "derivedSha256":  "202C3FCB40A735CC89DB8D876D2DDAEEE0B6D244422CF7B1CF041BF986BD3142",
+        "exitCode":  0,
+        "log":  "03_VerifyNotificationProposal.log.txt"
+    }
+]

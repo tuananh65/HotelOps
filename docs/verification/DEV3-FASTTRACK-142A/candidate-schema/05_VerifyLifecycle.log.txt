@@ -1,0 +1,3 @@
+result
+---------------------
+LIFECYCLE_V1_VERIFIED

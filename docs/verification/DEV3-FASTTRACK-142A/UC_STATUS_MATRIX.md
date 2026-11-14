@@ -1,10 +1,12 @@
 # DEV3-FASTTRACK-142A — canonical 144-UC status matrix
 
-Direct source review: 2026-11-15. Baseline 3268e4628b9ef4897827ff611a2be2d221a4189d; canonical route change in this task. 144 UC rows cover FE01–FE15. Inherited 141A evidence is historical baseline, not a new 142A execution result. FE15 rows added at sprint start; no COMPLETE_VERIFIED claims.
+Direct source review: 2026-11-15. 142A baseline 8d2f1e0375c8654cdfaffa2ebc8c9c2e99a3292e; canonical route changes inherited from 141A. 144 UC rows cover FE01–FE15. Inherited 141A evidence is historical baseline, not a new 142A execution result. FE15 rows added at sprint start; no COMPLETE_VERIFIED claims.
 
 Sources: live [UC v3](https://docs.google.com/spreadsheets/d/1k_N0SF_Np-stuxECS_ESUYZldsAo_DjX3KdUTfh1xsM/edit), UC DETAIL A1:G165, saved in uc-v3-source.json; THAY ĐỔI v3 in uc-v3-changes.json; docs/requirements/SRS_CHANGE_NOTES.md and srs_sections/01_overall_requirements.md, 02_use_case_specifications.md; current Controllers/Services/DTOs/Entities and frontend canonical imports. MEDIUM UC uses a different numbering granularity: do not mix its UC001 login/logout with UC DETAIL UC001 login and UC002 logout. UC013 actor is inconsistent: DETAIL says Operations Manager; THAY ĐỔI adds Administrator. These working sheets do not approve new permission codes or resolve Reception/Department Head pending rules.
 
 No row is COMPLETE. Existing source is evidence of an implementation fragment, not verified business acceptance. Controller names are under src/HotelOps.Api/Controllers unless a different relative path is stated; frontend paths are under frontend/src. A grouped controller may cover only the stated fragment. Suite-level PASS is not individual-UC coverage or live SQL proof. Backend restore/build have zero warnings; Vite has use-client and >500kB warnings; npm has an esbuild allowScripts warning. Initial broad frontend run: 3154 pass, 1 fail, 1 cancelled, 1 skipped; targeted rerun passed. Final broad run: 3171 PASS / 0 FAIL / 1 SKIP; frontend-tests-verified.log.txt.
+
+Checkpoint 03: owned SQL has 93/93 EF zero-row projections and 22 exact trigger comparisons passing. FE05 evidence mutation/revision and rollback checks pass; LF/CRLF guard acceptance and negative cases pass. These are prerequisite checks, not conclusion/reinspection or whole-UC acceptance. See CHECKPOINT-03.md. Whole-UC totals remain 0 COMPLETE_VERIFIED, 0 SOURCE_READY, 144 PARTIAL, 0 BLOCKED.
 
 | UC ID / name | Module | Existing backend | Existing frontend / canonical reachability | Missing business behavior / validation | API / DTO / authorization dependencies | Direct build/test evidence | Runtime dependency | Next implementation task |
 |---|---|---|---|---|---|---|---|---|

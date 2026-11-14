@@ -33,6 +33,7 @@ internal static class SprintSchemaProbe
             rows.Add(new { entity = entity.ClrType.Name, success = error == null, error });
         }
         var triggers = new List<object>();
+        var definitions = new Dictionary<string, string>();
         foreach (var package in new[] { ("checklists", "01_Checklists.sql"), ("housekeeping", "01_Housekeeping.sql"), ("progress", "01_Progress.sql") })
         {
             var source = await File.ReadAllTextAsync(Path.Combine("scripts", "database", "release", package.Item1, package.Item2), ct);
@@ -40,15 +41,34 @@ internal static class SprintSchemaProbe
             {
                 var match = System.Text.RegularExpressions.Regex.Match(batch.Trim(), @"^CREATE TRIGGER dbo\.([A-Za-z0-9_]+)");
                 if (!match.Success) continue;
+                definitions[match.Groups[1].Value] = batch;
+            }
+        }
+        await using (var marker = db.Database.GetDbConnection().CreateCommand())
+        {
+            marker.CommandText = "SELECT COUNT(*) FROM sys.extended_properties WHERE class=0 AND name='HotelOps.Housekeeping.EvidenceRevision.V1'";
+            if (Equals(await marker.ExecuteScalarAsync(ct), 1))
+            {
+                var source = await File.ReadAllTextAsync("scripts/database/release/housekeeping/04_EvidenceInvalidation.sql", ct);
+                foreach (var batch in System.Text.RegularExpressions.Regex.Split(source, @"(?im)^\s*GO\s*\r?$"))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(batch.Trim(), @"^CREATE OR ALTER TRIGGER dbo\.([A-Za-z0-9_]+)");
+                    if (match.Success) definitions[match.Groups[1].Value] = batch;
+                }
+            }
+        }
+        foreach (var (name, expected) in definitions)
+        {
                 await using var command = db.Database.GetDbConnection().CreateCommand();
                 command.CommandText = "SELECT OBJECT_DEFINITION(OBJECT_ID(@name))";
                 var parameter = command.CreateParameter(); parameter.ParameterName = "@name";
-                parameter.Value = "dbo." + match.Groups[1].Value; command.Parameters.Add(parameter);
+                parameter.Value = "dbo." + name; command.Parameters.Add(parameter);
                 var actual = await command.ExecuteScalarAsync(ct) as string;
-                var equal = actual?.Replace("\r\n", "\n").Trim() == batch.Replace("\r\n", "\n").Trim();
+                static string Normalize(string value) => System.Text.RegularExpressions.Regex.Replace(value.Replace("\r\n", "\n").Trim(),
+                    @"^(?:CREATE OR ALTER|ALTER|CREATE)\s+TRIGGER\b", "CREATE TRIGGER");
+                var equal = actual != null && Normalize(actual) == Normalize(expected);
                 triggers.Add(new { name = parameter.Value, sourceMatches = equal });
                 if (!equal) failures++;
-            }
         }
         var modules = new { checklist = await ChecklistSchema.StateAsync(db, ct),
             housekeeping = await HousekeepingSchema.InstalledAsync(db, ct), progress = await ProgressSchema.InstalledAsync(db, ct) };

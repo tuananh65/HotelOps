@@ -1,0 +1,3 @@
+result
+----------------------
+VERIFIED_PROPOSAL_ONLY
