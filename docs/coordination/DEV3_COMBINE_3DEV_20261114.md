@@ -1,3 +1,13 @@
+# Current staging status — updated 2026-11-14
+
+**Authoritative user scope:** DEV3 code and DEV3-related documentation only. The provided DEV2 handoff was contextual input; DEV2's 131-path PR #120 is already merged into the shared target and is **not** part of this PR. The previously created DEV2-only handoff synopsis has been removed from this DEV3 staging branch.
+
+- Collection branch: `DEV/pushcodetocombine3dev`; target: `integration/dev1-dev2-dev3-unblock-20261114`.
+- **Already staged application code:** exact 19 FE01/FE02 source/test files from PR #117, staged in `c35cab26dfd0aff4f024ab29623c800af8156a1a`. File-by-file remote tree blob SHA check matched PR117 **19/19**.
+- **Still not staged:** the main historical DEV3 work from diverged `integration/fullstack-base`, and four local-only patch commits `1930ff5177779e995826fc2e0ad527a45b313d34`, `f7c061745c9279beb0cc94ee91d1e0514306175f`, `680ede49b227ab2d676bbe83f75c5c4c8a6b58ba`, `67b41c7dec08541043311c6aaad5e965399fb9eb`, plus any approved UC004 unmerged source on DEV3's Windows worktrees.
+- **No full integration build or merged-source focused regression has been run on this collection branch yet.** Historical focused tests apply only to their exact source commits. Never report the collection as source-complete or merge-ready before local imports, conflict resolution and test evidence.
+- Existing PR #121 is Draft and must remain unmerged until the complete DEV3 payload is present and validated.
+
 > ## CURRENT STAGING STATUS — 2026-11-14
 >
 > - Shared target HEAD `939017f7ea791a666c1ce95fd4afbc73df061af1` already includes **DEV2 PR #120 merged** (131 changed paths).
