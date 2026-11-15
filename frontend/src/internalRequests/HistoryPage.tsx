@@ -8,6 +8,7 @@ import { InternalRequestCleaningLinksPanel } from "./CleaningLinksPanel";
 import { InternalRequestIncidentLinksPanel } from "./IncidentLinksPanel";
 import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
 import { InternalRequestIntakeLink } from "./IntakePage";
+import { InternalRequestCompletionPanel } from "./CompletionPanel";
 import { InternalRequestHandoverPanel } from "./HandoverPanel";
 import {
   decodeHistory,
@@ -76,6 +77,8 @@ export function InternalRequestHistoryPage() {
   const selected = requestIds.length === 1 && /^[1-9][0-9]*$/.test(requestIds[0])
     && Number.isSafeInteger(Number(requestIds[0])) ? Number(requestIds[0]) : null;
   const setSelected = (id: number | null) => setSearchParams(id === null ? {} : { requestId: String(id) });
+  const [completionNotice, setCompletionNotice] = useState<number | null>(null);
+  useEffect(() => setCompletionNotice(null), [selected, owner]);
   const [eventPage, setEventPage] = useState(1);
   const [assignmentPage, setAssignmentPage] = useState(1);
   const [revision, setRevision] = useState(0);
@@ -317,6 +320,8 @@ export function InternalRequestHistoryPage() {
       {visible?.timeline && (
         <section aria-label="Request timeline">
           <h2>Request {visible.timeline.requestId}</h2>
+          {completionNotice === visible.timeline.requestId && <p role="status">MSG08: Request closed.</p>}
+          <InternalRequestCompletionPanel id={visible.timeline.requestId} onCompleted={() => { setCompletionNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
           <InternalRequestProgressPanel id={visible.timeline.requestId} />

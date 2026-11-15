@@ -164,6 +164,16 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/internal-requests?requestId={assignment.RequestId}");
         }
+        if(source is {NotificationType:"IR_CLOSED",SourceType:"INTERNAL_REQUEST_COMPLETION",SourceId:>0})
+        {
+            if(!await InternalRequests.InternalRequestCompletionService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var progress=await InternalRequests.InternalRequestCompletionDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id,ct);
+            var scope=await new InternalRequests.InternalRequestReadAccess(db).ReadAsync(user,now,ct);
+            if(progress==null||progress.RequesterId!=user||progress.ActorId!=source.CreatedBy||progress.At!=source.CreatedAt
+                ||!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==progress.RequestId,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={progress.RequestId}");
+        }
         if(source is {NotificationType:"IR_READY",SourceType:"INTERNAL_REQUEST_PROGRESS",SourceId:>0})
         {
             if(!await InternalRequests.InternalRequestProgressService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

@@ -18,6 +18,7 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
         long assignmentCursor=0;
         long routeCursor=0;
         long progressCursor=0;
+        long completionCursor=0;
         long withdrawalCursor=0;
         long intakeCursor=0;
         while(!ct.IsCancellationRequested)
@@ -68,6 +69,17 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                     catch(Exception error){logger.LogWarning("Internal request progress notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                 }
                 progressCursor=progress.Length==100?progress[^1]:0;
+                long[] completion;
+                await using(var scope=scopes.CreateAsyncScope())
+                    completion=await scope.ServiceProvider.GetRequiredService<InternalRequestCompletionDelivery>().PendingAsync(completionCursor,100,ct);
+                foreach(var id in completion)
+                {
+                    await using var scope=scopes.CreateAsyncScope();
+                    try{await scope.ServiceProvider.GetRequiredService<InternalRequestCompletionDelivery>().DeliverAsync(id,ct);}
+                    catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                    catch(Exception error){logger.LogWarning("Internal request completion notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
+                }
+                completionCursor=completion.Length==100?completion[^1]:0;
                 long[] withdrawals;
                 await using(var scope=scopes.CreateAsyncScope())
                     withdrawals=await scope.ServiceProvider.GetRequiredService<InternalRequestWithdrawalDelivery>().PendingAsync(withdrawalCursor,ct);

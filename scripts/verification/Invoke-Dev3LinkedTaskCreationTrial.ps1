@@ -1,5 +1,5 @@
 param([Parameter(Mandatory=$true)][ValidatePattern('^[A-Za-z0-9_-]+$')][string]$Trial,
- [ValidateSet('LinkedWork','Withdrawal','IncidentRead','IncidentLink','Intake','Handover','CompletionWork','Completion')][string]$Workflow='LinkedWork')
+ [ValidateSet('LinkedWork','Withdrawal','IncidentRead','IncidentLink','Intake','Handover','CompletionWork','Completion','CompletionUi')][string]$Workflow='LinkedWork')
 $ErrorActionPreference='Stop'
 $workspace=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 Set-Location -LiteralPath $workspace
@@ -16,7 +16,7 @@ try {
    [Guid]$receipt.databaseGuid -eq [Guid]::Empty){throw 'Verified disposable clone receipt required'}
  # Adapt only identity literals in previously reviewed scripts to the independently
  # verified new clone. The original disposable source schema remains unchanged.
- $capabilities=if($Workflow -eq 'Completion'){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover','InternalRequestCompletion','InternalRequestCompletion')}elseif($Workflow -eq 'CompletionWork'){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover')}elseif($Workflow -eq 'Handover'){@('InternalRequestHandover','InternalRequestHandover')}elseif($Workflow -eq 'Intake'){@('InternalRequestIntake','InternalRequestIntake')}elseif($Workflow -eq 'IncidentLink'){@('InternalRequestIncidentLinks','InternalRequestIncidentLinks')}elseif($Workflow -eq 'IncidentRead'){@()}elseif($Workflow -eq 'Withdrawal'){@('InternalRequestWithdrawal','InternalRequestWithdrawal')}else{@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','InternalRequestCleaningLinks','InternalRequestCleaningLinks')}
+ $capabilities=if($Workflow -in @('Completion','CompletionUi')){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover','InternalRequestCompletion','InternalRequestCompletion')}elseif($Workflow -eq 'CompletionWork'){@('InternalRequestCleaningLinks','InternalRequestIncidentLinks','InternalRequestHandover')}elseif($Workflow -eq 'Handover'){@('InternalRequestHandover','InternalRequestHandover')}elseif($Workflow -eq 'Intake'){@('InternalRequestIntake','InternalRequestIntake')}elseif($Workflow -eq 'IncidentLink'){@('InternalRequestIncidentLinks','InternalRequestIncidentLinks')}elseif($Workflow -eq 'IncidentRead'){@()}elseif($Workflow -eq 'Withdrawal'){@('InternalRequestWithdrawal','InternalRequestWithdrawal')}else{@('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','InternalRequestCleaningLinks','InternalRequestCleaningLinks')}
  foreach($cap in $capabilities) {
   $sourcePath=Join-Path $PSScriptRoot "CanonicalDatabase/${cap}Isolated.sql"
   $sql=[IO.File]::ReadAllText($sourcePath)
@@ -34,6 +34,8 @@ try {
  $env:InspectionNotifications__Enabled='false';$env:TaskNotifications__Enabled='false';$env:InternalRequestNotifications__Enabled='false'
  $env:DEV3_VERIFY_IR_WITHDRAWAL=if($Workflow -eq 'Withdrawal'){'1'}else{'0'}
  $env:DEV3_VERIFY_IR_INTAKE=if($Workflow -eq 'Intake'){'1'}else{'0'}
+ $env:DEV3_VERIFY_IR_COMPLETION_UI=if($Workflow -eq 'CompletionUi'){'1'}else{'0'}
+ if($Workflow -eq 'CompletionUi'){$env:InternalRequestNotifications__Enabled='true';$env:InternalRequestNotifications__PollSeconds='2'}
  $env:DEV3_VERIFY_IR_COMPLETION=if($Workflow -eq 'Completion'){'1'}else{'0'}
  $env:DEV3_VERIFY_IR_COMPLETION_WORK=if($Workflow -eq 'CompletionWork'){'1'}else{'0'}
  $env:DEV3_VERIFY_IR_HANDOVER=if($Workflow -eq 'Handover'){'1'}else{'0'}

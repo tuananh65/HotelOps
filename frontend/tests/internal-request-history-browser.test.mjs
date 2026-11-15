@@ -21,6 +21,14 @@ async function fixture(run) {
     if (request.resourceType() === "document") return route.fulfill({ contentType: "text/html", body: '<div id="root"></div>' });
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
+    if(path === "/api/internal-requests/1/completion") {
+      if(request.method()==="POST") {
+        state.completionPosts=(state.completionPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        assert.deepEqual(request.postDataJSON(),{result:"Finished work"});return json({},412);
+      }
+      return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",canComplete:state.completionAllowed??false,blocker:state.completionBlocker??null});
+    }
     if (path === "/api/internal-requests/1/handover" || path === "/api/internal-requests/1/handover/decision") {
       if(request.method()==="POST") {
         state.handoverPosts=(state.handoverPosts??0)+1;
@@ -368,4 +376,25 @@ test("handover receiver requires rejection reason and removes receipt after read
   await panel.getByText("Handover unavailable. Reload current access and responsibility.",{exact:true}).waitFor();
   assert.equal(await panel.getByText("PRIVATE HANDOVER",{exact:true}).count(),0);
   assert.equal(await panel.getByRole("button",{name:"Acknowledge handover",exact:true}).count(),0);
+}));
+
+test("completion requires result and never replays a stale double click",async()=>fixture(async(page,state)=>{
+  state.completionAllowed=true;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Complete request",exact:true});
+  await panel.getByRole("button",{name:"Complete request",exact:true}).click();
+  await panel.getByText("Enter a completion result.",{exact:true}).waitFor();assert.equal(state.completionPosts??0,0);
+  await panel.getByLabel("Completion result",{exact:true}).fill(" Finished work ");
+  await panel.getByRole("button",{name:"Complete request",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByText("Request changed. Reload before closing.",{exact:true}).waitFor();
+  assert.equal(state.completionPosts,1);assert.equal(await panel.getByLabel("Completion result",{exact:true}).count(),0);
+}));
+
+test("completion blockers hide mutation without disclosing target identifiers",async()=>fixture(async(page,state)=>{
+  state.completionBlocker="MSG34";
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Complete request",exact:true});
+  await panel.getByRole("status").filter({hasText:"MSG34"}).waitFor();
+  assert.equal(await panel.getByRole("button",{name:"Complete request",exact:true}).count(),0);
+  assert.equal(await panel.getByLabel("Completion result",{exact:true}).count(),0);
 }));
