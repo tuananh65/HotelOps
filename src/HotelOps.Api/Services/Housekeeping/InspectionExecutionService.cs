@@ -144,7 +144,10 @@ public sealed partial class RoomTypeCreationService
             .Where(r => r.IsActive && r.GroupCode == "SEVERITY" && (r.ValueCode == "MINOR" || r.ValueCode == "MAJOR"))
             .OrderBy(r => r.SortOrder).ThenBy(r => r.ReferenceId)
             .Select(r => new InspectionSeverityDto(r.ReferenceId, r.ValueCode, r.DisplayName)).ToArrayAsync(ct);
-        return new(source.InspectionId, branch, source.RoomId, source.CleaningTaskId!.Value, source.InspectorUserId, source.VersionId, state.State!, state.DueAt, detail.Criteria, detail.Defects, detail.Evidence, severities);
+        var readiness = (await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
+            .ReadAsync([source.RoomId], clock.GetUtcNow().UtcDateTime, ct))[source.RoomId];
+        return new(source.InspectionId, branch, source.RoomId, source.CleaningTaskId!.Value, source.InspectorUserId, source.VersionId, state.State!, state.DueAt, detail.Criteria, detail.Defects, detail.Evidence, severities)
+            { EffectiveReadiness = readiness.Readiness };
     }
     private async Task<long> StoreInspectionEvidence(long inspection, long actor, EvidenceUpload upload, string root, List<string> owned, CancellationToken ct)
         => await StoreFeatureEvidence("INSPECTION", inspection, actor, upload, root, owned, ct);

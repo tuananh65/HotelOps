@@ -62,6 +62,46 @@ const json = (data, status = 200, headers = {}) =>
   });
 const csrf = () => json({ csrfToken: "csrf", headerName: "X-CSRF-TOKEN" });
 const source = { value: value("INSPECTING"), etag: tag };
+for (const readiness of ["READY", "BLOCKED"]) {
+  test(`approval retains CSRF/ETag and validates ${readiness} result`, async () => {
+    const requests = [];
+    const api = client(async (path, init) => {
+      requests.push({ path, init });
+      return path === "/api/auth/csrf"
+        ? csrf()
+        : json({
+            ...value("PASSED"),
+            effectiveReadiness: readiness,
+            messageCode: readiness === "BLOCKED" ? "MSG17" : "MSG08",
+            notification: "DELIVERED",
+          });
+    });
+    assert.equal(
+      (await api.approve(7, 42, tag)).value.effectiveReadiness,
+      readiness,
+    );
+    assert.equal(requests.length, 2);
+    assert.equal(requests[1].path, "/api/branches/7/inspections/42/approve");
+    assert.equal(requests[1].init.headers["If-Match"], tag);
+    assert.equal(requests[1].init.headers["X-CSRF-TOKEN"], "csrf");
+  });
+}
+test("approval never treats missing readiness or conflicting message as success or retries", async () => {
+  for (const data of [
+    { ...value("PASSED") },
+    { ...value("PASSED"), effectiveReadiness: "BLOCKED", messageCode: "MSG08" },
+  ]) {
+    let writes = 0;
+    const api = client(async (path) =>
+      path === "/api/auth/csrf" ? csrf() : (writes++, json(data)),
+    );
+    await assert.rejects(api.approve(7, 42, tag), {
+      status: 503,
+      uncertain: true,
+    });
+    assert.equal(writes, 1);
+  }
+});
 function client(
   send,
   onSessionInvalid = () => {},

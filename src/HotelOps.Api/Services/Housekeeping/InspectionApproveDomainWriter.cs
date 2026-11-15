@@ -1,5 +1,6 @@
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Housekeeping;
+using HotelOps.Api.Services.Rooms;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,6 +10,8 @@ namespace HotelOps.Api.Services.HotelStructure;
 internal sealed record InspectionApproveDomainResult(long InspectionId, string Revision, PassedInspectionRecipient NotificationRecipient)
 {
     internal bool AuthoritativeCommitAccepted => false;
+    public string EffectiveReadiness { get; init; } = "UNKNOWN";
+    public long AuditId { get; init; }
 }
 
 public sealed partial class RoomTypeCreationService
@@ -21,7 +24,13 @@ public sealed partial class RoomTypeCreationService
             throw new InvalidOperationException("FE05_APPROVE_SOURCE_" + loaded.Status);
         var source = loaded.Source!;
         var i = source.Domain.Inspection;
-        var oldJson = "{\"workflow_status\":\"PENDING_CONCLUSION\"}";
+        // Hold the room and block ranges through the caller's commit. A concurrent block
+        // insertion/release must serialize with both calculation and physical projection.
+        var room = await db.Rooms.FromSqlInterpolated($"SELECT * FROM dbo.rooms WITH(UPDLOCK,HOLDLOCK) WHERE room_id={i.RoomId}")
+            .AsNoTracking().SingleAsync(ct);
+        var readiness = new EffectiveRoomReadiness(db);
+        var before = (await readiness.ReadAsync([i.RoomId], clock.GetUtcNow().UtcDateTime, ct))[i.RoomId];
+        var oldJson = JsonSerializer.Serialize(new { workflow_status = "PENDING_CONCLUSION", effectiveReadiness = before.Readiness, operationalStatus = room.OperationalStatus });
         // Preflight owns authorization/SOD and retained source locks. SQL repeats the critical
         // persisted predicates; client snapshots and ETag comparison are not concurrency authority.
         await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -47,6 +56,18 @@ public sealed partial class RoomTypeCreationService
             IF @@ROWCOUNT<>1 THROW 51990,'CLEANING_PHASE_CONFLICT',1;
             """, ct);
         var revision = await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.room_inspections WHERE inspection_id={inspection}").SingleAsync(ct);
+        var after = (await readiness.ReadAsync([i.RoomId], clock.GetUtcNow().UtcDateTime, ct))[i.RoomId];
+        if (after.Readiness is not ("READY" or "BLOCKED"))
+            throw new InvalidOperationException("INSPECTION_READINESS_SOURCE_CONFLICT");
+        var physicalStatus = after.CanUse ? "READY" : room.OperationalStatus;
+        if (physicalStatus != room.OperationalStatus)
+            await db.Database.ExecuteSqlInterpolatedAsync($"""
+                UPDATE dbo.rooms SET operational_status={physicalStatus}
+                  WHERE room_id={i.RoomId} AND branch_id={branch} AND operational_status={room.OperationalStatus} AND is_active=1;
+                IF @@ROWCOUNT<>1 THROW 51990,'INSPECTION_ROOM_WRITE_CONFLICT',1;
+                INSERT dbo.room_status_history(room_id,from_status,to_status,trigger_type,trigger_id,changed_by,changed_at,reason)
+                VALUES({i.RoomId},{room.OperationalStatus},{physicalStatus},'INSPECTION',{inspection},{ticket.UserId},SYSUTCDATETIME(),'Inspection passed; effective readiness READY');
+                """, ct);
         var recipient = await ReadPassedInspectionRecipientAsync(inspection, branch, ct);
         // The committed audit event is the durable retry source. Inbox creation runs separately,
         // so a delivery failure cannot undo an already committed approval (GBR-010).
@@ -55,6 +76,7 @@ public sealed partial class RoomTypeCreationService
         var newJson = JsonSerializer.Serialize(new
         {
             workflow_status = "PASSED", result = "PASS",
+            roomId = i.RoomId, effectiveReadiness = after.Readiness, operationalStatus = physicalStatus,
             notification = new
             {
                 schemaVersion = 1, kind = "INSPECTION_PASSED", recipientUserId = cleaner?.CleanerUserId,
@@ -63,11 +85,14 @@ public sealed partial class RoomTypeCreationService
                 completionRevision = cleaner == null ? null : Convert.ToHexString(cleaner.CompletionRevision)
             }
         });
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
+        var auditIds = await db.Database.SqlQuery<long>($"""
+            DECLARE @audit TABLE(id bigint);
             INSERT dbo.audit_logs(branch_id,actor_user_id,entity_type,entity_id,action,old_values,new_values,occurred_at)
+            OUTPUT INSERTED.audit_id INTO @audit
             VALUES({branch},{ticket.UserId},'INSPECTION',CONVERT(nvarchar(50),{inspection}),'UPDATE',
                 {oldJson},{newJson},SYSUTCDATETIME());
-            """, ct);
-        return new(inspection, WorkflowTag(revision), recipient);
+            SELECT id AS Value FROM @audit;
+            """).ToArrayAsync(ct);
+        return new(inspection, WorkflowTag(revision), recipient) { EffectiveReadiness = after.Readiness, AuditId = auditIds.Single() };
     }
 }

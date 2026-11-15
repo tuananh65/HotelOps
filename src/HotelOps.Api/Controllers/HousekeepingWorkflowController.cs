@@ -16,6 +16,9 @@ namespace HotelOps.Api.Controllers;
 public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/approve")]
+    public Task<IActionResult> Approve(long branchId, long id, CancellationToken ct)
+        => Execute((ticket,sid) => service.ApproveInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),ct),true);
     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/execution")]
     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct) => Inspect(branchId,id,"read",null,null,null,ct);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/start")]

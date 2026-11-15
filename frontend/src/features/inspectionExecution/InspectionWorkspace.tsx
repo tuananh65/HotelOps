@@ -108,7 +108,9 @@ export function InspectionWorkspace({
     } else if (e instanceof Error && e.name !== "AbortError")
       setError(e.message);
   }
-  async function action(kind: "start" | "save" | "finish" | "defect") {
+  async function action(
+    kind: "start" | "save" | "finish" | "defect" | "approve",
+  ) {
     if (
       !current ||
       busy ||
@@ -127,7 +129,9 @@ export function InspectionWorkspace({
     setNotice("");
     try {
       let result: LoadedInspection;
-      if (kind === "start")
+      if (kind === "approve")
+        result = await api.approve(branch, id, current.etag, task.signal);
+      else if (kind === "start")
         result = await api.start(
           branch,
           id,
@@ -196,9 +200,13 @@ export function InspectionWorkspace({
       setUploads([]);
       setEditingDefect(null);
       setNotice(
-        kind === "finish"
-          ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
-          : "Operation acknowledged by server.",
+        kind === "approve"
+          ? result.value.effectiveReadiness === "BLOCKED"
+            ? "MSG17: Inspection passed and cleaning completed. The room remains blocked and cannot be used."
+            : "MSG08: Inspection passed and cleaning completed. Room readiness is READY."
+          : kind === "finish"
+            ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
+            : "Operation acknowledged by server.",
       );
     } catch (e) {
       if (!task.signal.aborted && !scope.signal.aborted) handle(e);
@@ -210,10 +218,7 @@ export function InspectionWorkspace({
   return (
     <section aria-label="Inspection execution">
       <h2>Inspection #{id}</h2>
-      <p>
-        Branch #{branch}. Direct Inspection ID only; no directory or approval
-        workflow.
-      </p>
+      <p>Branch #{branch}. Inspection execution and approval.</p>
       {error && <p role="alert">{error}</p>}
       {notice && <p role="status">{notice}</p>}
       {blocked && (
@@ -248,6 +253,27 @@ export function InspectionWorkspace({
               onChange={(e) => setWhy(e.target.value)}
             />
           </label>
+          <p>
+            Effective room readiness:{" "}
+            {current.value.effectiveReadiness ?? "UNKNOWN"}.
+          </p>
+          {current.value.notification && (
+            <p>Notification: {current.value.notification}</p>
+          )}
+          <button
+            type="button"
+            disabled={
+              busy ||
+              blocked ||
+              current.value.state !== "PENDING_CONCLUSION" ||
+              current.value.criteria.some(
+                (c) => c.mandatory && c.outcome !== "PASS",
+              )
+            }
+            onClick={() => void action("approve")}
+          >
+            Approve inspection
+          </button>
           <button
             type="button"
             disabled={busy || blocked || current.value.state !== "ASSIGNED"}

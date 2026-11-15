@@ -9,10 +9,6 @@ namespace HotelOps.Api.Services.HotelStructure;
 // InspectionFailed/ReworkRequested. These results must never be accepted as proof.
 public sealed partial class RoomTypeCreationService
 {
-    internal static readonly string[] ApproveWriteDependencies = [
-        "INSPECTION_NOTIFICATION_STAGING_UNACCEPTED", "ROOM_STATUS_PROJECTION_CONTRACT_REQUIRED",
-        "DURABLE_INSPECTION_RECEIPT_CONTRACT_REQUIRED"];
-
     internal Task<RejectInspectionLoadResult> PrepareRejectInCallerTransactionAsync(SessionReference ticket, long sid,
         RejectInspectionLoadCommand command, CancellationToken ct)
         => LoadRejectInspectionSourceAsync(ticket, sid, command, ct);
@@ -34,7 +30,7 @@ public sealed partial class RoomTypeCreationService
         // Reinspection belongs to UC047. Do not imply it is a normal UC044 approval.
         if (await db.CleaningReworks.AsNoTracking().AnyAsync(w => w.CleaningTaskId == task, ct))
             return new(RoomTypeBatchStatus.Unavailable, "REINSPECTION_CONTRACT_REQUIRED");
-        // No effective-block/Ready interpretation here: the FE04 lifecycle participant owns it.
+        // The approval writer calculates effective readiness under retained transaction locks.
         return loaded;
     }
 

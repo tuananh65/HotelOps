@@ -68,7 +68,7 @@ internal static class SprintNotificationCommitProbe
         return task.GetType().GetProperty("Result")!.GetValue(task);
     }
 
-    private static Task CleanupAsync(HotelOpsDbContext db,long actor,long receiver,long branch,long inspection,CancellationToken ct)
+    internal static Task CleanupAsync(HotelOpsDbContext db,long actor,long receiver,long branch,long inspection,CancellationToken ct)
         => db.Database.ExecuteSqlInterpolatedAsync($"""
             IF CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))<>N'meita'
               OR DB_NAME()<>N'HotelOps_DEV3_142A_20261114_cc78c13f'
@@ -103,6 +103,7 @@ internal static class SprintNotificationCommitProbe
             DELETE dbo.cleaning_progress_logs WHERE cleaning_task_id=@task;
             DELETE dbo.cleaning_assignments WHERE cleaning_task_id=@task;
             DELETE dbo.cleaning_tasks WHERE cleaning_task_id=@task;
+            DELETE dbo.room_status_history WHERE room_id=@room AND trigger_type='INSPECTION' AND trigger_id={inspection} AND changed_by={actor};
             DELETE dbo.rooms WHERE room_id=@room;
             DELETE dbo.room_types WHERE room_type_id=@type;
             DELETE dbo.floors WHERE floor_id=@floor;

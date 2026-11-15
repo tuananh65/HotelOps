@@ -1,0 +1,27 @@
+PASS execution-catalog
+PASS approve
+PASS blocked-approve
+PASS duplicate
+PASS mandatory-fail
+PASS stale
+PASS wrong-branch
+PASS permission-revoked
+PASS session-revoked
+PASS cleaner-conflict
+PASS invalid-state
+PASS audit-failure
+PASS history-failure
+PASS recipient-eligible
+PASS recipient-no-read
+PASS recipient-inactive
+PASS recipient-expired
+PASS recipient-wrong-branch
+PASS recipient-access-revoked
+PASS recipient-missing-attribution
+PASS recipient-revoked-after-stage
+PASS recipient-retry
+PASS recipient-stale-source
+PASS recipient-delivery-conflict
+PASS recipient-delivery-fault
+PASS committed notification: durable discovery, delivery fault preserves business, retry, two-connection race, replay
+PASS recipient-committed-delivery

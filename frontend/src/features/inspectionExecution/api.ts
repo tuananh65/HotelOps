@@ -200,6 +200,31 @@ export function createInspectionApi(
         true,
       );
     },
+    approve: async (
+      branch: number,
+      id: number,
+      etag: string,
+      signal?: AbortSignal,
+    ) => {
+      const result = await loaded(
+        await request("POST", `${root(branch, id)}/approve`, {}, etag, signal),
+        branch,
+        id,
+        true,
+      );
+      if (
+        result.value.state !== "PASSED" ||
+        !["READY", "BLOCKED"].includes(result.value.effectiveReadiness ?? "") ||
+        result.value.messageCode !==
+          (result.value.effectiveReadiness === "BLOCKED" ? "MSG17" : "MSG08")
+      )
+        throw new InspectionApiError(
+          503,
+          "Unexpected approval response; verify current state before another action",
+          true,
+        );
+      return result;
+    },
     finish: async (
       branch: number,
       id: number,

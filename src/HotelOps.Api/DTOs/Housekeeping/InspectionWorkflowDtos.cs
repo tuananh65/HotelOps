@@ -12,5 +12,10 @@ public sealed record InspectionSeverityDto(long Id, string Code, string Name);
 public sealed record InspectionExecutionDto(long Id, long BranchId, long RoomId, long CleaningTaskId, long InspectorId, long VersionId,
     string State, DateTime? DueAt, IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryCriterionDto> Criteria,
     IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryDefectDto> Defects, IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryEvidenceDto> Evidence,
-    IReadOnlyList<InspectionSeverityDto> Severities);
+    IReadOnlyList<InspectionSeverityDto> Severities)
+{
+    public string EffectiveReadiness { get; init; } = "UNKNOWN";
+    public string? MessageCode { get; init; }
+    public string? Notification { get; init; }
+}
 public sealed record HousekeepingWriteDto(long Id, string State, string Notification = "NOT_INTEGRATED");

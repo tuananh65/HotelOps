@@ -35,6 +35,9 @@ export interface Inspection {
   inspectorId: number;
   versionId: number;
   state: string;
+  effectiveReadiness?: string;
+  messageCode?: string | null;
+  notification?: string | null;
   dueAt: string | null;
   criteria: Criterion[];
   defects: Defect[];

@@ -25,7 +25,7 @@ internal static class SprintApproveProbe
         var method = typeof(RoomTypeCreationService).GetMethod("ApproveDomainInCallerTransactionAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
         var checks = new List<object>();
         string? failure = null;
-        foreach (var scenario in new[] { "execution-catalog", "approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure",
+        foreach (var scenario in new[] { "execution-catalog", "approve", "blocked-approve", "duplicate", "mandatory-fail", "stale", "wrong-branch", "permission-revoked", "session-revoked", "cleaner-conflict", "invalid-state", "audit-failure", "history-failure",
             "recipient-eligible", "recipient-no-read", "recipient-inactive", "recipient-expired", "recipient-wrong-branch", "recipient-access-revoked", "recipient-missing-attribution",
             "recipient-revoked-after-stage", "recipient-retry", "recipient-stale-source", "recipient-delivery-conflict", "recipient-delivery-fault", "recipient-committed-delivery" })
         {
@@ -64,6 +64,16 @@ internal static class SprintApproveProbe
                 }
                 var tag=await Tag();
                 var audits=await db.AuditLogs.CountAsync(ct);
+                if (scenario == "blocked-approve")
+                {
+                    var incident = new Incident { IncidentNo="D3APP-BLOCK", BranchId=branch, RoomId=room,
+                        IncidentTitle="Synthetic block", Description="Synthetic", Status="OPEN", ReportedBy=actor,
+                        ReportedAt=DateTime.UtcNow, DiscoveredAt=DateTime.UtcNow };
+                    db.Incidents.Add(incident); await db.SaveChangesAsync(ct);
+                    db.RoomBlocks.Add(new RoomBlock { RoomId=room, IncidentId=incident.IncidentId,
+                        Reason="Synthetic block", BlockedBy=actor, BlockedAt=DateTime.UtcNow.AddMinutes(-1) });
+                    await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+                }
                 long? originalCleaner = null;
                 if (scenario.StartsWith("recipient-"))
                 {
@@ -112,14 +122,16 @@ internal static class SprintApproveProbe
                     if(filtered.Count!=1||filtered[0].Code!="MAJOR") throw new Exception("Inactive severity leaked into execution catalog");
                     if(await db.AuditLogs.CountAsync(ct)!=audits) throw new Exception("Catalog read wrote audit");
                 }
-                else if(scenario=="audit-failure")
+                else if(scenario is "audit-failure" or "history-failure")
                 {
                     // Test-only trigger exists inside the same disposable transaction and is rolled back.
-                    await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_142A_AuditFault ON dbo.audit_logs AFTER INSERT AS BEGIN THROW 51994,'Synthetic audit fault',1; END",ct);
+                    await db.Database.ExecuteSqlRawAsync(scenario=="audit-failure"
+                        ? "CREATE TRIGGER dbo.TR_DEV3_142A_AuditFault ON dbo.audit_logs AFTER INSERT AS BEGIN THROW 51994,'Synthetic audit fault',1; END"
+                        : "CREATE TRIGGER dbo.TR_DEV3_142A_HistoryFault ON dbo.room_status_history AFTER INSERT AS BEGIN THROW 51994,'Synthetic history fault',1; END",ct);
                     try { await Apply(tag,branch); throw new Exception("Audit fault was ignored"); }
                     catch(Microsoft.Data.SqlClient.SqlException error) when(error.Number==51994) { }
                 }
-                else if(scenario is "approve" or "duplicate" || scenario.StartsWith("recipient-"))
+                else if(scenario is "approve" or "blocked-approve" or "duplicate" || scenario.StartsWith("recipient-"))
                 {
                     var result=await Apply(tag,branch);
                     var row=await db.RoomInspections.AsNoTracking().SingleAsync(i=>i.InspectionId==inspection,ct);
@@ -140,8 +152,14 @@ internal static class SprintApproveProbe
                         throw new Exception("Source resolution unexpectedly published a notification");
                     if(scenario=="duplicate") await Deny(()=>Apply(tag,branch),"Stale");
                     if(await db.AuditLogs.CountAsync(ct)!=audits+1) throw new Exception("Duplicate audit");
-                    if(await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!="INSPECTION")
-                        throw new Exception("Domain participant changed room projection");
+                    var blocked = scenario=="blocked-approve";
+                    if(await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!=(blocked?"INSPECTION":"READY")
+                        || await db.RoomStatusHistories.CountAsync(h=>h.RoomId==room && h.TriggerType=="INSPECTION" && h.TriggerId==inspection && h.ToStatus=="READY",ct)!=(blocked?0:1))
+                        throw new Exception("Approval did not atomically project Ready with room history");
+                    var approvalAudit=await db.AuditLogs.AsNoTracking().SingleAsync(a=>a.EntityType=="INSPECTION" && a.EntityId==inspection.ToString(),ct);
+                    using var payload=JsonDocument.Parse(approvalAudit.NewValues!);
+                    if(payload.RootElement.GetProperty("effectiveReadiness").GetString()!=(blocked?"BLOCKED":"READY"))
+                        throw new Exception("Effective readiness history missing from atomic approval audit");
                     if (originalCleaner is { } receiver && expectedRecipient != "ATTRIBUTION_UNAVAILABLE")
                         await CheckDeliveryAsync(db, scenario, actor, receiver, inspection, ct);
                 }
@@ -159,7 +177,8 @@ internal static class SprintApproveProbe
             if(await db.Users.AnyAsync(ct)||await db.Branches.AnyAsync(ct)||await db.RoomInspections.AnyAsync(ct)||await db.UserSessions.AnyAsync(ct)||await db.AuditLogs.AnyAsync(ct)
                 ||await db.Notifications.AnyAsync(ct)||await db.NotificationRecipients.AnyAsync(ct))
                 throw new Exception("Synthetic rollback cleanup failed");
-            if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.objects WHERE name IN('TR_DEV3_142A_AuditFault','CK_DEV3_142A_NotificationFault')").SingleAsync(ct)!=0)
+            if(await db.RoomStatusHistories.AnyAsync(ct)||await db.RoomBlocks.AnyAsync(ct)||await db.Incidents.AnyAsync(ct)) throw new Exception("Room history/block fixture survived cleanup");
+            if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.objects WHERE name IN('TR_DEV3_142A_AuditFault','TR_DEV3_142A_HistoryFault','CK_DEV3_142A_NotificationFault')").SingleAsync(ct)!=0)
                 throw new Exception("Synthetic fault trigger survived rollback");
             if (scenario.StartsWith("recipient-") && await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.objects WHERE name IN('fe04_cleaner_attributions','fe04_capture_cleaner_attribution','TR_fe04_cleaner_immutable')").SingleAsync(ct)!=0)
                 throw new Exception("Attribution rehearsal schema survived rollback");
@@ -168,7 +187,7 @@ internal static class SprintApproveProbe
             if(failure!=null)break;
         }
         await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new {success=failure==null,checks,failure,
-            scope="Real SQL approval/notification components; rollback cases plus committed delivery fault/retry/concurrency with cleanup. No public approval API, room projection or hosted worker acceptance."},new JsonSerializerOptions{WriteIndented=true}),ct);
+            scope="Real SQL approval/room projection/notification components; rollback cases plus committed delivery fault/retry/concurrency with cleanup. No public approval API or hosted worker acceptance."},new JsonSerializerOptions{WriteIndented=true}),ct);
         return failure==null?0:1;
     }
     private static async Task CheckDeliveryAsync(HotelOpsDbContext db, string scenario, long actor, long receiver, long inspection, CancellationToken ct)
@@ -224,7 +243,7 @@ internal static class SprintApproveProbe
         else if (await db.Notifications.AnyAsync(ct) || await db.NotificationRecipients.AnyAsync(ct))
             throw new Exception("Denied delivery wrote inbox");
     }
-    private static async Task<long> SeedCleanerAsync(HotelOpsDbContext db, long actor, long branch, long task, string scenario, CancellationToken ct)
+    internal static async Task<long> SeedCleanerAsync(HotelOpsDbContext db, long actor, long branch, long task, string scenario, CancellationToken ct)
     {
         // Separate historical cleaner. Existing catalog grants are fixture-only, never production seeds.
         var cleaner = await db.Database.SqlQuery<long>($"""
