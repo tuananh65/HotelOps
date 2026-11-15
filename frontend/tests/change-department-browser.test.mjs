@@ -179,6 +179,8 @@ test("late mutation cannot restore identity after session invalidation", () =>
     await review(p);
     await p.getByRole("button", { name: "Confirm department change" }).click();
     await p.getByText("Department change pending...").waitFor();
+    // Pending includes CSRF preparation. Invalidate only after the deferred PUT exists.
+    await p.waitForFunction(() => window.fixture.calls.some((c) => c.method === "PUT"));
     await p.evaluate(() => {
       window.fixture.scenario.auth = { status: 401 };
       void window.fixture.revalidate();
