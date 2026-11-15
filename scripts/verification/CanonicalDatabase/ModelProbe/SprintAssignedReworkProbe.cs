@@ -1,5 +1,7 @@
 using System.Data;
+using System.Diagnostics;
 using System.Security.Cryptography;
+using System.Text.Json;
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Security.Authorization;
@@ -34,6 +36,22 @@ internal static class SprintAssignedReworkProbe
         var inbox=new NotificationCenterService(db,current,TimeProvider.System,Options.Create(new NotificationCenterOptions()));
         var notice=await db.Notifications.AsNoTracking().SingleAsync(n=>n.SourceType=="CLEANING_REWORK"&&n.SourceId==rework,ct);
         if((await inbox.ResolveSourceAsync(notice.NotificationId,ct)).Path!=$"/cleaning/reworks/{rework}?branchId={branch}")throw new Exception("Source routing mismatch");
+        var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};
+        start.ArgumentList.Add("frontend/scripts/sprintReworkInboxBrowser.mjs");
+        using(var process=Process.Start(start)??throw new Exception("Inbox browser unavailable"))
+        {
+            try
+            {
+                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=user.Username,password=secret,branch,rework,notification=notice.NotificationId}).AsMemory(),ct);
+                process.StandardInput.Close();
+                var output=process.StandardOutput.ReadToEndAsync(ct);var error=process.StandardError.ReadToEndAsync(ct);
+                await process.WaitForExitAsync(ct);
+                var result=JsonSerializer.Deserialize<JsonElement>(await output);await error;
+                if(process.ExitCode!=0||!result.GetProperty("success").GetBoolean())
+                    throw new Exception("Assignee inbox browser: "+result.GetRawText());
+            }
+            finally{if(!process.HasExited)process.Kill(true);}
+        }
         await db.Database.ExecuteSqlRawAsync("""
             CREATE USER DEV3_AssignedReworkReader WITHOUT LOGIN;
             GRANT SELECT ON SCHEMA::dbo TO DEV3_AssignedReworkReader;
