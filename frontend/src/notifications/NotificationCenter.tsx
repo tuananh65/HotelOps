@@ -77,6 +77,11 @@ export function NotificationCenter() {
   const visible =
     owner && result?.owner === owner && result.key === key ? result : null;
   const data = visible?.data;
+  const appliedFilters =
+    [...new URLSearchParams(query).entries()]
+      .filter(([name]) => name !== "page")
+      .map(([name, value]) => `${name}: ${value}`)
+      .join("; ") || "None";
   const operation = write?.owner === owner ? write : null;
   async function openSource(id: number) {
     if (!owner || pending.current) return;
@@ -188,6 +193,24 @@ export function NotificationCenter() {
               </select>
             </label>
             <button>Apply filters</button>
+            <button
+              type="button"
+              onClick={() => {
+                setDraft({
+                  type: "",
+                  priority: "",
+                  search: "",
+                  unread: "",
+                  acknowledged: "",
+                  from: "",
+                  to: "",
+                });
+                setQuery("");
+                setRevision((n) => n + 1);
+              }}
+            >
+              Clear filters
+            </button>
             <label>
               Acknowledgment status
               <select
@@ -203,6 +226,9 @@ export function NotificationCenter() {
             </label>
           </form>
           <button onClick={() => setRevision((n) => n + 1)}>Refresh</button>
+          <p aria-label="Applied notification filters">
+            Applied filters: {appliedFilters}
+          </p>
           {data?.acknowledgmentAvailable && (
             <button
               disabled={
@@ -266,7 +292,10 @@ export function NotificationCenter() {
                 <p>Acknowledging critical alerts is not yet available.</p>
               )}
               {data.items.length === 0 ? (
-                <p>No matching notifications.</p>
+                <p role="status">
+                  No matching notifications (MSG10). Change or clear the applied
+                  filters.
+                </p>
               ) : (
                 <ul>
                   {data.items.map((row) => (

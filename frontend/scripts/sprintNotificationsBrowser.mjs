@@ -36,6 +36,42 @@ try {
   if ((await page.locator("body").innerText()).includes(fixture.foreignTitle))
     throw Error("foreign");
   checks.push(stage);
+  stage = "empty filters preserve applied values and recover";
+  await page
+    .getByLabel("search", { exact: true })
+    .fill("no-match-" + fixture.id);
+  await page
+    .getByRole("button", { name: "Apply filters", exact: true })
+    .click();
+  await page
+    .getByText(
+      "No matching notifications (MSG10). Change or clear the applied filters.",
+      { exact: true },
+    )
+    .waitFor();
+  if (
+    !(
+      await page.getByLabel("Applied notification filters").innerText()
+    ).includes("search: no-match-" + fixture.id)
+  )
+    throw Error("applied filters absent");
+  await page.getByLabel("search", { exact: true }).fill("unsubmitted-draft");
+  if (
+    (
+      await page.getByLabel("Applied notification filters").innerText()
+    ).includes("unsubmitted-draft")
+  )
+    throw Error("draft represented as applied");
+  await page
+    .getByRole("button", { name: "Clear filters", exact: true })
+    .click();
+  await page.getByText(fixture.title, { exact: true }).waitFor();
+  if (
+    (await page.getByLabel("Applied notification filters").innerText()) !==
+    "Applied filters: None"
+  )
+    throw Error("clear filters failed");
+  checks.push(stage);
   stage = "select multiple and mark read";
   const boxes = page.getByRole("checkbox");
   if ((await boxes.count()) !== 2) throw Error("recipient selection count");
