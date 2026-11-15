@@ -32,5 +32,8 @@ test("history transport carries cookies, cancellation and no-store without mutat
 test("history return destination requires revalidation and accepts no extra redirect parameters", () => {
   assert.equal(approvedReturnDestination("/internal-requests", true), "/internal-requests");
   assert.equal(approvedReturnDestination("/internal-requests", false), null);
+  assert.equal(approvedReturnDestination("/internal-requests?requestId=42", true), "/internal-requests?requestId=42");
+  for (const path of ["/internal-requests?requestId=0", "/internal-requests?requestId=1&requestId=2", "/internal-requests?requestId=1&next=evil", "/internal-requests?requestId=9007199254740992"])
+    assert.equal(approvedReturnDestination(path, true), null);
   assert.equal(approvedReturnDestination("/internal-requests?redirect=evil", true), null);
 });

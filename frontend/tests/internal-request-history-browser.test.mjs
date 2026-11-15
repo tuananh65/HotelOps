@@ -21,6 +21,7 @@ async function fixture(run) {
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
+    if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
     if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
     return json({}, 403);
   });
@@ -47,4 +48,17 @@ test("session revalidation removes request history before login", async () => fi
   await page.evaluate(() => window.historyStore.revalidate());
   await page.getByRole("button", { name: "Sign in", exact: true }).waitFor();
   assert.equal(await page.getByText("PRIVATE REQUEST <script>", { exact: true }).count(), 0);
+}));
+test("request notification deep link loads only the selected authorized timeline and back clears it", async () => fixture(async (page,state) => {
+  await page.goto("https://history.test/internal-requests?requestId=1");
+  await page.addScriptTag({content:compiled.outputFiles[0].text});
+  await page.getByRole("heading",{name:"Request 1",exact:true}).waitFor();
+  await page.getByRole("button",{name:"Back to requests",exact:true}).click();
+  await page.getByRole("cell",{name:"PRIVATE REQUEST <script>",exact:true}).waitFor();
+  assert.equal(new URL(page.url()).search,"");
+  state.history=404;
+  await page.goto("https://history.test/internal-requests?requestId=1");
+  await page.addScriptTag({content:compiled.outputFiles[0].text});
+  await page.getByRole("alert").filter({hasText:"Request unavailable"}).waitFor();
+  assert.equal(await page.getByRole("region",{name:"Request timeline",exact:true}).count(),0);
 }));

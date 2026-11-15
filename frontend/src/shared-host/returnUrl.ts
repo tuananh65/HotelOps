@@ -57,6 +57,8 @@ export function approvedReturnDestination(
   if (!safe || !revalidated) return null;
   const path = safe.split("?")[0];
   if (safe === "/reports" || safe === "/audit" || safe === "/internal-requests") return safe;
+  const internalRequest = /^\/internal-requests\?requestId=([1-9][0-9]*)$/.exec(safe);
+  if (internalRequest && Number.isSafeInteger(Number(internalRequest[1]))) return safe;
   const inspection =
     /^\/(?:inspections|reinspections)\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
       path,

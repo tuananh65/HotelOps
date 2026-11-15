@@ -118,6 +118,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"IR_ACCEPTED" or "IR_REJECTED",SourceType:"INTERNAL_REQUEST_DECISION",SourceId:>0})
+        {
+            if(!await InternalRequests.InternalRequestDecisionStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var decision=await InternalRequests.InternalRequestDecisionDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id,ct);
+            var scope=await new InternalRequests.InternalRequestReadAccess(db).ReadAsync(user,now,ct);
+            if(decision==null||decision.RequesterId!=user||decision.ActorId!=source.CreatedBy||decision.At!=source.CreatedAt
+                ||source.NotificationType!=(decision.Decision=="ACCEPT"?"IR_ACCEPTED":"IR_REJECTED")
+                ||!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==decision.RequestId,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={decision.RequestId}");
+        }
         if(source is {NotificationType:"TASK_VERIFIED" or "TASK_RETURNED",SourceType:"TASK_VERIFICATION",SourceId:>0})
         {
             if(!await TaskVerificationStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

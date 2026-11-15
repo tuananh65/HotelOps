@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import {
   decodeHistory,
@@ -62,7 +62,11 @@ export function InternalRequestHistoryPage() {
     receivingDepartmentId: "",
   });
   const [page, setPage] = useState(1);
-  const [selected, setSelected] = useState<number | null>(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const requestIds = searchParams.getAll("requestId");
+  const selected = requestIds.length === 1 && /^[1-9][0-9]*$/.test(requestIds[0])
+    && Number.isSafeInteger(Number(requestIds[0])) ? Number(requestIds[0]) : null;
+  const setSelected = (id: number | null) => setSearchParams(id === null ? {} : { requestId: String(id) });
   const [eventPage, setEventPage] = useState(1);
   const [assignmentPage, setAssignmentPage] = useState(1);
   const [revision, setRevision] = useState(0);

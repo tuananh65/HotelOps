@@ -24,6 +24,12 @@ test("source resolver uses current session and only accepts canonical rework/his
     await resolveInboxSource(7, abort.signal),
     "/cleaning/reworks/9?branchId=2",
   );
+  globalThis.fetch = async () => Response.json({path:"/internal-requests?requestId=42"});
+  assert.equal(await resolveInboxSource(7,abort.signal),"/internal-requests?requestId=42");
+  for (const path of ["/internal-requests?requestId=0", "/internal-requests?requestId=1&next=evil", "/internal-requests?requestId=1&requestId=2", "/internal-requests?requestId=9007199254740992"]) {
+    globalThis.fetch = async () => Response.json({path});
+    await assert.rejects(resolveInboxSource(7,abort.signal));
+  }
   globalThis.fetch = async () =>
     Response.json({ path: "/inspection-history/9?branchId=2" });
   assert.equal(

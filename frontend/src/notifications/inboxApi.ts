@@ -137,6 +137,7 @@ export async function resolveInboxSource(
     /^\/inspections\/reworks\/([1-9][0-9]*)\/assign\?branchId=([1-9][0-9]*)$/.exec(
       data.path,
     ) ??
+    /^\/internal-requests\?requestId=([1-9][0-9]*)$/.exec(data.path) ??
     /^\/operational-tasks\?branchId=([1-9][0-9]*)&taskId=([1-9][0-9]*)$/.exec(
       data.path,
     );
