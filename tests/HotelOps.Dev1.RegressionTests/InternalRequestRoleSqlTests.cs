@@ -1,6 +1,7 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Services.Users;
+using HotelOps.Api.Services.InternalRequests;
 using Microsoft.EntityFrameworkCore;
 using Xunit;
 
@@ -54,6 +55,7 @@ public sealed class InternalRequestRoleSqlTests
             var assignment=new InternalRequestAssignment{InternalRequestId=request.InternalRequestId,AssigneeId=user.UserId,AssignedBy=user.UserId,AssignedAt=now.AddMinutes(-1),Status="ACTIVE"};db.InternalRequestAssignments.Add(assignment);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             async Task<Dev1ResponsibilityReview> Read()=>await new RevokeRoleResponsibilities(db,TimeProvider.System).ReadAsync(user.UserId,selected.UserRoleId,false,ct);
             var label=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
+            Assert.False(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
             Assert.Contains(label,(await Read()).Blockers);
             // A second scoped grant preserves permission but cannot certify role/department semantics.
             var alternate=new UserRole{UserId=user.UserId,RoleId=role.RoleId,BranchId=branch.BranchId,AssignedAt=now.AddMinutes(-1),IsActive=true};
@@ -64,6 +66,7 @@ public sealed class InternalRequestRoleSqlTests
                 if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==alternate.RoleId&&g.PermissionId==p.PermissionId,ct))db.RolePermissions.Add(new(){RoleId=alternate.RoleId,PermissionId=p.PermissionId,DataScope="BRANCH",GrantedAt=now});
             }
             db.UserRoles.Add(alternate);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            Assert.True(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
             var preserved=await Read();Assert.DoesNotContain(label,preserved.Blockers);Assert.Contains(label+"_UNKNOWN",preserved.Unresolved);
             await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.ExpiresAt,now),ct);
             Assert.Contains(label,(await Read()).Blockers);
@@ -74,6 +77,10 @@ public sealed class InternalRequestRoleSqlTests
             Assert.Contains(label+"_UNKNOWN",(await Read()).Unresolved);
             await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(u=>u.SetProperty(a=>a.Status,"COMPLETED").SetProperty(a=>a.EndedAt,now),ct);
             var history=await Read();Assert.DoesNotContain(label,history.Blockers);Assert.DoesNotContain(label+"_UNKNOWN",history.Unresolved);
+            await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.ExpiresAt,(DateTime?)null),ct);
+            Assert.True(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
+            await db.RolePermissions.Where(g=>g.PermissionId==permission.PermissionId&&(g.RoleId==role.RoleId||g.RoleId==alternate.RoleId)).ExecuteDeleteAsync(ct);
+            Assert.False(await new InternalRequestEscalationAuthority(db).AllowsAsync(user.UserId,request.InternalRequestId,ct));
             Assert.NotEmpty(UserRoleRevocationService.PendingReleaseGates);
         }
         finally{await tx.RollbackAsync(CancellationToken.None);db.ChangeTracker.Clear();}
