@@ -59,6 +59,11 @@ internal static class SprintDepartmentAuthorityScenario
             await AssertAllowed(requests[0],true,"exact current department mapping allows");
             if(wholeClone)
             {
+                if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_COMPLETION")=="1")
+                {
+                    await SprintInternalRequestCompletionScenario.RunAsync(db,actor,requests[0],checks,ct);
+                    return;
+                }
                 if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_COMPLETION_WORK")=="1")
                 {
                     await SprintInternalRequestCompletionWorkScenario.RunAsync(db,actor,requests[0],checks,ct);
