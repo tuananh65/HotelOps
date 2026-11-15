@@ -9,7 +9,7 @@ namespace HotelOps.Api.Services.InternalRequests;
 public sealed record InternalRequestEvidenceView(long Id, string Name, string MimeType, long Size, string DownloadPath);
 public sealed record InternalRequestEvidenceFile(byte[] Bytes, string MimeType, string Name);
 
-// Existing attachments schema; source is the committed progress event, not a client-supplied path.
+// Existing attachments schema; source is a committed request event, not a client-supplied path.
 internal static class InternalRequestEvidence
 {
     internal const string EntityType = "INTERNAL_REQUEST_PROGRESS";
@@ -42,22 +42,24 @@ internal static class InternalRequestEvidence
         : bytes.AsSpan().StartsWith(new byte[] {255,216,255}) ? "image/jpeg" : bytes.AsSpan().StartsWith("%PDF-"u8) ? "application/pdf" : null;
 
     internal static async Task<long> StoreAsync(HotelOpsDbContext db,long source,long actor,DateTime now,EvidenceUpload upload,
-        string root,List<string> owned,CancellationToken ct)
+        string root,List<string> owned,CancellationToken ct,string sourceType=EntityType)
     {
+        if(sourceType is not (EntityType or "INTERNAL_REQUEST_INTAKE"))throw new ValidationException("Unsupported request evidence source.");
         var (bytes,extension)=Validate(upload);
         var directory=Path.GetFullPath(root);Directory.CreateDirectory(directory);
         if((File.GetAttributes(directory)&FileAttributes.ReparsePoint)!=0)throw new ValidationException("Private storage unavailable.");
         var key=Guid.NewGuid().ToString("N")+extension;var path=Path.Combine(directory,key);
         await using(var stream=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None,81920,FileOptions.Asynchronous))
         {owned.Add(path);await stream.WriteAsync(bytes,ct);await stream.FlushAsync(ct);}
-        var row=new Attachment{EntityType=EntityType,EntityId=source,FileName=key,OriginalFileName=upload.Name,MimeType=upload.MimeType,
+        var row=new Attachment{EntityType=sourceType,EntityId=source,FileName=key,OriginalFileName=upload.Name,MimeType=upload.MimeType,
             FileSizeBytes=bytes.Length,StorageKey=key,UploadedBy=actor,UploadedAt=now};
         db.Attachments.Add(row);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();return row.AttachmentId;
     }
 
     internal static IQueryable<Attachment> Query(HotelOpsDbContext db,long request) =>
-        db.Attachments.AsNoTracking().Where(a=>a.EntityType==EntityType&&a.DeletedAt==null
-            &&db.InternalRequestEvents.Any(e=>e.EventId==a.EntityId&&e.InternalRequestId==request&&e.EventType=="PROGRESS"));
+        db.Attachments.AsNoTracking().Where(a=>a.DeletedAt==null
+            &&db.InternalRequestEvents.Any(e=>e.EventId==a.EntityId&&e.InternalRequestId==request
+                &&(a.EntityType==EntityType&&e.EventType=="PROGRESS"||a.EntityType=="INTERNAL_REQUEST_INTAKE"&&e.EventType=="CREATE")));
 
     internal static async Task<InternalRequestEvidenceFile?> ReadAsync(Attachment row,string root,CancellationToken ct)
     {

@@ -7,6 +7,7 @@ import { InternalRequestTaskLinksPanel } from "./TaskLinksPanel";
 import { InternalRequestCleaningLinksPanel } from "./CleaningLinksPanel";
 import { InternalRequestIncidentLinksPanel } from "./IncidentLinksPanel";
 import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
+import { InternalRequestIntakeLink } from "./IntakePage";
 import {
   decodeHistory,
   decodeTimeline,
@@ -140,6 +141,7 @@ export function InternalRequestHistoryPage() {
   return (
     <main>
       <h1>Internal request history</h1>
+      <InternalRequestIntakeLink />
       <p>All dates and deadlines are UTC.</p>
       <Link to="/dashboard">Dashboard</Link>{" "}
       <button onClick={() => setRevision((v) => v + 1)}>Refresh history</button>

@@ -118,6 +118,18 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"IR_CREATED",SourceType:"INTERNAL_REQUEST_INTAKE",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await InternalRequests.InternalRequestIntakeService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var intake=await InternalRequests.InternalRequestIntakeDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id&&r.RecipientId==user,ct);
+            var scope=await new InternalRequests.InternalRequestReadAccess(db).ReadAsync(user,now,ct);
+            if(intake==null||intake.ActorId!=source.CreatedBy||intake.At!=source.CreatedAt
+                ||!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==intake.RequestId&&r.ReceivingDepartmentId==intake.DepartmentId,ct)
+                ||!await new InternalRequests.InternalRequestProcessAuthority(db).AllowsDepartmentAsync(user,intake.BranchId,intake.DepartmentId,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={intake.RequestId}");
+        }
         if(source is {NotificationType:"IR_WITHDRAWN",SourceType:"INTERNAL_REQUEST_WITHDRAWAL",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);

@@ -1,0 +1,183 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_d927c171",
+  "fixtureUserId": 1071253,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "intakeCheck": "synthetic priority is active"
+    },
+    {
+      "intakeCheck": "authorized intake options available"
+    },
+    {
+      "intakeCheck": "options exclude other branches and departments"
+    },
+    {
+      "intakeCheck": "CSRF mandatory for creation"
+    },
+    {
+      "intakeCheck": "foreign receiving department rejected"
+    },
+    {
+      "intakeCheck": "unclassified type fails closed"
+    },
+    {
+      "intakeCheck": "material need directed to UC091"
+    },
+    {
+      "intakeCheck": "inactive type rejected"
+    },
+    {
+      "intakeCheck": "past desired deadline rejected"
+    },
+    {
+      "intakeCheck": "invalid priority rejected"
+    },
+    {
+      "intakeCheck": "attachment content and MIME mismatch rejected"
+    },
+    {
+      "intakeCheck": "inactive receiving department rejected"
+    },
+    {
+      "intakeCheck": "revoked branch access denies creation"
+    },
+    {
+      "intakeCheck": "IR_VIEW and processing authority cannot replace IR_CREATE"
+    },
+    {
+      "intakeCheck": "outbox fault rejects creation"
+    },
+    {
+      "intakeCheck": "request event audit attachment and private file roll back with outbox"
+    },
+    {
+      "intakeBrowser": {
+        "success": true,
+        "requestId": 288,
+        "eventId": 214,
+        "checks": [
+          "Material type advises UC091; non-material request and private attachment created through HTTPS; history Pending Acceptance and CREATE"
+        ]
+      }
+    },
+    {
+      "intakeCheck": "browser creates one pending request with event and audit"
+    },
+    {
+      "intakeCheck": "intake evidence download uses independent source read authorization"
+    },
+    {
+      "intakeCheck": "IR_CREATE does not authorize evidence after IR_VIEW revocation"
+    },
+    {
+      "intakeCheck": "revoked manager mapping denies delivery"
+    },
+    {
+      "intakeCheck": "notification delivered once after commit"
+    },
+    {
+      "intakeCheck": "notification opens current authorized source"
+    },
+    {
+      "intakeCheck": "source rechecks manager mapping after delivery"
+    },
+    {
+      "intakeCheck": "concurrent same submission commits once and duplicate returns409"
+    },
+    {
+      "intakeCheck": "hosted worker automatically delivers committed intake intent"
+    },
+    {
+      "intakeNoticeBrowser": {
+        "success": true,
+        "checks": [
+          "In-app creation notification opens authorized source; mapped receiving manager accepts with deadline; status ACCEPTED"
+        ]
+      }
+    },
+    {
+      "intakeCheck": "created request moves through notification to accepted with persisted decision"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
