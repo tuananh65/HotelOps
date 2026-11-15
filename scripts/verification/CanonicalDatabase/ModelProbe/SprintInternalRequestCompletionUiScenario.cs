@@ -73,6 +73,13 @@ internal static class SprintInternalRequestCompletionUiScenario
         var grant=await db.RolePermissions.AsNoTracking().SingleAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==view.PermissionId,ct);
         await db.RolePermissions.Where(g=>g.RolePermissionId==grant.RolePermissionId).ExecuteDeleteAsync(ct);
         using(var denied=await http.GetAsync($"/api/notifications/{notice.NotificationId}/source",ct))Check((int)denied.StatusCode==404,"notification source rechecks revoked IR_VIEW");
+        using(var retained=await http.GetAsync("/api/notifications",ct))
+        {
+            Check((int)retained.StatusCode==200,"recipient retains notification center after source read grant revoked");
+            var inbox=await retained.Content.ReadFromJsonAsync<JsonElement>(ct);
+            Check(inbox.GetProperty("items").EnumerateArray().Any(n=>n.GetProperty("id").GetInt64()==notice.NotificationId
+                &&n.GetProperty("title").GetString()==notice.Title),"GBR157 retains delivered notification text while denying source access");
+        }
         Check(await delivery.DeliverAsync(completion.EventId,ct)=="RECIPIENT_READ_DENIED","delivery rechecks current requester read grant");
         db.RolePermissions.Add(new(){RoleId=role.RoleId,PermissionId=view.PermissionId,DataScope=grant.DataScope,GrantedAt=grant.GrantedAt});await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
         using(var allowed=await http.GetAsync($"/api/notifications/{notice.NotificationId}/source",ct))Check((int)allowed.StatusCode==200,"restored requester scope opens source");
