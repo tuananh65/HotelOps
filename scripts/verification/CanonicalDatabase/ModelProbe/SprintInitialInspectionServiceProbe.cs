@@ -116,17 +116,19 @@ internal static class SprintInitialInspectionServiceProbe
         finally{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_roles SET is_active=1 WHERE user_id={actor}",CancellationToken.None);}
         if(await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.room_inspections WHERE inspection_id={first.Id}").SingleAsync(ct)!="ASSIGNED"
             ||await db.AuditLogs.AnyAsync(a=>a.EntityType=="room_inspections"&&a.EntityId==first.Id.ToString(),ct))throw new Exception("Denied execution changed state/audit");
+        var reassignment=await SprintInspectionReassignmentServiceProbe.VerifyAsync(db,ticket,sid,other,branch,first.Id,rolePassword,ct);
         await using(var reset=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct))
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 DELETE dbo.audit_logs WHERE actor_user_id={actor} AND entity_type='INSPECTION_ASSIGNMENT' AND entity_id=CONVERT(nvarchar(50),{first.Id});
-                DELETE dbo.notification_operation_reservations WHERE actor_user_id={actor} AND operation_key={operation};
-                DELETE dbo.room_inspections WHERE inspection_id={first.Id} AND cleaning_task_id={task} AND workflow_status='ASSIGNED';
+                DELETE dbo.audit_logs WHERE actor_user_id={actor} AND entity_type='room_inspections' AND entity_id=CONVERT(nvarchar(50),{first.Id});
+                DELETE dbo.notification_operation_reservations WHERE actor_user_id={actor};
+                DELETE dbo.room_inspections WHERE inspection_id={first.Id} AND cleaning_task_id={task} AND workflow_status='INSPECTING';
                 UPDATE dbo.inspection_checklist_versions SET status='PUBLISHED' WHERE version_id={version};
                 """,ct);
             await reset.CommitAsync(ct);
         }
-        return new{serviceSqlChecks=checks,checksPassed=checks.Count};
+        return new{serviceSqlChecks=checks,checksPassed=checks.Count,reassignment};
     }
     private sealed class Identity(CurrentUserInfo value):ICurrentUserAccessor
     {public bool TryGetCurrentUser(out CurrentUserInfo user){user=value;return true;}}

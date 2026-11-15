@@ -1,0 +1,193 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "exactIdentityAndSchema": true,
+      "seedCleanupRehearsalRolledBack": true
+    },
+    {
+      "serviceSqlChecks": [
+        "stale task rejected",
+        "stale cycle rejected",
+        "foreign branch rejected",
+        "unpublished selection rejected",
+        "selected inspector role revoked",
+        "selected inspector wrong branch",
+        "inactive selected inspector",
+        "cleaner inspector conflict",
+        "retired checklist rejected",
+        "audit failure rolls back inspection, operation and notification intent",
+        "concurrent same operation returns one immutable assignment; new key or changed request rejected",
+        "replay rechecks current actor branch access",
+        "existing assignment retains exact version after retirement and offers no duplicate",
+        "assigned inspection cannot start after current cycle is removed",
+        "execution rechecks current supervisor role"
+      ],
+      "checksPassed": 15,
+      "reassignment": {
+        "reassignmentServiceSqlChecks": [
+          "stale inspection",
+          "stale cleaning cycle",
+          "foreign branch",
+          "revoked selected role",
+          "selected wrong branch",
+          "inactive selected inspector",
+          "cleaner conflict",
+          "audit failure rolls back inspector, version and durable intent",
+          "concurrent same operation emits one audit and immutable receipt; changed payload/stale source denied",
+          "previous inspector loses execution access",
+          "replay rechecks current actor access",
+          "INSPECTING transfers preserve lifecycle, retired assigned version and original deadline"
+        ],
+        "checksPassed": 12
+      }
+    },
+    {
+      "assigned": {
+        "success": true,
+        "inspection": 350902,
+        "checks": [
+          "anonymous assignment API denied",
+          "login return path",
+          "room board to pending inspections",
+          "pending queue to exact cleaning cycle",
+          {
+            "name": "missing CSRF",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "missing ETag",
+            "status": 428,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale task",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale cycle",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "foreign inspector",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "nonfuture deadline",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          "canonical review and assignment",
+          "existing assignment refresh does not offer duplicate"
+        ]
+      },
+      "assignedHandoff": {
+        "success": true,
+        "state": "ASSIGNED",
+        "checks": [
+          "login with exact return destination",
+          {
+            "name": "missing CSRF",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "missing ETag",
+            "status": 428,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale inspection",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale cycle",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "ineligible inspector",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          "review and commit inspector change preserving source lifecycle",
+          "previous inspector execution denied immediately",
+          "explicit refresh and return assignment"
+        ]
+      },
+      "notification": 914,
+      "executed": {
+        "success": true,
+        "inspection": 350902,
+        "checks": [
+          "anonymous assignment API denied",
+          "login return path",
+          "assignment inbox opens exact inspection",
+          "assigned checklist execution"
+        ]
+      },
+      "pendingHandoff": {
+        "success": true,
+        "state": "PENDING_CONCLUSION",
+        "checks": [
+          "login with exact return destination",
+          {
+            "name": "missing CSRF",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "missing ETag",
+            "status": 428,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale inspection",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale cycle",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "ineligible inspector",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          "review and commit inspector change preserving source lifecycle",
+          "previous inspector execution denied immediately"
+        ]
+      },
+      "recipientSession": {
+        "success": true,
+        "state": "PENDING_CONCLUSION",
+        "checks": [
+          "login with exact return destination",
+          "new inspector opens reassignment notification and retained results"
+        ]
+      },
+      "reassignedNotice": 916,
+      "received": {
+        "success": true,
+        "state": "PENDING_CONCLUSION",
+        "checks": [
+          "login with exact return destination",
+          "new inspector opens reassignment notification and retained results"
+        ]
+      },
+      "sqlAssignedThenPendingConclusion": true,
+      "assignmentAudit": 1,
+      "executionAudits": 3
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "scope": "Initial UC041 assignment/reassignment and UC042 execution, disposable SQL and validated HTTPS; reinspection reassignment and full UC041 completion not asserted"
+}

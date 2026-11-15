@@ -16,6 +16,12 @@ namespace HotelOps.Api.Controllers;
 public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/reassignment-options")]
+    public Task<IActionResult> ReassignmentOptions(long branchId, long id, CancellationToken ct)
+        => Execute((ticket,sid) => service.ReadInspectionReassignmentAsync(ticket,sid,branchId,id,ct),false);
+    [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reassign")]
+    public Task<IActionResult> Reassign(long branchId, long id, InspectionReassignmentRequest input, CancellationToken ct)
+        => Execute((ticket,sid) => service.ReassignInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reject")]
     public Task<IActionResult> Reject(long branchId, long id, RejectInspectionRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.RejectInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true);

@@ -3,6 +3,7 @@ import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
 import { ApiError } from "../../api/dev1/client";
 import { parseAssignmentContext } from "../inspectionAssignment/navigation";
+import { InspectionReassignmentForm } from "./InspectionReassignmentForm";
 import {
   assignInitialInspection,
   readInitialInspectionOptions,
@@ -216,6 +217,13 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
                 Open inspection
               </Link>
             </p>
+          )}
+          {data.existingInspectionId !== null && (
+            <InspectionReassignmentForm
+              key={`${key}:${data.existingInspectionId}`}
+              branch={branch}
+              id={data.existingInspectionId}
+            />
           )}
           {!data.canAssign && data.existingInspectionId === null && (
             <p role="status">

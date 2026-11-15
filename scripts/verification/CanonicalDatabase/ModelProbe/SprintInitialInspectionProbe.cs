@@ -37,11 +37,12 @@ internal static class SprintInitialInspectionProbe
             }
             await db.Database.ExecuteSqlInterpolatedAsync($"EXEC sys.sp_set_session_context @key=N'DEV3.SourceCommit',@value={commit}",ct);
             await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintInitialInspectionWriter.sql",ct),ct);
+            await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintInspectionReassignmentWriter.sql",ct),ct);
             var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==actor,ct);
             var hash=new PasswordHasher<User>().HashPassword(user,password);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE dbo.users SET password_hash={hash} WHERE user_id={actor};
-                INSERT dbo.users(employee_code,username,email,full_name,created_at) VALUES('D3-INITIAL-OTHER','D3-INITIAL-OTHER','d3-initial-other@example.invalid',N'Synthetic other inspector',SYSUTCDATETIME());
+                INSERT dbo.users(employee_code,username,email,full_name,password_hash,created_at) VALUES('D3-INITIAL-OTHER','D3-INITIAL-OTHER','d3-initial-other@example.invalid',N'Synthetic other inspector',{hash},SYSUTCDATETIME());
                 DECLARE @other bigint=SCOPE_IDENTITY();
                 INSERT dbo.user_branch_access(user_id,branch_id,granted_at) VALUES(@other,{branch},DATEADD(minute,-1,SYSUTCDATETIME()));
                 INSERT dbo.user_roles(user_id,role_id,branch_id,assigned_at)
@@ -64,7 +65,7 @@ internal static class SprintInitialInspectionProbe
         async Task Cleanup(CancellationToken token)
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"""
-                IF EXISTS(SELECT 1 FROM dbo.fe04_rework_authority_issuers WHERE issuer<>'FE05.UC041.INITIAL')
+                IF EXISTS(SELECT 1 FROM dbo.fe04_rework_authority_issuers WHERE issuer NOT IN('FE05.UC041.INITIAL','FE05.UC041.REASSIGN'))
                   OR EXISTS(SELECT 1 FROM dbo.room_inspections WHERE cleaning_task_id<>{task}) THROW 51999,'Foreign fixture source; cleanup refused',1;
                 DECLARE @list bigint=(SELECT checklist_id FROM dbo.inspection_checklist_versions WHERE version_id={version});
                 DECLARE @type bigint=(SELECT room_type_id FROM dbo.rooms WHERE room_id={room});
@@ -91,6 +92,7 @@ internal static class SprintInitialInspectionProbe
                 DELETE dbo.users WHERE user_id IN({actor},{other}) AND username IN('D3-EVIDENCE','D3-INITIAL-OTHER');
                 DELETE dbo.branches WHERE branch_id={branch} AND branch_code='D3-EVIDENCE';
                 DROP PROCEDURE dbo.fe05_assign_initial_inspection;
+                DROP PROCEDURE dbo.fe05_reassign_inspection;
                 DROP APPLICATION ROLE DEV3_142A_InitialInspection;
                 DROP ROLE hotelops_initial_inspection_writer;
                 DROP TABLE dbo.fe04_rework_authority_issuers;
@@ -117,7 +119,7 @@ internal static class SprintInitialInspectionProbe
             cleaned=!await db.Users.AnyAsync()&&!await db.Branches.AnyAsync()&&!await db.RoomInspections.AnyAsync()&&!await db.Notifications.AnyAsync()
                 &&!await db.AuditLogs.AnyAsync()&&await db.Database.SqlQueryRaw<int>("SELECT CASE WHEN OBJECT_ID('dbo.fe05_assign_initial_inspection') IS NULL AND OBJECT_ID('dbo.fe04_rework_authority_issuers') IS NULL AND DATABASE_PRINCIPAL_ID('DEV3_142A_InitialInspection') IS NULL THEN 1 ELSE 0 END AS Value").SingleAsync()==1;
             await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new{success=failure==null&&cleaned,checks,failure,cleanup=cleaned,
-                scope="Initial UC041 assignment and UC042 execution, disposable SQL and validated HTTPS; reassignment and full UC completion not asserted"},new JsonSerializerOptions{WriteIndented=true}));
+                scope="Initial UC041 assignment/reassignment and UC042 execution, disposable SQL and validated HTTPS; reinspection reassignment and full UC041 completion not asserted"},new JsonSerializerOptions{WriteIndented=true}));
         }
         return failure==null&&cleaned?0:1;
     }
