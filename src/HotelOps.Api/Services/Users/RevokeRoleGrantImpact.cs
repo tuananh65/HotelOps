@@ -34,6 +34,17 @@ public static class RevokeRoleGrantImpact
     public static IReadOnlyList<RevokeGrant> Without(IReadOnlyList<RevokeGrant> paths, long assignmentId) =>
         paths.Where(g => g.AssignmentId != assignmentId).ToArray();
 
+    public static RevokeCapabilityImpact OperationalTask(string? workflowState, bool currentAssignee,
+        IReadOnlyList<RevokeGrant> before, IReadOnlyList<RevokeGrant> after, long? branch, DateTime nowUtc)
+    {
+        if (!currentAssignee) return RevokeCapabilityImpact.Preserved;
+        // An ACTIVE assignment on a terminal/unassigned or unproved workflow is contradictory,
+        // not permission to clear a responsibility. Pending Verification remains open work.
+        if (workflowState is not ("ASSIGNED" or "ACCEPTED" or "IN_PROGRESS" or "PAUSED" or "PENDING_VERIFICATION"))
+            return RevokeCapabilityImpact.Unknown;
+        return Evaluate(before, after, "TASK_EXECUTE", branch, true, nowUtc);
+    }
+
     public static string[] Effective(IReadOnlyList<RevokeGrant> paths, DateTime nowUtc) => paths
         .Where(g => PermissionGrantRules.IsEligible(g.Path, nowUtc))
         .Select(g => $"{g.Path.PermissionCode}/{PermissionGrantRules.EffectiveScope(g.Path) ?? "UNKNOWN"}/{g.Path.BranchId}")

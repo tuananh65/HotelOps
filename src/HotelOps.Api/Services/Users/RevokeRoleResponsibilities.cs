@@ -1,6 +1,7 @@
 using HotelOps.Api.Data;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Dependencies;
+using HotelOps.Api.Services.OperationalTasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Users;
@@ -53,6 +54,36 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
             if (result == RevokeCapabilityImpact.Lost) blockers.Add(fact);
             if (result == RevokeCapabilityImpact.Unknown) unresolved.Add(fact + "_UNKNOWN");
         }
+        // FE11 uses task_progress_versions, not the physical TODO/IN_PROGRESS shorthand.
+        // Keep all branches (including inactive ones); a scope loss cannot erase assigned work.
+        var taskAssignments = await db.OperationalTaskAssignments.AsNoTracking()
+            .Where(a => a.AssigneeId == target && a.AssignmentStatus == "ACTIVE")
+            .Select(a => new { a.AssignmentId, a.TaskId, a.AssignedAt, a.EndedAt,
+                Branch = a.Task.BranchId,
+                ValidScope = a.Task.Department.BranchId == a.Task.BranchId
+                    && (a.Task.RoomId == null || a.Task.Room!.BranchId == a.Task.BranchId)
+                    && (a.Task.AreaId == null || a.Task.Area!.BranchId == a.Task.BranchId),
+                Owners = a.Task.OperationalTaskAssignments.Count(x => x.AssignmentStatus == "ACTIVE" && x.EndedAt == null) })
+            .ToArrayAsync(ct);
+        if (taskAssignments.Length > 0)
+        {
+            if (!await ProgressSchema.InstalledAsync(db, ct)) unresolved.Add("OPERATIONAL_TASK_WORKFLOW_REQUIRED");
+            else
+            {
+                var ids = taskAssignments.Select(a => a.TaskId).Distinct().ToArray();
+                var states = await TaskWorkflowRead.Query(db, now).Where(t => ids.Contains(t.TaskId)).ToArrayAsync(ct);
+                foreach (var task in taskAssignments)
+                {
+                    if (task.EndedAt != null || task.AssignedAt > now || task.Owners != 1 || !task.ValidScope)
+                    { unresolved.Add($"TASK_EXECUTOR:{task.TaskId}_INCONSISTENT"); continue; }
+                    var matching = states.Where(s => s.TaskId == task.TaskId).ToArray();
+                    Record(RevokeRoleGrantImpact.OperationalTask(matching.Length == 1 ? matching[0].State : null,
+                        true, before, after, task.Branch, now), $"TASK_EXECUTOR:{task.TaskId}");
+                }
+            }
+        }
+        // Other designated FE11 roles and all writer coordination remain explicit gates;
+        // an empty target assignment set is not complete role-dependency acceptance.
         // Current assignee only; never CreatedBy, ReviewedBy or Incident.ReportedBy.
         var works = await Dev2DependencyQueries.AssignedWorks(db.MaintenanceWorks.AsNoTracking(), target)
             .Select(w => new { w.MaintenanceWorkId, w.Status,
