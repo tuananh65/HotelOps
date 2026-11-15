@@ -5,6 +5,7 @@ export interface AuditRow {
   entityType: string;
   entityId: string;
   occurredAt: string;
+  changedFields?: string[] | null;
 }
 export interface AuditPage {
   items: AuditRow[];
@@ -28,7 +29,10 @@ function row(v: unknown): AuditRow {
     !(v.actor === null || typeof v.actor === "string") ||
     ![v.action, v.entityType, v.entityId, v.occurredAt].every(
       (x) => typeof x === "string",
-    )
+    ) ||
+    (v.changedFields != null &&
+      (!Array.isArray(v.changedFields) ||
+        !v.changedFields.every((x) => typeof x === "string")))
   )
     throw new Error("Invalid audit response");
   return {
@@ -38,6 +42,7 @@ function row(v: unknown): AuditRow {
     entityType: v.entityType as string,
     entityId: v.entityId as string,
     occurredAt: v.occurredAt as string,
+    changedFields: v.changedFields as string[] | null | undefined,
   };
 }
 export async function readAudit(

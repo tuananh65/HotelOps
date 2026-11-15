@@ -14,7 +14,7 @@ internal static class SprintAuthProbe
     internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false, bool reports = false, bool taskEntry = false,string? taskSubmissionReceipt=null,bool taskVerification=false,bool taskDecline=false)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
-        using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(reports ? 8 : taskSubmissionReceipt==null?2:6));
+        using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(reports || audit ? 8 : taskSubmissionReceipt==null?2:6));
         var ct = budget.Token;
         var database=taskCriteria?"HotelOps_DEV3_142A_CriteriaTrial_037b659a":Database;
         var guid=taskCriteria?"57748c4c-9803-49bf-bc30-508e6ea8bd3e":new Guid("1D5A9B53"+"-7D19"+"-435A"+"-96AB"+"-9FDFF447B6E0").ToString();
@@ -92,7 +92,7 @@ internal static class SprintAuthProbe
             checks.Add(new { persistedSession = true });
             await Check(HttpMethod.Get, "/api/auth/session", 200);
             await Check(HttpMethod.Get, "/api/users", 403);
-            if (audit) await SprintAuditScenario.RunAsync(db, http, user.UserId, checks, ct);
+            if (audit) await SprintAuditScenario.RunAsync(db, http, user.UserId, checks, ct, name, password);
             if (roleAssignment) await SprintRoleAssignmentScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct);
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
@@ -137,7 +137,7 @@ internal static class SprintAuthProbe
                     : reports ? "Real HTTPS/SQL and canonical browser report actor restriction, preview snapshot, CSV admission/audit and revocation; detailed RPT indicators remain partial"
                     : dashboard ? "Real HTTPS/SQL auth and scoped dashboard reads; no browser or all-KPI acceptance"
                     : roleAssignment ? "Real HTTPS/SQL auth and supported role assignment with temporary synthetic admin grant; revocation not tested"
-                    : audit ? "Real HTTPS/SQL auth and audit list/detail with temporary branch-scoped SYS_ADMIN grant; no browser acceptance"
+                    : audit ? "Real canonical browser/HTTPS/SQL audit filters, pagination, record chronology and redacted field comparison; branch/global Administrator admission and revocation; no audit mutation endpoint"
                     : "Real HTTPS/SQL login-session-logout; no privileged roles or browser workflow acceptance" },
                 new JsonSerializerOptions { WriteIndented = true }));
         }

@@ -4,6 +4,21 @@ using Xunit;
 
 public sealed class AuditRedactionTests
 {
+    [Fact]
+    public void ExplicitBusinessNullIsDifferentFromUnrecordedOrWithheld()
+        => Assert.Equal("{\"status\":null}",JsonSerializer.Serialize(AuditRedaction.Read("{\"status\":null,\"password\":null}")));
+
+    [Fact]
+    public void RecordedFieldNamesUseSameAllowlistAndNeverRevealSecretKeys()
+        => Assert.Equal(new[]{"isActive","status"}, AuditRedaction.Fields("[\"status\",\"password\",\"token\",\"isActive\",\"STATUS\",{},3]"));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("not-json")]
+    [InlineData("{\"status\":true}")]
+    public void MissingOrMalformedChangedFieldsRemainUnknown(string? value)
+        => Assert.Null(AuditRedaction.Fields(value));
+
     [Theory]
     [InlineData("{\"status\":\"ACTIVE\",\"password\":\"secret\",\"token\":\"secret\"}")]
     [InlineData("{\"status\":\"ACTIVE\",\"unknown\":{\"branchId\":\"secret\"}}")]

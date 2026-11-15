@@ -5,14 +5,25 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Insights;
 
-public sealed class AuditReadService(HotelOpsDbContext db, InsightAccess access)
+public sealed class AuditReadService(HotelOpsDbContext db, AuditAccess access)
 {
+    public async Task<InsightOptions> OptionsAsync(CancellationToken ct)
+    {
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([access.UserId], ct);
+        var ids = await access.BranchesAsync(null, ct);
+        var branches = await db.Branches.AsNoTracking().Where(b => ids.Contains(b.BranchId)).OrderBy(b => b.BranchId)
+            .Select(b => new InsightBranch(b.BranchId, b.BranchCode, b.BranchName)).ToArrayAsync(ct);
+        await tx.CommitAsync(ct);
+        return new(branches, [], "UTC", 30, 50000);
+    }
+
     private async Task<IQueryable<AuditLog>> ScopedAsync(AuditQuery query, CancellationToken ct)
     {
         if (query.DepartmentId is not null)
             throw new InsightException(400, "AUDIT_DEPARTMENT_UNAVAILABLE", "Audit entries do not record a department scope.");
-        var global = await access.HasGlobalAsync("AUDIT_VIEW", ct);
-        long[] branches = global && query.BranchId is null ? [] : await access.BranchesAsync("AUDIT_VIEW", query.BranchId, ct);
+        var global = await access.HasGlobalAsync(ct);
+        long[] branches = global && query.BranchId is null ? [] : await access.BranchesAsync(query.BranchId, ct);
         var q = db.AuditLogs.AsNoTracking();
         if (!global || query.BranchId is not null) q = q.Where(a => a.BranchId.HasValue && branches.Contains(a.BranchId.Value));
         if (query.From is { } from) q = q.Where(a => a.OccurredAt >= from.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc));
@@ -36,26 +47,28 @@ public sealed class AuditReadService(HotelOpsDbContext db, InsightAccess access)
         if (query.Page <= 0 || query.PageSize is < 1 or > 100 || (long)(query.Page - 1) * query.PageSize > int.MaxValue)
             throw new InsightException(400, "INVALID_PAGE", "Invalid page.");
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([access.UserId], ct);
         var q = await ScopedAsync(query, ct);
         var count = await q.CountAsync(ct);
         var entries = await q.OrderByDescending(a => a.OccurredAt).ThenByDescending(a => a.AuditId)
             .Skip((query.Page - 1) * query.PageSize).Take(query.PageSize)
-            .Select(a => new { a.AuditId, a.BranchId, a.ActorUserId, Actor = a.ActorUser == null ? null : a.ActorUser.FullName, a.Action, a.EntityType, a.EntityId, a.OccurredAt }).ToArrayAsync(ct);
+            .Select(a => new { a.AuditId, a.BranchId, a.ActorUserId, Actor = a.ActorUser == null ? null : a.ActorUser.FullName, a.Action, a.EntityType, a.EntityId, a.OccurredAt, a.ChangedFields }).ToArrayAsync(ct);
         await tx.CommitAsync(ct);
         return new(entries.Select(a => new AuditListRow(a.AuditId, a.BranchId, a.ActorUserId, a.Actor,
-            a.Action, a.EntityType, a.EntityId, InsightAccess.Utc(a.OccurredAt))).ToArray(), count, query.Page, query.PageSize);
+            a.Action, a.EntityType, a.EntityId, InsightAccess.Utc(a.OccurredAt), AuditRedaction.Fields(a.ChangedFields))).ToArray(), count, query.Page, query.PageSize);
     }
 
     public async Task<AuditDetail> DetailAsync(long id, CancellationToken ct)
     {
         await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([access.UserId], ct);
         var q = await ScopedAsync(new(), ct);
         var row = await q.Where(a => a.AuditId == id).Select(a => new { a.AuditId, a.BranchId, a.ActorUserId,
             Actor = a.ActorUser == null ? null : a.ActorUser.FullName, a.Action, a.EntityType, a.EntityId, a.OccurredAt,
-            a.RequestId, a.OldValues, a.NewValues }).SingleOrDefaultAsync(ct);
+            a.RequestId, a.OldValues, a.NewValues, a.ChangedFields }).SingleOrDefaultAsync(ct);
         if (row is null) throw new InsightException(404, "AUDIT_NOT_FOUND", "Audit entry unavailable.");
         var entry = new AuditListRow(row.AuditId, row.BranchId, row.ActorUserId, row.Actor, row.Action, row.EntityType,
-            row.EntityId, InsightAccess.Utc(row.OccurredAt));
+            row.EntityId, InsightAccess.Utc(row.OccurredAt), AuditRedaction.Fields(row.ChangedFields));
         var detail = new AuditDetail(entry, row.RequestId, AuditRedaction.Read(row.OldValues), AuditRedaction.Read(row.NewValues),
             "dbo.audit_logs / audit_id; persisted source event; unrecorded changes are unavailable", true);
         await tx.CommitAsync(ct);

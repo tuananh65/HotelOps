@@ -56,7 +56,7 @@ export function approvedReturnDestination(
   const safe = validateReturnUrl(value);
   if (!safe || !revalidated) return null;
   const path = safe.split("?")[0];
-  if (safe === "/reports") return safe;
+  if (safe === "/reports" || safe === "/audit") return safe;
   const inspection =
     /^\/(?:inspections|reinspections)\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
       path,

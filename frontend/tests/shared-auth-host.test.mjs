@@ -1185,7 +1185,7 @@ test("dashboard rejects foreign department options, supports explicit retry and 
   );
   assert.equal(
     await p.evaluate(
-      () => window.calls.filter((x) => x.endsWith("/options")).length,
+      () => window.calls.filter((x) => x === "/api/dashboards/options").length,
     ),
     1,
   );

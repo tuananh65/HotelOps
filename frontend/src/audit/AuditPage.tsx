@@ -1,6 +1,8 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
+import { auditChanges, auditValue, recordHistoryQuery } from "./auditHistory";
+import type { AuditRow } from "./auditApi";
 import type { AuthorityGeneration } from "../auth/authStore";
 import {
   AuditFailure,
@@ -71,6 +73,24 @@ export function AuditPage() {
   const data = visible?.data;
   const list = data && "items" in data ? data : null;
   const detail = data && "entry" in data ? data : null;
+  const changes = detail ? auditChanges(detail.before, detail.after) : [];
+  function history(entry: AuditRow) {
+    const next = recordHistoryQuery(entry, query);
+    const params = new URLSearchParams(next);
+    setDraft({
+      branchId: params.get("branchId") ?? "",
+      actorId: "",
+      entityType: entry.entityType,
+      entityId: entry.entityId,
+      action: "",
+      search: "",
+      from: "",
+      to: "",
+    });
+    setId(null);
+    setQuery(next);
+    setRetry((n) => n + 1);
+  }
   function apply(event: FormEvent) {
     event.preventDefault();
     const params = new URLSearchParams({ page: "1", pageSize: "25" });
@@ -123,6 +143,13 @@ export function AuditPage() {
             <button type="submit">Apply filters</button>
           </form>
           {visible?.error && <p role="alert">{visible.error}</p>}
+          <p aria-label="Applied audit filters">
+            Applied filters:{" "}
+            {[...new URLSearchParams(query)]
+              .filter(([k]) => k !== "page" && k !== "pageSize")
+              .map(([k, v]) => `${k}=${v}`)
+              .join("; ") || "All permitted audit records"}
+          </p>
           {!visible && <p role="status">Loading audit history…</p>}
           <button
             onClick={() => {
@@ -135,7 +162,10 @@ export function AuditPage() {
             <>
               <p>{list.totalCount} entries</p>
               {list.items.length === 0 ? (
-                <p>No matching audit entries.</p>
+                <p role="status">
+                  MSG10: No matching audit entries. Change the filters to
+                  continue.
+                </p>
               ) : (
                 <table>
                   <thead>
@@ -144,6 +174,7 @@ export function AuditPage() {
                       <th>Actor</th>
                       <th>Action</th>
                       <th>Record</th>
+                      <th>Summary / recorded changes</th>
                       <th>Details</th>
                     </tr>
                   </thead>
@@ -157,8 +188,17 @@ export function AuditPage() {
                           {row.entityType} / {row.entityId}
                         </td>
                         <td>
+                          {row.action}:{" "}
+                          {row.changedFields?.length
+                            ? row.changedFields.join(", ")
+                            : "Field names not recorded or withheld"}
+                        </td>
+                        <td>
                           <button onClick={() => setId(row.id)}>
                             View entry {row.id}
+                          </button>
+                          <button onClick={() => history(row)}>
+                            View record history {row.id}
                           </button>
                         </td>
                       </tr>
@@ -194,6 +234,39 @@ export function AuditPage() {
                 {detail.entry.occurredAt} — {detail.entry.actor ?? "System"}
               </p>
               <p>Sensitive and unsupported fields are withheld.</p>
+              <button onClick={() => history(detail.entry)}>
+                View this record's history
+              </button>
+              <h3>Changed fields</h3>
+              {changes.length === 0 ? (
+                <p>
+                  No comparable recorded changes. Missing or withheld values are
+                  not reconstructed.
+                </p>
+              ) : (
+                <table aria-label="Field changes">
+                  <thead>
+                    <tr>
+                      <th>Field</th>
+                      <th>Before</th>
+                      <th>After</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {changes.map((change) => (
+                      <tr key={change.field}>
+                        <td>{change.field}</td>
+                        <td>
+                          {auditValue(change.before, change.beforeRecorded)}
+                        </td>
+                        <td>
+                          {auditValue(change.after, change.afterRecorded)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
               <h3>Before</h3>
               <pre>{JSON.stringify(detail.before, null, 2)}</pre>
               <h3>After</h3>

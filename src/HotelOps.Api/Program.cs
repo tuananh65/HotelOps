@@ -45,6 +45,7 @@ builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOpt
 builder.Services.AddScoped<HotelOps.Api.Services.OperationalTasks.TaskSeriesGeneration>();
 builder.Services.AddHostedService<HotelOps.Api.Services.OperationalTasks.TaskSeriesWorker>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.DashboardService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportService>();

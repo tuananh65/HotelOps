@@ -1,0 +1,16 @@
+[
+    {
+        "trial":  1,
+        "success":  false,
+        "cleanup":  true,
+        "failure":  "Exception: Audit browser failed at scope and readonly",
+        "fix":  "Unsupported methods are 404 under canonical API fallback, not 405; no API mutation handler was added"
+    },
+    {
+        "trial":  2,
+        "success":  false,
+        "cleanup":  true,
+        "failure":  "Exception: Audit browser failed at filter list",
+        "fix":  "Browser response waiter now matches filtered entityType rather than racing initial global list"
+    }
+]

@@ -1,0 +1,10 @@
+{
+    "checkedAtUtc":  "2026-11-15T16:25:40.4458411Z",
+    "database":  "HotelOps_DEV3_142A_20261114_cc78c13f",
+    "syntheticRows":  0,
+    "httpsHosts":  0,
+    "identityEvidence":  "checkpoint76-cleanup-sql.txt",
+    "schemaChanged":  false,
+    "sharedDatabaseMutated":  false,
+    "success":  true
+}

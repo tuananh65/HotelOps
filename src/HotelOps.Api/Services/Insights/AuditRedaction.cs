@@ -17,6 +17,22 @@ public static class AuditRedaction
         "dueAt", "occurredAt", "fromStatus", "toStatus", "format", "rowCount", "snapshotId"
     };
 
+    public static IReadOnlyList<string>? Fields(string? json)
+    {
+        if (json is null || json.Length > 100_000) return null;
+        try
+        {
+            using var document = JsonDocument.Parse(json, new JsonDocumentOptions { MaxDepth = 4 });
+            if (document.RootElement.ValueKind != JsonValueKind.Array) return null;
+            return document.RootElement.EnumerateArray()
+                .Where(value => value.ValueKind == JsonValueKind.String)
+                .Select(value => value.GetString()!)
+                .Where(Allowed.Contains).Distinct(StringComparer.OrdinalIgnoreCase)
+                .Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        }
+        catch (JsonException) { return null; }
+    }
+
     public static object? Read(string? json)
     {
         if (json is null) return null;
@@ -35,6 +51,7 @@ public static class AuditRedaction
         foreach (var pair in obj)
         {
             if (!Allowed.Contains(pair.Key)) continue;
+            if (pair.Value is null) { result[pair.Key] = null; continue; }
             // Accepted fields contain scalar business facts only, never nested blobs.
             if (pair.Value is JsonValue scalar) result[pair.Key] = scalar.DeepClone();
         }

@@ -62,7 +62,7 @@ public sealed class ExportRequest
 }
 public sealed record ExportFile(byte[] Content, string ContentType, string Name);
 public sealed record AuditListRow(long Id, long? BranchId, long? ActorId, string? Actor, string Action,
-    string EntityType, string EntityId, DateTimeOffset OccurredAt);
+    string EntityType, string EntityId, DateTimeOffset OccurredAt, IReadOnlyList<string>? ChangedFields = null);
 public sealed record AuditPage(IReadOnlyList<AuditListRow> Items, int TotalCount, int Page, int PageSize);
 public sealed record AuditDetail(AuditListRow Entry, string? RequestId, object? Before, object? After,
     string Provenance, bool Redacted);
