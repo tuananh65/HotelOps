@@ -69,6 +69,17 @@ async function fixture(run) {
       const evidence = state.evidence ? { evidenceCount: 2, evidence: [{ id: older ? 1 : 2, name: older ? "older.png" : "latest.png", mimeType: "image/png", size: 8, downloadPath: `/api/internal-requests/1/progress/evidence/${older ? 1 : 2}` }] } : {};
       return json({requestId:1,status:"IN_PROGRESS",version:older && state.changedEvidence ? "AAAAAAAAAAE=" : "AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false,...evidence},older ? (state.olderStatus??200) : (state.progressStatus??200));
     }
+    if (path === "/api/internal-requests/1/linked-incidents") {
+      if(request.method()==="POST") {
+        state.incidentPosts=(state.incidentPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        assert.deepEqual(request.postDataJSON(),{incidentId:7,mandatory:true});
+        return json({},412);
+      }
+      return json({requestId:1,branchId:1,version:"AAAAAAAAAAA=",canLink:true,page:1,total:1,
+        candidates:new URL(request.url()).searchParams.get("candidates")==="true",
+        items:[{incidentId:7,code:"INC7",title:"PRIVATE INCIDENT",state:"OPEN",mandatory:true,path:"/operations/incidents/7"}]});
+    }
     if (path === "/api/internal-requests/1/linked-tasks") {
       if(request.method()==="POST") {
         state.linkPosts=(state.linkPosts??0)+1;
@@ -283,4 +294,17 @@ test("withdrawal double click sends once and loses authority with session",async
   state.session=401;await page.evaluate(()=>window.historyStore.revalidate());
   await page.getByRole("button",{name:"Sign in",exact:true}).waitFor();state.release?.();
   assert.equal(state.withdrawalPosts,1);assert.equal(await page.getByLabel("Withdrawal reason",{exact:true}).count(),0);
+}));
+
+test("incident linking requires explicit mandatory selection and never replays stale submission",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Linked incidents",exact:true});
+  await panel.getByRole("button",{name:"Link existing incident",exact:true}).click();
+  await panel.getByLabel("Open incident",{exact:true}).selectOption("7");
+  await panel.getByRole("button",{name:"Save incident link",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Select an incident and whether"}).waitFor();assert.equal(state.incidentPosts??0,0);
+  await panel.getByLabel("Completion requirement",{exact:true}).selectOption("required");
+  await panel.getByRole("button",{name:"Save incident link",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
+  assert.equal(state.incidentPosts,1);assert.equal(await panel.getByLabel("Open incident",{exact:true}).count(),0);
 }));

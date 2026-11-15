@@ -61,7 +61,7 @@ internal static class SprintDepartmentAuthorityScenario
             {
                 if(Environment.GetEnvironmentVariable("DEV3_VERIFY_INCIDENT_READ")=="1")
                 {
-                    await SprintIncidentReadScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,branch,department,checks,ct,
+                    await SprintIncidentReadScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,branch,department,requests[0],checks,ct,
                         username??throw new Exception("Username required"),password??throw new Exception("Password required"));
                     return;
                 }

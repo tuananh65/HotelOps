@@ -5,6 +5,7 @@ import { InternalRequestDecisionPanel } from "./DecisionPanel";
 import { InternalRequestProgressPanel } from "./ProgressPanel";
 import { InternalRequestTaskLinksPanel } from "./TaskLinksPanel";
 import { InternalRequestCleaningLinksPanel } from "./CleaningLinksPanel";
+import { InternalRequestIncidentLinksPanel } from "./IncidentLinksPanel";
 import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
 import {
   decodeHistory,
@@ -62,6 +63,7 @@ export function InternalRequestHistoryPage() {
   const [overdue, setOverdue] = useState(false);
   const [filters, setFilters] = useState({
     status: "",
+    direction: "",
     requestTypeId: "",
     priorityId: "",
     receivingDepartmentId: "",
@@ -208,6 +210,7 @@ export function InternalRequestHistoryPage() {
                 onClick={() => {
                   setFilters({
                     status: "",
+                    direction: "",
                     requestTypeId: "",
                     priorityId: "",
                     receivingDepartmentId: "",
@@ -221,6 +224,17 @@ export function InternalRequestHistoryPage() {
               </button>
             </>
           )}
+          <label>
+            Direction
+            <select aria-label="Direction" value={filters.direction} onChange={e => {
+              setFilters(current => ({ ...current, direction: e.target.value }));
+              setPage(1);
+            }}>
+              <option value="">All visible requests</option>
+              <option value="SENT">Sent</option>
+              <option value="RECEIVED">Received</option>
+            </select>
+          </label>
           <label>
             <input
               type="checkbox"
@@ -305,6 +319,7 @@ export function InternalRequestHistoryPage() {
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
           <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
+          <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
           <h3>Events</h3>
           {visible.timeline.events.length === 0 && (
             <p>No events on this page.</p>

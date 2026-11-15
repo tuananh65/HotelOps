@@ -6,7 +6,7 @@ namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestHistoryFilter(
     long? RequestTypeId = null, long? PriorityId = null, long? ReceivingDepartmentId = null,
-    string? Status = null, string? Search = null, bool? Overdue = null, int Page = 1, int PageSize = 25);
+    string? Status = null, string? Search = null, bool? Overdue = null, int Page = 1, int PageSize = 25, string? Direction = null);
 public sealed record InternalRequestHistoryRow(long Id, string Number, long BranchId, string Subject,
     string Status, long TypeId, long? PriorityId, long? ReceivingDepartmentId, DateTime? Deadline, bool Overdue,
     long? CurrentAssigneeId, int ActiveAssignmentCount);

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintIncidentReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db, HttpClient http, long actor, long branch, long department,
+    internal static async Task RunAsync(HotelOpsDbContext db, HttpClient http, long actor, long branch, long department, long request,
         List<object> checks, CancellationToken ct, string username, string password)
     {
         void Check(bool ok,string label){if(!ok)throw new Exception(label);checks.Add(new{incidentReadCheck=label});}
@@ -52,6 +52,8 @@ internal static class SprintIncidentReadScenario
         await db.UserRoles.Where(r=>r.UserRoleId==assignment.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
         Check((await Get(list)).Status==403,"revoked role denies even incident reporter");
         await db.UserRoles.Where(r=>r.UserRoleId==assignment.UserRoleId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
+        if(Environment.GetEnvironmentVariable("DEV3_VERIFY_INCIDENT_LINK")=="1")
+            await SprintIncidentLinkScenario.RunAsync(db,http,actor,request,own.IncidentId,unrelated.IncidentId,outside.IncidentId,checks,ct,username,password);
         var token=await http.GetFromJsonAsync<JsonElement>("/api/auth/csrf",ct);using var mutation=new HttpRequestMessage(HttpMethod.Patch,$"/api/incidents/{own.IncidentId}/status"){Content=JsonContent.Create(new{actorUserId=actor,status="IN_PROGRESS"})};mutation.Headers.Add("X-CSRF-TOKEN",token.GetProperty("csrfToken").GetString());
         using var denied=await http.SendAsync(mutation,ct);Check((int)denied.StatusCode==403,"read contract does not admit incident mutations");
     }
