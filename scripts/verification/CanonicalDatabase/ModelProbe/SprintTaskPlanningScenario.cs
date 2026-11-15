@@ -138,5 +138,7 @@ internal static class SprintTaskPlanningScenario
         }finally{if(!process.HasExited)process.Kill(entireProcessTree:true);}}
         if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskSeries.V1'").SingleAsync(ct) == 1)
             await SprintTaskSeriesScenario.RunAsync(db, executor, managerHttp, actor, manager, branch, foreign, Input(), checks, ct, username, password);
+        if (Environment.GetEnvironmentVariable("DEV3_VERIFY_TASK_NOTIFICATION_RETENTION") == "1")
+            await SprintTaskNotificationRetentionScenario.RunAsync(db, checks, ct);
     }
 }

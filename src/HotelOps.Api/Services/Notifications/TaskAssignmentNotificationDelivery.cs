@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Text.Json;
 using HotelOps.Api.Data;
@@ -8,16 +9,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Notifications;
 
-internal sealed class TaskAssignmentNotificationDelivery(HotelOpsDbContext db,TimeProvider clock)
+internal sealed class TaskAssignmentNotificationDelivery(HotelOpsDbContext db,TimeProvider clock,IOptions<NotificationCenterOptions> retention)
 {
+    public TaskAssignmentNotificationDelivery(HotelOpsDbContext db, TimeProvider clock) : this(db, clock, Options.Create(new NotificationCenterOptions())) { }
+
     internal async Task<long[]> ReadPendingAsync(long after,int limit,CancellationToken ct)
     {
         if(limit is <1 or >100)throw new ArgumentOutOfRangeException(nameof(limit));
         if(!await TaskDeclineStore.InstalledAsync(db,ct))return [];
+        var window=NotificationRetention.At(clock.GetUtcNow().UtcDateTime,retention.Value);
         return await db.Database.SqlQuery<long>($"""
             SELECT TOP({limit}) e.audit_id AS Value FROM dbo.audit_logs e
             CROSS APPLY(SELECT CASE WHEN ISJSON(e.new_values)=1 THEN e.new_values ELSE N'[]' END AS payload) j
-            WHERE e.audit_id>{after} AND e.entity_type='operational_tasks' AND e.action='UPDATE'
+            WHERE e.occurred_at>={window.Cutoff} AND e.occurred_at<={window.Now} AND e.audit_id>{after} AND e.entity_type='operational_tasks' AND e.action='UPDATE'
               AND JSON_VALUE(j.payload,'$.operation')='ASSIGN'
               AND EXISTS(SELECT 1 FROM OPENJSON(j.payload,'$.recipients') r
               WHERE TRY_CONVERT(bigint,r.value)>0 AND NOT EXISTS(SELECT 1 FROM dbo.notifications n
@@ -41,6 +45,7 @@ internal sealed class TaskAssignmentNotificationDelivery(HotelOpsDbContext db,Ti
         var row=await TaskAssignmentStore.Query(db).SingleOrDefaultAsync(s=>s.AuditId==progress,ct);
         if(row==null||row.AuditId!=hint.AuditId||row.AssigneeId!=hint.AssigneeId||row.PreviousAssigneeId!=hint.PreviousAssigneeId)return "SOURCE_DENIED";
         var now=clock.GetUtcNow().UtcDateTime;
+        if(!NotificationRetention.At(now,retention.Value).Contains(row.AssignedAt))return "EVENT_OUTSIDE_RETENTION";
         var eligible=new List<long>();
         foreach(var user in recipients)
         {

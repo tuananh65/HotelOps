@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using System.Data;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
@@ -7,13 +8,16 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Notifications;
 
-internal sealed class TaskReopenNotificationDelivery(HotelOpsDbContext db, TimeProvider clock)
+internal sealed class TaskReopenNotificationDelivery(HotelOpsDbContext db, TimeProvider clock,IOptions<NotificationCenterOptions> retention)
 {
+    public TaskReopenNotificationDelivery(HotelOpsDbContext db, TimeProvider clock) : this(db, clock, Options.Create(new NotificationCenterOptions())) { }
+
     internal async Task<long[]> ReadPendingAsync(long after, int limit, CancellationToken ct)
     {
         if (limit is < 1 or > 100) throw new ArgumentOutOfRangeException(nameof(limit));
         if (!await TaskReopenStore.InstalledAsync(db, ct)) return [];
-        return await TaskReopenStore.Query(db).Where(e => e.AuditId > after && !db.Notifications.Any(n => n.SourceType == "TASK_REOPEN"
+        var window = NotificationRetention.At(clock.GetUtcNow().UtcDateTime, retention.Value);
+        return await TaskReopenStore.Query(db).Where(e => e.AuditId > after && e.ReopenedAt >= window.Cutoff && e.ReopenedAt <= window.Now && !db.Notifications.Any(n => n.SourceType == "TASK_REOPEN"
             && n.SourceId == e.AuditId && n.NotificationType == "TASK_REOPENED" && n.NotificationRecipients.Any(r => r.UserId == e.AssigneeId
                 && r.DeliveryChannel == "IN_APP" && r.DeliveryStatus == "DELIVERED"))).OrderBy(e => e.AuditId).Take(limit).Select(e => e.AuditId).ToArrayAsync(ct);
     }
@@ -29,6 +33,7 @@ internal sealed class TaskReopenNotificationDelivery(HotelOpsDbContext db, TimeP
         var row = await TaskReopenStore.Query(db).SingleOrDefaultAsync(s => s.AuditId == id, ct);
         if (row == null || row.AssigneeId != hint.AssigneeId || row.TaskId != hint.TaskId || row.AssignmentId != hint.AssignmentId) return "SOURCE_DENIED";
         var now = clock.GetUtcNow().UtcDateTime;
+        if (!NotificationRetention.At(now, retention.Value).Contains(row.ReopenedAt)) return "EVENT_OUTSIDE_RETENTION";
         if (!await TaskAssignmentEligibility.Candidates(db, row.BranchId, row.DepartmentId, now).AnyAsync(u => u.UserId == row.AssigneeId, ct)
             || !await TaskVerificationStore.ExecutorReadAsync(db, row.AssigneeId, row.BranchId, row.TaskId, now, ct)) return "RECIPIENT_READ_DENIED";
         var notices = await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE source_type='TASK_REOPEN' AND source_id={id}").AsNoTracking().ToArrayAsync(ct);

@@ -23,7 +23,7 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
     }
     private IQueryable<NotificationRecipient> Inbox(long user,DateTime now)
     {
-        var cutoff=now.AddDays(-options.Value.RetentionDays);
+        var cutoff=NotificationRetention.At(now,options.Value).Cutoff;
         return db.NotificationRecipients.Where(r=>r.UserId==user&&r.DeliveryChannel=="IN_APP"&&r.DeliveryStatus=="DELIVERED"
             &&r.Notification.CreatedAt>=cutoff&&r.Notification.CreatedAt<=now&&(r.Notification.ExpiresAt==null||r.Notification.ExpiresAt>now));
     }

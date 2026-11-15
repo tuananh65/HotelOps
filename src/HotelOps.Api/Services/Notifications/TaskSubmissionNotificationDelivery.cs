@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using System.Data;
 using System.Text.Json;
 using HotelOps.Api.Data;
@@ -8,15 +9,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Notifications;
 
-internal sealed class TaskSubmissionNotificationDelivery(HotelOpsDbContext db,TimeProvider clock)
+internal sealed class TaskSubmissionNotificationDelivery(HotelOpsDbContext db,TimeProvider clock,IOptions<NotificationCenterOptions> retention)
 {
+    public TaskSubmissionNotificationDelivery(HotelOpsDbContext db, TimeProvider clock) : this(db, clock, Options.Create(new NotificationCenterOptions())) { }
+
     internal async Task<long[]> ReadPendingAsync(long after,int limit,CancellationToken ct)
     {
         if(limit is <1 or >100)throw new ArgumentOutOfRangeException(nameof(limit));
         if(!await TaskSubmissionStore.InstalledAsync(db,ct))return [];
+        var window=NotificationRetention.At(clock.GetUtcNow().UtcDateTime,retention.Value);
         return await db.Database.SqlQuery<long>($"""
             SELECT TOP({limit}) e.progress_id AS Value FROM dbo.task_submission_events e
-            WHERE e.progress_id>{after} AND EXISTS(SELECT 1 FROM OPENJSON(e.recipients_json) r
+            WHERE e.submitted_at>={window.Cutoff} AND e.submitted_at<={window.Now} AND e.progress_id>{after} AND EXISTS(SELECT 1 FROM OPENJSON(e.recipients_json) r
               WHERE TRY_CONVERT(bigint,r.value)>0 AND NOT EXISTS(SELECT 1 FROM dbo.notifications n
                 JOIN dbo.notification_recipients x ON x.notification_id=n.notification_id
                 WHERE n.notification_type='TASK_SUBMITTED' AND n.source_type='TASK_SUBMISSION' AND n.source_id=e.progress_id
@@ -38,6 +42,7 @@ internal sealed class TaskSubmissionNotificationDelivery(HotelOpsDbContext db,Ti
         var row=await TaskSubmissionStore.Query(db).SingleOrDefaultAsync(s=>s.ProgressId==progress,ct);
         if(row==null||row.AuditId!=hint.AuditId||row.RecipientsJson!=hint.RecipientsJson)return "SOURCE_DENIED";
         var now=clock.GetUtcNow().UtcDateTime;
+        if(!NotificationRetention.At(now,retention.Value).Contains(row.SubmittedAt))return "EVENT_OUTSIDE_RETENTION";
         var managers=await TaskSubmissionAccess.ManagersAsync(db,row.BranchId,now,ct);
         var eligible=recipients.Where(u=>u!=row.SubmittedBy&&managers.Contains(u)).ToArray();
         var notices=await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE notification_type='TASK_SUBMITTED' AND source_type='TASK_SUBMISSION' AND source_id={progress}").AsNoTracking().ToArrayAsync(ct);

@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using System.Data;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
@@ -7,16 +8,19 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Notifications;
 
-internal sealed class TaskVerificationNotificationDelivery(HotelOpsDbContext db,TimeProvider clock)
+internal sealed class TaskVerificationNotificationDelivery(HotelOpsDbContext db,TimeProvider clock,IOptions<NotificationCenterOptions> retention)
 {
+    public TaskVerificationNotificationDelivery(HotelOpsDbContext db, TimeProvider clock) : this(db, clock, Options.Create(new NotificationCenterOptions())) { }
+
     internal async Task<long[]> ReadPendingAsync(long after,int limit,CancellationToken ct)
     {
         if(limit is <1 or >100)throw new ArgumentOutOfRangeException(nameof(limit));
         if(!await TaskVerificationStore.InstalledAsync(db,ct))return [];
+        var window=NotificationRetention.At(clock.GetUtcNow().UtcDateTime,retention.Value);
         return await db.Database.SqlQuery<long>($"""
             SELECT TOP({limit}) v.submission_id AS Value FROM dbo.task_verification_events v
             JOIN dbo.task_submission_events e ON e.progress_id=v.submission_id
-            WHERE v.submission_id>{after} AND NOT EXISTS(SELECT 1 FROM dbo.notifications n
+            WHERE v.decided_at>={window.Cutoff} AND v.decided_at<={window.Now} AND v.submission_id>{after} AND NOT EXISTS(SELECT 1 FROM dbo.notifications n
               JOIN dbo.notification_recipients r ON r.notification_id=n.notification_id
               WHERE n.source_type='TASK_VERIFICATION' AND n.source_id=v.submission_id
                 AND n.notification_type=CASE WHEN v.decision='ACCEPT' THEN 'TASK_VERIFIED' ELSE 'TASK_RETURNED' END
@@ -36,6 +40,7 @@ internal sealed class TaskVerificationNotificationDelivery(HotelOpsDbContext db,
         var row=await TaskVerificationStore.Query(db).SingleOrDefaultAsync(v=>v.SubmissionId==id,ct);
         if(row==null||row.AuditId!=hint.AuditId||!await TaskSubmissionStore.Query(db).AnyAsync(s=>s.ProgressId==id&&s.SubmittedBy==row.SubmittedBy,ct))return "SOURCE_DENIED";
         var now=clock.GetUtcNow().UtcDateTime;
+        if(!NotificationRetention.At(now,retention.Value).Contains(row.DecidedAt))return "EVENT_OUTSIDE_RETENTION";
         if(!await TaskVerificationStore.ExecutorReadAsync(db,row.SubmittedBy,row.BranchId,row.TaskId,now,ct))return "RECIPIENT_READ_DENIED";
         var kind=row.Decision=="ACCEPT"?"TASK_VERIFIED":"TASK_RETURNED";
         var notices=await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE source_type='TASK_VERIFICATION' AND source_id={id}").AsNoTracking().ToArrayAsync(ct);

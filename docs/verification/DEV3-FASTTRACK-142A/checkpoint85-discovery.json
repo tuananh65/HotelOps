@@ -1,0 +1,174 @@
+{
+  "success": true,
+  "readOnly": true,
+  "checks": [
+    {
+      "kind": "Submission",
+      "days": 30,
+      "future": false,
+      "pendingCount": 4
+    },
+    {
+      "kind": "Submission",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Submission",
+      "days": 365,
+      "future": false,
+      "pendingCount": 4
+    },
+    {
+      "kind": "Submission",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Verification",
+      "days": 30,
+      "future": false,
+      "pendingCount": 4
+    },
+    {
+      "kind": "Verification",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Verification",
+      "days": 365,
+      "future": false,
+      "pendingCount": 4
+    },
+    {
+      "kind": "Verification",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Decline",
+      "days": 30,
+      "future": false,
+      "pendingCount": 5
+    },
+    {
+      "kind": "Decline",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Decline",
+      "days": 365,
+      "future": false,
+      "pendingCount": 5
+    },
+    {
+      "kind": "Decline",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Assignment",
+      "days": 30,
+      "future": false,
+      "pendingCount": 19
+    },
+    {
+      "kind": "Assignment",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Assignment",
+      "days": 365,
+      "future": false,
+      "pendingCount": 19
+    },
+    {
+      "kind": "Assignment",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Plan",
+      "days": 30,
+      "future": false,
+      "pendingCount": 4
+    },
+    {
+      "kind": "Plan",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Plan",
+      "days": 365,
+      "future": false,
+      "pendingCount": 4
+    },
+    {
+      "kind": "Plan",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Series",
+      "days": 30,
+      "future": false,
+      "pendingCount": 2
+    },
+    {
+      "kind": "Series",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Series",
+      "days": 365,
+      "future": false,
+      "pendingCount": 2
+    },
+    {
+      "kind": "Series",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Reopen",
+      "days": 30,
+      "future": false,
+      "pendingCount": 3
+    },
+    {
+      "kind": "Reopen",
+      "days": 30,
+      "future": true,
+      "pendingCount": 0
+    },
+    {
+      "kind": "Reopen",
+      "days": 365,
+      "future": false,
+      "pendingCount": 3
+    },
+    {
+      "kind": "Reopen",
+      "days": 365,
+      "future": true,
+      "pendingCount": 0
+    }
+  ]
+}

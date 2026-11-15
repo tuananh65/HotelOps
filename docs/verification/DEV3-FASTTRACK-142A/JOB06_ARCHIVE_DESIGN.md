@@ -24,6 +24,8 @@ Never cascade, disable FK/immutability triggers, rewrite receipt IDs or delete r
 4. For unreferenced rows, insert an exact archive copy idempotently by original ID. A differing existing copy fails the batch. Verify fields/policy, then delete only still-unreferenced verified originals. Copy/delete/FK failure rolls back everything. Commit and record copied/deleted/skipped counts and retry outcome without payload leakage.
 5. Notification retention remains independent, but delivery retry must first respect the event-age cutoff: deleting an old notification must not make durable producers recreate it as undelivered. Verify this before activating notification purge.
 
+Checkpoint85 implementation covers this prerequisite for the seven FE11 dispatchers (submission, verification, decline, assignment, plan/cancel, series stop, reopen), using the inbox retention configuration at discovery and again after acquiring delivery locks. FE05 and provisional cleaning delivery still need equivalent review/verification. This does not activate JOB06, archive audit, or authorize any deletion outside the synthetic trial.
+
 This slice addresses unreferenced audit only; receipt-linked audit remains an explicit JOB06 gap.
 
 ## Referenced-audit migration path
