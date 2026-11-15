@@ -30,6 +30,12 @@ Decision39: UC035 initial assigned-source read is independent of Start/workday a
 
 ## FE05 effective readiness (approved after checkpoint31)
 
+### DEV3 technical decision41: isolated restricted SQL runtime
+
+Use SQL Server application-role activation for the disposable Development HTTPS trial. The existing principal proof-DML denial remains mandatory; there is no special successful path for an administrator. Activation uses direct RPC, no reversal cookie, encrypted nonpooled connections, and no ambient transaction enlistment. Verify actual server/database GUID and ownership marker before activation; verify the effective role and denied database CONTROL afterwards. Invalid identity/secret/configuration closes the connection. Every new EF connection and the raw startup schema check must activate the role before application queries. No server login, server setting, shared database, generated entity or production configuration change is authorized by this trial.
+
+Temporary roles receive SELECT/metadata and only the authentication/rework/audit/interval writes needed for the selected workflow, with explicit proof DML denial. Passwords are random and passed only in process memory/environment. The verifier owns host shutdown, role removal, synthetic-row and private-file cleanup. This is an isolated acceptance mechanism, not a production deployment plan. SQL behavior was checked against [Microsoft application-role documentation](https://learn.microsoft.com/sql/relational-databases/security/authentication-access/application-roles) and [connection pooling guidance](https://learn.microsoft.com/en-us/sql/connect/ado-net/sql-server-connection-pooling).
+
 Keep existing rooms.operational_status values. Never write BLOCKED into that column or translate it to OUT_OF_SERVICE. Calculate effective readiness using GBR-044: inactive first, then any effective block, then current cleaning/inspection lifecycle. Passed inspection is Ready only without effective blocks and with all lifecycle conditions met. Removing one block must recalculate from current data, including other blocks and the current cycle.
 
 APIs, Room Status Board, Dashboard and all room-usability consumers must use effective readiness. Unsupported or unknown readiness must fail closed for use decisions. Preserve history, transaction, concurrency and MSG17. Verify Passed+block, multiple blocks, removal, failed inspection and concurrent block changes. Do not alter generated entities or CHECK constraints to introduce status codes.

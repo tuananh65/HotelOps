@@ -1,0 +1,15 @@
+{
+  "success": true,
+  "checks": [
+    "role creation rollback",
+    "invalid password/identity closes connection without fallback",
+    "invalid password/identity closes connection without fallback",
+    "EF async connections activate restricted role on reopen",
+    "effective principal restricted; audit DML and database CONTROL denied",
+    "authorized read succeeds",
+    "real forbidden DML denied",
+    "restricted serializable transaction supported",
+    "application role removed; no pooled restricted connection"
+  ],
+  "failure": null
+}

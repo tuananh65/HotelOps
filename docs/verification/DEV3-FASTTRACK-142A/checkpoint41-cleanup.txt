@@ -1,0 +1,15 @@
+meita HotelOps_DEV3_142A_20261114_cc78c13f
+
+(1 rows affected)
+1D5A9B53-7D19-435A-96AB-9FDFF447B6E0
+
+(1 rows affected)
+0 0 0 0 0
+
+(1 rows affected)
+NULL NULL NULL NULL NULL
+
+(1 rows affected)
+0
+
+(1 rows affected)

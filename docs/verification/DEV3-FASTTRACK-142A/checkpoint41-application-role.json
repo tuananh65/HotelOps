@@ -1,0 +1,8 @@
+{
+  "success": false,
+  "checks": [
+    "role creation rollback",
+    "application role removed; no pooled restricted connection"
+  ],
+  "failure": "SqlException SQL 15422"
+}
