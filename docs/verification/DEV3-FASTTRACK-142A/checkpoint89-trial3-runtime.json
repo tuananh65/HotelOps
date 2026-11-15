@@ -1,0 +1,112 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071192,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 403"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/options: 403"
+    },
+    {
+      "internalRequestReadCheck": "catalog seed idempotent"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 200"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/options: 200"
+    },
+    {
+      "scopedSyntheticOptions": {
+        "statuses": [
+          "SUBMITTED"
+        ],
+        "types": [
+          {
+            "id": 17,
+            "name": "Synthetic history"
+          }
+        ],
+        "priorities": [],
+        "departments": [
+          {
+            "id": 435,
+            "name": "Synthetic A"
+          }
+        ]
+      }
+    },
+    {
+      "internalRequestReadCheck": "filter options disclose only authorized request metadata"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests?requestTypeId=18: 200"
+    },
+    {
+      "internalRequestReadCheck": "hidden type filter cannot expand read scope"
+    },
+    {
+      "internalRequestReadCheck": "requester and current handler see exactly related requests"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/173/timeline: 404"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/174/timeline: 404"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests?branchId=70958: 403"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/172/timeline: 200"
+    },
+    {
+      "internalRequestReadCleanup": true
+    }
+  ],
+  "failure": "Exception: Internal request browser failed at status filter: []",
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": false,
+  "scope": "Real HTTPS/SQL and canonical browser report actor restriction, preview snapshot, CSV admission/audit and revocation; detailed RPT indicators remain partial"
+}

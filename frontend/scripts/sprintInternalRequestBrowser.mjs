@@ -5,9 +5,11 @@ for await (const chunk of process.stdin) input += chunk;
 const fixture = JSON.parse(input); input = "";
 let browser, stage = "login";
 const checks = [];
+const pageErrors = [];
 try {
   browser = await chromium.launch({ executablePath: "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", headless: true });
   const page = await browser.newPage(); page.setDefaultTimeout(20000);
+  page.on("pageerror", error => pageErrors.push(error.message.slice(0,300)));
   const origin = "https://localhost:7142";
   await page.goto(origin + "/internal-requests");
   await page.waitForURL("**/login?*");
@@ -34,7 +36,20 @@ try {
       await page.getByRole("button", { name: "Previous page", exact: true }).click();
       await list.waitFor(); assert.equal(await list.locator("tbody tr").count(), 25);
       checks.push("branch authorization and SQL pagination render 25 plus 1");
+      stage = "department filter";
+      await page.getByLabel("Receiving department", { exact: true }).selectOption({label:"Synthetic B"});
+      await list.waitFor(); assert.equal(await list.locator("tbody tr").count(), 1);
+      await page.getByRole("button", {name:"Clear filters",exact:true}).click();
+      await list.waitFor(); assert.equal(await list.locator("tbody tr").count(),25);
+      checks.push("receiving-department filter uses current SQL routing and clear restores authorized list");
     }
+    stage = "status filter";
+    await page.getByLabel("Status", {exact:true}).selectOption("SUBMITTED");
+    await list.waitFor();
+    stage = "type filter";
+    await page.getByLabel("Request type", {exact:true}).selectOption({label:"Synthetic history"});
+    await list.waitFor();
+    assert.equal(await page.getByLabel("Request type",{exact:true}).getByRole("option",{name:"Other branch private type"}).count(),0);
     stage = "search";
     await page.getByLabel("Search requests").fill("Synthetic history 1");
     await list.waitFor();
@@ -67,5 +82,5 @@ try {
   checks.push("logout clears access and protected route returns to login");
   console.log(JSON.stringify({ success: true, mode: fixture.mode, checks }));
 } catch (error) {
-  console.log(JSON.stringify({ success: false, stage, errorType: error?.name, checks })); process.exitCode = 1;
+  console.log(JSON.stringify({ success: false, stage, errorType: error?.name, pageErrors, checks })); process.exitCode = 1;
 } finally { await browser?.close(); }

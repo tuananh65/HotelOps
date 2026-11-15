@@ -52,6 +52,26 @@ export class HistoryFailure extends Error {
     super(`History request failed (${status}).`);
   }
 }
+export interface HistoryOptions {
+  statuses: string[];
+  types: { id: number; name: string }[];
+  priorities: { id: number; name: string }[];
+  departments: { id: number; name: string }[];
+}
+export function decodeHistoryOptions(value: unknown): HistoryOptions {
+  if (
+    !object(value) ||
+    !Array.isArray(value.statuses) ||
+    !value.statuses.every(text) ||
+    ![value.types, value.priorities, value.departments].every(
+      (list) =>
+        Array.isArray(list) &&
+        list.every((item) => object(item) && id(item.id) && text(item.name)),
+    )
+  )
+    throw new Error("Invalid history options.");
+  return value as unknown as HistoryOptions;
+}
 const object = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === "object" && !Array.isArray(v);
 const id = (v: unknown): v is number =>

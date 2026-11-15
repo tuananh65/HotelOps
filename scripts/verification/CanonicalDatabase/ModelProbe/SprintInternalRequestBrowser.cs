@@ -19,7 +19,8 @@ internal static class SprintInternalRequestBrowser
             var result = JsonSerializer.Deserialize<JsonElement>(await output);
             _ = await errors; // Do not publish credential-bearing browser diagnostics.
             if (process.ExitCode != 0 || !result.GetProperty("success").GetBoolean())
-                throw new Exception("Internal request browser failed at " + (result.TryGetProperty("stage", out var stage) ? stage.GetString() : "unknown"));
+                throw new Exception("Internal request browser failed at " + (result.TryGetProperty("stage", out var stage) ? stage.GetString() : "unknown")
+                    + (result.TryGetProperty("pageErrors",out var pageErrors) ? ": "+pageErrors.GetRawText() : ""));
             return result;
         }
         finally { if (!process.HasExited) process.Kill(entireProcessTree: true); }

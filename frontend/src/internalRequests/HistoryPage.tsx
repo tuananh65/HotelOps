@@ -4,6 +4,8 @@ import { useAuth } from "../auth/AuthProvider";
 import {
   decodeHistory,
   decodeTimeline,
+  decodeHistoryOptions,
+  type HistoryOptions,
   HistoryFailure,
   readHistory,
   type HistoryPage as Page,
@@ -53,6 +55,12 @@ export function InternalRequestHistoryPage() {
       : null;
   const [search, setSearch] = useState("");
   const [overdue, setOverdue] = useState(false);
+  const [filters, setFilters] = useState({
+    status: "",
+    requestTypeId: "",
+    priorityId: "",
+    receivingDepartmentId: "",
+  });
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<number | null>(null);
   const [eventPage, setEventPage] = useState(1);
@@ -63,6 +71,9 @@ export function InternalRequestHistoryPage() {
     pageSize: "25",
     ...(search ? { search } : {}),
     ...(overdue ? { overdue: "true" } : {}),
+    ...Object.fromEntries(
+      Object.entries(filters).filter(([, value]) => value !== ""),
+    ),
   });
   const path =
     selected === null
@@ -74,19 +85,26 @@ export function InternalRequestHistoryPage() {
     key: string;
     list?: Page;
     timeline?: Timeline;
+    options?: HistoryOptions;
     error?: string;
   } | null>(null);
   useEffect(() => {
     setResult(null);
     if (!owner) return;
     const controller = new AbortController();
-    void readHistory(path, controller.signal)
-      .then((value) => {
+    void Promise.all([
+      readHistory(path, controller.signal),
+      selected === null
+        ? readHistory("/options", controller.signal).then(decodeHistoryOptions)
+        : Promise.resolve(undefined),
+    ])
+      .then(([value, options]) => {
         const data =
           selected === null
             ? { list: decodeHistory(value) }
             : { timeline: decodeTimeline(value, selected) };
-        if (!controller.signal.aborted) setResult({ owner, key, ...data });
+        if (!controller.signal.aborted)
+          setResult({ owner, key, ...data, options });
       })
       .catch((e: unknown) => {
         if (controller.signal.aborted) return;
@@ -127,6 +145,73 @@ export function InternalRequestHistoryPage() {
               }}
             />
           </label>
+          {visible?.options && (
+            <>
+              <label>
+                Status
+                <select
+                  aria-label="Status"
+                  value={filters.status}
+                  onChange={(e) => {
+                    setFilters((v) => ({ ...v, status: e.target.value }));
+                    setPage(1);
+                  }}
+                >
+                  <option value="">All statuses</option>
+                  {visible.options.statuses.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              {(
+                [
+                  ["requestTypeId", "Request type", visible.options.types],
+                  ["priorityId", "Priority", visible.options.priorities],
+                  [
+                    "receivingDepartmentId",
+                    "Receiving department",
+                    visible.options.departments,
+                  ],
+                ] as const
+              ).map(([field, label, values]) => (
+                <label key={field}>
+                  {label}
+                  <select
+                    aria-label={label}
+                    value={filters[field]}
+                    onChange={(e) => {
+                      setFilters((v) => ({ ...v, [field]: e.target.value }));
+                      setPage(1);
+                    }}
+                  >
+                    <option value="">All</option>
+                    {values.map((v) => (
+                      <option key={v.id} value={v.id}>
+                        {v.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ))}
+              <button
+                onClick={() => {
+                  setFilters({
+                    status: "",
+                    requestTypeId: "",
+                    priorityId: "",
+                    receivingDepartmentId: "",
+                  });
+                  setSearch("");
+                  setOverdue(false);
+                  setPage(1);
+                }}
+              >
+                Clear filters
+              </button>
+            </>
+          )}
           <label>
             <input
               type="checkbox"

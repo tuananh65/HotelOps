@@ -30,6 +30,13 @@ public sealed class InternalRequestHistoryController(InternalRequestReadService 
         return service.ListAsync(session.Ticket, session.Sid, branchId, filter, ct);
     }
 
+    [HttpGet("options")]
+    public Task<InternalRequestFilterOptions> Options(CancellationToken ct)
+    {
+        var session = Session();
+        return service.OptionsAsync(session.Ticket, session.Sid, ct);
+    }
+
     [HttpGet("{id:long}/timeline")]
     public async Task<ActionResult<InternalRequestTimeline>> Timeline(long id,
         [FromQuery] InternalRequestTimelineQuery pagination, CancellationToken ct)

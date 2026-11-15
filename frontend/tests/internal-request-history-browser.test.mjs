@@ -20,6 +20,7 @@ async function fixture(run) {
     if (request.resourceType() === "document") return route.fulfill({ contentType: "text/html", body: '<div id="root"></div>' });
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
+    if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
     return json({}, 403);
   });
@@ -34,6 +35,12 @@ test("refresh denial removes previously visible history", async () => fixture(as
   await page.getByRole("button", { name: "Refresh history", exact: true }).click();
   await page.getByRole("alert").filter({ hasText: "do not have access" }).waitFor();
   assert.equal(await page.getByText("PRIVATE REQUEST <script>", { exact: true }).count(), 0);
+}));
+test("status filter has an accessible name and sends the selected value", async () => fixture(async (page) => {
+  const request = page.waitForRequest(r => new URL(r.url()).pathname === "/api/internal-requests" && new URL(r.url()).searchParams.get("status") === "SUBMITTED");
+  await page.getByLabel("Status", {exact:true}).selectOption("SUBMITTED");
+  await request;
+  await page.getByRole("cell", { name: "PRIVATE REQUEST <script>", exact: true }).waitFor();
 }));
 test("session revalidation removes request history before login", async () => fixture(async (page, state) => {
   state.session = 401;

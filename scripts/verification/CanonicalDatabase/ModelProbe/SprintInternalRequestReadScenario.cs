@@ -15,6 +15,7 @@ internal static class SprintInternalRequestReadScenario
         var other = new User { EmployeeCode=prefix, Username=prefix, Email=prefix+"@example.invalid", FullName="Synthetic requester",
             AccountStatus="ACTIVE", EmploymentStatus="ACTIVE", CreatedAt=DateTime.UtcNow };
         var type = new InternalRequestType { TypeCode=prefix, TypeName="Synthetic history", IsActive=true };
+        var hiddenType = new InternalRequestType { TypeCode=prefix+"H", TypeName="Other branch private type", IsActive=true };
         var createdPermission = !await db.Permissions.AnyAsync(p=>p.PermissionCode=="IR_VIEW",ct);
         var addedGrants = new List<long>();
         long[] ids=[];
@@ -28,19 +29,20 @@ internal static class SprintInternalRequestReadScenario
         try
         {
             await Get("/api/internal-requests",403);
+            await Get("/api/internal-requests/options",403);
             var seed=await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/InternalRequestViewIsolated.sql",ct);
             await db.Database.ExecuteSqlRawAsync(seed,ct);await db.Database.ExecuteSqlRawAsync(seed,ct);
             var permission=await db.Permissions.SingleAsync(p=>p.PermissionCode=="IR_VIEW",ct);
             Check(await db.Permissions.CountAsync(p=>p.PermissionCode=="IR_VIEW",ct)==1,"catalog seed idempotent");
-            db.Branches.AddRange(branches);db.Users.Add(other);db.InternalRequestTypes.Add(type);await db.SaveChangesAsync(ct);
+            db.Branches.AddRange(branches);db.Users.Add(other);db.InternalRequestTypes.AddRange(type,hiddenType);await db.SaveChangesAsync(ct);
             var branch=branches[0].BranchId;var wrong=branches[1].BranchId;
             var departments=new[]{new Department{BranchId=branch,DepartmentCode=prefix+"A",DepartmentName="Synthetic A",IsActive=true},
                 new Department{BranchId=branch,DepartmentCode=prefix+"B",DepartmentName="Synthetic B",IsActive=true}};
             db.Departments.AddRange(departments);await db.SaveChangesAsync(ct);
             db.UserBranchAccesses.Add(new(){UserId=actor,BranchId=branch,GrantedAt=DateTime.UtcNow.AddMinutes(-1)});
             var rows=Enumerable.Range(0,27).Select(i=>new InternalRequest {RequestNo=prefix+i,BranchId=i==3?wrong:branch,
-                RequestTypeId=type.RequestTypeId,RequesterId=i==0?actor:other.UserId,ReceivingDepartmentId=i==3?null:departments[0].DepartmentId,
-                Subject="Synthetic history "+i,Description="Synthetic only",Status="SUBMITTED",CreatedAt=DateTime.UtcNow,DueAt=DateTime.UtcNow.AddHours(i-2)}).ToArray();
+                RequestTypeId=i==3?hiddenType.RequestTypeId:type.RequestTypeId,RequesterId=i==0?actor:other.UserId,ReceivingDepartmentId=i==3?null:departments[0].DepartmentId,
+                Subject="Synthetic history "+i,Description="Synthetic only",Status=i==3?"DRAFT":"SUBMITTED",CreatedAt=DateTime.UtcNow,DueAt=DateTime.UtcNow.AddHours(i-2)}).ToArray();
             db.InternalRequests.AddRange(rows);await db.SaveChangesAsync(ct);ids=rows.Select(r=>r.InternalRequestId).ToArray();
             db.InternalRequestAssignments.Add(new(){InternalRequestId=ids[1],AssigneeId=actor,AssignedBy=other.UserId,AssignedAt=DateTime.UtcNow.AddMinutes(-1),Status="ACTIVE"});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
@@ -56,6 +58,11 @@ internal static class SprintInternalRequestReadScenario
             }
             await Role("HK_STAFF","OWN");
             var own=await Get("/api/internal-requests");
+            var options=await Get("/api/internal-requests/options");
+            checks.Add(new { scopedSyntheticOptions = options });
+            Check(options.GetProperty("types").GetArrayLength()==1 && options.GetProperty("types")[0].GetProperty("id").GetInt64()==type.RequestTypeId
+                && options.GetProperty("statuses").EnumerateArray().All(s=>s.GetString()=="SUBMITTED"),"filter options disclose only authorized request metadata");
+            Check((await Get($"/api/internal-requests?requestTypeId={hiddenType.RequestTypeId}")).GetProperty("totalCount").GetInt32()==0,"hidden type filter cannot expand read scope");
             Check(own.GetProperty("totalCount").GetInt32()==2,"requester and current handler see exactly related requests");
             await Get($"/api/internal-requests/{ids[2]}/timeline",404);await Get($"/api/internal-requests/{ids[3]}/timeline",404);
             await Get($"/api/internal-requests?branchId={wrong}",403);
@@ -74,6 +81,7 @@ internal static class SprintInternalRequestReadScenario
             await db.UserRoles.Where(r=>r.UserId==actor).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
             await Get("/api/internal-requests",403);
             checks.Add(new { internalRequestBrowser = await SprintInternalRequestBrowser.RunAsync(username,password,ids[1],ids[3],"denied",ct) });
+            await Get("/api/internal-requests/options",403);
             await Role("OPERATIONS_MANAGER","BRANCH");
             Check((await Get("/api/internal-requests")).GetProperty("totalCount").GetInt32()==26,"Operations Manager scoped read");
             await Role("SYS_ADMIN","BRANCH");
@@ -82,14 +90,15 @@ internal static class SprintInternalRequestReadScenario
             await Get("/api/internal-requests?pageSize=101",400);
             await db.RolePermissions.Where(p=>addedGrants.Contains(p.RolePermissionId)).ExecuteDeleteAsync(ct);
             await Get("/api/internal-requests",403);
-            Check(await db.InternalRequests.CountAsync(r=>ids.Contains(r.InternalRequestId)&&r.Status=="SUBMITTED",ct)==27,"read endpoints leave business status unchanged");
+            Check(await db.InternalRequests.CountAsync(r=>ids.Contains(r.InternalRequestId)&&r.Status=="SUBMITTED",ct)==26
+                && await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==ids[3]&&r.Status=="DRAFT",ct),"read endpoints leave business status unchanged");
         }
         finally
         {
             db.ChangeTracker.Clear();await using var tx=await db.Database.BeginTransactionAsync(CancellationToken.None);
             await db.InternalRequestAssignments.Where(a=>ids.Contains(a.InternalRequestId)).ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequests.Where(r=>r.RequestNo.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
-            await db.InternalRequestTypes.Where(t=>t.TypeCode==prefix).ExecuteDeleteAsync(CancellationToken.None);
+            await db.InternalRequestTypes.Where(t=>t.TypeCode.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserRoles.Where(r=>r.UserId==actor).ExecuteDeleteAsync(CancellationToken.None);
             await db.RolePermissions.Where(p=>addedGrants.Contains(p.RolePermissionId)).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserBranchAccesses.Where(a=>a.UserId==actor&&branches.Select(b=>b.BranchId).Contains(a.BranchId)).ExecuteDeleteAsync(CancellationToken.None);

@@ -15,6 +15,10 @@ public sealed class InternalRequestReadException(int status, string code) : Exce
     public string Code { get; } = code;
 }
 
+public sealed record InternalRequestFilterValue(long Id, string Name);
+public sealed record InternalRequestFilterOptions(string[] Statuses, InternalRequestFilterValue[] Types,
+    InternalRequestFilterValue[] Priorities, InternalRequestFilterValue[] Departments);
+
 public sealed class InternalRequestReadService(HotelOpsDbContext db, InternalRequestReadAccess access,
     ISqlSessionService sessions, ICurrentUserAccessor current, TimeProvider clock)
 {
@@ -57,6 +61,16 @@ public sealed class InternalRequestReadService(HotelOpsDbContext db, InternalReq
     public Task<InternalRequestHistoryPage> ListAsync(SessionReference ticket, long sid, long? branch,
         InternalRequestHistoryFilter filter, CancellationToken ct) => ReadAsync(ticket, sid, branch,
             (query, now) => InternalRequestHistoryQueries.ListAsync(query, filter, now, ct), ct);
+
+    public Task<InternalRequestFilterOptions> OptionsAsync(SessionReference ticket, long sid, CancellationToken ct) =>
+        ReadAsync(ticket, sid, null, async (query, _) => new InternalRequestFilterOptions(
+            await query.Select(r => r.Status).Distinct().OrderBy(s => s).ToArrayAsync(ct),
+            await query.Select(r => new { Id=r.RequestTypeId, Name=r.RequestType.TypeName })
+                .Distinct().OrderBy(v => v.Name).ThenBy(v => v.Id).Select(v => new InternalRequestFilterValue(v.Id,v.Name)).ToArrayAsync(ct),
+            await query.Where(r => r.PriorityId != null).Select(r => new { Id=r.PriorityId!.Value, Name=r.Priority!.DisplayName })
+                .Distinct().OrderBy(v => v.Name).ThenBy(v => v.Id).Select(v => new InternalRequestFilterValue(v.Id,v.Name)).ToArrayAsync(ct),
+            await query.Where(r => r.ReceivingDepartmentId != null).Select(r => new { Id=r.ReceivingDepartmentId!.Value, Name=r.ReceivingDepartment!.DepartmentName })
+                .Distinct().OrderBy(v => v.Name).ThenBy(v => v.Id).Select(v => new InternalRequestFilterValue(v.Id,v.Name)).ToArrayAsync(ct)), ct);
 
     public Task<InternalRequestTimeline?> TimelineAsync(SessionReference ticket, long sid, long id,
         InternalRequestTimelineQuery pagination, CancellationToken ct) => ReadAsync(ticket, sid, null,
