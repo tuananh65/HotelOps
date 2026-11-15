@@ -1,0 +1,20 @@
+{
+  "success": false,
+  "checks": [
+    "query component refuses materialization outside SERIALIZABLE transaction",
+    "rooms executes SQL with consistent snapshot/filter/count metadata",
+    "rooms remains partial and does not advertise authorized exports",
+    "inspections executes SQL with consistent snapshot/filter/count metadata",
+    "inspections remains partial and does not advertise authorized exports",
+    "incidents executes SQL with consistent snapshot/filter/count metadata",
+    "incidents remains partial and does not advertise authorized exports",
+    "assets executes SQL with consistent snapshot/filter/count metadata",
+    "assets remains partial and does not advertise authorized exports",
+    "items executes SQL with consistent snapshot/filter/count metadata",
+    "items remains partial and does not advertise authorized exports"
+  ],
+  "failure": "Cannot translate the \u0027==\u0027 on an expression of entity type \u0027TaskWorkflowRow\u0027 because it is a keyless entity. Consider using entity properties instead. For more information on keyless entity types, see https://go.microsoft.com/fwlink/?linkid=2141943.",
+  "rollback": true,
+  "inventoryObservation": null,
+  "scope": "SQL query/CSV component only; caller supplies scope; no HTTP, role admission or export audit acceptance"
+}

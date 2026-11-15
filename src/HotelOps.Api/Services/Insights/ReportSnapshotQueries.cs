@@ -1,6 +1,7 @@
 using System.Text.Json;
 using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Insights;
+using HotelOps.Api.Services.OperationalTasks;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.EntityFrameworkCore;
 
@@ -167,10 +168,20 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     && (t.AreaId == null || t.Area!.BranchId == t.BranchId)
                     && (department == null || t.DepartmentId == department) && t.CreatedAt >= start && t.CreatedAt < end);
                 if (query.EmployeeId is not null) throw new InsightException(503, "TASK_EMPLOYEE_CONTRACT_UNAVAILABLE", "Employee-to-task/interval attribution contract unavailable.");
-                await Add("operational_tasks", tasks.OrderBy(t => t.TaskId).Select(t => new { Id = t.TaskId,
-                    t.TaskCode, t.BranchId, t.DepartmentId, t.Status, t.PriorityId, t.ProgressPercent, t.CreatedAt, t.DueAt, t.ActualStartAt, t.CompletedAt }),
-                    "id", "taskCode", "branchId", "departmentId", "status", "priorityId", "progressPercent", "createdAt", "dueAt", "actualStartAt", "completedAt");
-                missing.Add("Task overdue/completion and work-time/shift-effort indicators are not aggregated by this report");
+                var workflowInstalled = await ProgressSchema.InstalledAsync(db, ct);
+                var workflow = workflowInstalled ? TaskWorkflowRead.Query(db, now.UtcDateTime)
+                    : db.OperationalTasks.Where(t => false).Select(t => new TaskWorkflowRow { TaskId = t.TaskId, State = "" });
+                var rows = from task in tasks
+                    join state in workflow on task.TaskId equals state.TaskId into states
+                    from state in states.DefaultIfEmpty()
+                    select new { Id = task.TaskId, task.TaskCode, task.BranchId, task.DepartmentId, task.Status,
+                        task.PriorityId, task.ProgressPercent, task.CreatedAt, task.DueAt, task.ActualStartAt, task.CompletedAt,
+                        WorkflowState = workflowInstalled ? state.State : null,
+                        Overdue = !workflowInstalled || state.State == null ? (bool?)null : task.DueAt != null && task.DueAt < now.UtcDateTime
+                            && state.State != "CLOSED" && state.State != "CANCELLED" };
+                await Add("operational_tasks", rows.OrderBy(t => t.Id),
+                    "id", "taskCode", "branchId", "departmentId", "status", "priorityId", "progressPercent", "createdAt", "dueAt", "actualStartAt", "completedAt", "workflowState", "overdue");
+                missing.Add("Task work-time/shift-effort indicators are not aggregated; null workflow/overdue means canonical lifecycle is unavailable or inconsistent");
                 break;
             }
             case "requests":

@@ -1,0 +1,30 @@
+{
+  "success": false,
+  "checks": [
+    "query component refuses materialization outside SERIALIZABLE transaction",
+    "rooms executes SQL with consistent snapshot/filter/count metadata",
+    "rooms remains partial and does not advertise authorized exports",
+    "inspections executes SQL with consistent snapshot/filter/count metadata",
+    "inspections remains partial and does not advertise authorized exports",
+    "incidents executes SQL with consistent snapshot/filter/count metadata",
+    "incidents remains partial and does not advertise authorized exports",
+    "assets executes SQL with consistent snapshot/filter/count metadata",
+    "assets remains partial and does not advertise authorized exports",
+    "items executes SQL with consistent snapshot/filter/count metadata",
+    "items remains partial and does not advertise authorized exports",
+    "tasks executes SQL with consistent snapshot/filter/count metadata",
+    "tasks remains partial and does not advertise authorized exports",
+    "requests executes SQL with consistent snapshot/filter/count metadata",
+    "requests remains partial and does not advertise authorized exports",
+    "tasks include UTC start/last instant; exclude next day, foreign branch and inconsistent department",
+    "unclassified task lifecycle is not invented by report",
+    "canonical task state and overdue reported: IN_PROGRESS",
+    "canonical task state and overdue reported: PAUSED",
+    "inconsistent physical/workflow state yields unknown rather than false overdue",
+    "requests exclude mismatched department linkage"
+  ],
+  "failure": "missing workflow capability preserves scoped rows with unknown lifecycle and overdue",
+  "rollback": true,
+  "inventoryObservation": null,
+  "scope": "SQL query/CSV component only; caller supplies scope; no HTTP, role admission or export audit acceptance"
+}

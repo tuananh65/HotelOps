@@ -93,7 +93,30 @@ internal static class SprintReportProbe
             }
             Check(results["tasks"].TotalCount == 2 && results["tasks"].Rows.Select(r => ((JsonElement)r["id"]!).GetInt64()).SequenceEqual(new[] { first.TaskId, last.TaskId }),
                 "tasks include UTC start/last instant; exclude next day, foreign branch and inconsistent department");
+            Check(((JsonElement)results["tasks"].Rows[0]["workflowState"]!).ValueKind == JsonValueKind.Null
+                && ((JsonElement)results["tasks"].Rows[0]["overdue"]!).ValueKind == JsonValueKind.Null, "unclassified task lifecycle is not invented by report");
+            await db.OperationalTasks.Where(t => t.TaskId == first.TaskId).ExecuteUpdateAsync(u => u.SetProperty(t => t.Status, "IN_PROGRESS").SetProperty(t => t.DueAt, start.AddSeconds(-1)), ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({first.TaskId},'IN_PROGRESS')", ct);
+            foreach (var state in new[] { "IN_PROGRESS", "PAUSED" })
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_progress_versions SET workflow_status={state} WHERE task_id={first.TaskId}", ct);
+                var taskReport = await queries.MaterializeAsync("tasks", query, filters, now, ct);
+                Check(((JsonElement)taskReport.Rows[0]["workflowState"]!).GetString() == state && ((JsonElement)taskReport.Rows[0]["overdue"]!).GetBoolean(), "canonical task state and overdue reported: " + state);
+            }
+            await db.OperationalTasks.Where(t => t.TaskId == first.TaskId).ExecuteUpdateAsync(u => u.SetProperty(t => t.Status, "TODO"), ct);
+            var inconsistentTask = await queries.MaterializeAsync("tasks", query, filters, now, ct);
+            Check(((JsonElement)inconsistentTask.Rows[0]["workflowState"]!).ValueKind == JsonValueKind.Null
+                && ((JsonElement)inconsistentTask.Rows[0]["overdue"]!).ValueKind == JsonValueKind.Null, "inconsistent physical/workflow state yields unknown rather than false overdue");
             Check(results["requests"].TotalCount == 1, "requests exclude mismatched department linkage");
+            await tx.CreateSavepointAsync("MissingWorkflowCapability", ct);
+            try
+            {
+                await db.Database.ExecuteSqlRawAsync("EXEC sys.sp_dropextendedproperty @name=N'HotelOps.Progress.V1'", ct);
+                var unavailable = await queries.MaterializeAsync("tasks", query, filters, now, ct);
+                Check(unavailable.Rows.Count == 2 && unavailable.Rows.All(r => ((JsonElement)r["workflowState"]!).ValueKind == JsonValueKind.Null
+                    && ((JsonElement)r["overdue"]!).ValueKind == JsonValueKind.Null), "missing workflow capability preserves scoped rows with unknown lifecycle and overdue");
+            }
+            finally { await tx.RollbackToSavepointAsync("MissingWorkflowCapability", CancellationToken.None); }
             var requestRows = db.InternalRequests.Where(r => r.RequestNo == prefix + "A");
             Check(!((JsonElement)results["requests"].Rows[0]["overdue"]!).GetBoolean(), "no deadline is not overdue");
             ReportResult? frozenOverdue = null;
