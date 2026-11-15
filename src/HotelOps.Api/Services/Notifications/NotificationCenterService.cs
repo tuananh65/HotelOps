@@ -130,6 +130,16 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/internal-requests?requestId={intake.RequestId}");
         }
+        if(source is {NotificationType:"IR_HANDOVER",SourceType:"INTERNAL_REQUEST_HANDOVER",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await InternalRequests.InternalRequestHandoverStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var handover=await InternalRequests.InternalRequestHandoverDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id&&r.RecipientId==user,ct);
+            if(handover==null||handover.ActorId!=source.CreatedBy||handover.At!=source.CreatedAt
+                ||!await InternalRequests.InternalRequestHandoverDelivery.CanReadAsync(db,handover,now,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={handover.RequestId}");
+        }
         if(source is {NotificationType:"IR_WITHDRAWN",SourceType:"INTERNAL_REQUEST_WITHDRAWAL",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);

@@ -1,3 +1,6 @@
+using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.Notifications;
+using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Json;
@@ -100,6 +103,47 @@ internal static class SprintInternalRequestHandoverScenario
         var decision=new{handoverId=reverse.Body.GetProperty("handoverId").GetInt64(),acknowledge=true,reason=(string?)null};version=reverse.Body.GetProperty("version").GetString()!;
         var race=await Task.WhenAll(Post(http,"/decision",decision,version),Post(http,"/decision",decision,version));
         Check(race.Select(r=>r.Status).Order().SequenceEqual(new[]{200,412})&&await db.InternalRequestAssignments.CountAsync(a=>a.InternalRequestId==request&&a.Status=="ACTIVE"&&a.AssigneeId==actor,ct)==1,"concurrent acknowledgments commit once and retain exactly one handler");
-        checks.Add(new{handoverLimit="Pending receiver/previous sender receipt read contract awaiting approval; no read scope expanded and delivery not yet enabled"});
+        if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_HANDOVER_DELIVERY")!="1")
+        {
+        var options=new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options;
+        InternalRequestHandoverDelivery Delivery(HotelOpsDbContext context)=>new(context,TimeProvider.System,Options.Create(new NotificationCenterOptions()));
+        var lastEvent=await db.InternalRequestEvents.AsNoTracking().Where(e=>e.InternalRequestId==request&&e.EventType=="HANDOVER_ACKNOWLEDGE").MaxAsync(e=>e.EventId,ct);
+        db.ChangeTracker.Clear();
+        var noticesBefore=await db.Notifications.CountAsync(ct);
+        await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_HandoverDeliveryFault ON dbo.internal_request_handover_outbox AFTER UPDATE AS THROW 51914,'Synthetic delivery fault',1;",ct);
+        var failed=false;
+        try{await Delivery(db).DeliverAsync(lastEvent,receiver.UserId,ct);}catch(Microsoft.Data.SqlClient.SqlException){failed=true;}
+        finally{await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_DEV3_HandoverDeliveryFault",CancellationToken.None);}
+        Check(failed&&await db.Notifications.CountAsync(ct)==noticesBefore
+            &&await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_handover_outbox WHERE event_id={lastEvent} AND recipient_id={receiver.UserId} AND notification_id IS NULL").SingleAsync(ct)==1,
+            "delivery fault rolls back notification recipient and outbox receipt");
+        async Task<string> Deliver(){await using var context=new HotelOpsDbContext(options);return await Delivery(context).DeliverAsync(lastEvent,receiver.UserId,ct);}
+        var deliveries=await Task.WhenAll(Deliver(),Deliver());
+        Check(deliveries.Order().SequenceEqual(new[]{"ALREADY_DELIVERED","DELIVERED"}),"concurrent delivery creates one notification per recipient event");
+        var notification=await db.Database.SqlQuery<long>($"SELECT notification_id AS Value FROM dbo.internal_request_handover_outbox WHERE event_id={lastEvent} AND recipient_id={receiver.UserId}").SingleAsync(ct);
+        using(var opened=await receiverHttp.GetAsync($"/api/notifications/{notification}/source",ct))Check((int)opened.StatusCode==200,"previous handler with independent read scope opens notification source");
+        var grant=await db.RolePermissions.AsNoTracking().SingleAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==view.PermissionId,ct);
+        await db.RolePermissions.Where(g=>g.RolePermissionId==grant.RolePermissionId).ExecuteDeleteAsync(ct);
+        Check(await Delivery(db).DeliverAsync(lastEvent,receiver.UserId,ct)=="RECIPIENT_READ_DENIED","delivery rechecks revoked IR_VIEW despite historical responsibility");
+        using(var denied=await receiverHttp.GetAsync($"/api/notifications/{notification}/source",ct))Check((int)denied.StatusCode==404,"notification source rejects revoked IR_VIEW");
+        db.RolePermissions.Add(new(){RoleId=role.RoleId,PermissionId=view.PermissionId,DataScope=grant.DataScope,GrantedAt=grant.GrantedAt});await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={actor} AND branch_id={branch} AND department_id={department}",ct);
+        Check(await Delivery(db).DeliverAsync(lastEvent,actor,ct)=="RECIPIENT_READ_DENIED","manager notice requires current exact department mapping");
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET revoked_at=NULL WHERE user_id={actor} AND branch_id={branch} AND department_id={department}",ct);
+        Check(await Delivery(db).DeliverAsync(lastEvent,actor,ct)=="DELIVERED","eligible mapped manager receives acknowledgment notice");
+        foreach(var pending in await Delivery(db).PendingAsync(0,ct))await Delivery(db).DeliverEventAsync(pending,ct);
+        Check((await Delivery(db).PendingAsync(0,ct)).Length==0,"eligible receiver sender and manager intents drained without duplicate recipients");
+        }
+        else
+        {
+            var notify=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};notify.ArgumentList.Add("frontend/scripts/sprintInternalRequestHandoverNotificationBrowser.mjs");
+            using var browser=Process.Start(notify)??throw new Exception("Notification browser unavailable");
+            var output=browser.StandardOutput.ReadToEndAsync(ct);var errors=browser.StandardError.ReadToEndAsync(ct);
+            try{await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,request}));browser.StandardInput.Close();await browser.WaitForExitAsync(ct);
+                var proof=JsonSerializer.Deserialize<JsonElement>(await output);_=await errors;checks.Add(new{handoverNotificationBrowser=proof});if(browser.ExitCode!=0||!proof.GetProperty("success").GetBoolean())throw new Exception("Handover notification browser failed at "+proof.GetProperty("stage").GetString());
+            }finally{if(!browser.HasExited)browser.Kill(entireProcessTree:true);}
+            Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_handover_outbox o JOIN dbo.internal_request_events e ON e.event_id=o.event_id WHERE e.internal_request_id={request} AND o.notification_id IS NOT NULL").SingleAsync(ct)>0,"hosted worker persists handover delivery receipts");
+        }
+        checks.Add(new{handoverLimit="Limited receipt read contract still pending; existing IR_VIEW enforced. Delivery service and HTTPS source verified; hosted delivery browser sequence verified separately when enabled."});
     }
 }
