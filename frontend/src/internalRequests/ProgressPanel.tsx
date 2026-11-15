@@ -84,7 +84,9 @@ export function InternalRequestProgressPanel({ id }: { id: number }) {
           deadline: view.canChangeDeadline && deadline ? new Date(deadline + "Z").toISOString() : null, deadlineReason: reason.trim() || null, files: uploads }) }) as { requestId?: unknown; status?: unknown; version?: unknown };
       if (raw.requestId !== id || raw.status !== "IN_PROGRESS" || !version(raw.version)) throw new Error("Progress not confirmed");
       if (!abort.signal.aborted) { setLoaded(null); setMessage("MSG08: Progress saved. Request remains In Progress. Reload progress to view the saved result."); }
-    } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Request changed. Reload progress before saving." : "Progress not confirmed. Reload before retrying."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }
+    } catch (e) { if (!abort.signal.aborted) { setLoaded(null); setMessage(e instanceof Failure && e.status === 412 ? "Request changed. Reload progress before saving."
+      : e instanceof Failure && e.status === 403 ? "MSG02: Current authority does not allow this update. Reload progress to check your assignment and deadline permissions."
+      : "Progress not confirmed. Reload before retrying."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner); } }
     finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); } }
   }
   if (!owner) return null;

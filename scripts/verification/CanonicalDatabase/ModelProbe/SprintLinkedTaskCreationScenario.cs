@@ -155,5 +155,40 @@ internal static class SprintLinkedTaskCreationScenario
             && olderEvidence.GetProperty("version").GetString() == latestEvidence.GetProperty("version").GetString(), "public evidence cursor retrieves historical file without duplicate or version mutation");
         using var invalidCursor = await http.GetAsync($"{evidencePath}?evidenceBefore=0", ct);
         Check((int)invalidCursor.StatusCode == 400, "invalid evidence cursor rejected");
+        // Continue the same owned request as a real HK_STAFF handler with no manager mapping.
+        var staffRole = await db.Roles.SingleAsync(r => r.RoleCode == "HK_STAFF" && r.IsActive, ct);
+        foreach (var code in new[] { "IR_VIEW", "IR_PROCESS" })
+        {
+            var permission = await db.Permissions.SingleAsync(p => p.PermissionCode == code, ct);
+            var grant = await db.RolePermissions.SingleOrDefaultAsync(g => g.RoleId == staffRole.RoleId && g.PermissionId == permission.PermissionId, ct);
+            if (grant == null) db.RolePermissions.Add(new() { RoleId = staffRole.RoleId, PermissionId = permission.PermissionId, DataScope = "OWN", GrantedAt = now });
+            else Check(grant.DataScope is "OWN" or "BRANCH", "existing handler scope compatible");
+        }
+        await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+        await db.UserRoles.Where(r => r.UserId == actor).ExecuteUpdateAsync(s => s.SetProperty(r => r.RoleId, staffRole.RoleId), ct);
+        await db.Users.Where(u => u.UserId == actor).ExecuteUpdateAsync(s => s.SetProperty(u => u.DepartmentId, nextDepartment), ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={actor}", ct);
+        db.InternalRequestAssignments.Add(new() { InternalRequestId = request, AssigneeId = actor, AssignedBy = actor, AssignedAt = now, Status = "ACTIVE" });
+        await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+        var handlerStart = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
+        handlerStart.ArgumentList.Add("frontend/scripts/sprintInternalRequestHandlerBrowser.mjs");
+        using var handlerBrowser = Process.Start(handlerStart) ?? throw new Exception("Handler browser unavailable");
+        var handlerOutput = handlerBrowser.StandardOutput.ReadToEndAsync(ct); var handlerErrors = handlerBrowser.StandardError.ReadToEndAsync(ct);
+        try
+        {
+            await handlerBrowser.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, request })); handlerBrowser.StandardInput.Close();
+            await handlerBrowser.WaitForExitAsync(ct); var handlerProof = JsonSerializer.Deserialize<JsonElement>(await handlerOutput); _ = await handlerErrors;
+            if (handlerBrowser.ExitCode != 0 || !handlerProof.GetProperty("success").GetBoolean()) throw new Exception("Handler browser failed at " + handlerProof.GetProperty("stage").GetString());
+            checks.Add(new { handlerBrowser = handlerProof });
+        }
+        finally { if (!handlerBrowser.HasExited) handlerBrowser.Kill(entireProcessTree: true); }
+        Check(await db.Database.SqlQuery<int>($"SELECT progress_percent AS Value FROM dbo.internal_request_progress WHERE internal_request_id={request} AND result_note='Synthetic handler result'").SingleAsync(ct) == 75
+            && await db.AuditLogs.AnyAsync(a => a.EntityType == "internal_requests" && a.EntityId == request.ToString() && a.NewValues != null && a.NewValues.Contains("Synthetic handler result"), ct), "public handler progress result and audit persisted");
+        await db.InternalRequestAssignments.Where(a => a.InternalRequestId == request && a.Status == "ACTIVE")
+            .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, "REASSIGNED").SetProperty(a => a.EndedAt, DateTime.UtcNow), ct);
+        var endedView = await http.GetFromJsonAsync<JsonElement>(evidencePath, ct);
+        Check(!endedView.GetProperty("canUpdate").GetBoolean(), "former handler has no current update action");
+        Check((await Send(HttpMethod.Post, evidencePath, new { percent = 80, note = "Former handler" }, endedView.GetProperty("version").GetString())).Status == 403,
+            "former handler public mutation denied despite retained request read access");
     }
 }

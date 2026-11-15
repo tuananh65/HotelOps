@@ -215,7 +215,7 @@ for (const denied of [true,false]) test(`older evidence rejects ${denied ? "revo
   await panel.getByText("Evidence or access changed. Reload progress before continuing.",{exact:true}).waitFor();
   assert.equal(await panel.getByRole("link").count(),0);assert.equal(state.olderReads,1);
 }));
-for(const status of [200,412])test(`progress ${status} uses CSRF/ETag, prevents double submit and requires reload`,async()=>fixture(async(page,state)=>{
+for(const status of [200,403,412])test(`progress ${status} uses CSRF/ETag, prevents double submit and requires reload`,async()=>fixture(async(page,state)=>{
   state.progressAllowed=true;state.progressPostStatus=status;
   await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
   const panel=page.getByRole("region",{name:"Request progress",exact:true});
@@ -226,7 +226,7 @@ for(const status of [200,412])test(`progress ${status} uses CSRF/ETag, prevents 
   await panel.getByLabel("Progress attachments",{exact:true}).setInputFiles({name:"proof.png",mimeType:"image/png",buffer:Buffer.from([137,80,78,71,13,10,26,10])});
   assert.equal(await panel.getByLabel("New deadline (UTC)",{exact:true}).count(),0);
   await panel.getByRole("button",{name:"Save progress",exact:true}).evaluate(b=>{b.click();b.click();});
-  await panel.getByRole("status").filter({hasText:status===200?"MSG08: Progress saved":"Request changed"}).waitFor();
+  await panel.getByRole("status").filter({hasText:status===200?"MSG08: Progress saved":status===403?"MSG02: Current authority":"Request changed"}).waitFor();
   assert.equal(state.progressPosts,1);assert.equal(await panel.getByLabel("Progress percent",{exact:true}).count(),0);
 }));
 
