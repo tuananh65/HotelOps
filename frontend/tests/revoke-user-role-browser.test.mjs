@@ -189,6 +189,7 @@ test("late mutation after session invalidation cannot restore protected data", (
     await review(p);
     await p.getByRole("button", { name: "Confirm revoke" }).click();
     await p.getByText("Revocation pending...").waitFor();
+    await p.waitForFunction(() => window.fixture.calls.some(c => c.method === "DELETE"));
     await p.evaluate(() => {
       window.fixture.scenario.auth = { status: 401, body: {} };
       void window.fixture.revalidate();
