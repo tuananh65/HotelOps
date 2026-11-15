@@ -95,18 +95,16 @@ export async function resolveInboxSource(
   const data = await (
     await request(`/api/notifications/${id}/source`, signal)
   ).json();
-  if (
-    typeof data?.path !== "string" ||
-    !/^\/(?:cleaning\/reworks|inspection-history)\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.test(
-      data.path,
-    )
-  )
+  if (typeof data?.path !== "string")
     throw new Error("Invalid notification source");
   const ids =
     /^\/(?:cleaning\/reworks|inspection-history)\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.exec(
       data.path,
-    )!;
-  if (!ids.slice(1).every((id) => Number.isSafeInteger(Number(id))))
+    ) ??
+    /^\/reinspections\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
+      data.path,
+    );
+  if (!ids || !ids.slice(1).every((id) => Number.isSafeInteger(Number(id))))
     throw new Error("Invalid notification source");
   return data.path;
 }

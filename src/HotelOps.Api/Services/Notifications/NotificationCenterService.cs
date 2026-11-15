@@ -77,6 +77,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             await tx.CommitAsync(ct);
             return new($"/inspection-history/{proof.InspectionId}?branchId={proof.BranchId}");
         }
+        if(source is {NotificationType:ReinspectionAssignedNotificationSource.Kind,SourceType:"INSPECTION",SourceId:>0})
+        {
+            var audits=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="REINSPECTION"&&a.EntityId==source.SourceId.Value.ToString()&&a.Action=="CREATE").ToArrayAsync(ct);
+            var proof=audits.Length==1?await ReinspectionAssignedNotificationSource.VerifyAsync(db,audits[0],ct):null;
+            if(proof==null||proof.ActorUserId!=source.CreatedBy||audits[0].OccurredAt!=source.CreatedAt
+                ||proof.Notification.RecipientUserId!=user
+                ||!(await InspectionFailureRecipients.SupervisorsAsync(db,proof.BranchId,now,ct)).Contains(user))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/reinspections/{proof.BranchId}/{proof.InspectionId}/execution");
+        }
         if(source is not {NotificationType:"REWORK_ASSIGNED" or "REINSPECTION_PASSED",SourceType:"CLEANING_REWORK",SourceId:>0})
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var branch=await db.CleaningReworks.AsNoTracking().Where(w=>w.ReworkId==source.SourceId&&w.AssigneeUserId==user

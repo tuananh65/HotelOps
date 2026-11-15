@@ -82,6 +82,9 @@ internal static class SprintReinspectionAssignmentProbe
                 DECLARE @owned TABLE(id bigint PRIMARY KEY);
                 INSERT @owned SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework};
                 DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
+                  WHERE n.notification_type='REINSPECTION_ASSIGNED' AND n.source_type='INSPECTION' AND n.source_id IN(SELECT id FROM @owned) AND n.created_by={actor};
+                DELETE dbo.notifications WHERE notification_type='REINSPECTION_ASSIGNED' AND source_type='INSPECTION' AND source_id IN(SELECT id FROM @owned) AND created_by={actor};
+                DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
                   WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id={rework} AND n.created_by={actor};
                 DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id={rework} AND created_by={actor};
                 -- A Failed reinspection may now own the next committed Request Rework.

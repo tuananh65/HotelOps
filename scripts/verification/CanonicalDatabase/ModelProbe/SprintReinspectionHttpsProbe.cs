@@ -96,19 +96,22 @@ internal static class SprintReinspectionHttpsProbe
                 if(nextRound&&(!conclude||outcome!="FAIL"))throw new Exception("Next round requires browser Failed conclusion");
                 var distinctInspector = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR") == "1";
                 var retireAfterAssignment = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_RETIRE_AFTER_ASSIGNMENT") == "1";
+                var assignmentNotice = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE") == "1";
+                if (assignmentNotice && !conclude) throw new Exception("Assignment notice trial requires terminal browser conclusion");
                 if (retireAfterAssignment && !conclude) throw new Exception("Retirement trial requires the complete browser conclusion mode");
                 await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework,
-                    conclude = conclude && !retireAfterAssignment, outcome, nextRound = nextRound && !retireAfterAssignment, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
+                    conclude = conclude && !retireAfterAssignment && !assignmentNotice, outcome, nextRound = nextRound && !retireAfterAssignment && !assignmentNotice, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
                 process.StandardInput.Close();
                 var browserOutput = process.StandardOutput.ReadToEndAsync(ct); var browserErrors = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct); var result = JsonSerializer.Deserialize<JsonElement>(await browserOutput); await browserErrors;
                 if (process.ExitCode != 0 || !result.GetProperty("success").GetBoolean()) throw new Exception("Reinspection browser: " + result.GetRawText());
                 var inspection = result.GetProperty("inspection").GetInt64();
-                if (retireAfterAssignment)
+                if (retireAfterAssignment || assignmentNotice)
                 {
                     if (!result.GetProperty("canonicalAssignment").GetBoolean() || result.GetProperty("conclusion").ValueKind != JsonValueKind.Null)
                         throw new Exception("Expected real assigned source before retirement");
-                    await SprintReinspectionRetirementProbe.RetireAfterAssignmentAsync(db, actor, branch, rework, inspection, ct);
+                    if (assignmentNotice) await SprintReinspectionNoticeProbe.VerifyAsync(db, actor, branch, inspection, password, ct, initial:true);
+                    if (retireAfterAssignment) await SprintReinspectionRetirementProbe.RetireAfterAssignmentAsync(db, actor, branch, rework, inspection, ct);
                     using var resumed = Process.Start(browser) ?? throw new Exception("Retired-source browser unavailable");
                     try
                     {
@@ -122,7 +125,7 @@ internal static class SprintReinspectionHttpsProbe
                             throw new Exception("Retired-source browser: " + result.GetRawText());
                     }
                     finally { if (!resumed.HasExited) resumed.Kill(true); }
-                    if (await db.Database.SqlQuery<int>($"""
+                    if (retireAfterAssignment && await db.Database.SqlQuery<int>($"""
                         SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
                         JOIN dbo.inspection_checklist_versions v ON v.version_id=b.version_id AND v.status='RETIRED'
                         JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.version_id=b.version_id
@@ -171,6 +174,7 @@ internal static class SprintReinspectionHttpsProbe
                     }
                 }
                 if(conclude)await SprintReinspectionExecutorProbe.VerifyAsync(db,executorTicket,executorSid,branch,rework,ct,browser:true,nextRework:nextRework);
+                if(assignmentNotice)await SprintReinspectionNoticeProbe.VerifyAsync(db,actor,branch,inspection,password,ct,initial:false);
             }
             finally { if (!process.HasExited) process.Kill(true); }
             host.Kill(true); await host.WaitForExitAsync(ct); await output; await errors;

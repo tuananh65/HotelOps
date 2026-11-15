@@ -178,7 +178,9 @@ internal static class SprintApprovalBrowserProbe
                             submissionPerDefectForm=true,submissionPhotoHttps=true,submissionReload=true,submissionCsrfEtag=true,
                             submissionDeliveryRollback=true,submissionDeliveryRevocation=true,submissionDeliveryDeduplicated=true,
                             submissionSupervisorInboxHttps=true,submissionSupervisorSourceFailClosed=true});
-                        checks.Add(new{blocked,exactReinspectionAssignmentSql=true,assignmentStaleDenied=true,
+                        checks.Add(new{blocked,assignmentNoticeDeliveryAndBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE")=="1",
+                            assignmentNoticeTerminalBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE")=="1",
+                            exactReinspectionAssignmentSql=true,assignmentStaleDenied=true,
                             assignmentBranchRevocationDenied=true,assignmentAuditRollback=true,
                             assignmentConcurrentReplayOneBinding=true,assignmentChangedRequestDenied=true,
                             assignmentDuplicateDenied=true,assignmentSchemaRollbackAndCleanup=true,
