@@ -63,6 +63,7 @@ internal static class SprintTaskAssignmentScenario
             }
         }
         Check(await Fingerprint(pending)==before,"authority, eligibility and stale denials preserve full task state and time");
+        await SprintTaskAssignmentUserRace.RunAsync(db,managerHttp,next.UserId,root+"/assignment",tag,()=>Fingerprint(pending),checks,ct);
         Check(!await db.ShiftAssignments.AnyAsync(a=>a.UserId==next.UserId,ct),"new executor has no PLANNED shift");
         var race=await Task.WhenAll(Send(managerHttp,HttpMethod.Post,root+"/assignment",new{assigneeId=next.UserId},tag),Send(managerHttp,HttpMethod.Post,root+"/assignment",new{assigneeId=next.UserId},tag));
         Check(race.Count(r=>r.Status==200)==1&&race.Count(r=>r.Status==412)==1,"assign after Decline without PLANNED shift commits once under concurrent retry");
