@@ -121,14 +121,19 @@ export async function readTaskSubmission(
   branch: number,
   task: number,
   signal: AbortSignal,
+  submission?: number,
 ): Promise<TaskSubmission> {
   const url = path(branch, task);
+  if (submission !== undefined && !id(submission))
+    throw new Error("Invalid submission identity");
+  const suffix = submission === undefined ? "" : `?submission=${submission}`;
   const data = (await (
-    await request(url + "/submission", signal)
+    await request(url + "/submission" + suffix, signal)
   ).json()) as TaskSubmission;
   if (
     !data ||
     !id(data.id) ||
+    (submission !== undefined && data.id !== submission) ||
     data.taskId !== task ||
     data.branchId !== branch ||
     !id(data.submittedBy) ||
@@ -155,7 +160,7 @@ export async function readTaskSubmission(
         f.entityType !== "TASK" ||
         f.entityId !== task ||
         typeof f.name !== "string" ||
-        f.downloadPath !== url + `/submission/evidence/${f.id}`,
+        f.downloadPath !== url + `/submission/evidence/${f.id}` + suffix,
     )
   )
     throw new Error("Invalid task submission response");

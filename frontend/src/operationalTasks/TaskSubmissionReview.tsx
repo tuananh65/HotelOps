@@ -8,10 +8,12 @@ export function TaskSubmissionReview({
   branch,
   task,
   owner,
+  submission,
 }: {
   branch: number;
   task: number;
   owner: AuthorityGeneration;
+  submission?: number;
 }) {
   const { actions } = useAuth();
   const [result, setResult] = useState<TaskSubmission | null>(null);
@@ -21,7 +23,7 @@ export function TaskSubmissionReview({
     const controller = new AbortController();
     setResult(null);
     setError("");
-    void readTaskSubmission(branch, task, controller.signal)
+    void readTaskSubmission(branch, task, controller.signal, submission)
       .then((data) => {
         if (!controller.signal.aborted) setResult(data);
       })
@@ -36,10 +38,18 @@ export function TaskSubmissionReview({
         );
       });
     return () => controller.abort();
-  }, [branch, task, owner, reload, actions]);
+  }, [branch, task, owner, reload, actions, submission]);
   return (
-    <section aria-label="Submitted completion">
-      <h3>Submitted completion</h3>
+    <section
+      aria-label={
+        submission
+          ? `Previous completion ${submission}`
+          : "Submitted completion"
+      }
+    >
+      <h3>
+        {submission ? "Previous cycle completion" : "Submitted completion"}
+      </h3>
       <button onClick={() => setReload((n) => n + 1)}>
         Reload submitted completion
       </button>

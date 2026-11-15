@@ -1,4 +1,4 @@
-﻿import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
@@ -222,6 +222,7 @@ export function NotificationCenter() {
                         "TASK_PLANNED",
                         "TASK_CANCELLED",
                         "TASK_SERIES_STOPPED",
+                        "TASK_REOPENED",
                       ].includes(row.type) && (
                         <button
                           disabled={!!operation?.busy}
@@ -236,6 +237,7 @@ export function NotificationCenter() {
                             "TASK_PLANNED",
                             "TASK_CANCELLED",
                             "TASK_SERIES_STOPPED",
+                            "TASK_REOPENED",
                           ].includes(row.type)
                             ? "Open task"
                             : row.type === "REWORK_SUBMITTED"

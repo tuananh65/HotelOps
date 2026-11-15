@@ -1,0 +1,14 @@
+[
+    {
+        "trial":  1,
+        "success":  false,
+        "records":  238,
+        "failure":  "Exception: browser Reopen new assignee through independent Closed and preserved prior results"
+    },
+    {
+        "trial":  2,
+        "success":  false,
+        "records":  306,
+        "failure":  "InvalidOperationException: Logout session remains active in SQL"
+    }
+]

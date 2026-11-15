@@ -14,10 +14,19 @@ public sealed partial class RoomTypeCreationService
 {
     private async Task<long[]> TaskCyclePerformers(long task,long submission,CancellationToken ct)
     {
-        // Return is further work in this processing cycle, not UC106 Reopen.
-        // No verified reopen boundary exists yet: retain every recorded performer.
-        return await db.WorkIntervals.AsNoTracking().Where(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==task
-            ).Select(i=>i.UserId).Distinct().Order().ToArrayAsync(ct);
+        // Return keeps this cycle; only a proven UC106 event starts another one.
+        // Bound by submission time so reading old history never borrows
+        // performers from a later cycle.
+        var submitted = await TaskSubmissionStore.Query(db).SingleAsync(s => s.TaskId == task && s.ProgressId == submission, ct);
+        long cutoff = 0;
+        if (await TaskReopenStore.InstalledAsync(db, ct))
+        {
+            var reopen = await TaskReopenStore.Query(db).Where(r => r.TaskId == task && r.PreviousSubmissionId < submission
+                && r.ReopenedAt <= submitted.SubmittedAt).OrderByDescending(r => r.PreviousSubmissionId).FirstOrDefaultAsync(ct);
+            cutoff = reopen?.IntervalCutoff ?? 0;
+        }
+        return await db.WorkIntervals.AsNoTracking().Where(i => i.WorkItemKind == "TASK" && i.WorkItemId == task
+            && i.IntervalId > cutoff && i.OpenedAt <= submitted.SubmittedAt).Select(i => i.UserId).Distinct().Order().ToArrayAsync(ct);
     }
     private async Task<long> TaskEffort(long id,long branch,CancellationToken ct)=>await db.Database.SqlQuery<long>($"""
         SELECT COALESCE(SUM(DATEDIFF_BIG(second,effective_started_at,effective_ended_at)),0) AS Value

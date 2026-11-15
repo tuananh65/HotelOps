@@ -10,6 +10,7 @@ import { TaskAssignmentPanel } from "./TaskAssignmentPanel";
 import { TaskCreatePanel } from "./TaskCreatePanel";
 import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
+import { TaskReopenPanel } from "./TaskReopenPanel";
 import {
   readTasks,
   taskWorkflowStates,
@@ -37,6 +38,7 @@ export function TaskReadPage() {
   const [declined, setDeclined] = useState<AuthorityGeneration | null>(null);
   const [assigned, setAssigned] = useState<AuthorityGeneration | null>(null);
   const [planned, setPlanned] = useState<AuthorityGeneration | null>(null);
+  const [reopened, setReopened] = useState<AuthorityGeneration | null>(null);
   const [progressRevision, setProgressRevision] = useState(0);
   const [query, setQuery] = useState<{
     branch: number;
@@ -182,6 +184,11 @@ export function TaskReadPage() {
           MSG08: Task assigned. The new executor must accept before starting.
         </p>
       )}
+      {reopened === owner && (
+        <p role="status">
+          MSG08: Task reopened. The executor must accept the new cycle.
+        </p>
+      )}
       {query && (
         <button
           onClick={() => setQuery({ ...query, revision: query.revision + 1 })}
@@ -295,6 +302,18 @@ export function TaskReadPage() {
             owner={owner}
             onAssigned={() => {
               setAssigned(owner);
+              setResult(null);
+              setProgressRevision((n) => n + 1);
+              if (query) setQuery({ ...query, revision: query.revision + 1 });
+            }}
+          />
+          <TaskReopenPanel
+            key={`reopen:${owner}:${detail.task.branchId}:${detail.task.id}:${query?.revision}`}
+            branch={detail.task.branchId}
+            task={detail.task.id}
+            owner={owner}
+            onReopened={() => {
+              setReopened(owner);
               setResult(null);
               setProgressRevision((n) => n + 1);
               if (query) setQuery({ ...query, revision: query.revision + 1 });

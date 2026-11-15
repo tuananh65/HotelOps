@@ -38,6 +38,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskDeclineNotifi
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskAssignmentNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskPlanNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskSeriesNotificationDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskReopenNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskVerificationNotificationDelivery>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.TaskNotificationWorker>();
 builder.Services.AddOptions<HotelOps.Api.Services.OperationalTasks.TaskSeriesOptions>().BindConfiguration("TaskSeriesGeneration");

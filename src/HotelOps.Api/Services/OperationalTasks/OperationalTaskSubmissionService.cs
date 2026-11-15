@@ -93,13 +93,15 @@ public sealed partial class RoomTypeCreationService
         }
     }
 
-    public Task<RoomTypeBatchResult> ReadTaskSubmissionAsync(SessionReference ticket,long sid,long branch,long id,string root,CancellationToken ct,long? attachment=null)
+    public Task<RoomTypeBatchResult> ReadTaskSubmissionAsync(SessionReference ticket,long sid,long branch,long id,string root,CancellationToken ct,long? attachment=null,long? submission=null)
         =>BatchAsync(ticket,sid,branch,async(_,token)=>
         {
             if(!await TaskSubmissionStore.InstalledAsync(db,token))return new(RoomTypeBatchStatus.SchemaRequired);
-            var row=await TaskSubmissionStore.Query(db).Where(s=>s.TaskId==id&&s.BranchId==branch).OrderByDescending(s=>s.ProgressId).FirstOrDefaultAsync(token);
+            if(submission<=0)throw new ValidationException("Invalid submission identity.");
+            var row=await TaskSubmissionStore.Query(db).Where(s=>s.TaskId==id&&s.BranchId==branch&&(!submission.HasValue||s.ProgressId==submission.Value)).OrderByDescending(s=>s.ProgressId).FirstOrDefaultAsync(token);
             if(row==null)return new(RoomTypeBatchStatus.NotFound);
             var dto=TaskSubmissionStore.Dto(row);
+            if(submission.HasValue)dto=dto with{Evidence=dto.Evidence.Select(e=>e with{DownloadPath=e.DownloadPath+"?submission="+row.ProgressId}).ToArray()};
             if(attachment is {} fileId)
             {
                 var file=await HistoryFile(dto.Evidence,fileId,root,token);

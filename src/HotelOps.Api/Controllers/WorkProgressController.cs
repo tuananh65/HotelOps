@@ -18,6 +18,12 @@ namespace HotelOps.Api.Controllers;
 public sealed class WorkProgressController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/reopen")]
+    public Task<IActionResult> ReadReopen(long branch, long id, CancellationToken ct, int page = 1, string? search = null)
+        => Execute((ticket, sid) => service.ReadTaskReopenAsync(ticket, sid, branch, id, page, search, ct), false);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/reopen")]
+    public Task<IActionResult> ReopenTask(long branch, long id, ReopenOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.ReopenOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpPost("api/branches/{branch:long}/operational-task-series")]
     public Task<IActionResult> CreateSeries(long branch, CreateTaskSeriesRequest input, CancellationToken ct)
         => Execute((ticket, sid) => service.CreateTaskSeriesAsync(ticket, sid, branch, input, ct), false, true);
@@ -87,11 +93,11 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     public Task<IActionResult> VerifyTask(long branch,long id,VerifyOperationalTaskRequest input,CancellationToken ct)
         =>Execute((ticket,sid)=>service.VerifyOperationalTaskAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),input,ct),true);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/submission")]
-    public Task<IActionResult> TaskSubmission(long branch,long id,CancellationToken ct)
-        =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct),false);
+    public Task<IActionResult> TaskSubmission(long branch,long id,CancellationToken ct,long? submission=null)
+        =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct,submission:submission),false);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/submission/evidence/{attachment:long}")]
-    public Task<IActionResult> TaskSubmissionEvidence(long branch,long id,long attachment,CancellationToken ct)
-        =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct,attachment),false);
+    public Task<IActionResult> TaskSubmissionEvidence(long branch,long id,long attachment,CancellationToken ct,long? submission=null)
+        =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct,attachment,submission),false);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/progress")]
     public Task<IActionResult> ReadTask(long branch, long id, CancellationToken ct) => Progress(branch, id, false, null, ct);
     [HttpPut("api/branches/{branch:long}/cleaning-tasks/{id:long}/progress")]
