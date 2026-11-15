@@ -26,6 +26,12 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/progress-initialization")]
     public Task<IActionResult> InitializeTask(long branch, long id, InitializeProgressRequest input, CancellationToken ct)
         => Initialize(branch, id, "task", input, ct);
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/pause-reasons")]
+    public Task<IActionResult> PauseReasons(long branch, long id, CancellationToken ct)
+        => Execute((ticket, sid) => service.ReadTaskPauseReasonsAsync(ticket, sid, branch, id, ct), false);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/pause")]
+    public Task<IActionResult> PauseTask(long branch, long id, PauseOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.PauseOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/resume")]
     public Task<IActionResult> ResumeTask(long branch, long id, CancellationToken ct)
         => Execute((ticket, sid) => service.ResumeOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), ct), true);

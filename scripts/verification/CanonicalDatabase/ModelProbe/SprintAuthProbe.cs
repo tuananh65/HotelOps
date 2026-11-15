@@ -119,7 +119,7 @@ internal static class SprintAuthProbe
                 scope = taskCriteria ? "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
                     : browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"
-                    : taskResume ? "Real HTTPS/SQL task resume with work interval, audit, preconditions, concurrency and canonical browser; pause/start/create not accepted"
+                    : taskResume ? "Real HTTPS/SQL task pause/resume with approved reference reasons, interval closure, audit/history, concurrency, injected rollback and canonical browser; start/create not accepted"
                     : taskRead ? "Real HTTPS/SQL and canonical browser task progress, evidence upload/private download, paused execution, audit, stale/concurrent writes and scope denials; criteria mutation and create/lifecycle acceptance excluded"
                     : notifications ? "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
                     : activation ? "Real HTTPS/SQL account activation, concurrency preconditions and credential preservation; deactivation remains unavailable"

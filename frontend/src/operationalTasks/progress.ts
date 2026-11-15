@@ -166,6 +166,75 @@ export async function resumeTask(
     throw new Error("Task resume could not be confirmed");
   return result;
 }
+export async function pauseTask(
+  branch: number,
+  task: number,
+  current: TaskProgressSnapshot,
+  signal: AbortSignal,
+  reasonId: number,
+  note: string,
+) {
+  validate(current.data, branch, task);
+  if (
+    !tag(current.etag) ||
+    current.data.state !== "IN_PROGRESS" ||
+    !Number.isSafeInteger(reasonId) ||
+    reasonId <= 0 ||
+    note.length > 1000
+  )
+    throw new Error("A running task and valid pause reason are required");
+  const csrf = await (await request("/api/auth/csrf", signal)).json();
+  if (
+    csrf?.headerName !== "X-CSRF-TOKEN" ||
+    typeof csrf.csrfToken !== "string" ||
+    !csrf.csrfToken.trim() ||
+    /[\r\n]/.test(csrf.csrfToken)
+  )
+    throw new Error("Invalid CSRF response");
+  signal.throwIfAborted();
+  const result = await snapshot(
+    await request(path(branch, task).replace(/\/progress$/, "/pause"), signal, {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrf.csrfToken,
+        "If-Match": current.etag,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reasonId, note }),
+    }),
+    branch,
+    task,
+  );
+  if (result.data.state !== "PAUSED" || result.etag === current.etag)
+    throw new Error("Task pause could not be confirmed");
+  return result;
+}
+export type PauseReason = { id: number; code: string; label: string };
+export async function readPauseReasons(
+  branch: number,
+  task: number,
+  signal: AbortSignal,
+): Promise<PauseReason[]> {
+  const data = await (
+    await request(
+      path(branch, task).replace(/\/progress$/, "/pause-reasons"),
+      signal,
+    )
+  ).json();
+  if (
+    !Array.isArray(data) ||
+    data.some(
+      (r) =>
+        !Number.isSafeInteger(r.id) ||
+        r.id <= 0 ||
+        typeof r.code !== "string" ||
+        typeof r.label !== "string" ||
+        !r.label.trim(),
+    )
+  )
+    throw new Error("Invalid pause reasons");
+  return data;
+}
 export async function initializeTaskProgress(
   branch: number,
   task: number,

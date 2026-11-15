@@ -14,7 +14,7 @@ const source = ts.transpileModule(
     },
   },
 ).outputText;
-const { resumeTask, readTaskProgress, saveTaskProgress, initializeTaskProgress, TaskProgressError } = await import(
+const { resumeTask, pauseTask, readPauseReasons, readTaskProgress, saveTaskProgress, initializeTaskProgress, TaskProgressError } = await import(
   "data:text/javascript;base64," + Buffer.from(source).toString("base64")
 );
 const data = {
@@ -227,4 +227,18 @@ test("resume binds paused snapshot, fresh CSRF and ETag",async()=>{
 test("resume rejects running state and never retries stale mutation",async()=>{
  const old=globalThis.fetch;let count=0;globalThis.fetch=async()=>++count===1?Response.json({headerName:"X-CSRF-TOKEN",csrfToken:"fresh"}):new Response(null,{status:412});
  try{await assert.rejects(()=>resumeTask(2,4,current,signal));assert.equal(count,0);await assert.rejects(()=>resumeTask(2,4,{data:{...data,state:"PAUSED"},etag},signal));assert.equal(count,2);}finally{globalThis.fetch=old;}
+});
+
+test('pause binds reason and note to running snapshot with fresh CSRF and ETag',async t=>{
+ const calls=[];t.mock.method(globalThis,'fetch',async(url,options)=>{calls.push({url,options});return calls.length===1?Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'fresh'}):response({...data,state:'PAUSED'},'"0000000000000002"');});
+ const value=await pauseTask(2,4,current,signal,7,'Synthetic note');assert.equal(value.data.state,'PAUSED');assert.equal(calls[1].url,'/api/branches/2/operational-tasks/4/pause');assert.deepEqual(JSON.parse(calls[1].options.body),{reasonId:7,note:'Synthetic note'});assert.equal(calls[1].options.headers['If-Match'],etag);
+});
+test('pause rejects paused snapshot before fetching and does not retry stale write',async t=>{
+ let count=0;t.mock.method(globalThis,'fetch',async()=>++count===1?Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'fresh'}):new Response(null,{status:412}));
+ await assert.rejects(pauseTask(2,4,{data:{...data,state:'PAUSED'},etag},signal,7,''));assert.equal(count,0);
+ await assert.rejects(pauseTask(2,4,current,signal,7,''),e=>e.status===412);assert.equal(count,2);
+});
+test('pause catalog rejects invalid IDs and accepts backend labels',async t=>{
+ t.mock.method(globalThis,'fetch',async()=>Response.json([{id:7,code:'OTHER',label:'Other'}]));assert.deepEqual(await readPauseReasons(2,4,signal),[{id:7,code:'OTHER',label:'Other'}]);
+ globalThis.fetch=async()=>Response.json([{id:0,code:'OTHER',label:'Other'}]);await assert.rejects(readPauseReasons(2,4,signal),/Invalid pause reasons/);
 });

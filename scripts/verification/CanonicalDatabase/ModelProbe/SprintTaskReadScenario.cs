@@ -46,6 +46,7 @@ internal static class SprintTaskReadScenario
         }
         async Task Cleanup(CancellationToken token)
         {
+            if (resume) await db.Database.ExecuteSqlInterpolatedAsync($"DELETE e FROM dbo.task_pause_events e JOIN dbo.operational_task_progress p ON p.progress_id=e.progress_id WHERE p.reported_by={actor}", token);
             await db.WorkIntervals.Where(i=>i.UserId==actor && i.WorkItemKind=="TASK" && tasks.Contains(i.WorkItemId)).ExecuteDeleteAsync(token);
             await db.Workdays.Where(d=>d.UserId==actor && branches.Contains(d.BranchId)).ExecuteDeleteAsync(token);
             await db.AuditLogs.Where(a=>a.ActorUserId==actor && a.EntityType=="work_intervals").ExecuteDeleteAsync(token);

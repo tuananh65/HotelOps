@@ -5,6 +5,9 @@ import { uploadFile } from "../api/dev1/cleaningProgress";
 import {
   readTaskProgress,
   resumeTask,
+  pauseTask,
+  readPauseReasons,
+  type PauseReason,
   saveTaskProgress,
   TaskProgressError,
   type TaskProgressSnapshot,
@@ -23,6 +26,9 @@ export function TaskProgressPanel({
 }) {
   const { actions } = useAuth();
   const [current, setCurrent] = useState<TaskProgressSnapshot | null>(null);
+  const [reasons, setReasons] = useState<PauseReason[]>([]);
+  const [reasonId, setReasonId] = useState(0);
+  const [pauseNote, setPauseNote] = useState("");
   const [percent, setPercent] = useState(0);
   const [items, setItems] = useState<Criterion[]>([]);
   const [note, setNote] = useState("");
@@ -125,6 +131,46 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted) setBusy(false);
     }
   }
+  async function pause(loadOnly = false) {
+    if (!current || busy || locked || saving.current) return;
+    saving.current = true;
+    const controller = new AbortController();
+    active.current = controller;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      if (loadOnly) {
+        const values = await readPauseReasons(branch, task, controller.signal);
+        if (!controller.signal.aborted) setReasons(values);
+      } else {
+        const selected = reasons.find((r) => r.id === reasonId);
+        if (!selected || (selected.code === "OTHER" && !pauseNote.trim())) {
+          setError("Select a pause reason; Other requires a note.");
+          return;
+        }
+        const value = await pauseTask(
+          branch,
+          task,
+          current,
+          controller.signal,
+          reasonId,
+          pauseNote,
+        );
+        if (!controller.signal.aborted) {
+          setCurrent(value);
+          setReasonId(0);
+          setPauseNote("");
+          setMessage("Task paused. Working interval closed.");
+        }
+      }
+    } catch (reason) {
+      if (!controller.signal.aborted) failure(reason);
+    } finally {
+      saving.current = false;
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
   async function resume() {
     if (!current || busy || locked || saving.current) return;
     saving.current = true;
@@ -166,6 +212,44 @@ export function TaskProgressPanel({
       {busy && <p role="status">Loading or saving progress…</p>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
+      {current?.data.state === "IN_PROGRESS" && (
+        <section aria-label="Pause task controls">
+          <button disabled={busy || locked} onClick={() => void pause(true)}>
+            Load pause reasons
+          </button>
+          <label>
+            Pause reason
+            <select aria-label="Pause reason"
+              disabled={busy || locked}
+              value={reasonId}
+              onChange={(e) => setReasonId(Number(e.target.value))}
+            >
+              <option value={0}>Select reason</option>
+              {reasons.map((r) => (
+                <option key={r.id} value={r.id}>
+                  {r.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Pause note
+            <textarea
+              maxLength={1000}
+              disabled={busy || locked}
+              value={pauseNote}
+              onChange={(e) => setPauseNote(e.target.value)}
+            />
+          </label>
+          <p>Other requires a note. Maximum 1000 characters.</p>
+          <button
+            disabled={busy || locked || !reasonId}
+            onClick={() => void pause()}
+          >
+            Pause task
+          </button>
+        </section>
+      )}
       {current?.data.state === "PAUSED" && (
         <button disabled={busy || locked} onClick={() => void resume()}>
           Resume task

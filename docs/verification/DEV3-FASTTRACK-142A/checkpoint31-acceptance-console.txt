@@ -1,0 +1,1 @@
+Sprint HTTPS auth checks: PASS; checks=53; cleanup=True; wholeCloneDropRequired=False
