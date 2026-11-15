@@ -14,6 +14,7 @@ import { AuditPage } from "../audit/AuditPage";
 import { DashboardPage } from "../insights/DashboardPage";
 import { ReportsPage, ReportAccessLink } from "../insights/ReportsPage";
 import { InternalRequestHistoryPage, InternalRequestAccessLink } from "../internalRequests/HistoryPage";
+import { Dev2Workspace } from "../dev2/Workspace";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
@@ -66,6 +67,7 @@ export function SharedAuthHost({
   inspectionExecutionEnabled = false,
   operationalTasksEnabled = false,
   internalRequestsEnabled = false,
+  incidentReadEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -78,9 +80,11 @@ export function SharedAuthHost({
   inspectionExecutionEnabled?: boolean;
   operationalTasksEnabled?: boolean;
   internalRequestsEnabled?: boolean;
+  incidentReadEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {incidentReadEnabled && <Route path="/operations/*" element={<Protected><Dev2Workspace readOnly enabledModules={["incidents"]} /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}
       {(notificationsEnabled || inspectionExecutionEnabled) && (
@@ -280,6 +284,7 @@ export function SharedAuthHost({
             {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
             {dashboardEnabled && <ReportAccessLink />}
             {internalRequestsEnabled && <InternalRequestAccessLink />}
+            {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>
             )}

@@ -13,8 +13,8 @@ public sealed record Dev2KnownAction(string DecisionId, Type ControllerType,
 
 public static class Dev2ActionAdmissionRegistry
 {
-    // No action-level owner contract has been supplied. Never populate this from
-    // request data, configuration, role labels or the historical candidate matrix.
+    // Only source-owned contracts are admitted. Never populate this from request
+    // data, configuration, role labels or the historical candidate matrix.
     public static IReadOnlySet<string> ApprovedDecisionIds =>
         HotelOps.Api.Services.Dev2Authorization.Dev2ActionContracts.DecisionIds;
 

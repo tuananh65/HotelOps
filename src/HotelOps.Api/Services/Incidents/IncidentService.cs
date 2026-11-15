@@ -348,6 +348,9 @@ public sealed class IncidentService : IIncidentService
     }
 
     public async Task<IncidentPagedResponse> GetIncidentsAsync(IncidentQueryRequest request, CancellationToken cancellationToken)
+        => await ListAsync(_dbContext.Incidents.AsNoTracking(), request, cancellationToken);
+
+    internal static async Task<IncidentPagedResponse> ListAsync(IQueryable<Incident> query, IncidentQueryRequest request, CancellationToken cancellationToken)
     {
         if (request.Page <= 0)
             throw new ValidationException("Page must be greater than zero.");
@@ -366,7 +369,6 @@ public sealed class IncidentService : IIncidentService
             status is not ("OPEN" or "IN_PROGRESS" or "RESOLVED" or "CLOSED" or "CANCELLED"))
             throw new ValidationException("Status must be OPEN, IN_PROGRESS, RESOLVED, CLOSED, or CANCELLED.");
 
-        var query = _dbContext.Incidents.AsNoTracking();
         if (request.BranchId is long branchId)
             query = query.Where(incident => incident.BranchId == branchId);
         if (!string.IsNullOrEmpty(status))
@@ -422,8 +424,11 @@ public sealed class IncidentService : IIncidentService
     }
 
     public async Task<IncidentDetailDto?> GetIncidentAsync(long id, CancellationToken cancellationToken)
+        => await DetailAsync(_dbContext.Incidents.AsNoTracking(), id, cancellationToken);
+
+    internal static async Task<IncidentDetailDto?> DetailAsync(IQueryable<Incident> query, long id, CancellationToken cancellationToken)
     {
-        return await _dbContext.Incidents
+        return await query
             .AsNoTracking()
             .Where(incident => incident.IncidentId == id)
             .Select(incident => new IncidentDetailDto

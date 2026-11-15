@@ -15,6 +15,7 @@ export function AuthRouteHost() {
       inspectionExecutionEnabled
       operationalTasksEnabled
       internalRequestsEnabled
+      incidentReadEnabled
     />
   );
 }

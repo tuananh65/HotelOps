@@ -88,7 +88,7 @@ public static class Dev2ActionAdmissionGuard
             Dev2ServiceAuthority.Install(context.HttpContext, grant);
             if (known.HttpMethod == "GET")
             {
-                await using var readTransaction = Dev2DemoBindings.ExpandedEnabled
+                await using var readTransaction = Dev2DemoBindings.ExpandedEnabled || contract.RequiresReadTransaction
                     ? await Dev2ServiceAuthority.BeginTransactionAsync(servicesDb(), httpAccessor, context.HttpContext.RequestAborted) : null;
                 if (readTransaction is not null) await grant.RevalidateAsync(Dev2AuthorizationPhase.Admission, context.HttpContext.RequestAborted);
                 // A scoped read implementation is mandatory; never fall through to an old unscoped query.
@@ -117,7 +117,12 @@ public static class Dev2ActionAdmissionGuard
             }
         }
         catch (Dev2AccessDenied denied) { context.Result = PublicResult(denied.Status); }
-        catch (Exception error) when (Unavailable(error)) { context.Result = new StatusCodeResult(503); }
+        catch (Exception error) when (Unavailable(error))
+        {
+            context.HttpContext.RequestServices.GetService<ILoggerFactory>()?.CreateLogger(typeof(Dev2ActionAdmissionGuard).FullName!)
+                .LogWarning("Action authority unavailable: {ErrorType}; {Stack}", error.GetType().Name, error.StackTrace);
+            context.Result = new StatusCodeResult(503);
+        }
         finally { Dev2ServiceAuthority.Remove(context.HttpContext); }
     }
 

@@ -16,6 +16,15 @@ await build({
 const { validateReturnUrl, approvedReturnDestination } =
   await import("../.test-output/shared-host/shared-host/returnUrl.js");
 
+test("incident return destinations admit reads only after fresh authentication", () => {
+  for (const path of ["/operations/incidents", "/operations/incidents?branchId=7", "/operations/incidents/12", "/operations/incidents/12?branchId=7"]) {
+    assert.equal(approvedReturnDestination(path, true), path);
+    assert.equal(approvedReturnDestination(path, false), null);
+  }
+  for (const path of ["/operations/incidents/0", "/operations/incidents/9007199254740992", "/operations/incidents?action=A004A-021", "/operations/incidents?branchId=7&branchId=8", "/operations/material-requests", "/operations/incidents/new"])
+    assert.equal(approvedReturnDestination(path, true), null);
+});
+
 test("canonical inbox and assigned rework retain a validated login destination", () => {
   for (const path of [
     "/notifications",
@@ -135,6 +144,22 @@ async function pageAt(path, status) {
   if (status) await page.evaluate((s) => window.fixture.set(s), status);
   return page;
 }
+
+test("canonical incident workspace hides write actions and other modules", async () => {
+  const p = await pageAt("/operations/incidents?branchId=7&action=A004A-021", "AUTHENTICATED");
+  await p.getByLabel("Action", { exact: true }).waitFor();
+  assert.equal(await p.getByRole("link", { name: "Create", exact: true }).count(), 0);
+  assert.equal(await p.locator('option[value="A004A-021"]').count(), 0);
+  assert.equal(await p.locator('nav[aria-label="Operations"] a').count(), 1);
+  assert.ok((await p.evaluate(() => window.methods ?? [])).every(method => method === "GET"));
+  await p.evaluate(() => window.fixture.set("EXPIRED_INVALID"));
+  await p.getByLabel("Action", { exact: true }).waitFor({ state: "hidden" });
+  await p.close();
+  const denied = await pageAt("/operations/material-requests", "AUTHENTICATED");
+  await denied.getByText("This destination is not activated.", { exact: true }).waitFor();
+  assert.deepEqual(await denied.evaluate(() => window.calls), []);
+  await denied.close();
+});
 
 test("inspection history admission denial never mounts the history workspace", async () => {
   for (const destination of ["/inspection-history/42?branchId=7", "/inspection-history?branchId=7"]) {

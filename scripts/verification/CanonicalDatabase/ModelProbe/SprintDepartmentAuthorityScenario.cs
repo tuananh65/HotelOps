@@ -59,6 +59,12 @@ internal static class SprintDepartmentAuthorityScenario
             await AssertAllowed(requests[0],true,"exact current department mapping allows");
             if(wholeClone)
             {
+                if(Environment.GetEnvironmentVariable("DEV3_VERIFY_INCIDENT_READ")=="1")
+                {
+                    await SprintIncidentReadScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,branch,department,checks,ct,
+                        username??throw new Exception("Username required"),password??throw new Exception("Password required"));
+                    return;
+                }
                 if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_WITHDRAWAL")=="1")
                 {
                     await SprintInternalRequestWithdrawalScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,requests[0],checks,ct,

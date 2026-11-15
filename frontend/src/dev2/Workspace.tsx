@@ -40,7 +40,7 @@ function readAction(operation: Operation, fallback: string): string {
   }
   return fallback;
 }
-export function Dev2Workspace() {
+export function Dev2Workspace({ readOnly = false, enabledModules }: { readOnly?: boolean; enabledModules?: string[] } = {}) {
   const { state, actions } = useAuth();
   if (state.status === "RESTRICTED" || state.session?.mustChangePassword)
     return <Navigate to="/change-password" replace />;
@@ -61,7 +61,7 @@ export function Dev2Workspace() {
     <Routes>
       <Route
         path=":module/:id?"
-        element={<Workspace key={key(state.session)} />}
+        element={<Workspace key={key(state.session)} readOnly={readOnly} enabledModules={enabledModules} />}
       />
       <Route
         path="*"
@@ -70,12 +70,12 @@ export function Dev2Workspace() {
     </Routes>
   );
 }
-function Workspace() {
+function Workspace({ readOnly, enabledModules }: { readOnly: boolean; enabledModules?: string[] }) {
   const { module = "incidents", id = "" } = useParams();
   const { state, actions } = useAuth();
   const [query, setQuery] = useSearchParams();
   const config = modules.find((m) => m.id === module);
-  if (!config) return <Navigate to="/operations/incidents" replace />;
+  if (!config || enabledModules && !enabledModules.includes(module)) return <p role="alert">This destination is not activated.</p>;
   const context: Values = {};
   for (const name of [
     "branchId",
@@ -92,6 +92,8 @@ function Workspace() {
     if (query.has(name)) context[name] = query.get(name)!;
   return (
     <Screen
+      readOnly={readOnly}
+      enabledModules={enabledModules}
       key={`${module}:${id}:${query.toString()}`}
       module={module}
       recordId={id}
@@ -109,6 +111,8 @@ function Workspace() {
   );
 }
 function Screen({
+  readOnly,
+  enabledModules,
   module,
   recordId,
   actor,
@@ -118,6 +122,8 @@ function Screen({
   select,
   expired,
 }: {
+  readOnly: boolean;
+  enabledModules?: string[];
   module: string;
   recordId: string;
   actor: string;
@@ -127,7 +133,7 @@ function Screen({
   select: (v: string) => void;
   expired: () => void;
 }) {
-  const available = operations.filter((x) => x.module === module);
+  const available = operations.filter((x) => x.module === module && (!readOnly || x.method === "GET"));
   const initial = available.find(
     (x) => x.id === (actionId ?? (recordId ? config.detail : config.list)),
   )!;
@@ -375,7 +381,7 @@ function Screen({
         <Link to="/dashboard">Workspace home</Link>
       </header>
       <nav aria-label="Operations">
-        {modules.map((m) => (
+        {modules.filter(m => !enabledModules || enabledModules.includes(m.id)).map((m) => (
           <Link
             key={m.id}
             aria-current={m.id === module ? "page" : undefined}
@@ -385,17 +391,17 @@ function Screen({
           </Link>
         ))}
       </nav>
-      <p>
+      {!readOnly && <p>
         Incident → Maintenance Work → Material Request → Fulfillment → Material
         Availability
-      </p>
+      </p>}
       <div className="dev2-toolbar">
         <Link to={`/operations/${module}`}>Browse</Link>
-        <Link
+        {!readOnly && <Link
           to={`/operations/${module}${recordId ? "/" + recordId : ""}?action=${config.create}`}
         >
           Create
-        </Link>
+        </Link>}
         <label>
           Action
           <select
@@ -517,7 +523,7 @@ function Screen({
             </button>
           </div>
         )}
-      {record.incidentId != null && (
+      {!readOnly && record.incidentId != null && (
         <p>
           <Link
             to={`/operations/maintenance?action=A004A-035&incidentId=${record.incidentId}`}
@@ -556,7 +562,7 @@ function Screen({
           </Link>
         </p>
       )}
-      <footer>
+      {!readOnly && <footer>
         <Link to="/inventory/items">Inventory item catalogue</Link> ·{" "}
         <Link to="/operations/inventory?action=inventory:Movements">
           Stock movements
@@ -565,7 +571,7 @@ function Screen({
         <Link to="/operations/inventory?action=inventory:Documents">
           Stock documents
         </Link>
-      </footer>
+      </footer>}
     </main>
   );
 }
