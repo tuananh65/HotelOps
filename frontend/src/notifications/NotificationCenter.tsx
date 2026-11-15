@@ -6,7 +6,7 @@ import {
   InboxFailure,
   readInbox,
   markInboxRead,
-  resolveInboxSource,
+  openInboxSource,
   type Inbox,
 } from "./inboxApi";
 export function NotificationCenter() {
@@ -89,7 +89,7 @@ export function NotificationCenter() {
     pending.current = controller;
     setWrite({ owner, busy: true });
     try {
-      const path = await resolveInboxSource(id, controller.signal);
+      const path = await openInboxSource(id, controller.signal, () => current.current === owner);
       if (current.current === owner && !controller.signal.aborted)
         navigate(path);
     } catch (error) {
@@ -97,7 +97,7 @@ export function NotificationCenter() {
         setWrite({
           owner,
           busy: false,
-          message: "Source is unavailable or access has changed.",
+          message: "Source or read confirmation is unavailable. Refresh to check current access.",
         });
         if (error instanceof InboxFailure && error.status === 401)
           actions.invalidateSession(owner);

@@ -116,6 +116,24 @@ export async function markInboxRead(
   );
 }
 
+// Resolving a source is a read. Marking the recipient's notification is a
+// separate CSRF-protected action; never write for a denied or stale source.
+export async function openInboxSource(
+  id: number,
+  signal: AbortSignal,
+  stillCurrent: () => boolean,
+): Promise<string> {
+  const check = () => {
+    if (signal.aborted || !stillCurrent()) throw new Error("Session changed");
+  };
+  check();
+  const path = await resolveInboxSource(id, signal);
+  check();
+  await markInboxRead(id, signal, stillCurrent);
+  check();
+  return path;
+}
+
 export async function resolveInboxSource(
   id: number,
   signal: AbortSignal,

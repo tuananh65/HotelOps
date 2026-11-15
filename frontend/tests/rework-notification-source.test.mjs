@@ -8,7 +8,7 @@ await build({
   format: "esm",
   outfile: ".test-output/rework-notification/inbox.mjs",
 });
-const { resolveInboxSource } =
+const { resolveInboxSource, openInboxSource } =
   await import("../.test-output/rework-notification/inbox.mjs");
 test("source resolver uses current session and only accepts canonical rework/history paths", async () => {
   const abort = new AbortController();
@@ -102,4 +102,54 @@ test("source denial is not retried or replaced with a stored action URL", async 
     );
     assert.equal(calls, 1);
   }
+});
+
+test("opening an authorized source marks only its notification with CSRF before navigation", async () => {
+  const calls=[];
+  globalThis.fetch=async(url,options)=>{
+    calls.push(url);
+    if(url.endsWith("/source"))return Response.json({path:"/internal-requests?requestId=42"});
+    if(url==="/api/auth/csrf")return Response.json({csrfToken:"fixture",headerName:"X-CSRF-TOKEN"});
+    assert.equal(url,"/api/notifications/7/read");
+    assert.equal(options.method,"POST");assert.equal(options.headers["X-CSRF-TOKEN"],"fixture");
+    assert.equal(options.body,undefined);
+    return new Response(null,{status:204});
+  };
+  assert.equal(await openInboxSource(7,new AbortController().signal,()=>true),"/internal-requests?requestId=42");
+  assert.deepEqual(calls,["/api/notifications/7/source","/api/auth/csrf","/api/notifications/7/read"]);
+});
+
+test("denied or invalid source cannot mark read or acknowledge", async () => {
+  for(const reply of [{status:403},{status:404},{path:"https://example.invalid"}]){
+    const calls=[];
+    globalThis.fetch=async(url)=>{calls.push(url);return Response.json(reply,{status:reply.status??200});};
+    await assert.rejects(openInboxSource(7,new AbortController().signal,()=>true));
+    assert.deepEqual(calls,["/api/notifications/7/source"]);
+  }
+});
+
+test("identity changes at source, CSRF or read completion cannot release a navigation path", async () => {
+  for(const changedAt of ["source","csrf","read"]){
+    let current=true;const calls=[];
+    globalThis.fetch=async(url)=>{
+      calls.push(url);
+      const stage=url.endsWith("/source")?"source":url.endsWith("/csrf")?"csrf":"read";
+      if(stage===changedAt)current=false;
+      return stage==="source"?Response.json({path:"/internal-requests?requestId=42"})
+        :stage==="csrf"?Response.json({csrfToken:"fixture",headerName:"X-CSRF-TOKEN"}):new Response(null,{status:204});
+    };
+    await assert.rejects(openInboxSource(7,new AbortController().signal,()=>current),/Session changed/);
+    assert.equal(calls.length,changedAt==="source"?1:changedAt==="csrf"?2:3);
+  }
+});
+
+test("failed read confirmation does not navigate or retry a mutation", async () => {
+  const calls=[];
+  globalThis.fetch=async(url)=>{
+    calls.push(url);
+    return url.endsWith("/source")?Response.json({path:"/internal-requests?requestId=42"})
+      :url.endsWith("/csrf")?Response.json({csrfToken:"fixture",headerName:"X-CSRF-TOKEN"}):new Response(null,{status:503});
+  };
+  await assert.rejects(openInboxSource(7,new AbortController().signal,()=>true),e=>e.status===503);
+  assert.equal(calls.filter(url=>url.endsWith("/read")).length,1);
 });

@@ -68,6 +68,8 @@ internal static class SprintInternalRequestCompletionUiScenario
             &&await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==request&&r.Status=="CLOSED"&&r.ClosedAt!=null,ct),"browser double submit persists one closure");
         var completion=await db.InternalRequestEvents.SingleAsync(e=>e.InternalRequestId==request&&e.EventType=="COMPLETE",ct);db.ChangeTracker.Clear();
         var notice=await db.Notifications.AsNoTracking().SingleAsync(n=>n.SourceType=="INTERNAL_REQUEST_COMPLETION"&&n.SourceId==completion.EventId,ct);
+        Check(await db.NotificationRecipients.AsNoTracking().AnyAsync(r=>r.NotificationId==notice.NotificationId&&r.UserId==actor&&r.ReadAt!=null,ct),
+            "browser source opening persists recipient read marker without acknowledging or mutating request");
         var delivery=new InternalRequestCompletionDelivery(db,TimeProvider.System,Options.Create(new NotificationCenterOptions()));
         Check(await delivery.DeliverAsync(completion.EventId,ct)=="ALREADY_DELIVERED","hosted worker delivers once and replay is idempotent");
         var grant=await db.RolePermissions.AsNoTracking().SingleAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==view.PermissionId,ct);
