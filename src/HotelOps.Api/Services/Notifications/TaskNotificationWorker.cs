@@ -13,7 +13,7 @@ internal sealed class TaskNotificationWorker(IServiceScopeFactory scopes,IOption
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if(!options.Value.Enabled)return;
-        long cursor=0,verificationCursor=0,declineCursor=0,assignmentCursor=0,planCursor=0;
+        long cursor=0,verificationCursor=0,declineCursor=0,assignmentCursor=0,planCursor=0,seriesCursor=0;
         while(!ct.IsCancellationRequested)
         {
             try
@@ -64,9 +64,18 @@ internal sealed class TaskNotificationWorker(IServiceScopeFactory scopes,IOption
                     catch(Exception error){logger.LogWarning("Task plan notification {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                 }
                 planCursor=pending.Length==100?pending[^1]:0;
+                await using(var scope=scopes.CreateAsyncScope())pending=await scope.ServiceProvider.GetRequiredService<TaskSeriesNotificationDelivery>().ReadPendingAsync(seriesCursor,100,ct);
+                foreach(var id in pending)
+                {
+                    await using var scope=scopes.CreateAsyncScope();
+                    try{await scope.ServiceProvider.GetRequiredService<TaskSeriesNotificationDelivery>().DeliverAsync(id,ct);}
+                    catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                    catch(Exception error){logger.LogWarning("Task series notification {EventId} retained after {ErrorType}",id,error.GetType().Name);}
+                }
+                seriesCursor=pending.Length==100?pending[^1]:0;
             }
             catch(OperationCanceledException)when(ct.IsCancellationRequested){break;}
-            catch(Exception error){logger.LogWarning("Task notification discovery retained after {ErrorType}",error.GetType().Name);cursor=0;verificationCursor=0;declineCursor=0;assignmentCursor=0;planCursor=0;}
+            catch(Exception error){logger.LogWarning("Task notification discovery retained after {ErrorType}",error.GetType().Name);cursor=0;verificationCursor=0;declineCursor=0;assignmentCursor=0;planCursor=0;seriesCursor=0;}
             try{await Task.Delay(TimeSpan.FromSeconds(options.Value.PollSeconds),clock,ct);}
             catch(OperationCanceledException)when(ct.IsCancellationRequested){break;}
         }

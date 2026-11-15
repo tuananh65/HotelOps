@@ -11,15 +11,23 @@ import {
   type PlanningOptions,
 } from "./planning";
 import { TaskPlanFields, type PlanDraft } from "./TaskPlanFields";
+import {
+  createSeries,
+  validateRecurrence,
+  type RecurrenceInput,
+} from "./series";
+import { TaskRecurrenceFields } from "./TaskRecurrenceFields";
 
 export function TaskCreatePanel({
   branch,
   owner,
   onCreated,
+  onSeriesCreated,
 }: {
   branch: number;
   owner: AuthorityGeneration;
   onCreated: (task: number, assign: boolean) => void;
+  onSeriesCreated: () => void;
 }) {
   const { actions } = useAuth();
   const [department, setDepartment] = useState("");
@@ -41,9 +49,18 @@ export function TaskCreatePanel({
   const [busy, setBusy] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [revision, setRevision] = useState(0);
+  const [repeat, setRepeat] = useState(false);
+  const [recurrence, setRecurrence] = useState<RecurrenceInput>({
+    rule: "DAILY",
+    weekdays: [],
+    monthDay: null,
+    defaultAssigneeId: 0,
+    endDate: null,
+  });
   const [pending, setPending] = useState<{
     input: CreateTaskInput;
     assign: boolean;
+    recurrence: RecurrenceInput | null;
   } | null>(null);
   const key = useRef(crypto.randomUUID());
   const saving = useRef(false);
@@ -77,10 +94,15 @@ export function TaskCreatePanel({
   useEffect(() => () => active.current?.abort(), []);
   async function save(assign: boolean) {
     if (saving.current || busy || (!options && !pending)) return;
-    let submission: { input: CreateTaskInput; assign: boolean };
+    let submission: {
+      input: CreateTaskInput;
+      assign: boolean;
+      recurrence: RecurrenceInput | null;
+    };
     try {
       submission = pending ?? {
         assign,
+        recurrence: repeat ? recurrence : null,
         input: {
           requestKey: key.current,
           departmentId: Number(department),
@@ -114,9 +136,11 @@ export function TaskCreatePanel({
         return;
       }
       validateTaskCreation(submission.input);
+      if (submission.recurrence)
+        validateRecurrence(submission.input, submission.recurrence);
     } catch {
       setError(
-        "Check task fields, unique completion criteria and planning dates before saving.",
+        "Check task fields, unique completion criteria and planning dates. Recurring work also requires an eligible executor and a first deadline matching its schedule.",
       );
       return;
     }
@@ -127,6 +151,16 @@ export function TaskCreatePanel({
     const controller = new AbortController();
     active.current = controller;
     try {
+      if (submission.recurrence) {
+        await createSeries(
+          branch,
+          submission.input,
+          submission.recurrence,
+          controller.signal,
+        );
+        if (!controller.signal.aborted) onSeriesCreated();
+        return;
+      }
       const result = await createTask(
         branch,
         submission.input,
@@ -163,7 +197,7 @@ export function TaskCreatePanel({
       {pending && (
         <>
           <p>
-            Creation reference: TASK-
+            Creation reference: {pending.recurrence ? "SERIES-" : "TASK-"}
             {pending.input.requestKey.replaceAll("-", "").toUpperCase()}
           </p>
           <button disabled={busy} onClick={() => void save(pending.assign)}>
@@ -203,6 +237,7 @@ export function TaskCreatePanel({
                 onChange={(e) => {
                   setDepartment(e.target.value);
                   setCategory("");
+                  setRecurrence((r) => ({ ...r, defaultAssigneeId: 0 }));
                 }}
               >
                 <option value="">Choose department</option>
@@ -341,9 +376,27 @@ export function TaskCreatePanel({
               onChange={setPlan}
               priorities={options.priorities}
             />
-            <button>Save task</button>
+            {options.recurringAvailable && (
+              <label>
+                <input
+                  type="checkbox"
+                  checked={repeat}
+                  onChange={(e) => setRepeat(e.target.checked)}
+                />
+                Repeat task
+              </label>
+            )}
+            {repeat && (
+              <TaskRecurrenceFields
+                value={recurrence}
+                onChange={setRecurrence}
+                executors={options.defaultExecutors ?? []}
+              />
+            )}
+            <button>{repeat ? "Save recurring series" : "Save task"}</button>
             <button
               type="button"
+              disabled={repeat}
               onClick={(e) => {
                 if (e.currentTarget.form?.reportValidity()) void save(true);
               }}

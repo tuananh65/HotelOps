@@ -37,21 +37,33 @@ public sealed partial class RoomTypeCreationService
                 .OrderBy(c => c.CategoryName).ThenBy(c => c.CategoryId).Select(c => new TaskPlanningLookup(c.CategoryId, c.CategoryName)).ToArrayAsync(token);
             var priorities = await db.ReferenceValues.AsNoTracking().Where(r => r.GroupCode == "PRIORITY" && r.IsActive && TaskPriorityCodes.Contains(r.ValueCode))
                 .OrderBy(r => r.SortOrder).ThenBy(r => r.ReferenceId).Select(r => new TaskPlanningLookup(r.ReferenceId, r.DisplayName)).ToArrayAsync(token);
-            return new(RoomTypeBatchStatus.Success, new TaskPlanningOptions(departments, categories, priorities));
+            var recurring = await TaskSeriesStore.InstalledAsync(db, token);
+            var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
+            var executors = recurring && department is { } selected
+                ? await TaskAssignmentEligibility.Candidates(db, branch, selected, now).OrderBy(u => u.FullName).ThenBy(u => u.UserId)
+                    .Select(u => new TaskPlanningLookup(u.UserId, u.FullName)).ToArrayAsync(token)
+                : [];
+            return new(RoomTypeBatchStatus.Success, new TaskPlanningOptions(departments, categories, priorities, executors, recurring));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => VerificationManager(ticket.UserId, branch, token));
     }
 
-    public Task<RoomTypeBatchResult> CreateOperationalTaskAsync(SessionReference ticket, long sid, long branch, CreateOperationalTaskRequest input, CancellationToken ct)
+    internal static CreateOperationalTaskRequest NormalizeTaskCreation(CreateOperationalTaskRequest input)
     {
         if (input.RequestKey == Guid.Empty || input.DepartmentId <= 0 || input.CategoryId <= 0 || input.RoomId is <= 0 || input.AreaId is <= 0
             || input.RoomId != null && input.AreaId != null || input.InternalRequestId is <= 0)
             throw new ValidationException("Valid creation key, department, category and at most one location required.");
-        var title = ChecklistText(input.Title, 200); var outcome = ChecklistText(input.RequestedResult, 4000);
-        var description = string.IsNullOrWhiteSpace(input.Description) ? null : ChecklistText(input.Description, 4000);
+        var title = ChecklistText(input.Title, 200);
+        var outcome = TaskResultText(input.RequestedResult) ?? throw new ValidationException("Expected outcome is required.");
+        var description = TaskResultText(input.Description);
         var criteria = Definitions(new InitializeProgressRequest(input.Criteria, "Create task"));
         ValidateTaskPlan(input.PriorityId, input.PlannedStartAt, input.DueAt, input.SlaMinutes);
-        var normalized = input with { Title = title, RequestedResult = outcome, Description = description, Criteria = criteria,
+        return input with { Title = title, RequestedResult = outcome, Description = description, Criteria = criteria,
             PlannedStartAt = input.PlannedStartAt?.ToUniversalTime(), DueAt = input.DueAt?.ToUniversalTime() };
+    }
+
+    public Task<RoomTypeBatchResult> CreateOperationalTaskAsync(SessionReference ticket, long sid, long branch, CreateOperationalTaskRequest input, CancellationToken ct)
+    {
+        var normalized = NormalizeTaskCreation(input);
         var hash = SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(normalized));
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
@@ -69,31 +81,10 @@ public sealed partial class RoomTypeCreationService
                 if (revision == null) return new(RoomTypeBatchStatus.SchemaRequired);
                 return new(RoomTypeBatchStatus.Success, new TaskCreatedDto(existing.TaskId, branch, existing.TaskCode, revision.State, "MSG08"), WorkflowTag(revision.Revision));
             }
-            if (!await db.Departments.AnyAsync(d => d.DepartmentId == input.DepartmentId && d.BranchId == branch && d.IsActive, token)
-                || !await db.WorkCategories.AnyAsync(c => c.CategoryId == input.CategoryId && c.IsActive
-                    && (c.DepartmentId == null || c.DepartmentId == input.DepartmentId), token)
-                || !await TaskPlanningStore.OperationalCategories(db).ContainsAsync(input.CategoryId, token)
-                || !await ValidTaskPriority(input.PriorityId, token)
-                || input.RoomId != null && !await db.Rooms.AnyAsync(r => r.RoomId == input.RoomId && r.BranchId == branch && r.IsActive, token)
-                || input.AreaId != null && !await db.Areas.AnyAsync(a => a.AreaId == input.AreaId && a.BranchId == branch && a.IsActive, token))
+            if (!await TaskCreationReferencesAsync(db, branch, normalized, token))
                 return new(RoomTypeBatchStatus.InvalidReference, new TaskEntryFailure("MSG03"));
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
-            var task = new OperationalTask { TaskCode = "TASK-" + input.RequestKey.ToString("N").ToUpperInvariant(), BranchId = branch,
-                DepartmentId = input.DepartmentId, CategoryId = input.CategoryId, Title = title, Description = description, PriorityId = input.PriorityId,
-                RoomId = input.RoomId, AreaId = input.AreaId, SourceType = "MANUAL", Status = "TODO", ProgressPercent = 0,
-                PlannedStartAt = normalized.PlannedStartAt?.UtcDateTime, DueAt = normalized.DueAt?.UtcDateTime, CreatedBy = actor, CreatedAt = now };
-            db.OperationalTasks.Add(task); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
-            await db.Database.ExecuteSqlInterpolatedAsync($"""
-                INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({task.TaskId},'PENDING_ASSIGNMENT');
-                INSERT dbo.operational_task_definitions(task_id,requested_result,sla_minutes,creation_key,creation_hash)
-                VALUES({task.TaskId},{outcome},{input.SlaMinutes},{input.RequestKey},{hash});
-                """, token);
-            for (var n = 0; n < criteria.Count; n++)
-                await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_completion_criteria(task_id,label,is_required,sort_order) VALUES({task.TaskId},{criteria[n].Label},{criteria[n].Required},{n})", token);
-            db.AuditLogs.Add(new AuditLog { ActorUserId = actor, BranchId = branch, EntityType = "operational_tasks", EntityId = task.TaskId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                Action = "CREATE", OccurredAt = now, NewValues = JsonSerializer.Serialize(new { operation = "CREATE", workflowState = "PENDING_ASSIGNMENT", request = normalized }),
-                ChangedFields = "[\"definition\",\"criteria\",\"plan\",\"workflowState\"]" });
-            await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
+            var task = await WriteTaskCreationAsync(db, actor, branch, normalized, now, token);
             return new(RoomTypeBatchStatus.Success, new TaskCreatedDto(task.TaskId, branch, task.TaskCode, "PENDING_ASSIGNMENT", "MSG08"), WorkflowTag((await ProgressRevision(false, task.TaskId, token))!.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: token => VerificationManager(ticket.UserId, branch, token));
     }

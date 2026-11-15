@@ -31,7 +31,11 @@ public sealed partial class RoomTypeCreationService
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
             if (!await TaskWorkflowRead.Query(db, now).AnyAsync(v => v.TaskId == id && v.State == version.State, token)) return new(RoomTypeBatchStatus.Inactive);
             var definition = await TaskPlanningStore.Definitions(db).SingleOrDefaultAsync(d => d.TaskId == id, token);
-            var manage = (await VerificationManager(actor, branch, token)).IsGranted && version.State is not ("CLOSED" or "CANCELLED");
+            var manager = (await VerificationManager(actor, branch, token)).IsGranted;
+            var manage = manager && version.State is not ("CLOSED" or "CANCELLED");
+            long? series = null;
+            if (manage && await TaskSeriesStore.InstalledAsync(db, token))
+                series = await db.Database.SqlQuery<long?>($"SELECT o.series_id AS Value FROM dbo.task_series_occurrences o JOIN dbo.operational_task_series s ON s.series_id=o.series_id WHERE o.task_id={id} AND s.branch_id={branch} AND s.department_id={task.DepartmentId}").SingleOrDefaultAsync(token);
             var canCancel = manage && version.State is "PENDING_ASSIGNMENT" or "ASSIGNED" or "ACCEPTED" && task.ActualStartAt == null
                 && !await db.WorkIntervals.AnyAsync(i => i.WorkItemKind == "TASK" && i.WorkItemId == id, token);
             var audit = TaskPlanNotificationStore.Query(db).Where(a => a.TaskId == id && a.BranchId == branch);
@@ -41,7 +45,7 @@ public sealed partial class RoomTypeCreationService
                 TaskPlanUtc(task.PlannedStartAt), TaskPlanUtc(task.DueAt), definition?.SlaMinutes, manage, canCancel,
                 history.Select(a => new TaskPlanHistoryDto(a.AuditId, TaskPlanUtc(a.At)!.Value, a.ActorId, a.PreviousPriorityId,
                     TaskPlanUtc(a.PreviousPlannedStartAt), TaskPlanUtc(a.PreviousDueAt), a.PreviousSlaMinutes,
-                    a.PriorityId, TaskPlanUtc(a.PlannedStartAt), TaskPlanUtc(a.DueAt), a.SlaMinutes, a.Reason)).ToArray(), count, page, 25), WorkflowTag(version.Revision));
+                    a.PriorityId, TaskPlanUtc(a.PlannedStartAt), TaskPlanUtc(a.DueAt), a.SlaMinutes, a.Reason)).ToArray(), count, page, 25, series), WorkflowTag(version.Revision));
         }, ct, requireRoomTypeSchema: false, featurePermission: async token => (await VerificationManager(ticket.UserId, branch, token)).IsGranted
             ? new(PermissionDecision.Granted) : new(await TaskVerificationStore.ExecutorReadAsync(db, ticket.UserId, branch, id, clock.GetUtcNow().UtcDateTime, token) ? PermissionDecision.Granted : PermissionDecision.Denied));
     }

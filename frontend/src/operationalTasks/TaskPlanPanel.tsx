@@ -13,6 +13,7 @@ import {
   type PlanningOptions,
 } from "./planning";
 import { TaskPlanFields, type PlanDraft } from "./TaskPlanFields";
+import { TaskSeriesPanel } from "./TaskSeriesPanel";
 
 export function TaskPlanPanel({
   branch,
@@ -234,6 +235,15 @@ export function TaskPlanPanel({
                 )}
               </fieldset>
             </form>
+          )}
+          {snapshot.data.seriesId && (
+            <TaskSeriesPanel
+              key={`series:${owner}:${branch}:${snapshot.data.seriesId}`}
+              branch={branch}
+              owner={owner}
+              seriesId={snapshot.data.seriesId}
+              taskId={task}
+            />
           )}
           <ol aria-label="Task plan history">
             {snapshot.data.history.map((h) => (

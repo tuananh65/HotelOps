@@ -23,6 +23,8 @@ export interface PlanningOptions {
   departments: { id: number; name: string }[];
   categories: { id: number; name: string }[];
   priorities: { id: number; name: string }[];
+  defaultExecutors?: { id: number; name: string }[];
+  recurringAvailable?: boolean;
 }
 export interface PlanSnapshot {
   etag: string;
@@ -34,6 +36,7 @@ export interface PlanSnapshot {
     requestedResult: string | null;
     canManage: boolean;
     canCancel: boolean;
+    seriesId?: number | null;
     historyTotalCount: number;
     page: number;
     pageSize: number;
@@ -77,7 +80,7 @@ function route(branch: number, task: number) {
   if (!positive(task)) throw new Error("Invalid task");
   return base(branch) + `/${task}`;
 }
-async function request(
+export async function planningRequest(
   url: string,
   signal: AbortSignal,
   init: RequestInit = {},
@@ -92,14 +95,14 @@ async function request(
   if (!r.ok) throw new TaskProgressError(r.status);
   return r;
 }
-async function mutate(
+export async function planningMutation(
   url: string,
   method: string,
   body: unknown,
   signal: AbortSignal,
   etag?: string,
 ) {
-  const csrf = await (await request("/api/auth/csrf", signal)).json();
+  const csrf = await (await planningRequest("/api/auth/csrf", signal)).json();
   if (
     csrf?.headerName !== "X-CSRF-TOKEN" ||
     typeof csrf.csrfToken !== "string" ||
@@ -108,7 +111,7 @@ async function mutate(
   )
     throw new Error("Invalid CSRF response");
   signal.throwIfAborted();
-  return request(url, signal, {
+  return planningRequest(url, signal, {
     method,
     headers: {
       "Content-Type": "application/json",
@@ -139,7 +142,7 @@ export async function creationOptions(
   if (department !== null && !positive(department))
     throw new Error("Invalid department");
   const body = await (
-    await request(
+    await planningRequest(
       base(branch) +
         "/creation-options" +
         (department ? `?department=${department}` : ""),
@@ -158,6 +161,20 @@ export async function creationOptions(
     )
   )
     throw new Error("Invalid planning options");
+  if (
+    body.recurringAvailable !== undefined &&
+    typeof body.recurringAvailable !== "boolean"
+  )
+    throw new Error("Invalid recurring availability");
+  if (
+    body.recurringAvailable === true &&
+    (!Array.isArray(body.defaultExecutors) ||
+      body.defaultExecutors.some(
+        (r: { id: number; name: string }) =>
+          !r || !positive(r.id) || typeof r.name !== "string",
+      ))
+  )
+    throw new Error("Invalid default executors");
   return body;
 }
 export function validateTaskCreation(input: CreateTaskInput) {
@@ -200,7 +217,7 @@ export async function createTask(
   signal: AbortSignal,
 ) {
   validateTaskCreation(input);
-  const response = await mutate(base(branch), "POST", input, signal);
+  const response = await planningMutation(base(branch), "POST", input, signal);
   const body = await response.json();
   const etag = response.headers.get("ETag") ?? "";
   if (
@@ -225,7 +242,7 @@ export async function readTaskPlan(
   signal: AbortSignal,
 ): Promise<PlanSnapshot> {
   if (!positive(page)) throw new Error("Invalid history page");
-  const response = await request(
+  const response = await planningRequest(
     route(branch, task) + `/plan?page=${page}`,
     signal,
   );
@@ -239,6 +256,9 @@ export async function readTaskPlan(
     !taskWorkflowStates.includes(data.state) ||
     typeof data.canManage !== "boolean" ||
     typeof data.canCancel !== "boolean" ||
+    (data.seriesId !== undefined &&
+      data.seriesId !== null &&
+      !positive(data.seriesId)) ||
     (data.requestedResult !== null &&
       typeof data.requestedResult !== "string") ||
     !validTime(data.plannedStartAt) ||
@@ -285,7 +305,7 @@ export async function changeTaskPlan(
   )
     throw new Error("Invalid plan operation");
   if (input) validatePlan(input);
-  const response = await mutate(
+  const response = await planningMutation(
     path + (input ? "/plan" : "/cancel"),
     input ? "PUT" : "POST",
     { ...input, reason: reason.trim() || null },

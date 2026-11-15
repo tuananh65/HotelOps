@@ -1,6 +1,6 @@
 param([Parameter(Mandatory=$true)][string]$CloneReceipt,
       [Parameter(Mandatory=$true)][string]$ReportPath,
-      [ValidateSet('Submission','Verification','Decline','Assignment','Plan','Cancellation')][string]$Kind='Submission')
+      [ValidateSet('Submission','Verification','Decline','Assignment','RecurringAssignment','SeriesStop','Plan','Cancellation')][string]$Kind='Submission')
 $ErrorActionPreference='Stop'
 $workspace=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 if(Test-Path -LiteralPath $ReportPath){throw 'Do not overwrite runtime evidence'}
@@ -18,28 +18,31 @@ try{
     [string](Scalar 'SELECT database_guid FROM sys.database_recovery_status WHERE database_id=DB_ID()') -ine $receipt.databaseGuid -or
     [string](Scalar "SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='DEV3.Sprint142A.Run'") -cne $receipt.run){throw 'Clone identity mismatch'}
  if(Get-NetTCPConnection -LocalPort 7142 -State Listen -ErrorAction SilentlyContinue){throw 'Stop previous owned host before worker trial'}
- if([int](Scalar "SELECT COUNT(*) FROM sys.triggers WHERE name LIKE 'TR_DEV3_Task%Fault'") -ne 0){throw 'Fault trigger remains'}
+ if([int](Scalar "SELECT COUNT(*) FROM sys.triggers WHERE name LIKE 'TR_DEV3_%Fault'") -ne 0){throw 'Fault trigger remains'}
  $verification=$Kind -eq 'Verification'
  $decline=$Kind -eq 'Decline'
- $assignment=$Kind -eq 'Assignment'
- $planning=$Kind -in @('Plan','Cancellation')
- $eventId=if($planning){0}elseif($assignment){[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='operational_tasks' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='ASSIGN' AND JSON_VALUE(new_values,'$.previousAssigneeId') IS NOT NULL")}elseif($decline){[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='operational_tasks' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='DECLINE' AND (SELECT COUNT(*) FROM OPENJSON(new_values,'$.recipients'))=1")}elseif($verification){[long](Scalar 'SELECT MAX(submission_id) FROM dbo.task_verification_events')}else{[long](Scalar "SELECT MAX(progress_id) FROM dbo.task_submission_events WHERE ISJSON(recipients_json)=1 AND (SELECT COUNT(*) FROM OPENJSON(recipients_json))=1")}
+ $recurring=$Kind -eq 'RecurringAssignment'
+ $assignment=$Kind -in @('Assignment','RecurringAssignment')
+ $seriesStop=$Kind -eq 'SeriesStop'
+ $planning=$Kind -in @('Plan','Cancellation','SeriesStop')
+ $eventId=if($planning){0}elseif($recurring){[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='operational_tasks' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='ASSIGN' AND JSON_VALUE(new_values,'$.automation.job')='JOB05'")}elseif($assignment){[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='operational_tasks' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='ASSIGN' AND JSON_VALUE(new_values,'$.previousAssigneeId') IS NOT NULL")}elseif($decline){[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='operational_tasks' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='DECLINE' AND (SELECT COUNT(*) FROM OPENJSON(new_values,'$.recipients'))=1")}elseif($verification){[long](Scalar 'SELECT MAX(submission_id) FROM dbo.task_verification_events')}else{[long](Scalar "SELECT MAX(progress_id) FROM dbo.task_submission_events WHERE ISJSON(recipients_json)=1 AND (SELECT COUNT(*) FROM OPENJSON(recipients_json))=1")}
  if($planning){
-  $operation=if($Kind -eq 'Plan'){'PLAN'}else{'CANCEL_TASK'}
-  $eventId=[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='operational_tasks' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='$operation' AND TRY_CONVERT(bigint,JSON_VALUE(new_values,'$.recipientId'))>0")
+  $operation=if($Kind -eq 'Plan'){'PLAN'}elseif($seriesStop){'STOP_SERIES'}else{'CANCEL_TASK'}
+  $entityType=if($seriesStop){'operational_task_series'}else{'operational_tasks'}
+  $eventId=[long](Scalar "SELECT MAX(audit_id) FROM dbo.audit_logs WHERE entity_type='$entityType' AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.operation')='$operation' AND TRY_CONVERT(bigint,JSON_VALUE(new_values,'$.recipientId'))>0")
  }
  if($eventId -le 0){throw 'Committed recipient intent required'}
  $recipient=if($planning){0}elseif($assignment){[long](Scalar "SELECT TRY_CONVERT(bigint,JSON_VALUE(new_values,'$.assigneeId')) FROM dbo.audit_logs WHERE audit_id=$eventId")}elseif($decline){[long](Scalar "SELECT TRY_CONVERT(bigint,JSON_VALUE(new_values,'$.recipients[0]')) FROM dbo.audit_logs WHERE audit_id=$eventId")}elseif($verification){[long](Scalar "SELECT submitted_by FROM dbo.task_submission_events WHERE progress_id=$eventId")}else{[long](Scalar "SELECT TRY_CONVERT(bigint,JSON_VALUE(recipients_json,'$[0]')) FROM dbo.task_submission_events WHERE progress_id=$eventId")}
  if($planning){$recipient=[long](Scalar "SELECT TRY_CONVERT(bigint,JSON_VALUE(new_values,'$.recipientId')) FROM dbo.audit_logs WHERE audit_id=$eventId")}
- $namePattern=if($assignment){'assign_exec_%'}elseif($decline){'decline_mgr_%'}elseif($verification -or $planning){'sprint142_%'}else{'submit_mgr_%'}
+ $namePattern=if($recurring){'sprint142_%'}elseif($assignment){'assign_exec_%'}elseif($decline){'decline_mgr_%'}elseif($verification -or $planning){'sprint142_%'}else{'submit_mgr_%'}
  if($recipient -le 0 -or [int](Scalar "SELECT COUNT(*) FROM dbo.users WHERE user_id=$recipient AND username LIKE '$namePattern' AND email LIKE '%@example.invalid'") -ne 1){throw 'Exact synthetic recipient required'}
  $table=if($assignment -or $decline -or $planning){'dbo.audit_logs'}elseif($verification){'dbo.task_verification_events'}else{'dbo.task_submission_events'}
  $key=if($assignment -or $decline -or $planning){'audit_id'}elseif($verification){'submission_id'}else{'progress_id'}
- $sourceType=if($planning){'TASK_PLAN'}elseif($assignment){'TASK_ASSIGNMENT'}elseif($decline){'TASK_DECLINE'}elseif($verification){'TASK_VERIFICATION'}else{'TASK_SUBMISSION'}
- $noticeType=if($planning){if($Kind -eq 'Plan'){'TASK_PLANNED'}else{'TASK_CANCELLED'}}elseif($assignment){'TASK_ASSIGNED'}elseif($decline){'TASK_DECLINED'}elseif($verification){[string](Scalar "SELECT CASE WHEN decision='ACCEPT' THEN 'TASK_VERIFIED' ELSE 'TASK_RETURNED' END FROM dbo.task_verification_events WHERE submission_id=$eventId")}else{'TASK_SUBMITTED'}
- if($noticeType -notin @('TASK_VERIFIED','TASK_RETURNED','TASK_SUBMITTED','TASK_DECLINED','TASK_ASSIGNED','TASK_PLANNED','TASK_CANCELLED')){throw 'Unsupported technical notification kind'}
+ $sourceType=if($seriesStop){'TASK_SERIES'}elseif($planning){'TASK_PLAN'}elseif($assignment){'TASK_ASSIGNMENT'}elseif($decline){'TASK_DECLINE'}elseif($verification){'TASK_VERIFICATION'}else{'TASK_SUBMISSION'}
+ $noticeType=if($seriesStop){'TASK_SERIES_STOPPED'}elseif($planning){if($Kind -eq 'Plan'){'TASK_PLANNED'}else{'TASK_CANCELLED'}}elseif($assignment){'TASK_ASSIGNED'}elseif($decline){'TASK_DECLINED'}elseif($verification){[string](Scalar "SELECT CASE WHEN decision='ACCEPT' THEN 'TASK_VERIFIED' ELSE 'TASK_RETURNED' END FROM dbo.task_verification_events WHERE submission_id=$eventId")}else{'TASK_SUBMITTED'}
+ if($noticeType -notin @('TASK_VERIFIED','TASK_RETURNED','TASK_SUBMITTED','TASK_DECLINED','TASK_ASSIGNED','TASK_PLANNED','TASK_CANCELLED','TASK_SERIES_STOPPED')){throw 'Unsupported technical notification kind'}
  $hashFields=if($assignment -or $decline -or $planning){'new_values,old_values,changed_fields'}elseif($verification){'note,performed_by_json,requested_by,verified_by,decision,actual_effort_seconds'}else{'result_note,handover_note,criteria_json,evidence_json,recipients_json'}
- $expectedRecipients=if($assignment){2}else{1}
+ $expectedRecipients=if($assignment -and !$recurring){2}else{1}
  $audit=[long](Scalar "SELECT audit_id FROM $table WHERE $key=$eventId")
  $fingerprint=[string](Scalar "SELECT CONVERT(varchar(64),HASHBYTES('SHA2_256',CONCAT($hashFields)),2) FROM $table WHERE $key=$eventId")
  # Restore only this synthetic recipient and remove its delivered receipt to
@@ -58,6 +61,7 @@ try{
  $env:Evidence__PrivateRoot=Join-Path $workspace 'TestResults/sprint25-evidence'
  $env:ASPNETCORE_ENVIRONMENT='Development';$env:ASPNETCORE_URLS='https://localhost:7142'
  $env:TaskNotifications__Enabled='true';$env:TaskNotifications__PollSeconds='1'
+ $env:TaskSeriesGeneration__Enabled='false'
  $hostProcess=Start-Process dotnet -ArgumentList 'src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll' -WorkingDirectory $workspace -WindowStyle Hidden -PassThru -RedirectStandardOutput ($ReportPath+'.host.log') -RedirectStandardError ($ReportPath+'.host-error.log')
  $delivered=0
  for($attempt=0;$attempt -lt 20;$attempt++){

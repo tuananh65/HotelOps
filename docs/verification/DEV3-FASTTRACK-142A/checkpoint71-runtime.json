@@ -1,0 +1,558 @@
+{
+  "success": true,
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_c8d000e0",
+  "records": 263,
+  "seriesChecks": 59,
+  "browserFlows": 6,
+  "browserStages": 46,
+  "scope": "Direct C71 execution; unchanged public Create-to-Closed and Cancel browser/SQL checks rerun in the same harness. Future JOB05 horizon is simulated through trusted TimeProvider; actual SQL authorization and timestamps use SQL time. No claim of waiting for wall-clock 00:45.",
+  "checks": [
+    {
+      "seriesCheck": "executor cannot create or list manager series"
+    },
+    {
+      "seriesCheck": "recurring creation requires CSRF"
+    },
+    {
+      "seriesCheck": "anonymous recurring creation denied"
+    },
+    {
+      "seriesCheck": "recurring creation respects branch authority"
+    },
+    {
+      "seriesCheck": "invalid recurring definition rejected"
+    },
+    {
+      "seriesCheck": "invalid recurring definition rejected"
+    },
+    {
+      "seriesCheck": "invalid recurring definition rejected"
+    },
+    {
+      "seriesCheck": "invalid recurring definition rejected"
+    },
+    {
+      "seriesCheck": "invalid recurring definition rejected"
+    },
+    {
+      "seriesCheck": "invalid recurring commands preserve task and series storage"
+    },
+    {
+      "seriesCheck": "recurring creation audit failure rejected"
+    },
+    {
+      "seriesCheck": "recurring creation failure rolls back series task criteria assignment audit and cursor"
+    },
+    {
+      "seriesCheck": "concurrent public recurring creation succeeds idempotently"
+    },
+    {
+      "seriesCheck": "same recurring key creates one series and one due-date occurrence"
+    },
+    {
+      "seriesCheck": "recurring key cannot overwrite definition"
+    },
+    {
+      "seriesCheck": "task plan exposes manager Stop Series context without executor series authority"
+    },
+    {
+      "seriesCheck": "generated task retains approved creator plan and physical status"
+    },
+    {
+      "seriesCheck": "default assignment uses existing sole workflow and responsibility"
+    },
+    {
+      "seriesCheck": "generated criteria are immutable definitions with no invented work time"
+    },
+    {
+      "seriesCheck": "generated assignment durable notification accepts concurrent retry"
+    },
+    {
+      "seriesCheck": "generated assignment delivers once and authorizes source opening"
+    },
+    {
+      "seriesCheck": "simulated future JOB05 concurrent runs create exactly one occurrence per hotel due date"
+    },
+    {
+      "seriesCheck": "repeated JOB05 with same simulated horizon creates nothing"
+    },
+    {
+      "seriesCheck": "one recurring occurrence can be cancelled without stopping its series"
+    },
+    {
+      "seriesCheck": "terminal task plan hides Stop Series under UC103 preconditions"
+    },
+    {
+      "seriesCheck": "manager can read current recurring page"
+    },
+    {
+      "seriesCheck": "Stop Series rejects a cancelled task context without altering active series"
+    },
+    {
+      "seriesCheck": "Stop cannot bind another task as its notification source"
+    },
+    {
+      "seriesCheck": "Stop Series requires strong ETag and CSRF"
+    },
+    {
+      "seriesCheck": "executor cannot stop manager series"
+    },
+    {
+      "seriesCheck": "Stop Series audit failure rejected"
+    },
+    {
+      "seriesCheck": "Stop Series audit failure rolls back inactive state and version"
+    },
+    {
+      "seriesCheck": "concurrent Stop Series commits once and rejects stale version"
+    },
+    {
+      "seriesCheck": "Stop Series preserves every generated task and blocks future generation"
+    },
+    {
+      "seriesCheck": "Stop notification rechecks current recipient authority before delivery"
+    },
+    {
+      "seriesCheck": "Stop notification concurrent retries deliver once"
+    },
+    {
+      "seriesCheck": "Stop notification resolves the still-authorized existing task"
+    },
+    {
+      "seriesCheck": "Stop notification source opening rechecks revoked access"
+    },
+    {
+      "seriesCheck": "future series waits for its one-day lead horizon"
+    },
+    {
+      "seriesCheck": "JOB05 persistence failure surfaces to its isolated series runner"
+    },
+    {
+      "seriesCheck": "JOB05 failure rolls back task criteria assignment audit occurrence and next pointer"
+    },
+    {
+      "seriesCheck": "JOB05 rechecks initiating manager current role and permission"
+    },
+    {
+      "seriesCheck": "JOB05 rejects inactive default executor without changing cursor"
+    },
+    {
+      "seriesCheck": "JOB05 retries after restored eligibility and honors inclusive series end date"
+    },
+    {
+      "seriesCheck": "manager can read current recurring page"
+    },
+    {
+      "seriesCheck": "exhausted series has no next occurrence without inventing a new status"
+    },
+    {
+      "seriesCheck": "public recurring calendar accepted: WEEKLY"
+    },
+    {
+      "seriesCheck": "calendar occurrence respects first deadline and end: WEEKLY"
+    },
+    {
+      "seriesCheck": "public recurring calendar accepted: MONTHLY"
+    },
+    {
+      "seriesCheck": "calendar occurrence respects first deadline and end: MONTHLY"
+    },
+    {
+      "seriesCheck": "Stop and JOB05 serialize without partial occurrences"
+    },
+    {
+      "seriesCheck": "manager can read current recurring page"
+    },
+    {
+      "seriesCheck": "fresh Stop after committed generation succeeds"
+    },
+    {
+      "seriesCheck": "stopped racing series remains stopped on later runs"
+    },
+    {
+      "seriesCheck": "public series prepared for independent JOB05 failure isolation"
+    },
+    {
+      "seriesCheck": "actual JOB05 loop with simulated horizon rolls back invalid series and continues eligible peer"
+    },
+    {
+      "seriesCheck": "JOB05 next-run retry succeeds once after catalog restoration"
+    },
+    {
+      "seriesCheck": "public browser Repeat to generated assignment and Stop Series"
+    },
+    {
+      "seriesCheck": "browser Stop persists SQL and prevents future occurrences"
+    }
+  ],
+  "browser": {
+    "success": true,
+    "stage": "inactive series persists while existing assigned task remains usable",
+    "seriesId": 9,
+    "taskId": 100230,
+    "checks": [
+      "manager creates recurring series from public form",
+      "series and generated task survive reload",
+      "default executor can open generated task without manager series controls",
+      "manager confirms Stop Series from its generated task plan",
+      "inactive series persists while existing assigned task remains usable"
+    ],
+    "requests": [
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/creation-options",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/creation-options",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "POST",
+        "status": 201
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/creation-options",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/creation-options",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/progress",
+        "method": "GET",
+        "status": 403
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/submission",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/assignment",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/plan",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/verification",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/progress",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/assignment",
+        "method": "GET",
+        "status": 403
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/verification",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/plan",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/submission",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/assignment",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/progress",
+        "method": "GET",
+        "status": 403
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/verification",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/plan",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/submission",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/creation-options",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series/9/stop",
+        "method": "POST",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/assignment",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/plan",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/progress",
+        "method": "GET",
+        "status": 403
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/submission",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/verification",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/creation-options",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-task-series",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/operational-tasks",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/plan",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/assignment",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/progress",
+        "method": "GET",
+        "status": 403
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/submission",
+        "method": "GET",
+        "status": 404
+      },
+      {
+        "path": "/api/branches/70914/operational-tasks/100230/verification",
+        "method": "GET",
+        "status": 404
+      }
+    ]
+  },
+  "rerunBrowserSummaries": [
+    {
+      "success": true,
+      "stage": "logout protects task route",
+      "checks": [
+        "canonical login",
+        "read assigned task",
+        "accept task",
+        "reload accepted state",
+        "start task",
+        "save real progress",
+        "pause with approved catalog",
+        "resume without new reason",
+        "reload and persisted history",
+        "logout protects task route"
+      ]
+    },
+    {
+      "success": true,
+      "stage": "logout revokes browser session",
+      "checks": [
+        "canonical login",
+        "scoped workflow list",
+        "assignment details and disabled blank decline",
+        "committed decline and clear own task",
+        "reload cannot recover lost own access",
+        "logout revokes browser session"
+      ]
+    },
+    {
+      "success": true,
+      "stage": "logout revokes browser session",
+      "checks": [
+        "canonical login",
+        "scoped workflow list",
+        "manager sees pending assignment and decline history",
+        "inbox opens authorized declined task",
+        "logout revokes browser session"
+      ]
+    },
+    {
+      "success": true,
+      "stage": "new executor accepts again",
+      "checks": [
+        "manager opens pending assignment",
+        "eligible executor and scoped workload",
+        "assign commits and refreshes current owner",
+        "reload preserves assignment",
+        "executor accepts assigned task",
+        "accepted state survives reload",
+        "manager reassigns Accepted task with reason",
+        "new executor accepts again"
+      ]
+    },
+    {
+      "success": true,
+      "stage": "public create and confirmed prestart cancellation",
+      "checks": [
+        "public creation with criteria and expected outcome",
+        "manager plans before assignment",
+        "Save and assign continues verified assignment",
+        "assigned deadline reason and previous deadline history",
+        "executor reads plan and accepts public task",
+        "Start creates actual work interval",
+        "Progress persists public completion criterion",
+        "Pause and Resume preserve active effort",
+        "Submit public task with completed criterion",
+        "creator cannot self verify requested work",
+        "independent manager verifies and closes task",
+        "public create and confirmed prestart cancellation"
+      ],
+      "taskId": 100218,
+      "cancelledTaskId": 100219
+    }
+  ]
+}

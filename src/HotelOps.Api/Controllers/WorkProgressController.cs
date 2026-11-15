@@ -18,6 +18,15 @@ namespace HotelOps.Api.Controllers;
 public sealed class WorkProgressController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpPost("api/branches/{branch:long}/operational-task-series")]
+    public Task<IActionResult> CreateSeries(long branch, CreateTaskSeriesRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.CreateTaskSeriesAsync(ticket, sid, branch, input, ct), false, true);
+    [HttpGet("api/branches/{branch:long}/operational-task-series")]
+    public Task<IActionResult> ReadSeries(long branch, CancellationToken ct, int page = 1, long? series = null)
+        => Execute((ticket, sid) => service.ReadTaskSeriesAsync(ticket, sid, branch, page, series, ct), false);
+    [HttpPost("api/branches/{branch:long}/operational-task-series/{id:long}/stop")]
+    public Task<IActionResult> StopSeries(long branch, long id, StopTaskSeriesRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.StopTaskSeriesAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpGet("api/branches/{branch:long}/operational-tasks/creation-options")]
     public Task<IActionResult> TaskCreationOptions(long branch, CancellationToken ct, long? department = null)
         => Execute((ticket, sid) => service.TaskCreationOptionsAsync(ticket, sid, branch, department, ct), false);

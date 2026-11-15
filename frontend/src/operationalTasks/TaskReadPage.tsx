@@ -8,6 +8,7 @@ import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskVerificationPanel } from "./TaskVerificationPanel";
 import { TaskAssignmentPanel } from "./TaskAssignmentPanel";
 import { TaskCreatePanel } from "./TaskCreatePanel";
+import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
 import {
   readTasks,
@@ -197,6 +198,16 @@ export function TaskReadPage() {
           key={`create:${owner}:${query.branch}:${query.revision}`}
           branch={query.branch}
           owner={owner}
+          onSeriesCreated={() => {
+            setPlanned(owner);
+            setResult(null);
+            setQuery({
+              ...query,
+              id: null,
+              page: 1,
+              revision: query.revision + 1,
+            });
+          }}
           onCreated={(id, assign) => {
             setPlanned(owner);
             setResult(null);
@@ -213,6 +224,13 @@ export function TaskReadPage() {
         />
       )}
       {query && !visible && <p role="status">Loading tasks…</p>}
+      {page && query && (
+        <TaskSeriesPanel
+          key={`series:${owner}:${query.branch}:${query.revision}`}
+          branch={query.branch}
+          owner={owner}
+        />
+      )}
       {page && (
         <>
           <p>{page.totalCount} tasks</p>

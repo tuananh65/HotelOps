@@ -1,0 +1,27 @@
+{
+  "trial1": {
+    "success": true,
+    "records": 251,
+    "scope": "Before task-context Stop notification and worker-loop tests were added."
+  },
+  "trial2": {
+    "success": false,
+    "failure": "NullReferenceException: Object reference not set to an instance of an object.",
+    "records": 245,
+    "cause": "Harness used GetProperty for NullLogger<T>.Instance, which is a field; corrected to GetField. Clone dropped."
+  },
+  "prematureWorkerAttempt": {
+    "success": false,
+    "failure": "Stop previous owned host before worker trial",
+    "mutation": "Rejected by owned-host port guard before notification mutation; rerun only after prior worker stopped."
+  },
+  "trial3": {
+    "success": true,
+    "records": 260,
+    "scope": "Before final UC103 Closed/Cancelled task-context guard; positive Stop, notification and worker-loop checks passed."
+  },
+  "finalTrial": {
+    "success": true,
+    "records": 263
+  }
+}

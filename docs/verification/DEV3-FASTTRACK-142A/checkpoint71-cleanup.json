@@ -1,0 +1,34 @@
+{
+  "success": true,
+  "clones": [
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_13da83e2",
+      "run": "13da83e26f8e4682a26c4e99aabc6126",
+      "status": "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_b031cd97",
+      "run": "b031cd9718e9443485431d0703d01a2e",
+      "status": "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_31a2f107",
+      "run": "31a2f107a7034477b14417a988fb0a0a",
+      "status": "DROPPED_AND_BACKUP_REMOVED"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_c8d000e0",
+      "run": "c8d000e08c65422ea7bd3e56b8578a58",
+      "status": "DROPPED_AND_BACKUP_REMOVED"
+    }
+  ],
+  "sourceRestored": "checkpoint71-source-restored.txt",
+  "sourceTasks": 0,
+  "sourceUsers": 0,
+  "sourceAudits": 0,
+  "optionalCaps": 0,
+  "optionalTables": 0,
+  "httpsListeners": 0,
+  "privateEvidenceFiles": 0,
+  "note": "Source CHECK IN_PROGRESS/PAUSED trusted and enabled. No shared or production mutation. SQL guarded by instance/database GUID/run before mutations; populated trial clones dropped instead of rewriting immutable history."
+}

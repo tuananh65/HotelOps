@@ -134,5 +134,7 @@ internal static class SprintTaskPlanningScenario
             Check(await db.OperationalTasks.AnyAsync(t=>t.TaskId==created&&t.Status=="COMPLETED"&&t.CompletedAt!=null,ct),"public browser task Closed persists SQL completion");
             Check(await db.WorkIntervals.CountAsync(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==created&&i.ClosedAt!=null,ct)==2&&!await db.WorkIntervals.AnyAsync(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==created&&i.ClosedAt==null,ct),"browser Pause Resume Submit preserve two closed intervals excluding paused time");
         }finally{if(!process.HasExited)process.Kill(entireProcessTree:true);}}
+        if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskSeries.V1'").SingleAsync(ct) == 1)
+            await SprintTaskSeriesScenario.RunAsync(db, executor, managerHttp, actor, manager, branch, foreign, Input(), checks, ct, username, password);
     }
 }
