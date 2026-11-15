@@ -7,6 +7,17 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class OwnTimeLogTests
 {
     [Fact]
+    public void EmptyClosedEventInsideWorkDoesNotCreateFalseOverlap()
+    {
+        var now=new DateTime(2026,11,16,4,0,0,DateTimeKind.Utc);
+        WorkInterval Range(int start,int end)=>new(){EffectiveStartedAt=now.AddMinutes(start),EffectiveEndedAt=now.AddMinutes(end)};
+        OwnTimeLogReader.ValidateNonOverlap([Range(-30,-10),Range(-20,-20),Range(-10,0)],now);
+        var error=Assert.Throws<WorkTimeContractException>(()=>OwnTimeLogReader.ValidateNonOverlap(
+            [Range(-30,-10),Range(-20,-20),Range(-15,0)],now));
+        Assert.Equal("TIME_STATE_CONFLICT",error.Code);
+    }
+
+    [Fact]
     public void DailyTotalsExcludePauseAndKeepWorkdaySeparateAcrossPages()
     {
         var now=new DateTime(2026,11,16,4,0,0,DateTimeKind.Utc);

@@ -37,10 +37,20 @@ internal static class OwnTimeLogReader
                 ||i.EffectiveStartedAt>now||i.EffectiveEndedAt<i.EffectiveStartedAt||i.EffectiveEndedAt>now
                 ||(i.ClosedAt==null)!=(i.EffectiveEndedAt==null)))
             throw new WorkTimeContractException("TIME_STATE_CONFLICT");
-        for(var i=1;i<intervals.Length;i++)
-            if(intervals[i-1].EffectiveEndedAt==null||intervals[i-1].EffectiveEndedAt>intervals[i].EffectiveStartedAt)
-                throw new WorkTimeContractException("TIME_STATE_CONFLICT");
+        ValidateNonOverlap(intervals,now);
         return Project(branch,period,now,days,intervals,page,pageSize);
+    }
+
+    internal static void ValidateNonOverlap(WorkInterval[] intervals,DateTime now)
+    {
+        try
+        {
+            // Zero-duration closed events consume no time and may lie inside
+            // another interval. Removing them must not hide a real overlap.
+            WorkIntervalMath.Summarize(intervals.Select(i=>new RecordedWorkRange(Utc(i.EffectiveStartedAt),
+                i.EffectiveEndedAt is {} end?Utc(end):null)),Utc(now));
+        }
+        catch(ArgumentException){throw new WorkTimeContractException("TIME_STATE_CONFLICT");}
     }
 
     internal static OwnTimeLog Project(long branch,WorkTimePeriod period,DateTime now,Workday[] days,

@@ -1,0 +1,152 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_34745d8d",
+  "fixtureUserId": 1071253,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "ownTimeLogCheck": "own log HTTPS read allowed with current own attendance grant"
+    },
+    {
+      "ownTimeLogCheck": "daily summary spans all pages"
+    },
+    {
+      "ownTimeLogCheck": "pause excluded and workday total separate from task effort"
+    },
+    {
+      "ownTimeLogCheck": "second own interval page available"
+    },
+    {
+      "ownTimeLogCheck": "query cannot replace authenticated time owner"
+    },
+    {
+      "ownTimeLogCheck": "other employee intervals excluded despite same branch"
+    },
+    {
+      "ownTimeLogCheck": "invalid paging rejected"
+    },
+    {
+      "ownTimeLogCheck": "foreign branch own log denied"
+    },
+    {
+      "ownTimeLogCheck": "revoked attendance grant denies own time log"
+    },
+    {
+      "ownTimeLogCheck": "real overlap is denied even with a formerly zero-duration event"
+    },
+    {
+      "ownTimeLogCheck": "zero-duration event within closed work is allowed without inflating effort"
+    },
+    {
+      "ownTimeLogBrowser": {
+        "success": false,
+        "stage": "own log",
+        "diagnostic": {
+          "status": 200,
+          "body": {
+            "branchId": 71022,
+            "date": "2026-11-16",
+            "asOf": "2026-11-15T22:32:40.5096084\u002B00:00",
+            "workdayClosedSeconds": 0,
+            "workdayProvisionalSeconds": 1802,
+            "workClosedSeconds": 600,
+            "workProvisionalSeconds": 602,
+            "total": 3,
+            "page": 1,
+            "pageSize": 50,
+            "items": [
+              {
+                "intervalId": 571,
+                "kind": "TASK",
+                "workItemId": 100371,
+                "start": "2026-11-15T22:02:38.7696885\u002B00:00",
+                "end": "2026-11-15T22:12:38.7696885\u002B00:00",
+                "closedSeconds": 600,
+                "provisionalSeconds": 0,
+                "version": "AAAAAAAApBc="
+              },
+              {
+                "intervalId": 572,
+                "kind": "TASK",
+                "workItemId": 100371,
+                "start": "2026-11-15T22:07:38.7696885\u002B00:00",
+                "end": "2026-11-15T22:07:38.7696885\u002B00:00",
+                "closedSeconds": 0,
+                "provisionalSeconds": 0,
+                "version": "AAAAAAAApB4="
+              },
+              {
+                "intervalId": 573,
+                "kind": "TASK",
+                "workItemId": 100371,
+                "start": "2026-11-15T22:22:38.7696885\u002B00:00",
+                "end": null,
+                "closedSeconds": 0,
+                "provisionalSeconds": 602,
+                "version": "AAAAAAAApBk="
+              }
+            ]
+          }
+        },
+        "error": "TimeoutError: locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001B[2m  - waiting for getByRole(\u0027region\u0027, { name: \u0027Own daily time log\u0027, exact: true }).getByText(\u0027Page 1 \u00B7 2 intervals\u0027, { exact: true }) to be visible\u001B[22m\n"
+      }
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    }
+  ],
+  "failure": "Exception: Own time log browser failed at own log",
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": false,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}

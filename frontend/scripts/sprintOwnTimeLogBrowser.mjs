@@ -9,11 +9,11 @@ try{
   await page.getByLabel("Branch ID",{exact:true}).fill(String(fixture.branch));await page.getByLabel("Work date",{exact:true}).fill(fixture.date);
   await page.getByRole("button",{name:"Load time log",exact:true}).click();
   const region=page.getByRole("region",{name:"Own daily time log",exact:true});await region.waitFor();
-  assert.equal(await region.locator("tbody tr").count(),2);await region.getByText("Page 1 · 2 intervals",{exact:true}).waitFor();
+  assert.equal(await region.locator("tbody tr").count(),fixture.intervalCount);await region.getByText(new RegExp(`Page 1 .* ${fixture.intervalCount} intervals`)).waitFor();
   assert.equal(await region.locator("dl dd").first().textContent(),"0h 10m 0s");
   stage="foreign branch clears data";await page.getByLabel("Branch ID",{exact:true}).fill(String(fixture.foreign));
   assert.equal(await region.count(),0);await page.getByRole("button",{name:"Load time log",exact:true}).click();await page.getByRole("alert").filter({hasText:"no longer have access"}).waitFor();assert.equal(await region.count(),0);
   stage="empty date";await page.getByLabel("Branch ID",{exact:true}).fill(String(fixture.branch));await page.getByLabel("Work date",{exact:true}).fill("1900-01-01");await page.getByRole("button",{name:"Load time log",exact:true}).click();await page.getByText("No work intervals for this day.",{exact:true}).waitFor();
   stage="logout";await page.goto(origin+"/profile");await page.getByRole("button",{name:"Logout",exact:true}).click();await page.waitForURL(origin+"/login");
-  console.log(JSON.stringify({success:true,checks:["Canonical own log shows two intervals and pause-excluded total; branch edit immediately clears data; foreign branch403 renders denial; date change shows empty log; logout"]}));
+  console.log(JSON.stringify({success:true,checks:["Canonical own log shows expected intervals and pause-excluded total; branch edit immediately clears data; foreign branch403 renders denial; date change shows empty log; logout"]}));
 }catch(error){console.log(JSON.stringify({success:false,stage,diagnostic,error:String(error).slice(0,700)}));process.exitCode=1;}finally{await browser?.close();}
