@@ -1,0 +1,29 @@
+✔ report return URL requires revalidation and rejects query injection (1.1034ms)
+✔ snapshot preserves scalar strings without interpreting formulas (1.2076ms)
+✔ reject foreign branch (0.257ms)
+✔ reject foreign department (0.0886ms)
+✔ reject changed period (0.0946ms)
+✔ reject unsafe identity (0.0878ms)
+✔ reject row count mismatch (0.0912ms)
+✔ reject missing cell (0.1319ms)
+✔ reject nested cell (0.1104ms)
+✔ reject duplicate columns (0.1348ms)
+✔ reject unsupported format (0.0979ms)
+✔ reject nested filter (0.1067ms)
+✔ options reject departments outside admitted branches (0.1632ms)
+✔ preview and CSV use fresh CSRF and exact server snapshot (16.5338ms)
+✔ invalid date rejected before any request (0.2674ms)
+✔ aborted export cannot return bytes even when transport ignores signal (0.4437ms)
+✔ HTML export body is never offered as CSV (0.2773ms)
+✔ permission denial is preserved without preview retry (0.1597ms)
+✔ revoked export clears cached report and offers no download (1011.9185ms)
+✔ export failure keeps frozen preview for explicit retry without auto download (634.8593ms)
+✔ session revalidation removes prior report data before new login (453.4352ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2695.2081

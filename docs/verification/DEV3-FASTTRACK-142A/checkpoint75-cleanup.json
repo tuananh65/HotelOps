@@ -1,0 +1,11 @@
+{
+    "checkedAtUtc":  "2026-11-15T16:14:52.0286810Z",
+    "database":  "HotelOps_DEV3_142A_20261114_cc78c13f",
+    "syntheticRowCount":  0,
+    "ownedHttpsListenerCount":  0,
+    "identityEvidence":  "checkpoint75-cleanup-sql.txt",
+    "runtimeEvidence":  "checkpoint75-runtime.json",
+    "sharedDatabaseMutated":  false,
+    "schemaChanged":  false,
+    "success":  true
+}

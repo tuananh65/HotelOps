@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintReportApiScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password)
     {
         var prefix="D3RAPI"+Guid.NewGuid().ToString("N")[..8];
         var branch=new Branch{BranchCode=prefix,BranchName="Synthetic report API",IsActive=true};
@@ -34,6 +34,7 @@ internal static class SprintReportApiScenario
             using(var denied=await http.GetAsync("/api/reports/options",ct))Check((int)denied.StatusCode==403,"DEPT_MANAGER options denied despite REPORT_VIEW");
             using(var denied=await Post("/api/reports/tasks/preview",new{branchId=branch.BranchId}))Check((int)denied.StatusCode==403,"DEPT_MANAGER preview denied");
             using(var denied=await Post("/api/reports/snapshots/unknown/export",new{format="csv"}))Check((int)denied.StatusCode==403,"DEPT_MANAGER export denied before snapshot lookup");
+            checks.Add(new { reportBrowser = await SprintReportsBrowser.RunAsync(username,password,branch.BranchId,department,"denied",ct) });
             db.UserRoles.Add(new(){UserId=actor,RoleId=ownerRole,AssignedAt=DateTime.UtcNow.AddMinutes(-1),IsActive=true});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             using(var allowed=await http.GetAsync("/api/reports/options",ct))Check((int)allowed.StatusCode==200,"OWNER REPORT_VIEW options accepted alongside denied role");
@@ -54,12 +55,38 @@ internal static class SprintReportApiScenario
             await db.UserRoles.Where(r=>r.UserId==actor&&r.RoleId==ownerRole).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
             using(var denied=await Post($"/api/reports/snapshots/{id}/export",new{format="csv"}))Check((int)denied.StatusCode==403,"revoked allowed role prevents export of owned cached snapshot");
             Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT",ct)==1,"denied export creates no success audit");
+            for(var index=1;index<=25;index++)
+                db.OperationalTasks.Add(new(){TaskCode=prefix+"P"+index,Title="Synthetic report pagination",BranchId=branch.BranchId,DepartmentId=department,
+                    Status="TODO",ProgressPercent=0,CreatedBy=actor,CreatedAt=DateTime.UtcNow});
+            await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            await db.UserRoles.Where(r=>r.UserId==actor&&r.RoleId==ownerRole).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,true),ct);
+            async Task Browser(string mode)
+            {
+                var result=await SprintReportsBrowser.RunAsync(username,password,branch.BranchId,department,mode,ct);
+                checks.Add(new { reportBrowser=result });
+                foreach(var snapshot in result.GetProperty("exports").EnumerateArray())
+                {
+                    var snapshotId=snapshot.GetString();
+                    Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==snapshotId&&a.Action=="CREATE",ct)==1,"browser CSV export has exactly one persisted audit: "+mode);
+                }
+                Check(await db.UserSessions.CountAsync(s=>s.UserId==actor&&s.RevokedAt==null,ct)==1,"browser session revoked on logout: "+mode);
+            }
+            await Browser("owner");
+            await db.UserRoles.Where(r=>r.UserId==actor&&r.RoleId==ownerRole).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
+            var operationsRole=await db.Roles.Where(r=>r.RoleCode=="OPERATIONS_MANAGER"&&r.IsActive).Select(r=>r.RoleId).SingleAsync(ct);
+            db.UserRoles.Add(new(){UserId=actor,RoleId=operationsRole,BranchId=branch.BranchId,AssignedAt=DateTime.UtcNow.AddMinutes(-1),IsActive=true});
+            await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            await Browser("operations-manager");
+            Check(await db.OperationalTasks.CountAsync(t=>t.BranchId==branch.BranchId,ct)==26
+                && await db.OperationalTasks.Where(t=>t.TaskCode==prefix).Select(t=>t.ProgressPercent).SingleAsync(ct)==73
+                && await db.OperationalTasks.Where(t=>t.BranchId==branch.BranchId&&t.TaskCode!=prefix).AllAsync(t=>t.ProgressPercent==0&&t.Status=="TODO",ct),
+                "browser previews and CSV leave synthetic business rows unchanged");
         }
         finally
         {
             db.ChangeTracker.Clear();await using var cleanup=await db.Database.BeginTransactionAsync(CancellationToken.None);
             await db.AuditLogs.Where(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT").ExecuteDeleteAsync(CancellationToken.None);
-            await db.OperationalTasks.Where(t=>t.TaskCode==prefix).ExecuteDeleteAsync(CancellationToken.None);
+            await db.OperationalTasks.Where(t=>t.BranchId==branch.BranchId&&t.TaskCode.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserRoles.Where(r=>r.UserId==actor).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserBranchAccesses.Where(a=>a.UserId==actor&&a.BranchId==branch.BranchId).ExecuteDeleteAsync(CancellationToken.None);
             if(department>0)await db.Departments.Where(d=>d.DepartmentId==department).ExecuteDeleteAsync(CancellationToken.None);

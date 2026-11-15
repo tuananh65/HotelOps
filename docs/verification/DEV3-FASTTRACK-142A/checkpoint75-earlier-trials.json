@@ -1,0 +1,23 @@
+[
+    {
+        "trial":  1,
+        "success":  false,
+        "failure":  "Exception: Report browser failed at preview",
+        "cleanup":  true,
+        "note":  "Browser select accessible label failure, fixed without changing authorization"
+    },
+    {
+        "trial":  2,
+        "success":  false,
+        "failure":  "Exception: Report browser failed at select branch",
+        "cleanup":  true,
+        "note":  "Browser select accessible label failure, fixed without changing authorization"
+    },
+    {
+        "trial":  3,
+        "success":  true,
+        "failure":  null,
+        "cleanup":  true,
+        "note":  "PASS before 26-row pagination extension"
+    }
+]

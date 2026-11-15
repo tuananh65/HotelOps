@@ -12,6 +12,7 @@ import { UserAccessReviewPage } from "../users/UserAccessReviewPage";
 import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { AuditPage } from "../audit/AuditPage";
 import { DashboardPage } from "../insights/DashboardPage";
+import { ReportsPage, ReportAccessLink } from "../insights/ReportsPage";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
@@ -77,6 +78,7 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}
       {(notificationsEnabled || inspectionExecutionEnabled) && (
         <Route
           path="/inspection-history"
@@ -272,6 +274,7 @@ export function SharedAuthHost({
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
             {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
+            {dashboardEnabled && <ReportAccessLink />}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>
             )}

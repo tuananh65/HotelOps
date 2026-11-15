@@ -1,4 +1,5 @@
 import { DashboardFilters } from "./DashboardFilters";
+import { ReportAccessLink } from "./ReportsPage";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -72,6 +73,7 @@ export function DashboardPage() {
     <main aria-label="Operations dashboard">
       <h1>Operations dashboard</h1>
       <nav>
+        <ReportAccessLink />{" "}
         <Link to="/users">Users</Link> <Link to="/hotel">Structure</Link>{" "}
         <Link to="/rooms/status">Room status board</Link>{" "}
         <Link to="/notifications">Notifications</Link>{" "}
