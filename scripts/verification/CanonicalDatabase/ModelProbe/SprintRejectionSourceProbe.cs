@@ -11,6 +11,25 @@ using Microsoft.Extensions.Options;
 
 internal static class SprintRejectionSourceProbe
 {
+    internal static async Task VerifyAfterLifecycleAsync(HotelOpsDbContext db,long branch,long rework,long cleaner,CancellationToken ct)
+    {
+        var source=await db.CleaningReworks.AsNoTracking().Where(w=>w.ReworkId==rework)
+            .Select(w=>new{w.InspectionId,w.Inspection.InspectorUserId}).SingleAsync(ct);
+        if(await db.Database.SqlQuery<int>($"""
+            SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
+            JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.workflow_status IN('PASSED','FAILED')
+            JOIN dbo.cleaning_reworks w ON w.rework_id=b.rework_id AND w.workflow_status IN('COMPLETED','FAILED')
+            WHERE b.rework_id={rework} AND b.branch_id={branch}
+            """).SingleAsync(ct)!=1)throw new Exception("Terminal cycle required before historical source check");
+        var notice=await db.Notifications.AsNoTracking().SingleAsync(n=>n.NotificationType=="INSPECTION_FAILED"&&n.SourceId==source.InspectionId,ct);
+        foreach(var user in new[]{source.InspectorUserId,cleaner})
+        {
+            await using var fresh=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options);
+            var sid=await fresh.UserSessions.AsNoTracking().Where(s=>s.UserId==user&&s.RevokedAt==null).MaxAsync(s=>s.SessionId,ct);
+            var resolved=await new NotificationCenterService(fresh,new Identity(new(user,sid,false)),TimeProvider.System,Options.Create(new NotificationCenterOptions())).ResolveSourceAsync(notice.NotificationId,ct);
+            if(resolved.Path!=$"/inspection-history/{source.InspectionId}?branchId={branch}")throw new Exception("Later lifecycle broke original Reject source");
+        }
+    }
     // Called only inside the GUID/run-verified disposable rework fixture, after real Reject/delivery.
     internal static async Task VerifyAsync(HotelOpsDbContext db,long actor,long cleaner,long branch,long inspection,string password,CancellationToken ct)
     {

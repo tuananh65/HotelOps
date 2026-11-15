@@ -31,8 +31,8 @@ public static class RejectInspectionValidator
         var errors = new List<string>();
         var inspection = source.Inspection;
         var reason = input.Reason?.Trim();
-        // Same reason constraints as the existing Inspection WorkflowReason/ChecklistText helper.
-        if (string.IsNullOrEmpty(reason) || reason.Length > 500 || reason.Any(char.IsControl))
+        // GBR-012 requires at least ten characters for a rejection reason.
+        if (reason is null || reason.Length < 10 || reason.Length > 500 || reason.Any(char.IsControl))
             errors.Add("REJECT_REASON_INVALID");
         if (input.Confirmed != true) errors.Add("REJECT_CONFIRMATION_REQUIRED");
         errors.AddRange(InspectionConclusionValidation.Validate(source, input.ExpectedETag));

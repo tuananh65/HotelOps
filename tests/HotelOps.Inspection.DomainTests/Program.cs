@@ -19,9 +19,10 @@ Run("Mandatory PASS with optional FAIL may be rejected", () =>
 });
 foreach (var state in new string?[] { null, "ASSIGNED", "INSPECTING", "PASSED", "FAILED", "CANCELLED" })
     Run($"Reject invalid state {state ?? "NULL"}", () => Invalid(Source() with { WorkflowState = state }, input, "INSPECTION_NOT_PENDING_CONCLUSION"));
-foreach (var reason in new string?[] { null, "", "  ", "bad\nreason", new('x', 501) })
+foreach (var reason in new string?[] { null, "", "  ", "bad\nreason", "short", "123456789", " 123456789 ", new('x', 501) })
     Run($"Reject invalid reason {reason?.Length}", () => Invalid(Source(), input with { Reason = reason }, "REJECT_REASON_INVALID"));
 Run("Existing 500 character reason boundary", () => Valid(Source(), input with { Reason = new('x', 500) }));
+Run("GBR-012 ten character trimmed boundary", () => Valid(Source(), input with { Reason = " 1234567890 " }));
 foreach (var confirm in new bool?[] { null, false })
     Run($"Reject confirmation {confirm}", () => Invalid(Source(), input with { Confirmed = confirm }, "REJECT_CONFIRMATION_REQUIRED"));
 Run("Missing mandatory result", () => Invalid(Source() with { Results = [] }, input, "MANDATORY_RESULT_REQUIRED"));

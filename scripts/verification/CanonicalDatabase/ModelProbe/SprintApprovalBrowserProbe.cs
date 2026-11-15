@@ -14,6 +14,8 @@ internal static class SprintApprovalBrowserProbe
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
         var rejectionSource=Environment.GetEnvironmentVariable("DEV3_REJECTION_SOURCE")=="1";
+        var rejectionAcceptance=Environment.GetEnvironmentVariable("DEV3_REJECTION_ACCEPTANCE")=="1";
+        if(rejectionAcceptance&&(!rework||!rejectionSource))throw new InvalidOperationException("Reject acceptance requires owned rework and source fixture");
         if(rejectionSource&&!rework)throw new InvalidOperationException("Rejection source requires owned rework/evidence fixture");
         if(Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"
             &&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1")
@@ -23,7 +25,7 @@ internal static class SprintApprovalBrowserProbe
             throw new InvalidOperationException("Retirement trial requires browser conclusion mode");
         using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(
             Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"
-            ||Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"||rejectionSource?8:4)); var ct=budget.Token;
+            ||Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"||rejectionSource||rejectionAcceptance?8:4)); var ct=budget.Token;
         await using var db=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(
             "Server=localhost;Database=HotelOps_DEV3_142A_20261114_cc78c13f;Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         var checks=new List<object>(); string? failure=null;
@@ -46,11 +48,11 @@ internal static class SprintApprovalBrowserProbe
                     await db.Database.ExecuteSqlInterpolatedAsync($"""
                         UPDATE dbo.room_inspections SET workflow_status='INSPECTING' WHERE inspection_id={inspection};
                         UPDATE dbo.inspection_results SET outcome='FAIL' WHERE inspection_id={inspection};
-                        INSERT dbo.inspection_defects(inspection_id,checklist_item_id,description,status)
+                        IF {(!rejectionAcceptance ? 1 : 0)}=1 INSERT dbo.inspection_defects(inspection_id,checklist_item_id,description,status)
                           SELECT inspection_id,checklist_item_id,'Synthetic rejection defect','OPEN' FROM dbo.inspection_results WHERE inspection_id={inspection};
                         UPDATE dbo.room_inspections SET workflow_status='PENDING_CONCLUSION' WHERE inspection_id={inspection};
                         """,ct);
-                if(rework)await SprintReworkFixture.SeedEvidenceAsync(db,actor,inspection,ct);
+                if(rework&&!rejectionAcceptance)await SprintReworkFixture.SeedEvidenceAsync(db,actor,inspection,ct);
                 var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==actor,ct);
                 var hash=new PasswordHasher<User>().HashPassword(user,password);
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET password_hash={hash} WHERE user_id={actor}",ct);
@@ -108,6 +110,11 @@ internal static class SprintApprovalBrowserProbe
                 {await Seed();await Cleanup(ct);await rehearsal.RollbackAsync(ct);}
                 await using(var setup=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct))
                 {await Seed();await setup.CommitAsync(ct);committed=true;}
+                if(rejectionAcceptance)
+                {
+                    await SprintRejectionAcceptanceProbe.VerifyAsync(db,actor,branch,inspection,password,ct);
+                    checks.Add(new{blocked,rejectMissingDefectHttps=true,rejectMissingDefectMessage=true,rejectReasonLengthHttps=true,rejectAuditFaultHttps=true,rejectFullSnapshotRollback=true,rejectNoAutomaticRetry=true});
+                }
                 var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};
                 start.ArgumentList.Add(rejection ? "frontend/scripts/sprintRejectionBrowser.mjs" : "frontend/scripts/sprintApprovalBrowser.mjs");
                 using var process=Process.Start(start)??throw new Exception("Browser unavailable");
@@ -186,6 +193,7 @@ internal static class SprintApprovalBrowserProbe
                             nextRoundCommittedBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1",
                             nextRoundNotificationExecutorSource=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1",
                             originalInspectionScopedRead=true,
+                            rejectSourceAfterTerminalLifecycle=rejectionAcceptance,
                             originalInspectionBrowserLink=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
                             distinctReinspector=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR")=="1",
                             reinspectionConcurrentBlockSql=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1",

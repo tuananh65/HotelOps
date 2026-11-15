@@ -341,11 +341,17 @@ export function createInspectionApi(
           400,
           "Confirm rejection before submitting",
         );
+      const rejectionReason = reason(inputReason);
+      if (rejectionReason.length < 10)
+        throw new InspectionApiError(
+          400,
+          "Rejection reason must contain at least 10 characters",
+        );
       const result = await loaded(
         await request(
           "POST",
           `${root(branch, id)}/reject`,
-          { reason: reason(inputReason), confirmed },
+          { reason: rejectionReason, confirmed },
           etag,
           signal,
         ),

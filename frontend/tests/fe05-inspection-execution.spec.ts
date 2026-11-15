@@ -105,12 +105,51 @@ test("scoped read and no premature READY or implicit conclusion", async ({
   await render(page);
   await expect(page.getByText(/State:/)).toContainText("ASSIGNED");
   await expect(
-    page.getByText(/No directory or approval workflow/i),
+    page.getByRole("button", { name: "Approve inspection", exact: true }),
+  ).toBeDisabled();
+  await expect(
+    page.getByText("Effective room readiness: UNKNOWN."),
   ).toBeVisible();
   await expect(
     page.getByText(/Evidence read\/download is not available/i),
   ).toBeVisible();
 });
+test("pending conclusion without defects explains MSG03 and cannot reject", async ({
+  page,
+}) => {
+  const value = {
+    ...snapshot("PENDING_CONCLUSION"),
+    criteria: [{ ...snapshot().criteria[0], outcome: "FAIL" }],
+  };
+  const writes: string[] = [];
+  await page.route("**/api/**", (route) => {
+    if (route.request().method() !== "GET") writes.push(route.request().url());
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: { ETag: etag },
+      body: JSON.stringify(value),
+    });
+  });
+  await render(page);
+  await page
+    .getByLabel("Reason", { exact: true })
+    .fill("Needs cleaning rework");
+  await page
+    .getByLabel("Confirm inspection failure and require cleaning rework")
+    .check();
+  await expect(
+    page.getByText(
+      "MSG03: Defects: record a defect for each failed criterion before rejecting the inspection. Please check and try again.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Reject inspection", exact: true }),
+  ).toBeDisabled();
+  expect(writes).toEqual([]);
+});
+
 test("branch change A→B→A and session replacement discard old read", async ({
   page,
 }) => {

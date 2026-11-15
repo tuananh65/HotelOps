@@ -311,6 +311,17 @@ export function InspectionWorkspace({
           {current.value.state === "PENDING_CONCLUSION" && (
             <fieldset disabled={busy || blocked}>
               <legend>Reject inspection</legend>
+              {why.trim().length < 10 && (
+                <p role="alert" style={{ color: "#b91c1c" }}>
+                  MSG03: Rejection reason must contain at least 10 characters.
+                </p>
+              )}
+              {current.value.defects.length === 0 && (
+                <p role="alert" style={{ color: "#b91c1c" }}>
+                  MSG03: Defects: record a defect for each failed criterion
+                  before rejecting the inspection. Please check and try again.
+                </p>
+              )}
               <label>
                 <input
                   type="checkbox"
@@ -323,7 +334,7 @@ export function InspectionWorkspace({
                 type="button"
                 disabled={
                   !rejectConfirmed ||
-                  !why.trim() ||
+                  why.trim().length < 10 ||
                   !current.value.defects.length ||
                   !current.value.criteria.some((c) => c.outcome === "FAIL")
                 }

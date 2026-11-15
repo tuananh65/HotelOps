@@ -303,6 +303,8 @@ internal static class SprintReinspectionAssignmentProbe
             await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionExecutorProbe.VerifyAsync(db, executorTicket, executorSid, branch, rework, ct);
+            if (Environment.GetEnvironmentVariable("DEV3_REJECTION_ACCEPTANCE") == "1")
+                await SprintRejectionSourceProbe.VerifyAfterLifecycleAsync(db, branch, rework, executorTicket.UserId, ct);
         }
         finally
         {

@@ -513,6 +513,17 @@ for (const readiness of ["REWORK_REQUIRED", "BLOCKED"]) {
     },
   );
 }
+test("reject enforces trimmed ten-character reason before any transport", async () => {
+  const requests = [];
+  const api = client(async (...args) => {
+    requests.push(args);
+    throw Error("No transport expected");
+  });
+  for (const reason of ["short", "123456789", " 123456789 "])
+    await assert.rejects(api.reject(7, 42, tag, reason, true), { status: 400 });
+  assert.equal(requests.length, 0);
+});
+
 test("reject rejects unsafe readiness without replay", async () => {
   let writes = 0;
   const api = client(async (path) => {
