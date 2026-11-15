@@ -49,6 +49,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.DashboardService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportService>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestReadAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestReadService>();
 builder.Services.AddSingleton<HotelOps.Api.Services.Insights.ReportSnapshotStore>();
 
 var isolatedSqlRole=IsolatedSqlApplicationRole.FromConfiguration(builder.Configuration,builder.Environment);

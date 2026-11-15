@@ -24,7 +24,9 @@ Checkpoint32: feature policy and preview/CSV API admission/audit are implemented
 
 ## Remaining contracts
 
-FE13 read authorization remains unresolved. Database edits must remain narrow and isolated.
+FE13 UC123 read authorization was approved during checkpoint86: IR_VIEW with current grant/scope is required. Requester/current handler read only related requests; Operations Manager and Department Head read within granted branches; Administrator requires an explicit valid IR_VIEW grant and scope, without a role bypass. Never infer authority from User.DepartmentId or Department.ManagerUserId. Seed only in verified disposable SQL. Test branch isolation, requester, current handler, revoked role and receiving-department changes.
+
+Read authorization does not authorize UC115/116 processing. Those mutations still require trusted evidence of Department Head authority for the current receiving department under GBR-146; missing mapping must fail closed. The earlier proposal to infer processing authority from branch read access was not approved. Database edits must remain narrow and isolated.
 
 ## Autonomous execution directive (checkpoint39)
 
