@@ -282,7 +282,10 @@ async function withUsers(path, scenario, run) {
     assert.ok(!logs.some((line) => line.includes(secret)));
     assert.ok(!(await page.locator("body").innerText()).includes(secret));
     for (const call of await calls(page)) {
-      assert.equal(call.credentials, "include");
+      assert.equal(
+        call.credentials,
+        call.url.startsWith("/api/dashboards/") ? "same-origin" : "include",
+      );
       assert.equal(call.cache, "no-store");
       assert.equal(call.headers.authorization, undefined);
       if (call.url.startsWith("/api/users")) {
@@ -988,17 +991,19 @@ test("Login and Logout navigation remain unchanged around real Users route", asy
     "/login",
     {
       sessions: [anon, ok(session())],
-      responses: { [listUrl]: [ok(directory())] },
+      responses: {
+        [listUrl]: [ok(directory())],
+        "/api/dashboards/options": [problem(403), problem(403)],
+        "/api/dashboards/operations?": [problem(403), problem(403)],
+      },
     },
     async (page) => {
       await heading(page, "Sign In");
       await page.getByLabel("Username or email").fill("reviewer");
       await page.getByLabel("Password", { exact: true }).fill(secret);
       await page.getByRole("button", { name: "Sign in", exact: true }).click();
-      await pathIs(page, "/rooms/status");
-      await page
-        .getByRole("navigation", { name: "Hotel operations" })
-        .waitFor();
+      await pathIs(page, "/dashboard");
+      await heading(page, "Operations dashboard");
       assert.equal((await calls(page, "/api/auth/session")).length, 2);
       await navigate(page, "/users");
       await page.getByRole("link", { name: "Directory Target" }).waitFor();
@@ -1133,7 +1138,7 @@ test("094 Users gate OFF issues no user read", async () => {
     );
   });
 });
-test("094 read-only detail has no credential-reset or mutation navigation", async () => {
+test("canonical detail exposes accepted role/activation routes without dispatching mutations", async () => {
   await withUsers(
     "/users/42",
     {
@@ -1147,10 +1152,22 @@ test("094 read-only detail has no credential-reset or mutation navigation", asyn
       assert.equal(
         await page
           .getByRole("link", {
-            name: /Reset credential|Activate|Create|Assign/,
+            name: /Reset credential|Create/,
           })
           .count(),
         0,
+      );
+      assert.equal(
+        await page
+          .getByRole("link", { name: "Assign role", exact: true })
+          .getAttribute("href"),
+        "/users/42/roles/assign",
+      );
+      assert.equal(
+        await page
+          .getByRole("link", { name: "Activate account", exact: true })
+          .getAttribute("href"),
+        "/users/42/activate",
       );
     },
   );

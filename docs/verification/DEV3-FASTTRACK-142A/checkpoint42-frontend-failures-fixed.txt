@@ -1,0 +1,15 @@
+✔ target replacement hides previous review and ignores late PUT (670.7814ms)
+✔ unmount ignores late response (379.52ms)
+✔ business rejection 403 is sanitized and no retry (685.5138ms)
+✔ business rejection 409 is sanitized and no retry (359.6016ms)
+✔ late response after session invalidation cannot restore account or reason (662.9292ms)
+✔ Login and Logout navigation remain unchanged around real Users route (807.6054ms)
+✔ canonical detail exposes accepted role/activation routes without dispatching mutations (381.0919ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18698.2191

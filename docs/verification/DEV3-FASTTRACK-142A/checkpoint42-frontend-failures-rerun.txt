@@ -1,0 +1,46 @@
+✔ target replacement hides previous review and ignores late PUT (603.2133ms)
+✔ unmount ignores late response (349.4565ms)
+✔ business rejection 409 is sanitized and no retry (646.5926ms)
+✔ late response after session invalidation cannot restore account or reason (606.5766ms)
+✖ Login and Logout navigation remain unchanged around real Users route (30693.9914ms)
+✖ 094 read-only detail has no credential-reset or mutation navigation (362.9304ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 4
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 54224.6828
+
+✖ failing tests:
+
+test at tests\users-router-integration.test.mjs:986:1
+✖ Login and Logout navigation remain unchanged around real Users route (30693.9914ms)
+  page.waitForFunction: Timeout 30000ms exceeded.
+      at pathIs (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\users-router-integration.test.mjs:219:14)
+      at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\users-router-integration.test.mjs:998:13
+      at async withUsers (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\users-router-integration.test.mjs:273:5)
+      at async TestContext.<anonymous> (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\users-router-integration.test.mjs:987:3) {
+    name: 'TimeoutError',
+    log: []
+  }
+
+test at tests\users-router-integration.test.mjs:1136:1
+✖ 094 read-only detail has no credential-reset or mutation navigation (362.9304ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 0
+  
+      at file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/users-router-integration.test.mjs:1147:14
+      at async withUsers (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/users-router-integration.test.mjs:273:5)
+      at async TestContext.<anonymous> (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/users-router-integration.test.mjs:1137:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

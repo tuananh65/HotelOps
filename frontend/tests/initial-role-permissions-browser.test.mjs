@@ -138,7 +138,14 @@ for (const status of [403, 409])
     run({ enabled: true, status }, async (p) => {
       await review(p);
       await p.getByRole("button", { name: "Confirm and save" }).click();
-      await p.getByRole("status").waitFor();
+      await p
+        .getByText(
+          status === 409
+            ? "Role changed or already configured. Reload and review."
+            : "Access denied by server.",
+          { exact: true },
+        )
+        .waitFor();
       assert.equal((await posts(p)).length, 1);
       assert.equal(
         await p

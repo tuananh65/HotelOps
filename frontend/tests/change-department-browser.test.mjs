@@ -206,6 +206,9 @@ test("target replacement hides previous review and ignores late PUT", () =>
     await review(p);
     await p.getByRole("button", { name: "Confirm department change" }).click();
     await p.getByText("Department change pending...").waitFor();
+    await p.waitForFunction(() =>
+      window.fixture.calls.some((c) => c.method === "PUT"),
+    );
     await p.evaluate(() => window.fixture.target(99));
     await p.getByText("User 99; Branch 1; Department 2").waitFor();
     await p.evaluate(() =>
@@ -234,6 +237,9 @@ test("unmount ignores late response", () =>
     await review(p);
     await p.getByRole("button", { name: "Confirm department change" }).click();
     await p.getByText("Department change pending...").waitFor();
+    await p.waitForFunction(() =>
+      window.fixture.calls.some((c) => c.method === "PUT"),
+    );
     await p.evaluate(() => {
       window.fixture.unmount();
       window.fixture.finish("put", {

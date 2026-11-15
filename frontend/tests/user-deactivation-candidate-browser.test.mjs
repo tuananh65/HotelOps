@@ -228,6 +228,9 @@ test("late response after session invalidation cannot restore account or reason"
     await review(p);
     await p.getByRole("button", { name: "Confirm deactivate" }).click();
     await p.getByText("Deactivation pending...").waitFor();
+    await p.waitForFunction(() =>
+      window.fixture.calls.some((c) => c.method === "PATCH"),
+    );
     await p.evaluate(() => {
       window.fixture.scenario.auth = { status: 401, body: {} };
       void window.fixture.revalidate();
