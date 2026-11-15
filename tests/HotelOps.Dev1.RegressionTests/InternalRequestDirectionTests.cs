@@ -5,6 +5,45 @@ using Xunit;
 namespace HotelOps.Dev1.RegressionTests;
 public sealed class InternalRequestDirectionTests
 {
+    [Theory]
+    [InlineData("SENT")]
+    [InlineData("RECEIVED")]
+    public void DirectionCannotExpandReadScope(string direction)
+    {
+        var now=new DateTime(2026,11,16,0,0,0,DateTimeKind.Utc);
+        var rows=new[]
+        {
+            new InternalRequest{InternalRequestId=1,RequesterId=7,BranchId=10,Branch=new(){IsActive=true},ReceivingDepartmentId=11},
+            new InternalRequest{InternalRequestId=2,RequesterId=7,BranchId=20,Branch=new(){IsActive=true},ReceivingDepartmentId=21},
+            new InternalRequest{InternalRequestId=3,RequesterId=7,BranchId=10,Branch=new(){IsActive=false},ReceivingDepartmentId=11}
+        }.AsQueryable();
+        // Even processing authority in both branches cannot replace a missing read grant.
+        var processing=new InternalRequestDirection.Scope(7,[11,21]);
+        var read=new InternalRequestReadAccess.Scope(7,[10],[10],false);
+        Assert.Equal(new long[]{1},processing.Apply(read.Apply(rows,now),direction,now).Select(r=>r.InternalRequestId));
+        var revokedRead=new InternalRequestReadAccess.Scope(7,[],[],false);
+        Assert.Empty(processing.Apply(revokedRead.Apply(rows,now),direction,now));
+    }
+
+    [Fact]
+    public void ReceivedReflectsHandlerReplacementWithoutDepartmentAuthority()
+    {
+        var now=new DateTime(2026,11,16,0,0,0,DateTimeKind.Utc);
+        var request=new InternalRequest{InternalRequestId=1,RequesterId=8,ReceivingDepartmentId=11};
+        var assignment=new InternalRequestAssignment{AssigneeId=7,Status="ACTIVE",AssignedAt=now.AddMinutes(1)};
+        request.InternalRequestAssignments.Add(assignment);
+        var rows=new[]{request}.AsQueryable();
+        var scope=new InternalRequestDirection.Scope(7,[]);
+        Assert.Empty(scope.Apply(rows,"RECEIVED",now));
+        assignment.AssignedAt=now;
+        Assert.Single(scope.Apply(rows,"RECEIVED",now));
+        assignment.AssigneeId=8;
+        Assert.Empty(scope.Apply(rows,"RECEIVED",now));
+        assignment.AssigneeId=7;
+        assignment.Status="ENDED";
+        Assert.Empty(scope.Apply(rows,"RECEIVED",now));
+    }
+
     [Fact]
     public void DirectionUsesCurrentResponsibilityAndDoesNotDuplicateOverlap()
     {

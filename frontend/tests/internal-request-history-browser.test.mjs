@@ -114,6 +114,22 @@ test("status filter has an accessible name and sends the selected value", async 
   await request;
   await page.getByRole("cell", { name: "PRIVATE REQUEST <script>", exact: true }).waitFor();
 }));
+test("direction filter sends Sent and Received as scoped reads and clears history on denial", async () => fixture(async (page, state) => {
+  for (const direction of ["SENT", "RECEIVED"]) {
+    const sent = page.waitForRequest(r => new URL(r.url()).pathname === "/api/internal-requests"
+      && new URL(r.url()).searchParams.get("direction") === direction);
+    await page.getByLabel("Direction", {exact:true}).selectOption(direction);
+    const request = await sent;
+    assert.equal(request.method(), "GET");
+    assert.equal(new URL(request.url()).searchParams.get("page"), "1");
+    await page.getByRole("cell", { name: "PRIVATE REQUEST <script>", exact: true }).waitFor();
+  }
+  state.history = 403;
+  await page.getByRole("button", {name:"Refresh history", exact:true}).click();
+  await page.getByRole("alert").filter({hasText:"do not have access"}).waitFor();
+  assert.equal(await page.getByText("PRIVATE REQUEST <script>", {exact:true}).count(), 0);
+}));
+
 test("session revalidation removes request history before login", async () => fixture(async (page, state) => {
   state.session = 401;
   await page.evaluate(() => window.historyStore.revalidate());
