@@ -27,6 +27,8 @@ internal static class SprintReinspectionAssignmentProbe
         var source = await db.CleaningReworks.AsNoTracking().Where(w => w.ReworkId == rework)
             .Select(w => new { w.Inspection.InspectorUserId, w.Inspection.VersionId, w.CleaningTaskId }).SingleAsync(ct);
         var actor = source.InspectorUserId;
+        var distinctInspector = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR") == "1";
+        long? ownedInspector = null;
         var roomId = await db.CleaningTasks.Where(t => t.CleaningTaskId == source.CleaningTaskId).Select(t => t.RoomId).SingleAsync(ct);
         var originalRoomStatus = await db.Rooms.Where(r => r.RoomId == roomId).Select(r => r.OperationalStatus).SingleAsync(ct);
         var user = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == actor, ct);
@@ -124,10 +126,26 @@ internal static class SprintReinspectionAssignmentProbe
         }
         try
         {
+            if (distinctInspector)
+            {
+                await using var rehearsal = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+                var temporary = await SprintDistinctReinspectorFixture.CreateAsync(db, source.InspectorUserId, branch, ct);
+                await SprintDistinctReinspectorFixture.CleanupAsync(db, temporary.UserId, branch, ct);
+                await rehearsal.RollbackAsync(ct); db.ChangeTracker.Clear();
+            }
             await using (var rehearsal = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
             { await Install(); await Cleanup(); await rehearsal.RollbackAsync(ct); }
             await using (var setup = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
-            { await Install(); await setup.CommitAsync(ct); installed = true; }
+            {
+                await Install();
+                if (distinctInspector)
+                {
+                    user = await SprintDistinctReinspectorFixture.CreateAsync(db, source.InspectorUserId, branch, ct);
+                    actor = user.UserId;
+                }
+                await setup.CommitAsync(ct); installed = true;
+                if (distinctInspector) ownedInspector = actor;
+            }
             var credentials = new PasswordCredentialService(Options.Create(new PasswordHasherOptions
             { CompatibilityMode = PasswordHasherCompatibilityMode.IdentityV3, IterationCount = PasswordCredentialService.BaselineIterationCount }));
             var password = Convert.ToBase64String(RandomNumberGenerator.GetBytes(32)) + "Aa1!";
@@ -191,7 +209,7 @@ internal static class SprintReinspectionAssignmentProbe
                 || (await Call(Guid.NewGuid())).Status != RoomTypeBatchStatus.Duplicate)
                 throw new Exception("Assignment duplicated or reused changed operation");
             var assignedId = ((ReinspectionAssignmentResult)results[0].Value!).Id;
-            async Task<RoomTypeBatchResult> Read(long readBranch, long readId, SessionReference readTicket, long readSid, long? file = null)
+            async Task<RoomTypeBatchResult> Read(long readBranch, long readId, SessionReference readTicket, long readSid, long? file = null, bool original = false)
             {
                 await using var context = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options);
                 await context.Database.OpenConnectionAsync(ct);
@@ -202,7 +220,9 @@ internal static class SprintReinspectionAssignmentProbe
                     var service = new RoomTypeCreationService(context, identity,
                         new PermissionService(identity, new EfPermissionDataSource(context), new UnresolvedPermissionResourceResolver(), TimeProvider.System),
                         new SqlSessionService(context, new SessionRevocationService(context), TimeProvider.System), TimeProvider.System);
-                    return await service.ReadReinspectionExecutionAsync(readTicket, readSid, readBranch, readId, SprintReworkFixture.EvidenceRoot, ct, file);
+                    return original
+                        ? await service.ReadReinspectionOriginalAsync(readTicket, readSid, readBranch, readId, SprintReworkFixture.EvidenceRoot, ct, file)
+                        : await service.ReadReinspectionExecutionAsync(readTicket, readSid, readBranch, readId, SprintReworkFixture.EvidenceRoot, ct, file);
                 }
                 finally { await context.Database.ExecuteSqlRawAsync("REVERT", CancellationToken.None); }
             }
@@ -218,13 +238,30 @@ internal static class SprintReinspectionAssignmentProbe
                 || (await Read(branch, assignedId, ticket, sid, long.MaxValue)).Status != RoomTypeBatchStatus.NotFound)
                 throw new Exception("Reinspection read/evidence scope leaked");
             var originalPhoto = detail.Defects.SelectMany(d => d.OriginalPhotos.Concat(d.RemediationPhotos)).First();
+            var originalRead = await Read(branch, assignedId, ticket, sid, original: true);
+            if (originalRead.Value is not ReinspectionOriginalDto originalSource || originalSource.Id != detail.OriginalInspectionId
+                || originalSource.InspectorId != source.InspectorUserId || originalSource.ReinspectionId != assignedId
+                || originalSource.Criteria.Count == 0 || originalSource.Defects.Count == 0 || originalSource.Evidence.Count == 0
+                || originalSource.Evidence.Any(e => e.EntityType != "INSPECTION" || e.EntityId != originalSource.Id)
+                || (distinctInspector && originalSource.InspectorId == actor)) throw new Exception("Exact original source read failed");
+            foreach (var file in originalSource.Evidence)
+                if ((await Read(branch, assignedId, ticket, sid, file.Id, original: true)).Value is not HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto)
+                    throw new Exception("Original source evidence denied");
+            var remediation = detail.Defects.SelectMany(d => d.RemediationPhotos).First();
+            if ((await Read(branch, assignedId, ticket, sid, remediation, original: true)).Status != RoomTypeBatchStatus.NotFound
+                || (await Read(branch, assignedId, executorTicket, executorSid, original: true)).Status == RoomTypeBatchStatus.Success
+                || (await Read(branch + 100000, assignedId, ticket, sid, original: true)).Status == RoomTypeBatchStatus.Success
+                || (await Read(branch, detail.OriginalInspectionId, ticket, sid, original: true)).Status == RoomTypeBatchStatus.Success)
+                throw new Exception("Original source scope leaked");
             if ((await Read(branch, assignedId, ticket, sid, originalPhoto)).Value is not HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto)
                 throw new Exception("Assigned inspector could not read linked evidence");
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={actor} AND branch_id={branch}", ct);
             try
             {
                 if ((await Read(branch, assignedId, ticket, sid)).Status == RoomTypeBatchStatus.Success
-                    || (await Read(branch, assignedId, ticket, sid, originalPhoto)).Status == RoomTypeBatchStatus.Success)
+                    || (await Read(branch, assignedId, ticket, sid, originalPhoto)).Status == RoomTypeBatchStatus.Success
+                    || (await Read(branch, assignedId, ticket, sid, original: true)).Status == RoomTypeBatchStatus.Success
+                    || (await Read(branch, assignedId, ticket, sid, originalSource.Evidence[0].Id, original: true)).Status == RoomTypeBatchStatus.Success)
                     throw new Exception("Revoked inspector retained detail/evidence");
             }
             finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={actor} AND branch_id={branch}", ct); }
@@ -232,7 +269,8 @@ internal static class SprintReinspectionAssignmentProbe
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.audit_logs SET new_values=N'{{}}' WHERE audit_id={audit.AuditId}", ct);
             try
             {
-                if ((await Read(branch, assignedId, ticket, sid)).Status == RoomTypeBatchStatus.Success)
+                if ((await Read(branch, assignedId, ticket, sid)).Status == RoomTypeBatchStatus.Success
+                    || (await Read(branch, assignedId, ticket, sid, original: true)).Status == RoomTypeBatchStatus.Success)
                     throw new Exception("Unproven assignment receipt admitted to detail");
             }
             finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.audit_logs SET new_values={audit.NewValues} WHERE audit_id={audit.AuditId}", ct); }
@@ -271,7 +309,9 @@ internal static class SprintReinspectionAssignmentProbe
             if (installed)
             {
                 await using var cleanup = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, CancellationToken.None);
-                await Cleanup(); await cleanup.CommitAsync(CancellationToken.None); db.ChangeTracker.Clear();
+                await Cleanup();
+                if (ownedInspector is { } owned) await SprintDistinctReinspectorFixture.CleanupAsync(db, owned, branch, CancellationToken.None);
+                await cleanup.CommitAsync(CancellationToken.None); db.ChangeTracker.Clear();
             }
         }
     }

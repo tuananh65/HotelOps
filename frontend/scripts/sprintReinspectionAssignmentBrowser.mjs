@@ -124,6 +124,35 @@ try {
       throw Error("Conclusion security/preconditions: " + JSON.stringify(negative.statuses));
     const original = page.getByRole("link", { name: `Original inspection #${negative.d.originalInspectionId}`, exact: true });
     await original.waitFor();
+    stage = "original inspection scoped link and reload";
+    await original.click();
+    await page.waitForURL(`${origin}/reinspections/${fixture.branch}/${body.id}/original`);
+    await page.getByRole("region", { name: "Original checklist results", exact: true }).waitFor();
+    await page.reload();
+    await page.getByRole("region", { name: "Original inspection evidence", exact: true }).waitFor();
+    if (await page.getByRole("button", { name: /Approve|Reject|Start|Save|Confirm conclusion/ }).count()) throw Error("Original source exposed mutation controls");
+    const originalCheck = await page.evaluate(async ({ path, originalId, actor, distinctInspector, branch, remediation }) => {
+      const response = await fetch(path + "/original", { credentials: "include" }), original = await response.json();
+      if (response.status !== 200 || original.id !== originalId || original.state !== "FAILED" || !original.criteria?.length
+        || !original.defects?.length || !original.evidence?.length || response.headers.get("ETag") !== original.sourceETag
+        || (distinctInspector && original.inspectorId === actor)) throw Error("Original source contract/identity mismatch");
+      for (const file of original.evidence) {
+        if (file.entityType !== "INSPECTION" || file.entityId !== originalId || file.downloadPath !== path + "/original/evidence/" + file.id) throw Error("Original source file scope leaked");
+        const download = await fetch(file.downloadPath, { credentials: "include" });
+        if (download.status !== 200 || download.headers.get("X-Content-Type-Options") !== "nosniff" || !(await download.arrayBuffer()).byteLength) throw Error("Original photo unavailable");
+      }
+      const unrelated = await fetch(path + "/original/evidence/" + remediation, { credentials: "include" });
+      if (unrelated.status !== 404) throw Error("Original source admitted remediation file");
+      if (distinctInspector) {
+        const generic = await fetch(`/api/branches/${branch}/inspections/${originalId}/execution`, { credentials: "include" });
+        if (generic.status !== 403) throw Error("Original inspector execution authority broadened");
+      }
+      return true;
+    }, { path, originalId: negative.d.originalInspectionId, actor: fixture.actor, distinctInspector: fixture.distinctInspector,
+      branch: fixture.branch, remediation: negative.d.defects.flatMap(d => d.remediationPhotos)[0] });
+    if (!originalCheck) throw Error("Original source verification missing");
+    await page.getByRole("link", { name: "Return to reinspection", exact: true }).click();
+    await page.getByRole("button", { name: "Review conclusion", exact: true }).waitFor();
     await page.getByRole("button", { name: "Review conclusion", exact: true }).click();
     if (await page.getByRole("button", { name: "Confirm conclusion", exact: true }).count()) throw Error("Empty decisions passed form validation");
     for (const defect of negative.d.defects) {

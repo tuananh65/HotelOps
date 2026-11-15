@@ -1,5 +1,10 @@
 namespace HotelOps.Api.DTOs.Housekeeping;
 
+public sealed record ReinspectionOriginalDto(long ReinspectionId,long ReworkId,long BranchId,long Id,long RoomId,
+    long CleaningTaskId,long InspectorId,long VersionId,string State,string SourceETag,string? Summary,
+    IReadOnlyList<HotelStructure.HistoryCriterionDto> Criteria,IReadOnlyList<HotelStructure.HistoryDefectDto> Defects,
+    IReadOnlyList<HotelStructure.HistoryEvidenceDto> Evidence);
+
 public sealed record ReinspectionAssigneeDto(long Id,string Name);
 public sealed record ReinspectionAssignmentOptionsDto(long ReworkId,long BranchId,long RoomId,long CleaningTaskId,
     long OriginalInspectionId,long VersionId,string ReworkETag,long? ExistingInspectionId,

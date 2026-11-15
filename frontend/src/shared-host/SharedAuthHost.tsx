@@ -1,6 +1,7 @@
 import { AssignedReworkRead } from "../features/inspectionExecution/AssignedReworkRead";
 import { ReinspectionAssignmentPage } from "../features/inspectionExecution/ReinspectionAssignmentPage";
 import { ReinspectionExecutionPage } from "../features/inspectionExecution/ReinspectionExecutionPage";
+import { ReinspectionOriginalPage } from "../features/inspectionExecution/ReinspectionOriginalPage";
 import { NotificationCenter } from "../notifications/NotificationCenter";
 import { TaskReadPage } from "../operationalTasks/TaskReadPage";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
@@ -138,6 +139,16 @@ export function SharedAuthHost({
           )
         }
       />
+      {notificationsEnabled && (
+        <Route
+          path="/reinspections/:branch/:id/original"
+          element={
+            <Protected>
+              <ReinspectionOriginalPage />
+            </Protected>
+          }
+        />
+      )}
       {notificationsEnabled && (
         <Route
           path="/reinspections/:branch/:id/execution"

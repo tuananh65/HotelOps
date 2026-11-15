@@ -94,6 +94,52 @@ async function scenario(run) {
       });
     if (path === "/api/branches/1/reinspections/8/execution")
       return route.fulfill({ json: state.data, headers: { ETag: tag } });
+    if (path === "/api/branches/1/reinspections/8/original")
+      return route.fulfill({
+        headers: { ETag: tag },
+        json: {
+          reinspectionId: 8,
+          reworkId: 2,
+          branchId: 1,
+          id: 5,
+          roomId: 3,
+          cleaningTaskId: 4,
+          inspectorId: 7,
+          versionId: 6,
+          state: "FAILED",
+          sourceETag: tag,
+          summary: "PRIVATE-ORIGINAL-SUMMARY",
+          criteria: [
+            {
+              itemId: 10,
+              criterion: "Clean",
+              description: null,
+              outcome: "FAIL",
+              note: "PRIVATE-ORIGINAL-NOTE",
+              evidenceIds: [12],
+            },
+          ],
+          defects: [
+            {
+              id: 9,
+              itemId: 10,
+              description: "PRIVATE-ORIGINAL-DEFECT",
+              location: "Desk",
+              evidenceIds: [12],
+            },
+          ],
+          evidence: [
+            {
+              id: 12,
+              entityType: "INSPECTION",
+              entityId: 5,
+              name: "original.png",
+              downloadPath:
+                "/api/branches/1/reinspections/8/original/evidence/12",
+            },
+          ],
+        },
+      });
     if (path === "/api/auth/csrf") {
       if (state.csrf) await state.csrf;
       return route
@@ -152,6 +198,50 @@ async function review(page) {
     .getByRole("button", { name: "Review conclusion", exact: true })
     .click();
 }
+
+test("canonical original link is read only and clears private source on session loss", async () => {
+  await scenario(async (page, state) => {
+    await page
+      .getByRole("link", { name: "Original inspection #5", exact: true })
+      .click();
+    await page.waitForURL("https://hotelops.test/reinspections/1/8/original");
+    await page.getByText("PRIVATE-ORIGINAL-NOTE", { exact: true }).waitFor();
+    assert.equal(
+      await page
+        .getByRole("link", { name: "original.png", exact: true })
+        .getAttribute("href"),
+      "/api/branches/1/reinspections/8/original/evidence/12",
+    );
+    assert.equal(
+      await page
+        .getByRole("button", {
+          name: /Approve|Reject|Start|Save|Confirm conclusion/,
+        })
+        .count(),
+      0,
+    );
+    await page
+      .getByRole("link", { name: "Return to reinspection", exact: true })
+      .click();
+    await page.getByText("PRIVATE-REMEDIATION", { exact: false }).waitFor();
+    await page
+      .getByRole("link", { name: "Original inspection #5", exact: true })
+      .click();
+    await page.getByText("PRIVATE-ORIGINAL-SUMMARY", { exact: true }).waitFor();
+    state.signedIn = false;
+    await page.evaluate(() => window.reinspectionTest.revalidate());
+    await page.waitForURL("**/login?*");
+    assert.equal(
+      new URL(page.url()).searchParams.get("returnTo"),
+      "/reinspections/1/8/original",
+    );
+    assert.equal(
+      await page.getByText("PRIVATE-ORIGINAL-SUMMARY", { exact: true }).count(),
+      0,
+    );
+    assert.equal(state.posts.length, 0);
+  });
+});
 
 test("terminal reload shows fresh readiness and recorded decisions without enabling conclusion", async () => {
   await scenario(async (page, state) => {

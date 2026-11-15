@@ -94,7 +94,8 @@ internal static class SprintReinspectionHttpsProbe
                 var nextRound=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1";
                 if (outcome is not ("PASS" or "FAIL")) throw new Exception("Explicit PASS/FAIL browser outcome required");
                 if(nextRound&&(!conclude||outcome!="FAIL"))throw new Exception("Next round requires browser Failed conclusion");
-                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework, conclude, outcome, nextRound, executor=executorTicket.UserId }).AsMemory(), ct);
+                var distinctInspector = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR") == "1";
+                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework, conclude, outcome, nextRound, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
                 process.StandardInput.Close();
                 var browserOutput = process.StandardOutput.ReadToEndAsync(ct); var browserErrors = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct); var result = JsonSerializer.Deserialize<JsonElement>(await browserOutput); await browserErrors;

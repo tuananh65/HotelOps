@@ -188,6 +188,13 @@ function Execution({ branch, id }: { branch: string; id: string }) {
     <main>
       <h1>Reinspect room</h1>
       <Link to="/notifications">Notifications</Link>
+      {data && (
+        <p>
+          <Link to={`/reinspections/${branch}/${id}/original`}>
+            Original inspection #{data.originalInspectionId}
+          </Link>
+        </p>
+      )}
       {message && <p role="alert">{message}</p>}
       {!data && !message && <p role="status">Loading reinspection…</p>}
       {result && (
@@ -266,11 +273,6 @@ function Execution({ branch, id }: { branch: string; id: string }) {
             Room #{data.roomId} · Rework #{data.reworkId} · Cleaning cycle #
             {data.cleaningTaskId}
           </p>
-          <Link
-            to={`/inspections/${branch}/${data.originalInspectionId}/execution`}
-          >
-            Original inspection #{data.originalInspectionId}
-          </Link>
           {data.effectiveReadiness === "BLOCKED" && (
             <p role="status">The room is blocked (MSG17).</p>
           )}

@@ -11,7 +11,7 @@ internal static class SprintReinspectionTerminalReadProbe
     internal static async Task VerifyAsync(HotelOpsDbContext db, SessionReference ticket, long sid, long branch, long rework, CancellationToken ct)
     {
         var inspection = await db.Database.SqlQuery<long>($"SELECT inspection_id AS Value FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework}").SingleAsync(ct);
-        async Task<RoomTypeBatchResult> Read(long? file = null, long? alternateBranch = null, bool conclude = false)
+        async Task<RoomTypeBatchResult> Read(long? file = null, long? alternateBranch = null, bool conclude = false, bool original = false)
         {
             await using var context = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options);
             await context.Database.OpenConnectionAsync(ct);
@@ -22,7 +22,8 @@ internal static class SprintReinspectionTerminalReadProbe
                 var service = new RoomTypeCreationService(context, identity,
                     new PermissionService(identity, new EfPermissionDataSource(context), new UnresolvedPermissionResourceResolver(), TimeProvider.System),
                     new SqlSessionService(context, new SessionRevocationService(context), TimeProvider.System), TimeProvider.System);
-                var value = await service.ReadReinspectionExecutionAsync(ticket, sid, alternateBranch ?? branch, inspection, SprintReworkFixture.EvidenceRoot, ct, file);
+                var value = original ? await service.ReadReinspectionOriginalAsync(ticket, sid, alternateBranch ?? branch, inspection, SprintReworkFixture.EvidenceRoot, ct, file)
+                    : await service.ReadReinspectionExecutionAsync(ticket, sid, alternateBranch ?? branch, inspection, SprintReworkFixture.EvidenceRoot, ct, file);
                 if (!conclude || value.Value is not ReinspectionExecutionDto source) return value;
                 return await service.ConcludeReinspectionAsync(ticket, sid, branch, inspection, source.SourceETag, Guid.NewGuid().ToString("D"),
                     new(source.ReworkETag, source.BindingETag, "Must not reconclude terminal inspection", source.Defects.Select(d => new ReinspectionDefectInput(d.Id, true)).ToArray()),
@@ -36,6 +37,14 @@ internal static class SprintReinspectionTerminalReadProbe
             || terminal.Defects.Any(d => d.Fixed == null) || response.ETag != terminal.SourceETag)
             throw new Exception("Protected terminal read failed: " + response.Status);
         var photos = terminal.Defects.SelectMany(d => d.OriginalPhotos.Concat(d.RemediationPhotos).Concat(d.ReinspectionPhotos)).Distinct().ToArray();
+        var originalRead = await Read(original: true);
+        if (originalRead.Value is not ReinspectionOriginalDto originalSource || originalSource.Id != terminal.OriginalInspectionId
+            || originalSource.Evidence.Count == 0) throw new Exception("Terminal original source denied");
+        foreach (var file in originalSource.Evidence)
+            if ((await Read(file.Id, original: true)).Value is not HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto)
+                throw new Exception("Terminal original evidence denied");
+        if ((await Read(terminal.Defects.SelectMany(d => d.ReinspectionPhotos).First(), original: true)).Status != RoomTypeBatchStatus.NotFound)
+            throw new Exception("Terminal original source admitted conclusion evidence");
         if (!terminal.Defects.Any(d => d.ReinspectionPhotos.Count > 0)) throw new Exception("Terminal conclusion photos missing");
         foreach (var file in photos)
             if ((await Read(file)).Value is not HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto) throw new Exception("Terminal scoped evidence denied");
@@ -44,10 +53,12 @@ internal static class SprintReinspectionTerminalReadProbe
         if ((await Read(conclude: true)).Status == RoomTypeBatchStatus.Success) throw new Exception("Terminal read reopened mutation authority");
         var audit = await db.AuditLogs.AsNoTracking().SingleAsync(a => a.EntityType == "REINSPECTION" && a.EntityId == inspection.ToString() && a.Action == "UPDATE", ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.audit_logs SET new_values=N'{{}}' WHERE audit_id={audit.AuditId}", ct);
-        try { if ((await Read()).Status == RoomTypeBatchStatus.Success || (await Read(photos[0])).Status == RoomTypeBatchStatus.Success) throw new Exception("Tampered conclusion admitted to terminal read/evidence"); }
+        try { if ((await Read()).Status == RoomTypeBatchStatus.Success || (await Read(photos[0])).Status == RoomTypeBatchStatus.Success
+            || (await Read(original: true)).Status == RoomTypeBatchStatus.Success || (await Read(originalSource.Evidence[0].Id, original: true)).Status == RoomTypeBatchStatus.Success) throw new Exception("Tampered conclusion admitted to terminal read/evidence"); }
         finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.audit_logs SET new_values={audit.NewValues} WHERE audit_id={audit.AuditId}", CancellationToken.None); }
         await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={ticket.UserId} AND branch_id={branch}", ct);
-        try { if ((await Read()).Status == RoomTypeBatchStatus.Success || (await Read(photos[0])).Status == RoomTypeBatchStatus.Success) throw new Exception("Revoked inspector retained terminal source"); }
+        try { if ((await Read()).Status == RoomTypeBatchStatus.Success || (await Read(photos[0])).Status == RoomTypeBatchStatus.Success
+            || (await Read(original: true)).Status == RoomTypeBatchStatus.Success || (await Read(originalSource.Evidence[0].Id, original: true)).Status == RoomTypeBatchStatus.Success) throw new Exception("Revoked inspector retained terminal source"); }
         finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={ticket.UserId} AND branch_id={branch}", CancellationToken.None); }
         var blocks = await db.RoomBlocks.AsNoTracking().Where(b => b.RoomId == terminal.RoomId && b.ReleasedAt == null).Select(b => b.BlockId).ToArrayAsync(ct);
         if (blocks.Length > 0)

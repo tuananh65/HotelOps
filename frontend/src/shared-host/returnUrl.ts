@@ -66,6 +66,13 @@ export function approvedReturnDestination(
   )
     return safe;
   const assignedRework = /^\/cleaning\/reworks\/([1-9][0-9]*)$/.exec(path);
+  const original =
+    /^\/reinspections\/([1-9][0-9]*)\/([1-9][0-9]*)\/original$/.exec(path);
+  if (
+    original &&
+    original.slice(1).every((id) => Number.isSafeInteger(Number(id)))
+  )
+    return safe;
   if (
     assignedRework &&
     Number.isSafeInteger(Number(assignedRework[1])) &&
