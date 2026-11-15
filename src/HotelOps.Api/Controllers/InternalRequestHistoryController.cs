@@ -55,7 +55,9 @@ public sealed class InternalRequestReadErrorsAttribute : ExceptionFilterAttribut
         var (status, code) = context.Exception switch
         {
             InternalRequestReadException e => (e.Status, e.Code),
-            ValidationException => (400, "INVALID_HISTORY_QUERY"),
+            ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor action
+                && action.ControllerTypeInfo.AsType()==typeof(InternalRequestDecisionController) => (400,"INVALID_DECISION_INPUT"),
+            ValidationException => (400,"INVALID_HISTORY_QUERY"),
             DbException or TimeoutException => (503, "IR_SOURCE_UNAVAILABLE"),
             _ => (0, "")
         };

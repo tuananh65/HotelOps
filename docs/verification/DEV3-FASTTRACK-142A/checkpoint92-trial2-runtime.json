@@ -1,0 +1,213 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071210,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "internalRequestDecisionCheck": "decision rejects principal/session mismatch"
+    },
+    {
+      "internalRequestDecisionCheck": "decision rejects revoked current-department mapping"
+    },
+    {
+      "internalRequestDecisionCheck": "failed authorization creates no decision"
+    },
+    {
+      "internalRequestDecisionCheck": "accept records ACCEPTED and new row version"
+    },
+    {
+      "internalRequestDecisionCheck": "decision event response time audit and requester intent committed together"
+    },
+    {
+      "internalRequestDecisionCheck": "decision notice waits while requester lacks IR_VIEW"
+    },
+    {
+      "internalRequestDecisionCheck": "committed decision intent is discoverable for retry"
+    },
+    {
+      "internalRequestDecisionCheck": "requester notification delivery is idempotent"
+    },
+    {
+      "internalRequestDecisionCheck": "notification source resolves to authorized current request"
+    },
+    {
+      "internalRequestDecisionCheck": "revoked IR_VIEW denies opening historical decision notification"
+    },
+    {
+      "internalRequestDecisionCheck": "stale version cannot overwrite accepted decision"
+    },
+    {
+      "internalRequestDecisionCheck": "current version still cannot decide an already accepted request"
+    },
+    {
+      "internalRequestDecisionCheck": "reject requires nonblank reason"
+    },
+    {
+      "internalRequestDecisionCheck": "deadline adjustment requires reason"
+    },
+    {
+      "internalRequestDecisionCheck": "reject commits reason and REJECTED status"
+    },
+    {
+      "internalRequestDecisionCheck": "outbox fault rolls back state rowversion event audit and intent"
+    },
+    {
+      "internalRequestDecisionCheck": "concurrent accept reject produces one decision and one stale-version rejection"
+    },
+    {
+      "internalRequestDecisionBrowser": {
+        "success": true,
+        "checks": [
+          "public API rejects missing CSRF, missing version and blank rejection reason",
+          "Accept with adjusted deadline persisted; stale retry denied; reload shows committed state"
+        ]
+      }
+    },
+    {
+      "internalRequestDecisionCheck": "browser decision state event and audit persisted in SQL"
+    },
+    {
+      "internalRequestDecisionCheck": "browser decision produces deliverable requester intent"
+    },
+    {
+      "internalRequestDecisionBrowser": {
+        "success": true,
+        "checks": [
+          "public API rejects missing CSRF, missing version and blank rejection reason",
+          "Reject with required reason persisted; stale retry denied; reload shows committed state"
+        ]
+      }
+    },
+    {
+      "internalRequestDecisionCheck": "browser decision state event and audit persisted in SQL"
+    },
+    {
+      "internalRequestDecisionCheck": "browser decision produces deliverable requester intent"
+    },
+    {
+      "internalRequestDecisionCleanup": true
+    },
+    {
+      "departmentAuthorityCheck": "cross branch denies even requester"
+    },
+    {
+      "departmentAuthorityCheck": "composite FK rejects cross-branch department mapping"
+    },
+    {
+      "departmentAuthorityCheck": "missing schema capability denies"
+    },
+    {
+      "departmentAuthorityCheck": "inactive receiving department denies"
+    },
+    {
+      "departmentAuthorityCheck": "routing rechecks new receiving department"
+    },
+    {
+      "departmentAuthorityCheck": "one manager can explicitly manage multiple departments"
+    },
+    {
+      "departmentAuthorityCheck": "revoked role denies despite mapping"
+    },
+    {
+      "departmentAuthorityCheck": "revoked permission denies despite active mapped role"
+    },
+    {
+      "departmentAuthorityCheck": "inactive actor denies"
+    },
+    {
+      "departmentAuthorityCheck": "authority established in transaction"
+    },
+    {
+      "departmentAuthorityCheck": "concurrent mapping revocation waits for authorized transaction"
+    },
+    {
+      "departmentAuthorityCheck": "concurrent request routing waits for authorized transaction"
+    },
+    {
+      "departmentAuthorityCheck": "authorized data and audit rollback together"
+    },
+    {
+      "departmentAuthorityCheck": "committed mapping revocation denies next transaction"
+    },
+    {
+      "departmentAuthorityCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": true,
+  "scope": "Canonical browser Accept/Reject through trusted HTTPS and SQL; session, CSRF, ETag, decision audit and requester intent/delivery"
+}

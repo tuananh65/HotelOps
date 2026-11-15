@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintDepartmentAuthorityScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,long actor,List<object> checks,CancellationToken ct)
+    internal static async Task RunAsync(HotelOpsDbContext db,long actor,List<object> checks,CancellationToken ct,string? username=null,string? password=null)
     {
         // SprintAuthProbe already verified exact disposable database GUID/run and empty personnel.
         var prefix="D3AUTH"+Guid.NewGuid().ToString("N")[..8];
@@ -55,7 +55,7 @@ internal static class SprintDepartmentAuthorityScenario
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({actor},{branch},{department},DATEADD(minute,-1,SYSUTCDATETIME()))",ct);
             await AssertAllowed(requests[0],true,"exact current department mapping allows");
             if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_DECISION")=="1")
-                await SprintInternalRequestDecisionScenario.RunAsync(db,actor,requests[0],checks,ct);
+                await SprintInternalRequestDecisionScenario.RunAsync(db,actor,requests[0],checks,ct,username,password);
             await AssertAllowed(requests[1],false,"cross branch denies even requester");
             var crossBranchRejected=false;
             try

@@ -1,0 +1,21 @@
+✔ refresh denial removes previously visible history (695.339ms)
+✔ status filter has an accessible name and sends the selected value (542.4725ms)
+✔ session revalidation removes request history before login (375.9942ms)
+✔ request notification deep link loads only the selected authorized timeline and back clears it (756.9539ms)
+✔ decision stale response requires reload without replay or retained details (467.5982ms)
+✔ decision double click sends once and session loss hides details while request is pending (535.3737ms)
+✔ read access without processing authority exposes no decision action (420.2249ms)
+✔ history decoder rejects unsafe IDs, malformed counts and non-UTC dates (0.8941ms)
+✔ timeline decoder binds identity and rejects malformed history (0.2027ms)
+✔ history transport carries cookies, cancellation and no-store without mutations (15.2756ms)
+✔ history return destination requires revalidation and accepts no extra redirect parameters (0.6471ms)
+✔ source resolver uses current session and only accepts canonical rework/history paths (19.2381ms)
+✔ source denial is not retried or replaced with a stored action URL (0.3969ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4428.5991

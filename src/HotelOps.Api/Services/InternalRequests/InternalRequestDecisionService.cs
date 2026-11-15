@@ -12,8 +12,9 @@ namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestDecisionInput(bool Accept,string? Reason,DateTimeOffset? Deadline);
 public sealed record InternalRequestDecisionResult(long RequestId,string Status,string Version,long EventId,string Message);
+public sealed record InternalRequestDecisionView(long RequestId,string Subject,string Description,string Status,
+    DateTimeOffset SubmittedAt,DateTimeOffset? Deadline,double AgeSeconds,string Version,bool CanDecide);
 
-// No HTTP endpoint is enabled until the complete decision/notification acceptance is verified.
 public sealed class InternalRequestDecisionService(HotelOpsDbContext db,InternalRequestProcessAuthority authority,
     ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -33,6 +34,30 @@ public sealed class InternalRequestDecisionService(HotelOpsDbContext db,Internal
             ||!input.Accept&&input.Deadline!=null)
             throw new ValidationException("Reject requires a reason and cannot change the deadline; reason must contain at most 4000 characters without controls.");
         return string.IsNullOrEmpty(reason)?null:reason;
+    }
+
+    public async Task<InternalRequestDecisionView> ReadAsync(SessionReference ticket,long sid,long id,CancellationToken ct)
+    {
+        if(id<=0)throw new ValidationException("Invalid request identifier.");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);
+        await SessionAsync(ticket,sid,ct);
+        if(!await InternalRequestDecisionStore.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"IR_SCHEMA_REQUIRED");
+        var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
+        var allowed=await authority.AllowsCurrentRequestAsync(ticket.UserId,id,ct);
+        var scope=await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId,now,ct);
+        var row=await scope.Apply(db.InternalRequests.AsNoTracking(),now).SingleOrDefaultAsync(r=>r.InternalRequestId==id,ct);
+        if(row==null)throw new InternalRequestReadException(404,"IR_NOT_FOUND");
+        var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);
+        await SessionAsync(ticket,sid,ct);
+        var finalNow=DateTime.UtcNow;
+        var finalScope=await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId,finalNow,ct);
+        if(!await finalScope.Apply(db.InternalRequests.AsNoTracking(),finalNow).AnyAsync(r=>r.InternalRequestId==id,ct))
+            throw new InternalRequestReadException(403,"IR_SCOPE_CHANGED");
+        await tx.CommitAsync(ct);
+        var submitted=DateTime.SpecifyKind(row.SubmittedAt??row.CreatedAt,DateTimeKind.Utc);
+        return new(id,row.Subject,row.Description,row.Status,new(submitted),row.DueAt is {} due?new DateTimeOffset(DateTime.SpecifyKind(due,DateTimeKind.Utc)):null,
+            Math.Max(0,(now-submitted).TotalSeconds),Convert.ToBase64String(version),allowed&&row.Status=="PENDING_ACCEPTANCE"&&row.SubmittedAt!=null&&row.SubmittedAt<=now);
     }
 
     public async Task<InternalRequestDecisionResult> DecideAsync(SessionReference ticket,long sid,long id,

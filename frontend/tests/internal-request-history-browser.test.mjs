@@ -13,13 +13,24 @@ before(async () => { browser = await chromium.launch({ executablePath: "C:/Progr
 after(async () => browser?.close());
 async function fixture(run) {
   const page = await browser.newPage();
-  const state = { session: 200, history: 200 };
+  const state = { session: 200, history: 200, decision: 200, canDecide:true, decisionPosts:0, postStatus:200, hold:false, release:null };
   await page.route("**/*", async route => {
     const request = route.request(), path = new URL(request.url()).pathname;
     const json = (data, status=200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data) });
     if (request.resourceType() === "document") return route.fulfill({ contentType: "text/html", body: '<div id="root"></div>' });
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
+    if (path === "/api/internal-requests/1/decision") {
+      if(request.method()==="POST") {
+        state.decisionPosts++;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');
+        assert.equal(request.headers()["x-csrf-token"],"test");
+        if(state.hold) await new Promise(resolve=>{state.release=resolve;});
+        return json({requestId:1,status:"ACCEPTED",version:"AAAAAAAAAAE=",message:"MSG08"},state.postStatus);
+      }
+      return json({requestId:1,subject:"PRIVATE DECISION",description:"PRIVATE DESCRIPTION",status:"PENDING_ACCEPTANCE",
+        submittedAt:"2026-11-16T00:00:00Z",deadline:null,ageSeconds:60,version:"AAAAAAAAAAA=",canDecide:state.canDecide},state.decision);
+    }
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
     if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
@@ -61,4 +72,32 @@ test("request notification deep link loads only the selected authorized timeline
   await page.addScriptTag({content:compiled.outputFiles[0].text});
   await page.getByRole("alert").filter({hasText:"Request unavailable"}).waitFor();
   assert.equal(await page.getByRole("region",{name:"Request timeline",exact:true}).count(),0);
+}));
+test("decision stale response requires reload without replay or retained details",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Request decision",exact:true});
+  await panel.getByRole("button",{name:"Accept request",exact:true}).waitFor();state.postStatus=412;
+  await panel.getByRole("button",{name:"Accept request",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
+  assert.equal(state.decisionPosts,1);assert.equal(await panel.getByText("PRIVATE DESCRIPTION",{exact:true}).count(),0);
+  assert.equal(await panel.getByRole("button",{name:"Accept request",exact:true}).count(),0);
+}));
+test("decision double click sends once and session loss hides details while request is pending",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Request decision",exact:true});
+  const button=panel.getByRole("button",{name:"Accept request",exact:true});await button.waitFor();state.hold=true;
+  const sent=page.waitForRequest(r=>r.method()==="POST"&&new URL(r.url()).pathname.endsWith("/decision"));
+  await button.evaluate(b=>{b.click();b.click();});
+  await sent;
+  await page.waitForTimeout(100);assert.equal(state.decisionPosts,1);assert.equal(await button.isDisabled(),true);
+  state.session=401;await page.evaluate(()=>window.historyStore.revalidate());
+  await page.getByRole("button",{name:"Sign in",exact:true}).waitFor();state.release?.();
+  assert.equal(await page.getByText("PRIVATE DESCRIPTION",{exact:true}).count(),0);
+}));
+test("read access without processing authority exposes no decision action",async()=>fixture(async(page,state)=>{
+  state.canDecide=false;await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Request decision",exact:true});
+  await panel.getByText("PRIVATE DESCRIPTION",{exact:true}).waitFor();
+  assert.equal(await panel.getByRole("button",{name:"Accept request",exact:true}).count(),0);
+  assert.equal(await panel.getByRole("button",{name:"Reject request",exact:true}).count(),0);
 }));

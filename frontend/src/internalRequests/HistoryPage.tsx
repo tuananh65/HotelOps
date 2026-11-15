@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
+import { InternalRequestDecisionPanel } from "./DecisionPanel";
 import {
   decodeHistory,
   decodeTimeline,
@@ -295,6 +296,7 @@ export function InternalRequestHistoryPage() {
       {visible?.timeline && (
         <section aria-label="Request timeline">
           <h2>Request {visible.timeline.requestId}</h2>
+          <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <h3>Events</h3>
           {visible.timeline.events.length === 0 && (
             <p>No events on this page.</p>

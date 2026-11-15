@@ -94,7 +94,7 @@ internal static class SprintAuthProbe
             await Check(HttpMethod.Get, "/api/users", 403);
             if (audit) await SprintAuditScenario.RunAsync(db, http, user.UserId, checks, ct, name, password);
             if (credentials) await SprintCredentialScenario.RunAsync(db, checks, ct);
-            if (departmentAuthority) await SprintDepartmentAuthorityScenario.RunAsync(db,user.UserId,checks,ct);
+            if (departmentAuthority) await SprintDepartmentAuthorityScenario.RunAsync(db,user.UserId,checks,ct,name,password);
             if (roleAssignment) await SprintRoleAssignmentScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct);
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
@@ -129,7 +129,7 @@ internal static class SprintAuthProbe
             }
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { database, fixtureUserId = user.UserId,
                 checks, failure, cleanup = cleaned, cleanupRequiresDatabaseDrop=taskCriteria, success = failure == null && (cleaned || taskCriteria),
-                scope = departmentAuthority ? "Department authority service and transaction SQL verification; not public mutation E2E" : taskDecline ? "Real UC104 Assign/Reassign plus UC107 Accept/Decline, workload, current ownership, atomic interval closure, rollback, notification and canonical browser; isolated clone cleanup required" : taskVerification ? "Real task submission, Return/restart/resubmit, verification/Closed, time, audit and private assignee handoff; Internal Request requester enforced, other legacy sources gated" : taskSubmissionReceipt!=null ? "Real UC112 submission/results/evidence/interval/audit/notification and canonical browser handoff; whole-clone drop required; UC105 verification not implemented"
+                scope = departmentAuthority ? (Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_DECISION_BROWSER")=="1" ? "Canonical browser Accept/Reject through trusted HTTPS and SQL; session, CSRF, ETag, decision audit and requester intent/delivery" : "Department authority service and transaction SQL verification; not public mutation E2E") : taskDecline ? "Real UC104 Assign/Reassign plus UC107 Accept/Decline, workload, current ownership, atomic interval closure, rollback, notification and canonical browser; isolated clone cleanup required" : taskVerification ? "Real task submission, Return/restart/resubmit, verification/Closed, time, audit and private assignee handoff; Internal Request requester enforced, other legacy sources gated" : taskSubmissionReceipt!=null ? "Real UC112 submission/results/evidence/interval/audit/notification and canonical browser handoff; whole-clone drop required; UC105 verification not implemented"
                     : taskCriteria ? "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
                     : browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"

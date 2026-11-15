@@ -13,7 +13,7 @@ internal static class SprintInternalRequestDecisionScenario
     private sealed class Identity(CurrentUserInfo user):ICurrentUserAccessor
     {public bool TryGetCurrentUser(out CurrentUserInfo result){result=user;return true;}}
 
-    internal static async Task RunAsync(HotelOpsDbContext db,long actor,long request,List<object> checks,CancellationToken ct)
+    internal static async Task RunAsync(HotelOpsDbContext db,long actor,long request,List<object> checks,CancellationToken ct,string? username=null,string? password=null)
     {
         var original=await db.InternalRequests.AsNoTracking().SingleAsync(r=>r.InternalRequestId==request,ct);
         var credential=SessionCredential.Generate();var now=DateTime.UtcNow;
@@ -107,6 +107,23 @@ internal static class SprintInternalRequestDecisionScenario
             var outcomes=await Task.WhenAll(Compete(true),Compete(false));
             Check(outcomes.Order().SequenceEqual(new[]{200,412})&&await db.InternalRequestEvents.CountAsync(e=>e.InternalRequestId==request,ct)==1,
                 "concurrent accept reject produces one decision and one stale-version rejection");
+            if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_DECISION_BROWSER")=="1")
+            {
+                if(username==null||password==null)throw new Exception("Browser fixture credentials required");
+                var browserGrant=new RolePermission{RoleId=managerRole.RoleId,PermissionId=readPermission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow};
+                db.RolePermissions.Add(browserGrant);await db.SaveChangesAsync(ct);viewGrant=browserGrant.RolePermissionId;db.ChangeTracker.Clear();
+                foreach(var accept in new[]{true,false})
+                {
+                    await ClearDecisions();await Pending();
+                    checks.Add(new{internalRequestDecisionBrowser=await SprintInternalRequestDecisionBrowser.RunAsync(username,password,request,accept,ct)});
+                    var committed=await db.InternalRequestEvents.AsNoTracking().SingleAsync(e=>e.InternalRequestId==request,ct);
+                    Check(committed.NewStatus==(accept?"ACCEPTED":"REJECTED")&&committed.ActorId==actor
+                        &&await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==request&&r.Status==committed.NewStatus,ct)
+                        &&await db.AuditLogs.AnyAsync(a=>a.EntityType=="internal_requests"&&a.EntityId==request.ToString()&&a.ActorUserId==actor,ct),
+                        "browser decision state event and audit persisted in SQL");
+                    Check(await delivery.DeliverAsync(committed.EventId,ct)=="DELIVERED","browser decision produces deliverable requester intent");
+                }
+            }
         }
         finally
         {
