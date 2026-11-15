@@ -13,3 +13,4 @@ public sealed class NotificationQuery
 }
 public sealed record NotificationRow(long Id,string Type,string Title,string Message,string Priority,DateTimeOffset CreatedAt,DateTimeOffset? ReadAt);
 public sealed record NotificationPage(IReadOnlyList<NotificationRow> Items,int TotalCount,int UnreadCount,int Page,int PageSize,DateTimeOffset Snapshot);
+public sealed record ReadNotificationsRequest([Required, MinLength(1), MaxLength(100)] long[] Ids);

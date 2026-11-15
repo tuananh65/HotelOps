@@ -64,10 +64,19 @@ export async function readInbox(
   return data;
 }
 export async function markInboxRead(
-  id: number | null,
+  id: number | number[] | null,
   signal: AbortSignal,
   stillCurrent: () => boolean,
 ): Promise<void> {
+  const ids = Array.isArray(id) ? [...new Set(id)] : null;
+  if (
+    (Array.isArray(id) &&
+      (id.length < 1 ||
+        id.length > 100 ||
+        id.some((n) => !Number.isSafeInteger(n) || n <= 0))) ||
+    (typeof id === "number" && (!Number.isSafeInteger(id) || id <= 0))
+  )
+    throw new Error("Invalid notification selection");
   const csrf = await (await request("/api/auth/csrf", signal)).json();
   if (
     !csrf ||
@@ -80,9 +89,18 @@ export async function markInboxRead(
   await request(
     id === null
       ? "/api/notifications/read-all"
-      : `/api/notifications/${id}/read`,
+      : ids
+        ? "/api/notifications/read-selected"
+        : `/api/notifications/${id}/read`,
     signal,
-    { method: "POST", headers: { "X-CSRF-TOKEN": csrf.csrfToken } },
+    {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrf.csrfToken,
+        ...(ids ? { "Content-Type": "application/json" } : {}),
+      },
+      ...(ids ? { body: JSON.stringify({ ids }) } : {}),
+    },
   );
 }
 

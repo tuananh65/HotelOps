@@ -1,0 +1,12 @@
+✔ selected read validates before network and deduplicates a bounded batch (13.4949ms)
+✔ authority replacement after CSRF prevents selected mutation (0.9705ms)
+✔ source resolver uses current session and only accepts canonical rework/history paths (17.5584ms)
+✔ source denial is not retried or replaced with a stored action URL (0.3172ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 147.7391

@@ -25,11 +25,10 @@ try {
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   fixture.password = "";
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await page.waitForURL(origin + "/dashboard");
+  await page.waitForURL(origin + "/notifications");
   checks.push(stage);
   const signedCookies = await context.cookies();
   stage = "recipient inbox";
-  await page.getByRole("link", { name: "Notifications", exact: true }).click();
   await page.getByText(fixture.title, { exact: true }).waitFor();
   await page
     .getByRole("heading", { name: "Notification center", exact: true })
@@ -37,18 +36,16 @@ try {
   if ((await page.locator("body").innerText()).includes(fixture.foreignTitle))
     throw Error("foreign");
   checks.push(stage);
-  stage = "read one";
+  stage = "select multiple and mark read";
+  const boxes = page.getByRole("checkbox");
+  if ((await boxes.count()) !== 2) throw Error("recipient selection count");
+  await boxes.nth(0).check();
+  await boxes.nth(1).check();
   await page
-    .getByRole("button", {
-      name: `Mark notification ${fixture.id} as read`,
-      exact: true,
-    })
+    .getByRole("button", { name: "Mark selected as read", exact: true })
     .click();
-  await page
-    .getByText("Marked as read. Source records are unchanged.")
-    .waitFor();
   await page.waitForFunction(() =>
-    document.body.innerText.includes("Unread: 1"),
+    document.body.innerText.includes("Unread: 0"),
   );
   checks.push(stage);
   stage = "reload persisted read";
@@ -64,13 +61,16 @@ try {
   )
     throw Error("read not persisted");
   checks.push(stage);
-  stage = "read all";
-  await page
-    .getByRole("button", { name: "Mark all as read", exact: true })
-    .click();
-  await page.waitForFunction(() =>
-    document.body.innerText.includes("Unread: 0"),
-  );
+  stage = "selection cleared and read controls disabled";
+  if (
+    !(await page
+      .getByRole("button", { name: "Mark selected as read", exact: true })
+      .isDisabled()) ||
+    !(await page
+      .getByRole("button", { name: "Mark all as read", exact: true })
+      .isDisabled())
+  )
+    throw Error("read controls");
   checks.push(stage);
   stage = "cookie and storage boundaries";
   const cookies = await context.cookies();

@@ -23,6 +23,7 @@ export function NotificationCenter() {
   current.current = owner;
   const [query, setQuery] = useState("");
   const [revision, setRevision] = useState(0);
+  const [selected, setSelected] = useState<number[]>([]);
   const [draft, setDraft] = useState({
     type: "",
     priority: "",
@@ -44,6 +45,7 @@ export function NotificationCenter() {
   } | null>(null);
   const pending = useRef<AbortController | null>(null);
   const key = `${query}:${revision}`;
+  useEffect(() => setSelected([]), [owner, key]);
   useEffect(() => {
     setWrite(null);
     return () => {
@@ -98,7 +100,7 @@ export function NotificationCenter() {
       if (pending.current === controller) pending.current = null;
     }
   }
-  async function mark(id: number | null) {
+  async function mark(id: number | number[] | null) {
     if (!owner || pending.current) return;
     const controller = new AbortController();
     pending.current = controller;
@@ -185,6 +187,22 @@ export function NotificationCenter() {
           </form>
           <button onClick={() => setRevision((n) => n + 1)}>Refresh</button>
           <button
+            disabled={
+              !data ||
+              !!operation?.busy ||
+              !data.items.some((r) => !r.readAt && selected.includes(r.id))
+            }
+            onClick={() =>
+              void mark(
+                data!.items
+                  .filter((r) => !r.readAt && selected.includes(r.id))
+                  .map((r) => r.id),
+              )
+            }
+          >
+            Mark selected as read
+          </button>
+          <button
             disabled={!data || !!operation?.busy || data.unreadCount === 0}
             onClick={() => void mark(null)}
           >
@@ -206,6 +224,21 @@ export function NotificationCenter() {
                 <ul>
                   {data.items.map((row) => (
                     <li key={row.id}>
+                      <label>
+                        <input
+                          type="checkbox"
+                          checked={selected.includes(row.id)}
+                          disabled={!!row.readAt || !!operation?.busy}
+                          onChange={(e) =>
+                            setSelected((ids) =>
+                              e.target.checked
+                                ? [...ids, row.id]
+                                : ids.filter((id) => id !== row.id),
+                            )
+                          }
+                        />
+                        Select notification {row.id}
+                      </label>
                       <h2>{row.title}</h2>
                       {[
                         "REWORK_ASSIGNED",

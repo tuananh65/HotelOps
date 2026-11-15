@@ -10,7 +10,7 @@ internal static class SprintNotificationScenario
   var prefix="D3NOTE"+Guid.NewGuid().ToString("N")[..10];
   var other=new User{Username=prefix,EmployeeCode=prefix,Email=prefix+"@example.invalid",PasswordHash=await db.Users.Where(u=>u.UserId==actor).Select(u=>u.PasswordHash).SingleAsync(ct),FullName="Synthetic other",AccountStatus="ACTIVE",EmploymentStatus="ACTIVE",CreatedAt=DateTime.UtcNow};
   long[] ids=[];
-  async Task<JsonElement> Call(string path,int expected,bool post=false,bool token=true){using var request=new HttpRequestMessage(post?HttpMethod.Post:HttpMethod.Get,path);if(post&&token)request.Headers.Add("X-CSRF-TOKEN",csrf);using var response=await http.SendAsync(request,ct);checks.Add(new{path,post,expected,actual=(int)response.StatusCode});if((int)response.StatusCode!=expected)throw new Exception("Notification HTTP mismatch "+path);if(response.StatusCode==System.Net.HttpStatusCode.NoContent)return default;using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));return json.RootElement.Clone();}
+  async Task<JsonElement> Call(string path,int expected,bool post=false,bool token=true,object? body=null){using var request=new HttpRequestMessage(post?HttpMethod.Post:HttpMethod.Get,path);if(body!=null)request.Content=System.Net.Http.Json.JsonContent.Create(body);if(post&&token)request.Headers.Add("X-CSRF-TOKEN",csrf);using var response=await http.SendAsync(request,ct);checks.Add(new{path,post,expected,actual=(int)response.StatusCode});if((int)response.StatusCode!=expected)throw new Exception("Notification HTTP mismatch "+path);if(response.StatusCode==System.Net.HttpStatusCode.NoContent)return default;using var json=JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));return json.RootElement.Clone();}
   try
   {
    db.Users.Add(other);await db.SaveChangesAsync(ct);var now=DateTime.UtcNow;
@@ -23,6 +23,12 @@ internal static class SprintNotificationScenario
    await Call($"/api/notifications/{own.NotificationId}/read",400,true,false);
    await Call($"/api/notifications/{foreign.NotificationId}/read",404,true);
    await Call("/api/notifications/9223372036854775807/read",404,true);
+   foreach(var invalid in new[]{foreign.NotificationId,expired.NotificationId,old.NotificationId,pending.NotificationId,long.MaxValue})
+    await Call("/api/notifications/read-selected",404,true,body:new{ids=new[]{own.NotificationId,invalid}});
+   await Call("/api/notifications/read-selected",400,true,false,new{ids=new[]{own.NotificationId}});
+   foreach(var invalid in new[]{Array.Empty<long>(),new long[]{0},Enumerable.Repeat(own.NotificationId,101).ToArray()})
+    await Call("/api/notifications/read-selected",400,true,body:new{ids=invalid});
+   if(await db.NotificationRecipients.AnyAsync(r=>r.ReadAt!=null,ct))throw new Exception("Invalid batch partially marked recipients");
    await Call($"/api/notifications/{own.NotificationId}/read",204,true);
    var read=await db.NotificationRecipients.AsNoTracking().Where(r=>r.NotificationId==own.NotificationId&&r.UserId==actor).Select(r=>r.ReadAt).SingleAsync(ct);
    await Call($"/api/notifications/{own.NotificationId}/read",204,true);
@@ -34,6 +40,14 @@ internal static class SprintNotificationScenario
    page=await Call("/api/notifications",200);if(page.GetProperty("unreadCount").GetInt32()!=0)throw new Exception("Read all mismatch");
    if(await db.NotificationRecipients.AnyAsync(r=>r.NotificationId!=own.NotificationId&&r.NotificationId!=second.NotificationId&&r.ReadAt!=null,ct))throw new Exception("Read all affected invisible recipients");
    if(await db.Notifications.CountAsync(n=>ids.Contains(n.NotificationId)&&n.ActionUrl=="https://untrusted.invalid/PRIVATE",ct)!=6)throw new Exception("Read mutated source content");
+   await db.NotificationRecipients.Where(r=>r.UserId==actor&&(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,(DateTime?)null),ct);
+   var selected=new{ids=new[]{own.NotificationId,second.NotificationId,own.NotificationId}};
+   await Task.WhenAll(Call("/api/notifications/read-selected",204,true,body:selected),Call("/api/notifications/read-selected",204,true,body:selected));
+   var times=await db.NotificationRecipients.AsNoTracking().Where(r=>r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId).Select(r=>r.ReadAt).ToArrayAsync(ct);
+   if(times.Any(t=>t==null)||times.Distinct().Count()!=1)throw new Exception("Selected timestamps are not atomic");
+   await Call("/api/notifications/read-selected",204,true,body:selected);
+   if(await db.NotificationRecipients.AnyAsync(r=>(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)&&r.ReadAt!=times[0],ct))throw new Exception("Batch retry changed read time");
+   checks.Add(new{batchAtomic=true,batchRetryTimestampOnce=true,batchForeignExpiredPendingDenied=true});
    if(browserUsername!=null&&browserPassword!=null)
    {
     await db.NotificationRecipients.Where(r=>r.UserId==actor&&(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,(DateTime?)null),ct);

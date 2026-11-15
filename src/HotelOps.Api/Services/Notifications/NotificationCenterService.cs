@@ -50,9 +50,26 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
     public async Task MarkReadAsync(long? id,CancellationToken ct)
     {
         if(id is <=0)throw new InsightException(400,"INVALID_ID","Invalid notification identifier.");
+        await MarkReadCoreAsync(id is {} value ? [value] : null,ct);
+    }
+    public Task MarkSelectedReadAsync(long[]? ids,CancellationToken ct)
+    {
+        if(ids is null || ids.Length is <1 or >100 || ids.Any(id=>id<=0))
+            throw new InsightException(400,"INVALID_IDS","Select between one and100 valid notifications.");
+        return MarkReadCoreAsync(ids.Distinct().ToArray(),ct);
+    }
+    private async Task MarkReadCoreAsync(long[]? ids,CancellationToken ct)
+    {
         await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
-        var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);var query=Inbox(user,now);
-        if(id is {} notification){query=query.Where(r=>r.NotificationId==notification);if(!await query.AnyAsync(ct))throw new InsightException(404,"NOT_FOUND","Notification not found.");}
+        if(!caller.TryGetCurrentUser(out var actor))throw new InsightException(401,"AUTH_REQUIRED","Authentication required.");
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actor.UserId],ct);
+        var now=clock.GetUtcNow().UtcDateTime;
+        var user=await UserAsync(now,ct);var query=Inbox(user,now);
+        if(ids is not null)
+        {
+            query=query.Where(r=>ids.Contains(r.NotificationId));
+            if(await query.CountAsync(ct)!=ids.Length)throw new InsightException(404,"NOT_FOUND","Notification not found.");
+        }
         await query.Where(r=>r.ReadAt==null).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,now),ct);
         await tx.CommitAsync(ct);
     }
