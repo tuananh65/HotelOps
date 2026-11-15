@@ -45,25 +45,34 @@ try {
     checks.push(
       "DEPT_MANAGER with REPORT_VIEW cannot open reports or see report navigation",
     );
-  } else if (fixture.mode === "requests") {
-    stage = "request report preview";
-    await page.getByLabel("Report type",{exact:true}).selectOption("requests");
+  } else if (fixture.mode === "requests" || fixture.mode === "rooms") {
+    const kind=fixture.mode;
+    stage = kind + " report preview";
+    await page.getByLabel("Report type",{exact:true}).selectOption(kind);
     await page.getByLabel("Branch",{exact:true}).selectOption(String(fixture.branch));
-    const ready=page.waitForResponse(r=>r.url().endsWith("/api/reports/requests/preview")&&r.request().method()==="POST");
+    const ready=page.waitForResponse(r=>r.url().endsWith(`/api/reports/${kind}/preview`)&&r.request().method()==="POST");
     await page.getByRole("button",{name:"Preview",exact:true}).click();
     const response=await ready;assert.equal(response.status(),200);const snapshot=await response.json();
-    assert.equal(snapshot.totalCount,1);assert.equal(snapshot.rows[0].overdue,true);
-    await page.getByRole("columnheader",{name:"overdue",exact:true}).waitFor();
-    await page.getByRole("cell",{name:"true",exact:true}).waitFor();
+    if(kind==="requests"){
+      assert.equal(snapshot.totalCount,1);assert.equal(snapshot.rows[0].overdue,true);
+      await page.getByRole("columnheader",{name:"overdue",exact:true}).waitFor();
+      await page.getByRole("cell",{name:"true",exact:true}).waitFor();
+    }else{
+      assert.equal(snapshot.rows.length,1);assert.equal(snapshot.rows[0].effectiveReadiness,"BLOCKED");
+      assert.equal(snapshot.rows[0].canUse,false);assert.equal(snapshot.rows[0].operationalStatus,"READY");
+      await page.getByRole("columnheader",{name:"effectiveReadiness",exact:true}).waitFor();
+      await page.getByRole("cell",{name:"BLOCKED",exact:true}).waitFor();
+      await page.getByRole("cell",{name:"false",exact:true}).waitFor();
+    }
     for(const format of ["CSV","XLSX"]){
-      stage="request report "+format;
+      stage=kind+" report "+format;
       const pending=page.waitForEvent("download");await page.getByRole("button",{name:"Export "+format,exact:true}).click();
-      const file=await pending;assert.equal(file.suggestedFilename(),`requests-${snapshot.snapshotId}.${format.toLowerCase()}`);
+      const file=await pending;assert.equal(file.suggestedFilename(),`${kind}-${snapshot.snapshotId}.${format.toLowerCase()}`);
       const stream=await file.createReadStream();const parts=[];for await(const chunk of stream)parts.push(chunk);
-      const bytes=Buffer.concat(parts);if(format==="CSV"){assert.ok(bytes.toString("utf8").includes('"overdue"'));assert.ok(bytes.toString("utf8").includes('"true"'));}else assert.equal(bytes.readUInt32LE(0),0x04034b50);
+      const bytes=Buffer.concat(parts);if(format==="CSV"){const csv=bytes.toString("utf8");assert.ok(csv.includes(kind==="requests"?'"overdue"':'"effectiveReadiness"'));assert.ok(csv.includes(kind==="requests"?'"true"':'"BLOCKED"'));if(kind==="rooms"){assert.ok(csv.includes('"canUse"'));assert.ok(csv.includes('"false"'));}}else assert.equal(bytes.readUInt32LE(0),0x04034b50);
       await file.delete();
     }
-    exports.push(snapshot.snapshotId);checks.push("RPT07 overdue visible in canonical preview and downloaded CSV/XLSX");
+    exports.push(snapshot.snapshotId);checks.push(kind==="requests"?"RPT07 overdue visible in canonical preview and downloaded CSV/XLSX":"RPT01 effective BLOCKED and canUse=false despite physical READY in preview and CSV/XLSX");
   } else {
     stage = "select branch";
     await page

@@ -1,0 +1,26 @@
+{
+  "success": true,
+  "checks": [
+    "never-passed cycle follows GBR044 priority and cannot authorize use",
+    "report snapshot/export fields: PENDING_CLEANING",
+    "completed passed current cycle is effectively Ready without rewriting stored code",
+    "report snapshot/export fields: READY",
+    "two effective incident blocks override Passed; expected-release time does not release",
+    "report snapshot/export fields: BLOCKED",
+    "removing one block preserves other effective block",
+    "report snapshot/export fields: BLOCKED",
+    "inactive overrides effective blocks and Passed",
+    "report snapshot/export fields: INACTIVE",
+    "last block removal recomputes passed current cycle",
+    "report snapshot/export fields: READY",
+    "blocked snapshot and CSV remain frozen after block removal",
+    "failed current cycle with unsubmitted rework never becomes Ready after release",
+    "report snapshot/export fields: REWORK_REQUIRED",
+    "missing lifecycle capability cannot authorize use in report",
+    "report snapshot/export fields: UNKNOWN",
+    "physical status and CHECK constraints unchanged"
+  ],
+  "failure": null,
+  "rollback": true,
+  "scope": "Actual SQL readiness reads; guarded index trial and fixtures rolled back; no HTTPS/conclusion acceptance"
+}

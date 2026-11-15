@@ -61,6 +61,19 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                 await Add("rooms", rooms.OrderBy(r => r.RoomId).Select(r => new { Id = r.RoomId, r.BranchId,
                     r.RoomNumber, r.FloorId, r.RoomTypeId, r.OperationalStatus, r.IsActive }),
                     "id", "branchId", "roomNumber", "floorId", "roomTypeId", "operationalStatus", "isActive");
+                // Preserve the recorded code for history, but use the same GBR-044
+                // authority as the room board for any room-usability interpretation.
+                var roomSection = sections[^1];
+                var readiness = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db).ReadAsync(
+                    roomSection.Rows.Select(r => ((JsonElement)r["id"]!).GetInt64()).ToArray(), now.UtcDateTime, ct);
+                foreach (var row in roomSection.Rows)
+                {
+                    var id = ((JsonElement)row["id"]!).GetInt64();
+                    var state = readiness.GetValueOrDefault(id)?.Readiness ?? "UNKNOWN";
+                    row["effectiveReadiness"] = JsonSerializer.SerializeToElement(state);
+                    row["canUse"] = JsonSerializer.SerializeToElement(state == "READY");
+                }
+                sections[^1] = roomSection with { Columns = [.. roomSection.Columns, "effectiveReadiness", "canUse"] };
                 var ids = rooms.Select(r => r.RoomId);
                 await Add("cleaning_tasks", db.CleaningTasks.AsNoTracking().Where(t => ids.Contains(t.RoomId)
                     && t.CreatedAt >= start && t.CreatedAt < end).OrderBy(t => t.CleaningTaskId)
@@ -70,6 +83,7 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                     && b.BlockedAt < end && (b.ReleasedAt == null || b.ReleasedAt >= start)).OrderBy(b => b.BlockId)
                     .Select(b => new { Id = b.BlockId, b.RoomId, b.BlockedAt, b.ReleasedAt }), "id", "roomId", "blockedAt", "releasedAt");
                 missing.Add("stored status distribution is not translated to pending/rework SRS lifecycle states");
+                missing.Add("Room usability uses effectiveReadiness at the snapshot; UNKNOWN is not usable and exports do not authorize later room use");
                 break;
             }
             case "inspections":

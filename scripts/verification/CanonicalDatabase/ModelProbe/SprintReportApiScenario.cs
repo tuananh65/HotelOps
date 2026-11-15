@@ -103,6 +103,27 @@ internal static class SprintReportApiScenario
             using var refreshed=await Post("/api/reports/requests/preview",new{branchId=branch.BranchId});refreshed.EnsureSuccessStatusCode();
             Check(!(await refreshed.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("rows")[0].GetProperty("overdue").GetBoolean(),"fresh public snapshot reflects updated deadline");
             Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==requestSnapshot,ct)==1,"overdue CSV has persisted export audit");
+            var floor=new Floor{BranchId=branch.BranchId,FloorCode=prefix,FloorName="Synthetic report floor",IsActive=true};
+            var roomType=new RoomType{TypeCode=prefix,TypeName="Synthetic report room type",StandardCapacity=1,IsActive=true};
+            db.AddRange(floor,roomType);await db.SaveChangesAsync(ct);
+            var room=new Room{BranchId=branch.BranchId,FloorId=floor.FloorId,RoomTypeId=roomType.RoomTypeId,RoomNumber="RPT",OperationalStatus="READY",IsActive=true};
+            db.Rooms.Add(room);await db.SaveChangesAsync(ct);
+            var block=new RoomBlock{RoomId=room.RoomId,Reason="Synthetic report block",BlockedBy=actor,BlockedAt=DateTime.UtcNow.AddMinutes(-1)};
+            db.RoomBlocks.Add(block);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            await Browser("rooms");
+            using var roomPreview=await Post("/api/reports/rooms/preview",new{branchId=branch.BranchId});roomPreview.EnsureSuccessStatusCode();
+            var roomReport=await roomPreview.Content.ReadFromJsonAsync<JsonElement>(ct);
+            var roomRow=roomReport.GetProperty("rows")[0];
+            Check(roomRow.GetProperty("operationalStatus").GetString()=="READY"&&roomRow.GetProperty("effectiveReadiness").GetString()=="BLOCKED"
+                &&!roomRow.GetProperty("canUse").GetBoolean(),"public room snapshot blocks use despite physical READY");
+            var roomSnapshot=roomReport.GetProperty("snapshotId").GetString()!;
+            var roomCsv=HotelOps.Api.Services.Insights.ReportCsvRenderer.Render(JsonSerializer.Deserialize<HotelOps.Api.DTOs.Insights.ReportResult>(roomReport.GetRawText(),new JsonSerializerOptions(JsonSerializerDefaults.Web))!).Content;
+            await db.RoomBlocks.Where(b=>b.BlockId==block.BlockId).ExecuteUpdateAsync(s=>s.SetProperty(b=>b.ReleasedAt,DateTime.UtcNow),ct);
+            using(var exported=await Post($"/api/reports/snapshots/{roomSnapshot}/export",new{format="csv"}))
+                Check((int)exported.StatusCode==200&&(await exported.Content.ReadAsByteArrayAsync(ct)).SequenceEqual(roomCsv),"public room CSV retains frozen BLOCKED after release");
+            using var roomRefresh=await Post("/api/reports/rooms/preview",new{branchId=branch.BranchId});roomRefresh.EnsureSuccessStatusCode();
+            var refreshedRoom=(await roomRefresh.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("rows")[0];
+            Check(refreshedRoom.GetProperty("effectiveReadiness").GetString()=="PENDING_CLEANING"&&!refreshedRoom.GetProperty("canUse").GetBoolean(),"block removal without passed cleaning never grants room use");
             Check(await db.OperationalTasks.CountAsync(t=>t.BranchId==branch.BranchId,ct)==26
                 && await db.OperationalTasks.Where(t=>t.TaskCode==prefix).Select(t=>t.ProgressPercent).SingleAsync(ct)==73
                 && await db.OperationalTasks.Where(t=>t.BranchId==branch.BranchId&&t.TaskCode!=prefix).AllAsync(t=>t.ProgressPercent==0&&t.Status=="TODO",ct),
@@ -114,6 +135,10 @@ internal static class SprintReportApiScenario
             await db.AuditLogs.Where(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT").ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequests.Where(r=>r.BranchId==branch.BranchId&&r.RequestNo==prefix).ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequestTypes.Where(t=>t.TypeCode==prefix).ExecuteDeleteAsync(CancellationToken.None);
+            await db.RoomBlocks.Where(b=>b.Room.BranchId==branch.BranchId).ExecuteDeleteAsync(CancellationToken.None);
+            await db.Rooms.Where(r=>r.BranchId==branch.BranchId).ExecuteDeleteAsync(CancellationToken.None);
+            await db.Floors.Where(f=>f.BranchId==branch.BranchId&&f.FloorCode==prefix).ExecuteDeleteAsync(CancellationToken.None);
+            await db.RoomTypes.Where(t=>t.TypeCode==prefix).ExecuteDeleteAsync(CancellationToken.None);
             await db.OperationalTasks.Where(t=>t.BranchId==branch.BranchId&&t.TaskCode.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserRoles.Where(r=>r.UserId==actor).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserBranchAccesses.Where(a=>a.UserId==actor&&a.BranchId==branch.BranchId).ExecuteDeleteAsync(CancellationToken.None);
