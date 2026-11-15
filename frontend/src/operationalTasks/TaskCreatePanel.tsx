@@ -9,6 +9,8 @@ import {
   validateTaskCreation,
   type CreateTaskInput,
   type PlanningOptions,
+  type TaskRequestContext,
+  localPlanTime,
 } from "./planning";
 import { TaskPlanFields, type PlanDraft } from "./TaskPlanFields";
 import {
@@ -23,26 +25,31 @@ export function TaskCreatePanel({
   owner,
   onCreated,
   onSeriesCreated,
+  source,
+  onSourceInvalid,
 }: {
   branch: number;
   owner: AuthorityGeneration;
   onCreated: (task: number, assign: boolean) => void;
   onSeriesCreated: () => void;
+  source?: TaskRequestContext;
+  onSourceInvalid?: () => void;
 }) {
   const { actions } = useAuth();
-  const [department, setDepartment] = useState("");
+  const [department, setDepartment] = useState(source ? String(source.departmentId) : "");
   const [category, setCategory] = useState("");
   const [options, setOptions] = useState<PlanningOptions | null>(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [title, setTitle] = useState(source?.title ?? "");
+  const [description, setDescription] = useState(source?.description ?? "");
+  const [mandatory, setMandatory] = useState("");
   const [outcome, setOutcome] = useState("");
   const [criteria, setCriteria] = useState([{ label: "", required: true }]);
-  const [locationType, setLocationType] = useState("department");
-  const [location, setLocation] = useState("");
+  const [locationType, setLocationType] = useState(source?.roomId ? "room" : source?.areaId ? "area" : "department");
+  const [location, setLocation] = useState(String(source?.roomId ?? source?.areaId ?? ""));
   const [plan, setPlan] = useState<PlanDraft>({
-    priority: "",
+    priority: source?.priorityId ? String(source.priorityId) : "",
     start: "",
-    due: "",
+    due: localPlanTime(source?.dueAt ?? null),
     minutes: "",
   });
   const [error, setError] = useState("");
@@ -100,6 +107,9 @@ export function TaskCreatePanel({
       recurrence: RecurrenceInput | null;
     };
     try {
+      if (source && !pending && !["required", "optional"].includes(mandatory)) {
+        setError("Choose whether this task is required for request completion."); return;
+      }
       submission = pending ?? {
         assign,
         recurrence: repeat ? recurrence : null,
@@ -117,7 +127,8 @@ export function TaskCreatePanel({
           slaMinutes: plan.minutes ? Number(plan.minutes) : null,
           roomId: locationType === "room" ? Number(location) : null,
           areaId: locationType === "area" ? Number(location) : null,
-          internalRequestId: null,
+          internalRequestId: source?.requestId ?? null,
+          ...(source ? { requestLink: { version: source.version, mandatory: mandatory === "required" } } : {}),
         },
       };
       if (
@@ -172,6 +183,9 @@ export function TaskCreatePanel({
       if (controller.signal.aborted) return;
       if (error instanceof TaskProgressError && error.status === 401)
         actions.invalidateSession(owner);
+      if (source && error instanceof TaskProgressError && [403, 409, 412].includes(error.status)) {
+        setPending(null); setOptions(null); setHidden(true); onSourceInvalid?.(); return;
+      }
       if (
         error instanceof TaskProgressError &&
         [400, 403, 422].includes(error.status)
@@ -219,6 +233,10 @@ export function TaskCreatePanel({
         >
           <fieldset disabled={busy || pending !== null}>
             <legend>Task definition</legend>
+            {source && <><p>Linked to request {source.requestId}. The request stays open after creation.</p>
+              <label>Request completion requirement<select aria-label="Request completion requirement" required value={mandatory} onChange={e => setMandatory(e.target.value)}>
+                <option value="">Select requirement</option><option value="required">Required for completion</option><option value="optional">Optional</option>
+              </select></label></>}
             <label>
               Task title
               <input
@@ -298,6 +316,7 @@ export function TaskCreatePanel({
             <label>
               Task description
               <textarea
+                aria-label="Task description"
                 maxLength={4000}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
@@ -306,6 +325,7 @@ export function TaskCreatePanel({
             <label>
               Expected outcome
               <textarea
+                aria-label="Expected outcome"
                 required
                 maxLength={4000}
                 value={outcome}
@@ -376,7 +396,7 @@ export function TaskCreatePanel({
               onChange={setPlan}
               priorities={options.priorities}
             />
-            {options.recurringAvailable && (
+            {!source && options.recurringAvailable && (
               <label>
                 <input
                   type="checkbox"

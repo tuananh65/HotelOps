@@ -20,7 +20,7 @@ public sealed partial class RoomTypeCreationService
         var hash = SHA256.HashData(JsonSerializer.SerializeToUtf8Bytes(input));
         var task = new OperationalTask { TaskCode = "TASK-" + input.RequestKey.ToString("N").ToUpperInvariant(), BranchId = branch,
             DepartmentId = input.DepartmentId, CategoryId = input.CategoryId, Title = input.Title, Description = input.Description, PriorityId = input.PriorityId,
-            RoomId = input.RoomId, AreaId = input.AreaId, SourceType = "MANUAL", Status = "TODO", ProgressPercent = 0,
+            RoomId = input.RoomId, AreaId = input.AreaId, SourceType = input.InternalRequestId == null ? "MANUAL" : "INTERNAL_REQUEST", SourceId = input.InternalRequestId, Status = "TODO", ProgressPercent = 0,
             PlannedStartAt = input.PlannedStartAt?.UtcDateTime, DueAt = input.DueAt?.UtcDateTime, CreatedBy = actor, CreatedAt = now };
         context.OperationalTasks.Add(task); await context.SaveChangesAsync(ct); context.ChangeTracker.Clear();
         await context.Database.ExecuteSqlInterpolatedAsync($"""
@@ -38,8 +38,7 @@ public sealed partial class RoomTypeCreationService
     }
 
     internal static async Task<bool> TaskCreationReferencesAsync(HotelOpsDbContext context, long branch, CreateOperationalTaskRequest input, CancellationToken ct) =>
-        input.InternalRequestId == null
-        && await context.Departments.AsNoTracking().AnyAsync(d => d.DepartmentId == input.DepartmentId && d.BranchId == branch && d.IsActive, ct)
+        await context.Departments.AsNoTracking().AnyAsync(d => d.DepartmentId == input.DepartmentId && d.BranchId == branch && d.IsActive, ct)
         && await context.WorkCategories.AsNoTracking().AnyAsync(c => c.CategoryId == input.CategoryId && c.IsActive && (c.DepartmentId == null || c.DepartmentId == input.DepartmentId), ct)
         && await TaskPlanningStore.OperationalCategories(context).ContainsAsync(input.CategoryId, ct)
         && await context.ReferenceValues.AsNoTracking().AnyAsync(r => r.ReferenceId == input.PriorityId && r.GroupCode == "PRIORITY" && TaskPriorityCodes.Contains(r.ValueCode) && r.IsActive, ct)

@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
+import { InternalRequestTaskCreationPanel } from "./TaskCreationPanel";
 
 interface Item { taskId: number; code: string; title: string; state: string | null; mandatory: boolean; path: string }
-interface View { requestId: number; version: string; canLink: boolean; items: Item[]; total: number; page: number; candidates: boolean }
+interface View { requestId: number; branchId: number; version: string; canLink: boolean; items: Item[]; total: number; page: number; candidates: boolean }
 const validVersion = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9+/]{11}=$/.test(v);
 class Failure extends Error { constructor(readonly status: number) { super("Linked work unavailable"); } }
 async function json(path: string, signal: AbortSignal, init?: RequestInit): Promise<unknown> {
@@ -16,6 +17,7 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [candidates, setCandidates] = useState(false); const [page, setPage] = useState(1); const [revision, setRevision] = useState(0);
+  const [creating, setCreating] = useState(false);
   const [loaded, setLoaded] = useState<{ owner: typeof owner; key: string; view: View } | null>(null);
   const [selected, setSelected] = useState(""); const [mandatory, setMandatory] = useState("");
   const [busy, setBusy] = useState(false); const [message, setMessage] = useState("");
@@ -26,7 +28,7 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
     setLoaded(null); setSelected(""); setMandatory(""); setMessage(""); setBusy(false); sending.current = false;
     if (owner) void json(`/api/internal-requests/${id}/linked-tasks?candidates=${candidates}&page=${page}`, abort.signal).then(raw => {
       const v = raw as View;
-      if (!v || v.requestId !== id || !validVersion(v.version) || typeof v.canLink !== "boolean" || v.candidates !== candidates || v.page !== page
+      if (!v || v.requestId !== id || !Number.isSafeInteger(v.branchId) || v.branchId <= 0 || !validVersion(v.version) || typeof v.canLink !== "boolean" || v.candidates !== candidates || v.page !== page
         || !Number.isSafeInteger(v.total) || v.total < 0 || !Array.isArray(v.items) || v.items.length > 25 || v.items.length > v.total
         || v.items.some(t => !Number.isSafeInteger(t.taskId) || t.taskId <= 0 || typeof t.code !== "string" || typeof t.title !== "string"
           || !(t.state === null || typeof t.state === "string") || typeof t.mandatory !== "boolean" || typeof t.path !== "string"
@@ -60,6 +62,8 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
     <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload linked tasks</button>
     {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>View linked tasks</button>}
     {!candidates && view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Link existing task</button>}
+    {!candidates && view?.canLink && <button disabled={busy} onClick={() => setCreating(true)}>Create new operational task</button>}
+    {!candidates && view?.canLink && creating && <InternalRequestTaskCreationPanel key={`${owner}:${id}:${revision}`} id={id} branch={view.branchId} />}
     {view && <>
       {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} tasks on this page.</p>}
       <ul>{view.items.map(t => <li key={t.taskId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}

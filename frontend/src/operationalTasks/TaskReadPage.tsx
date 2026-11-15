@@ -7,7 +7,7 @@ import { TaskCriteriaSetup } from "./TaskCriteriaSetup";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskVerificationPanel } from "./TaskVerificationPanel";
 import { TaskAssignmentPanel } from "./TaskAssignmentPanel";
-import { TaskCreatePanel } from "./TaskCreatePanel";
+import { TaskCreationHost } from "./TaskCreationHost";
 import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
 import { TaskReopenPanel } from "./TaskReopenPanel";
@@ -210,7 +210,7 @@ export function TaskReadPage() {
         <p role="status">MSG08: Task definition or plan saved.</p>
       )}
       {page && query && (
-        <TaskCreatePanel
+        <TaskCreationHost
           key={`create:${owner}:${query.branch}:${query.revision}`}
           branch={query.branch}
           owner={owner}

@@ -18,6 +18,11 @@ export interface CreateTaskInput extends PlanFields {
   roomId: number | null;
   areaId: number | null;
   internalRequestId: number | null;
+  requestLink?: { version: string; mandatory: boolean };
+}
+export interface TaskRequestContext {
+  requestId: number; branchId: number; departmentId: number; title: string; description: string;
+  priorityId: number | null; roomId: number | null; areaId: number | null; dueAt: string | null; version: string;
 }
 export interface PlanningOptions {
   departments: { id: number; name: string }[];
@@ -207,7 +212,9 @@ export function validateTaskCreation(input: CreateTaskInput) {
     (input.roomId !== null && !positive(input.roomId)) ||
     (input.areaId !== null && !positive(input.areaId)) ||
     (input.roomId !== null && input.areaId !== null) ||
-    input.internalRequestId !== null
+    (input.internalRequestId !== null && (!positive(input.internalRequestId) || !input.requestLink
+      || !/^[A-Za-z0-9+/]{11}=$/.test(input.requestLink.version) || typeof input.requestLink.mandatory !== "boolean"))
+    || (input.internalRequestId === null && input.requestLink !== undefined)
   )
     throw new Error("Invalid task definition");
 }
@@ -217,7 +224,7 @@ export async function createTask(
   signal: AbortSignal,
 ) {
   validateTaskCreation(input);
-  const response = await planningMutation(base(branch), "POST", input, signal);
+  const response = await planningMutation(base(branch), "POST", input, signal, input.requestLink ? `"${input.requestLink.version}"` : undefined);
   const body = await response.json();
   const etag = response.headers.get("ETag") ?? "";
   if (

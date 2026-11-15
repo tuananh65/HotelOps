@@ -1,10 +1,15 @@
 using HotelOps.Api.DTOs.Housekeeping;
+using System.Text.Json.Serialization;
 
 namespace HotelOps.Api.DTOs.OperationalTasks;
 
 public sealed record CreateOperationalTaskRequest(Guid RequestKey, long DepartmentId, long CategoryId, string Title,
     string? Description, string RequestedResult, IReadOnlyList<ProgressDefinition>? Criteria, long PriorityId,
-    DateTimeOffset? PlannedStartAt, DateTimeOffset? DueAt, int? SlaMinutes, long? RoomId, long? AreaId, long? InternalRequestId);
+    DateTimeOffset? PlannedStartAt, DateTimeOffset? DueAt, int? SlaMinutes, long? RoomId, long? AreaId, long? InternalRequestId,
+    [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] TaskRequestLink? RequestLink = null);
+public sealed record TaskRequestLink(string Version, [property: JsonRequired] bool Mandatory);
+public sealed record TaskRequestContext(long RequestId, long BranchId, long DepartmentId, string Title, string Description,
+    long? PriorityId, long? RoomId, long? AreaId, DateTimeOffset? DueAt, string Version);
 public sealed record PlanOperationalTaskRequest(long PriorityId, DateTimeOffset? PlannedStartAt, DateTimeOffset? DueAt, int? SlaMinutes, string? Reason);
 public sealed record CancelOperationalTaskRequest(string Reason);
 public sealed record TaskPlanningLookup(long Id, string Name);

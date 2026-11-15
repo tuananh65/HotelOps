@@ -42,9 +42,20 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     [HttpGet("api/branches/{branch:long}/operational-tasks/creation-options")]
     public Task<IActionResult> TaskCreationOptions(long branch, CancellationToken ct, long? department = null)
         => Execute((ticket, sid) => service.TaskCreationOptionsAsync(ticket, sid, branch, department, ct), false);
+    [HttpGet("api/branches/{branch:long}/operational-tasks/request-context/{request:long}")]
+    public Task<IActionResult> TaskRequestContext(long branch, long request, CancellationToken ct)
+        => Execute((ticket, sid) => service.TaskRequestContextAsync(ticket, sid, branch, request, ct), false);
     [HttpPost("api/branches/{branch:long}/operational-tasks")]
     public Task<IActionResult> CreateTask(long branch, CreateOperationalTaskRequest input, CancellationToken ct)
-        => Execute((ticket, sid) => service.CreateOperationalTaskAsync(ticket, sid, branch, input, ct), false, true);
+    {
+        if (input.InternalRequestId != null)
+        {
+            if (!Request.Headers.ContainsKey("If-Match")) return Task.FromResult<IActionResult>(Problem(statusCode: 428, title: "IF_MATCH_REQUIRED"));
+            if (input.RequestLink == null || Request.Headers.IfMatch.Count != 1 || Request.Headers.IfMatch[0] != '"' + input.RequestLink.Version + '"')
+                return Task.FromResult<IActionResult>(Problem(statusCode: 400, title: "SOURCE_VERSION_INVALID"));
+        }
+        return Execute((ticket, sid) => service.CreateOperationalTaskAsync(ticket, sid, branch, input, ct), false, true);
+    }
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/plan")]
     public Task<IActionResult> ReadTaskPlan(long branch, long id, CancellationToken ct, int page = 1)
         => Execute((ticket, sid) => service.ReadTaskPlanAsync(ticket, sid, branch, id, page, ct), false);

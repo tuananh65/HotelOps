@@ -94,7 +94,7 @@ internal static class SprintAuthProbe
             await Check(HttpMethod.Get, "/api/users", 403);
             if (audit) await SprintAuditScenario.RunAsync(db, http, user.UserId, checks, ct, name, password);
             if (credentials) await SprintCredentialScenario.RunAsync(db, checks, ct);
-            if (departmentAuthority) await SprintDepartmentAuthorityScenario.RunAsync(db,user.UserId,checks,ct,name,password);
+            if (departmentAuthority) await SprintDepartmentAuthorityScenario.RunAsync(db,user.UserId,checks,ct,name,password,taskCriteria,http);
             if (roleAssignment) await SprintRoleAssignmentScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct);
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);

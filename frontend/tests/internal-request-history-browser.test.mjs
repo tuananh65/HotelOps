@@ -63,7 +63,7 @@ async function fixture(run) {
         assert.deepEqual(request.postDataJSON(),{taskId:7,mandatory:true});
         return json({requestId:1,taskId:7,mandatory:true,version:"AAAAAAAAAAE="},state.linkPostStatus??200);
       }
-      return json({requestId:1,version:"AAAAAAAAAAA=",canLink:state.linkAllowed??false,page:1,total:1,
+      return json({requestId:1,branchId:1,version:"AAAAAAAAAAA=",canLink:state.linkAllowed??false,page:1,total:1,
         candidates:new URL(request.url()).searchParams.get("candidates")==="true",
         items:[{taskId:7,code:"TASK7",title:"PRIVATE LINKED TASK",state:"IN_PROGRESS",mandatory:true,path:"/operational-tasks?branchId=1&taskId=7"}]},state.linkStatus??200);
     }

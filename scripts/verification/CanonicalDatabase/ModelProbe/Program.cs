@@ -36,6 +36,8 @@ if (args.Length == 2 && args[0] == "--sprint-report-api")
     return await SprintAuthProbe.RunAsync(args[1],reports:true);
 if (args.Length == 2 && args[0] == "--sprint-department-authority")
     return await SprintAuthProbe.RunAsync(args[1],departmentAuthority:true);
+if (args.Length == 3 && args[0] == "--sprint-linked-task-creation")
+    return await SprintAuthProbe.RunAsync(args[2],taskCriteria:true,taskSubmissionReceipt:args[1],departmentAuthority:true);
 if (args.Length == 2 && args[0] == "--sprint-credentials")
     return await SprintAuthProbe.RunAsync(args[1],credentials:true);
 if (args.Length == 2 && args[0] == "--sprint-initial-inspection")

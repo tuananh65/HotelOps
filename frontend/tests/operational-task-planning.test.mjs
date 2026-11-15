@@ -122,6 +122,20 @@ test("invalid creation criteria, locations, outcome and timeline never dispatch"
     await assert.rejects(createTask(1, { ...input, ...changes }, signal));
   assert.equal(spy.mock.callCount(), 0);
 });
+test("linked creation binds source version and explicit optional choice without retrying stale writes", async (t) => {
+  const linked = { ...input, internalRequestId: 17, requestLink: { version: "AAAAAAAAAAE=", mandatory: false } };
+  let writes = 0;
+  t.mock.method(globalThis, "fetch", async (path, init) => {
+    if (path === "/api/auth/csrf") return Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "synthetic" });
+    writes++;
+    assert.equal(init.headers["If-Match"], '"AAAAAAAAAAE="');
+    assert.equal(init.headers["X-CSRF-TOKEN"], "synthetic");
+    assert.deepEqual(JSON.parse(init.body), linked);
+    return Response.json({ messageCode: "MSG_CONFLICT" }, { status: 412 });
+  });
+  await assert.rejects(createTask(1, linked, signal));
+  assert.equal(writes, 1);
+});
 test("Create ambiguous outcome never retries automatically or accepts a foreign scope", async (t) => {
   for (const response of [
     Response.json({}, { status: 503 }),

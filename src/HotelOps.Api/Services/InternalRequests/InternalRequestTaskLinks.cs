@@ -15,7 +15,7 @@ namespace HotelOps.Api.Services.InternalRequests;
 public sealed record InternalRequestTaskLinkInput(long TaskId, [property: JsonRequired] bool Mandatory);
 public sealed record InternalRequestTaskLinkRow(long TaskId, string Code, string Title, string? State, bool Mandatory, string Path);
 public sealed record InternalRequestTaskLinksView(long RequestId, string Version, bool CanLink,
-    InternalRequestTaskLinkRow[] Items, int Total, int Page, bool Candidates);
+    InternalRequestTaskLinkRow[] Items, int Total, int Page, bool Candidates, long BranchId);
 internal sealed class InternalRequestTaskLinkRecord
 {
     public long TaskId { get; set; }
@@ -138,7 +138,7 @@ public sealed class InternalRequestTaskLinks(HotelOpsDbContext db, InternalReque
         await tx.CommitAsync(ct);
         return new(id, Convert.ToBase64String(version), canLink, rows.Select(t => new InternalRequestTaskLinkRow(t.TaskId,
             t.TaskCode, t.Title, stateMap.GetValueOrDefault(t.TaskId), metadata.GetValueOrDefault(t.TaskId),
-            $"/operational-tasks?branchId={request.BranchId}&taskId={t.TaskId}")).ToArray(), total, page, candidates);
+            $"/operational-tasks?branchId={request.BranchId}&taskId={t.TaskId}")).ToArray(), total, page, candidates, request.BranchId);
     }
 
     public async Task<string> LinkAsync(SessionReference ticket, long sid, long id, byte[] version, InternalRequestTaskLinkInput input, CancellationToken ct)

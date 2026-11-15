@@ -52,6 +52,9 @@ public sealed partial class RoomTypeCreationService
         if (input.RequestKey == Guid.Empty || input.DepartmentId <= 0 || input.CategoryId <= 0 || input.RoomId is <= 0 || input.AreaId is <= 0
             || input.RoomId != null && input.AreaId != null || input.InternalRequestId is <= 0)
             throw new ValidationException("Valid creation key, department, category and at most one location required.");
+        if ((input.InternalRequestId == null) != (input.RequestLink == null))
+            throw new ValidationException("Linked creation requires a source request, its loaded version and explicit completion requirement.");
+        if (input.RequestLink != null) RequestCreationVersion(input.RequestLink);
         var title = ChecklistText(input.Title, 200);
         var outcome = TaskResultText(input.RequestedResult) ?? throw new ValidationException("Expected outcome is required.");
         var description = TaskResultText(input.Description);
@@ -68,24 +71,33 @@ public sealed partial class RoomTypeCreationService
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
             if (!await TaskPlanningStore.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
-            // UC118/FE13 still lacks its public resource authorization contract.
-            // Do not infer permission to bind somebody else's Internal Request.
-            if (input.InternalRequestId != null) return new(RoomTypeBatchStatus.SchemaRequired);
             var prior = await TaskPlanningStore.Definitions(db).SingleOrDefaultAsync(d => d.CreationKey == input.RequestKey, token);
             if (prior != null)
             {
                 var existing = await db.OperationalTasks.AsNoTracking().SingleAsync(t => t.TaskId == prior.TaskId, token);
                 if (existing.CreatedBy != actor || existing.BranchId != branch || prior.CreationHash == null || !CryptographicOperations.FixedTimeEquals(hash, prior.CreationHash))
                     return new(RoomTypeBatchStatus.Duplicate);
+                if (normalized.InternalRequestId is { } source && (existing.SourceType != "INTERNAL_REQUEST" || existing.SourceId != source
+                    || !await CreatedTaskRequestLinkMatches(source, existing.TaskId, normalized.RequestLink!.Mandatory, token)))
+                    return new(RoomTypeBatchStatus.SchemaRequired);
                 var revision = await ProgressRevision(false, existing.TaskId, token);
                 if (revision == null) return new(RoomTypeBatchStatus.SchemaRequired);
                 return new(RoomTypeBatchStatus.Success, new TaskCreatedDto(existing.TaskId, branch, existing.TaskCode, revision.State, "MSG08"), WorkflowTag(revision.Revision));
+            }
+            if (normalized.InternalRequestId is { } request)
+            {
+                var row = await db.InternalRequests.AsNoTracking().SingleAsync(r => r.InternalRequestId == request && r.BranchId == branch, token);
+                if (!(await HotelOps.Api.Services.InternalRequests.InternalRequestDecisionStore.RevisionAsync(db, request, token))
+                    .SequenceEqual(RequestCreationVersion(normalized.RequestLink!))) return new(RoomTypeBatchStatus.Stale);
+                if (row.Status is not ("ACCEPTED" or "IN_PROGRESS")) return new(RoomTypeBatchStatus.Inactive);
             }
             if (!await TaskCreationReferencesAsync(db, branch, normalized, token))
                 return new(RoomTypeBatchStatus.InvalidReference, new TaskEntryFailure("MSG03"));
             var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(token);
             var task = await WriteTaskCreationAsync(db, actor, branch, normalized, now, token);
+            if (normalized.InternalRequestId is { } linkedRequest)
+                await WriteCreatedTaskRequestLink(actor, branch, linkedRequest, task.TaskId, normalized.RequestLink!, now, token);
             return new(RoomTypeBatchStatus.Success, new TaskCreatedDto(task.TaskId, branch, task.TaskCode, "PENDING_ASSIGNMENT", "MSG08"), WorkflowTag((await ProgressRevision(false, task.TaskId, token))!.Revision));
-        }, ct, requireRoomTypeSchema: false, featurePermission: token => VerificationManager(ticket.UserId, branch, token));
+        }, ct, requireRoomTypeSchema: false, featurePermission: token => LinkedTaskCreationAuthority(ticket.UserId, branch, normalized.InternalRequestId, token));
     }
 }

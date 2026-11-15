@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintDepartmentAuthorityScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,long actor,List<object> checks,CancellationToken ct,string? username=null,string? password=null)
+    internal static async Task RunAsync(HotelOpsDbContext db,long actor,List<object> checks,CancellationToken ct,string? username=null,string? password=null,bool wholeClone=false,HttpClient? http=null)
     {
         // SprintAuthProbe already verified exact disposable database GUID/run and empty personnel.
         var prefix="D3AUTH"+Guid.NewGuid().ToString("N")[..8];
@@ -25,8 +25,11 @@ internal static class SprintDepartmentAuthorityScenario
         }
         try
         {
-            var script=await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/DepartmentManagementIsolated.sql",ct);
-            await db.Database.ExecuteSqlRawAsync(script,ct);await db.Database.ExecuteSqlRawAsync(script,ct);
+            if(!wholeClone)
+            {
+                var script=await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/DepartmentManagementIsolated.sql",ct);
+                await db.Database.ExecuteSqlRawAsync(script,ct);await db.Database.ExecuteSqlRawAsync(script,ct);
+            }
             Check(await authority.InstalledAsync(ct),"idempotent guarded schema and trusted foreign keys");
             db.Branches.AddRange(branches);db.InternalRequestTypes.Add(type);await db.SaveChangesAsync(ct);
             var branch=branches[0].BranchId;var otherBranch=branches[1].BranchId;
@@ -54,6 +57,12 @@ internal static class SprintDepartmentAuthorityScenario
             await AssertAllowed(requests[0],false,"IR_PROCESS and DEPT_MANAGER without mapping deny");
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({actor},{branch},{department},DATEADD(minute,-1,SYSUTCDATETIME()))",ct);
             await AssertAllowed(requests[0],true,"exact current department mapping allows");
+            if(wholeClone)
+            {
+                await SprintLinkedTaskCreationScenario.RunAsync(db,http??throw new Exception("Owned authenticated HTTP client required"),actor,requests[0],checks,ct,
+                    username??throw new Exception("Username required"),password??throw new Exception("Password required"));
+                return;
+            }
             if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_TASK_LINKS")=="1")
                 await SprintInternalRequestTaskLinksScenario.RunAsync(db,actor,requests[0],checks,ct,username,password);
             else if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_PROGRESS")=="1")
@@ -120,6 +129,8 @@ internal static class SprintDepartmentAuthorityScenario
         }
         finally
         {
+            if(!wholeClone)
+            {
             db.ChangeTracker.Clear();await using var tx=await db.Database.BeginTransactionAsync(CancellationToken.None);
             if(await authority.InstalledAsync(CancellationToken.None))
                 await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.department_management_access WHERE user_id={actor}",CancellationToken.None);
@@ -133,6 +144,8 @@ internal static class SprintDepartmentAuthorityScenario
             await db.Branches.Where(b=>b.BranchCode.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
             await db.Users.Where(u=>u.UserId==actor).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.AccountStatus,"ACTIVE"),CancellationToken.None);
             await tx.CommitAsync(CancellationToken.None);checks.Add(new{departmentAuthorityCleanup=true});
+            }
+            else checks.Add(new{departmentAuthorityCleanup="Verified whole-clone drop required; immutable task records retained"});
         }
     }
 }
