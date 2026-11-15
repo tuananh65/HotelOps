@@ -1,0 +1,14 @@
+{
+    "success":  true,
+    "database":  "HotelOps_DEV3_142A_CriteriaTrial_20b5dcda",
+    "identityVerified":  true,
+    "reopenEvents":  3,
+    "tasks":  1,
+    "submissionSnapshots":  4,
+    "completedAssignments":  4,
+    "openIntervals":  0,
+    "matchingAudits":  3,
+    "faultTriggers":  0,
+    "trustedForeignKeys":  6,
+    "immutableHistoryRejected":  true
+}

@@ -11,6 +11,7 @@ import { TaskCreatePanel } from "./TaskCreatePanel";
 import { TaskSeriesPanel } from "./TaskSeriesPanel";
 import { TaskPlanPanel } from "./TaskPlanPanel";
 import { TaskReopenPanel } from "./TaskReopenPanel";
+import { TaskWorkloadPanel } from "./TaskWorkloadPanel";
 import {
   readTasks,
   taskWorkflowStates,
@@ -174,6 +175,14 @@ export function TaskReadPage() {
         </label>
         <button>Load tasks</button>
       </form>
+      {query && data && (
+        <TaskWorkloadPanel
+          key={`${owner}:${query.branch}:${query.id ?? "list"}`}
+          branch={query.branch}
+          owner={owner}
+          initialSearch={detail?.task.code ?? ""}
+        />
+      )}
       {declined === owner && (
         <p role="status">
           MSG19: Task declined and returned to Pending Assignment.

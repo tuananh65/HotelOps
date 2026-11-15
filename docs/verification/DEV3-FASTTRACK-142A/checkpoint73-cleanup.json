@@ -1,0 +1,26 @@
+{
+    "success":  true,
+    "sourceIdentityVerified":  true,
+    "clones":  [
+                   {
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_07b456bd",
+                       "databaseAbsent":  true,
+                       "backupAbsent":  true
+                   },
+                   {
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_272cded2",
+                       "databaseAbsent":  true,
+                       "backupAbsent":  true
+                   },
+                   {
+                       "database":  "HotelOps_DEV3_142A_CriteriaTrial_20b5dcda",
+                       "databaseAbsent":  true,
+                       "backupAbsent":  true
+                   }
+               ],
+    "sourceRows":  0,
+    "optionalCapabilities":  0,
+    "sourceReopenTables":  0,
+    "httpsListeners":  0,
+    "privateFiles":  0
+}

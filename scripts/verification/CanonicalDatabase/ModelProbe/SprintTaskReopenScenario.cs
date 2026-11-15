@@ -139,5 +139,6 @@ internal static class SprintTaskReopenScenario
             && !await db.WorkIntervals.AnyAsync(i => i.WorkItemKind == "TASK" && i.WorkItemId == task && i.ClosedAt == null, ct), "three completed historical assignments and no leaked open intervals");
         await db.UserRoles.Where(r => r.UserRoleId == actorManager.UserRoleId).ExecuteDeleteAsync(ct);
         Check((await Send(executor, HttpMethod.Get, $"/api/notifications/{notice.NotificationId}/source")).Status == 404, "old Reopen notice cannot restore previous executor access after reassignment");
+        await SprintTaskWorkloadScenario.RunAsync(db, managerHttp, executor, branch, foreign, task, checks, ct, manager.Username, password, nextHttp, actor);
     }
 }
