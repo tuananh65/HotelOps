@@ -69,24 +69,46 @@ internal static class SprintReinspectionAssignmentProbe
         }
         async Task Cleanup()
         {
+            var completeNextRound = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND") == "1";
+            // Only a direct child of this fixture's first bound Failed inspection is owned.
+            // Verify all identities before touching guards or any descendant evidence.
+            var children = await db.Database.SqlQuery<long>($"""
+                SELECT w.rework_id AS Value FROM dbo.cleaning_reworks w
+                JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=w.inspection_id AND b.rework_id={rework}
+                JOIN dbo.fs016_rework_source_proofs p ON p.rework_id=w.rework_id AND p.inspection_id=w.inspection_id AND p.branch_id=b.branch_id
+                WHERE {completeNextRound}=1 AND w.cleaning_task_id={source.CleaningTaskId} AND w.assignee_user_id={executorTicket.UserId}
+                  AND b.branch_id={branch} AND b.room_id={roomId} AND b.version_id={source.VersionId}
+                  AND b.reinspector_user_id={actor} AND b.submission_actor={executorTicket.UserId}
+                """).ToArrayAsync(CancellationToken.None);
+            if (children.Length > 1) throw new Exception("Unexpected second-round children; cleanup refused");
+            var child = children.SingleOrDefault();
+            if (await db.Database.SqlQuery<int>($"""
+                SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b WHERE b.rework_id<>{rework}
+                  AND NOT(b.rework_id={child} AND b.original_inspection_id=(SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework})
+                    AND b.cleaning_task_id={source.CleaningTaskId} AND b.room_id={roomId} AND b.branch_id={branch}
+                    AND b.version_id={source.VersionId} AND b.reinspector_user_id={actor} AND b.submission_actor={executorTicket.UserId})
+                """).SingleAsync(CancellationToken.None) != 0) throw new Exception("Unexpected reinspection source; cleanup refused");
             var keys = await db.Database.SqlQuery<string>($"""
                 SELECT a.storage_key AS Value FROM dbo.attachments a JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=a.entity_id
-                WHERE b.rework_id={rework} AND a.entity_type='INSPECTION' AND a.uploaded_by={actor}
+                WHERE b.rework_id IN({rework},{child}) AND a.entity_type='INSPECTION' AND a.uploaded_by={actor}
                   AND NOT EXISTS(SELECT 1 FROM dbo.cleaning_reworks child WHERE child.inspection_id=b.inspection_id)
+                UNION
+                SELECT a.storage_key FROM dbo.attachments a JOIN dbo.fs016_rework_evidence e ON e.attachment_id=a.attachment_id
+                WHERE e.rework_id={child} AND a.entity_type='CLEANING_TASK' AND a.entity_id={source.CleaningTaskId} AND a.uploaded_by={executorTicket.UserId}
                 """).ToArrayAsync(CancellationToken.None);
             foreach (var definition in originalGuards)
                 await db.Database.ExecuteSqlRawAsync(definition.Replace("CREATE TRIGGER", "ALTER TRIGGER"), CancellationToken.None);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
-                IF EXISTS(SELECT 1 FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id<>{rework})
+                IF EXISTS(SELECT 1 FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id NOT IN({rework},{child}))
                   THROW 51999,'Unexpected reinspection source; cleanup refused',1;
                 DECLARE @owned TABLE(id bigint PRIMARY KEY);
-                INSERT @owned SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework};
+                INSERT @owned SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id IN({rework},{child});
                 DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
                   WHERE n.notification_type='REINSPECTION_ASSIGNED' AND n.source_type='INSPECTION' AND n.source_id IN(SELECT id FROM @owned) AND n.created_by={actor};
                 DELETE dbo.notifications WHERE notification_type='REINSPECTION_ASSIGNED' AND source_type='INSPECTION' AND source_id IN(SELECT id FROM @owned) AND created_by={actor};
                 DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
-                  WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id={rework} AND n.created_by={actor};
-                DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id={rework} AND created_by={actor};
+                  WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id IN({rework},{child}) AND n.created_by={actor};
+                DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id IN({rework},{child}) AND created_by={actor};
                 -- A Failed reinspection may now own the next committed Request Rework.
                 -- Retain that immutable source until the outer owned-authority cleanup drops
                 -- its trial proof table and deletes the descendant rework before inspection.
@@ -99,7 +121,21 @@ internal static class SprintReinspectionAssignmentProbe
                 DELETE dbo.audit_logs WHERE entity_type='REINSPECTION' AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned);
                 DELETE dbo.notification_operation_reservations WHERE actor_user_id={actor}
                   AND JSON_VALUE(result_json,'$.contract') IN('FE05_REINSPECTION_ASSIGNMENT_V1','FE05_REINSPECTION_CONCLUSION_V1')
-                  AND TRY_CONVERT(bigint,JSON_VALUE(result_json,'$.reworkId'))={rework};
+                  AND TRY_CONVERT(bigint,JSON_VALUE(result_json,'$.reworkId')) IN({rework},{child});
+                DECLARE @childEvidence TABLE(id bigint PRIMARY KEY);
+                INSERT @childEvidence SELECT a.attachment_id FROM dbo.attachments a JOIN dbo.fs016_rework_evidence e ON e.attachment_id=a.attachment_id
+                  WHERE e.rework_id={child} AND a.entity_type='CLEANING_TASK' AND a.entity_id={source.CleaningTaskId} AND a.uploaded_by={executorTicket.UserId};
+                DELETE dbo.fs016_rework_evidence WHERE rework_id={child};
+                DELETE dbo.attachments WHERE attachment_id IN(SELECT id FROM @childEvidence);
+                DELETE dbo.notification_operation_reservations WHERE actor_user_id={executorTicket.UserId}
+                  AND JSON_VALUE(result_json,'$.contract')='FE04_REWORK_SUBMISSION_V1' AND TRY_CONVERT(bigint,JSON_VALUE(result_json,'$.reworkId'))={child};
+                DELETE dbo.audit_logs WHERE actor_user_id={executorTicket.UserId} AND entity_type='cleaning_reworks' AND action='UPDATE' AND entity_id=CONVERT(nvarchar(50),{child});
+                DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
+                  WHERE n.notification_type='REWORK_SUBMITTED' AND n.source_type='CLEANING_REWORK' AND n.source_id={child} AND n.created_by={executorTicket.UserId};
+                DELETE dbo.notifications WHERE notification_type='REWORK_SUBMITTED' AND source_type='CLEANING_REWORK' AND source_id={child} AND created_by={executorTicket.UserId};
+                DELETE dbo.work_intervals WHERE user_id={executorTicket.UserId} AND work_item_kind='REWORK' AND work_item_id={child};
+                UPDATE dbo.cleaning_rework_defects SET remediation_note=NULL,remediated_by=NULL,remediated_at=NULL WHERE rework_id={child};
+                UPDATE dbo.cleaning_reworks SET workflow_status='PENDING_ACCEPTANCE',status='PENDING',completed_at=NULL WHERE rework_id={child};
                 DELETE dbo.room_status_history WHERE trigger_type='INSPECTION' AND trigger_id IN(SELECT id FROM @owned);
                 DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id WHERE d.inspection_id IN(SELECT id FROM @deletable);
                 DELETE dbo.attachments WHERE entity_type='INSPECTION' AND entity_id IN(SELECT id FROM @deletable);
@@ -303,7 +339,8 @@ internal static class SprintReinspectionAssignmentProbe
             await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, executorTicket, executorSid, ct);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
-            await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
+            await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct,
+                Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND") == "1" ? "READY" : null);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionExecutorProbe.VerifyAsync(db, executorTicket, executorSid, branch, rework, ct);
             if (Environment.GetEnvironmentVariable("DEV3_REJECTION_ACCEPTANCE") == "1")

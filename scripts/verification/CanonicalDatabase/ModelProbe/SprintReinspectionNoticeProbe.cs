@@ -97,7 +97,7 @@ internal static class SprintReinspectionNoticeProbe
             using var browser=Process.Start(start)??throw new Exception("Assignment notice browser unavailable");
             try
             {
-                await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=user.Username,password,branch,inspection,state}).AsMemory(),ct);browser.StandardInput.Close();
+                await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=user.Username,password,branch,inspection,state,notification=notice.NotificationId}).AsMemory(),ct);browser.StandardInput.Close();
                 var output=browser.StandardOutput.ReadToEndAsync(ct);var errors=browser.StandardError.ReadToEndAsync(ct);
                 await browser.WaitForExitAsync(ct);var result=JsonSerializer.Deserialize<JsonElement>(await output);await errors;
                 if(browser.ExitCode!=0||!result.GetProperty("success").GetBoolean())throw new Exception("Assignment notice browser: "+result.GetRawText());

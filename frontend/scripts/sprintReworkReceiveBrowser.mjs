@@ -33,7 +33,10 @@ try {
   const detail = page.waitForResponse((r) =>
     r.url().endsWith(path + "/execution"),
   );
-  await page.getByRole("button", { name: "Open rework", exact: true }).click();
+  const notice = fixture.notification
+    ? page.getByRole("listitem").filter({ has: page.getByRole("button", { name: `Mark notification ${fixture.notification} as read`, exact: true }) })
+    : page;
+  await notice.getByRole("button", { name: "Open rework", exact: true }).click();
   const initial = await detail;
   lastStatus = initial.status();
   if (lastStatus !== 200) throw Error("Restricted source read failed");

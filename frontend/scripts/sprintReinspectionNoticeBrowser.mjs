@@ -9,7 +9,7 @@ try {
   await page.getByLabel("Username or email").fill(fixture.username);await page.getByLabel("Password",{exact:true}).fill(fixture.password);fixture.password="";
   await page.getByRole("button",{name:"Sign in",exact:true}).click();await page.waitForURL(origin+"/notifications");
   stage="assigned inspection inbox";
-  const item=page.getByRole("listitem").filter({has:page.getByRole("heading",{name:"Reinspection assigned",exact:true})});
+  const item=page.getByRole("listitem").filter({has:page.getByRole("button",{name:`Mark notification ${fixture.notification} as read`,exact:true})});
   await item.getByRole("button",{name:"Open inspection",exact:true}).click();
   await page.waitForURL(`${origin}/reinspections/${fixture.branch}/${fixture.inspection}/execution`);
   await page.getByRole("heading",{name:"Reinspect room",exact:true}).waitFor();

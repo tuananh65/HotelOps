@@ -97,6 +97,9 @@ internal static class SprintReinspectionHttpsProbe
                 var distinctInspector = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR") == "1";
                 var retireAfterAssignment = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_RETIRE_AFTER_ASSIGNMENT") == "1";
                 var assignmentNotice = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE") == "1";
+                var completeNextRound = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND") == "1";
+                if (completeNextRound && (!nextRound || !conclude || outcome != "FAIL" || retireAfterAssignment || distinctInspector))
+                    throw new Exception("Second-round trial requires Failed/next-round mode with the original published source and inspector");
                 if (assignmentNotice && !conclude) throw new Exception("Assignment notice trial requires terminal browser conclusion");
                 if (retireAfterAssignment && !conclude) throw new Exception("Retirement trial requires the complete browser conclusion mode");
                 await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework,
@@ -175,6 +178,8 @@ internal static class SprintReinspectionHttpsProbe
                 }
                 if(conclude)await SprintReinspectionExecutorProbe.VerifyAsync(db,executorTicket,executorSid,branch,rework,ct,browser:true,nextRework:nextRework);
                 if(assignmentNotice)await SprintReinspectionNoticeProbe.VerifyAsync(db,actor,branch,inspection,password,ct,initial:false);
+                if(completeNextRound)await SprintSecondReworkRoundProbe.VerifyAsync(db,actor,branch,rework,nextRework!.Value,
+                    executorTicket,executorSid,password,ct);
             }
             finally { if (!process.HasExited) process.Kill(true); }
             host.Kill(true); await host.WaitForExitAsync(ct); await output; await errors;

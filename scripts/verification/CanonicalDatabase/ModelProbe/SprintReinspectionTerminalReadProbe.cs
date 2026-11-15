@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 internal static class SprintReinspectionTerminalReadProbe
 {
     // Only invoked inside the parent's identity-verified synthetic fixture; parent owns cleanup.
-    internal static async Task VerifyAsync(HotelOpsDbContext db, SessionReference ticket, long sid, long branch, long rework, CancellationToken ct)
+    internal static async Task VerifyAsync(HotelOpsDbContext db, SessionReference ticket, long sid, long branch, long rework, CancellationToken ct, string? expectedUnblockedReadiness = null)
     {
         var inspection = await db.Database.SqlQuery<long>($"SELECT inspection_id AS Value FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework}").SingleAsync(ct);
         async Task<RoomTypeBatchResult> Read(long? file = null, long? alternateBranch = null, bool conclude = false, bool original = false)
@@ -61,6 +61,9 @@ internal static class SprintReinspectionTerminalReadProbe
             || (await Read(original: true)).Status == RoomTypeBatchStatus.Success || (await Read(originalSource.Evidence[0].Id, original: true)).Status == RoomTypeBatchStatus.Success) throw new Exception("Revoked inspector retained terminal source"); }
         finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={ticket.UserId} AND branch_id={branch}", CancellationToken.None); }
         var blocks = await db.RoomBlocks.AsNoTracking().Where(b => b.RoomId == terminal.RoomId && b.ReleasedAt == null).Select(b => b.BlockId).ToArrayAsync(ct);
+        var currentReadiness = expectedUnblockedReadiness ?? (terminal.State == "PASSED" ? "READY" : "REWORK_REQUIRED");
+        if (blocks.Length == 0 && terminal.EffectiveReadiness != currentReadiness)
+            throw new Exception("Historical inspection did not expose current room readiness");
         if (blocks.Length > 0)
         {
             if (terminal.EffectiveReadiness != "BLOCKED" || terminal.Conclusion.EffectiveReadiness != "BLOCKED") throw new Exception("Expected blocked terminal source");
@@ -68,7 +71,7 @@ internal static class SprintReinspectionTerminalReadProbe
             try
             {
                 var released = await Read();
-                if (released.Value is not ReinspectionExecutionDto current || current.EffectiveReadiness != (terminal.State == "PASSED" ? "READY" : "REWORK_REQUIRED")
+                if (released.Value is not ReinspectionExecutionDto current || current.EffectiveReadiness != currentReadiness
                     || current.Conclusion != terminal.Conclusion || current.SourceETag != terminal.SourceETag || current.ReworkETag != terminal.ReworkETag)
                     throw new Exception("Terminal read reused historical readiness after block release");
             }
