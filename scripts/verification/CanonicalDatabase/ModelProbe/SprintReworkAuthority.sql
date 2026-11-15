@@ -90,6 +90,7 @@ BEGIN
  VALUES(@rework,@inspection,@task,@room,@branch,@version,@revision,@source_digest,@evidence_digest,''FE05_COMMITTED_V1'',1,''FE05.UC045.UC046'',1,@actor,@operation,@writer);
  SET @audit=(SELECT @operation AS operationId,''FE05_REWORK_AUTHORITY_V1'' AS authorityContract,CONVERT(varchar(64),@source_digest,2) AS sourceDigest,
  CONVERT(varchar(64),@evidence_digest,2) AS evidenceDigest,@writer AS authorityWriterTransactionId,
+ JSON_QUERY((SELECT 1 AS schemaVersion,''REWORK_ASSIGNED'' AS kind,w.assignee_user_id AS recipientUserId FROM dbo.cleaning_reworks w WHERE w.rework_id=@rework FOR JSON PATH,WITHOUT_ARRAY_WRAPPER)) AS notification,
  JSON_QUERY((SELECT w.rework_id AS id,''PENDING_ACCEPTANCE'' AS state,w.assignee_user_id AS assigneeId,w.due_at AS dueAt,w.reason,
  JSON_QUERY((SELECT defect_id AS defectId FROM dbo.cleaning_rework_defects WHERE rework_id=@rework ORDER BY defect_id FOR JSON PATH)) AS defects
  FROM dbo.cleaning_reworks w WHERE w.rework_id=@rework FOR JSON PATH,WITHOUT_ARRAY_WRAPPER)) AS entity FOR JSON PATH,WITHOUT_ARRAY_WRAPPER);

@@ -125,7 +125,7 @@ public sealed partial class RoomTypeCreationService
             db.Add(rework); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={"PENDING_ACCEPTANCE"},due_at={input.DueAt} WHERE rework_id={rework.ReworkId}", token);
             foreach (var defect in input.DefectIds) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_rework_defects(rework_id,defect_id) VALUES({rework.ReworkId},{defect})", token);
-            var after = new HousekeepingWriteDto(rework.ReworkId, "PENDING_ACCEPTANCE");
+            var after = new HousekeepingWriteDto(rework.ReworkId, "PENDING_ACCEPTANCE", "PENDING_DELIVERY");
             // The protected issuer records the CREATE audit, operation receipt and immutable proof
             // in this same transaction. An unexecutable task must not be acknowledged as created.
             await IssueReworkAuthorityInCallerTransactionAsync(actor, branch, rework.ReworkId, evidenceRoot, token);

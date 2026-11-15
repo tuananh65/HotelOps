@@ -45,21 +45,8 @@ public sealed partial class RoomTypeCreationService
             note = input.Note.Trim(), defects = input.Remediations?.OrderBy(x => x.DefectId).Select(x => new { x.DefectId, note = x.Note.Trim(),
                 photos = x.Photos?.Select(p => new { p.Name, p.MimeType, digest = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(p.Base64 ?? ""))) }) }) }));
 
-    private async Task<PermissionEvaluation> ReworkAccess(long actor, long branch, long id, string permission, CancellationToken ct)
-    {
-        var data = new EfPermissionDataSource(db); var now = clock.GetUtcNow().UtcDateTime;
-        if (!await data.IsActiveUserAsync(actor, ct) || !await data.IsActiveBranchAsync(branch, ct)) return new(PermissionDecision.Denied);
-        // PL-approved candidate binding only; does not grant INSPECTION_VIEW or expand shared resource resolver.
-        var own = await db.CleaningReworks.AsNoTracking().AnyAsync(w => w.ReworkId == id && w.AssigneeUserId == actor
-            && w.CleaningTask.Room.BranchId == branch && w.Inspection.RoomId == w.CleaningTask.RoomId
-            && w.Inspection.CleaningTaskId == w.CleaningTaskId, ct);
-        if (!own) return new(PermissionDecision.Denied);
-        foreach (var grant in await data.ReadPathsAsync(actor, permission, now, ct))
-            if (grant.PermissionCode == permission && PermissionGrantRules.IsEligible(grant, now)
-                && (PermissionGrantRules.EffectiveScope(grant) == "GLOBAL" || grant.BranchId == branch
-                    && PermissionGrantRules.EffectiveScope(grant) is "BRANCH" or "OWN")) return new(PermissionDecision.Granted);
-        return new(PermissionDecision.Denied);
-    }
+    private Task<PermissionEvaluation> ReworkAccess(long actor, long branch, long id, string permission, CancellationToken ct)
+        => HotelOps.Api.Services.Notifications.ReworkRecipientReadAccess.EvaluateAsync(db, actor, branch, id, permission, clock.GetUtcNow().UtcDateTime, ct);
 
     public async Task<RoomTypeBatchResult> ExecuteReworkAsync(SessionReference ticket, long sid, long branch, long id,
         string action, string? tag, string? key, ReworkActionRequest? input, string? root, CancellationToken ct, long? attachmentId = null)

@@ -24,6 +24,11 @@ internal static class SprintReworkFixture
         => CleanupCoreAsync(db,cleaner,branch,inspection,ct);
     private static async Task CleanupCoreAsync(HotelOpsDbContext db,long cleaner,long branch,long inspection,CancellationToken ct)
     {
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
+              JOIN dbo.cleaning_reworks w ON w.rework_id=n.source_id WHERE n.source_type='CLEANING_REWORK' AND w.inspection_id={inspection};
+            DELETE n FROM dbo.notifications n JOIN dbo.cleaning_reworks w ON w.rework_id=n.source_id WHERE n.source_type='CLEANING_REWORK' AND w.inspection_id={inspection};
+            """,ct);
         await SprintReworkAuthorityFixture.CleanupAsync(db,inspection,ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             DELETE d FROM dbo.cleaning_rework_defects d JOIN dbo.cleaning_reworks r ON r.rework_id=d.rework_id WHERE r.inspection_id={inspection};

@@ -14,7 +14,7 @@ internal static class SprintRejectionDeliveryProbe
             var service=Activator.CreateInstance(type,db,TimeProvider.System)!;
             var pending=(Task)type.GetMethod("ReadPendingAsync")!.Invoke(service,[100,0L,ct])!;
             await pending;
-            return ((Array)pending.GetType().GetProperty("Result")!.GetValue(pending)!).Length;
+            return ((Array)pending.GetType().GetProperty("Result")!.GetValue(pending)!).Cast<object>().Count(h=>(long)h.GetType().GetProperty("RecipientUserId")!.GetValue(h)! == 0);
         }
         if(await Pending()!=1)throw new Exception("Failed event missing from durable discovery");
         async Task Send()
@@ -50,3 +50,4 @@ internal static class SprintRejectionDeliveryProbe
         if(await Pending()!=0)throw new Exception("Completed failed event still pending");
     }
 }
+
