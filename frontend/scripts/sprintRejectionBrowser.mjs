@@ -18,18 +18,20 @@ try {
   const origin = "https://localhost:7142",
     path = `/inspections/${fixture.branch}/${fixture.inspection}/execution`;
   const api = `/api/branches/${fixture.branch}/inspections/${fixture.inspection}`;
-  async function request(url, method = "GET", headers = {}) {
+  async function request(
+    url,
+    method = "GET",
+    headers = {},
+    body = { reason: "Synthetic rejection", confirmed: true },
+  ) {
     return page.evaluate(
-      async ({ url, method, headers }) => {
+      async ({ url, method, headers, body }) => {
         const r = await fetch(url, {
           method,
           headers: { "Content-Type": "application/json", ...headers },
           body:
             method === "POST"
-              ? JSON.stringify({
-                  reason: "Synthetic rejection",
-                  confirmed: true,
-                })
+              ? JSON.stringify(body)
               : undefined,
           credentials: "include",
           cache: "no-store",
@@ -40,7 +42,7 @@ try {
           text: await r.text(),
         };
       },
-      { url, method, headers },
+      { url, method, headers, body },
     );
   }
   stage = "login and canonical rejection admission";
@@ -169,6 +171,125 @@ try {
     })
     .waitFor();
   checks.push(stage);
+  if (fixture.rework) {
+    stage = "Request Rework preselected form and authoritative assignee";
+    const form = page.getByRole("region", { name: "Request cleaning rework" });
+    const options = JSON.parse((await request(api + "/rework-options")).text);
+    if (
+      options.assignees.length !== 1 ||
+      !options.assignees[0].originalCleaner ||
+      options.defects.length !== 1
+    )
+      throw Error("Rework options mismatch");
+    const optionResponse = await request(api + "/rework-options");
+    const reworkBody = {
+      assigneeId: options.assignees[0].id,
+      defectIds: options.defects.map((d) => d.id),
+      dueAt: new Date(Date.now() + 3600000).toISOString(),
+      reason: "Synthetic rework request",
+    };
+    const guardHeaders = {
+      "X-CSRF-TOKEN": csrf,
+      "If-Match": optionResponse.etag,
+    };
+    for (const [label, headers, body, status] of [
+      ["rework CSRF", { "If-Match": optionResponse.etag }, reworkBody, 400],
+      ["rework revision", { "X-CSRF-TOKEN": csrf }, reworkBody, 428],
+      [
+        "rework stale",
+        { ...guardHeaders, "If-Match": '"0000000000000000"' },
+        reworkBody,
+        412,
+      ],
+      [
+        "rework empty defects",
+        guardHeaders,
+        { ...reworkBody, defectIds: [] },
+        400,
+      ],
+      [
+        "rework foreign defect",
+        guardHeaders,
+        { ...reworkBody, defectIds: [9007199254740991] },
+        400,
+      ],
+      [
+        "rework ineligible assignee",
+        guardHeaders,
+        { ...reworkBody, assigneeId: 9007199254740991 },
+        400,
+      ],
+      [
+        "rework past due",
+        guardHeaders,
+        { ...reworkBody, dueAt: "2000-01-01T00:00:00Z" },
+        400,
+      ],
+    ]) {
+      const rejected = await request(api + "/reworks", "POST", headers, body);
+      if (rejected.status !== status)
+        throw Error(label + ": " + rejected.status);
+      const unchanged = JSON.parse(
+        (await request(api + "/rework-options")).text,
+      );
+      if (unchanged.existingReworkId !== null)
+        throw Error(label + " created rework");
+      checks.push({ label, status });
+    }
+    await form
+      .getByLabel("Housekeeper")
+      .selectOption(String(options.assignees[0].id));
+    if (!(await form.getByRole("checkbox").isChecked()))
+      throw Error("Defect not preselected");
+    const due = await page.evaluate(() => {
+      const d = new Date(Date.now() + 3600000);
+      const pad = (n) => String(n).padStart(2, "0");
+      return (
+        d.getFullYear() +
+        "-" +
+        pad(d.getMonth() + 1) +
+        "-" +
+        pad(d.getDate()) +
+        "T" +
+        pad(d.getHours()) +
+        ":" +
+        pad(d.getMinutes())
+      );
+    });
+    await form.getByLabel("Rework due time").fill(due);
+    await form.getByLabel("Rework reason").fill("Synthetic rework request");
+    const saved = page.waitForResponse(
+      (r) =>
+        r.url() === origin + api + "/reworks" &&
+        r.request().method() === "POST",
+    );
+    await form.getByRole("button", { name: "Save rework request" }).click();
+    const response = await saved;
+    const receipt = await response.json();
+    if (response.status() !== 201 || receipt.state !== "PENDING_ACCEPTANCE")
+      throw Error("Rework save: " + response.status());
+    await form.getByText(/is pending acceptance/).waitFor();
+    checks.push({
+      stage,
+      state: receipt.state,
+      notification: receipt.notification,
+    });
+    await form.getByRole("button", { name: "Reload rework options" }).click();
+    await form
+      .getByText("MSG03: Open rework #" + receipt.id + " already exists.", {
+        exact: true,
+      })
+      .waitFor();
+    const duplicate = await request(
+      api + "/reworks",
+      "POST",
+      guardHeaders,
+      reworkBody,
+    );
+    if (duplicate.status !== 409)
+      throw Error("Rework duplicate status " + duplicate.status);
+    checks.push("Existing open rework shown; duplicate API rejected409");
+  }
   process.stdout.write(JSON.stringify({ success: true, checks }));
 } catch (error) {
   process.stdout.write(

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { createInspectionApi, InspectionApiError } from "./api";
+import { RequestReworkForm } from "./RequestReworkForm";
 import {
   encodeEvidence,
   optionalNote,
@@ -274,6 +275,15 @@ export function InspectionWorkspace({
           </p>
           {current.value.notification && (
             <p>Notification: {current.value.notification}</p>
+          )}
+          {current.value.state === "FAILED" && (
+            <RequestReworkForm
+              key={`${branch}:${id}`}
+              branch={branch}
+              id={id}
+              onDenied={onDenied}
+              onSessionInvalid={onSessionInvalid}
+            />
           )}
           {current.value.state === "PENDING_CONCLUSION" &&
             current.value.criteria.some(

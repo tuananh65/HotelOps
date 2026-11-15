@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 2 && args[0] == "--sprint-rework-browser")
+    return await SprintApprovalBrowserProbe.RunAsync(args[1], rejection: true, rework: true);
 if (args.Length == 2 && args[0] == "--sprint-rejection-browser")
     return await SprintApprovalBrowserProbe.RunAsync(args[1], rejection: true);
 if (args.Length == 2 && args[0] == "--sprint-approval-race")

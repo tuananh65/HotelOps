@@ -525,3 +525,80 @@ test("reject rejects unsafe readiness without replay", async () => {
   });
   assert.equal(writes, 1);
 });
+
+const reworkOptions = {
+  inspectionId: 42,
+  branchId: 7,
+  existingReworkId: null,
+  defects: [{ id: 88, description: "Dirty bed" }],
+  assignees: [{ id: 30, name: "Cleaner", originalCleaner: true }],
+};
+test("rework options bind scope, current ETag and unique authoritative choices", async () => {
+  const api = client(async () => json(reworkOptions));
+  const options = await api.reworkOptions(7, 42);
+  assert.equal(options.etag, tag);
+  assert.equal(options.assignees[0].originalCleaner, true);
+  for (const invalid of [
+    { ...reworkOptions, branchId: 8 },
+    { ...reworkOptions, inspectionId: 43 },
+    {
+      ...reworkOptions,
+      assignees: [...reworkOptions.assignees, ...reworkOptions.assignees],
+    },
+  ]) {
+    await assert.rejects(
+      client(async () => json(invalid)).reworkOptions(7, 42),
+      { status: 503 },
+    );
+  }
+});
+test("rework save uses selected source IDs, CSRF, revision and no unknown-outcome replay", async () => {
+  const calls = [];
+  const options = { ...reworkOptions, etag: tag };
+  const due = new Date(Date.now() + 3600000).toISOString();
+  const api = client(async (path, init) => {
+    calls.push({ path, init });
+    return path === "/api/auth/csrf"
+      ? csrf()
+      : json(
+          {
+            id: 91,
+            state: "PENDING_ACCEPTANCE",
+            notification: "NOT_INTEGRATED",
+          },
+          201,
+        );
+  });
+  await assert.rejects(
+    api.requestRework(7, 42, options, 999, [88], due, "Rework"),
+    { status: 400 },
+  );
+  await assert.rejects(
+    api.requestRework(7, 42, options, 30, [999], due, "Rework"),
+    { status: 400 },
+  );
+  assert.equal(calls.length, 0);
+  assert.equal(
+    (await api.requestRework(7, 42, options, 30, [88], due, "Rework")).id,
+    91,
+  );
+  assert.equal(calls[1].init.headers["If-Match"], tag);
+  assert.equal(calls[1].init.headers["X-CSRF-TOKEN"], "csrf");
+  assert.deepEqual(JSON.parse(calls[1].init.body), {
+    assigneeId: 30,
+    defectIds: [88],
+    dueAt: due,
+    reason: "Rework",
+  });
+  let writes = 0;
+  const broken = client(async (path) => {
+    if (path === "/api/auth/csrf") return csrf();
+    writes++;
+    return json({ id: 91, state: "COMPLETED", notification: "DELIVERED" }, 201);
+  });
+  await assert.rejects(
+    broken.requestRework(7, 42, options, 30, [88], due, "Rework"),
+    { uncertain: true },
+  );
+  assert.equal(writes, 1);
+});

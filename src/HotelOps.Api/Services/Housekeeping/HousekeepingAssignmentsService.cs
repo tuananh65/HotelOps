@@ -9,14 +9,16 @@ namespace HotelOps.Api.Services.HotelStructure;
 
 public sealed partial class RoomTypeCreationService
 {
-    private async Task<bool> EligibleHousekeeper(long user, long branch, DateTime now, CancellationToken ct) => await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user
-        && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
+    private Task<bool> EligibleHousekeeper(long user, long branch, DateTime now, CancellationToken ct)
+        => EligibleHousekeepers(branch, now).AnyAsync(u => u.UserId == user, ct);
+    private IQueryable<User> EligibleHousekeepers(long branch, DateTime now) => db.Users.AsNoTracking().Where(u =>
+        u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
         && u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == "HK"
         && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
-        && db.UserRoles.Any(r => r.UserId == user && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_STAFF" && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now))
-        && db.ShiftAssignments.Any(a => a.UserId == user && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
+        && db.UserRoles.Any(r => r.UserId == u.UserId && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_STAFF" && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now))
+        && db.ShiftAssignments.Any(a => a.UserId == u.UserId && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
             && a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch
-            && a.Shift.ScheduledStartAt <= now && a.Shift.ScheduledEndAt > now), ct);
+            && a.Shift.ScheduledStartAt <= now && a.Shift.ScheduledEndAt > now));
     private async Task<bool> EligibleInspector(long user, long branch, CancellationToken ct)
     {
         var now = clock.GetUtcNow().UtcDateTime;
@@ -111,8 +113,12 @@ public sealed partial class RoomTypeCreationService
             var state = await InspectionState(inspection, token);
             if (tag != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
             if (state.State != "FAILED" || (await CleaningState(row.CleaningTaskId!.Value, token)).State != "REWORK_REQUIRED") return new(RoomTypeBatchStatus.Inactive);
+            if (!await ReworkCurrentCycle(row.RoomId, row.CleaningTaskId.Value, token)) return new(RoomTypeBatchStatus.Inactive);
             if (await db.CleaningReworks.AnyAsync(r => r.InspectionId == inspection && r.Status != "COMPLETED" && r.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
-            if (await db.InspectionDefects.CountAsync(d => d.InspectionId == inspection && input.DefectIds.Contains(d.DefectId), token) != input.DefectIds.Count) return new(RoomTypeBatchStatus.InvalidReference);
+            if (await db.InspectionDefects.CountAsync(d => d.InspectionId == inspection && input.DefectIds.Contains(d.DefectId)
+                && d.ChecklistItem != null && d.ChecklistItem.VersionId == row.VersionId
+                && db.InspectionResults.Any(r => r.InspectionId == inspection && r.ChecklistItemId == d.ChecklistItemId && r.Outcome == "FAIL"), token) != input.DefectIds.Count)
+                return new(RoomTypeBatchStatus.InvalidReference);
             var rework = new CleaningRework { InspectionId = inspection, CleaningTaskId = row.CleaningTaskId.Value, AssigneeUserId = input.AssigneeId, Reason = reason, Status = "PENDING", RequestedAt = clock.GetUtcNow().UtcDateTime };
             db.Add(rework); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={"PENDING_ACCEPTANCE"},due_at={input.DueAt} WHERE rework_id={rework.ReworkId}", token);

@@ -9,6 +9,10 @@ public sealed record RecordInspectionDefectRequest(long ItemId, long SeverityId,
 public sealed record AssignCleaningRequest(long AssigneeId, DateTime DueAt, string Reason, bool AdoptUnassignedLegacy = false);
 public sealed record AssignInspectionRequest(long InspectorId, DateTime DueAt, string Reason);
 public sealed record RequestReworkRequest(long AssigneeId, DateTime DueAt, IReadOnlyList<long> DefectIds, string Reason);
+public sealed record ReworkDefectOption(long Id, string Description);
+public sealed record ReworkAssigneeOption(long Id, string Name, bool OriginalCleaner);
+public sealed record InspectionReworkOptionsDto(long InspectionId, long BranchId, long? ExistingReworkId,
+    IReadOnlyList<ReworkDefectOption> Defects, IReadOnlyList<ReworkAssigneeOption> Assignees);
 public sealed record InspectionSeverityDto(long Id, string Code, string Name);
 public sealed record InspectionExecutionDto(long Id, long BranchId, long RoomId, long CleaningTaskId, long InspectorId, long VersionId,
     string State, DateTime? DueAt, IReadOnlyList<HotelOps.Api.DTOs.HotelStructure.HistoryCriterionDto> Criteria,

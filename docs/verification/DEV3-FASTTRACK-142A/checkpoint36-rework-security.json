@@ -1,0 +1,49 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": false,
+        "stage": "Request Rework preselected form and authoritative assignee",
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "REWORK_REQUIRED",
+            "message": null,
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "label": "rework CSRF",
+            "status": 400
+          }
+        ],
+        "diagnostic": "rework revision: 400"
+      }
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    }
+  ],
+  "failure": "Exception: Browser failed at Request Rework preselected form and authoritative assignee"
+}

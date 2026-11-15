@@ -20,6 +20,14 @@ export class InspectionApiError extends Error {
   }
 }
 type Fetcher = typeof fetch;
+export interface ReworkOptions {
+  inspectionId: number;
+  branchId: number;
+  existingReworkId: number | null;
+  defects: Array<{ id: number; description: string }>;
+  assignees: Array<{ id: number; name: string; originalCleaner: boolean }>;
+  etag: string;
+}
 export interface RequestAuthority {
   signal: AbortSignal;
   onSessionInvalid?: () => void;
@@ -140,6 +148,126 @@ export function createInspectionApi(
     }
   }
   return {
+    reworkOptions: async (
+      branch: number,
+      id: number,
+      signal?: AbortSignal,
+    ): Promise<ReworkOptions> => {
+      const response = await request(
+        "GET",
+        `${root(branch, id)}/rework-options`,
+        undefined,
+        undefined,
+        signal,
+      );
+      try {
+        const data = await response.json();
+        const etag = response.headers.get("ETag") ?? "";
+        if (
+          !data ||
+          data.inspectionId !== id ||
+          data.branchId !== branch ||
+          !strongTag(etag) ||
+          !(
+            data.existingReworkId === null ||
+            (Number.isSafeInteger(data.existingReworkId) &&
+              data.existingReworkId > 0)
+          ) ||
+          !Array.isArray(data.defects) ||
+          !Array.isArray(data.assignees) ||
+          data.defects.some(
+            (d: { id: number; description: string }) =>
+              !d ||
+              !Number.isSafeInteger(d.id) ||
+              d.id <= 0 ||
+              typeof d.description !== "string" ||
+              !d.description.trim(),
+          ) ||
+          data.assignees.some(
+            (a: { id: number; name: string; originalCleaner: boolean }) =>
+              !a ||
+              !Number.isSafeInteger(a.id) ||
+              a.id <= 0 ||
+              typeof a.name !== "string" ||
+              !a.name.trim() ||
+              typeof a.originalCleaner !== "boolean",
+          ) ||
+          new Set(data.defects.map((d: { id: number }) => d.id)).size !==
+            data.defects.length ||
+          new Set(data.assignees.map((a: { id: number }) => a.id)).size !==
+            data.assignees.length
+        )
+          throw new Error("Invalid options");
+        lifetime.throwIfAborted();
+        signal?.throwIfAborted();
+        return { ...data, etag };
+      } catch {
+        throw new InspectionApiError(
+          503,
+          "Authoritative rework options unavailable",
+        );
+      }
+    },
+    requestRework: async (
+      branch: number,
+      id: number,
+      options: ReworkOptions,
+      assigneeId: number,
+      defectIds: number[],
+      dueAt: string,
+      inputReason: string,
+      signal?: AbortSignal,
+    ) => {
+      if (
+        options.branchId !== branch ||
+        options.inspectionId !== id ||
+        options.existingReworkId !== null ||
+        !options.assignees.some((a) => a.id === assigneeId) ||
+        defectIds.length < 1 ||
+        defectIds.length > 200 ||
+        new Set(defectIds).size !== defectIds.length ||
+        defectIds.some((d) => !options.defects.some((o) => o.id === d)) ||
+        !Number.isFinite(Date.parse(dueAt)) ||
+        Date.parse(dueAt) <= Date.now()
+      )
+        throw new InspectionApiError(
+          400,
+          "Choose eligible assignee, defects and a future due time",
+        );
+      const response = await request(
+        "POST",
+        `${root(branch, id)}/reworks`,
+        {
+          assigneeId,
+          defectIds,
+          dueAt: new Date(dueAt).toISOString(),
+          reason: reason(inputReason),
+        },
+        options.etag,
+        signal,
+      );
+      try {
+        const data = await response.json();
+        if (
+          response.status !== 201 ||
+          !data ||
+          !Number.isSafeInteger(data.id) ||
+          data.id <= 0 ||
+          data.state !== "PENDING_ACCEPTANCE" ||
+          typeof data.notification !== "string"
+        )
+          throw new Error("Invalid receipt");
+        lifetime.throwIfAborted();
+        signal?.throwIfAborted();
+        return data as { id: number; state: string; notification: string };
+      } catch {
+        throw new InspectionApiError(
+          503,
+          "Rework outcome unknown; verify current state before retry",
+          true,
+        );
+      }
+    },
     read: async (branch: number, id: number, signal?: AbortSignal) =>
       loaded(
         await request(

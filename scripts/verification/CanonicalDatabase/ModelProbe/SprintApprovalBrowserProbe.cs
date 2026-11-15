@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 internal static class SprintApprovalBrowserProbe
 {
-    internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false)
+    internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false, bool rework = false)
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
         using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(4)); var ct=budget.Token;
@@ -31,6 +31,7 @@ internal static class SprintApprovalBrowserProbe
                 { if(!await reader.ReadAsync(ct)) throw new Exception("Fixture missing"); actor=reader.GetInt64(0); branch=reader.GetInt64(1); inspection=reader.GetInt64(2);task=reader.GetInt64(3);room=reader.GetInt64(4); }
                 await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintCleanerAttribution.sql",ct),ct);
                 cleaner=await SprintApproveProbe.SeedCleanerAsync(db,actor,branch,task,"recipient-eligible",ct);
+                if(rework) await SprintReworkFixture.SeedAsync(db,actor,cleaner,branch,ct);
                 if(rejection)
                     await db.Database.ExecuteSqlInterpolatedAsync($"""
                         UPDATE dbo.room_inspections SET workflow_status='INSPECTING' WHERE inspection_id={inspection};
@@ -81,6 +82,7 @@ internal static class SprintApprovalBrowserProbe
             }
             async Task Cleanup(CancellationToken token)
             {
+                if(rework) await SprintReworkFixture.CleanupAsync(db,cleaner,branch,inspection,token);
                 if(concurrentBlock) await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_DEV3_142A_ApprovalDelay",token);
                 if(rejection) await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id={inspection}; DELETE dbo.inspection_defects WHERE inspection_id={inspection}",token);
                 await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.room_blocks WHERE room_id={room} AND blocked_by={actor}; DELETE dbo.incidents WHERE room_id={room} AND reported_by={actor} AND incident_no IN('D3-APPROVE-BLOCK','D3-APPROVE-BLOCK-2')",token);
@@ -100,7 +102,7 @@ internal static class SprintApprovalBrowserProbe
                 using var process=Process.Start(start)??throw new Exception("Browser unavailable");
                 try
                 {
-                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username="D3-EVIDENCE",password,branch,inspection,blocked,retry,concurrentBlock,approvalRace}).AsMemory(),ct);process.StandardInput.Close();
+                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username="D3-EVIDENCE",password,branch,inspection,blocked,retry,concurrentBlock,approvalRace,rework}).AsMemory(),ct);process.StandardInput.Close();
                     var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);
                     if(concurrentBlock)
                     {
@@ -135,6 +137,16 @@ internal static class SprintApprovalBrowserProbe
                         ||await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!="INSPECTION")
                         throw new Exception("Rejected lifecycle/physical status mismatch");
                     checks.Add(new{blocked,rejection=true,atomicLifecycle=true,deduplicatedFanout=true,revocation=true,retry=true});
+                    if(rework)
+                    {
+                        var created=await db.CleaningReworks.AsNoTracking().SingleAsync(r=>r.InspectionId==inspection,ct);
+                        if(created.AssigneeUserId!=cleaner || created.Status!="PENDING"
+                            || await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.cleaning_reworks WHERE rework_id={created.ReworkId}").SingleAsync(ct)!="PENDING_ACCEPTANCE"
+                            || await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={created.ReworkId}").SingleAsync(ct)!=1
+                            || !await db.AuditLogs.AnyAsync(a=>a.EntityType=="cleaning_reworks"&&a.EntityId==created.ReworkId.ToString(),ct))
+                            throw new Exception("Persisted rework/defect/assignee/audit mismatch");
+                        checks.Add(new{blocked,reworkPersisted=true,selectedDefects=true,assignee=cleaner,audit=true});
+                    }
                 }
                 else
                 {

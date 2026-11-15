@@ -1,0 +1,122 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "REWORK_REQUIRED",
+            "message": null,
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "stage": "Request Rework preselected form and authoritative assignee",
+            "state": "PENDING_ACCEPTANCE",
+            "notification": "NOT_INTEGRATED"
+          },
+          "Existing open rework shown; duplicate submission unavailable"
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": false,
+      "reworkPersisted": true,
+      "selectedDefects": true,
+      "assignee": 1070409,
+      "audit": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    },
+    {
+      "blocked": true,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "BLOCKED",
+            "message": "MSG17",
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "stage": "Request Rework preselected form and authoritative assignee",
+            "state": "PENDING_ACCEPTANCE",
+            "notification": "NOT_INTEGRATED"
+          },
+          "Existing open rework shown; duplicate submission unavailable"
+        ]
+      }
+    },
+    {
+      "blocked": true,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": true,
+      "reworkPersisted": true,
+      "selectedDefects": true,
+      "assignee": 1070413,
+      "audit": true
+    },
+    {
+      "blocked": true,
+      "cleanup": true
+    }
+  ],
+  "failure": null
+}
