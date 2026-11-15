@@ -1,0 +1,148 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "REWORK_REQUIRED",
+            "message": null,
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "state": "FAILED",
+            "terminalDefectMutationsDenied": [
+              {
+                "method": "POST",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "POST",
+                "status": 412,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 412,
+                "snapshotUnchanged": true
+              }
+            ],
+            "readOnlyForm": true
+          }
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    },
+    {
+      "blocked": true,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "BLOCKED",
+            "message": "MSG17",
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "state": "FAILED",
+            "terminalDefectMutationsDenied": [
+              {
+                "method": "POST",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "POST",
+                "status": 412,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 412,
+                "snapshotUnchanged": true
+              }
+            ],
+            "readOnlyForm": true
+          }
+        ]
+      }
+    },
+    {
+      "blocked": true,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": true,
+      "cleanup": true
+    }
+  ],
+  "failure": null
+}

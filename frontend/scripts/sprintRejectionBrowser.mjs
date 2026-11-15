@@ -1,4 +1,5 @@
 import { chromium } from "@playwright/test";
+import { verifyLockedInspectionDefects } from "./inspectionDefectTerminalChecks.mjs";
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const fixture = JSON.parse(input);
@@ -29,10 +30,7 @@ try {
         const r = await fetch(url, {
           method,
           headers: { "Content-Type": "application/json", ...headers },
-          body:
-            method === "POST"
-              ? JSON.stringify(body)
-              : undefined,
+          body: method === "POST" ? JSON.stringify(body) : undefined,
           credentials: "include",
           cache: "no-store",
         });
@@ -290,6 +288,16 @@ try {
       throw Error("Rework duplicate status " + duplicate.status);
     checks.push("Existing open rework shown; duplicate API rejected409");
   }
+  stage = "Failed inspection locks defects";
+  checks.push(
+    await verifyLockedInspectionDefects(
+      page,
+      api,
+      fixture.branch,
+      fixture.inspection,
+      "FAILED",
+    ),
+  );
   process.stdout.write(JSON.stringify({ success: true, checks }));
 } catch (error) {
   process.stdout.write(

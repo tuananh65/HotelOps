@@ -92,6 +92,7 @@ try {
       actual: response.status,
       snapshotUnchanged: true,
     });
+    return response;
   }
   stage = "anonymous execution API denied";
   await page.goto(origin + "/login");
@@ -241,13 +242,11 @@ try {
   await page
     .getByLabel("Note", { exact: true })
     .fill("Synthetic criterion note\nSecond line");
-  await page
-    .getByLabel(/^Criterion evidence #/)
-    .setInputFiles({
-      name: "criterion.png",
-      mimeType: "image/png",
-      buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
-    });
+  await page.getByLabel(/^Criterion evidence #/).setInputFiles({
+    name: "criterion.png",
+    mimeType: "image/png",
+    buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+  });
   await page.getByRole("button", { name: "Save results", exact: true }).click();
   await page
     .getByLabel("Failed criterion")
@@ -285,6 +284,55 @@ try {
     description: "Synthetic rejected defect",
     location: "Synthetic bed",
   };
+  for (const [name, photos] of [
+    [
+      "bad base64",
+      [{ name: "bad.png", mimeType: "image/png", base64: "!invalid!" }],
+    ],
+    [
+      "bad extension",
+      [{ name: "bad.exe", mimeType: "image/png", base64: "iVBORw0KGgo=" }],
+    ],
+    [
+      "bad signature",
+      [{ name: "bad.png", mimeType: "image/png", base64: "bm90LXBuZw==" }],
+    ],
+    [
+      "too many files",
+      Array.from({ length: 6 }, () => ({
+        name: "valid.png",
+        mimeType: "image/png",
+        base64: "iVBORw0KGgo=",
+      })),
+    ],
+    [
+      "oversize file",
+      [
+        {
+          name: "large.png",
+          mimeType: "image/png",
+          base64: Buffer.concat([
+            Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+            Buffer.alloc(10 * 1024 * 1024 - 7),
+          ]).toString("base64"),
+        },
+      ],
+    ],
+  ]) {
+    const response = await rejected(
+      name,
+      api + "/defects",
+      400,
+      { ...defect, photos },
+      { ...headers, "If-Match": failed.etag },
+    );
+    const problem = JSON.parse(response.text);
+    if (
+      problem.title !== "INVALID_ATTACHMENT" ||
+      problem.messageCode !== "MSG23"
+    )
+      throw Error("Attachment diagnostic missing");
+  }
   await rejected(
     "defect audit failure rolls back defect and uploaded file",
     api + "/defects",
@@ -334,8 +382,36 @@ try {
   await page
     .getByRole("combobox", { name: /^Severity/ })
     .selectOption(String(fixture.severity));
-  await page.getByLabel("Description", { exact: true }).fill("Synthetic stain");
+  await page
+    .getByLabel("Description", { exact: true })
+    .fill("Synthetic stain\nSecond line");
   await page.getByLabel("Location", { exact: true }).fill("Synthetic bed");
+  stage = "invalid attachment stays editable and displays MSG23";
+  const beforeBadFile = await snapshot();
+  await page
+    .getByLabel(/Evidence \(JPG/)
+    .setInputFiles({
+      name: "bad.png",
+      mimeType: "image/png",
+      buffer: Buffer.from("not-png"),
+    });
+  await page
+    .getByRole("button", { name: "Record defect", exact: true })
+    .click();
+  await page
+    .getByRole("alert")
+    .filter({ hasText: "MSG23: Invalid file." })
+    .waitFor();
+  if (JSON.stringify(beforeBadFile) !== JSON.stringify(await snapshot()))
+    throw Error("Invalid UI file mutated source");
+  if (
+    !(await page
+      .getByRole("button", { name: "Record defect", exact: true })
+      .isEnabled())
+  )
+    throw Error("Validation blocked correction");
+  checks.push(stage);
+  stage = "defect with server catalog and evidence";
   await page.getByLabel(/Evidence \(JPG/).setInputFiles({
     name: "evidence.png",
     mimeType: "image/png",
@@ -345,6 +421,14 @@ try {
     .getByRole("button", { name: "Record defect", exact: true })
     .click();
   await page.getByText(/Defect #.*Synthetic stain/).waitFor();
+  await page
+    .getByText("MSG08: Inspection defect saved.", { exact: true })
+    .waitFor();
+  if (
+    (await snapshot()).body.defects[0].description !==
+    "Synthetic stain\nSecond line"
+  )
+    throw Error("Multiline defect lost");
   checks.push(stage);
   stage = "edit defect while inspecting";
   const beforeEdit = await snapshot();

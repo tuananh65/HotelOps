@@ -208,6 +208,8 @@ export function trustedSeverity(
     )
   );
 }
+export const invalidEvidenceMessage =
+  "MSG23: Invalid file. Only JPG, PNG or PDF files up to 10 MiB each and 5 files per upload are accepted.";
 export async function encodeEvidence(
   file: File,
   signal?: AbortSignal,
@@ -220,14 +222,14 @@ export async function encodeEvidence(
     file.name.length > 200 ||
     /[\\/:\x00-\x1f]/.test(file.name)
   )
-    throw new Error("Unsupported evidence file");
+    throw new Error(invalidEvidenceMessage);
   const ext = file.name.toLowerCase().split(".").pop();
   if (!(
     (mime === "image/png" && ext === "png") ||
     (mime === "image/jpeg" && (ext === "jpg" || ext === "jpeg")) ||
     (mime === "application/pdf" && ext === "pdf")
   ))
-    throw new Error("Evidence extension mismatch");
+    throw new Error(invalidEvidenceMessage);
   signal?.throwIfAborted();
   const bytes = new Uint8Array(await file.arrayBuffer());
   signal?.throwIfAborted();
@@ -238,7 +240,7 @@ export async function encodeEvidence(
         ? [255, 216, 255]
         : [37, 80, 68, 70, 45];
   if (!signature.every((b, i) => bytes[i] === b))
-    throw new Error("Evidence signature mismatch");
+    throw new Error(invalidEvidenceMessage);
   let data = "";
   for (let i = 0; i < bytes.length; i += 8192)
     data += String.fromCharCode(...bytes.subarray(i, i + 8192));

@@ -1,0 +1,140 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical approval admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "approve via canonical UI",
+            "state": "PASSED",
+            "readiness": "READY",
+            "message": "MSG08",
+            "notification": "DELIVERED"
+          },
+          "duplicate approval denied",
+          "reload persisted approval and effective readiness",
+          {
+            "state": "PASSED",
+            "terminalDefectMutationsDenied": [
+              {
+                "method": "POST",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "POST",
+                "status": 412,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 412,
+                "snapshotUnchanged": true
+              }
+            ],
+            "readOnlyForm": true
+          }
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "persistedBusinessAndNotification": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    },
+    {
+      "blocked": true,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical approval admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "approve via canonical UI",
+            "state": "PASSED",
+            "readiness": "BLOCKED",
+            "message": "MSG17",
+            "notification": "DELIVERED"
+          },
+          "duplicate approval denied",
+          "reload persisted approval and effective readiness",
+          {
+            "state": "PASSED",
+            "terminalDefectMutationsDenied": [
+              {
+                "method": "POST",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "POST",
+                "status": 412,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 409,
+                "snapshotUnchanged": true
+              },
+              {
+                "method": "PUT",
+                "status": 412,
+                "snapshotUnchanged": true
+              }
+            ],
+            "readOnlyForm": true
+          }
+        ]
+      }
+    },
+    {
+      "blocked": true,
+      "persistedBusinessAndNotification": true
+    },
+    {
+      "blocked": true,
+      "cleanup": true
+    }
+  ],
+  "failure": null
+}

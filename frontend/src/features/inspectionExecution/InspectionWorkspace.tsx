@@ -271,7 +271,9 @@ export function InspectionWorkspace({
               : "MSG08: Inspection passed and cleaning completed. Room readiness is READY."
             : kind === "finish"
               ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
-              : "Operation acknowledged by server.",
+              : kind === "defect"
+                ? "MSG08: Inspection defect saved."
+                : "Operation acknowledged by server.",
       );
     } catch (e) {
       if (!task.signal.aborted && !scope.signal.aborted) handle(e);
@@ -360,6 +362,12 @@ export function InspectionWorkspace({
           )}
           {current.value.notification && (
             <p>Notification: {current.value.notification}</p>
+          )}
+          {["PASSED", "FAILED"].includes(current.value.state) && (
+            <p role="status">
+              MSG24: Inspection is {current.value.state} and its defects can no
+              longer be changed.
+            </p>
           )}
           {current.value.state === "FAILED" && (
             <RequestReworkForm

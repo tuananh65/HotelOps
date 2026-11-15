@@ -1,0 +1,18 @@
+
+Running 13 tests using 1 worker
+
+  ok  1 tests\fe05-inspection-execution.spec.ts:73:1 › a concurrent conclusion displays scoped MSG24 and requires fresh read before any further action (920ms)
+  ok  2 tests\fe05-inspection-execution.spec.ts:140:1 › gate OFF and invalid scope never issue protected HTTP (343ms)
+  ok  3 tests\fe05-inspection-execution.spec.ts:154:1 › scoped read and no premature READY or implicit conclusion (272ms)
+  ok  4 tests\fe05-inspection-execution.spec.ts:177:1 › pending conclusion without defects explains MSG03 and cannot reject (303ms)
+  ok  5 tests\fe05-inspection-execution.spec.ts:213:1 › branch change A→B→A and session replacement discard old read (479ms)
+  ok  6 tests\fe05-inspection-execution.spec.ts:280:1 › session replacement during CSRF bootstrap prevents old write dispatch (457ms)
+  ok  7 tests\fe05-inspection-execution.spec.ts:323:1 › 401 closes scope and 403 does not invalidate session (364ms)
+  ok  8 tests\fe05-inspection-execution.spec.ts:343:1 › 401 remains denied across inspection URL changes until authority changes (472ms)
+  ok  9 tests\fe05-inspection-execution.spec.ts:365:1 › start, save FAIL, record private evidence and finish stop at Pending Conclusion (602ms)
+  ok 10 tests\fe05-inspection-execution.spec.ts:452:3 › write 412 blocks replay until an explicit authorized GET (439ms)
+  ok 11 tests\fe05-inspection-execution.spec.ts:452:3 › write 428 blocks replay until an explicit authorized GET (444ms)
+  ok 12 tests\fe05-inspection-execution.spec.ts:452:3 › write 503 blocks replay until an explicit authorized GET (440ms)
+  ok 13 tests\fe05-inspection-execution.spec.ts:452:3 › write network blocks replay until an explicit authorized GET (444ms)
+
+  13 passed (7.2s)

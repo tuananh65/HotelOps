@@ -31,6 +31,125 @@ const { createInspectionApi, InspectionApiError } = await import(
   data(apiSource)
 );
 const tag = '"0123456789ABCDEF"';
+test("defect errors distinguish input policy, scoped conclusion and uncertain storage failures without retry", async () => {
+  const options = [{ id: 617, code: "MAJOR", name: "Major" }];
+  const details = {
+    itemId: 17,
+    severityId: 617,
+    description: "First line\nSecond line",
+    location: "Bed",
+  };
+  for (const [status, body, message, uncertain] of [
+    [
+      400,
+      { title: "INVALID_ATTACHMENT", messageCode: "MSG23" },
+      /^MSG23:/,
+      false,
+    ],
+    [
+      409,
+      {
+        title: "INSPECTION_CONCLUDED",
+        messageCode: "MSG24",
+        branchId: 7,
+        inspectionId: 42,
+        state: "FAILED",
+        etag: tag,
+      },
+      /^MSG24: Inspection is FAILED/,
+      false,
+    ],
+    [
+      409,
+      {
+        title: "INSPECTION_CONCLUDED",
+        messageCode: "MSG24",
+        branchId: 7,
+        inspectionId: 42,
+        state: "PASSED",
+        etag: tag,
+      },
+      /^MSG24: Inspection is PASSED/,
+      false,
+    ],
+    [
+      409,
+      {
+        title: "INSPECTION_CONCLUDED",
+        messageCode: "MSG24",
+        branchId: 8,
+        inspectionId: 42,
+        state: "FAILED",
+        etag: tag,
+      },
+      /^Request failed/,
+      false,
+    ],
+    [
+      409,
+      {
+        title: "INSPECTION_CONCLUDED",
+        messageCode: "MSG24",
+        branchId: 7,
+        inspectionId: 42,
+        state: "FAILED",
+        etag: '"1111111111111111"',
+      },
+      /^Request failed/,
+      false,
+    ],
+    [
+      500,
+      { title: "INVALID_ATTACHMENT", messageCode: "MSG23" },
+      /^Request failed/,
+      true,
+    ],
+  ]) {
+    let writes = 0;
+    const api = client(async (path) =>
+      path === "/api/auth/csrf" ? csrf() : (writes++, json(body, status)),
+    );
+    await assert.rejects(api.defect(7, 42, tag, options, details), (error) => {
+      assert.equal(error.status, status);
+      assert.equal(error.uncertain, uncertain);
+      assert.match(error.message, message);
+      return true;
+    });
+    assert.equal(writes, 1);
+  }
+});
+test("too many defect files show MSG23 before transport and invalid controls remain rejected", async () => {
+  let calls = 0;
+  const api = client(async () => {
+    calls++;
+    return csrf();
+  });
+  const options = [{ id: 617, code: "MAJOR", name: "Major" }];
+  const details = {
+    itemId: 17,
+    severityId: 617,
+    description: "Stain",
+    location: "Bed",
+  };
+  await assert.rejects(
+    api.defect(7, 42, tag, options, {
+      ...details,
+      photos: Array(6).fill({
+        name: "photo.png",
+        mimeType: "image/png",
+        base64: "iVBORw0KGgo=",
+      }),
+    }),
+    /MSG23/,
+  );
+  await assert.rejects(
+    api.defect(7, 42, tag, options, {
+      ...details,
+      description: "unsafe\u0000text",
+    }),
+  );
+  assert.equal(calls, 0);
+});
 test("criterion notes allow multiline content while retaining length and control-character guards", () => {
   assert.equal(
     model.optionalNote("  First line\r\nSecond line\n  "),

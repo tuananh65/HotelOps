@@ -4,6 +4,7 @@ public sealed record EvidenceUpload(string Name, string MimeType, string Base64)
 public sealed record InspectionCriterionInput(long ItemId, string Outcome, string? Note = null, IReadOnlyList<EvidenceUpload>? Photos = null);
 public sealed record SaveInspectionRequest(IReadOnlyList<InspectionCriterionInput> Results, string Reason);
 public sealed record InspectionActionRequest(string Reason);
+public sealed record InspectionLockedDto(long InspectionId, long BranchId, string State, string ETag);
 public sealed record InspectionMissingItemDto(long ItemId, string Requirement);
 public sealed record InspectionIncompleteDto(long InspectionId, long BranchId, long VersionId, string ETag,
     IReadOnlyList<InspectionMissingItemDto> MissingItems);

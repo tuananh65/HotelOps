@@ -2,6 +2,8 @@ import {
   decodeInspection,
   positiveId,
   reason,
+  optionalNote,
+  invalidEvidenceMessage,
   strongTag,
   validateResults,
   trustedSeverity,
@@ -54,7 +56,7 @@ export function createInspectionApi(
     body?: unknown,
     etag?: string,
     signal?: AbortSignal,
-    finishSource?: { branch: number; id: number },
+    inspectionSource?: { branch: number; id: number },
   ): Promise<Response> {
     const active = signal ? AbortSignal.any([signal, lifetime]) : lifetime;
     active.throwIfAborted();
@@ -112,14 +114,36 @@ export function createInspectionApi(
     active.throwIfAborted();
     if (!response.ok) {
       if (response.status === 401) authority.onSessionInvalid?.(); // Synchronous, while operation remains live.
-      if (response.status === 400 && finishSource) {
+      if (response.status === 400 || response.status === 409) {
         const body = await response.json().catch(() => null);
         active.throwIfAborted();
         if (
+          response.status === 400 &&
+          body?.title === "INVALID_ATTACHMENT" &&
+          body.messageCode === "MSG23"
+        )
+          throw new InspectionApiError(400, invalidEvidenceMessage);
+        if (
+          response.status === 409 &&
+          inspectionSource &&
+          body?.title === "INSPECTION_CONCLUDED" &&
+          body.messageCode === "MSG24" &&
+          body.inspectionId === inspectionSource.id &&
+          body.branchId === inspectionSource.branch &&
+          body.etag === etag &&
+          ["PASSED", "FAILED"].includes(body.state)
+        )
+          throw new InspectionApiError(
+            409,
+            `MSG24: Inspection is ${body.state} and its defects can no longer be changed.`,
+          );
+        if (
+          response.status === 400 &&
+          inspectionSource &&
           body?.title === "INSPECTION_INCOMPLETE" &&
           body.messageCode === "MSG03" &&
-          body.inspectionId === finishSource.id &&
-          body.branchId === finishSource.branch &&
+          body.inspectionId === inspectionSource.id &&
+          body.branchId === inspectionSource.branch &&
           body.etag === etag &&
           Number.isSafeInteger(body.versionId) &&
           body.versionId > 0 &&
@@ -494,10 +518,12 @@ export function createInspectionApi(
         !details.description.trim() ||
         !details.location.trim() ||
         details.description.length > 4000 ||
-        details.location.length > 250 ||
-        (details.photos?.length ?? 0) > 5
+        details.location.length > 250
       )
         throw new InspectionApiError(400, "Invalid defect");
+      optionalNote(details.description);
+      if ((details.photos?.length ?? 0) > 5)
+        throw new InspectionApiError(400, invalidEvidenceMessage);
       return loaded(
         await request(
           defectId === undefined ? "POST" : "PUT",
@@ -505,6 +531,7 @@ export function createInspectionApi(
           details,
           etag,
           signal,
+          { branch, id },
         ),
         branch,
         id,

@@ -3,6 +3,7 @@ using HotelOps.Api.Data;
 using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.Housekeeping;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.HotelStructure;
@@ -24,11 +25,11 @@ public sealed partial class RoomTypeCreationService
     private static bool WorkflowStrongTag(string? tag) => tag is { Length: 18 } && tag[0] == '"' && tag[^1] == '"'
         && tag.Skip(1).Take(16).All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
     private static string WorkflowReason(string? text) => ChecklistText(text, 500);
-    private static string InspectionCriterionNote(string? text)
+    private static string InspectionMultilineText(string? text)
     {
         var note = (text ?? "").Trim();
         if (note.Length > 4000 || note.Any(c => char.IsControl(c) && c is not ('\r' or '\n')))
-            throw new ValidationException("Criterion note must contain at most 4000 characters without unsupported control characters.");
+            throw new ValidationException("Inspection text must contain at most 4000 characters without unsupported control characters.");
         return note;
     }
 
@@ -52,6 +53,13 @@ public sealed partial class RoomTypeCreationService
                     && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
                 if (source == null || source.CleaningTaskId is not { } cleaningTask) return new(RoomTypeBatchStatus.NotFound);
                 if (source.InspectorUserId != actor) return new(RoomTypeBatchStatus.Forbidden);
+                var state = await InspectionState(id, token);
+                if (state.State == null) return new(RoomTypeBatchStatus.SchemaRequired);
+                if (operation is "defect" or "edit-defect" && state.State is "PASSED" or "FAILED")
+                {
+                    if (expected != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
+                    return new(RoomTypeBatchStatus.Inactive, new InspectionLockedDto(id, branch, state.State, WorkflowTag(state.Revision)));
+                }
                 // UC047 owns exact submitted-defect decisions. The generic checklist workflow
                 // must not start/save/finish a reinspection or rewrite its historical source.
                 if (operation != "read" && await db.CleaningReworks.AsNoTracking()
@@ -60,8 +68,6 @@ public sealed partial class RoomTypeCreationService
                 if (operation != "read" && (!await ReworkCurrentCycle(source.RoomId, cleaningTask, token)
                     || (await CleaningState(cleaningTask, token)).State != "PENDING_INSPECTION"))
                     return new(RoomTypeBatchStatus.Inactive);
-                var state = await InspectionState(id, token);
-                if (state.State == null) return new(RoomTypeBatchStatus.SchemaRequired);
                 if (operation != "read" && expected != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
                 var before = await ExecutionDto(source, state, branch, token);
                 if (operation == "read") return new(RoomTypeBatchStatus.Success, before, WorkflowTag(state.Revision));
@@ -77,12 +83,12 @@ public sealed partial class RoomTypeCreationService
                     if (state.State != "INSPECTING") return new(RoomTypeBatchStatus.Inactive);
                     if (save?.Results == null || save.Results.Count > 200 || save.Results.Any(r => r == null) || save.Results.Select(r => r.ItemId).Distinct().Count() != save.Results.Count)
                         throw new ValidationException("Invalid criterion results.");
-                    if (save.Results.Sum(r => r.Photos?.Count ?? 0) > 5) throw new ValidationException("At most five files per save.");
+                    if (save.Results.Sum(r => r.Photos?.Count ?? 0) > 5) throw new EvidenceInputException("At most five files per save.");
                     var validItems = await db.InspectionChecklistItems.AsNoTracking().Where(i => i.VersionId == source.VersionId && i.IsActive).Select(i => i.ItemId).ToArrayAsync(token);
                     foreach (var result in save.Results)
                     {
                         if (!validItems.Contains(result.ItemId) || result.Outcome is not ("PASS" or "FAIL")) throw new ValidationException("Result must be PASS/FAIL for an active assigned criterion.");
-                        var note = InspectionCriterionNote(result.Note);
+                        var note = InspectionMultilineText(result.Note);
                         if (result.Outcome == "PASS" && await db.InspectionDefects.AnyAsync(d => d.InspectionId == id && d.ChecklistItemId == result.ItemId, token))
                             return new(RoomTypeBatchStatus.InvalidReference);
                         var row = await db.InspectionResults.SingleOrDefaultAsync(r => r.InspectionId == id && r.ChecklistItemId == result.ItemId, token);
@@ -117,8 +123,10 @@ public sealed partial class RoomTypeCreationService
                 else
                 {
                     if (state.State is not ("INSPECTING" or "PENDING_CONCLUSION")) return new(RoomTypeBatchStatus.Inactive);
-                    if (defect == null || defect.ItemId <= 0 || defect.SeverityId <= 0 || (defect.Photos?.Count ?? 0) > 5) throw new ValidationException("Invalid defect.");
-                    var description = ChecklistText(defect.Description, 4000); var location = ChecklistText(defect.Location, 250);
+                    if (defect == null || defect.ItemId <= 0 || defect.SeverityId <= 0) throw new ValidationException("Invalid defect.");
+                    if ((defect.Photos?.Count ?? 0) > 5) throw new EvidenceInputException("At most five files per defect.");
+                    var description = InspectionMultilineText(defect.Description); var location = ChecklistText(defect.Location, 250);
+                    if (description.Length == 0) throw new ValidationException("Defect description is required.");
                     if (!await db.ReferenceValues.AnyAsync(r => r.ReferenceId == defect.SeverityId && r.IsActive && r.GroupCode == "SEVERITY" && (r.ValueCode == "MINOR" || r.ValueCode == "MAJOR"), token)
                         || !await db.InspectionResults.AnyAsync(r => r.InspectionId == id && r.ChecklistItemId == defect.ItemId && r.Outcome == "FAIL"
                             && r.ChecklistItem.VersionId == source.VersionId && r.ChecklistItem.IsActive, token)) return new(RoomTypeBatchStatus.InvalidReference);
@@ -179,16 +187,16 @@ public sealed partial class RoomTypeCreationService
     {
         if (upload == null || string.IsNullOrWhiteSpace(upload.Name) || upload.Name.Length > 200 || upload.Name.Any(char.IsControl)
             || upload.Name.IndexOfAny(['/', '\\', ':']) >= 0 || string.IsNullOrEmpty(upload.Base64) || upload.Base64.Length > 14 * 1024 * 1024)
-            throw new ValidationException("Invalid evidence metadata.");
+            throw new EvidenceInputException("Invalid evidence metadata.");
         byte[] bytes;
-        try { bytes = Convert.FromBase64String(upload.Base64); } catch (FormatException) { throw new ValidationException("Invalid evidence encoding."); }
-        if (bytes.Length is < 1 or > 10 * 1024 * 1024) throw new ValidationException("Evidence must be at most 10 MiB.");
+        try { bytes = Convert.FromBase64String(upload.Base64); } catch (FormatException) { throw new EvidenceInputException("Invalid evidence encoding."); }
+        if (bytes.Length is < 1 or > 10 * 1024 * 1024) throw new EvidenceInputException("Evidence must be at most 10 MiB.");
         var mime = bytes.AsSpan().StartsWith(new byte[] {137,80,78,71,13,10,26,10}) ? "image/png"
             : bytes.AsSpan().StartsWith(new byte[] {255,216,255}) ? "image/jpeg" : bytes.AsSpan().StartsWith("%PDF-"u8) ? "application/pdf" : null;
-        if (mime == null || mime != upload.MimeType) throw new ValidationException("Evidence must be JPG, PNG or PDF with matching MIME.");
+        if (mime == null || mime != upload.MimeType) throw new EvidenceInputException("Evidence must be JPG, PNG or PDF with matching MIME.");
         var extension = Path.GetExtension(upload.Name).ToLowerInvariant();
         if (mime == "image/png" && extension != ".png" || mime == "image/jpeg" && extension is not (".jpg" or ".jpeg") || mime == "application/pdf" && extension != ".pdf")
-            throw new ValidationException("Evidence extension must match its format.");
+            throw new EvidenceInputException("Evidence extension must match its format.");
         var directory = Path.GetFullPath(root); Directory.CreateDirectory(directory);
         if ((File.GetAttributes(directory) & FileAttributes.ReparsePoint) != 0) throw new ValidationException("Private storage unavailable.");
         var key = Guid.NewGuid().ToString("N") + (mime == "image/png" ? ".png" : mime == "image/jpeg" ? ".jpg" : ".pdf");

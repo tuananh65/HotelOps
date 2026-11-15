@@ -70,6 +70,66 @@ test.beforeAll(async () => {
 test.afterAll(async () => {
   await server?.close();
 });
+test("a concurrent conclusion displays scoped MSG24 and requires fresh read before any further action", async ({
+  page,
+}) => {
+  let state = "INSPECTING";
+  let writes = 0;
+  const current = () => ({
+    ...snapshot(state),
+    criteria: [{ ...snapshot().criteria[0], outcome: "FAIL" }],
+    severities: [{ id: 617, code: "MAJOR", name: "Major" }],
+  });
+  await page.route("**/api/**", (route) => {
+    if (route.request().url().endsWith("/api/auth/csrf"))
+      return route.fulfill({
+        json: { csrfToken: "fixture", headerName: "X-CSRF-TOKEN" },
+      });
+    if (route.request().method() !== "GET") {
+      writes++;
+      state = "FAILED";
+      return route.fulfill({
+        status: 409,
+        json: {
+          title: "INSPECTION_CONCLUDED",
+          messageCode: "MSG24",
+          inspectionId: 42,
+          branchId: 7,
+          state,
+          etag,
+        },
+      });
+    }
+    return route.fulfill({ json: current(), headers: { ETag: etag } });
+  });
+  await render(page);
+  await page.getByLabel("Failed criterion").selectOption("17");
+  await page.getByRole("combobox", { name: /^Severity/ }).selectOption("617");
+  await page.getByLabel("Description", { exact: true }).fill("Stain");
+  await page.getByLabel("Location", { exact: true }).fill("Bed");
+  await page
+    .getByRole("button", { name: "Record defect", exact: true })
+    .click();
+  await expect(
+    page.getByRole("alert").filter({ hasText: "MSG24: Inspection is FAILED" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Record defect", exact: true }),
+  ).toHaveCount(0);
+  await page
+    .getByRole("button", { name: "Verify current state (GET)", exact: true })
+    .click();
+  await expect(
+    page.getByText(
+      "MSG24: Inspection is FAILED and its defects can no longer be changed.",
+      { exact: true },
+    ),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Record defect", exact: true }),
+  ).toBeDisabled();
+  expect(writes).toBe(1);
+});
 async function render(page: Page, context: unknown = host, id = "42") {
   await page.goto(url + "__execution");
   await page.evaluate(

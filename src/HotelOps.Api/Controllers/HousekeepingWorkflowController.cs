@@ -97,9 +97,15 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
                 return Problem(statusCode:400,title:"INSPECTION_INCOMPLETE",extensions:new Dictionary<string,object?>
                     { ["messageCode"]="MSG03", ["inspectionId"]=incomplete.InspectionId, ["branchId"]=incomplete.BranchId,
                       ["versionId"]=incomplete.VersionId, ["etag"]=incomplete.ETag, ["missingItems"]=incomplete.MissingItems });
+            if(result.Status==RoomTypeBatchStatus.Inactive && result.Value is InspectionLockedDto locked)
+                return Problem(statusCode:409,title:"INSPECTION_CONCLUDED",extensions:new Dictionary<string,object?>
+                    { ["messageCode"]="MSG24", ["inspectionId"]=locked.InspectionId, ["branchId"]=locked.BranchId,
+                      ["state"]=locked.State, ["etag"]=locked.ETag });
             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
         }
+        catch(HotelOps.Api.Services.Housekeeping.EvidenceInputException)
+        { return Problem(statusCode:400,title:"INVALID_ATTACHMENT",extensions:new Dictionary<string,object?> { ["messageCode"]="MSG23" }); }
         catch(ValidationException error){return Problem(statusCode:400,title:"VALIDATION_FAILED",detail:error.Message);}
     }
 }

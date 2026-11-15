@@ -1,4 +1,5 @@
 import { chromium } from "@playwright/test";
+import { verifyLockedInspectionDefects } from "./inspectionDefectTerminalChecks.mjs";
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const fixture = JSON.parse(input);
@@ -158,6 +159,16 @@ try {
     })
     .waitFor();
   checks.push(stage);
+  stage = "Passed inspection locks defects";
+  checks.push(
+    await verifyLockedInspectionDefects(
+      page,
+      api,
+      fixture.branch,
+      fixture.inspection,
+      "PASSED",
+    ),
+  );
   process.stdout.write(JSON.stringify({ success: true, checks }));
 } catch (error) {
   process.stdout.write(
