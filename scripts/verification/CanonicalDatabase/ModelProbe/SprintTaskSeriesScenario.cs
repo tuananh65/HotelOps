@@ -155,6 +155,8 @@ internal static class SprintTaskSeriesScenario
         var futureCreated = await Send(managerHttp, HttpMethod.Post, root, future);
         Check(futureCreated.Status == 201 && futureCreated.Body.GetProperty("series").GetProperty("occurrenceCount").GetInt32() == 0, "future series waits for its one-day lead horizon");
         var futureId = futureCreated.Body.GetProperty("series").GetProperty("seriesId").GetInt64();
+        await SprintTaskSeriesUserRace.RunAsync(db, manager.UserId, actor, () => Generate(futureId, first.AddDays(4)),
+            () => Fingerprint(), checks, ct);
         before = await Fingerprint();
         try {
             await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_SeriesFault ON dbo.audit_logs AFTER INSERT AS BEGIN IF EXISTS(SELECT 1 FROM inserted WHERE JSON_VALUE(new_values,'$.operation')='GENERATE') THROW 51872,'Synthetic JOB05 audit failure',1; END", ct);
