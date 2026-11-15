@@ -54,6 +54,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
   const [review, setReview] = useState(false),
     [busy, setBusy] = useState(false),
     [locked, setLocked] = useState(false);
+  const [showValidation, setShowValidation] = useState(false);
   const [saved, setSaved] = useState<{
     owner: typeof owner;
     data: ReinspectionConclusion;
@@ -65,6 +66,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
     setLoaded(null);
     setDecisions({});
     setReview(false);
+    setShowValidation(false);
     void readReinspection(branch, id, abort.signal)
       .then((data) => {
         if (!abort.signal.aborted && current.current === owner) {
@@ -199,6 +201,9 @@ function Execution({ branch, id }: { branch: string; id: string }) {
       {!data && !message && <p role="status">Loading reinspection…</p>}
       {result && (
         <section aria-label="Reinspection conclusion">
+          {saved?.owner === owner && (
+            <p role="status">Reinspection has been saved successfully.</p>
+          )}
           <p role="status">
             Reinspection {result.state === "PASSED" ? "Passed" : "Failed"}.
             Rework {result.reworkState === "COMPLETED" ? "Completed" : "Failed"}
@@ -277,6 +282,7 @@ function Execution({ branch, id }: { branch: string; id: string }) {
             <p role="status">The room is blocked (MSG17).</p>
           )}
           <form
+            onInvalidCapture={() => setShowValidation(true)}
             onSubmit={(e) => {
               e.preventDefault();
               setMessage("");
@@ -314,6 +320,12 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                   <select
                     id={`decision-${d.id}`}
                     required
+                    aria-invalid={showValidation && !decisions[d.id]?.fixed}
+                    aria-describedby={
+                      showValidation && !decisions[d.id]?.fixed
+                        ? `decision-error-${d.id}`
+                        : undefined
+                    }
                     value={decisions[d.id]?.fixed ?? ""}
                     onChange={(e) => change(d.id, { fixed: e.target.value })}
                   >
@@ -321,6 +333,16 @@ function Execution({ branch, id }: { branch: string; id: string }) {
                     <option value="FIXED">Fixed</option>
                     <option value="NOT_FIXED">Not Fixed</option>
                   </select>
+                  {showValidation && !decisions[d.id]?.fixed && (
+                    <p
+                      id={`decision-error-${d.id}`}
+                      role="alert"
+                      style={{ color: "#b91c1c" }}
+                    >
+                      Result: select Fixed or Not Fixed. Please check and try
+                      again.
+                    </p>
+                  )}
                   <label htmlFor={`note-${d.id}`}>
                     Note for defect #{d.id}
                   </label>

@@ -95,12 +95,41 @@ internal static class SprintReinspectionHttpsProbe
                 if (outcome is not ("PASS" or "FAIL")) throw new Exception("Explicit PASS/FAIL browser outcome required");
                 if(nextRound&&(!conclude||outcome!="FAIL"))throw new Exception("Next round requires browser Failed conclusion");
                 var distinctInspector = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR") == "1";
-                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework, conclude, outcome, nextRound, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
+                var retireAfterAssignment = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_RETIRE_AFTER_ASSIGNMENT") == "1";
+                if (retireAfterAssignment && !conclude) throw new Exception("Retirement trial requires the complete browser conclusion mode");
+                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework,
+                    conclude = conclude && !retireAfterAssignment, outcome, nextRound = nextRound && !retireAfterAssignment, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
                 process.StandardInput.Close();
                 var browserOutput = process.StandardOutput.ReadToEndAsync(ct); var browserErrors = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct); var result = JsonSerializer.Deserialize<JsonElement>(await browserOutput); await browserErrors;
                 if (process.ExitCode != 0 || !result.GetProperty("success").GetBoolean()) throw new Exception("Reinspection browser: " + result.GetRawText());
                 var inspection = result.GetProperty("inspection").GetInt64();
+                if (retireAfterAssignment)
+                {
+                    if (!result.GetProperty("canonicalAssignment").GetBoolean() || result.GetProperty("conclusion").ValueKind != JsonValueKind.Null)
+                        throw new Exception("Expected real assigned source before retirement");
+                    await SprintReinspectionRetirementProbe.RetireAfterAssignmentAsync(db, actor, branch, rework, inspection, ct);
+                    using var resumed = Process.Start(browser) ?? throw new Exception("Retired-source browser unavailable");
+                    try
+                    {
+                        await resumed.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework,
+                            conclude, outcome, nextRound, distinctInspector, existingInspection = inspection, executor = executorTicket.UserId }).AsMemory(), ct);
+                        resumed.StandardInput.Close();
+                        var resumedOutput = resumed.StandardOutput.ReadToEndAsync(ct); var resumedErrors = resumed.StandardError.ReadToEndAsync(ct);
+                        await resumed.WaitForExitAsync(ct); result = JsonSerializer.Deserialize<JsonElement>(await resumedOutput); await resumedErrors;
+                        if (resumed.ExitCode != 0 || !result.GetProperty("success").GetBoolean()
+                            || !result.GetProperty("retiredVersionAssignmentReload").GetBoolean() || result.GetProperty("inspection").GetInt64() != inspection)
+                            throw new Exception("Retired-source browser: " + result.GetRawText());
+                    }
+                    finally { if (!resumed.HasExited) resumed.Kill(true); }
+                    if (await db.Database.SqlQuery<int>($"""
+                        SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
+                        JOIN dbo.inspection_checklist_versions v ON v.version_id=b.version_id AND v.status='RETIRED'
+                        JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.version_id=b.version_id
+                        JOIN dbo.room_inspections original ON original.inspection_id=b.original_inspection_id AND original.version_id=b.version_id
+                        WHERE b.inspection_id={inspection} AND b.rework_id={rework} AND b.reinspector_user_id={actor}
+                        """).SingleAsync(ct) != 1) throw new Exception("Retired version was changed or remapped");
+                }
                 if (await db.Database.SqlQuery<int>($"""
                     SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
                     JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id={actor}

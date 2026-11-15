@@ -1,0 +1,418 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "REWORK_REQUIRED",
+            "message": null,
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "label": "rework CSRF",
+            "status": 400
+          },
+          {
+            "label": "rework revision",
+            "status": 428
+          },
+          {
+            "label": "rework stale",
+            "status": 412
+          },
+          {
+            "label": "rework empty defects",
+            "status": 400
+          },
+          {
+            "label": "rework foreign defect",
+            "status": 400
+          },
+          {
+            "label": "rework ineligible assignee",
+            "status": 400
+          },
+          {
+            "label": "rework past due",
+            "status": 400
+          },
+          {
+            "stage": "Request Rework preselected form and authoritative assignee",
+            "state": "PENDING_ACCEPTANCE",
+            "notification": "PENDING_DELIVERY"
+          },
+          "Existing open rework shown; duplicate API rejected409"
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": false,
+      "submissionSql": true,
+      "submissionRemediationAttribution": true,
+      "submissionIntervalClosed": true,
+      "submissionUploadRollback": true,
+      "submissionAuditRollback": true,
+      "concurrentSubmissionOneReceipt": true,
+      "submissionChangedRequestDenied": true,
+      "submissionStaleDenied": true,
+      "submissionRevocationDenied": true,
+      "submissionDisabledIssuerDenied": true,
+      "submissionSchemaRestored": true,
+      "submissionHttps": true,
+      "submissionPerDefectForm": true,
+      "submissionPhotoHttps": true,
+      "submissionReload": true,
+      "submissionCsrfEtag": true,
+      "submissionDeliveryRollback": true,
+      "submissionDeliveryRevocation": true,
+      "submissionDeliveryDeduplicated": true,
+      "submissionSupervisorInboxHttps": true,
+      "submissionSupervisorSourceFailClosed": true
+    },
+    {
+      "blocked": false,
+      "exactReinspectionAssignmentSql": true,
+      "assignmentStaleDenied": true,
+      "assignmentBranchRevocationDenied": true,
+      "assignmentAuditRollback": true,
+      "assignmentConcurrentReplayOneBinding": true,
+      "assignmentChangedRequestDenied": true,
+      "assignmentDuplicateDenied": true,
+      "assignmentSchemaRollbackAndCleanup": true,
+      "reinspectionConclusionVerified": false,
+      "reinspectionConclusionSqlVerified": true,
+      "reinspectionConclusionOutcome": "PASS",
+      "reinspectionConclusionStaleRollbackConcurrency": false,
+      "reinspectionConclusionBrowserVerified": true,
+      "terminalReinspectionReadEvidenceSql": true,
+      "terminalReadRevocationAuditTamperDenied": true,
+      "terminalReadRecomputesReadiness": true,
+      "terminalReadDoesNotReopenMutation": true,
+      "executorTerminalReadSql": true,
+      "executorTerminalEvidenceSql": true,
+      "executorTerminalRevocationTamperDenied": true,
+      "executorTerminalBrowser": true,
+      "nextRoundCommittedBrowser": false,
+      "nextRoundNotificationExecutorSource": false,
+      "originalInspectionScopedRead": true,
+      "originalInspectionBrowserLink": true,
+      "distinctReinspector": true,
+      "reinspectionConcurrentBlockSql": false,
+      "assignedVersionRetiredBrowserVerified": true,
+      "reinspectionPassedDeliveryRollbackRetryDedup": true,
+      "reinspectionPassedInboxSourceBrowser": true,
+      "terminalReloadBrowserVerified": true,
+      "reinspectionAssignmentBrowserVerified": true,
+      "reinspectionAssignmentCsrfEtag": true,
+      "reinspectionAssignmentReplay": true,
+      "reinspectionAssignmentReload": true,
+      "executorSubmissionReadAfterAssignment": true,
+      "assignedReinspectionDetailSqlHttps": true,
+      "assignedReinspectionEvidenceHttps": true,
+      "reinspectionReadRevocationDenied": true,
+      "reinspectionReadAuditTamperDenied": true,
+      "reinspectionReadForeignSourceDenied": true,
+      "reinspectionReadDoesNotMutate": true,
+      "genericInspectionMutationDenied": true
+    },
+    {
+      "blocked": false,
+      "committedAcceptStart": true,
+      "receiveReplay": true,
+      "changedRequestKeyDenied": true,
+      "noWorkdayRollback": true,
+      "busyStartDenied": true,
+      "startAuditRollback": true,
+      "concurrentStartOneInterval": true,
+      "executionSchemaRestored": true
+    },
+    {
+      "blocked": false,
+      "restrictedReceiveBrowser": true,
+      "defectPhotoHttps": true,
+      "receiveCsrfEtag": true,
+      "receiveAcceptStartHttps": true,
+      "receiveReload": true,
+      "receiveReplayHttps": true,
+      "receiveEffectiveReadiness": true,
+      "restrictedRoleCleanup": true
+    },
+    {
+      "blocked": false,
+      "assigneeInboxBrowser": true,
+      "inboxReloadPersistence": true,
+      "notificationSourceHttps": true,
+      "privilegedDetailFailClosed": true
+    },
+    {
+      "blocked": false,
+      "reworkCreateAuditRollback": true,
+      "reworkCreateConcurrency": true,
+      "oneOpenRework": true
+    },
+    {
+      "blocked": false,
+      "reworkPersisted": true,
+      "selectedDefects": true,
+      "assignee": 1070849,
+      "audit": true,
+      "assignedReadWithRealSession": true,
+      "sourceResolution": true,
+      "revokedSourceDenied": true,
+      "foreignEvidenceDenied": true,
+      "reworkDelivery": true,
+      "reworkDeliveryRollback": true,
+      "reworkDeliveryRevocation": true,
+      "reworkConcurrentRetry": true,
+      "committedAuthority": true,
+      "leastPrivilegeReader": true,
+      "sourceTamperDenied": true,
+      "disabledIssuerDenied": true,
+      "unauthorizedDenied": true,
+      "noShiftAssignee": true,
+      "ineligibleAssigneesDenied": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    },
+    {
+      "blocked": true,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "BLOCKED",
+            "message": "MSG17",
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "label": "rework CSRF",
+            "status": 400
+          },
+          {
+            "label": "rework revision",
+            "status": 428
+          },
+          {
+            "label": "rework stale",
+            "status": 412
+          },
+          {
+            "label": "rework empty defects",
+            "status": 400
+          },
+          {
+            "label": "rework foreign defect",
+            "status": 400
+          },
+          {
+            "label": "rework ineligible assignee",
+            "status": 400
+          },
+          {
+            "label": "rework past due",
+            "status": 400
+          },
+          {
+            "stage": "Request Rework preselected form and authoritative assignee",
+            "state": "PENDING_ACCEPTANCE",
+            "notification": "PENDING_DELIVERY"
+          },
+          "Existing open rework shown; duplicate API rejected409"
+        ]
+      }
+    },
+    {
+      "blocked": true,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": true,
+      "submissionSql": true,
+      "submissionRemediationAttribution": true,
+      "submissionIntervalClosed": true,
+      "submissionUploadRollback": true,
+      "submissionAuditRollback": true,
+      "concurrentSubmissionOneReceipt": true,
+      "submissionChangedRequestDenied": true,
+      "submissionStaleDenied": true,
+      "submissionRevocationDenied": true,
+      "submissionDisabledIssuerDenied": true,
+      "submissionSchemaRestored": true,
+      "submissionHttps": true,
+      "submissionPerDefectForm": true,
+      "submissionPhotoHttps": true,
+      "submissionReload": true,
+      "submissionCsrfEtag": true,
+      "submissionDeliveryRollback": true,
+      "submissionDeliveryRevocation": true,
+      "submissionDeliveryDeduplicated": true,
+      "submissionSupervisorInboxHttps": true,
+      "submissionSupervisorSourceFailClosed": true
+    },
+    {
+      "blocked": true,
+      "exactReinspectionAssignmentSql": true,
+      "assignmentStaleDenied": true,
+      "assignmentBranchRevocationDenied": true,
+      "assignmentAuditRollback": true,
+      "assignmentConcurrentReplayOneBinding": true,
+      "assignmentChangedRequestDenied": true,
+      "assignmentDuplicateDenied": true,
+      "assignmentSchemaRollbackAndCleanup": true,
+      "reinspectionConclusionVerified": false,
+      "reinspectionConclusionSqlVerified": true,
+      "reinspectionConclusionOutcome": "PASS",
+      "reinspectionConclusionStaleRollbackConcurrency": false,
+      "reinspectionConclusionBrowserVerified": true,
+      "terminalReinspectionReadEvidenceSql": true,
+      "terminalReadRevocationAuditTamperDenied": true,
+      "terminalReadRecomputesReadiness": true,
+      "terminalReadDoesNotReopenMutation": true,
+      "executorTerminalReadSql": true,
+      "executorTerminalEvidenceSql": true,
+      "executorTerminalRevocationTamperDenied": true,
+      "executorTerminalBrowser": true,
+      "nextRoundCommittedBrowser": false,
+      "nextRoundNotificationExecutorSource": false,
+      "originalInspectionScopedRead": true,
+      "originalInspectionBrowserLink": true,
+      "distinctReinspector": true,
+      "reinspectionConcurrentBlockSql": false,
+      "assignedVersionRetiredBrowserVerified": true,
+      "reinspectionPassedDeliveryRollbackRetryDedup": true,
+      "reinspectionPassedInboxSourceBrowser": true,
+      "terminalReloadBrowserVerified": true,
+      "reinspectionAssignmentBrowserVerified": true,
+      "reinspectionAssignmentCsrfEtag": true,
+      "reinspectionAssignmentReplay": true,
+      "reinspectionAssignmentReload": true,
+      "executorSubmissionReadAfterAssignment": true,
+      "assignedReinspectionDetailSqlHttps": true,
+      "assignedReinspectionEvidenceHttps": true,
+      "reinspectionReadRevocationDenied": true,
+      "reinspectionReadAuditTamperDenied": true,
+      "reinspectionReadForeignSourceDenied": true,
+      "reinspectionReadDoesNotMutate": true,
+      "genericInspectionMutationDenied": true
+    },
+    {
+      "blocked": true,
+      "committedAcceptStart": true,
+      "receiveReplay": true,
+      "changedRequestKeyDenied": true,
+      "noWorkdayRollback": true,
+      "busyStartDenied": true,
+      "startAuditRollback": true,
+      "concurrentStartOneInterval": true,
+      "executionSchemaRestored": true
+    },
+    {
+      "blocked": true,
+      "restrictedReceiveBrowser": true,
+      "defectPhotoHttps": true,
+      "receiveCsrfEtag": true,
+      "receiveAcceptStartHttps": true,
+      "receiveReload": true,
+      "receiveReplayHttps": true,
+      "receiveEffectiveReadiness": true,
+      "restrictedRoleCleanup": true
+    },
+    {
+      "blocked": true,
+      "assigneeInboxBrowser": true,
+      "inboxReloadPersistence": true,
+      "notificationSourceHttps": true,
+      "privilegedDetailFailClosed": true
+    },
+    {
+      "blocked": true,
+      "reworkCreateAuditRollback": true,
+      "reworkCreateConcurrency": true,
+      "oneOpenRework": true
+    },
+    {
+      "blocked": true,
+      "reworkPersisted": true,
+      "selectedDefects": true,
+      "assignee": 1070855,
+      "audit": true,
+      "assignedReadWithRealSession": true,
+      "sourceResolution": true,
+      "revokedSourceDenied": true,
+      "foreignEvidenceDenied": true,
+      "reworkDelivery": true,
+      "reworkDeliveryRollback": true,
+      "reworkDeliveryRevocation": true,
+      "reworkConcurrentRetry": true,
+      "committedAuthority": true,
+      "leastPrivilegeReader": true,
+      "sourceTamperDenied": true,
+      "disabledIssuerDenied": true,
+      "unauthorizedDenied": true,
+      "noShiftAssignee": true,
+      "ineligibleAssigneesDenied": true
+    },
+    {
+      "blocked": true,
+      "cleanup": true
+    }
+  ],
+  "failure": null
+}

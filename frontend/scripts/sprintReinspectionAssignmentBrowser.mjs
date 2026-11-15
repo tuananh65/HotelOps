@@ -18,6 +18,19 @@ try {
   await page.waitForURL(origin + destination);
   stage = "assignment options";
   await page.getByRole("heading", { name: "Assign reinspection", exact: true }).waitFor();
+  let body;
+  if (fixture.existingInspection) {
+    stage = "reload assignment after checklist retirement";
+    const existing = await page.evaluate(async api => {
+      const response = await fetch(api + "/reinspection-options", { credentials: "include" });
+      return { status: response.status, body: await response.json() };
+    }, api);
+    if (existing.status !== 200 || existing.body.existingInspectionId !== fixture.existingInspection
+      || existing.body.canAssign !== false || existing.body.unavailableReason !== "ALREADY_ASSIGNED") throw Error("Retirement hid the committed assignment");
+    body = { id: fixture.existingInspection };
+    await page.getByText(`An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
+    if (await page.getByRole("button", { name: "Review assignment", exact: true }).count()) throw Error("Retirement reopened assignment");
+  } else {
   stage = "options API admission";
   const admission = await page.evaluate(async api => {
     const response = await fetch(api + "/reinspection-options", { credentials: "include" });
@@ -56,7 +69,7 @@ try {
   await page.getByRole("button", { name: "Review assignment", exact: true }).click();
   const pending = page.waitForResponse(response => response.url().endsWith(api + "/reinspection") && response.request().method() === "POST");
   await page.getByRole("button", { name: "Confirm assignment", exact: true }).click();
-  const response = await pending, body = await response.json();
+  const response = await pending; body = await response.json();
   if (response.status() !== 201 || body.contract !== "FE05_REINSPECTION_ASSIGNMENT_V1" || body.state !== "ASSIGNED")
     throw Error("Canonical assignment failed: " + response.status());
   await page.getByText(`Inspection assigned successfully. Inspection #${body.id}.`, { exact: true }).waitFor();
@@ -73,6 +86,7 @@ try {
   stage = "assignment reload";
   await page.getByText(`An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
   if (await page.getByRole("button", { name: "Review assignment", exact: true }).count()) throw Error("Duplicate assignment remains editable");
+  }
   stage = "assigned reinspection detail and evidence";
   const detailCheck = await page.evaluate(async ({ branch, inspection, actor, rework }) => {
     const path = `/api/branches/${branch}/reinspections/${inspection}`;
@@ -154,6 +168,7 @@ try {
     await page.getByRole("link", { name: "Return to reinspection", exact: true }).click();
     await page.getByRole("button", { name: "Review conclusion", exact: true }).waitFor();
     await page.getByRole("button", { name: "Review conclusion", exact: true }).click();
+    await page.getByText("Result: select Fixed or Not Fixed. Please check and try again.", { exact: true }).waitFor();
     if (await page.getByRole("button", { name: "Confirm conclusion", exact: true }).count()) throw Error("Empty decisions passed form validation");
     for (const defect of negative.d.defects) {
       await page.getByLabel(`Result for defect #${defect.id}`, { exact: true }).selectOption(fixture.outcome === "PASS" ? "FIXED" : "NOT_FIXED");
@@ -171,6 +186,7 @@ try {
       || concluded.contract !== "FE05_REINSPECTION_CONCLUSION_V1" || concluded.effectiveReadiness !== (detailCheck.readiness === "BLOCKED" ? "BLOCKED" : fixture.outcome === "PASS" ? "READY" : "REWORK_REQUIRED"))
       throw Error("HTTPS conclusion rejected: " + concludedResponse.status() + " " + JSON.stringify(concluded));
     await page.getByText(fixture.outcome === "PASS" ? "Reinspection Passed. Rework Completed." : "Reinspection Failed. Rework Failed.", { exact: true }).waitFor();
+    await page.getByText("Reinspection has been saved successfully.", { exact: true }).waitFor();
     if (detailCheck.readiness === "BLOCKED") await page.getByText("The room remains blocked (MSG17).", { exact: true }).waitFor();
     if (fixture.outcome === "FAIL") {
       stage = "next-round Request Rework admission";
@@ -229,8 +245,9 @@ try {
     }
     conclusion = { success: true, outcome: fixture.outcome, csrfEtag: true, staleAggregate: true, exactDefects: true, photo: true, replay: true, readiness: concluded.effectiveReadiness };
   }
-  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true, conclusion, nextRework,
-    invalidInspectorDueDenied: true, foreignBranchDenied: true, replay: true, reloadPersisted: true, reinspectionRead: detailCheck }));
+  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: !fixture.existingInspection, csrfEtag: !fixture.existingInspection, conclusion, nextRework,
+    retiredVersionAssignmentReload: !!fixture.existingInspection,
+    invalidInspectorDueDenied: !fixture.existingInspection, foreignBranchDenied: !fixture.existingInspection, replay: !fixture.existingInspection, reloadPersisted: true, reinspectionRead: detailCheck }));
 } catch (error) {
   process.stdout.write(JSON.stringify({ success: false, stage, diagnostic: String(error.message).split("\n")[0] })); process.exitCode = 1;
 } finally { await browser?.close(); }

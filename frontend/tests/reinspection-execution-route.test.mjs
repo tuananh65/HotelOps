@@ -313,6 +313,19 @@ test("canonical reinspection requires every decision and confirms blocked result
     await page
       .getByRole("button", { name: "Review conclusion", exact: true })
       .click();
+    await page
+      .getByText(
+        "Result: select Fixed or Not Fixed. Please check and try again.",
+        { exact: true },
+      )
+      .waitFor();
+    assert.equal(
+      await page
+        .getByLabel("Result for defect #9", { exact: true })
+        .getAttribute("aria-invalid"),
+      "true",
+    );
+    assert.equal(state.posts.length, 0);
     assert.equal(
       await page
         .getByRole("button", { name: "Confirm conclusion", exact: true })
@@ -320,9 +333,21 @@ test("canonical reinspection requires every decision and confirms blocked result
       0,
     );
     await review(page);
+    assert.equal(
+      await page
+        .getByText(
+          "Result: select Fixed or Not Fixed. Please check and try again.",
+          { exact: true },
+        )
+        .count(),
+      0,
+    );
     await page
       .getByRole("button", { name: "Confirm conclusion", exact: true })
       .click();
+    await page
+      .getByText("Reinspection has been saved successfully.", { exact: true })
+      .waitFor();
     await page
       .getByText("The room remains blocked (MSG17).", { exact: true })
       .waitFor();

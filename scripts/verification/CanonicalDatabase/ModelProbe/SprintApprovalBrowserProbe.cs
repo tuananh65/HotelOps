@@ -16,6 +16,9 @@ internal static class SprintApprovalBrowserProbe
         if(Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"
             &&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1")
             throw new InvalidOperationException("SQL block-race mode and browser-conclusion mode are mutually exclusive");
+        if(Environment.GetEnvironmentVariable("DEV3_REINSPECTION_RETIRE_AFTER_ASSIGNMENT")=="1"
+            &&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")!="1")
+            throw new InvalidOperationException("Retirement trial requires browser conclusion mode");
         using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(
             Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"
             ||Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"?8:4)); var ct=budget.Token;
@@ -179,6 +182,7 @@ internal static class SprintApprovalBrowserProbe
                             originalInspectionBrowserLink=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
                             distinctReinspector=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR")=="1",
                             reinspectionConcurrentBlockSql=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1",
+                            assignedVersionRetiredBrowserVerified=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_RETIRE_AFTER_ASSIGNMENT")=="1",
                             reinspectionPassedDeliveryRollbackRetryDedup=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")!="FAIL",
                             reinspectionPassedInboxSourceBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"&&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")!="FAIL",
                             terminalReloadBrowserVerified=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",

@@ -1,0 +1,3 @@
+PASS: retirement without browser conclusion rejected before context/fixture creation.
+ExitCode=-532462766
+ReportCreated=False
