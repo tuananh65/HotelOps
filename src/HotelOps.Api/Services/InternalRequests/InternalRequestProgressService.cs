@@ -3,6 +3,8 @@ using System.Data;
 using System.Text.Json;
 using HotelOps.Api.Data;
 using HotelOps.Api.Entities;
+using HotelOps.Api.DTOs.Housekeeping;
+using HotelOps.Api.Services.Housekeeping;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Users;
@@ -10,10 +12,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.InternalRequests;
 
-public sealed record InternalRequestProgressInput([property: System.Text.Json.Serialization.JsonRequired] int Percent, string? Note, string? Result, DateTimeOffset? Deadline, string? DeadlineReason);
+public sealed record InternalRequestProgressInput([property: System.Text.Json.Serialization.JsonRequired] int Percent, string? Note, string? Result, DateTimeOffset? Deadline, string? DeadlineReason,
+    IReadOnlyList<EvidenceUpload>? Files = null);
 public sealed record InternalRequestProgressResult(long RequestId, long EventId, string Status, string Version);
 public sealed record InternalRequestProgressView(long RequestId, string Status, string Version, int? Percent,
-    string? Note, string? Result, DateTime? Deadline, bool CanUpdate, bool CanChangeDeadline);
+    string? Note, string? Result, DateTime? Deadline, bool CanUpdate, bool CanChangeDeadline,
+    InternalRequestEvidenceView[] Evidence, int EvidenceCount);
 internal sealed class InternalRequestProgressRow
 {
     public int Percent { get; set; }
@@ -36,6 +40,7 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
             return string.IsNullOrEmpty(text) ? null : text;
         }
         if (input.Percent is < 0 or > 100) throw new ValidationException("Progress must be between 0 and 100.");
+        if (input.Files?.Count > 5 || input.Files?.Any(f => f == null) == true) throw new ValidationException("Upload at most five complete files.");
         return input with { Note = Text(input.Note), Result = Text(input.Result), DeadlineReason = Text(input.DeadlineReason) };
     }
 
@@ -82,6 +87,10 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
         var request = await scope.Apply(db.InternalRequests.AsNoTracking(), now).SingleOrDefaultAsync(r => r.InternalRequestId == id, ct);
         if (request == null) throw new InternalRequestReadException(404, "IR_NOT_FOUND");
         var snapshot = await SnapshotAsync(db, id, ct);
+        var evidenceCount = await InternalRequestEvidence.Query(db, id).CountAsync(ct);
+        var evidence = await InternalRequestEvidence.Query(db, id).OrderByDescending(a => a.AttachmentId).Take(100)
+            .Select(a => new InternalRequestEvidenceView(a.AttachmentId, a.OriginalFileName ?? a.FileName, a.MimeType ?? "application/octet-stream",
+                a.FileSizeBytes ?? 0, $"/api/internal-requests/{id}/progress/evidence/{a.AttachmentId}")).ToArrayAsync(ct);
         var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
         await SessionAsync(ticket, sid, ct);
         var finalNow = DateTime.UtcNow;
@@ -91,15 +100,35 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
         access = await authority.ResolveAsync(ticket.UserId, id, ct);
         await tx.CommitAsync(ct);
         return new(id, request.Status, Convert.ToBase64String(version), snapshot?.Percent, snapshot?.Note, snapshot?.Result,
-            request.DueAt is {} due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null, access.CanUpdate, access.CanChangeDeadline);
+            request.DueAt is {} due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null, access.CanUpdate, access.CanChangeDeadline, evidence, evidenceCount);
+    }
+
+    public async Task<InternalRequestEvidenceFile> ReadEvidenceAsync(SessionReference ticket,long sid,long id,long attachment,string root,CancellationToken ct)
+    {
+        if(id<=0||attachment<=0)throw new ValidationException("Request and evidence identifiers required.");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);await SessionAsync(ticket,sid,ct);
+        var now=DateTime.UtcNow;var scope=await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId,now,ct);
+        if(!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==id,ct))
+            throw new InternalRequestReadException(404,"IR_EVIDENCE_NOT_FOUND");
+        var row=await InternalRequestEvidence.Query(db,id).SingleOrDefaultAsync(a=>a.AttachmentId==attachment,ct);
+        var file=row==null?null:await InternalRequestEvidence.ReadAsync(row,root,ct);
+        if(file==null)throw new InternalRequestReadException(404,"IR_EVIDENCE_NOT_FOUND");
+        await SessionAsync(ticket,sid,ct);
+        var finalNow=DateTime.UtcNow;var finalScope=await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId,finalNow,ct);
+        if(!await finalScope.Apply(db.InternalRequests.AsNoTracking(),finalNow).AnyAsync(r=>r.InternalRequestId==id,ct))
+            throw new InternalRequestReadException(404,"IR_EVIDENCE_NOT_FOUND");
+        await tx.CommitAsync(ct);return file;
     }
 
     public async Task<InternalRequestProgressResult> UpdateAsync(SessionReference ticket, long sid, long id, byte[] version,
-        InternalRequestProgressInput input, CancellationToken ct)
+        InternalRequestProgressInput input, CancellationToken ct, string? evidenceRoot = null)
     {
         input = Validate(input);
         if (id <= 0 || version.Length != 8) throw new ValidationException("Loaded request version required.");
         if (db.ChangeTracker.Entries().Any()) throw new InvalidOperationException("Progress requires a clean context.");
+        if (input.Files?.Count > 0 && string.IsNullOrWhiteSpace(evidenceRoot)) throw new ValidationException("Private evidence storage required.");
+        using var evidenceFiles = new EvidenceFileLifetime();
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         try
         {
@@ -107,6 +136,8 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
             await SessionAsync(ticket, sid, ct);
             if (!await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InstalledAsync(db, ct))
                 throw new InternalRequestReadException(503, "IR_PROGRESS_SCHEMA_REQUIRED");
+            if (input.Files?.Count > 0 && !await InternalRequestEvidence.InstalledAsync(db, ct))
+                throw new InternalRequestReadException(503, "IR_EVIDENCE_SCHEMA_REQUIRED");
             var access = await authority.ResolveAsync(ticket.UserId, id, ct);
             if (!access.CanUpdate) throw new InternalRequestReadException(403, "IR_PROGRESS_REQUIRED");
             var request = await db.InternalRequests.AsNoTracking().SingleAsync(r => r.InternalRequestId == id, ct);
@@ -127,11 +158,15 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
             var entry = new InternalRequestEvent { InternalRequestId = id, EventType = "PROGRESS", OldStatus = "IN_PROGRESS", NewStatus = "IN_PROGRESS",
                 EventNote = input.Note, ActorId = ticket.UserId, OccurredAt = now };
             db.InternalRequestEvents.Add(entry);
+            await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+            var attachments = new List<long>();
+            foreach (var upload in input.Files ?? [])
+                attachments.Add(await InternalRequestEvidence.StoreAsync(db, entry.EventId, ticket.UserId, now, upload, evidenceRoot!, evidenceFiles.Files, ct));
             db.AuditLogs.Add(new AuditLog { ActorUserId = ticket.UserId, BranchId = request.BranchId, EntityType = "internal_requests",
                 EntityId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Action = "UPDATE", OccurredAt = now,
                 OldValues = JsonSerializer.Serialize(new { progress = previous, deadline = request.DueAt }),
-                NewValues = JsonSerializer.Serialize(new { operation = "PROGRESS", input.Percent, input.Note, input.Result, deadline, input.DeadlineReason }),
-                ChangedFields = "[\"progress\",\"due_at\"]" });
+                NewValues = JsonSerializer.Serialize(new { operation = "PROGRESS", input.Percent, input.Note, input.Result, deadline, input.DeadlineReason, attachments }),
+                ChangedFields = "[\"progress\",\"due_at\",\"attachments\"]" });
             await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
             if (previous == null)
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_progress(internal_request_id,progress_percent,note,result_note,event_id) VALUES({id},{input.Percent},{input.Note},{input.Result},{entry.EventId})", ct);
@@ -144,6 +179,7 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
             if (!finalAccess.CanUpdate || deadline != request.DueAt && !finalAccess.CanChangeDeadline)
                 throw new InternalRequestReadException(403, "IR_AUTHORITY_CHANGED");
             var finalVersion = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
+            await evidenceFiles.BeforeCommitAsync(ct);
             await tx.CommitAsync(ct);
             return new(id, entry.EventId, "IN_PROGRESS", Convert.ToBase64String(finalVersion));
         }

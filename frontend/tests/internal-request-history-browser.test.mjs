@@ -51,6 +51,7 @@ async function fixture(run) {
       if(request.method()==="POST") {
         state.progressPosts=(state.progressPosts??0)+1;
         assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        if(state.expectProgressFile){const body=request.postDataJSON();assert.equal(body.files.length,1);assert.equal(body.files[0].name,"proof.png");assert.equal(body.files[0].mimeType,"image/png");assert.equal(Buffer.from(body.files[0].base64,"base64").length,8);}
         return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAE="},state.progressPostStatus??200);
       }
       return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false},state.progressStatus??200);
@@ -185,6 +186,8 @@ for(const status of [200,412])test(`progress ${status} uses CSRF/ETag, prevents 
   await panel.getByLabel("Progress percent",{exact:true}).fill("100");
   await panel.getByLabel("Progress note",{exact:true}).fill("Updated note");
   await panel.getByLabel("Result note",{exact:true}).fill("Updated result");
+  state.expectProgressFile=true;
+  await panel.getByLabel("Progress attachments",{exact:true}).setInputFiles({name:"proof.png",mimeType:"image/png",buffer:Buffer.from([137,80,78,71,13,10,26,10])});
   assert.equal(await panel.getByLabel("New deadline (UTC)",{exact:true}).count(),0);
   await panel.getByRole("button",{name:"Save progress",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:status===200?"MSG08: Progress saved":"Request changed"}).waitFor();

@@ -7,6 +7,16 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class InternalRequestProgressTests
 {
     [Fact]
+    public void EvidenceRequiresMatchingTypeExtensionAndBoundedMetadata()
+    {
+        var png=Convert.ToBase64String(new byte[]{137,80,78,71,13,10,26,10});
+        Assert.Equal(".png",InternalRequestEvidence.Validate(new("proof.png","image/png",png)).Extension);
+        foreach(var file in new HotelOps.Api.DTOs.Housekeeping.EvidenceUpload[]{new("../proof.png","image/png",png),new("proof.pdf","image/png",png),
+            new("proof.png","application/pdf",png),new("proof.png","image/png","bad"),new("proof.png","image/png",Convert.ToBase64String(new byte[]{1,2,3}))})
+            Assert.Throws<System.ComponentModel.DataAnnotations.ValidationException>(()=>InternalRequestEvidence.Validate(file));
+        Assert.Throws<System.ComponentModel.DataAnnotations.ValidationException>(()=>InternalRequestProgressService.Validate(new(50,null,null,null,null,Enumerable.Repeat(new HotelOps.Api.DTOs.Housekeeping.EvidenceUpload("proof.png","image/png",png),6).ToArray())));
+    }
+    [Fact]
     public void MissingPercentCannotSilentlyResetProgressToZero() =>
         Assert.Throws<System.Text.Json.JsonException>(() => System.Text.Json.JsonSerializer.Deserialize<InternalRequestProgressInput>("{}"));
     [Fact]

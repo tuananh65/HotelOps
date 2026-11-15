@@ -30,6 +30,8 @@ try{
     await panel.getByLabel("Progress note",{exact:true}).fill("Synthetic progress note");
     stage=`fill result ${percent}`;
     await panel.getByLabel("Result note",{exact:true}).fill("Synthetic result ready for review");
+    if(percent===50) await panel.getByLabel("Progress attachments",{exact:true}).setInputFiles({name:"synthetic-proof.png",mimeType:"image/png",
+      buffer:Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aF9sAAAAASUVORK5CYII=","base64")});
     stage=`save ${percent}`;
     await panel.getByRole("button",{name:"Save progress",exact:true}).click();
     stage=`confirm ${percent}`;
@@ -41,6 +43,18 @@ try{
   }
   const view=await page.evaluate(async p=>(await fetch(p)).json(),path);
   assert.equal(view.status,"IN_PROGRESS");assert.equal(view.percent,100);assert.equal(view.result,"Synthetic result ready for review");
+  stage="private evidence download";
+  assert.equal(view.evidenceCount,1);assert.equal(view.evidence.length,1);
+  await panel.getByRole("link",{name:"synthetic-proof.png",exact:true}).waitFor();
+  const file=await page.evaluate(async({p,id})=>{
+    const response=await fetch(p);const bytes=new Uint8Array(await response.arrayBuffer());
+    return {status:response.status,length:bytes.length,prefix:Array.from(bytes.slice(0,8)),mime:response.headers.get("content-type"),
+      disposition:response.headers.get("content-disposition"),nosniff:response.headers.get("x-content-type-options"),
+      wrongRequest:(await fetch(`/api/internal-requests/9223372036854775807/progress/evidence/${id}`)).status};
+  },{p:view.evidence[0].downloadPath,id:view.evidence[0].id});
+  assert.equal(file.status,200);assert.equal(file.length,view.evidence[0].size);assert.deepEqual(file.prefix,[137,80,78,71,13,10,26,10]);
+  assert.equal(file.mime,"image/png");assert.equal(file.nosniff,"nosniff");assert.match(file.disposition,/attachment/);assert.equal(file.wrongRequest,404);
+  checks.push("Canonical upload persists event-linked private attachment; authorized download matches bytes and wrong source denies");
   const stale=await page.evaluate(async({p,v})=>{
     const csrf=await(await fetch("/api/auth/csrf")).json();
     return(await fetch(p,{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":`"${v}"`},body:JSON.stringify({percent:10})})).status;

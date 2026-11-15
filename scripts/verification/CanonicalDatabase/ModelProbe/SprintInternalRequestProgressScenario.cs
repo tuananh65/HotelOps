@@ -24,11 +24,12 @@ internal static class SprintInternalRequestProgressScenario
         var session=new UserSession{UserId=actor,SessionKeyHash=SessionCredential.Hash(credential),CreatedAt=now,ExpiresAt=now.AddMinutes(20)};
         var triggerInstalled=false;var schemaInstalled=false;
         var createdView=false;long viewGrant=0;
+        var evidenceRoot=Environment.GetEnvironmentVariable("Evidence__PrivateRoot")??throw new Exception("Owned evidence root required");
         void Check(bool value,string label){if(!value)throw new Exception(label);checks.Add(new{internalRequestProgressCheck=label});}
         Task<byte[]> Revision()=>db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.internal_requests WHERE internal_request_id={request}").SingleAsync(ct);
         try
         {
-            foreach(var file in new[]{"InternalRequestDecisionIsolated.sql","InternalRequestProgressIsolated.sql","InternalRequestProgressIsolated.sql"})
+            foreach(var file in new[]{"InternalRequestDecisionIsolated.sql","InternalRequestProgressIsolated.sql","InternalRequestProgressIsolated.sql","InternalRequestEvidenceIsolated.sql","InternalRequestEvidenceIsolated.sql"})
                 await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/"+file,ct),ct);
             schemaInstalled=true;
             db.UserSessions.Add(session);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
@@ -76,13 +77,17 @@ internal static class SprintInternalRequestProgressScenario
             await db.Database.ExecuteSqlRawAsync("CREATE TRIGGER dbo.TR_DEV3_IRProgressRollback ON dbo.internal_request_progress_outbox AFTER INSERT AS THROW 51897,'Synthetic progress outbox failure',1;",ct);
             triggerInstalled=true;
             var before=await Revision();var events=await db.InternalRequestEvents.CountAsync(e=>e.InternalRequestId==request,ct);
-            var fault=false;try{await service.UpdateAsync(ticket,session.SessionId,request,before,new(100,null,"Ready",null,null),ct);}
+            var beforeFiles=Directory.Exists(evidenceRoot)?Directory.GetFiles(evidenceRoot).Order().ToArray():[];
+            var proof=new HotelOps.Api.DTOs.Housekeeping.EvidenceUpload("rollback.png","image/png",Convert.ToBase64String(new byte[]{137,80,78,71,13,10,26,10}));
+            var fault=false;try{await service.UpdateAsync(ticket,session.SessionId,request,before,new(100,null,"Ready",null,null,[proof]),ct,evidenceRoot);}
             catch(SqlException e)when(e.Number==51897){fault=true;}
             var afterFault=await Revision();
             Check(fault&&before.SequenceEqual(afterFault)&&events==await db.InternalRequestEvents.CountAsync(e=>e.InternalRequestId==request,ct)
                 &&await db.Database.SqlQuery<int>($"SELECT progress_percent AS Value FROM dbo.internal_request_progress WHERE internal_request_id={request}").SingleAsync(ct)==40,
                 "outbox fault rolls back snapshot event audit and request version");
             Check(await db.AuditLogs.CountAsync(a=>a.EntityType=="internal_requests"&&a.EntityId==request.ToString(),ct)==events,"rollback preserves audit count");
+            Check(!await db.Attachments.AnyAsync(a=>a.EntityType=="INTERNAL_REQUEST_PROGRESS"&&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==a.EntityId),ct)
+                &&beforeFiles.SequenceEqual(Directory.GetFiles(evidenceRoot).Order()),"failed progress rolls back attachment row and removes only owned uncommitted file");
             await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_DEV3_IRProgressRollback",ct);triggerInstalled=false;
             await service.UpdateAsync(ticket,session.SessionId,request,await Revision(),new(100,"Ready for review","Complete result",null,null),ct);
             await service.UpdateAsync(ticket,session.SessionId,request,await Revision(),new(100,"Clarification","Complete result",null,null),ct);
@@ -114,6 +119,8 @@ internal static class SprintInternalRequestProgressScenario
                 Check(await db.NotificationRecipients.CountAsync(r=>r.UserId==actor&&r.Notification.SourceType=="INTERNAL_REQUEST_PROGRESS"&&r.DeliveryStatus=="DELIVERED",ct)==2,
                     "two readiness transitions delivered by hosted worker without duplicates");
                 var receipt=await db.Notifications.AsNoTracking().Where(n=>n.SourceType=="INTERNAL_REQUEST_PROGRESS"&&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==n.SourceId)).OrderBy(n=>n.NotificationId).FirstAsync(ct);
+                var attachment=await db.Attachments.AsNoTracking().SingleAsync(a=>a.EntityType=="INTERNAL_REQUEST_PROGRESS"&&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==a.EntityId),ct);
+                Check(attachment.FileUrl==null&&File.Exists(Path.Combine(evidenceRoot,attachment.StorageKey)),"uploaded evidence uses private storage without public URL");
                 var options=Options.Create(new NotificationCenterOptions());
                 var delivery=new InternalRequestProgressDelivery(db,TimeProvider.System,options);
                 Check(await delivery.DeliverAsync(receipt.SourceId!.Value,ct)=="ALREADY_DELIVERED","delivery retry reuses verified recipient receipt");
@@ -124,6 +131,8 @@ internal static class SprintInternalRequestProgressScenario
                 Check(sourceDenied,"revoked read grant denies readiness notification source");
                 var readDenied=false;try{await service.ReadAsync(ticket,session.SessionId,request,ct);}catch(InternalRequestReadException e)when(e.Status==404){readDenied=true;}
                 Check(readDenied,"progress read requires current IR_VIEW independently of processing grant");
+                var fileDenied=false;try{await service.ReadEvidenceAsync(ticket,session.SessionId,request,attachment.AttachmentId,evidenceRoot,ct);}catch(InternalRequestReadException e)when(e.Status==404){fileDenied=true;}
+                Check(fileDenied,"attachment download rechecks revoked source permission");
             }
             await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.Status,"CLOSED"),ct);
             await Denied(new(80,null,null,null,null),403,"closed request rejects progress");
@@ -143,6 +152,13 @@ internal static class SprintInternalRequestProgressScenario
             if(viewGrant>0)await db.RolePermissions.Where(g=>g.RolePermissionId==viewGrant).ExecuteDeleteAsync(CancellationToken.None);
             if(createdView)await db.Permissions.Where(p=>p.PermissionCode=="IR_VIEW").ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequestAssignments.Where(a=>a.InternalRequestId==request).ExecuteDeleteAsync(CancellationToken.None);
+            var evidence=await db.Attachments.AsNoTracking().Where(a=>a.EntityType=="INTERNAL_REQUEST_PROGRESS"&&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==a.EntityId)).ToArrayAsync(CancellationToken.None);
+            foreach(var file in evidence)
+            {
+                if(file.StorageKey.IndexOfAny(['/', '\\', ':'])>=0||!Guid.TryParseExact(Path.GetFileNameWithoutExtension(file.StorageKey),"N",out _))throw new Exception("Unexpected evidence key; preserve for review");
+                File.Delete(Path.Combine(Path.GetFullPath(evidenceRoot),file.StorageKey));
+            }
+            await db.Attachments.Where(a=>evidence.Select(e=>e.AttachmentId).Contains(a.AttachmentId)).ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequestEvents.Where(e=>e.InternalRequestId==request).ExecuteDeleteAsync(CancellationToken.None);
             await db.AuditLogs.Where(a=>a.EntityType=="internal_requests"&&a.EntityId==request.ToString()).ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.Status,original.Status)

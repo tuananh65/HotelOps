@@ -1,0 +1,7 @@
+DMV timeout
+54 | 51 | LCK_M_U | 520 | SELECT | 8
+51 | 54 | LCK_M_U | 172 | SELECT | 8
+51 | 54 | LCK_M_U | 685 | SELECT | 8
+51 | 54 | LCK_M_U | 243 | SELECT | 8
+59 | 52 | LCK_M_U | 282 | UPDATE | 8
+59 | 52 | LCK_M_U | 254 | UPDATE | 8
