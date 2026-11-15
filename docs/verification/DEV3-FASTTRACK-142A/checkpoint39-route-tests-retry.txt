@@ -1,0 +1,11 @@
+✔ canonical assigned source displays committed defects, then clears them on session loss (2786.4775ms)
+✔ source 401 invalidates the current session and removes prior details (2399.6318ms)
+✔ unsupported lifecycle capability is not displayed as pending acceptance (2384.4792ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14385.8713

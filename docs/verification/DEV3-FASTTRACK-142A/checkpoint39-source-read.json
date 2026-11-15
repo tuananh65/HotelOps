@@ -1,0 +1,19 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": false,
+        "stage": "login and canonical rejection admission",
+        "checks": [],
+        "diagnostic": "page.goto: net::ERR_CONNECTION_REFUSED at https://localhost:7142/inspections/70449/350346/execution"
+      }
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    }
+  ],
+  "failure": "Exception: Browser failed at login and canonical rejection admission"
+}

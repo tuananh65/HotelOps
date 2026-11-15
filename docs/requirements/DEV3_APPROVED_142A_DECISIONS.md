@@ -22,6 +22,12 @@ Checkpoint32: feature policy and preview/CSV API admission/audit are implemented
 
 FE13 read authorization remains unresolved. Database edits must remain narrow and isolated.
 
+## Autonomous execution directive (checkpoint39)
+
+DEV3 may decide routine technical/SRS-defined matters and integrate directly on the canonical branch. Keep the original 2026-11-16 17:50 UTC deadline. Use UC v3/SRS, approved decisions and actual contracts; document narrow decisions, preserve security, and continue independent work where a dependency remains fail-closed. No shared database or production mutation, force-push or main/develop merge. No routine approval questions.
+
+Decision39: UC035 initial assigned-source read is independent of Start/workday and does not open an interval. Reuse actual committed authority, session, ownership and CLEANING_VIEW; do not lower proof DML-denial checks. Canonical notification/rework login returns use the existing safe local destination registry. UC046 completion is assessed at its explicit Pending Acceptance handoff, separately from UC035/047. UC109 completion is assessed for an already assigned In Progress/Paused task, separately from creation/completion UCs. Exact acceptance evidence and remaining runtime limits are in CHECKPOINT-39.md.
+
 ## FE05 effective readiness (approved after checkpoint31)
 
 Keep existing rooms.operational_status values. Never write BLOCKED into that column or translate it to OUT_OF_SERVICE. Calculate effective readiness using GBR-044: inactive first, then any effective block, then current cleaning/inspection lifecycle. Passed inspection is Ready only without effective blocks and with all lifecycle conditions met. Removing one block must recalculate from current data, including other blocks and the current cycle.

@@ -1,0 +1,71 @@
+▲ [WARNING] "import.meta" is not available with the "iife" output format and will be empty [empty-import-meta]
+
+    src/api/dev1/client.ts:21:9:
+      21 │   base = import.meta.env.VITE_DEV1_API_BASE_URL || "/api",
+         ╵          ~~~~~~~~~~~
+
+  You need to set the output format to "esm" for "import.meta" to work correctly.
+
+✔ entry and auth-only import graphs exclude prototype/storage initializers (665.0966ms)
+✔ actual main entry mounts provider once and renders anonymous login without mock storage (2575.6402ms)
+✔ startup GET pending fails closed and StrictMode initializes once (2374.0622ms)
+✔ startup 200 redirects login according to confirmed session: restricted=false (2401.4675ms)
+✔ confirmed profile shows only public identity: restricted=false (2367.0543ms)
+✔ startup 200 redirects login according to confirmed session: restricted=true (2332.8719ms)
+✔ confirmed profile shows only public identity: restricted=true (2389.7596ms)
+✔ anonymous direct URL is guarded: /profile (2408.4062ms)
+✔ anonymous direct URL is guarded: /change-password (2393.2627ms)
+✔ anonymous direct URL is guarded: /dashboard (2378.855ms)
+✔ anonymous direct URL is guarded: /users (2353.8263ms)
+✔ anonymous direct URL is guarded: /roles (2395.7362ms)
+✔ anonymous direct URL is guarded: /permissions (2393.7775ms)
+✔ anonymous direct URL is guarded: /rooms/42 (2345.801ms)
+✔ anonymous direct URL is guarded: /workdays (2360.6029ms)
+✔ restricted business URL cannot render business placeholder (2354.8307ms)
+✔ authenticated business URL shows only unintegrated placeholder (2318.6388ms)
+✔ startup unavailable stays unknown until explicit recovery: 503 (2360.907ms)
+✔ startup unavailable stays unknown until explicit recovery: network (2355.0779ms)
+✔ login success actual transport: deferred=false, restricted=false (2402.0977ms)
+✔ login success actual transport: deferred=false, restricted=true (2374.7928ms)
+✔ login 401 preserves local error and DOM form: deferred=false (2376.2567ms)
+✔ logout success hides identity while pending and redirects: deferred=false (2359.6427ms)
+✔ password success preserves form pending and accepts fresh session: deferred=false, restricted=false (2404.7636ms)
+✔ password success preserves form pending and accepts fresh session: deferred=false, restricted=true (2408.6732ms)
+✔ password policy error remains visible without remount: deferred=false (2389.2257ms)
+✔ login success actual transport: deferred=true, restricted=false (2395.1843ms)
+✔ login success actual transport: deferred=true, restricted=true (2409.8055ms)
+✔ login 401 preserves local error and DOM form: deferred=true (2416.7996ms)
+✔ logout success hides identity while pending and redirects: deferred=true (2381.6833ms)
+✔ password success preserves form pending and accepts fresh session: deferred=true, restricted=false (2409.4483ms)
+✔ password success preserves form pending and accepts fresh session: deferred=true, restricted=true (2396.1577ms)
+✔ password policy error remains visible without remount: deferred=true (2416.3021ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: network (2439.1925ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: 503 (2434.2605ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: CSRF (2436.178ms)
+✔ logout indeterminate outcome offers GET recovery without POST replay: cancellation (2429.3305ms)
+✔ prototype unavailable regardless of identity: /dev/screens, anonymous (2343.6391ms)
+✔ prototype unavailable regardless of identity: /dev/screens, false (2318.7209ms)
+✔ prototype unavailable regardless of identity: /dev/screens, true (2328.3542ms)
+✔ prototype unavailable regardless of identity: /dev/design-system, anonymous (2318.8019ms)
+✔ prototype unavailable regardless of identity: /dev/design-system, false (2326.3616ms)
+✔ prototype unavailable regardless of identity: /dev/design-system, true (2340.3943ms)
+✔ forgot password shows instruction only after identifier confirmation without recovery request (2390.0346ms)
+✔ late GET cannot replace completed login session (2390.5642ms)
+✔ revalidation 401 removes confirmed identity and guards back/forward history (2408.8749ms)
+✔ late login response after user navigation cannot hijack informational route (2457.145ms)
+✔ an unresolved logout remains pending with identity hidden and no revocation claim (2372.4172ms)
+✔ session GET 403 is unavailable rather than proof of anonymous or deleted identity (2382.6543ms)
+✔ rework read binds identity, ETag and committed source, cookie transport and cancellation (17.1111ms)
+✔ rework mutations use current CSRF with original key, ETag and immutable body on explicit retry (1.1284ms)
+✔ rework refuses malformed command and missing per-defect remediation before network (0.2855ms)
+✔ rework never retries automatically or falls back on auth, stale or unavailable responses (1.0364ms)
+✔ source resolver uses current same-origin session and only accepts canonical rework paths (19.9875ms)
+✔ source denial is not retried or replaced with a stored action URL (0.6566ms)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 55
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 115953.9288

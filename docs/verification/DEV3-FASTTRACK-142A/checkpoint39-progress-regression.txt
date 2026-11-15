@@ -1,0 +1,25 @@
+✔ task response requires exact identity, kind, state, criteria and strong version (21.2198ms)
+✔ paused task is accepted without converting its state (0.3866ms)
+✔ save gets fresh CSRF and sends exact criterion outcome with ETag, no completion request (1.1108ms)
+✔ foreign criteria, duplicates, invalid percent and control text never reach network (0.3071ms)
+✔ invalid CSRF cannot dispatch a write (0.2726ms)
+✔ authority abort after CSRF prevents write (0.2947ms)
+✔ stale and unknown outcomes are never retried (0.4497ms)
+✔ unsafe IDs never reach network (0.1099ms)
+✔ saved evidence must belong to this exact task and use its protected download endpoint (0.8809ms)
+✔ initialization validates definitions before dispatch (0.2996ms)
+✔ initialization uses fresh CSRF and validates created task identity (0.3119ms)
+✔ duplicate initialization is not retried (0.1843ms)
+✔ resume binds paused snapshot, fresh CSRF and ETag (0.2746ms)
+✔ resume rejects running state and never retries stale mutation (0.2538ms)
+✔ pause binds reason and note to running snapshot with fresh CSRF and ETag (0.2913ms)
+✔ pause rejects paused snapshot before fetching and does not retry stale write (0.2035ms)
+✔ pause catalog rejects invalid IDs and accepts backend labels (0.2093ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 312.1904

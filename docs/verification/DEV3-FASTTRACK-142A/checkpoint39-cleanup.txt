@@ -1,0 +1,9 @@
+identityMatches
+---------------
+1
+users reworks audits notifications recipients operations
+----- ------- ------ ------------- ---------- ----------
+0 0 0 0 0 0
+proofTable issuerProcedure readerUser faultTrigger
+---------- --------------- ---------- ------------
+NULL NULL NULL NULL
