@@ -85,7 +85,10 @@ internal static class SprintReinspectionConclusionProbe
         }
         finally { await db.Database.ExecuteSqlRawAsync("ALTER TABLE dbo.audit_logs DROP CONSTRAINT CK_DEV3_ReinspectionConclusionFault", CancellationToken.None); }
         var operation = Guid.NewGuid();
-        var concurrent = await Task.WhenAll(Run(operation, body, source.SourceETag), Run(operation, body, source.SourceETag));
+        Task<RoomTypeBatchResult[]> Conclude() => Task.WhenAll(Run(operation, body, source.SourceETag), Run(operation, body, source.SourceETag));
+        var concurrent = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE") == "1"
+            ? await SprintReinspectionBlockRaceProbe.RunAsync(db, source, Conclude, () => Run(), ct)
+            : await Conclude();
         if (concurrent.Any(r => r.Status != RoomTypeBatchStatus.Success || r.Value is not ReinspectionConclusionResult))
             throw new Exception("Concurrent conclusion failed: " + string.Join(',', concurrent.Select(r => r.Status)));
         var result = (ReinspectionConclusionResult)concurrent[0].Value!;

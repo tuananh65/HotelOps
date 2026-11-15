@@ -1,0 +1,6 @@
+PASS: conflicting modes rejected before fixture/report creation; exit=-532462766
+Earlier assertions expected exit 1 and used formatted Out-String matching; corrected for the actual nonzero CLR exit and unformatted stderr.
+Unhandled exception. System.InvalidOperationException: SQL block-race mode and browser-conclusion mode are mutually exclusive
+   at SprintApprovalBrowserProbe.RunAsync(String report, Boolean retry, Boolean concurrentBlock, Boolean approvalRace, Boolean rejection, Boolean rework) in D:\HotelOps\HotelOps_Fullstack_Shared\scripts\verification\CanonicalDatabase\ModelProbe\SprintApprovalBrowserProbe.cs:line 18
+   at Program.<Main>$(String[] args) in D:\HotelOps\HotelOps_Fullstack_Shared\scripts\verification\CanonicalDatabase\ModelProbe\Program.cs:line 18
+   at Program.<Main>(String[] args)

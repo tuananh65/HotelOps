@@ -13,8 +13,12 @@ internal static class SprintApprovalBrowserProbe
     internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false, bool rework = false)
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
+        if(Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"
+            &&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1")
+            throw new InvalidOperationException("SQL block-race mode and browser-conclusion mode are mutually exclusive");
         using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(
-            Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"?8:4)); var ct=budget.Token;
+            Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"
+            ||Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"?8:4)); var ct=budget.Token;
         await using var db=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(
             "Server=localhost;Database=HotelOps_DEV3_142A_20261114_cc78c13f;Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         var checks=new List<object>(); string? failure=null;
@@ -174,6 +178,7 @@ internal static class SprintApprovalBrowserProbe
                             originalInspectionScopedRead=true,
                             originalInspectionBrowserLink=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
                             distinctReinspector=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR")=="1",
+                            reinspectionConcurrentBlockSql=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1",
                             reinspectionPassedDeliveryRollbackRetryDedup=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")!="FAIL",
                             reinspectionPassedInboxSourceBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"&&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")!="FAIL",
                             terminalReloadBrowserVerified=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
