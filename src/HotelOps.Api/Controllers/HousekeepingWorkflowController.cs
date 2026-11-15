@@ -48,6 +48,12 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/reinspection-options")]
     public Task<IActionResult> ReinspectionOptions(long branchId, long id, CancellationToken ct)
         => Execute((ticket,sid) => service.ReadReinspectionAssignmentAsync(ticket,sid,branchId,id,Root,ct),false);
+    [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/execution")]
+    public Task<IActionResult> ReadReinspection(long branchId, long id, CancellationToken ct)
+        => Execute((ticket,sid) => service.ReadReinspectionExecutionAsync(ticket,sid,branchId,id,Root,ct),false);
+    [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/evidence/{attachmentId:long}")]
+    public Task<IActionResult> ReinspectionEvidence(long branchId, long id, long attachmentId, CancellationToken ct)
+        => Execute((ticket,sid) => service.ReadReinspectionExecutionAsync(ticket,sid,branchId,id,Root,ct,attachmentId),false);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct,Root),true,true);
@@ -64,7 +70,13 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
         try
         {
             var result=await action(ticket!,sid);
-            if(result.Status==RoomTypeBatchStatus.Success){if(result.ETag!=null)Response.Headers.ETag=result.ETag;return StatusCode(created?201:200,result.Value);}
+            if(result.Status==RoomTypeBatchStatus.Success)
+            {
+                if(result.ETag!=null)Response.Headers.ETag=result.ETag;
+                if(result.Value is HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto file)
+                { Response.Headers["X-Content-Type-Options"]="nosniff"; return File(file.Content,file.ContentType,file.Name); }
+                return StatusCode(created?201:200,result.Value);
+            }
             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
         }

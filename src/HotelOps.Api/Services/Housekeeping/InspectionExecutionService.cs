@@ -45,6 +45,11 @@ public sealed partial class RoomTypeCreationService
                     && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
                 if (source == null) return new(RoomTypeBatchStatus.NotFound);
                 if (source.InspectorUserId != actor) return new(RoomTypeBatchStatus.Forbidden);
+                // UC047 owns exact submitted-defect decisions. The generic checklist workflow
+                // must not start/save/finish a reinspection or rewrite its historical source.
+                if (operation != "read" && await db.CleaningReworks.AsNoTracking()
+                    .AnyAsync(w => w.CleaningTaskId == source.CleaningTaskId, token))
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REINSPECTION_CONTRACT_REQUIRED");
                 var state = await InspectionState(id, token);
                 if (state.State == null) return new(RoomTypeBatchStatus.SchemaRequired);
                 if (operation != "read" && expected != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);

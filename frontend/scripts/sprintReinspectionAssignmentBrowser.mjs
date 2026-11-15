@@ -73,8 +73,32 @@ try {
   stage = "assignment reload";
   await page.getByText(`An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
   if (await page.getByRole("button", { name: "Review assignment", exact: true }).count()) throw Error("Duplicate assignment remains editable");
+  stage = "assigned reinspection detail and evidence";
+  const detailCheck = await page.evaluate(async ({ branch, inspection, actor, rework }) => {
+    const path = `/api/branches/${branch}/reinspections/${inspection}`;
+    const response = await fetch(path + "/execution", { credentials: "include" });
+    const d = await response.json();
+    if (response.status !== 200 || d.id !== inspection || d.reworkId !== rework || d.inspectorId !== actor
+      || d.state !== "ASSIGNED" || d.sourceETag !== response.headers.get("ETag") || !d.defects?.length
+      || d.defects.some(x => !x.remediation?.trim() || x.fixed !== null)) throw Error("Reinspection detail rejected: " + response.status);
+    const photo = d.defects.flatMap(x => [...x.originalPhotos, ...x.remediationPhotos])[0];
+    const image = await fetch(path + "/evidence/" + photo, { credentials: "include" });
+    if (image.status !== 200 || image.headers.get("X-Content-Type-Options") !== "nosniff" || !(await image.arrayBuffer()).byteLength)
+      throw Error("Scoped reinspection evidence rejected");
+    const foreign = await fetch(`/api/branches/${branch + 100000}/reinspections/${inspection}/execution`, { credentials: "include" });
+    const unrelated = await fetch(path + "/evidence/9223372036854775807", { credentials: "include" });
+    if (![403, 404].includes(foreign.status) || unrelated.status !== 404) throw Error("Reinspection read scope leaked");
+    const csrf = await (await fetch("/api/auth/csrf", { credentials: "include" })).json();
+    const generic = await fetch(`/api/branches/${branch}/inspections/${inspection}/start`, { method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": d.sourceETag },
+      body: JSON.stringify({ reason: "Must use exact-defect workflow" }) });
+    const after = await fetch(path + "/execution", { credentials: "include" });
+    if (generic.status !== 503 || after.status !== 200 || after.headers.get("ETag") !== d.sourceETag)
+      throw Error("Generic inspection endpoint changed reinspection");
+    return { detail: true, evidence: true, foreignDenied: true, readiness: d.effectiveReadiness };
+  }, { branch: fixture.branch, inspection: body.id, actor: fixture.actor, rework: fixture.rework });
   process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true,
-    invalidInspectorDueDenied: true, foreignBranchDenied: true, replay: true, reloadPersisted: true }));
+    invalidInspectorDueDenied: true, foreignBranchDenied: true, replay: true, reloadPersisted: true, reinspectionRead: detailCheck }));
 } catch (error) {
   process.stdout.write(JSON.stringify({ success: false, stage, diagnostic: String(error.message).split("\n")[0] })); process.exitCode = 1;
 } finally { await browser?.close(); }

@@ -143,6 +143,56 @@ internal static class SprintReinspectionAssignmentProbe
             if ((await Call(operation, body: input with { Reason = "Changed body" })).Status != RoomTypeBatchStatus.Duplicate
                 || (await Call(Guid.NewGuid())).Status != RoomTypeBatchStatus.Duplicate)
                 throw new Exception("Assignment duplicated or reused changed operation");
+            var assignedId = ((ReinspectionAssignmentResult)results[0].Value!).Id;
+            async Task<RoomTypeBatchResult> Read(long readBranch, long readId, SessionReference readTicket, long readSid, long? file = null)
+            {
+                await using var context = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options);
+                await context.Database.OpenConnectionAsync(ct);
+                await context.Database.ExecuteSqlRawAsync("EXECUTE AS USER='DEV3_Reinspector'", ct);
+                try
+                {
+                    var identity = new Identity(new(readTicket.UserId, readSid, false));
+                    var service = new RoomTypeCreationService(context, identity,
+                        new PermissionService(identity, new EfPermissionDataSource(context), new UnresolvedPermissionResourceResolver(), TimeProvider.System),
+                        new SqlSessionService(context, new SessionRevocationService(context), TimeProvider.System), TimeProvider.System);
+                    return await service.ReadReinspectionExecutionAsync(readTicket, readSid, readBranch, readId, SprintReworkFixture.EvidenceRoot, ct, file);
+                }
+                finally { await context.Database.ExecuteSqlRawAsync("REVERT", CancellationToken.None); }
+            }
+            var detailRead = await Read(branch, assignedId, ticket, sid);
+            if (detailRead.Status != RoomTypeBatchStatus.Success || detailRead.Value is not ReinspectionExecutionDto detail
+                || detail.Id != assignedId || detail.ReworkId != rework || detail.InspectorId != actor
+                || detail.Defects.Count == 0 || detail.Defects.Any(d => string.IsNullOrWhiteSpace(d.Remediation))
+                || detailRead.ETag != detail.SourceETag || detail.State != "ASSIGNED")
+                throw new Exception("Assigned reinspection detail unavailable: " + detailRead.Status);
+            if ((await Read(branch + 100000, assignedId, ticket, sid)).Status == RoomTypeBatchStatus.Success
+                || (await Read(branch, assignedId, executorTicket, executorSid)).Status == RoomTypeBatchStatus.Success
+                || (await Read(branch, detail.OriginalInspectionId, ticket, sid)).Status == RoomTypeBatchStatus.Success
+                || (await Read(branch, assignedId, ticket, sid, long.MaxValue)).Status != RoomTypeBatchStatus.NotFound)
+                throw new Exception("Reinspection read/evidence scope leaked");
+            var originalPhoto = detail.Defects.SelectMany(d => d.OriginalPhotos.Concat(d.RemediationPhotos)).First();
+            if ((await Read(branch, assignedId, ticket, sid, originalPhoto)).Value is not HotelOps.Api.DTOs.HotelStructure.PrivateHistoryFileDto)
+                throw new Exception("Assigned inspector could not read linked evidence");
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={actor} AND branch_id={branch}", ct);
+            try
+            {
+                if ((await Read(branch, assignedId, ticket, sid)).Status == RoomTypeBatchStatus.Success
+                    || (await Read(branch, assignedId, ticket, sid, originalPhoto)).Status == RoomTypeBatchStatus.Success)
+                    throw new Exception("Revoked inspector retained detail/evidence");
+            }
+            finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={actor} AND branch_id={branch}", ct); }
+            var audit = await db.AuditLogs.AsNoTracking().SingleAsync(a => a.EntityType == "REINSPECTION" && a.EntityId == assignedId.ToString() && a.Action == "CREATE", ct);
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.audit_logs SET new_values=N'{{}}' WHERE audit_id={audit.AuditId}", ct);
+            try
+            {
+                if ((await Read(branch, assignedId, ticket, sid)).Status == RoomTypeBatchStatus.Success)
+                    throw new Exception("Unproven assignment receipt admitted to detail");
+            }
+            finally { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.audit_logs SET new_values={audit.NewValues} WHERE audit_id={audit.AuditId}", ct); }
+            var finalRead = await Read(branch, assignedId, ticket, sid);
+            if (finalRead.ETag != detail.SourceETag || finalRead.Value is not ReinspectionExecutionDto finalDetail
+                || finalDetail.BindingETag != detail.BindingETag || finalDetail.ReworkETag != detail.ReworkETag)
+                throw new Exception("Reinspection read mutated lifecycle revisions");
             await using (var context = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options))
             {
                 await context.Database.OpenConnectionAsync(ct);

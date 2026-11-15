@@ -162,7 +162,11 @@ internal static class SprintApprovalBrowserProbe
                             assignmentDuplicateDenied=true,assignmentSchemaRollbackAndCleanup=true,
                             reinspectionConclusionVerified=false,reinspectionAssignmentBrowserVerified=true,
                             reinspectionAssignmentCsrfEtag=true,reinspectionAssignmentReplay=true,
-                            reinspectionAssignmentReload=true,executorSubmissionReadAfterAssignment=true});
+                            reinspectionAssignmentReload=true,executorSubmissionReadAfterAssignment=true,
+                            assignedReinspectionDetailSqlHttps=true,assignedReinspectionEvidenceHttps=true,
+                            reinspectionReadRevocationDenied=true,reinspectionReadAuditTamperDenied=true,
+                            reinspectionReadForeignSourceDenied=true,reinspectionReadDoesNotMutate=true,
+                            genericInspectionMutationDenied=true});
                         checks.Add(new{blocked,committedAcceptStart=true,receiveReplay=true,changedRequestKeyDenied=true,
                             noWorkdayRollback=true,busyStartDenied=true,startAuditRollback=true,concurrentStartOneInterval=true,executionSchemaRestored=true});
                         checks.Add(new{blocked,restrictedReceiveBrowser=true,defectPhotoHttps=true,receiveCsrfEtag=true,receiveAcceptStartHttps=true,
