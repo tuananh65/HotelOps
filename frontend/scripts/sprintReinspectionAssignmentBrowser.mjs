@@ -34,7 +34,7 @@ try {
     if (existing.status !== 200 || existing.body.existingInspectionId !== fixture.existingInspection
       || existing.body.canAssign !== false || existing.body.unavailableReason !== "ALREADY_ASSIGNED") throw Error("Retirement hid the committed assignment");
     body = { id: fixture.existingInspection };
-    await page.getByText(`An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
+    await page.getByText(`MSG03: An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
     if (await page.getByRole("button", { name: "Review assignment", exact: true }).count()) throw Error("Retirement reopened assignment");
   } else {
   stage = "options API admission";
@@ -90,7 +90,7 @@ try {
     throw Error("Assignment replay mismatch");
   await page.reload();
   stage = "assignment reload";
-  await page.getByText(`An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
+  await page.getByText(`MSG03: An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
   if (await page.getByRole("button", { name: "Review assignment", exact: true }).count()) throw Error("Duplicate assignment remains editable");
   }
   stage = "assigned reinspection detail and evidence";

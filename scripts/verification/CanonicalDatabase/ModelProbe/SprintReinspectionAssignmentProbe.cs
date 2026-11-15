@@ -28,6 +28,8 @@ internal static class SprintReinspectionAssignmentProbe
             .Select(w => new { w.Inspection.InspectorUserId, w.Inspection.VersionId, w.CleaningTaskId }).SingleAsync(ct);
         var actor = source.InspectorUserId;
         var distinctInspector = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_DISTINCT_INSPECTOR") == "1";
+        var reassign = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_REASSIGN") == "1";
+        if(reassign && (distinctInspector || Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1" || Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")!="1"))throw new Exception("Reassignment trial requires browser conclusion and a fresh replacement inspector");
         long? ownedInspector = null;
         var roomId = await db.CleaningTasks.Where(t => t.CleaningTaskId == source.CleaningTaskId).Select(t => t.RoomId).SingleAsync(ct);
         var originalRoomStatus = await db.Rooms.Where(r => r.RoomId == roomId).Select(r => r.OperationalStatus).SingleAsync(ct);
@@ -42,7 +44,7 @@ internal static class SprintReinspectionAssignmentProbe
         async Task Install()
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"EXEC sys.sp_set_session_context @key=N'DEV3.SourceCommit',@value={commit}", ct);
-            foreach (var file in new[] { "SprintReinspectionWorkflow.sql", "SprintReinspectionProjectionGuards.sql", "SprintReinspectionWriters.sql" })
+            foreach (var file in new[] { "SprintReinspectionWorkflow.sql", "SprintReinspectionProjectionGuards.sql", "SprintReinspectionWriters.sql", "SprintReinspectionReassignmentWriter.sql" })
             {
                 await using var command = db.Database.GetDbConnection().CreateCommand();
                 command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
@@ -90,7 +92,7 @@ internal static class SprintReinspectionAssignmentProbe
                 """).SingleAsync(CancellationToken.None) != 0) throw new Exception("Unexpected reinspection source; cleanup refused");
             var keys = await db.Database.SqlQuery<string>($"""
                 SELECT a.storage_key AS Value FROM dbo.attachments a JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=a.entity_id
-                WHERE b.rework_id IN({rework},{child}) AND a.entity_type='INSPECTION' AND a.uploaded_by={actor}
+                WHERE b.rework_id IN({rework},{child}) AND a.entity_type='INSPECTION'
                   AND NOT EXISTS(SELECT 1 FROM dbo.cleaning_reworks child WHERE child.inspection_id=b.inspection_id)
                 UNION
                 SELECT a.storage_key FROM dbo.attachments a JOIN dbo.fs016_rework_evidence e ON e.attachment_id=a.attachment_id
@@ -104,11 +106,14 @@ internal static class SprintReinspectionAssignmentProbe
                 DECLARE @owned TABLE(id bigint PRIMARY KEY);
                 INSERT @owned SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id IN({rework},{child});
                 DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
-                  WHERE n.notification_type='REINSPECTION_ASSIGNED' AND n.source_type='INSPECTION' AND n.source_id IN(SELECT id FROM @owned) AND n.created_by={actor};
-                DELETE dbo.notifications WHERE notification_type='REINSPECTION_ASSIGNED' AND source_type='INSPECTION' AND source_id IN(SELECT id FROM @owned) AND created_by={actor};
+                  WHERE n.notification_type='REINSPECTION_ASSIGNED' AND n.source_type='INSPECTION' AND n.source_id IN(SELECT id FROM @owned);
+                DELETE dbo.notifications WHERE notification_type='REINSPECTION_ASSIGNED' AND source_type='INSPECTION' AND source_id IN(SELECT id FROM @owned);
                 DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
-                  WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id IN({rework},{child}) AND n.created_by={actor};
-                DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id IN({rework},{child}) AND created_by={actor};
+                  WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id IN({rework},{child});
+                DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id IN({rework},{child});
+                DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
+                  WHERE n.source_type='REINSPECTION_ASSIGNMENT' AND n.source_id IN(SELECT audit_id FROM dbo.audit_logs WHERE entity_type='REINSPECTION_ASSIGNMENT' AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned));
+                DELETE dbo.notifications WHERE source_type='REINSPECTION_ASSIGNMENT' AND source_id IN(SELECT audit_id FROM dbo.audit_logs WHERE entity_type='REINSPECTION_ASSIGNMENT' AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned));
                 -- A Failed reinspection may now own the next committed Request Rework.
                 -- Retain that immutable source until the outer owned-authority cleanup drops
                 -- its trial proof table and deletes the descendant rework before inspection.
@@ -117,10 +122,10 @@ internal static class SprintReinspectionAssignmentProbe
                 UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @deletable);
                 DROP TABLE dbo.fe05_reinspection_defect_attachments_v1;
                 DROP TABLE dbo.fe05_reinspection_defect_results_v1;
+                DROP VIEW dbo.fe05_reinspection_responsibilities_v1;
                 DROP TABLE dbo.fe05_reinspection_bindings_v1;
-                DELETE dbo.audit_logs WHERE entity_type='REINSPECTION' AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned);
-                DELETE dbo.notification_operation_reservations WHERE actor_user_id={actor}
-                  AND JSON_VALUE(result_json,'$.contract') IN('FE05_REINSPECTION_ASSIGNMENT_V1','FE05_REINSPECTION_CONCLUSION_V1')
+                DELETE dbo.audit_logs WHERE entity_type IN('REINSPECTION','REINSPECTION_ASSIGNMENT') AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned);
+                DELETE dbo.notification_operation_reservations WHERE JSON_VALUE(result_json,'$.contract') IN('FE05_REINSPECTION_ASSIGNMENT_V1','FE05_REINSPECTION_CONCLUSION_V1','FE05_REINSPECTION_REASSIGNMENT_V1')
                   AND TRY_CONVERT(bigint,JSON_VALUE(result_json,'$.reworkId')) IN({rework},{child});
                 DECLARE @childEvidence TABLE(id bigint PRIMARY KEY);
                 INSERT @childEvidence SELECT a.attachment_id FROM dbo.attachments a JOIN dbo.fs016_rework_evidence e ON e.attachment_id=a.attachment_id
@@ -146,12 +151,13 @@ internal static class SprintReinspectionAssignmentProbe
                   WHERE rework_id={rework} AND workflow_status IN('FAILED','COMPLETED');
                 UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED',status='IN_PROGRESS' WHERE cleaning_task_id={source.CleaningTaskId} AND (workflow_status<>'REWORK_REQUIRED' OR status<>'IN_PROGRESS');
                 UPDATE dbo.rooms SET operational_status={originalRoomStatus} WHERE room_id={roomId} AND operational_status<>{originalRoomStatus};
+                DROP PROCEDURE dbo.fe05_reassign_reinspection;
                 DROP PROCEDURE dbo.fe05_bind_reinspection;
                 DROP PROCEDURE dbo.fe05_commit_reinspection;
                 ALTER ROLE hotelops_reinspection_writer DROP MEMBER DEV3_Reinspector;
                 DROP USER DEV3_Reinspector;
                 DROP ROLE hotelops_reinspection_writer;
-                DELETE dbo.fe04_rework_authority_issuers WHERE issuer IN('FE05.UC041','FE05.UC047') AND version=1;
+                DELETE dbo.fe04_rework_authority_issuers WHERE issuer IN('FE05.UC041','FE05.UC047','FE05.UC041.REINSPECTION_REASSIGN') AND version=1;
                 DECLARE @original nvarchar(max)={original};
                 DECLARE @ddl nvarchar(max)=N'ALTER TABLE dbo.cleaning_reworks DROP CONSTRAINT CK_rework_workflow_v1; ALTER TABLE dbo.cleaning_reworks WITH CHECK ADD CONSTRAINT CK_rework_workflow_v1 CHECK '+@original;
                 EXEC sys.sp_executesql @ddl;
@@ -165,7 +171,7 @@ internal static class SprintReinspectionAssignmentProbe
         }
         try
         {
-            if (distinctInspector)
+            if (distinctInspector || reassign)
             {
                 await using var rehearsal = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
                 var temporary = await SprintDistinctReinspectorFixture.CreateAsync(db, source.InspectorUserId, branch, ct);
@@ -182,6 +188,7 @@ internal static class SprintReinspectionAssignmentProbe
                     user = await SprintDistinctReinspectorFixture.CreateAsync(db, source.InspectorUserId, branch, ct);
                     actor = user.UserId;
                 }
+                if(reassign) ownedInspector=(await SprintDistinctReinspectorFixture.CreateAsync(db,source.InspectorUserId,branch,ct)).UserId;
                 await setup.CommitAsync(ct); installed = true;
                 if (distinctInspector) ownedInspector = actor;
             }
@@ -333,13 +340,14 @@ internal static class SprintReinspectionAssignmentProbe
                 }
                 finally { await context.Database.ExecuteSqlRawAsync("REVERT", CancellationToken.None); }
             }
+            if(reassign) SprintReinspectionReassignmentBrowserProbe.Evidence.Add(await SprintReinspectionReassignmentServiceProbe.VerifyAsync(db,ticket,sid,ownedInspector!.Value,branch,assignedId,ct));
             // Restore only this synthetic assignment before the independent public UI trial.
             await using (var reset = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
             { await Cleanup(); await Install(); await reset.CommitAsync(ct); }
-            await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, executorTicket, executorSid, ct);
+            await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, executorTicket, executorSid, ct, reassign ? ownedInspector : null);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
-            await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct,
+            if(!reassign) await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct,
                 Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND") == "1" ? "READY" : null);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionExecutorProbe.VerifyAsync(db, executorTicket, executorSid, branch, rework, ct);

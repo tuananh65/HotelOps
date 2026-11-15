@@ -77,7 +77,7 @@ public sealed partial class RoomTypeCreationService
             var cycle = await db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.room_cleaning_cycle_state WHERE room_id={row.RoomId} AND cleaning_task_id={task}").SingleAsync(token);
             if (input.CycleETag != WorkflowTag(cycle)) return new(RoomTypeBatchStatus.Stale);
             if (input.InspectorId == row.InspectorUserId) return new(RoomTypeBatchStatus.Duplicate);
-            if (await InspectorWorkedOnCycle(input.InspectorId, task, token)) return new(RoomTypeBatchStatus.InvalidReference);
+            if (await InspectorWorkedOnCycle(input.InspectorId, task, token)) return LifecycleFailure(RoomTypeBatchStatus.InvalidReference,"INSPECTOR_CLEANER_CONFLICT");
             await db.Database.ExecuteSqlInterpolatedAsync($"EXEC dbo.fe05_reassign_inspection @actor={actor},@branch={branch},@inspection={id},@inspector={input.InspectorId},@revision={state.Revision},@cycleRevision={cycle},@reason={reason},@operation={operation},@fingerprint={fingerprint}", token);
             var result = await ReadWrittenReinspectionResult<InspectionReassignmentResult>(actor, operation, token);
             if (!InspectionReassignmentSource.ValidResult(result) || result.Id != id || result.TaskId != task || result.BranchId != branch

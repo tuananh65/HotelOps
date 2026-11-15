@@ -15,8 +15,8 @@ IF @results NOT LIKE '%r.workflow_status<>''INSPECTING''%'
  THROW 51999,'Reviewed original trigger definitions required',1;
 SET @results=REPLACE(@results,'CREATE TRIGGER','ALTER TRIGGER');
 SET @results=REPLACE(@results,'r.workflow_status<>''INSPECTING''',
- N'(r.workflow_status<>''INSPECTING'' AND NOT(r.workflow_status=''ASSIGNED'' AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_bindings_v1 b
- WHERE b.inspection_id=r.inspection_id AND b.reinspector_user_id=r.inspector_user_id)))');
+ N'(r.workflow_status<>''INSPECTING'' AND NOT(r.workflow_status=''ASSIGNED'' AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_responsibilities_v1 b
+ WHERE b.inspection_id=r.inspection_id AND b.inspector_user_id=r.inspector_user_id)))');
 SET @results=REPLACE(@results,'SET NOCOUNT ON;',N'SET NOCOUNT ON;
  IF EXISTS(SELECT 1 FROM inserted x JOIN dbo.room_inspections i ON i.inspection_id=x.inspection_id
   JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=i.inspection_id WHERE i.workflow_status=''ASSIGNED'' AND
@@ -30,8 +30,8 @@ SET @results=REPLACE(@results,'SET NOCOUNT ON;',N'SET NOCOUNT ON;
 EXEC sys.sp_executesql @results;
 SET @defects=REPLACE(@defects,'CREATE TRIGGER','ALTER TRIGGER');
 SET @defects=REPLACE(@defects,'r.workflow_status NOT IN(''INSPECTING'',''PENDING_CONCLUSION'')',
- N'(r.workflow_status NOT IN(''INSPECTING'',''PENDING_CONCLUSION'') AND NOT(r.workflow_status=''ASSIGNED'' AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_bindings_v1 b
- WHERE b.inspection_id=r.inspection_id AND b.reinspector_user_id=r.inspector_user_id)))');
+ N'(r.workflow_status NOT IN(''INSPECTING'',''PENDING_CONCLUSION'') AND NOT(r.workflow_status=''ASSIGNED'' AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_responsibilities_v1 b
+ WHERE b.inspection_id=r.inspection_id AND b.inspector_user_id=r.inspector_user_id)))');
 SET @defects=REPLACE(@defects,'SET NOCOUNT ON;',N'SET NOCOUNT ON;
  IF EXISTS(SELECT 1 FROM inserted x JOIN dbo.room_inspections i ON i.inspection_id=x.inspection_id
   JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=i.inspection_id WHERE i.workflow_status=''ASSIGNED''

@@ -1,0 +1,39 @@
+✔ assignment options require matching scope, ETag and actionable state (30.2292ms)
+✔ session replacement during CSRF bootstrap sends no assignment (1.4303ms)
+✔ assignment transport binds CSRF, operation and rework ETag without automatic retry (1.0247ms)
+✔ foreign or malformed writer receipts never publish success (2.4721ms)
+✔ invalid command is rejected before any CSRF or mutation request (0.4275ms)
+✔ options reject cross-scope, malformed revisions and self-assignment candidates (26.0116ms)
+✔ mutation sends CSRF, exact revision and one operation; rejects replaced receipt scope/lifecycle (6.9932ms)
+✔ authority changing during CSRF prevents POST (0.4056ms)
+✔ bad CSRF and same inspector fail without a write; uncertain result is never retried (0.6181ms)
+✔ reinspection options require the exact rework/binding and Assigned state (0.9692ms)
+✔ reinspection transfer sends four source revisions and rejects another workflow receipt (2.7107ms)
+✔ reinspection stale session or missing binding never sends a mutation (0.4588ms)
+✔ business denial is presented only for its exact authenticated API contract (1.5684ms)
+✔ assignment options require matching scope, ETag and actionable state (25.8184ms)
+✔ session replacement during CSRF bootstrap sends no assignment (1.5928ms)
+✔ assignment transport binds CSRF, operation and rework ETag without automatic retry (1.2485ms)
+✔ foreign or malformed writer receipts never publish success (2.4876ms)
+✔ invalid command is rejected before any CSRF or mutation request (0.5365ms)
+✔ terminal read separates current readiness from a matching historical receipt (26.6397ms)
+✔ execution rejects foreign, duplicate, already decided or unversioned source (1.609ms)
+✔ replacement authority during CSRF bootstrap cannot send conclusion (0.5254ms)
+✔ conclusion binds exact source, three ETags, CSRF and operation without retry (1.0185ms)
+✔ incoherent receipt never publishes success or retries a write (2.1782ms)
+✔ missing, duplicate or foreign decisions cannot start CSRF or mutation (0.2672ms)
+✔ canonical original link is read only and clears private source on session loss (1094.0101ms)
+✔ terminal reload shows fresh readiness and recorded decisions without enabling conclusion (475.7321ms)
+✔ canonical reinspection requires every decision and confirms blocked result once (488.1773ms)
+✔ unknown conclusion outcome locks form and hides raw server detail (453.9562ms)
+✔ session invalidation during CSRF removes private source and prevents conclusion (471.0734ms)
+✔ original read accepts a different original inspector and only a locally scoped file URL (24.0189ms)
+✔ original read rejects substituted identities, out-of-scope evidence, malformed results and stale header (3.803ms)
+ℹ tests 31
+ℹ suites 0
+ℹ pass 31
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3781.2942

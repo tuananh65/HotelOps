@@ -101,6 +101,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             await tx.CommitAsync(ct);
             return new($"/inspections/{proof.BranchId}/{proof.InspectionId}/execution");
         }
+        if(source is {NotificationType:ReinspectionReassignmentSource.Kind,SourceType:"REINSPECTION_ASSIGNMENT",SourceId:>0})
+        {
+            var audit=await db.AuditLogs.AsNoTracking().SingleOrDefaultAsync(a=>a.AuditId==source.SourceId,ct);
+            var proof=audit==null?null:await ReinspectionReassignmentSource.VerifyAsync(db,audit,ct);
+            if(proof==null||proof.ActorUserId!=source.CreatedBy||audit!.OccurredAt!=source.CreatedAt||proof.Notification.RecipientUserId!=user
+                ||await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_responsibilities_v1 a JOIN dbo.room_inspections i ON i.inspection_id=a.inspection_id WHERE a.inspection_id={proof.InspectionId} AND a.inspector_user_id={user} AND i.status<>'CANCELLED'").SingleAsync(ct)!=1
+                ||!(await InspectionFailureRecipients.SupervisorsAsync(db,proof.BranchId,now,ct)).Contains(user))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/reinspections/{proof.BranchId}/{proof.InspectionId}/execution");
+        }
         if(source is {NotificationType:ReinspectionAssignedNotificationSource.Kind,SourceType:"INSPECTION",SourceId:>0})
         {
             var audits=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="REINSPECTION"&&a.EntityId==source.SourceId.Value.ToString()&&a.Action=="CREATE").ToArrayAsync(ct);

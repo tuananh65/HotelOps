@@ -68,7 +68,7 @@ public sealed partial class RoomTypeCreationService
             if (input.CycleETag != WorkflowTag(cycle)) return new(RoomTypeBatchStatus.Stale);
             WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
             if (await InspectorWorkedOnCycle(input.InspectorId, task, token)) return LifecycleFailure(RoomTypeBatchStatus.InvalidReference, "INSPECTOR_CLEANER_CONFLICT");
-            if (await db.RoomInspections.AsNoTracking().AnyAsync(i => i.CleaningTaskId == task && i.Status != "COMPLETED" && i.Status != "CANCELLED", token)) return new(RoomTypeBatchStatus.Duplicate);
+            if (await db.RoomInspections.AsNoTracking().AnyAsync(i => i.CleaningTaskId == task && i.Status != "COMPLETED" && i.Status != "CANCELLED", token)) return LifecycleFailure(RoomTypeBatchStatus.Duplicate,"INSPECTION_ALREADY_ASSIGNED");
             var version = await CurrentInitialInspectionVersion(branch, row.RoomTypeId, token);
             if (version == null || version.Id != input.ChecklistVersionId) return LifecycleFailure(RoomTypeBatchStatus.InvalidReference, "CHECKLIST_UNAVAILABLE");
             await db.Database.ExecuteSqlInterpolatedAsync($"""

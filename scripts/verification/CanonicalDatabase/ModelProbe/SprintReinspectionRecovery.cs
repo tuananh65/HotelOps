@@ -40,6 +40,7 @@ internal static class SprintReinspectionRecovery
                 UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @owned);
                 DROP TABLE dbo.fe05_reinspection_defect_attachments_v1;
                 DROP TABLE dbo.fe05_reinspection_defect_results_v1;
+                DROP VIEW IF EXISTS dbo.fe05_reinspection_responsibilities_v1;
                 DROP TABLE dbo.fe05_reinspection_bindings_v1;
                 DELETE dbo.audit_logs WHERE entity_type='REINSPECTION' AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned);
                 DELETE dbo.notification_operation_reservations WHERE actor_user_id={actor} AND JSON_VALUE(result_json,'$.contract') IN('FE05_REINSPECTION_ASSIGNMENT_V1','FE05_REINSPECTION_CONCLUSION_V1');
@@ -51,10 +52,11 @@ internal static class SprintReinspectionRecovery
                 DELETE dbo.room_inspections WHERE inspection_id IN(SELECT id FROM @owned);
                 DROP PROCEDURE dbo.fe05_bind_reinspection;
                 DROP PROCEDURE dbo.fe05_commit_reinspection;
+                DROP PROCEDURE IF EXISTS dbo.fe05_reassign_reinspection;
                 ALTER ROLE hotelops_reinspection_writer DROP MEMBER DEV3_Reinspector;
                 DROP USER DEV3_Reinspector;
                 DROP ROLE hotelops_reinspection_writer;
-                DELETE dbo.fe04_rework_authority_issuers WHERE issuer IN('FE05.UC041','FE05.UC047');
+                DELETE dbo.fe04_rework_authority_issuers WHERE issuer IN('FE05.UC041','FE05.UC047','FE05.UC041.REINSPECTION_REASSIGN');
                 EXEC sys.sp_dropextendedproperty @name=N'HotelOps.Reinspection.V1';
                 DELETE dbo.fs016_rework_evidence;
                 DELETE dbo.attachments WHERE entity_type='CLEANING_TASK' AND uploaded_by={cleaner};

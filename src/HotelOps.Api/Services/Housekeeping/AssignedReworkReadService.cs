@@ -34,13 +34,14 @@ public sealed partial class RoomTypeCreationService
             {
                 if(!await ReinspectionWorkflowInstalled(token))return new(RoomTypeBatchStatus.SchemaRequired);
                 var inspections=await db.Database.SqlQuery<ExecutorReinspectionSource>($"""
-                    SELECT inspection_id AS InspectionId,reinspector_user_id AS InspectorId
-                    FROM dbo.fe05_reinspection_bindings_v1 WITH(HOLDLOCK)
-                    WHERE rework_id={id} AND branch_id={branch} AND submission_actor={actor}
+                    SELECT b.inspection_id AS InspectionId,authority.inspector_user_id AS InspectorId
+                    FROM dbo.fe05_reinspection_bindings_v1 b WITH(HOLDLOCK)
+                    JOIN dbo.fe05_reinspection_responsibilities_v1 authority ON authority.inspection_id=b.inspection_id
+                    WHERE b.rework_id={id} AND b.branch_id={branch} AND b.submission_actor={actor}
                     """).ToArrayAsync(token);
                 if(inspections.Length!=1)return new(RoomTypeBatchStatus.Unavailable);
                 // Caller admission remains the executor's own CLEANING_VIEW. The historical
-                // inspector identity validates the protected producer receipt, not caller rights.
+                // proven current inspector validates the protected producer receipt, not caller rights.
                 var proof=await ReadReinspectionInCallerTransactionAsync(inspections[0].InspectorId,branch,
                     inspections[0].InspectionId,root,null,token,allowTerminal:true);
                 if(proof.Value is not ReinspectionExecutionDto {Conclusion:{} ended} execution

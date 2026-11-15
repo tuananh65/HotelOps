@@ -61,10 +61,10 @@ public sealed partial class RoomTypeCreationService
             if (submission == null || submission.Entity.SourceETag != tag)
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REWORK_SUBMISSION_UNPROVEN");
             if (await InspectorWorkedOnCycle(input.InspectorId, row.CleaningTaskId, token))
-                return new(RoomTypeBatchStatus.InvalidReference);
+                return LifecycleFailure(RoomTypeBatchStatus.InvalidReference,"INSPECTOR_CLEANER_CONFLICT");
             if (await db.RoomInspections.AsNoTracking().AnyAsync(i => i.CleaningTaskId == row.CleaningTaskId
                 && i.Status != "COMPLETED" && i.Status != "CANCELLED", token))
-                return new(RoomTypeBatchStatus.Duplicate);
+                return LifecycleFailure(RoomTypeBatchStatus.Duplicate,"INSPECTION_ALREADY_ASSIGNED");
             var now = clock.GetUtcNow().UtcDateTime;
             // Never remap original defects to a different version by matching labels.
             if (!await db.InspectionChecklistVersions.AsNoTracking().AnyAsync(v => v.VersionId == row.VersionId

@@ -79,14 +79,15 @@ BEGIN SET NOCOUNT ON; SET XACT_ABORT ON;
  SELECT @rework=w.rework_id,@task=t.cleaning_task_id,@room=r.room_id,@executor=w.assignee_user_id,@state=i.workflow_status,
   @reworkState=w.workflow_status,@ended=i.inspected_at,@inspectionTag=CHAR(34)+CONVERT(varchar(16),CONVERT(binary(8),i.row_version),2)+CHAR(34),@reworkTag=CHAR(34)+CONVERT(varchar(16),CONVERT(binary(8),w.row_version),2)+CHAR(34)
  FROM dbo.fe05_reinspection_bindings_v1 b WITH(UPDLOCK,HOLDLOCK)
- JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=b.reinspector_user_id AND i.version_id=b.version_id
+ JOIN dbo.fe05_reinspection_responsibilities_v1 authority ON authority.inspection_id=b.inspection_id
+ JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=authority.inspector_user_id AND i.version_id=b.version_id
   AND i.room_id=b.room_id AND i.cleaning_task_id=b.cleaning_task_id AND i.status=''COMPLETED'' AND i.inspected_at IS NOT NULL
  JOIN dbo.cleaning_reworks w ON w.rework_id=b.rework_id AND w.inspection_id=b.original_inspection_id AND w.cleaning_task_id=b.cleaning_task_id
   AND w.status=''COMPLETED'' AND w.completed_at=i.inspected_at AND w.assignee_user_id=b.submission_actor
  JOIN dbo.cleaning_tasks t ON t.cleaning_task_id=b.cleaning_task_id AND t.room_id=b.room_id
  JOIN dbo.rooms r ON r.room_id=b.room_id AND r.branch_id=b.branch_id AND r.is_active=1
  JOIN dbo.room_cleaning_cycle_state c ON c.room_id=b.room_id AND c.cleaning_task_id=b.cleaning_task_id AND c.row_version=b.cycle_revision
- WHERE b.inspection_id=@inspection AND b.branch_id=@branch AND b.reinspector_user_id=@actor AND w.assignee_user_id<>@actor
+ WHERE b.inspection_id=@inspection AND b.branch_id=@branch AND authority.inspector_user_id=@actor AND w.assignee_user_id<>@actor
   AND ((i.workflow_status=''PASSED'' AND i.result=''PASS'' AND w.workflow_status=''COMPLETED'' AND t.workflow_status=''COMPLETED'' AND t.status=''COMPLETED'')
    OR(i.workflow_status=''FAILED'' AND i.result=''FAIL'' AND w.workflow_status=''FAILED'' AND t.workflow_status=''REWORK_REQUIRED'' AND t.status=''IN_PROGRESS''));
  IF @rework IS NULL OR (SELECT COUNT(*) FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=@inspection) NOT BETWEEN 1 AND 200

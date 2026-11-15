@@ -59,7 +59,8 @@ public sealed partial class RoomTypeCreationService
                   b.row_version AS Revision,b.rework_revision AS ReworkRevision,w.row_version AS CurrentReworkRevision,
                   i.workflow_status AS State
                 FROM dbo.fe05_reinspection_bindings_v1 b WITH(HOLDLOCK)
-                JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=b.reinspector_user_id
+                JOIN dbo.fe05_reinspection_responsibilities_v1 authority ON authority.inspection_id=b.inspection_id
+                JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=authority.inspector_user_id
                   AND i.cleaning_task_id=b.cleaning_task_id AND i.room_id=b.room_id AND i.version_id=b.version_id
                 JOIN dbo.cleaning_reworks w ON w.rework_id=b.rework_id AND w.inspection_id=b.original_inspection_id
                   AND w.cleaning_task_id=b.cleaning_task_id AND w.assignee_user_id=b.submission_actor
@@ -68,7 +69,7 @@ public sealed partial class RoomTypeCreationService
                 JOIN dbo.rooms r ON r.room_id=b.room_id AND r.branch_id=b.branch_id AND r.is_active=1
                 JOIN dbo.floors f ON f.floor_id=r.floor_id AND f.is_active=1
                 LEFT JOIN dbo.areas a ON a.area_id=r.area_id
-                WHERE b.inspection_id={inspection} AND b.branch_id={branch} AND b.reinspector_user_id={actor}
+                WHERE b.inspection_id={inspection} AND b.branch_id={branch} AND authority.inspector_user_id={actor}
                   AND b.submission_actor<>{actor} AND (r.area_id IS NULL OR a.is_active=1)
                   AND ((i.workflow_status='ASSIGNED' AND i.status='PENDING' AND i.result IS NULL
                     AND w.row_version=b.rework_revision AND w.workflow_status='PENDING_REINSPECTION'

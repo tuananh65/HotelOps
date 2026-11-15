@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
 import { ApiError } from "../../api/dev1/client";
+import { inspectionAssignmentRejection } from "../../api/dev1/inspectionReassignment";
 import { parseAssignmentContext } from "../inspectionAssignment/navigation";
 import { InspectionReassignmentForm } from "./InspectionReassignmentForm";
 import {
@@ -166,10 +167,11 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
         setLocked(true);
         setReview(false);
         setMessage(
-          error instanceof ApiError &&
+          inspectionAssignmentRejection(error) ??
+            (error instanceof ApiError &&
             [400, 403, 409, 412, 428].includes(error.status)
-            ? "Assignment was rejected. Refresh to review the current inspection; no automatic retry was sent."
-            : "Assignment outcome is unconfirmed. Refresh to inspect the current state; do not submit another assignment.",
+              ? "Assignment was rejected. Refresh to review the current inspection; no automatic retry was sent."
+              : "Assignment outcome is unconfirmed. Refresh to inspect the current state; do not submit another assignment."),
         );
         if (error instanceof ApiError && error.status === 401)
           actions.invalidateSession(owner);
@@ -209,7 +211,8 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
           {data.existingInspectionId !== null && (
             <p role="status">
               <span>
-                An inspection is already assigned: #{data.existingInspectionId}.
+                MSG03: An inspection is already assigned: #
+                {data.existingInspectionId}.
               </span>
               <Link
                 to={`/inspections/${branch}/${data.existingInspectionId}/execution`}
@@ -228,7 +231,7 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
           {!data.canAssign && data.existingInspectionId === null && (
             <p role="status">
               {data.unavailableReason === "CHECKLIST_UNAVAILABLE"
-                ? "No effective published checklist is available for this room type. Publish an eligible checklist before assignment."
+                ? "MSG03: No effective published checklist is available for this room type. Publish an eligible checklist before assignment."
                 : data.unavailableReason === "NO_ELIGIBLE_INSPECTOR"
                   ? "No eligible inspector is available for this cleaning cycle."
                   : "Assignment is unavailable with your current access."}

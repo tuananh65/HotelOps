@@ -39,7 +39,8 @@ public sealed partial class RoomTypeCreationService
                 || await db.Database.SqlQuery<int>($"""
                     SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b WITH(HOLDLOCK)
                     JOIN dbo.room_cleaning_cycle_state c ON c.room_id=b.room_id AND c.cleaning_task_id=b.cleaning_task_id AND c.row_version=b.cycle_revision
-                    JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=b.reinspector_user_id
+                    JOIN dbo.fe05_reinspection_responsibilities_v1 authority ON authority.inspection_id=b.inspection_id
+                    JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=authority.inspector_user_id
                       AND i.cleaning_task_id=b.cleaning_task_id AND i.room_id=b.room_id AND i.version_id=b.version_id
                     WHERE b.inspection_id={existing} AND b.rework_id={rework} AND b.branch_id={branch}
                       AND b.submission_actor={executor} AND b.submission_operation={submission.OperationId}

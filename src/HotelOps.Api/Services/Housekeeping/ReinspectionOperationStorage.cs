@@ -12,6 +12,7 @@ public sealed partial class RoomTypeCreationService
     private async Task<bool> ReinspectionWorkflowInstalled(CancellationToken ct)
         =>await ReworkSubmissionInstalled(ct)&&await db.Database.SqlQueryRaw<int>("""
             SELECT CASE WHEN OBJECT_ID('dbo.fe05_reinspection_bindings_v1','U') IS NOT NULL
+              AND OBJECT_ID('dbo.fe05_reinspection_responsibilities_v1','V') IS NOT NULL
               AND OBJECT_ID('dbo.fe05_reinspection_defect_results_v1','U') IS NOT NULL
               AND OBJECT_ID('dbo.fe05_reinspection_defect_attachments_v1','U') IS NOT NULL
               AND OBJECT_ID('dbo.fe05_bind_reinspection','P') IS NOT NULL AND OBJECT_ID('dbo.fe05_commit_reinspection','P') IS NOT NULL
@@ -61,7 +62,7 @@ public sealed partial class RoomTypeCreationService
             JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.cleaning_task_id=b.cleaning_task_id AND i.room_id=b.room_id AND i.version_id=b.version_id
             JOIN dbo.cleaning_reworks w ON w.rework_id=b.rework_id AND w.inspection_id=b.original_inspection_id AND w.cleaning_task_id=b.cleaning_task_id
             WHERE b.inspection_id={receipt.InspectionId} AND b.rework_id={receipt.ReworkId} AND b.branch_id={branch}
-              AND({assignment}=0 OR b.bound_by={actor}) AND({assignment}=1 OR b.reinspector_user_id={actor})
+              AND({assignment}=0 OR b.bound_by={actor}) AND({assignment}=1 OR EXISTS(SELECT 1 FROM dbo.fe05_reinspection_responsibilities_v1 authority WHERE authority.inspection_id=b.inspection_id AND authority.inspector_user_id={actor}))
               AND {receipt.WriterTransactionId}<>CURRENT_TRANSACTION_ID()
               AND(SELECT COUNT(*) FROM dbo.audit_logs a WHERE a.actor_user_id={actor} AND a.branch_id={branch}
                 AND a.entity_type='REINSPECTION' AND a.entity_id=CONVERT(nvarchar(50),b.inspection_id) AND a.action={(assignment?"CREATE":"UPDATE")}

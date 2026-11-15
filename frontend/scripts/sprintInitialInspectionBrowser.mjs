@@ -189,7 +189,7 @@ try {
     stage = "existing assignment refresh does not offer duplicate";
     await page.reload();
     await page
-      .getByText(`An inspection is already assigned: #${inspection}.`, {
+      .getByText(`MSG03: An inspection is already assigned: #${inspection}.`, {
         exact: true,
       })
       .waitFor();

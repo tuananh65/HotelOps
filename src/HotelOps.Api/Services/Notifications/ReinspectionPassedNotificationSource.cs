@@ -36,6 +36,7 @@ internal static class ReinspectionPassedNotificationSource
             ||audit.BranchId!=r.BranchId||audit.EntityId!=r.InspectionId.ToString())return null;
         if(await db.Database.SqlQueryRaw<int>("""
             SELECT CASE WHEN OBJECT_ID('dbo.fe05_reinspection_bindings_v1','U') IS NOT NULL
+              AND OBJECT_ID('dbo.fe05_reinspection_responsibilities_v1','V') IS NOT NULL
               AND OBJECT_ID('dbo.fe04_rework_authority_issuers','U') IS NOT NULL
               AND EXISTS(SELECT 1 FROM sys.triggers WHERE name='TR_reinspection_binding_immutable_v1' AND is_disabled=0)
               AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.Reinspection.V1'
@@ -43,7 +44,8 @@ internal static class ReinspectionPassedNotificationSource
             """).SingleAsync(ct)!=1)return null;
         return await db.Database.SqlQuery<int>($"""
             SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b WITH(UPDLOCK,HOLDLOCK)
-            JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=b.reinspector_user_id
+            JOIN dbo.fe05_reinspection_responsibilities_v1 authority ON authority.inspection_id=b.inspection_id
+            JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id=authority.inspector_user_id
               AND i.cleaning_task_id=b.cleaning_task_id AND i.room_id=b.room_id AND i.version_id=b.version_id
             JOIN dbo.cleaning_reworks w ON w.rework_id=b.rework_id AND w.inspection_id=b.original_inspection_id
               AND w.cleaning_task_id=b.cleaning_task_id AND w.assignee_user_id=b.submission_actor
@@ -55,8 +57,8 @@ internal static class ReinspectionPassedNotificationSource
             JOIN sys.sql_modules m ON m.object_id=x.writer_object_id
             JOIN dbo.notification_operation_reservations o ON o.actor_user_id={r.ActorUserId} AND o.operation_key={r.OperationId}
             WHERE b.inspection_id={r.InspectionId} AND b.rework_id={r.ReworkId} AND b.branch_id={r.BranchId}
-              AND b.reinspector_user_id={r.ActorUserId} AND b.submission_actor={r.Notification.RecipientUserId}
-              AND b.submission_actor<>b.reinspector_user_id AND b.room_id={r.Entity.RoomId} AND b.cleaning_task_id={r.Entity.CleaningTaskId}
+              AND authority.inspector_user_id={r.ActorUserId} AND b.submission_actor={r.Notification.RecipientUserId}
+              AND b.submission_actor<>authority.inspector_user_id AND b.room_id={r.Entity.RoomId} AND b.cleaning_task_id={r.Entity.CleaningTaskId}
               AND (room.area_id IS NULL OR area.is_active=1)
               AND i.workflow_status='PASSED' AND i.status='COMPLETED' AND i.result='PASS' AND i.inspected_at IS NOT NULL
               AND w.workflow_status='COMPLETED' AND w.status='COMPLETED' AND w.completed_at=i.inspected_at

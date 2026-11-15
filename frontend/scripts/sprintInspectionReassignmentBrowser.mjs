@@ -17,12 +17,13 @@ try {
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
   const origin = "https://localhost:7143";
-  const api = `/api/branches/${fixture.branch}/inspections/${fixture.inspection}`;
+  const kind = fixture.reinspection ? "reinspections" : "inspections";
+  const api = `/api/branches/${fixture.branch}/${kind}/${fixture.inspection}`;
   const entry = fixture.notice
     ? "/notifications"
     : fixture.recipientRead
-      ? `/inspections/${fixture.branch}/${fixture.inspection}/execution`
-      : `/inspections/cleaning-tasks/${fixture.task}/assign?branchId=${fixture.branch}`;
+      ? `/${kind}/${fixture.branch}/${fixture.inspection}/execution`
+      : (fixture.reinspection ? `/inspections/reworks/${fixture.rework}/assign?branchId=${fixture.branch}` : `/inspections/cleaning-tasks/${fixture.task}/assign?branchId=${fixture.branch}`);
   async function request(url, options = {}) {
     return page.evaluate(
       async ({ url, options }) => {
@@ -71,9 +72,10 @@ try {
         .click();
     }
     await page.waitForURL(
-      `${origin}/inspections/${fixture.branch}/${fixture.inspection}/execution`,
+      `${origin}/${kind}/${fixture.branch}/${fixture.inspection}/execution`,
     );
-    await page.getByText(/^State: PENDING_CONCLUSION\./).waitFor();
+    if(fixture.reinspection) await page.getByRole("heading",{name:"Reinspect room",exact:true}).waitFor();
+    else await page.getByText(/^State: PENDING_CONCLUSION\./).waitFor();
     const read = await request(api + "/execution");
     if (read.status !== 200)
       throw Error("New inspector cannot read assigned execution");
@@ -90,6 +92,7 @@ try {
     const body = {
       inspectorId: fixture.other,
       cycleETag: options.cycleETag,
+      ...(fixture.reinspection ? { reworkETag: options.reworkETag, bindingETag: options.bindingETag } : {}),
       reason: "Synthetic browser handoff",
     };
     const headers = {
@@ -186,7 +189,7 @@ try {
       throw Error("Change altered source lifecycle");
     checks.push(stage);
     stage = "previous inspector execution denied immediately";
-    if ((await request(api + "/execution")).status !== 403)
+    if ((await request(api + "/execution")).status !== (fixture.reinspection ? 404 : 403))
       throw Error("Previous inspector retained execution");
     checks.push(stage);
     if (fixture.returnToActor) {

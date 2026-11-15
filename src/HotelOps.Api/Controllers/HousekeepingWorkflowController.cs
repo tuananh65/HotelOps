@@ -16,6 +16,12 @@ namespace HotelOps.Api.Controllers;
 public sealed class HousekeepingWorkflowController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpGet("api/branches/{branchId:long}/reinspections/{id:long}/reassignment-options")]
+    public Task<IActionResult> ReinspectionReassignmentOptions(long branchId,long id,CancellationToken ct)
+        => Execute((ticket,sid)=>service.ReadReinspectionReassignmentAsync(ticket,sid,branchId,id,Root,ct),false);
+    [HttpPost("api/branches/{branchId:long}/reinspections/{id:long}/reassign")]
+    public Task<IActionResult> ReassignReinspection(long branchId,long id,ReinspectionReassignmentRequest input,CancellationToken ct)
+        => Execute((ticket,sid)=>service.ReassignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),true);
     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/reassignment-options")]
     public Task<IActionResult> ReassignmentOptions(long branchId, long id, CancellationToken ct)
         => Execute((ticket,sid) => service.ReadInspectionReassignmentAsync(ticket,sid,branchId,id,ct),false);
@@ -107,6 +113,11 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
                 return Problem(statusCode:409,title:"INSPECTION_CONCLUDED",extensions:new Dictionary<string,object?>
                     { ["messageCode"]="MSG24", ["inspectionId"]=locked.InspectionId, ["branchId"]=locked.BranchId,
                       ["state"]=locked.State, ["etag"]=locked.ETag });
+            if(result.Value is CleaningLifecycleFailure failure && failure.Code is "INSPECTOR_CLEANER_CONFLICT"
+                or "CHECKLIST_UNAVAILABLE" or "ORIGINAL_CHECKLIST_VERSION_UNAVAILABLE" or "INSPECTION_ALREADY_ASSIGNED")
+                return Problem(statusCode:result.Status switch {RoomTypeBatchStatus.Duplicate=>409,RoomTypeBatchStatus.Unavailable=>503,_=>400},
+                    title:failure.Code,extensions:new Dictionary<string,object?>
+                    { ["messageCode"]=failure.Code=="INSPECTOR_CLEANER_CONFLICT"?"MSG22":"MSG03" });
             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
         }

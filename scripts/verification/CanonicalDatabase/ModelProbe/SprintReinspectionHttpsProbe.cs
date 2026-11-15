@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 internal static class SprintReinspectionHttpsProbe
 {
     internal static async Task VerifyAsync(HotelOpsDbContext db, long actor, long branch, long rework,
-        HotelOps.Api.Services.Authentication.SessionReference executorTicket,long executorSid,CancellationToken ct)
+        HotelOps.Api.Services.Authentication.SessionReference executorTicket,long executorSid,CancellationToken ct,long? replacement=null)
     {
         if (await db.Database.SqlQueryRaw<int>("""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='meita'
@@ -19,6 +19,8 @@ internal static class SprintReinspectionHttpsProbe
               AND DATABASE_PRINCIPAL_ID('DEV3_142A_ReinspectionHttps') IS NULL THEN 1 ELSE 0 END AS Value
             """).SingleAsync(ct) != 1) throw new Exception("Disposable reinspection HTTPS identity required");
         var user = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == actor, ct);
+        var originalUser = user;
+        User? replacementUser = null;
         var password = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) + "Aa1!";
         var rolePassword = Convert.ToHexString(RandomNumberGenerator.GetBytes(32)) + "Aa1!";
         async Task Install() => await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -98,18 +100,28 @@ internal static class SprintReinspectionHttpsProbe
                 var retireAfterAssignment = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_RETIRE_AFTER_ASSIGNMENT") == "1";
                 var assignmentNotice = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE") == "1";
                 var completeNextRound = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND") == "1";
+                if(replacement!=null && (!conclude || nextRound || distinctInspector || retireAfterAssignment || assignmentNotice))
+                    throw new Exception("Reassignment trial requires a separate complete browser conclusion");
                 if (completeNextRound && (!nextRound || !conclude || outcome != "FAIL" || retireAfterAssignment || distinctInspector))
                     throw new Exception("Second-round trial requires Failed/next-round mode with the original published source and inspector");
                 if (assignmentNotice && !conclude) throw new Exception("Assignment notice trial requires terminal browser conclusion");
                 if (retireAfterAssignment && !conclude) throw new Exception("Retirement trial requires the complete browser conclusion mode");
                 await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework,
-                    conclude = conclude && !retireAfterAssignment && !assignmentNotice, outcome, nextRound = nextRound && !retireAfterAssignment && !assignmentNotice, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
+                    conclude = conclude && !retireAfterAssignment && !assignmentNotice && replacement==null, outcome, nextRound = nextRound && !retireAfterAssignment && !assignmentNotice, distinctInspector, executor=executorTicket.UserId }).AsMemory(), ct);
                 process.StandardInput.Close();
                 var browserOutput = process.StandardOutput.ReadToEndAsync(ct); var browserErrors = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct); var result = JsonSerializer.Deserialize<JsonElement>(await browserOutput); await browserErrors;
                 if (process.ExitCode != 0 || !result.GetProperty("success").GetBoolean()) throw new Exception("Reinspection browser: " + result.GetRawText());
                 var inspection = result.GetProperty("inspection").GetInt64();
-                if (retireAfterAssignment || assignmentNotice)
+                if(replacement is {} selected)
+                {
+                    replacementUser=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==selected && u.Username=="D3-REINSPECTOR",ct);
+                    var replacementHash=new PasswordHasher<User>().HashPassword(replacementUser,password);
+                    await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET password_hash={replacementHash} WHERE user_id={selected}",ct);
+                    await SprintReinspectionReassignmentBrowserProbe.TransferAsync(db,user.Username,replacementUser.Username,password,actor,selected,branch,rework,inspection,ct);
+                    actor=selected; user=replacementUser; distinctInspector=true;
+                }
+                if (retireAfterAssignment || assignmentNotice || replacement!=null)
                 {
                     if (!result.GetProperty("canonicalAssignment").GetBoolean() || result.GetProperty("conclusion").ValueKind != JsonValueKind.Null)
                         throw new Exception("Expected real assigned source before retirement");
@@ -177,6 +189,11 @@ internal static class SprintReinspectionHttpsProbe
                     }
                 }
                 if(conclude)await SprintReinspectionExecutorProbe.VerifyAsync(db,executorTicket,executorSid,branch,rework,ct,browser:true,nextRework:nextRework);
+                if(replacement!=null)
+                {
+                    await SprintReinspectionReassignmentBrowserProbe.TerminalAsync(db,actor,password,branch,rework,ct);
+                    SprintReinspectionReassignmentBrowserProbe.Evidence.Add(new {rework,inspection,currentInspector=actor,originalInspector=originalUser.UserId,conclusion=result,terminalReadVerified=true});
+                }
                 if(assignmentNotice)await SprintReinspectionNoticeProbe.VerifyAsync(db,actor,branch,inspection,password,ct,initial:false);
                 if(completeNextRound)await SprintSecondReworkRoundProbe.VerifyAsync(db,actor,branch,rework,nextRework!.Value,
                     executorTicket,executorSid,password,ct);
@@ -188,11 +205,12 @@ internal static class SprintReinspectionHttpsProbe
         {
             if (host != null) { if (!host.HasExited) { host.Kill(true); await host.WaitForExitAsync(CancellationToken.None); } host.Dispose(); }
             await db.Database.ExecuteSqlInterpolatedAsync($"""
-                UPDATE dbo.users SET password_hash={user.PasswordHash} WHERE user_id={actor};
+                UPDATE dbo.users SET password_hash={originalUser.PasswordHash} WHERE user_id={originalUser.UserId};
                 ALTER ROLE hotelops_reinspection_writer DROP MEMBER DEV3_142A_ReinspectionHttps;
                 ALTER ROLE hotelops_rework_writer DROP MEMBER DEV3_142A_ReinspectionHttps;
                 DROP APPLICATION ROLE DEV3_142A_ReinspectionHttps;
                 """, CancellationToken.None);
+            if(replacementUser!=null)await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET password_hash={replacementUser.PasswordHash} WHERE user_id={replacementUser.UserId}",CancellationToken.None);
         }
     }
 }

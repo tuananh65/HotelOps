@@ -49,9 +49,10 @@ internal static class SprintInitialInspectionHttpsProbe
                 finally{if(!process.HasExited)process.Kill(true);}
             }
             var room=await db.CleaningTasks.Where(t=>t.CleaningTaskId==task).Select(t=>t.RoomId).SingleAsync(ct);
+            var other=await db.Users.Where(u=>u.Username=="D3-INITIAL-OTHER").Select(u=>u.UserId).SingleAsync(ct);
+            var exceptions=await SprintInspectionAssignmentExceptionsProbe.VerifyAsync(db,actor,other,branch,task,password,ct);
             var assigned=await Browser(new{username="D3-EVIDENCE",password,actor,branch,task,room});
             var inspection=assigned.GetProperty("inspection").GetInt64();
-            var other=await db.Users.Where(u=>u.Username=="D3-INITIAL-OTHER").Select(u=>u.UserId).SingleAsync(ct);
             var assignedHandoff=await Browser(new{username="D3-EVIDENCE",password,actor,other,branch,task,inspection,state="ASSIGNED",returnToActor=true},true);
             var notice=await SprintInitialInspectionNoticeProbe.VerifyAsync(db,actor,branch,inspection,ct);
             var executed=await Browser(new{username="D3-EVIDENCE",password,actor,branch,task,inspection,notice});
@@ -64,7 +65,7 @@ internal static class SprintInitialInspectionHttpsProbe
                 ||await db.InspectionResults.CountAsync(r=>r.InspectionId==inspection&&r.Outcome=="PASS",ct)!=1
                 ||await db.AuditLogs.CountAsync(a=>a.EntityType=="room_inspections"&&a.EntityId==inspection.ToString(),ct)!=3)
                 throw new Exception("Browser execution persistence mismatch");
-            return new{assigned,assignedHandoff,notification=notice,executed,pendingHandoff,recipientSession,reassignedNotice,received,sqlAssignedThenPendingConclusion=true,assignmentAudit=1,executionAudits=3};
+            return new{exceptions,assigned,assignedHandoff,notification=notice,executed,pendingHandoff,recipientSession,reassignedNotice,received,sqlAssignedThenPendingConclusion=true,assignmentAudit=1,executionAudits=3};
         }
         finally{if(!host.HasExited)host.Kill(true);await host.WaitForExitAsync(CancellationToken.None);await output;await errors;}
     }

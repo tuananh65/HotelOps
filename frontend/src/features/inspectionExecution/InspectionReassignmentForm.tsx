@@ -3,6 +3,7 @@ import { useAuth } from "../../auth/AuthProvider";
 import { ApiError } from "../../api/dev1/client";
 import {
   readReassignment,
+  inspectionAssignmentRejection,
   reassignInspection,
   type ReassignmentOptions,
 } from "../../api/dev1/inspectionReassignment";
@@ -10,9 +11,11 @@ import {
 export function InspectionReassignmentForm({
   branch,
   id,
+  reinspection = false,
 }: {
   branch: string;
   id: number;
+  reinspection?: boolean;
 }) {
   const { state, actions } = useAuth();
   const owner =
@@ -23,7 +26,7 @@ export function InspectionReassignmentForm({
       ? state.authorityGeneration
       : null;
   const [refresh, setRefresh] = useState(0);
-  const key = `${branch}:${id}:${refresh}`;
+  const key = `${reinspection}:${branch}:${id}:${refresh}`;
   const current = useRef({ owner, key });
   current.current = { owner, key };
   const lifetime = useRef<AbortController | null>(null);
@@ -48,7 +51,7 @@ export function InspectionReassignmentForm({
     setInspector("");
     setLocked(true);
     setMessage("");
-    void readReassignment(branch, id, abort.signal)
+    void readReassignment(branch, id, abort.signal, reinspection)
       .then((data) => {
         if (!abort.signal.aborted) {
           setLoaded({ owner, key, data });
@@ -68,7 +71,7 @@ export function InspectionReassignmentForm({
       abort.abort();
       if (lifetime.current === abort) lifetime.current = null;
     };
-  }, [owner, key, branch, id, actions]);
+  }, [owner, key, branch, id, actions, reinspection]);
   const data =
     owner && loaded?.owner === owner && loaded.key === key ? loaded.data : null;
   async function submit() {
@@ -98,6 +101,7 @@ export function InspectionReassignmentForm({
         reason,
         crypto.randomUUID(),
         { signal: scope.signal, isCurrent },
+        reinspection,
       );
       if (!scope.signal.aborted && isCurrent())
         setMessage(
@@ -106,10 +110,11 @@ export function InspectionReassignmentForm({
     } catch (error) {
       if (!scope.signal.aborted && isCurrent()) {
         setMessage(
-          error instanceof ApiError &&
+          inspectionAssignmentRejection(error) ??
+            (error instanceof ApiError &&
             [400, 403, 409, 412, 428].includes(error.status)
-            ? "Change rejected. Refresh the current assignment before trying again."
-            : "Change outcome is unconfirmed. Refresh to inspect the assignment; no automatic retry was sent.",
+              ? "Change rejected. Refresh the current assignment before trying again."
+              : "Change outcome is unconfirmed. Refresh to inspect the assignment; no automatic retry was sent."),
         );
         if (error instanceof ApiError && error.status === 401)
           actions.invalidateSession(owner);

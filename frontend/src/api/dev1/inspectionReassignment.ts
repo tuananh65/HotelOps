@@ -14,24 +14,45 @@ export interface ReassignmentOptions {
   cycleETag: string;
   inspectors: { id: number; name: string }[];
   canReassign: boolean;
+  reworkId?: number;
+  reworkETag?: string;
+  bindingETag?: string;
 }
 const validId = (v: unknown) => Number.isSafeInteger(v) && (v as number) > 0;
 const validTag = (v: unknown) =>
   typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
 const states = ["ASSIGNED", "INSPECTING", "PENDING_CONCLUSION"];
-const path = (branch: string, id: number) =>
-  `/branches/${positiveId(branch)}/inspections/${positiveId(String(id))}`;
+const path = (branch: string, id: number, reinspection: boolean) =>
+  `/branches/${positiveId(branch)}/${reinspection ? "reinspections" : "inspections"}/${positiveId(String(id))}`;
 const invalid = (): never => {
   throw new ApiError(502, "INVALID_REASSIGNMENT_RESPONSE");
 };
+
+export function inspectionAssignmentRejection(error: unknown): string | null {
+  if (!(error instanceof ApiError)) return null;
+  if (error.status === 400 && error.code === "INSPECTOR_CLEANER_CONFLICT")
+    return "MSG22: This inspector performed cleaning or rework in this cycle. Refresh and select another eligible inspector.";
+  if (error.status === 409 && error.code === "INSPECTION_ALREADY_ASSIGNED")
+    return "MSG03: An open inspection already exists. Refresh to view it or change its inspector.";
+  if (
+    [400, 503].includes(error.status) &&
+    [
+      "CHECKLIST_UNAVAILABLE",
+      "ORIGINAL_CHECKLIST_VERSION_UNAVAILABLE",
+    ].includes(error.code)
+  )
+    return "MSG03: The required published checklist is unavailable. Publish the eligible checklist before assignment; refresh to review its current version.";
+  return null;
+}
 
 export async function readReassignment(
   branch: string,
   id: number,
   signal: AbortSignal,
+  reinspection = false,
 ): Promise<ReassignmentOptions> {
   const response = await send(
-    path(branch, id) + "/reassignment-options",
+    path(branch, id, reinspection) + "/reassignment-options",
     signal,
     { method: "GET", headers: { Accept: "application/json" } },
   );
@@ -42,6 +63,11 @@ export async function readReassignment(
     d.branchId !== positiveId(branch) ||
     ![d.taskId, d.roomId, d.versionId, d.inspectorId].every(validId) ||
     !states.includes(d.state) ||
+    (reinspection &&
+      (d.state !== "ASSIGNED" ||
+        !validId(d.reworkId) ||
+        !validTag(d.reworkETag) ||
+        !validTag(d.bindingETag))) ||
     !validTag(d.sourceETag) ||
     response.etag !== d.sourceETag ||
     !validTag(d.cycleETag) ||
@@ -74,13 +100,19 @@ export async function reassignInspection(
   reason: string,
   operation: string,
   scope: { signal: AbortSignal; isCurrent: () => boolean },
+  reinspection = false,
 ) {
-  const endpoint = path(branch, source.id) + "/reassign";
+  const endpoint = path(branch, source.id, reinspection) + "/reassign";
   if (
     source.branchId !== positiveId(branch) ||
     !source.canReassign ||
     !validTag(source.sourceETag) ||
     !validTag(source.cycleETag) ||
+    (reinspection &&
+      (source.state !== "ASSIGNED" ||
+        !validId(source.reworkId) ||
+        !validTag(source.reworkETag) ||
+        !validTag(source.bindingETag))) ||
     !source.inspectors.some((p) => p.id === inspectorId) ||
     inspectorId === source.inspectorId ||
     !reason.trim() ||
@@ -120,6 +152,9 @@ export async function reassignInspection(
     body: JSON.stringify({
       inspectorId,
       cycleETag: source.cycleETag,
+      ...(reinspection
+        ? { reworkETag: source.reworkETag, bindingETag: source.bindingETag }
+        : {}),
       reason: reason.trim(),
     }),
   });
@@ -135,7 +170,14 @@ export async function reassignInspection(
     d.previousInspectorId !== source.inspectorId ||
     d.inspectorId !== inspectorId ||
     d.state !== source.state ||
-    d.contract !== "FE05_INSPECTION_REASSIGNMENT_V1" ||
+    d.contract !==
+      (reinspection
+        ? "FE05_REINSPECTION_REASSIGNMENT_V1"
+        : "FE05_INSPECTION_REASSIGNMENT_V1") ||
+    (reinspection &&
+      (d.reworkId !== source.reworkId ||
+        d.reworkETag !== source.reworkETag ||
+        d.bindingETag !== source.bindingETag)) ||
     d.notification !== "PENDING_DELIVERY" ||
     d.operationId?.toLowerCase() !== operation.toLowerCase() ||
     !validTag(d.sourceETag) ||

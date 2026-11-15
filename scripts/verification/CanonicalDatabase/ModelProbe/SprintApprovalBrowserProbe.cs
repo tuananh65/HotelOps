@@ -13,6 +13,7 @@ internal static class SprintApprovalBrowserProbe
     internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false, bool rework = false)
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
+        SprintReinspectionReassignmentBrowserProbe.Evidence.Clear();
         var rejectionSource=Environment.GetEnvironmentVariable("DEV3_REJECTION_SOURCE")=="1";
         var rejectionAcceptance=Environment.GetEnvironmentVariable("DEV3_REJECTION_ACCEPTANCE")=="1";
         if(rejectionAcceptance&&(!rework||!rejectionSource))throw new InvalidOperationException("Reject acceptance requires owned rework and source fixture");
@@ -291,7 +292,7 @@ internal static class SprintApprovalBrowserProbe
                 throw new Exception("Approval fixture cleanup failed");
             checks.Add(new{blocked,cleanup=true});if(failure!=null)break;
         }
-        await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new{success=failure==null,checks,failure},new JsonSerializerOptions{WriteIndented=true}));
+        await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new{success=failure==null,checks,reinspectionReassignment=SprintReinspectionReassignmentBrowserProbe.Evidence,failure},new JsonSerializerOptions{WriteIndented=true}));
         Console.WriteLine(failure??"PASS approval browser HTTPS SQL, cleanup verified");return failure==null?0:1;
     }
 }

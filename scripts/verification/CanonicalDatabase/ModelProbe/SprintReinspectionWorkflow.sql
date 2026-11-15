@@ -13,6 +13,7 @@ IF NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='Hote
  OR OBJECT_ID('dbo.fe05_reinspection_bindings_v1') IS NOT NULL OR OBJECT_ID('dbo.fe05_reinspection_defect_results_v1') IS NOT NULL
  OR OBJECT_ID('dbo.fe05_reinspection_defect_attachments_v1') IS NOT NULL OR OBJECT_ID('dbo.fe05_bind_reinspection') IS NOT NULL
  OR OBJECT_ID('dbo.fe05_commit_reinspection') IS NOT NULL OR DATABASE_PRINCIPAL_ID('hotelops_reinspection_writer') IS NOT NULL
+ OR OBJECT_ID('dbo.fe05_reinspection_responsibilities_v1') IS NOT NULL OR OBJECT_ID('dbo.fe05_reassign_reinspection') IS NOT NULL
  OR EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.Reinspection.V1')
  THROW 51999,'Submission authority required; existing reinspection contract must not be overwritten',1;
 CREATE TABLE dbo.fe05_reinspection_bindings_v1(
@@ -42,6 +43,54 @@ CREATE TABLE dbo.fe05_reinspection_defect_attachments_v1(
  inspection_id bigint NOT NULL,defect_id bigint NOT NULL,attachment_id bigint NOT NULL REFERENCES dbo.attachments(attachment_id),
  CONSTRAINT PK_reinspection_photo_v1 PRIMARY KEY(inspection_id,defect_id,attachment_id),
  CONSTRAINT FK_reinspection_photo_result_v1 FOREIGN KEY(inspection_id,defect_id) REFERENCES dbo.fe05_reinspection_defect_results_v1(inspection_id,defect_id));
+EXEC(N'-- Definition embedded in the exact-identity guarded disposable installer; no standalone deployment.
+CREATE VIEW dbo.fe05_reinspection_responsibilities_v1 AS
+SELECT b.inspection_id,i.inspector_user_id,b.rework_id,b.branch_id,change.audit_id AS assignment_audit_id
+FROM dbo.fe05_reinspection_bindings_v1 b
+JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.room_id=b.room_id
+ AND i.cleaning_task_id=b.cleaning_task_id AND i.version_id=b.version_id
+OUTER APPLY(
+ SELECT TOP(1) o.actor_user_id,o.operation_key,o.completed,o.fingerprint_version,o.result_json,
+  TRY_CONVERT(bigint,JSON_VALUE(j.payload,''$.auditId'')) AS audit_id,j.payload
+ FROM dbo.notification_operation_reservations o
+ CROSS APPLY(SELECT CASE WHEN ISJSON(o.result_json)=1 THEN o.result_json ELSE N''[]'' END AS payload) j
+ WHERE JSON_VALUE(j.payload,''$.contract'')=''FE05_REINSPECTION_REASSIGNMENT_V1''
+  AND TRY_CONVERT(bigint,JSON_VALUE(j.payload,''$.inspectionId''))=b.inspection_id
+ ORDER BY TRY_CONVERT(bigint,JSON_VALUE(j.payload,''$.auditId'')) DESC,o.operation_key DESC
+) change
+LEFT JOIN dbo.audit_logs a ON a.audit_id=change.audit_id AND a.actor_user_id=change.actor_user_id
+ AND a.branch_id=b.branch_id AND a.entity_type=''REINSPECTION_ASSIGNMENT'' AND a.action=''UPDATE''
+ AND a.entity_id=CONVERT(nvarchar(50),b.inspection_id)
+ AND HASHBYTES(''SHA2_256'',CONVERT(varbinary(max),a.new_values))=HASHBYTES(''SHA2_256'',CONVERT(varbinary(max),change.result_json))
+LEFT JOIN dbo.fe04_rework_authority_issuers x ON x.issuer=''FE05.UC041.REINSPECTION_REASSIGN'' AND x.version=1
+LEFT JOIN sys.sql_modules m ON m.object_id=x.writer_object_id
+WHERE (change.operation_key IS NULL AND i.inspector_user_id=b.reinspector_user_id)
+ OR(change.completed=1 AND change.fingerprint_version=1 AND change.audit_id>0 AND a.audit_id IS NOT NULL
+  AND x.is_active=1 AND x.writer_object_id=OBJECT_ID(''dbo.fe05_reassign_reinspection'') AND m.execute_as_principal_id=-2
+  AND x.source_commit LIKE REPLICATE(''[0-9a-f]'',40)
+  AND HASHBYTES(''SHA2_256'',CONVERT(varbinary(max),m.definition))=x.module_digest
+  AND JSON_VALUE(change.payload,''$.issuer'')=''FE05.UC041.REINSPECTION_REASSIGN''
+  AND TRY_CONVERT(int,JSON_VALUE(change.payload,''$.issuerVersion''))=1
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.actorUserId''))=change.actor_user_id
+  AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(change.payload,''$.operationId''))=change.operation_key
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.writerTransactionId''))>0
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.branchId''))=b.branch_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.reworkId''))=b.rework_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.originalInspectorId''))=b.reinspector_user_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.id''))=b.inspection_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.branchId''))=b.branch_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.reworkId''))=b.rework_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.taskId''))=b.cleaning_task_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.roomId''))=b.room_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.versionId''))=b.version_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.previousInspectorId''))>0
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.previousInspectorId''))<>i.inspector_user_id
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.entity.inspectorId''))=i.inspector_user_id
+  AND JSON_VALUE(change.payload,''$.entity.state'')=''ASSIGNED''
+  AND JSON_VALUE(change.payload,''$.notification.kind'')=''REINSPECTION_ASSIGNED''
+  AND TRY_CONVERT(int,JSON_VALUE(change.payload,''$.notification.schemaVersion''))=1
+  AND TRY_CONVERT(bigint,JSON_VALUE(change.payload,''$.notification.recipientUserId''))=i.inspector_user_id)
+');
 EXEC(N'CREATE TRIGGER dbo.TR_reinspection_binding_immutable_v1 ON dbo.fe05_reinspection_bindings_v1 AFTER UPDATE,DELETE AS
 BEGIN SET NOCOUNT ON;
  IF EXISTS(SELECT 1 FROM deleted d LEFT JOIN inserted n ON n.inspection_id=d.inspection_id WHERE n.inspection_id IS NULL
@@ -55,8 +104,9 @@ EXEC(N'CREATE TRIGGER dbo.TR_reinspection_result_revision_v1 ON dbo.fe05_reinspe
 BEGIN SET NOCOUNT ON;
  IF EXISTS(SELECT 1 FROM inserted x JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=x.inspection_id
   JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id
-  WHERE i.inspector_user_id<>b.reinspector_user_id OR i.workflow_status<>''ASSIGNED''
-    OR(x.recorded_by IS NOT NULL AND x.recorded_by<>b.reinspector_user_id)) THROW 51999,''Reinspection result actor/phase mismatch'',1;
+  LEFT JOIN dbo.fe05_reinspection_responsibilities_v1 authority ON authority.inspection_id=i.inspection_id
+  WHERE authority.inspection_id IS NULL OR i.workflow_status<>''ASSIGNED''
+    OR(x.recorded_by IS NOT NULL AND x.recorded_by<>authority.inspector_user_id)) THROW 51999,''Reinspection result actor/phase mismatch'',1;
  UPDATE b SET touched_at=SYSUTCDATETIME() FROM dbo.fe05_reinspection_bindings_v1 b
  JOIN(SELECT inspection_id FROM inserted UNION SELECT inspection_id FROM deleted) x ON x.inspection_id=b.inspection_id;
  UPDATE i SET summary_note=summary_note FROM dbo.room_inspections i
