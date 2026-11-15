@@ -112,6 +112,15 @@ internal static class SprintLinkedTaskCreationScenario
         Check((await Send(HttpMethod.Post, root, input, input.RequestLink!.Version)).Status == 403, "idempotent replay rechecks current receiving department after route");
         await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({actor},{branch},{nextDepartment},SYSUTCDATETIME())", ct);
         context = await Context();
+        // Synthetic historical metadata on the already identity-verified whole clone.
+        // No file payload/download claim: this checks the public evidence-list query.
+        var evidenceEvent = new InternalRequestEvent { InternalRequestId = request, EventType = "PROGRESS", OldStatus = "IN_PROGRESS", NewStatus = "IN_PROGRESS", ActorId = actor, OccurredAt = now };
+        db.InternalRequestEvents.Add(evidenceEvent); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
+        for (var i = 0; i < 101; i++) db.Attachments.Add(new Attachment {
+            EntityType = "INTERNAL_REQUEST_PROGRESS", EntityId = evidenceEvent.EventId,
+            FileName = "synthetic.png", OriginalFileName = $"historical-{i}.png", MimeType = "image/png", FileSizeBytes = 8,
+            StorageKey = Guid.NewGuid().ToString("N") + ".png", UploadedBy = actor, UploadedAt = now });
+        await db.SaveChangesAsync(ct); db.ChangeTracker.Clear();
         var start = new ProcessStartInfo("node") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true };
         start.ArgumentList.Add("frontend/scripts/sprintLinkedTaskCreationBrowser.mjs");
         using var browser = Process.Start(start) ?? throw new Exception("Linked creation browser unavailable");
@@ -122,6 +131,10 @@ internal static class SprintLinkedTaskCreationScenario
             await browser.WaitForExitAsync(ct); var proof = JsonSerializer.Deserialize<JsonElement>(await output); _ = await errors;
             if (browser.ExitCode != 0 || !proof.GetProperty("success").GetBoolean()) throw new Exception("Linked task browser failed at " + proof.GetProperty("stage").GetString());
             checks.Add(new { linkedCreationBrowser = proof });
+            var savedDeadline = DateTimeOffset.Parse(proof.GetProperty("deadline").GetString()!, System.Globalization.CultureInfo.InvariantCulture).UtcDateTime;
+            Check(await db.InternalRequests.AnyAsync(r => r.InternalRequestId == request && r.DueAt == savedDeadline && r.Status == "IN_PROGRESS", ct)
+                && await db.AuditLogs.AnyAsync(a => a.EntityType == "internal_requests" && a.EntityId == request.ToString()
+                    && a.NewValues != null && a.NewValues.Contains("Synthetic revised completion forecast"), ct), "manager deadline change and reason persisted with audit through public UI");
             var browserTask = proof.GetProperty("task").GetInt64();
             Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_task_links l JOIN dbo.operational_tasks t ON t.task_id=l.task_id WHERE l.internal_request_id={request} AND l.task_id={browserTask} AND l.is_mandatory=1 AND t.source_type='INTERNAL_REQUEST' AND t.source_id={request}").SingleAsync(ct) == 1,
                 "browser created task and required link persist in SQL");
@@ -131,5 +144,16 @@ internal static class SprintLinkedTaskCreationScenario
         }
         finally { if (!browser.HasExited) browser.Kill(entireProcessTree: true); }
         Check(await db.InternalRequests.AnyAsync(r => r.InternalRequestId == request && r.Status == "IN_PROGRESS" && r.ClosedAt == null, ct), "linked creation never closes the request");
+        var evidencePath = $"/api/internal-requests/{request}/progress";
+        var latestEvidence = await http.GetFromJsonAsync<JsonElement>(evidencePath, ct);
+        var latestRows = latestEvidence.GetProperty("evidence").EnumerateArray().ToArray();
+        Check(latestRows.Length == 100 && latestEvidence.GetProperty("evidenceCount").GetInt32() == 101, "public evidence first page is bounded with exact scoped total");
+        var cursor = latestRows[^1].GetProperty("id").GetInt64();
+        var olderEvidence = await http.GetFromJsonAsync<JsonElement>($"{evidencePath}?evidenceBefore={cursor}", ct);
+        var olderRows = olderEvidence.GetProperty("evidence").EnumerateArray().ToArray();
+        Check(olderRows.Length == 1 && olderRows[0].GetProperty("id").GetInt64() < cursor
+            && olderEvidence.GetProperty("version").GetString() == latestEvidence.GetProperty("version").GetString(), "public evidence cursor retrieves historical file without duplicate or version mutation");
+        using var invalidCursor = await http.GetAsync($"{evidencePath}?evidenceBefore=0", ct);
+        Check((int)invalidCursor.StatusCode == 400, "invalid evidence cursor rejected");
     }
 }

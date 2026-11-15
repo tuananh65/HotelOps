@@ -51,7 +51,27 @@ try{
   const optionalSaved=await optionalResponse;assert.equal(optionalSaved.status(),201);const optionalTask=(await optionalSaved.json()).taskId;
   await page.waitForURL(`${origin}/operational-tasks?branchId=${fixture.branch}&taskId=${optionalTask}`);
   checks.push("Tasks source selector uses scoped request list, prefill and explicit optional choice; Save and Assign opens the created task");
+  stage="historical evidence and manager deadline";
+  await page.goto(`${origin}/internal-requests?requestId=${fixture.request}`);
+  const progress=page.getByRole("region",{name:"Request progress",exact:true});
+  await progress.getByLabel("Progress note",{exact:true}).fill("Preserved while reading history");
+  assert.equal(await progress.getByRole("link").count(),100);
+  await progress.getByRole("button",{name:"Load older attachments",exact:true}).click();
+  await progress.getByRole("link",{name:"historical-0.png",exact:true}).waitFor();
+  assert.equal(await progress.getByRole("link").count(),101);
+  assert.equal(await progress.getByLabel("Progress note",{exact:true}).inputValue(),"Preserved while reading history");
+  const deadline=new Date(Date.now()+48*60*60*1000).toISOString().slice(0,16);
+  await progress.getByLabel("New deadline (UTC)",{exact:true}).fill(deadline);
+  await progress.getByLabel("Deadline change reason",{exact:true}).fill("Synthetic revised completion forecast");
+  await progress.getByLabel("Progress percent",{exact:true}).fill("60");
+  await progress.getByRole("button",{name:"Save progress",exact:true}).click();
+  await progress.getByRole("status").filter({hasText:"MSG08: Progress saved"}).waitFor();
+  await progress.getByRole("button",{name:"Reload progress",exact:true}).click();
+  await progress.getByText("Saved progress: 60%",{exact:true}).waitFor();
+  const progressSaved=await page.evaluate(async id=>(await(await fetch(`/api/internal-requests/${id}/progress`)).json()),fixture.request);
+  assert.equal(Date.parse(progressSaved.deadline),Date.parse(deadline+"Z"));assert.equal(progressSaved.status,"IN_PROGRESS");
+  checks.push("101 historical attachments accessible without losing draft; mapped manager changes deadline with reason, saves progress and reloads persisted deadline without closing request");
   stage="logout";await page.goto(origin+"/profile");await page.getByRole("button",{name:"Logout",exact:true}).click();await page.waitForURL(origin+"/login");
-  console.log(JSON.stringify({success:true,stage:"complete",task:result.taskId,optionalTask,checks}));
+  console.log(JSON.stringify({success:true,stage:"complete",task:result.taskId,optionalTask,deadline:deadline+"Z",checks}));
 }catch{console.log(JSON.stringify({success:false,stage,checks}));process.exitCode=1;}
 finally{await browser?.close();}

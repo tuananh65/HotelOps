@@ -72,9 +72,9 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
         db.Database.SqlQuery<InternalRequestProgressRow>($"SELECT progress_percent AS [Percent],note AS Note,result_note AS Result,event_id AS EventId FROM dbo.internal_request_progress WHERE internal_request_id={id}")
             .SingleOrDefaultAsync(ct);
 
-    public async Task<InternalRequestProgressView> ReadAsync(SessionReference ticket, long sid, long id, CancellationToken ct)
+    public async Task<InternalRequestProgressView> ReadAsync(SessionReference ticket, long sid, long id, CancellationToken ct, long? evidenceBefore = null)
     {
-        if (id <= 0) throw new ValidationException("Request identifier required.");
+        if (id <= 0 || evidenceBefore is <= 0) throw new ValidationException("Valid request and evidence cursor required.");
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         await new UserEligibilityLock(db).LockAsync([ticket.UserId], ct);
         await SessionAsync(ticket, sid, ct);
@@ -88,7 +88,8 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
         if (request == null) throw new InternalRequestReadException(404, "IR_NOT_FOUND");
         var snapshot = await SnapshotAsync(db, id, ct);
         var evidenceCount = await InternalRequestEvidence.Query(db, id).CountAsync(ct);
-        var evidence = await InternalRequestEvidence.Query(db, id).OrderByDescending(a => a.AttachmentId).Take(100)
+        var evidence = await InternalRequestEvidence.Query(db, id).Where(a => evidenceBefore == null || a.AttachmentId < evidenceBefore)
+            .OrderByDescending(a => a.AttachmentId).Take(100)
             .Select(a => new InternalRequestEvidenceView(a.AttachmentId, a.OriginalFileName ?? a.FileName, a.MimeType ?? "application/octet-stream",
                 a.FileSizeBytes ?? 0, $"/api/internal-requests/{id}/progress/evidence/{a.AttachmentId}")).ToArrayAsync(ct);
         var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);

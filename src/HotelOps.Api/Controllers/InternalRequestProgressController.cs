@@ -22,11 +22,11 @@ public sealed class InternalRequestProgressController(InternalRequestProgressSer
         return File(file.Bytes,file.MimeType,file.Name);
     }
     [HttpGet]
-    public async Task<InternalRequestProgressView> Read(long id,CancellationToken ct)
+    public async Task<InternalRequestProgressView> Read(long id,CancellationToken ct,[FromQuery]long? evidenceBefore=null)
     {
         if(!Request.IsHttps)throw new InternalRequestReadException(400,"HTTPS_REQUIRED");
         if(!HotelOpsCookieTicket.TryRead(User,out var ticket,out var sid))throw new InternalRequestReadException(401,"SESSION_INVALID");
-        var result=await service.ReadAsync(ticket!,sid,id,ct);
+        var result=await service.ReadAsync(ticket!,sid,id,ct,evidenceBefore);
         Response.Headers.ETag='"'+result.Version+'"';
         return result;
     }

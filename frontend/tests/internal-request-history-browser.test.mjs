@@ -54,7 +54,10 @@ async function fixture(run) {
         if(state.expectProgressFile){const body=request.postDataJSON();assert.equal(body.files.length,1);assert.equal(body.files[0].name,"proof.png");assert.equal(body.files[0].mimeType,"image/png");assert.equal(Buffer.from(body.files[0].base64,"base64").length,8);}
         return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAE="},state.progressPostStatus??200);
       }
-      return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false},state.progressStatus??200);
+      const older = new URL(request.url()).searchParams.get("evidenceBefore");
+      if (older) { state.olderCursor = older; state.olderReads = (state.olderReads ?? 0) + 1; }
+      const evidence = state.evidence ? { evidenceCount: 2, evidence: [{ id: older ? 1 : 2, name: older ? "older.png" : "latest.png", mimeType: "image/png", size: 8, downloadPath: `/api/internal-requests/1/progress/evidence/${older ? 1 : 2}` }] } : {};
+      return json({requestId:1,status:"IN_PROGRESS",version:older && state.changedEvidence ? "AAAAAAAAAAE=" : "AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false,...evidence},older ? (state.olderStatus??200) : (state.progressStatus??200));
     }
     if (path === "/api/internal-requests/1/linked-tasks") {
       if(request.method()==="POST") {
@@ -189,6 +192,28 @@ test("progress read does not grant mutation and reload denial removes private sn
   state.progressStatus=403;await panel.getByRole("button",{name:"Reload progress",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Progress unavailable"}).waitFor();
   assert.equal(await panel.getByText("PRIVATE RESULT",{exact:true}).count(),0);
+}));
+test("older evidence preserves unsaved progress and disappears after authority loss",async()=>fixture(async(page,state)=>{
+  state.progressAllowed=true;state.evidence=true;
+  await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
+  const panel=page.getByRole("region",{name:"Request progress",exact:true});
+  await panel.getByLabel("Progress note",{exact:true}).fill("Unsaved work");
+  await panel.getByRole("button",{name:"Load older attachments",exact:true}).click();
+  await panel.getByRole("link",{name:"older.png",exact:true}).waitFor();
+  assert.equal(state.olderCursor,"2");assert.equal(state.olderReads,1);
+  assert.equal(await panel.getByLabel("Progress note",{exact:true}).inputValue(),"Unsaved work");
+  assert.equal(await panel.getByRole("button",{name:"Load older attachments",exact:true}).count(),0);
+  state.progressStatus=403;await panel.getByRole("button",{name:"Reload progress",exact:true}).click();
+  await panel.getByText("Progress unavailable. Reload to check current access.",{exact:true}).waitFor();
+  assert.equal(await panel.getByRole("link").count(),0);
+}));
+for (const denied of [true,false]) test(`older evidence rejects ${denied ? "revoked access" : "changed version"} without retaining private content`,async()=>fixture(async(page,state)=>{
+  state.evidence=true;state.olderStatus=denied?403:200;state.changedEvidence=!denied;
+  await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
+  const panel=page.getByRole("region",{name:"Request progress",exact:true});
+  await panel.getByRole("button",{name:"Load older attachments",exact:true}).click();
+  await panel.getByText("Evidence or access changed. Reload progress before continuing.",{exact:true}).waitFor();
+  assert.equal(await panel.getByRole("link").count(),0);assert.equal(state.olderReads,1);
 }));
 for(const status of [200,412])test(`progress ${status} uses CSRF/ETag, prevents double submit and requires reload`,async()=>fixture(async(page,state)=>{
   state.progressAllowed=true;state.progressPostStatus=status;

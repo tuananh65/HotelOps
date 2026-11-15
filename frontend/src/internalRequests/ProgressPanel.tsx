@@ -40,6 +40,27 @@ export function InternalRequestProgressPanel({ id }: { id: number }) {
     return () => abort.abort();
   }, [id, owner, revision, actions]);
   const view = owner && loaded?.owner === owner && loaded.id === id ? loaded.view : null;
+  async function olderEvidence() {
+    const abort = controller.current;
+    const before = view?.evidence?.at(-1)?.id;
+    if (!owner || !view || !before || !abort || abort.signal.aborted || sending.current) return;
+    sending.current = true; setBusy(true); setMessage("");
+    try {
+      const next = await json(`/api/internal-requests/${id}/progress?evidenceBefore=${before}`, abort.signal) as View;
+      if (next.requestId !== id || next.version !== view.version || next.evidenceCount !== view.evidenceCount
+        || !Array.isArray(next.evidence) || next.evidence.length === 0 || next.evidence.length > 100
+        || next.evidence.some((e, index, list) => !Number.isSafeInteger(e.id) || e.id <= 0 || e.id >= (index ? list[index - 1].id : before)
+          || typeof e.name !== "string" || typeof e.mimeType !== "string" || !Number.isSafeInteger(e.size) || e.size < 1
+          || e.downloadPath !== `/api/internal-requests/${id}/progress/evidence/${e.id}`)
+        || view.evidence!.length + next.evidence.length > next.evidenceCount!) throw new Error("Evidence changed");
+      if (!abort.signal.aborted) setLoaded({ owner, id, view: { ...view, evidence: [...view.evidence!, ...next.evidence] } });
+    } catch (e) {
+      if (!abort.signal.aborted) {
+        setLoaded(null); setMessage("Evidence or access changed. Reload progress before continuing.");
+        if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner);
+      }
+    } finally { if (!abort.signal.aborted) { sending.current = false; setBusy(false); } }
+  }
   async function save() {
     const abort = controller.current;
     if (!owner || !view?.canUpdate || view.status !== "IN_PROGRESS" || !abort || abort.signal.aborted || sending.current) return;
@@ -74,7 +95,8 @@ export function InternalRequestProgressPanel({ id }: { id: number }) {
       {view.note && <p>{view.note}</p>}{view.result && <p>{view.result}</p>}
       {view.deadline && <p>Deadline (UTC): {view.deadline}</p>}
       {!!view.evidence?.length && <><h4>Attachments</h4><ul>{view.evidence.map(e => <li key={e.id}><a href={e.downloadPath} download>{e.name}</a> ({e.size} bytes)</li>)}</ul>
-        {view.evidenceCount! > view.evidence.length && <p>Showing the latest {view.evidence.length} of {view.evidenceCount} files.</p>}</>}
+        {view.evidenceCount! > view.evidence.length && <><p>Showing {view.evidence.length} of {view.evidenceCount} files.</p>
+          <button disabled={busy} onClick={() => void olderEvidence()}>Load older attachments</button></>}</>}
       {view.canUpdate && view.status === "IN_PROGRESS" && <div aria-busy={busy}>
         <label>Progress percent<input type="number" min={0} max={100} step={1} disabled={busy} value={percent} onChange={e => setPercent(e.target.value)} /></label>
         <label>Progress note<textarea aria-label="Progress note" maxLength={4000} disabled={busy} value={note} onChange={e => setNote(e.target.value)} /></label>
