@@ -73,7 +73,7 @@ before(async () => {
   });
 });
 after(async () => browser?.close());
-async function scenario(run) {
+async function scenario(run, writable = false) {
   const page = await browser.newPage();
   const state = {
     signedIn: true,
@@ -82,6 +82,7 @@ async function scenario(run) {
     calls: [],
     errors: [],
   };
+  if (writable) state.data.capability = "ACCEPT_START";
   page.on("pageerror", (e) => state.errors.push(e.message));
   await page.route("**/*", async (route) => {
     const request = route.request();
@@ -107,21 +108,84 @@ async function scenario(run) {
       return route.fulfill({
         json: { csrfToken: "test-anonymous-token", headerName: "X-CSRF-TOKEN" },
       });
+    if (
+      writable &&
+      request.method() === "POST" &&
+      /\/(accept|start)$/.test(path)
+    ) {
+      const action = path.endsWith("/accept") ? "accept" : "start";
+      assert.equal(request.headers()["x-csrf-token"], "test-anonymous-token");
+      assert.equal(request.headers()["if-match"], source.sourceETag);
+      assert.equal(
+        request.postDataJSON().note,
+        action === "accept" ? "Accepted rework" : "Started rework",
+      );
+      state.data = {
+        ...state.data,
+        state: action === "accept" ? "ACCEPTED" : "IN_PROGRESS",
+        capability: action === "accept" ? "ACCEPT_START" : "READ_ONLY",
+      };
+      return route.fulfill({
+        json: {
+          id: 12,
+          branchId: 3,
+          cleaningTaskId: 4,
+          inspectionId: 5,
+          assigneeId: 42,
+          action,
+          state: state.data.state,
+          operationId: request.headers()["idempotency-key"],
+          sourceETag: source.sourceETag,
+          occurredAtUtc: "2026-11-15T03:00:00Z",
+          intervalId: action === "start" ? 19 : null,
+          publicationId: null,
+          readiness: "REWORK_REQUIRED",
+          notification: "NOT_REQUIRED",
+          contract: "FE05_COMMITTED_V1",
+        },
+        headers: { ETag: source.sourceETag },
+      });
+    }
     return route.fulfill({ status: 404, json: { code: "NOT_FOUND" } });
   });
   try {
-    await page.goto("http://hotelops.test/cleaning/reworks/12?branchId=3");
+    await page.goto("https://hotelops.test/cleaning/reworks/12?branchId=3");
     await page.addScriptTag({ content: bundle.outputFiles[0].text });
     await run(page, state);
     assert.deepEqual(state.errors, []);
-    assert.equal(
-      state.calls.some((c) => c.method !== "GET"),
-      false,
-    );
+    if (!writable)
+      assert.equal(
+        state.calls.some((c) => c.method !== "GET"),
+        false,
+      );
   } finally {
     await page.close();
   }
 }
+
+test("canonical receive workflow accepts and starts using current CSRF and committed receipts", async () => {
+  await scenario(async (page, state) => {
+    await page
+      .getByRole("button", { name: "Accept rework", exact: true })
+      .click();
+    await page
+      .getByRole("button", { name: "Start rework", exact: true })
+      .click();
+    await page.getByText("Rework #12: in progress.", { exact: true }).waitFor();
+    assert.deepEqual(
+      state.calls.filter((c) => c.method === "POST").map((c) => c.path),
+      ["/api/branches/3/reworks/12/accept", "/api/branches/3/reworks/12/start"],
+    );
+    assert.equal(
+      await page
+        .getByRole("button", {
+          name: /Accept rework|Start rework|Complete rework/,
+        })
+        .count(),
+      0,
+    );
+  }, true);
+});
 test("canonical assigned source displays committed defects, then clears them on session loss", async () => {
   await scenario(async (page, state) => {
     await page.getByText("PRIVATE-DEFECT", { exact: true }).waitFor();

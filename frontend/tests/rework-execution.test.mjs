@@ -11,8 +11,73 @@ await build({
 });
 const { readRework, mutateRework } =
   await import("../.test-output/fs016/rework.mjs");
+
+test("canonical mutation cannot cross a changed session during CSRF bootstrap", async () => {
+  let current = true;
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(url);
+    current = false;
+    return Response.json({
+      headerName: "X-CSRF-TOKEN",
+      csrfToken: "new-session",
+    });
+  };
+  await assert.rejects(
+    mutateRework(
+      "2",
+      "3",
+      "accept",
+      '"0000000000000001"',
+      "12345678-1234-4123-8123-123456789abc",
+      { note: "Accepted rework" },
+      { signal: new AbortController().signal, isCurrent: () => current },
+    ),
+    /Session changed/,
+  );
+  assert.deepEqual(calls, ["/api/auth/csrf"]);
+});
 const tag = '"0000000000000001"',
   operation = "11111111-1111-4111-8111-111111111111";
+test("canonical accept preserves effective block and rejects usable or unknown readiness", async () => {
+  for (const readiness of ["BLOCKED", "REWORK_REQUIRED", "READY", "UNKNOWN"]) {
+    globalThis.fetch = async (url) =>
+      url.endsWith("/auth/csrf")
+        ? Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "token" })
+        : Response.json(
+            {
+              id: 3,
+              branchId: 2,
+              cleaningTaskId: 4,
+              inspectionId: 5,
+              assigneeId: 7,
+              action: "accept",
+              state: "ACCEPTED",
+              operationId: operation,
+              sourceETag: tag,
+              occurredAtUtc: "2026-11-15T00:00:00Z",
+              intervalId: null,
+              publicationId: null,
+              readiness,
+              notification: "NOT_REQUIRED",
+              contract: "FE05_COMMITTED_V1",
+            },
+            { headers: { ETag: tag } },
+          );
+    const result = mutateRework(
+      "2",
+      "3",
+      "accept",
+      tag,
+      operation,
+      { note: "Accept rework" },
+      { signal: new AbortController().signal, isCurrent: () => true },
+    );
+    if (["BLOCKED", "REWORK_REQUIRED"].includes(readiness))
+      assert.equal((await result).readiness, readiness);
+    else await assert.rejects(result);
+  }
+});
 const source = {
   id: 3,
   branchId: 2,

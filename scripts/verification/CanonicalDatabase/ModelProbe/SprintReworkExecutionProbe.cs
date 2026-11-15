@@ -6,6 +6,7 @@ using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.HotelStructure;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 
 internal static class SprintReworkExecutionProbe
 {
@@ -70,10 +71,14 @@ internal static class SprintReworkExecutionProbe
         }
         try
         {
+            var room=await db.CleaningReworks.Where(w=>w.ReworkId==id).Select(w=>w.CleaningTask.RoomId).SingleAsync(ct);
+            var now=DateTime.UtcNow;
+            var expectedReadiness=await db.RoomBlocks.AnyAsync(b=>b.RoomId==room&&b.BlockedAt<=now&&(b.ReleasedAt==null||b.ReleasedAt>now),ct)?"BLOCKED":"REWORK_REQUIRED";
             var before=await Tag();var acceptKey=Guid.NewGuid();
             if((await Call("start",before,Guid.NewGuid())).Status!=RoomTypeBatchStatus.Inactive)throw new Exception("Start bypassed acceptance");
             var accepted=await Call("accept",before,acceptKey);
             if(accepted.Status!=RoomTypeBatchStatus.Success||accepted.Value is not ReworkCommandResult {State:"ACCEPTED",IntervalId:null,Contract:"FE05_COMMITTED_V1"})throw new Exception("Committed accept failed: "+accepted.Status);
+            if(((ReworkCommandResult)accepted.Value).Readiness!=expectedReadiness)throw new Exception("Accept ignored effective readiness");
             if((await Call("accept",before,acceptKey)).Status!=RoomTypeBatchStatus.Success||await db.WorkIntervals.AnyAsync(w=>w.UserId==actor,ct))throw new Exception("Acceptance replay opened an interval");
             if((await Call("accept",before,acceptKey,"Changed request")).Status!=RoomTypeBatchStatus.Duplicate)throw new Exception("Operation key reused with different body");
             var startTag=await Tag();
@@ -81,9 +86,33 @@ internal static class SprintReworkExecutionProbe
             var day=new Workday{UserId=actor,BranchId=branch,DepartmentId=department,WorkDate=DateOnly.FromDateTime(DateTime.UtcNow),IsUnscheduled=true,
                 UnscheduledReason="Synthetic receive rework fixture",Status="WORKING",StartedAt=DateTime.UtcNow.AddMinutes(-5)};
             db.Workdays.Add(day);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            var task=await db.CleaningReworks.Where(w=>w.ReworkId==id).Select(w=>w.CleaningTaskId).SingleAsync(ct);
+            var busy=new WorkInterval{UserId=actor,BranchId=branch,WorkdayId=day.WorkdayId,WorkItemKind="CLEANING",WorkItemId=task,
+                OpenedBy=actor,OpenedAt=DateTime.UtcNow,EffectiveStartedAt=DateTime.UtcNow};
+            db.WorkIntervals.Add(busy);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            try
+            {
+                if((await Call("start",startTag,Guid.NewGuid())).Value is not CleaningLifecycleFailure {Code:"TIME_INTERVAL_ALREADY_OPEN"}
+                    ||await Tag()!=startTag)throw new Exception("Busy start changed the task");
+            }
+            finally{await db.WorkIntervals.Where(w=>w.IntervalId==busy.IntervalId&&w.UserId==actor).ExecuteDeleteAsync(ct);}
+            await db.Database.ExecuteSqlRawAsync("""
+                ALTER TABLE dbo.audit_logs ADD CONSTRAINT CK_DEV3_ReworkStartAuditFault CHECK
+                  (NOT(entity_type='cleaning_reworks' AND action='UPDATE'
+                    AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.entity.action')='start'));
+                """,ct);
+            try
+            {
+                try{await Call("start",startTag,Guid.NewGuid());throw new Exception("Expected start audit failure missing");}
+                catch(SqlException error) when(error.Number==547){}
+                catch(DbUpdateException error) when(error.InnerException is SqlException {Number:547}){}
+                if(await Tag()!=startTag||await db.WorkIntervals.AnyAsync(w=>w.UserId==actor,ct))throw new Exception("Start audit failure leaked task or interval");
+            }
+            finally{await db.Database.ExecuteSqlRawAsync("ALTER TABLE dbo.audit_logs DROP CONSTRAINT CK_DEV3_ReworkStartAuditFault",ct);}
             var startKey=Guid.NewGuid();var results=await Task.WhenAll(Call("start",startTag,startKey),Call("start",startTag,startKey));
             if(results.Any(r=>r.Status!=RoomTypeBatchStatus.Success)||await db.WorkIntervals.CountAsync(w=>w.UserId==actor&&w.WorkItemKind=="REWORK"&&w.WorkItemId==id&&w.ClosedAt==null,ct)!=1)
                 throw new Exception("Concurrent identical start failed to produce one interval: "+string.Join(',',results.Select(r=>r.Status)));
+            if(results.Any(r=>r.Value is not ReworkCommandResult receipt||receipt.Readiness!=expectedReadiness))throw new Exception("Start ignored effective readiness");
             if((await Call("start",startTag,Guid.NewGuid())).Status!=RoomTypeBatchStatus.Stale)throw new Exception("Stale start was accepted");
             if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="cleaning_reworks"&&a.EntityId==id.ToString(),ct)!=2)
                 throw new Exception("Accept/start audits duplicated or missing");
@@ -92,6 +121,8 @@ internal static class SprintReworkExecutionProbe
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.work_intervals WHERE user_id={actor} AND work_item_kind='REWORK' AND work_item_id={id}; DELETE dbo.workdays WHERE user_id={actor}; UPDATE dbo.cleaning_reworks SET status='PENDING',workflow_status='PENDING_ACCEPTANCE',note=NULL WHERE rework_id={id}",CancellationToken.None);
             await RestoreSchema();
+            if(await db.Database.SqlQueryRaw<string>("SELECT definition AS Value FROM sys.check_constraints WHERE name='CK_rework_workflow_v1' AND parent_object_id=OBJECT_ID('dbo.cleaning_reworks')").SingleAsync(CancellationToken.None)!=original)
+                throw new Exception("Rework CHECK definition not restored exactly");
         }
     }
     private sealed class Identity(CurrentUserInfo value):ICurrentUserAccessor

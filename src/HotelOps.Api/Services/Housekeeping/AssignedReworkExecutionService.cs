@@ -91,8 +91,11 @@ public sealed partial class RoomTypeCreationService
                     var opened=await time.OpenIntervalAsync(new(actor,actor,branch,"REWORK",id),token);
                     interval=opened.IntervalId;now=opened.OpenedAtUtc;db.ChangeTracker.Clear();
                 }
+                var readiness=await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db).ReadAsync([row.RoomId],now,token);
+                if(!readiness.TryGetValue(row.RoomId,out var roomState)||roomState.Readiness is not ("BLOCKED" or "REWORK_REQUIRED"))
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_READINESS_UNPROVEN");
                 var result=new ReworkCommandResult(id,branch,row.CleaningTaskId,row.InspectionId,actor,action,next,operation,
-                    WorkflowTag((await ReworkState(id,token)).Revision),now,interval,null,"REWORK_REQUIRED","NOT_REQUIRED",AssignedReworkExecutionContract);
+                    WorkflowTag((await ReworkState(id,token)).Revision),now,interval,null,roomState.Readiness,"NOT_REQUIRED",AssignedReworkExecutionContract);
                 await BatchAuditAsync(actor,branch,"cleaning_reworks",id,new{state.State},new{operationId=operation,fingerprint,
                     authorityOperationId=authority!.OperationId,authoritySourceDigest=Convert.ToHexString(authority.SourceDigest),entity=result},
                     ["workflowStatus","workInterval"],token);

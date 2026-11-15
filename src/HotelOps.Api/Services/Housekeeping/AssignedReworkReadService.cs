@@ -21,6 +21,8 @@ public sealed partial class RoomTypeCreationService
                 &&(w.CleaningTask.Room.AreaId==null||w.CleaningTask.Room.Area!.IsActive))
                 .Select(w=>new{w.ReworkId,w.InspectionId,w.CleaningTaskId,w.CleaningTask.RoomId}).SingleOrDefaultAsync(token);
             if(row==null)return new(RoomTypeBatchStatus.NotFound);
+            if(await db.CleaningReworks.CountAsync(w=>w.InspectionId==row.InspectionId&&w.Status!="COMPLETED"&&w.Status!="CANCELLED",token)!=1)
+                return LifecycleFailure(RoomTypeBatchStatus.Inactive,"DUPLICATE_REWORK_SOURCE");
             var proof=await ReadTrustedReworkAuthorityAsync(actor,branch,id,root,token);
             if(proof==null)return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"INSPECTION_AUTHORITY_UNPROVEN");
             var state=await ReworkState(id,token);
@@ -58,6 +60,7 @@ public sealed partial class RoomTypeCreationService
                 state.State, state.DueAt is {} due?DateTime.SpecifyKind(due,DateTimeKind.Utc):null,WorkflowTag(state.Revision),
                 WorkflowTag(proof.Binding.InspectionRevision),output,
                 state.State is "PENDING_ACCEPTANCE" or "ACCEPTED" && await AssignedReworkExecutionInstalled(token)
+                    &&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
                     ? "ACCEPT_START" : "READ_ONLY",ReworkAuthorityContract.Origin),WorkflowTag(state.Revision));
         },ct,featurePermission:token=>ReworkAccess(ticket.UserId,branch,id,"CLEANING_VIEW",token),
             eligibility:token=>EligibleReworkAssignees(branch,clock.GetUtcNow().UtcDateTime).AnyAsync(u=>u.UserId==ticket.UserId,token));

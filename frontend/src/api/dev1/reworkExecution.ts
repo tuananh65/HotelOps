@@ -13,7 +13,7 @@ export interface ReworkExecution {
   dueAtUtc: string | null;
   sourceETag: string;
   inspectionETag: string;
-  capability: "READ_ONLY" | "PROVISIONAL_NOT_ACCEPTED";
+  capability: "READ_ONLY" | "ACCEPT_START" | "PROVISIONAL_NOT_ACCEPTED";
   sourceAuthority: "FE05_COMMITTED_V1";
   defects: {
     id: number;
@@ -73,7 +73,9 @@ export async function readRework(
       "IN_PROGRESS",
       "PENDING_REINSPECTION",
     ].includes(d.state) ||
-    !["READ_ONLY", "PROVISIONAL_NOT_ACCEPTED"].includes(d.capability) ||
+    !["READ_ONLY", "ACCEPT_START", "PROVISIONAL_NOT_ACCEPTED"].includes(
+      d.capability,
+    ) ||
     d.sourceAuthority !== "FE05_COMMITTED_V1" ||
     !validTag(d.sourceETag) ||
     result.etag !== d.sourceETag ||
@@ -131,13 +133,17 @@ export async function mutateRework(
   tag: string,
   operation: string,
   command: ReworkCommand,
+  scope?: { signal: AbortSignal; isCurrent: () => boolean },
 ) {
   const b = positiveId(branch),
     r = positiveId(id);
   if (!validTag(tag) || !validGuid(operation))
     throw Error("INVALID_REWORK_COMMAND");
   validateReworkCommand(action, command);
-  const csrf = (await getJson("/auth/csrf")) as {
+  scope?.signal.throwIfAborted();
+  if (scope && (!scope.isCurrent() || action === "complete"))
+    throw new DOMException("Invalid current rework action", "AbortError");
+  const csrf = (await getJson("/auth/csrf", scope?.signal)) as {
     headerName?: string;
     csrfToken?: string;
   };
@@ -147,9 +153,12 @@ export async function mutateRework(
     /[\r\n]/.test(csrf.csrfToken)
   )
     throw new ApiError(502, "INVALID_CSRF_RESPONSE");
+  scope?.signal.throwIfAborted();
+  if (scope && !scope.isCurrent())
+    throw new DOMException("Session changed", "AbortError");
   const response = await send(
     `/branches/${b}/reworks/${r}/${action}`,
-    undefined,
+    scope?.signal,
     {
       method: "POST",
       headers: {
@@ -172,7 +181,7 @@ export async function mutateRework(
     ![d.cleaningTaskId, d.inspectionId, d.assigneeId].every(validId) ||
     !validTag(d.sourceETag) ||
     response.etag !== d.sourceETag ||
-    d.contract !== "PROVISIONAL_NOT_ACCEPTED" ||
+    d.contract !== (scope ? "FE05_COMMITTED_V1" : "PROVISIONAL_NOT_ACCEPTED") ||
     typeof d.occurredAtUtc !== "string" ||
     !/Z$/.test(d.occurredAtUtc) ||
     !Number.isFinite(Date.parse(d.occurredAtUtc)) ||
@@ -182,8 +191,10 @@ export async function mutateRework(
         start: "IN_PROGRESS",
         complete: "PENDING_REINSPECTION",
       }[action] ||
-    d.readiness !==
-      (action === "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED") ||
+    (scope
+      ? !["BLOCKED", "REWORK_REQUIRED"].includes(d.readiness)
+      : d.readiness !==
+        (action === "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED")) ||
     (action === "accept" ? d.intervalId !== null : !validId(d.intervalId)) ||
     (action === "complete"
       ? !validGuid(d.publicationId) || d.notification !== "PENDING_DELIVERY"

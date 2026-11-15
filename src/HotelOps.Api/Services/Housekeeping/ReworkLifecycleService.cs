@@ -289,7 +289,9 @@ public sealed partial class RoomTypeCreationService
         && r.InspectionId == inspection && r.OperationId == op && r.Action == action && WorkflowStrongTag(r.SourceETag)
         && r.Contract == contract && r.OccurredAtUtc.Kind == DateTimeKind.Utc
         && r.State == (action == "accept" ? "ACCEPTED" : action == "start" ? "IN_PROGRESS" : "PENDING_REINSPECTION")
-        && r.Readiness == (action == "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED")
+        && (contract == AssignedReworkExecutionContract
+            ? action is "accept" or "start" && r.Readiness is "BLOCKED" or "REWORK_REQUIRED"
+            : r.Readiness == (action == "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED"))
         && (action == "accept" ? r.IntervalId == null : r.IntervalId > 0)
         && (action == "complete" ? r.PublicationId is { } p && p != Guid.Empty && r.Notification == "PENDING_DELIVERY"
             : r.PublicationId == null && r.Notification == "NOT_REQUIRED");

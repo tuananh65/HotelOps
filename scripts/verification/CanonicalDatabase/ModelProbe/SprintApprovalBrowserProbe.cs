@@ -148,6 +148,8 @@ internal static class SprintApprovalBrowserProbe
                         await SprintReworkAuthorityProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
                         await SprintReworkDeliveryProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
                         await SprintAssignedReworkProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
+                        checks.Add(new{blocked,committedAcceptStart=true,receiveReplay=true,changedRequestKeyDenied=true,
+                            noWorkdayRollback=true,busyStartDenied=true,startAuditRollback=true,concurrentStartOneInterval=true,executionSchemaRestored=true});
                         checks.Add(new{blocked,assigneeInboxBrowser=true,inboxReloadPersistence=true,notificationSourceHttps=true,privilegedDetailFailClosed=true});
                         await SprintReworkCreationProbe.VerifyAsync(db,actor,password,branch,inspection,cleaner,created.ReworkId,ct);
                         checks.Add(new{blocked,reworkCreateAuditRollback=true,reworkCreateConcurrency=true,oneOpenRework=true});
