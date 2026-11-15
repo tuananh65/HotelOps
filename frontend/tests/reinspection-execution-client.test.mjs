@@ -63,6 +63,62 @@ const scope = () => ({
   signal: new AbortController().signal,
   isCurrent: () => true,
 });
+
+test("terminal read separates current readiness from a matching historical receipt", async () => {
+  const terminal = {
+    ...source(),
+    state: "PASSED",
+    effectiveReadiness: "READY",
+    messageCode: null,
+    defects: [
+      {
+        ...source().defects[0],
+        fixed: true,
+        note: "Verified",
+        reinspectionPhotos: [12],
+      },
+    ],
+    conclusion: receipt(),
+  };
+  for (const patch of [
+    null,
+    { conclusion: null },
+    { conclusion: { ...receipt(), reworkId: 99 } },
+    { conclusion: { ...receipt(), sourceETag: '"0000000000000002"' } },
+    { defects: [{ ...terminal.defects[0], fixed: false }] },
+  ]) {
+    globalThis.fetch = async () =>
+      Response.json({ ...terminal, ...patch }, { headers: { ETag: tag } });
+    if (patch)
+      await assert.rejects(
+        readReinspection("1", "8", scope().signal),
+        /INVALID_REINSPECTION_RESPONSE/,
+      );
+    else {
+      const read = await readReinspection("1", "8", scope().signal);
+      assert.equal(read.effectiveReadiness, "READY");
+      assert.equal(read.conclusion.effectiveReadiness, "BLOCKED");
+    }
+  }
+  let calls = 0;
+  globalThis.fetch = async () => {
+    ++calls;
+    throw Error("Unexpected network");
+  };
+  await assert.rejects(
+    concludeReinspection(
+      "1",
+      "8",
+      terminal,
+      operation,
+      "Reopen",
+      decisions,
+      scope(),
+    ),
+    /INVALID_REINSPECTION_COMMAND/,
+  );
+  assert.equal(calls, 0);
+});
 test("execution rejects foreign, duplicate, already decided or unversioned source", async () => {
   for (const patch of [
     null,

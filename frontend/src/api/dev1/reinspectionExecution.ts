@@ -21,13 +21,14 @@ export interface ReinspectionExecution {
   originalInspectionId: number;
   inspectorId: number;
   versionId: number;
-  state: "ASSIGNED";
+  state: "ASSIGNED" | "PASSED" | "FAILED";
   sourceETag: string;
   reworkETag: string;
   bindingETag: string;
   defects: ReinspectionDefect[];
   effectiveReadiness: string;
   messageCode: string | null;
+  conclusion?: ReinspectionConclusion | null;
 }
 export interface ReinspectionConclusion {
   id: number;
@@ -75,6 +76,7 @@ export async function readReinspection(
     headers: { Accept: "application/json" },
   });
   const d = response.body;
+  const terminal = d?.state === "PASSED" || d?.state === "FAILED";
   if (
     !d ||
     d.id !== positiveId(inspection) ||
@@ -89,7 +91,7 @@ export async function readReinspection(
     ].every(id) ||
     ![d.sourceETag, d.reworkETag, d.bindingETag].every(tag) ||
     response.etag !== d.sourceETag ||
-    d.state !== "ASSIGNED" ||
+    (!terminal && d.state !== "ASSIGNED") ||
     !Array.isArray(d.defects) ||
     !d.defects.length ||
     d.defects.length > 200 ||
@@ -100,12 +102,17 @@ export async function readReinspection(
         typeof v.description !== "string" ||
         typeof v.remediation !== "string" ||
         !v.remediation.trim() ||
-        v.fixed !== null ||
-        v.note !== null ||
+        (terminal
+          ? typeof v.fixed !== "boolean" ||
+            !(
+              v.note === null ||
+              (typeof v.note === "string" && v.note.length <= 500)
+            )
+          : v.fixed !== null || v.note !== null) ||
         ![v.originalPhotos, v.remediationPhotos, v.reinspectionPhotos].every(
           (a) => Array.isArray(a) && a.every(id),
         ) ||
-        v.reinspectionPhotos.length !== 0,
+        (!terminal && v.reinspectionPhotos.length !== 0),
     ) ||
     new Set(d.defects.map((v: ReinspectionDefect) => v.id)).size !==
       d.defects.length ||
@@ -114,10 +121,46 @@ export async function readReinspection(
       "PENDING_INSPECTION",
       "REWORK_REQUIRED",
       "BLOCKED",
+      ...(terminal
+        ? ["READY", "UNKNOWN", "INACTIVE", "CLEANING_IN_PROGRESS"]
+        : []),
     ].includes(d.effectiveReadiness) ||
     d.messageCode !== (d.effectiveReadiness === "BLOCKED" ? "MSG17" : null)
   )
     invalid();
+  if (terminal) {
+    const c = d.conclusion;
+    if (
+      !c ||
+      c.contract !== "FE05_REINSPECTION_CONCLUSION_V1" ||
+      c.notification !== "PENDING_DELIVERY" ||
+      ![
+        "id",
+        "branchId",
+        "reworkId",
+        "roomId",
+        "cleaningTaskId",
+        "state",
+        "sourceETag",
+        "reworkETag",
+      ].every((key) => c[key] === d[key]) ||
+      typeof c.operationId !== "string" ||
+      c.operationId.replaceAll("-", "") === "0".repeat(32) ||
+      !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        c.operationId,
+      ) ||
+      c.reworkState !== (d.state === "PASSED" ? "COMPLETED" : "FAILED") ||
+      !["BLOCKED", d.state === "PASSED" ? "READY" : "REWORK_REQUIRED"].includes(
+        c.effectiveReadiness,
+      ) ||
+      c.messageCode !==
+        (c.effectiveReadiness === "BLOCKED" ? "MSG17" : "MSG08") ||
+      (d.state === "PASSED"
+        ? d.defects.some((x: ReinspectionDefect) => x.fixed !== true)
+        : !d.defects.some((x: ReinspectionDefect) => x.fixed === false))
+    )
+      invalid();
+  } else if (d.conclusion != null) invalid();
   return d;
 }
 export async function concludeReinspection(
@@ -135,6 +178,7 @@ export async function concludeReinspection(
     ) ||
     source.id !== positiveId(inspection) ||
     source.branchId !== positiveId(branch) ||
+    source.state !== "ASSIGNED" ||
     ![source.sourceETag, source.reworkETag, source.bindingETag].every(tag) ||
     !reason.trim() ||
     reason.length > 500 ||

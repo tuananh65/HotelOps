@@ -13,7 +13,8 @@ public sealed record ReinspectionDefectDto(long Id,string Description,string Rem
     IReadOnlyList<long> OriginalPhotos,IReadOnlyList<long> RemediationPhotos,IReadOnlyList<long> ReinspectionPhotos);
 public sealed record ReinspectionExecutionDto(long Id,long ReworkId,long BranchId,long RoomId,long CleaningTaskId,long OriginalInspectionId,
     long InspectorId,long VersionId,string State,string SourceETag,string ReworkETag,string BindingETag,
-    IReadOnlyList<ReinspectionDefectDto> Defects,string EffectiveReadiness,string? MessageCode=null);
+    IReadOnlyList<ReinspectionDefectDto> Defects,string EffectiveReadiness,string? MessageCode=null,
+    ReinspectionConclusionResult? Conclusion=null);
 public sealed record ReinspectionConclusionResult(long Id,long ReworkId,long BranchId,long CleaningTaskId,long RoomId,
     string State,string ReworkState,string SourceETag,string ReworkETag,Guid OperationId,string EffectiveReadiness,
     string MessageCode,string Notification="PENDING_DELIVERY",string Contract="FE05_REINSPECTION_CONCLUSION_V1");

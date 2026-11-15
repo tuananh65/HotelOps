@@ -76,6 +76,7 @@ async function scenario(run) {
     posts: [],
     csrf: null,
     errors: [],
+    data: structuredClone(data),
   };
   page.on("pageerror", (e) => state.errors.push(e.message));
   await page.route("**/*", async (route) => {
@@ -92,7 +93,7 @@ async function scenario(run) {
         json: state.signedIn ? session : { code: "AUTHENTICATION_REQUIRED" },
       });
     if (path === "/api/branches/1/reinspections/8/execution")
-      return route.fulfill({ json: data, headers: { ETag: tag } });
+      return route.fulfill({ json: state.data, headers: { ETag: tag } });
     if (path === "/api/auth/csrf") {
       if (state.csrf) await state.csrf;
       return route
@@ -151,6 +152,72 @@ async function review(page) {
     .getByRole("button", { name: "Review conclusion", exact: true })
     .click();
 }
+
+test("terminal reload shows fresh readiness and recorded decisions without enabling conclusion", async () => {
+  await scenario(async (page, state) => {
+    state.data = {
+      ...data,
+      state: "PASSED",
+      effectiveReadiness: "READY",
+      messageCode: null,
+      defects: [
+        {
+          ...data.defects[0],
+          fixed: true,
+          note: "Verified after rework",
+          reinspectionPhotos: [12],
+        },
+      ],
+      conclusion: {
+        id: 8,
+        reworkId: 2,
+        branchId: 1,
+        roomId: 3,
+        cleaningTaskId: 4,
+        state: "PASSED",
+        reworkState: "COMPLETED",
+        sourceETag: tag,
+        reworkETag: tag,
+        operationId: crypto.randomUUID(),
+        effectiveReadiness: "BLOCKED",
+        messageCode: "MSG17",
+        notification: "PENDING_DELIVERY",
+        contract: "FE05_REINSPECTION_CONCLUSION_V1",
+      },
+    };
+    await page.evaluate(() => window.reinspectionTest.revalidate());
+    await page
+      .getByText("Current room readiness: READY.", { exact: true })
+      .waitFor();
+    await page
+      .getByText(
+        "Recorded outcome: PASSED; readiness at conclusion: BLOCKED.",
+        { exact: true },
+      )
+      .waitFor();
+    await page.getByText("Verified after rework", { exact: true }).waitFor();
+    assert.equal(
+      await page
+        .getByRole("button", { name: "Review conclusion", exact: true })
+        .count(),
+      0,
+    );
+    assert.equal(
+      await page
+        .getByRole("link", { name: "Reinspection photo #12", exact: true })
+        .getAttribute("href"),
+      "/api/branches/1/reinspections/8/evidence/12",
+    );
+    state.signedIn = false;
+    await page.evaluate(() => window.reinspectionTest.revalidate());
+    await page.waitForURL("**/login?*");
+    assert.equal(
+      await page.getByText("Verified after rework", { exact: true }).count(),
+      0,
+    );
+    assert.equal(state.posts.length, 0);
+  });
+});
 test("canonical reinspection requires every decision and confirms blocked result once", async () => {
   await scenario(async (page, state) => {
     await page

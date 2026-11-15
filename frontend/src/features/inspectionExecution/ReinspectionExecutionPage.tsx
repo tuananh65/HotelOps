@@ -94,7 +94,9 @@ function Execution({ branch, id }: { branch: string; id: string }) {
     };
   }, [owner, branch, id, actions]);
   const data = owner && loaded?.owner === owner ? loaded.data : null;
-  const result = owner && saved?.owner === owner ? saved.data : null;
+  const result =
+    owner && saved?.owner === owner ? saved.data : (data?.conclusion ?? null);
+  const terminalRead = data && data.state !== "ASSIGNED" ? data : null;
   const change = (
     defect: number,
     value: Partial<{ fixed: string; note: string; files: File[] }>,
@@ -196,12 +198,50 @@ function Execution({ branch, id }: { branch: string; id: string }) {
             .
           </p>
           <p>
-            {result.effectiveReadiness === "BLOCKED"
-              ? "The room remains blocked (MSG17)."
-              : result.state === "PASSED"
-                ? "The room was ready at conclusion."
-                : "The cleaning cycle requires another rework."}
+            {terminalRead
+              ? `Current room readiness: ${terminalRead.effectiveReadiness}.`
+              : result.effectiveReadiness === "BLOCKED"
+                ? "The room remains blocked (MSG17)."
+                : result.state === "PASSED"
+                  ? "The room was ready at conclusion."
+                  : "The cleaning cycle requires another rework."}
           </p>
+          {terminalRead && (
+            <>
+              <p>
+                Recorded outcome: {result.state}; readiness at conclusion:{" "}
+                {result.effectiveReadiness}.
+              </p>
+              {terminalRead.defects.map((d) => (
+                <section key={d.id} aria-label={`Recorded defect ${d.id}`}>
+                  <h2>{d.description}</h2>
+                  <p>Remediation: {d.remediation}</p>
+                  <p>Result: {d.fixed ? "Fixed" : "Not Fixed"}</p>
+                  <p>{d.note}</p>
+                  {(
+                    [
+                      ["Original", d.originalPhotos],
+                      ["Remediation", d.remediationPhotos],
+                      ["Reinspection", d.reinspectionPhotos],
+                    ] as const
+                  ).map(([label, files]) => (
+                    <p key={label}>
+                      {files.map((file) => (
+                        <a
+                          key={file}
+                          href={reinspectionEvidenceUrl(branch, id, file)}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {label} photo #{file}{" "}
+                        </a>
+                      ))}
+                    </p>
+                  ))}
+                </section>
+              ))}
+            </>
+          )}
           <p>Notification pending delivery.</p>
           {result.state === "FAILED" && (
             <RequestReworkForm

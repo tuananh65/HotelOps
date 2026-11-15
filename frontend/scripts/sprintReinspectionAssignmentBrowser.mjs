@@ -158,6 +158,23 @@ try {
       return { same: await post(body), changed: await post(JSON.stringify({ ...JSON.parse(body), reason: "Changed conclusion replay" })) };
     }, { path, headers: sentHeaders, body: sentBody });
     if (replay.same.status !== 200 || JSON.stringify(replay.same.body) !== JSON.stringify(concluded) || replay.changed.status !== 409) throw Error("HTTPS conclusion replay mismatch");
+    stage = "terminal reload and evidence";
+    await page.reload();
+    await page.getByText(`Current room readiness: ${concluded.effectiveReadiness}.`, { exact: true }).waitFor();
+    if (await page.getByRole("button", { name: "Review conclusion", exact: true }).count()) throw Error("Terminal reload reopened editable decisions");
+    const terminal = await page.evaluate(async path => {
+      const r = await fetch(path + "/execution", { credentials: "include" }), d = await r.json();
+      if (r.status !== 200 || !d.conclusion || d.sourceETag !== r.headers.get("ETag")) throw Error("Terminal receipt unavailable");
+      const files = d.defects.flatMap(x => x.reinspectionPhotos);
+      if (!files.length) throw Error("Terminal photo missing");
+      for (const file of files) {
+        const photo = await fetch(path + "/evidence/" + file, { credentials: "include" });
+        if (photo.status !== 200 || photo.headers.get("X-Content-Type-Options") !== "nosniff" || !(await photo.arrayBuffer()).byteLength) throw Error("Terminal private evidence unavailable");
+      }
+      return d;
+    }, path);
+    if (terminal.state !== concluded.state || terminal.conclusion.operationId !== concluded.operationId) throw Error("Reload changed conclusion receipt");
+    if (fixture.outcome === "FAIL") await page.getByRole("group", { name: "Defects, assignee and due time", exact: true }).waitFor();
     conclusion = { success: true, outcome: fixture.outcome, csrfEtag: true, staleAggregate: true, exactDefects: true, photo: true, replay: true, readiness: concluded.effectiveReadiness };
   }
   process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true, conclusion,

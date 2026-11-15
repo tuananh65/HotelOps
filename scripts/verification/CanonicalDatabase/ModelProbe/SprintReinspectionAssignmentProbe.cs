@@ -253,6 +253,7 @@ internal static class SprintReinspectionAssignmentProbe
             await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, ct);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
+            await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
         }
         finally
         {
