@@ -94,6 +94,20 @@ internal static class SprintReportProbe
             Check(results["tasks"].TotalCount == 2 && results["tasks"].Rows.Select(r => ((JsonElement)r["id"]!).GetInt64()).SequenceEqual(new[] { first.TaskId, last.TaskId }),
                 "tasks include UTC start/last instant; exclude next day, foreign branch and inconsistent department");
             Check(results["requests"].TotalCount == 1, "requests exclude mismatched department linkage");
+            var requestRows = db.InternalRequests.Where(r => r.RequestNo == prefix + "A");
+            Check(!((JsonElement)results["requests"].Rows[0]["overdue"]!).GetBoolean(), "no deadline is not overdue");
+            ReportResult? frozenOverdue = null;
+            foreach (var sample in new[] { ("IN_PROGRESS", -1, true), ("IN_PROGRESS", 0, false), ("IN_PROGRESS", 1, false),
+                ("CLOSED", -1, false), ("REJECTED", -1, false), ("CANCELLED", -1, false) })
+            {
+                await requestRows.ExecuteUpdateAsync(u => u.SetProperty(r => r.Status, sample.Item1).SetProperty(r => r.DueAt, start.AddSeconds(sample.Item2)), ct);
+                var measured = await queries.MaterializeAsync("requests", query, filters, now, ct);
+                Check(((JsonElement)measured.Rows[0]["overdue"]!).GetBoolean() == sample.Item3, $"GBR156 snapshot overdue boundary {sample.Item1}/{sample.Item2}");
+                if (sample.Item3) frozenOverdue = measured;
+            }
+            Check(frozenOverdue != null && ((JsonElement)frozenOverdue.Rows[0]["overdue"]!).GetBoolean(), "overdue snapshot unchanged after deadline and terminal-state source updates");
+            var frozenCsv = Encoding.UTF8.GetString(ReportCsvRenderer.Render(frozenOverdue!).Content);
+            Check(frozenCsv.Contains("overdue") && frozenCsv.Contains("true"), "CSV includes the frozen overdue indicator");
             Check(results["rooms"].Rows.Count == 1 && results["rooms"].Sections.Single(s => s.Key == "cleaning_tasks").Rows.Count == 1, "room report contains scoped room and cleaning rows");
             Check(results["inspections"].Rows.Count == 1, "inspection report contains its scoped dated row");
             var inventory = results["items"];

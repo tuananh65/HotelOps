@@ -31,7 +31,7 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
         var end = InsightAccess.End(filters);
         var department = filters.DepartmentId;
         var sections = new List<ReportSection>();
-        var missing = new List<string> { "Partial report: detailed RPT indicators remain unavailable; recorded source values only" };
+        var missing = new List<string> { "Partial report: detailed RPT indicators remain unavailable; see per-report limitations" };
         var rowCount = 0;
         var jsonOptions = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
         jsonOptions.Converters.Add(new InsightUtcJson());
@@ -185,9 +185,10 @@ public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
                 if (department is not null) throw new InsightException(503, "REQUEST_DEPARTMENT_CONTRACT_UNAVAILABLE", "Receiving versus requester department reporting contract unavailable.");
                 await Add("internal_requests", requests.OrderBy(r => r.InternalRequestId).Select(r => new { Id = r.InternalRequestId,
                     r.RequestNo, r.BranchId, r.RequestTypeId, r.RequesterDepartmentId, r.ReceivingDepartmentId, r.Status,
-                    r.CreatedAt, r.SubmittedAt, r.DueAt, r.CompletedAt, r.ClosedAt }),
-                    "id", "requestNo", "branchId", "requestTypeId", "requesterDepartmentId", "receivingDepartmentId", "status", "createdAt", "submittedAt", "dueAt", "completedAt", "closedAt");
-                missing.Add("response/current-cycle completion, reopened and overdue contracts unavailable");
+                    r.CreatedAt, r.SubmittedAt, r.DueAt, r.CompletedAt, r.ClosedAt,
+                    Overdue = r.DueAt != null && r.DueAt < now.UtcDateTime && r.Status != "CLOSED" && r.Status != "REJECTED" && r.Status != "CANCELLED" }),
+                    "id", "requestNo", "branchId", "requestTypeId", "requesterDepartmentId", "receivingDepartmentId", "status", "createdAt", "submittedAt", "dueAt", "completedAt", "closedAt", "overdue");
+                missing.Add("response/current-cycle completion and reopened indicators unavailable; overdue uses the snapshot time under GBR-156");
                 break;
             }
         }
