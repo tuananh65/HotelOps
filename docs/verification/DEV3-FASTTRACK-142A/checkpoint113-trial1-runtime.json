@@ -1,0 +1,129 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_a34894c8",
+  "fixtureUserId": 1071253,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "completionCheck": "stale version denied"
+    },
+    {
+      "completionCheck": "revoked department authority denied"
+    },
+    {
+      "completionCheck": "outbox fault rolls back receipt audit event assignment escalation and request version"
+    },
+    {
+      "completionCheck": "concurrent closure commits once"
+    },
+    {
+      "completionCheck": "request closed and last handler preserved in ended assignment"
+    },
+    {
+      "completionCheck": "result audit-linked receipt escalation and requester intent persist once"
+    },
+    {
+      "completionCheck": "reopen source refuses reads without a serializable transaction"
+    },
+    {
+      "completionCheck": "reopen source binds current closure to exact ended handler and preserved result"
+    },
+    {
+      "completionCheck": "reopen does not choose newest assignment instead of closure provenance"
+    },
+    {
+      "completionCheck": "reopen rejects event/result provenance mismatch"
+    },
+    {
+      "completionCheck": "reopen rejects non-closed request"
+    },
+    {
+      "completionCheck": "reopen rejects inconsistent active assignment"
+    },
+    {
+      "completionCheck": "reopen rejects closure timestamp mismatch"
+    },
+    {
+      "completionLimit": "Direct service and SQL; reopen source prerequisite only, no reopen authorization or mutation endpoint"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}

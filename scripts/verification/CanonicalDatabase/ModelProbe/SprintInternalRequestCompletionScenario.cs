@@ -46,7 +46,37 @@ internal static class SprintInternalRequestCompletionScenario
         Check(await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==request&&r.Status=="CLOSED"&&r.CompletedAt!=null&&r.ClosedAt!=null,ct)
             &&await db.InternalRequestAssignments.AnyAsync(a=>a.AssignmentId==assignment.AssignmentId&&a.Status=="COMPLETED"&&a.EndedAt!=null,ct),"request closed and last handler preserved in ended assignment");
         Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_closures c JOIN dbo.internal_request_escalations e ON e.closed_event_id=c.event_id JOIN dbo.internal_request_completion_outbox o ON o.event_id=c.event_id WHERE c.internal_request_id={request} AND c.result_note='Verified synthetic result' AND e.state='CLOSED' AND o.requester_id={source.RequesterId}").SingleAsync(ct)==1,"result audit-linked receipt escalation and requester intent persist once");
-        checks.Add(new{completionLimit="Direct service and SQL, not public API/browser; mandatory material mapping and notification delivery remain incomplete"});
+        // UC121 must recover the handler from the actual closure, preserving historical rows.
+        var requiresTransaction=false;
+        try{await InternalRequestReopenSource.ReadAsync(db,request,7,ct);}catch(InvalidOperationException){requiresTransaction=true;}
+        Check(requiresTransaction,"reopen source refuses reads without a serializable transaction");
+        await using(var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct))
+        {
+            var closure=await InternalRequestReopenSource.ReadAsync(db,request,7,ct);
+            Check(closure.AssignmentId==assignment.AssignmentId&&closure.HandlerId==actor&&closure.Result=="Verified synthetic result",
+                "reopen source binds current closure to exact ended handler and preserved result");
+            // A later ended assignment must not replace the receipt's authoritative handler.
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_assignments(internal_request_id,assignee_id,assigned_by,assigned_at,ended_at,status) VALUES({request},{actor},{actor},{closure.ClosedAt},{closure.ClosedAt},'COMPLETED')",ct);
+            Check((await InternalRequestReopenSource.ReadAsync(db,request,7,ct)).AssignmentId==assignment.AssignmentId,
+                "reopen does not choose newest assignment instead of closure provenance");
+            await tx.RollbackAsync(ct);
+        }
+        async Task RejectSource(string mutation,string label)
+        {
+            await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
+            // Only the exact synthetic request/receipt, in a transaction always rolled back.
+            if(mutation=="event")await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_request_events SET event_note='Synthetic mismatched result' WHERE internal_request_id={request} AND event_type='COMPLETE'",ct);
+            else if(mutation=="status")await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET status='IN_PROGRESS' WHERE internal_request_id={request}",ct);
+            else if(mutation=="assignment")await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_request_assignments SET status='ACTIVE',ended_at=NULL WHERE assignment_id={assignment.AssignmentId}",ct);
+            else await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET closed_at=DATEADD(second,1,closed_at) WHERE internal_request_id={request}",ct);
+            var denied=false;try{await InternalRequestReopenSource.ReadAsync(db,request,7,ct);}catch(InternalRequestReadException e)when(e.Status==409){denied=true;}
+            Check(denied,label);await tx.RollbackAsync(ct);
+        }
+        await RejectSource("event","reopen rejects event/result provenance mismatch");
+        await RejectSource("status","reopen rejects non-closed request");
+        await RejectSource("assignment","reopen rejects inconsistent active assignment");
+        await RejectSource("timestamp","reopen rejects closure timestamp mismatch");
+        checks.Add(new{completionLimit="Direct service and SQL; reopen source prerequisite only, no reopen authorization or mutation endpoint"});
         // This separately created service-test session is not the browser's logout session.
         // Remove only the credential owned by this fixture before the parent checks browser logout.
         await db.UserSessions.Where(s=>s.SessionId==session.SessionId&&s.UserId==actor&&s.SessionKeyHash==session.SessionKeyHash).ExecuteDeleteAsync(ct);
