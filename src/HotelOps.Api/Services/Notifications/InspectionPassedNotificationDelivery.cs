@@ -48,11 +48,13 @@ internal sealed class InspectionPassedNotificationDelivery(HotelOpsDbContext db,
         var submitted = await new ReworkSubmittedNotificationDelivery(db, clock).ReadPendingAsync(limit, afterAuditId, ct);
         var reinspected = await new ReinspectionPassedNotificationDelivery(db, clock).ReadPendingAsync(limit, afterAuditId, ct);
         var assigned = await new ReinspectionAssignedNotificationDelivery(db, clock).ReadPendingAsync(limit, afterAuditId, ct);
-        return passed.Concat(failed).Concat(rework).Concat(submitted).Concat(reinspected).Concat(assigned).OrderBy(h => h.AuditId).Take(limit).ToArray();
+        var initial = await new InitialInspectionAssignedNotificationDelivery(db, clock).ReadPendingAsync(limit, afterAuditId, ct);
+        return initial.Concat(passed).Concat(failed).Concat(rework).Concat(submitted).Concat(reinspected).Concat(assigned).OrderBy(h => h.AuditId).Take(limit).ToArray();
     }
 
     public async Task<string> DeliverAsync(long auditId, long recipientHint, CancellationToken ct)
     {
+        if (recipientHint == -5) return await new InitialInspectionAssignedNotificationDelivery(db, clock).DeliverAsync(auditId, ct);
         if (recipientHint == -4) return await new ReinspectionAssignedNotificationDelivery(db, clock).DeliverAsync(auditId, ct);
         if (recipientHint == -3) return await new ReinspectionPassedNotificationDelivery(db, clock).DeliverAsync(auditId, ct);
         if (recipientHint == -2) return await new ReworkSubmittedNotificationDelivery(db, clock).DeliverAsync(auditId, ct);

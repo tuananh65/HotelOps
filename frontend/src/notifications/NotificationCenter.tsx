@@ -213,6 +213,7 @@ export function NotificationCenter() {
                         "REINSPECTION_PASSED",
                         "INSPECTION_FAILED",
                         "REINSPECTION_ASSIGNED",
+                        "INSPECTION_ASSIGNED",
                       ].includes(row.type) && (
                         <button
                           disabled={!!operation?.busy}
@@ -223,6 +224,7 @@ export function NotificationCenter() {
                             : [
                                   "INSPECTION_FAILED",
                                   "REINSPECTION_ASSIGNED",
+                                  "INSPECTION_ASSIGNED",
                                 ].includes(row.type)
                               ? "Open inspection"
                               : "Open rework"}

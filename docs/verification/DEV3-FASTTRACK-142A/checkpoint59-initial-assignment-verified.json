@@ -1,0 +1,12 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "exactIdentityAndSchema": true,
+      "seedCleanupRehearsalRolledBack": true
+    }
+  ],
+  "failure": "SqlException: Assigned version content is immutable except retirement.",
+  "cleanup": true,
+  "scope": "Initial UC041 assignment and UC042 execution, disposable SQL and validated HTTPS; reassignment and full UC completion not asserted"
+}

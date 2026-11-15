@@ -1,3 +1,5 @@
+import { InitialInspectionAssignmentPage } from "../features/inspectionExecution/InitialInspectionAssignmentPage";
+import { PendingInspectionsPage } from "../features/inspectionExecution/PendingInspectionsPage";
 import { AssignedReworkRead } from "../features/inspectionExecution/AssignedReworkRead";
 import { ReinspectionAssignmentPage } from "../features/inspectionExecution/ReinspectionAssignmentPage";
 import { ReinspectionExecutionPage } from "../features/inspectionExecution/ReinspectionExecutionPage";
@@ -223,10 +225,26 @@ export function SharedAuthHost({
         }
       />
       <Route
+        path="/inspections/cleaning-tasks/:taskId/assign"
+        element={
+          <Protected>
+            {inspectionExecutionEnabled ? (
+              <InitialInspectionAssignmentPage />
+            ) : (
+              <OwnerDestination />
+            )}
+          </Protected>
+        }
+      />
+      <Route
         path="/inspections/assignment"
         element={
           <Protected>
-            <OwnerDestination />
+            {inspectionExecutionEnabled ? (
+              <PendingInspectionsPage />
+            ) : (
+              <OwnerDestination />
+            )}
           </Protected>
         }
       />

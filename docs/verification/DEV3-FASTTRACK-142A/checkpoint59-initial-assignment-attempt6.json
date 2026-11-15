@@ -1,0 +1,29 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "exactIdentityAndSchema": true,
+      "seedCleanupRehearsalRolledBack": true
+    },
+    {
+      "serviceSqlChecks": [
+        "stale task rejected",
+        "stale cycle rejected",
+        "foreign branch rejected",
+        "unpublished selection rejected",
+        "selected inspector role revoked",
+        "selected inspector wrong branch",
+        "inactive selected inspector",
+        "cleaner inspector conflict",
+        "retired checklist rejected",
+        "audit failure rolls back inspection, operation and notification intent",
+        "concurrent same operation returns one immutable assignment; new key or changed request rejected",
+        "replay rechecks current actor branch access"
+      ],
+      "checksPassed": 12
+    }
+  ],
+  "failure": "Exception: Initial assignment browser: {\u0022success\u0022:false,\u0022stage\u0022:\u0022anonymous assignment API denied\u0022,\u0022checks\u0022:[],\u0022failure\u0022:\u0022Anonymous options status=500 body=Microsoft.AspNetCore.Routing.Matching.AmbiguousMatchException: The request matched multiple endpoints. Matches: \\r\\n\\r\\nHotelOps.Api.Controllers.HousekeepingWorkflowController.InitialOptions (HotelOps.Api)\\r\\nHotelOps.Api.Controllers.HousekeepingPlanningController.Inspection (HotelOps.Api)\\r\\nFallback {*pat\u0022}",
+  "cleanup": true,
+  "scope": "Initial UC041 assignment and UC042 execution, disposable SQL and validated HTTPS; reassignment and full UC completion not asserted"
+}

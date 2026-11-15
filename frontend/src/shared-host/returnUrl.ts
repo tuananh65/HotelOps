@@ -88,9 +88,18 @@ export function approvedReturnDestination(
     new URLSearchParams(safe.split("?")[1] || "").has("branchId")
   )
     return safe;
-  const reinspection = /^\/inspections\/reworks\/([1-9][0-9]*)\/assign$/.exec(
-    path,
-  );
+  if (path === "/inspections/assignment") {
+    const query = new URLSearchParams(safe.split("?")[1] || "");
+    if (
+      query.has("branchId") &&
+      [...query.keys()].every((key) => key === "branchId" || key === "roomId")
+    )
+      return safe;
+  }
+  const reinspection =
+    /^\/inspections\/(?:reworks|cleaning-tasks)\/([1-9][0-9]*)\/assign$/.exec(
+      path,
+    );
   if (reinspection && Number.isSafeInteger(Number(reinspection[1]))) {
     const query = new URLSearchParams(safe.split("?")[1] || "");
     if (
@@ -99,7 +108,7 @@ export function approvedReturnDestination(
     )
       return safe;
   }
-  // Other UC041/049 candidate routes remain excluded; their flags are OFF.
+  // Other candidate routes remain excluded; their flags are OFF.
   return [
     "/rooms/status",
     "/rooms/turnover",

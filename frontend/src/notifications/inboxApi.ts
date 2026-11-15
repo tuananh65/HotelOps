@@ -101,7 +101,7 @@ export async function resolveInboxSource(
     /^\/(?:cleaning\/reworks|inspection-history)\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.exec(
       data.path,
     ) ??
-    /^\/reinspections\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
+    /^\/(?:reinspections|inspections)\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
       data.path,
     ) ??
     /^\/inspections\/reworks\/([1-9][0-9]*)\/assign\?branchId=([1-9][0-9]*)$/.exec(

@@ -43,13 +43,16 @@ public sealed partial class RoomTypeCreationService
                 var scopedRooms = rooms.Where(r => r.BranchId == branch && r.IsActive && r.Floor.IsActive && (r.AreaId == null || r.Area!.IsActive)).Select(r => r.RoomId);
                 var source = await db.RoomInspections.AsNoTracking().SingleOrDefaultAsync(i => i.InspectionId == id && scopedRooms.Contains(i.RoomId)
                     && i.CleaningTaskId != null && i.CleaningTask!.RoomId == i.RoomId, token);
-                if (source == null) return new(RoomTypeBatchStatus.NotFound);
+                if (source == null || source.CleaningTaskId is not { } cleaningTask) return new(RoomTypeBatchStatus.NotFound);
                 if (source.InspectorUserId != actor) return new(RoomTypeBatchStatus.Forbidden);
                 // UC047 owns exact submitted-defect decisions. The generic checklist workflow
                 // must not start/save/finish a reinspection or rewrite its historical source.
                 if (operation != "read" && await db.CleaningReworks.AsNoTracking()
                     .AnyAsync(w => w.CleaningTaskId == source.CleaningTaskId, token))
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "REINSPECTION_CONTRACT_REQUIRED");
+                if (operation != "read" && (!await ReworkCurrentCycle(source.RoomId, cleaningTask, token)
+                    || (await CleaningState(cleaningTask, token)).State != "PENDING_INSPECTION"))
+                    return new(RoomTypeBatchStatus.Inactive);
                 var state = await InspectionState(id, token);
                 if (state.State == null) return new(RoomTypeBatchStatus.SchemaRequired);
                 if (operation != "read" && expected != WorkflowTag(state.Revision)) return new(RoomTypeBatchStatus.Stale);
@@ -133,6 +136,7 @@ public sealed partial class RoomTypeCreationService
                 await BatchAuditAsync(actor, branch, "room_inspections", id, before, new { reason = auditReason, operation, entity = after }, [operation, "workflowStatus", "criteria", "defects", "evidence"], token);
                 return new(RoomTypeBatchStatus.Success, after, WorkflowTag(afterState.Revision));
             }, ct, permissionCode: "INSPECTION_PERFORM", preserveCommitErrors: true,
+                eligibility: token => EligibleInspector(ticket.UserId, branch, token),
                 beforeCommit: evidence.BeforeCommitAsync);
             return response;
         }

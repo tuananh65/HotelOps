@@ -1,0 +1,90 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "exactIdentityAndSchema": true,
+      "seedCleanupRehearsalRolledBack": true
+    },
+    {
+      "serviceSqlChecks": [
+        "stale task rejected",
+        "stale cycle rejected",
+        "foreign branch rejected",
+        "unpublished selection rejected",
+        "selected inspector role revoked",
+        "selected inspector wrong branch",
+        "inactive selected inspector",
+        "cleaner inspector conflict",
+        "retired checklist rejected",
+        "audit failure rolls back inspection, operation and notification intent",
+        "concurrent same operation returns one immutable assignment; new key or changed request rejected",
+        "replay rechecks current actor branch access",
+        "existing assignment retains exact version after retirement and offers no duplicate",
+        "assigned inspection cannot start after current cycle is removed",
+        "execution rechecks current supervisor role"
+      ],
+      "checksPassed": 15
+    },
+    {
+      "assigned": {
+        "success": true,
+        "inspection": 350860,
+        "checks": [
+          "anonymous assignment API denied",
+          "login return path",
+          "room board to pending inspections",
+          "pending queue to exact cleaning cycle",
+          {
+            "name": "missing CSRF",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "missing ETag",
+            "status": 428,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale task",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "stale cycle",
+            "status": 412,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "foreign inspector",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          {
+            "name": "nonfuture deadline",
+            "status": 400,
+            "sourceUnchanged": true
+          },
+          "canonical review and assignment",
+          "existing assignment refresh does not offer duplicate"
+        ]
+      },
+      "notification": 888,
+      "executed": {
+        "success": true,
+        "inspection": 350860,
+        "checks": [
+          "anonymous assignment API denied",
+          "login return path",
+          "assignment inbox opens exact inspection",
+          "assigned checklist execution"
+        ]
+      },
+      "sqlAssignedThenPendingConclusion": true,
+      "assignmentAudit": 1,
+      "executionAudits": 3
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "scope": "Initial UC041 assignment and UC042 execution, disposable SQL and validated HTTPS; reassignment and full UC completion not asserted"
+}

@@ -81,7 +81,6 @@ test("preserve local query but require fresh session and enabled destination", (
   assert.equal(approvedReturnDestination(p, true), p);
   for (const p of [
     "/incidents/new?branchId=7",
-    "/inspections/assignment?branchId=7",
     "/login",
     "/unknown",
   ])
@@ -600,7 +599,6 @@ for (const path of [
     await p.close();
   });
 for (const path of [
-  "/inspections/assignment?branchId=7&roomId=11",
   "/incidents/new?branchId=7&roomId=11",
 ])
   test("disabled destination no API " + path, async () => {
@@ -611,6 +609,8 @@ for (const path of [
   });
 
 for (const destination of [
+  "/inspections/assignment?branchId=7",
+  "/inspections/cleaning-tasks/12/assign?branchId=7",
   "/rooms/status?branchId=7&roomId=11",
   "/cleaning/tasks/12?branchId=7",
   "/rework?branchId=7",
@@ -633,7 +633,6 @@ for (const destination of [
   "/login",
   "/forgot-password",
   "/incidents/new?branchId=7",
-  "/inspections/assignment?branchId=7",
   "/rooms/status?token=private",
   "/rooms/status?branchId=0",
 ])
@@ -803,7 +802,7 @@ for (const next of [
     assert.equal(await p.getByRole("navigation").count(), 0);
     await p.evaluate(() => window.finishRevalidation());
     await p.waitForURL(
-      origin + (next.startsWith("/rework") ? next : "/dashboard"),
+      origin + (next.startsWith("/rework") || next.startsWith("/inspections/assignment") ? next : "/dashboard"),
     );
     await p.close();
   });
@@ -1350,5 +1349,49 @@ test("notification uncertain write is not replayed and current 401 expires autho
   });
   await p.getByRole("button", { name: "Refresh", exact: true }).click();
   await p.waitForURL("**/login**");
+  await p.close();
+});
+
+test("initial inspection queue and assignment returns require exact positive scope", () => {
+  for (const path of [
+    "/inspections/assignment?branchId=7",
+    "/inspections/assignment?branchId=7&roomId=11",
+    "/inspections/cleaning-tasks/12/assign?branchId=7",
+  ]) {
+    assert.equal(approvedReturnDestination(path, true), path);
+    assert.equal(approvedReturnDestination(path, false), null);
+  }
+  for (const path of [
+    "/inspections/assignment",
+    "/inspections/assignment?branchId=0",
+    "/inspections/assignment?branchId=7&next=evil",
+    "/inspections/assignment?branchId=7&branchId=8",
+    "/inspections/cleaning-tasks/0/assign?branchId=7",
+    "/inspections/cleaning-tasks/9007199254740992/assign?branchId=7",
+    "/inspections/cleaning-tasks/12/assign",
+    "/inspections/cleaning-tasks/12/assign?branchId=7&roomId=11",
+  ])
+    assert.equal(approvedReturnDestination(path, true), null);
+});
+
+test("initial inspection destinations reject ambiguous scope before business reads", async () => {
+  for (const path of ["/inspections/assignment?branchId=7&branchId=8", "/inspections/assignment?branchId=7&extra=1", "/inspections/cleaning-tasks/12/assign?branchId=7&roomId=11", "/inspections/cleaning-tasks/0/assign?branchId=7"]) {
+    const p = await pageAt(path, "AUTHENTICATED");
+    await p.getByText(/Invalid (pending inspection|inspection assignment) destination/).waitFor();
+    assert.deepEqual(await p.evaluate(() => window.calls), []);
+    await p.close();
+  }
+});
+test("initial assignment hides source and eligible inspectors on session loss", async () => {
+  const p = await pageAt("/inspections/cleaning-tasks/12/assign?branchId=7");
+  await p.evaluate(() => {
+    window.businessReply = { status: 200, headers: { ETag: '\"0123456789ABCDEF\"' }, body: { taskId: 12, branchId: 7, roomId: 11, roomNumber: "PRIVATE-ROOM", taskETag: '\"0123456789ABCDEF\"', cycleETag: '\"0123456789ABCDEF\"', checklistVersionId: 55, checklistName: "PRIVATE-CHECKLIST", versionNo: 1, existingInspectionId: null, existingInspectorId: null, inspectors: [{ id: 7, name: "PRIVATE-INSPECTOR" }], canAssign: true, unavailableReason: null } };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.getByLabel("Inspector", { exact: true }).waitFor();
+  await p.evaluate(() => window.fixture.set("ANONYMOUS"));
+  await p.waitForURL("**/login?*");
+  assert.equal(await p.getByText(/PRIVATE-/).count(), 0);
+  assert.ok((await p.evaluate(() => window.methods)).every(method => method === "GET"));
   await p.close();
 });

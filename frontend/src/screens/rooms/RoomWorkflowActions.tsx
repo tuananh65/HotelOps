@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { cleaningActionHref } from "../../api/dev1/roomActions";
 import { createError } from "../../api/dev1/cleaningCreate";
+import { readInitialInspectionQueue } from "../../api/dev1/initialInspectionAssignment";
 
 export default function RoomWorkflowActions({
   branch,
@@ -20,8 +21,21 @@ export default function RoomWorkflowActions({
     href?: string;
     error?: string;
   } | null>(null);
+  const [inspection, setInspection] = useState<{
+    key: symbol;
+    available: boolean;
+  } | null>(null);
   useEffect(() => {
     const abort = new AbortController();
+    void readInitialInspectionQueue(branch, room, 1, abort.signal)
+      .then((data) => {
+        if (!abort.signal.aborted)
+          setInspection({ key: contextKey, available: data.items.length > 0 });
+      })
+      .catch(() => {
+        if (!abort.signal.aborted)
+          setInspection({ key: contextKey, available: false });
+      });
     cleaningActionHref(branch, room, abort.signal)
       .then((href) => {
         if (!abort.signal.aborted) setResult({ key: contextKey, href });
@@ -55,8 +69,15 @@ export default function RoomWorkflowActions({
         </>
       )}
       <p>
-        <button disabled>Phân công kiểm tra phòng</button> Chức năng chưa sẵn
-        sàng.
+        {inspection?.key === contextKey && inspection.available ? (
+          <Link
+            to={`/inspections/assignment?branchId=${branch}&roomId=${room}`}
+          >
+            Phân công kiểm tra phòng
+          </Link>
+        ) : (
+          <button disabled>Phân công kiểm tra phòng</button>
+        )}
       </p>
       <p>
         <button disabled>Báo cáo sự cố</button> Chức năng chưa sẵn sàng.

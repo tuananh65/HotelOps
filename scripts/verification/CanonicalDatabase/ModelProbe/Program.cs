@@ -30,6 +30,8 @@ if (args.Length == 2 && args[0] == "--sprint-readiness")
     return await SprintReadinessProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-report-api")
     return await SprintAuthProbe.RunAsync(args[1],reports:true);
+if (args.Length == 2 && args[0] == "--sprint-initial-inspection")
+    return await SprintInitialInspectionProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-inspection-browser")
     return await SprintInspectionBrowserProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-task-resume")

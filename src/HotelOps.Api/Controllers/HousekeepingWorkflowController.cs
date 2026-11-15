@@ -39,8 +39,14 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
     public Task<IActionResult> AssignCleaning(long branchId, long id, AssignCleaningRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.AssignCleaningCandidateAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true);
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks/{id:long}/inspections")]
-    public Task<IActionResult> AssignInspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.AssignInspectionAsync(ticket,sid,branchId,id,input,ct),false,true);
+    public Task<IActionResult> AssignInspection(long branchId, long id, InitialInspectionAssignmentRequest input, CancellationToken ct)
+        => Execute((ticket,sid) => service.AssignInitialInspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),Request.Headers["Idempotency-Key"].ToString(),input,ct),true,true);
+    [HttpGet("api/branches/{branchId:long}/inspections/pending-assignment")]
+    public Task<IActionResult> InitialQueue(long branchId, CancellationToken ct, long? roomId=null, int page=1, int pageSize=25)
+        => Execute((ticket,sid) => service.ReadInitialInspectionQueueAsync(ticket,sid,branchId,roomId,page,pageSize,ct),false);
+    [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/initial-inspection-options")]
+    public Task<IActionResult> InitialOptions(long branchId, long id, CancellationToken ct)
+        => Execute((ticket,sid) => service.ReadInitialInspectionOptionsAsync(ticket,sid,branchId,id,ct),false);
     [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/reinspection")]
     public Task<IActionResult> AssignReinspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.AssignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),
