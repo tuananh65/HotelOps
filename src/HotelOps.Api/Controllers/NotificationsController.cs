@@ -13,4 +13,5 @@ public sealed class NotificationsController(NotificationCenterService service):C
     [HttpPost("{id:long}/read")] public async Task<IActionResult> Read(long id,CancellationToken ct){await service.MarkReadAsync(id,ct);return NoContent();}
     [HttpPost("read-all")] public async Task<IActionResult> ReadAll(CancellationToken ct){await service.MarkReadAsync(null,ct);return NoContent();}
     [HttpPost("read-selected")] public async Task<IActionResult> ReadSelected(ReadNotificationsRequest request,CancellationToken ct){await service.MarkSelectedReadAsync(request.Ids,ct);return NoContent();}
+    [HttpPost("acknowledge")] public async Task<IActionResult> Acknowledge(ReadNotificationsRequest request,CancellationToken ct){await service.AcknowledgeAsync(request.Ids,ct);return NoContent();}
 }

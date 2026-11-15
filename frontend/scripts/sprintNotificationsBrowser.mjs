@@ -63,6 +63,36 @@ try {
   checks.push(stage);
   stage = "selection cleared and read controls disabled";
   if (
+    await page
+      .getByRole("button", { name: "Acknowledge selected", exact: true })
+      .count()
+  ) {
+    stage = "read does not acknowledge, explicit acknowledgment persists";
+    await page
+      .locator("strong")
+      .filter({ hasText: "Awaiting acknowledgment" })
+      .waitFor();
+    await page
+      .getByLabel(`Select notification ${fixture.id}`, { exact: true })
+      .check();
+    await page
+      .getByRole("button", { name: "Acknowledge selected", exact: true })
+      .click();
+    await page
+      .getByText("Acknowledged. Source records are unchanged.", { exact: true })
+      .waitFor();
+    await page.reload();
+    await page.getByText(fixture.title, { exact: true }).waitFor();
+    if (
+      await page
+        .locator("strong")
+        .filter({ hasText: "Awaiting acknowledgment" })
+        .count()
+    )
+      throw Error("ack not persisted");
+    checks.push(stage);
+  }
+  if (
     !(await page
       .getByRole("button", { name: "Mark selected as read", exact: true })
       .isDisabled()) ||

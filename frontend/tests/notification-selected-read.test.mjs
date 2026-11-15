@@ -10,6 +10,15 @@ await build({
 });
 const { markInboxRead } =
   await import("../.test-output/selected-read/inbox.mjs");
+test("acknowledgment requires selected IDs and uses its explicit endpoint", async () => {
+  const calls=[];const signal=new AbortController().signal;
+  globalThis.fetch=async(url,options)=>{calls.push({url,options});return url==="/api/auth/csrf"?Response.json({csrfToken:"synthetic",headerName:"X-CSRF-TOKEN"}):new Response(null,{status:204});};
+  await assert.rejects(markInboxRead(null,signal,()=>true,"acknowledge"));
+  assert.equal(calls.length,0);
+  await markInboxRead([4,5],signal,()=>true,"acknowledge");
+  assert.equal(calls[1].url,"/api/notifications/acknowledge");
+  assert.deepEqual(JSON.parse(calls[1].options.body),{ids:[4,5]});
+});
 test("selected read validates before network and deduplicates a bounded batch", async () => {
   const signal = new AbortController().signal;
   let calls = [];

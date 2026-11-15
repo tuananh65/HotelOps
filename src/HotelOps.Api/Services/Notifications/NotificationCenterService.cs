@@ -34,6 +34,13 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
         var now=clock.GetUtcNow();var user=await UserAsync(now.UtcDateTime,ct);var inbox=Inbox(user,now.UtcDateTime).AsNoTracking();
         var unread=await inbox.CountAsync(r=>r.ReadAt==null,ct);var query=inbox;
+        var acknowledgmentAvailable=await NotificationAcknowledgmentStore.InstalledAsync(db,ct);
+        if(filter.Acknowledged is {} acknowledged)
+        {
+            if(!acknowledgmentAvailable)throw new InsightException(503,"ACK_SCHEMA_REQUIRED","Acknowledgment storage is unavailable.");
+            var matching=NotificationAcknowledgmentStore.Query(db).Where(a=>a.RequiresAcknowledgment&&(a.AcknowledgedAt!=null)==acknowledged).Select(a=>a.RecipientId);
+            query=query.Where(r=>matching.Contains(r.RecipientId));
+        }
         if(filter.Unread is {} onlyUnread)query=query.Where(r=>(r.ReadAt==null)==onlyUnread);
         if(!string.IsNullOrWhiteSpace(filter.Type))query=query.Where(r=>r.Notification.NotificationType==filter.Type);
         if(!string.IsNullOrWhiteSpace(filter.Priority))query=query.Where(r=>r.Notification.Priority==filter.Priority);
@@ -43,9 +50,40 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var total=await query.CountAsync(ct);
         var raw=await query.OrderByDescending(r=>r.Notification.CreatedAt).ThenByDescending(r=>r.NotificationId)
             .Skip((filter.Page-1)*filter.PageSize).Take(filter.PageSize)
-            .Select(r=>new {Id=r.NotificationId,Type=r.Notification.NotificationType,r.Notification.Title,r.Notification.Message,r.Notification.Priority,r.Notification.CreatedAt,r.ReadAt}).ToArrayAsync(ct);
+            .Select(r=>new {r.RecipientId,Id=r.NotificationId,Type=r.Notification.NotificationType,r.Notification.Title,r.Notification.Message,r.Notification.Priority,r.Notification.CreatedAt,r.ReadAt}).ToArrayAsync(ct);
+        var recipientIds=raw.Select(r=>r.RecipientId).ToArray();
+        var acknowledgments=acknowledgmentAvailable
+            ? await NotificationAcknowledgmentStore.Query(db).Where(a=>recipientIds.Contains(a.RecipientId)).ToDictionaryAsync(a=>a.RecipientId,ct)
+            : new Dictionary<long,NotificationAcknowledgmentRow>();
         await tx.CommitAsync(ct);
-        return new(raw.Select(r=>new NotificationRow(r.Id,r.Type,r.Title,r.Message,r.Priority,Utc(r.CreatedAt),r.ReadAt is {} read?Utc(read):null)).ToArray(),total,unread,filter.Page,filter.PageSize,now);
+        return new(raw.Select(r=>new NotificationRow(r.Id,r.Type,r.Title,r.Message,r.Priority,Utc(r.CreatedAt),r.ReadAt is {} read?Utc(read):null,
+            acknowledgments.GetValueOrDefault(r.RecipientId)?.RequiresAcknowledgment==true,
+            acknowledgments.GetValueOrDefault(r.RecipientId)?.AcknowledgedAt is {} ack?Utc(ack):null)).ToArray(),total,unread,filter.Page,filter.PageSize,now,acknowledgmentAvailable);
+    }
+    public async Task AcknowledgeAsync(long[]? ids,CancellationToken ct)
+    {
+        if(ids is null || ids.Length is <1 or >100 || ids.Any(id=>id<=0))throw new InsightException(400,"INVALID_IDS","Select between one and 100 valid notifications.");
+        ids=ids.Distinct().ToArray();
+        await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
+        if(!caller.TryGetCurrentUser(out var actor))throw new InsightException(401,"AUTH_REQUIRED","Authentication required.");
+        await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([actor.UserId],ct);
+        var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
+        if(!await NotificationAcknowledgmentStore.InstalledAsync(db,ct))throw new InsightException(503,"ACK_SCHEMA_REQUIRED","Acknowledgment storage is unavailable.");
+        var recipients=await Inbox(user,now).AsNoTracking().Where(r=>ids.Contains(r.NotificationId)).Select(r=>new {r.RecipientId,r.NotificationId,r.ReadAt}).ToArrayAsync(ct);
+        if(recipients.Length!=ids.Length)throw new InsightException(404,"NOT_FOUND","Notification not found.");
+        var keys=recipients.Select(r=>r.RecipientId).ToArray();
+        var states=await NotificationAcknowledgmentStore.Query(db).Where(a=>keys.Contains(a.RecipientId)).ToDictionaryAsync(a=>a.RecipientId,ct);
+        if(states.Count!=keys.Length || states.Values.Any(a=>!a.RequiresAcknowledgment))throw new InsightException(409,"ACK_NOT_REQUIRED","A selected notification does not require acknowledgment.");
+        foreach(var recipient in recipients)
+        {
+            if(states[recipient.RecipientId].AcknowledgedAt!=null)continue;
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.notification_recipients SET acknowledged_at={now},read_at=COALESCE(read_at,{now}) WHERE recipient_id={recipient.RecipientId} AND acknowledged_at IS NULL",ct);
+            db.AuditLogs.Add(new AuditLog {ActorUserId=user,EntityType="notification_recipients",EntityId=recipient.RecipientId.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
+                OldValues=System.Text.Json.JsonSerializer.Serialize(new {acknowledgedAt=(DateTime?)null,readAt=recipient.ReadAt}),
+                NewValues=System.Text.Json.JsonSerializer.Serialize(new {notificationId=recipient.NotificationId,acknowledgedAt=now,readAt=recipient.ReadAt??now}),
+                ChangedFields=recipient.ReadAt==null?"[\"acknowledgedAt\",\"readAt\"]":"[\"acknowledgedAt\"]"});
+        }
+        await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
     }
     public async Task MarkReadAsync(long? id,CancellationToken ct)
     {

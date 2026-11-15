@@ -8,9 +8,10 @@ public sealed class NotificationQuery
     [StringLength(20)] public string? Priority {get;set;}
     [StringLength(200)] public string? Search {get;set;}
     public bool? Unread {get;set;}
+    public bool? Acknowledged {get;set;}
     public DateOnly? From {get;set;}
     public DateOnly? To {get;set;}
 }
-public sealed record NotificationRow(long Id,string Type,string Title,string Message,string Priority,DateTimeOffset CreatedAt,DateTimeOffset? ReadAt);
-public sealed record NotificationPage(IReadOnlyList<NotificationRow> Items,int TotalCount,int UnreadCount,int Page,int PageSize,DateTimeOffset Snapshot);
+public sealed record NotificationRow(long Id,string Type,string Title,string Message,string Priority,DateTimeOffset CreatedAt,DateTimeOffset? ReadAt,bool RequiresAcknowledgment=false,DateTimeOffset? AcknowledgedAt=null);
+public sealed record NotificationPage(IReadOnlyList<NotificationRow> Items,int TotalCount,int UnreadCount,int Page,int PageSize,DateTimeOffset Snapshot,bool AcknowledgmentAvailable=false);
 public sealed record ReadNotificationsRequest([Required, MinLength(1), MaxLength(100)] long[] Ids);

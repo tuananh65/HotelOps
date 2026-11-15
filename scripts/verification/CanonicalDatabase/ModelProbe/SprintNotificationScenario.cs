@@ -48,6 +48,9 @@ internal static class SprintNotificationScenario
    await Call("/api/notifications/read-selected",204,true,body:selected);
    if(await db.NotificationRecipients.AnyAsync(r=>(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)&&r.ReadAt!=times[0],ct))throw new Exception("Batch retry changed read time");
    checks.Add(new{batchAtomic=true,batchRetryTimestampOnce=true,batchForeignExpiredPendingDenied=true});
+   var ackInstalled=await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM sys.extended_properties WHERE class=0 AND name='HotelOps.NotificationAcknowledgment.V1'").SingleAsync(ct)==1;
+   if(ackInstalled)await SprintNotificationAcknowledgmentScenario.RunAsync(db,http,own.NotificationId,second.NotificationId,foreign.NotificationId,csrf,checks,ct);
+   else await Call("/api/notifications/acknowledge",503,true,body:new{ids=new[]{own.NotificationId}});
    if(browserUsername!=null&&browserPassword!=null)
    {
     await db.NotificationRecipients.Where(r=>r.UserId==actor&&(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,(DateTime?)null),ct);
@@ -56,6 +59,8 @@ internal static class SprintNotificationScenario
     if(await db.NotificationRecipients.CountAsync(r=>r.UserId==actor&&r.ReadAt!=null,ct)!=2)throw new Exception("Browser read markers absent in SQL");
     if(await db.UserSessions.CountAsync(s=>s.UserId==actor&&s.RevokedAt==null,ct)!=1)throw new Exception("Browser logout did not revoke its SQL session");
     checks.Add(new{browserReadMarkersPersistedInSql=true,browserSessionRevoked=true});
+    if(ackInstalled && await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.notification_recipients WHERE notification_id={own.NotificationId} AND acknowledged_at IS NOT NULL").SingleAsync(ct)!=1)
+     throw new Exception("Browser acknowledgment timestamp not persisted");
    }
    checks.Add(new{recipientIsolation=true,retention365=true,expiredAndPendingHidden=true,readTimestampOnce=true,readAllOwnOnly=true,sourceLinksWithheld=true});
   }

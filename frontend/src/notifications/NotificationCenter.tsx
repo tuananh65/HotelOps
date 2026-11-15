@@ -29,6 +29,7 @@ export function NotificationCenter() {
     priority: "",
     search: "",
     unread: "",
+    acknowledged: "",
     from: "",
     to: "",
   });
@@ -100,7 +101,7 @@ export function NotificationCenter() {
       if (pending.current === controller) pending.current = null;
     }
   }
-  async function mark(id: number | number[] | null) {
+  async function mark(id: number | number[] | null, acknowledge = false) {
     if (!owner || pending.current) return;
     const controller = new AbortController();
     pending.current = controller;
@@ -110,12 +111,15 @@ export function NotificationCenter() {
         id,
         controller.signal,
         () => current.current === owner,
+        acknowledge ? "acknowledge" : "read",
       );
       if (current.current === owner && !controller.signal.aborted) {
         setWrite({
           owner,
           busy: false,
-          message: "Marked as read. Source records are unchanged.",
+          message: acknowledge
+            ? "Acknowledged. Source records are unchanged."
+            : "Marked as read. Source records are unchanged.",
         });
         setRevision((n) => n + 1);
       }
@@ -184,8 +188,49 @@ export function NotificationCenter() {
               </select>
             </label>
             <button>Apply filters</button>
+            <label>
+              Acknowledgment status
+              <select
+                value={draft.acknowledged}
+                onChange={(e) =>
+                  setDraft((d) => ({ ...d, acknowledged: e.target.value }))
+                }
+              >
+                <option value="">All</option>
+                <option value="false">Awaiting acknowledgment</option>
+                <option value="true">Acknowledged</option>
+              </select>
+            </label>
           </form>
           <button onClick={() => setRevision((n) => n + 1)}>Refresh</button>
+          {data?.acknowledgmentAvailable && (
+            <button
+              disabled={
+                !!operation?.busy ||
+                !data.items.some(
+                  (r) =>
+                    r.requiresAcknowledgment &&
+                    !r.acknowledgedAt &&
+                    selected.includes(r.id),
+                )
+              }
+              onClick={() =>
+                void mark(
+                  data.items
+                    .filter(
+                      (r) =>
+                        r.requiresAcknowledgment &&
+                        !r.acknowledgedAt &&
+                        selected.includes(r.id),
+                    )
+                    .map((r) => r.id),
+                  true,
+                )
+              }
+            >
+              Acknowledge selected
+            </button>
+          )}
           <button
             disabled={
               !data ||
@@ -217,7 +262,9 @@ export function NotificationCenter() {
                 Unread: {data.unreadCount}. Matching: {data.totalCount}.
                 Snapshot: {data.snapshot}
               </p>
-              <p>Acknowledging critical alerts is not yet available.</p>
+              {!data.acknowledgmentAvailable && (
+                <p>Acknowledging critical alerts is not yet available.</p>
+              )}
               {data.items.length === 0 ? (
                 <p>No matching notifications.</p>
               ) : (
@@ -228,7 +275,14 @@ export function NotificationCenter() {
                         <input
                           type="checkbox"
                           checked={selected.includes(row.id)}
-                          disabled={!!row.readAt || !!operation?.busy}
+                          disabled={
+                            (!!row.readAt &&
+                              !(
+                                row.requiresAcknowledgment &&
+                                !row.acknowledgedAt
+                              )) ||
+                            !!operation?.busy
+                          }
                           onChange={(e) =>
                             setSelected((ids) =>
                               e.target.checked
@@ -285,6 +339,14 @@ export function NotificationCenter() {
                         </button>
                       )}
                       <p>{row.message}</p>
+                      {row.requiresAcknowledgment && !row.acknowledgedAt && (
+                        <strong>Awaiting acknowledgment</strong>
+                      )}
+                      {row.acknowledgedAt && (
+                        <p>
+                          Acknowledged: <time>{row.acknowledgedAt}</time>
+                        </p>
+                      )}
                       <p>
                         {row.type} · {row.priority} ·{" "}
                         <time>{row.createdAt}</time> ·{" "}

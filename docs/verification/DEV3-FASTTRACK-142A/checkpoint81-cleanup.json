@@ -1,0 +1,6 @@
+{
+    "httpsListeners":  0,
+    "privateEvidenceFiles":  0,
+    "ackTrialCleanup":  true,
+    "baselineCleanup":  true
+}

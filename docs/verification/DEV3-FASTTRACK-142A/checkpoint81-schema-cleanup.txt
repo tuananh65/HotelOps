@@ -1,0 +1,10 @@
+requires_ack_column ack_column ack_check   trial_trigger
+------------------- ---------- ----------- -------------
+               NULL       NULL        NULL          NULL
+
+(1 rows affected)
+ack_capability
+--------------
+             0
+
+(1 rows affected)

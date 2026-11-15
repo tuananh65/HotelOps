@@ -6,6 +6,8 @@
   priority: string;
   createdAt: string;
   readAt: string | null;
+  requiresAcknowledgment?: boolean;
+  acknowledgedAt?: string | null;
 }
 export interface Inbox {
   items: InboxRow[];
@@ -14,6 +16,7 @@ export interface Inbox {
   page: number;
   pageSize: number;
   snapshot: string;
+  acknowledgmentAvailable?: boolean;
 }
 export class InboxFailure extends Error {
   constructor(readonly status: number) {
@@ -57,7 +60,11 @@ export async function readInbox(
         [r.type, r.title, r.message, r.priority, r.createdAt].every(
           (x) => typeof x === "string",
         ) &&
-        (r.readAt === null || typeof r.readAt === "string"),
+        (r.readAt === null || typeof r.readAt === "string") &&
+        (data.acknowledgmentAvailable !== true ||
+          (typeof r.requiresAcknowledgment === "boolean" &&
+            (r.acknowledgedAt === null ||
+              typeof r.acknowledgedAt === "string"))),
     )
   )
     throw new Error("Invalid inbox response");
@@ -67,8 +74,11 @@ export async function markInboxRead(
   id: number | number[] | null,
   signal: AbortSignal,
   stillCurrent: () => boolean,
+  action: "read" | "acknowledge" = "read",
 ): Promise<void> {
   const ids = Array.isArray(id) ? [...new Set(id)] : null;
+  if (action === "acknowledge" && !ids)
+    throw new Error("Invalid acknowledgment selection");
   if (
     (Array.isArray(id) &&
       (id.length < 1 ||
@@ -87,11 +97,13 @@ export async function markInboxRead(
     throw new Error("Invalid CSRF response");
   if (signal.aborted || !stillCurrent()) throw new Error("Session changed");
   await request(
-    id === null
-      ? "/api/notifications/read-all"
-      : ids
-        ? "/api/notifications/read-selected"
-        : `/api/notifications/${id}/read`,
+    action === "acknowledge"
+      ? "/api/notifications/acknowledge"
+      : id === null
+        ? "/api/notifications/read-all"
+        : ids
+          ? "/api/notifications/read-selected"
+          : `/api/notifications/${id}/read`,
     signal,
     {
       method: "POST",
