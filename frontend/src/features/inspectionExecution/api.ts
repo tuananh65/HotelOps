@@ -200,6 +200,44 @@ export function createInspectionApi(
         true,
       );
     },
+    reject: async (
+      branch: number,
+      id: number,
+      etag: string,
+      inputReason: string,
+      confirmed: boolean,
+      signal?: AbortSignal,
+    ) => {
+      if (!confirmed)
+        throw new InspectionApiError(
+          400,
+          "Confirm rejection before submitting",
+        );
+      const result = await loaded(
+        await request(
+          "POST",
+          `${root(branch, id)}/reject`,
+          { reason: reason(inputReason), confirmed },
+          etag,
+          signal,
+        ),
+        branch,
+        id,
+        true,
+      );
+      if (
+        result.value.state !== "FAILED" ||
+        !["REWORK_REQUIRED", "BLOCKED"].includes(
+          result.value.effectiveReadiness ?? "",
+        )
+      )
+        throw new InspectionApiError(
+          503,
+          "Unexpected rejection response; verify current state before another action",
+          true,
+        );
+      return result;
+    },
     approve: async (
       branch: number,
       id: number,

@@ -4,6 +4,7 @@ public sealed record EvidenceUpload(string Name, string MimeType, string Base64)
 public sealed record InspectionCriterionInput(long ItemId, string Outcome, string? Note = null, IReadOnlyList<EvidenceUpload>? Photos = null);
 public sealed record SaveInspectionRequest(IReadOnlyList<InspectionCriterionInput> Results, string Reason);
 public sealed record InspectionActionRequest(string Reason);
+public sealed record RejectInspectionRequest(string Reason, bool Confirmed);
 public sealed record RecordInspectionDefectRequest(long ItemId, long SeverityId, string Description, string Location, IReadOnlyList<EvidenceUpload>? Photos = null);
 public sealed record AssignCleaningRequest(long AssigneeId, DateTime DueAt, string Reason, bool AdoptUnassignedLegacy = false);
 public sealed record AssignInspectionRequest(long InspectorId, DateTime DueAt, string Reason);

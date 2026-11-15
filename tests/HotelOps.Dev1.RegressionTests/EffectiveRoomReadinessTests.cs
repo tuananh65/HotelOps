@@ -39,6 +39,16 @@ public sealed class EffectiveRoomReadinessTests
     }
 
     [Fact]
+    public void RejectedCycleRequiresReworkBeforeRequestExistsEvenOnFirstInspection()
+    {
+        var source=Passed();source.Cleaning="REWORK_REQUIRED";source.Inspection="FAILED";
+        source.EverPassed=false;
+        Assert.Equal("REWORK_REQUIRED",EffectiveRoomReadiness.Calculate(source));
+        source.Blocked=true;Assert.Equal("BLOCKED",EffectiveRoomReadiness.Calculate(source));
+        source.IsActive=false;Assert.Equal("INACTIVE",EffectiveRoomReadiness.Calculate(source));
+    }
+
+    [Fact]
     public void MissingSourceAndFailedCurrentInspectionCannotAuthorizeUse()
     {
         var source=Passed();source.SourceAvailable=false;

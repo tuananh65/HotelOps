@@ -1,0 +1,64 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical approval admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "REWORK_REQUIRED",
+            "message": null,
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate approval denied",
+          "reload persisted approval and effective readiness"
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    },
+    {
+      "blocked": true,
+      "browser": {
+        "success": false,
+        "stage": "login and canonical approval admission",
+        "checks": [],
+        "diagnostic": "locator.waitFor: Timeout 15000ms exceeded."
+      }
+    },
+    {
+      "blocked": true,
+      "cleanup": true
+    }
+  ],
+  "failure": "Exception: Browser failed at login and canonical approval admission"
+}

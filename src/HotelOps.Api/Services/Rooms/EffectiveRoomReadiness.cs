@@ -33,7 +33,10 @@ public sealed class EffectiveRoomReadiness(HotelOpsDbContext db)
         if (!source.IsActive) return "INACTIVE";
         if (source.Blocked) return "BLOCKED";
         if (!source.SourceAvailable) return "UNKNOWN";
-        if (source.ReworkOutstanding) return "REWORK_REQUIRED";
+        // Reject precedes Request Rework (UC045 -> UC046). The current cycle already
+        // needs rework even before a rework row exists; never fall back to never-passed.
+        if (source.ReworkOutstanding || source.Cleaning == "REWORK_REQUIRED"
+            && source.Inspection == "FAILED" && !source.ReworkSubmitted) return "REWORK_REQUIRED";
         if (source.Cleaning == "IN_PROGRESS") return "CLEANING_IN_PROGRESS";
         if (source.Cleaning is "PENDING_ASSIGNMENT" or "ASSIGNED" or "ON_HOLD" || !source.EverPassed)
             return "PENDING_CLEANING";

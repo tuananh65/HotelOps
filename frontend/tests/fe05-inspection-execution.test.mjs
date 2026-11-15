@@ -481,3 +481,47 @@ test("weak/malformed ETags and invalid scope fail before any mutation or CSRF", 
   );
   assert.equal(calls, 0);
 });
+
+for (const readiness of ["REWORK_REQUIRED", "BLOCKED"]) {
+  test(
+    "reject preserves confirmation, CSRF, ETag and " + readiness,
+    async () => {
+      const requests = [];
+      const api = client(async (path, init) => {
+        requests.push({ path, init });
+        return path === "/api/auth/csrf"
+          ? csrf()
+          : json({
+              ...value("FAILED"),
+              effectiveReadiness: readiness,
+              notification: "PENDING_DELIVERY",
+            });
+      });
+      await assert.rejects(api.reject(7, 42, tag, "Defects remain", false), {
+        status: 400,
+      });
+      assert.equal(requests.length, 0);
+      const result = await api.reject(7, 42, tag, "Defects remain", true);
+      assert.equal(result.value.state, "FAILED");
+      assert.equal(requests[1].path, "/api/branches/7/inspections/42/reject");
+      assert.equal(requests[1].init.headers["If-Match"], tag);
+      assert.equal(requests[1].init.headers["X-CSRF-TOKEN"], "csrf");
+      assert.deepEqual(JSON.parse(requests[1].init.body), {
+        reason: "Defects remain",
+        confirmed: true,
+      });
+    },
+  );
+}
+test("reject rejects unsafe readiness without replay", async () => {
+  let writes = 0;
+  const api = client(async (path) => {
+    if (path === "/api/auth/csrf") return csrf();
+    writes++;
+    return json({ ...value("FAILED"), effectiveReadiness: "READY" });
+  });
+  await assert.rejects(api.reject(7, 42, tag, "Defects remain", true), {
+    uncertain: true,
+  });
+  assert.equal(writes, 1);
+});

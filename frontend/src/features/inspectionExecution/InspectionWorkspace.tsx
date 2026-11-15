@@ -28,6 +28,7 @@ export function InspectionWorkspace({
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [why, setWhy] = useState("");
+  const [rejectConfirmed, setRejectConfirmed] = useState(false);
   const [outcomes, setOutcomes] = useState<
     Record<number, "PASS" | "FAIL" | "">
   >({});
@@ -109,7 +110,7 @@ export function InspectionWorkspace({
       setError(e.message);
   }
   async function action(
-    kind: "start" | "save" | "finish" | "defect" | "approve",
+    kind: "start" | "save" | "finish" | "defect" | "approve" | "reject",
   ) {
     if (
       !current ||
@@ -129,7 +130,16 @@ export function InspectionWorkspace({
     setNotice("");
     try {
       let result: LoadedInspection;
-      if (kind === "approve")
+      if (kind === "reject")
+        result = await api.reject(
+          branch,
+          id,
+          current.etag,
+          why,
+          rejectConfirmed,
+          task.signal,
+        );
+      else if (kind === "approve")
         result = await api.approve(branch, id, current.etag, task.signal);
       else if (kind === "start")
         result = await api.start(
@@ -199,14 +209,19 @@ export function InspectionWorkspace({
       setBlocked(false);
       setUploads([]);
       setEditingDefect(null);
+      setRejectConfirmed(false);
       setNotice(
-        kind === "approve"
+        kind === "reject"
           ? result.value.effectiveReadiness === "BLOCKED"
-            ? "MSG17: Inspection passed and cleaning completed. The room remains blocked and cannot be used."
-            : "MSG08: Inspection passed and cleaning completed. Room readiness is READY."
-          : kind === "finish"
-            ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
-            : "Operation acknowledged by server.",
+            ? "MSG17: Inspection failed. Cleaning rework is required; the room remains blocked. Notification delivery is pending."
+            : "Inspection failed. Cleaning rework is required. Notification delivery is pending."
+          : kind === "approve"
+            ? result.value.effectiveReadiness === "BLOCKED"
+              ? "MSG17: Inspection passed and cleaning completed. The room remains blocked and cannot be used."
+              : "MSG08: Inspection passed and cleaning completed. Room readiness is READY."
+            : kind === "finish"
+              ? "Inspection sent to PENDING_CONCLUSION; not approved, PASSED or READY."
+              : "Operation acknowledged by server.",
       );
     } catch (e) {
       if (!task.signal.aborted && !scope.signal.aborted) handle(e);
@@ -260,6 +275,15 @@ export function InspectionWorkspace({
           {current.value.notification && (
             <p>Notification: {current.value.notification}</p>
           )}
+          {current.value.state === "PENDING_CONCLUSION" &&
+            current.value.criteria.some(
+              (c) => c.mandatory && c.outcome === "FAIL",
+            ) && (
+              <p role="alert">
+                MSG03: A mandatory criterion failed. Approval is unavailable.
+                Review the defects and use Reject inspection.
+              </p>
+            )}
           <button
             type="button"
             disabled={
@@ -274,6 +298,31 @@ export function InspectionWorkspace({
           >
             Approve inspection
           </button>
+          {current.value.state === "PENDING_CONCLUSION" && (
+            <fieldset disabled={busy || blocked}>
+              <legend>Reject inspection</legend>
+              <label>
+                <input
+                  type="checkbox"
+                  checked={rejectConfirmed}
+                  onChange={(e) => setRejectConfirmed(e.target.checked)}
+                />
+                Confirm inspection failure and require cleaning rework
+              </label>
+              <button
+                type="button"
+                disabled={
+                  !rejectConfirmed ||
+                  !why.trim() ||
+                  !current.value.defects.length ||
+                  !current.value.criteria.some((c) => c.outcome === "FAIL")
+                }
+                onClick={() => void action("reject")}
+              >
+                Reject inspection
+              </button>
+            </fieldset>
+          )}
           <button
             type="button"
             disabled={busy || blocked || current.value.state !== "ASSIGNED"}

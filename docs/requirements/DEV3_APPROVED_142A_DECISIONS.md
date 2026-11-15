@@ -29,3 +29,9 @@ Keep existing rooms.operational_status values. Never write BLOCKED into that col
 APIs, Room Status Board, Dashboard and all room-usability consumers must use effective readiness. Unsupported or unknown readiness must fail closed for use decisions. Preserve history, transaction, concurrency and MSG17. Verify Passed+block, multiple blocks, removal, failed inspection and concurrent block changes. Do not alter generated entities or CHECK constraints to introduce status codes.
 
 Checkpoint32 actual schema finding: UX_room_blocks_active uniquely constrains room_id for unreleased rows, conflicting with multiple incident-room blocks. A narrow guarded disposable-only trial replaces it with uniqueness on (room_id,incident_id), matching GBR-075. The trial is rolled back together with synthetic fixtures; no lasting schema deployment has occurred. Existing room_status_history CHECK values and room_readiness_events' PENDING_CLEANING-only CHECK are retained; effective transition history/writer composition is still pending.
+
+## UC045 rejection recipients (DEV3 approved, checkpoint35)
+
+On Failed inspection, notify every active Housekeeping Supervisor with valid access to the inspection branch and INSPECTION_VIEW, plus the actual cleaner identified by official cleaner attribution. Deduplicate to one notification per user/event. Recheck recipient eligibility before delivery and source authorization when opening the record. Persist notification intent in the Reject transaction; rollback must publish nothing. Preserve retry, idempotency and audit, without expanding inspection read permissions.
+
+UC045_SUPERVISOR_RECIPIENT_SCOPE=ALL_ELIGIBLE_SUPERVISORS_IN_INSPECTION_BRANCH. No shared database mutation or production deployment is authorized.

@@ -28,7 +28,7 @@ internal sealed class InspectionPassedNotificationDelivery(HotelOpsDbContext db,
         if (limit is < 1 or > 100 || afterAuditId < 0) throw new ArgumentOutOfRangeException(nameof(limit));
         if (db.Database.CurrentTransaction != null) throw new InvalidOperationException("NOTIFICATION_DISCOVERY_OUTSIDE_TRANSACTION_REQUIRED");
         // Advisory only. Unknown/legacy audit JSON cannot become an event or authorize a recipient.
-        return await db.Database.SqlQuery<InspectionNotificationHint>($"""
+        var passed = await db.Database.SqlQuery<InspectionNotificationHint>($"""
             SELECT TOP({limit}) a.audit_id AS AuditId,
                 TRY_CONVERT(bigint,JSON_VALUE(j.payload,'$.notification.recipientUserId')) AS RecipientUserId
             FROM dbo.audit_logs a
@@ -43,10 +43,13 @@ internal sealed class InspectionPassedNotificationDelivery(HotelOpsDbContext db,
                   AND r.user_id=TRY_CONVERT(bigint,JSON_VALUE(j.payload,'$.notification.recipientUserId')))
             ORDER BY a.audit_id
             """).ToArrayAsync(ct);
+        var failed = await new InspectionFailedNotificationDelivery(db, clock).ReadPendingAsync(limit, afterAuditId, ct);
+        return passed.Concat(failed).OrderBy(h => h.AuditId).Take(limit).ToArray();
     }
 
     public async Task<string> DeliverAsync(long auditId, long recipientHint, CancellationToken ct)
     {
+        if (recipientHint == 0) return await new InspectionFailedNotificationDelivery(db, clock).DeliverAsync(auditId, ct);
         if (db.Database.CurrentTransaction != null) throw new InvalidOperationException("NOTIFICATION_INDEPENDENT_DELIVERY_REQUIRED");
         await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
         var result = await DeliverInCallerTransactionAsync(auditId, recipientHint, ct);

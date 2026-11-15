@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 internal static class SprintApprovalBrowserProbe
 {
-    internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false)
+    internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false)
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
         using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(4)); var ct=budget.Token;
@@ -31,6 +31,14 @@ internal static class SprintApprovalBrowserProbe
                 { if(!await reader.ReadAsync(ct)) throw new Exception("Fixture missing"); actor=reader.GetInt64(0); branch=reader.GetInt64(1); inspection=reader.GetInt64(2);task=reader.GetInt64(3);room=reader.GetInt64(4); }
                 await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintCleanerAttribution.sql",ct),ct);
                 cleaner=await SprintApproveProbe.SeedCleanerAsync(db,actor,branch,task,"recipient-eligible",ct);
+                if(rejection)
+                    await db.Database.ExecuteSqlInterpolatedAsync($"""
+                        UPDATE dbo.room_inspections SET workflow_status='INSPECTING' WHERE inspection_id={inspection};
+                        UPDATE dbo.inspection_results SET outcome='FAIL' WHERE inspection_id={inspection};
+                        INSERT dbo.inspection_defects(inspection_id,checklist_item_id,description,status)
+                          SELECT inspection_id,checklist_item_id,'Synthetic rejection defect','OPEN' FROM dbo.inspection_results WHERE inspection_id={inspection};
+                        UPDATE dbo.room_inspections SET workflow_status='PENDING_CONCLUSION' WHERE inspection_id={inspection};
+                        """,ct);
                 var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==actor,ct);
                 var hash=new PasswordHasher<User>().HashPassword(user,password);
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET password_hash={hash} WHERE user_id={actor}",ct);
@@ -74,6 +82,7 @@ internal static class SprintApprovalBrowserProbe
             async Task Cleanup(CancellationToken token)
             {
                 if(concurrentBlock) await db.Database.ExecuteSqlRawAsync("DROP TRIGGER dbo.TR_DEV3_142A_ApprovalDelay",token);
+                if(rejection) await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id={inspection}; DELETE dbo.inspection_defects WHERE inspection_id={inspection}",token);
                 await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.room_blocks WHERE room_id={room} AND blocked_by={actor}; DELETE dbo.incidents WHERE room_id={room} AND reported_by={actor} AND incident_no IN('D3-APPROVE-BLOCK','D3-APPROVE-BLOCK-2')",token);
                 if(approvalRace && blocked)
                     await db.Database.ExecuteSqlRawAsync("DROP INDEX UX_room_blocks_incident_room_active ON dbo.room_blocks; CREATE UNIQUE INDEX UX_room_blocks_active ON dbo.room_blocks(room_id) WHERE released_at IS NULL",token);
@@ -87,7 +96,7 @@ internal static class SprintApprovalBrowserProbe
                 await using(var setup=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct))
                 {await Seed();await setup.CommitAsync(ct);committed=true;}
                 var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};
-                start.ArgumentList.Add("frontend/scripts/sprintApprovalBrowser.mjs");
+                start.ArgumentList.Add(rejection ? "frontend/scripts/sprintRejectionBrowser.mjs" : "frontend/scripts/sprintApprovalBrowser.mjs");
                 using var process=Process.Start(start)??throw new Exception("Browser unavailable");
                 try
                 {
@@ -118,6 +127,17 @@ internal static class SprintApprovalBrowserProbe
                     if(!json.RootElement.GetProperty("success").GetBoolean())throw new Exception("Browser failed at "+json.RootElement.GetProperty("stage").GetString());
                 }
                 finally{if(!process.HasExited)process.Kill(entireProcessTree:true);}
+                if(rejection)
+                {
+                    await SprintRejectionDeliveryProbe.VerifyAsync(db,actor,cleaner,branch,inspection,ct);
+                    if(await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.cleaning_tasks WHERE cleaning_task_id={task}").SingleAsync(ct)!="REWORK_REQUIRED"
+                        ||await db.RoomInspections.Where(i=>i.InspectionId==inspection).Select(i=>i.Result).SingleAsync(ct)!="FAIL"
+                        ||await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!="INSPECTION")
+                        throw new Exception("Rejected lifecycle/physical status mismatch");
+                    checks.Add(new{blocked,rejection=true,atomicLifecycle=true,deduplicatedFanout=true,revocation=true,retry=true});
+                }
+                else
+                {
                 if(retry)
                 {
                     if(await db.Notifications.AnyAsync(ct)||await db.NotificationRecipients.AnyAsync(ct)
@@ -148,6 +168,7 @@ internal static class SprintApprovalBrowserProbe
                 {
                     if(await db.RoomBlocks.CountAsync(b=>b.RoomId==room&&b.ReleasedAt==null,ct)!=2)throw new Exception("Expected two effective incident blocks");
                     checks.Add(new{twoEffectiveBlocks=true,approvalRemainedBlocked=true});
+                }
                 }
             }
             catch(Exception error){failure=error.GetType().Name+": "+error.Message;}
