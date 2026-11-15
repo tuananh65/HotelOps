@@ -15,6 +15,15 @@ public sealed class CleaningCreationTests
     [InlineData(1, 1, 0)]
     public async Task Positive_source_identifiers_required(long room, long type, long priority) => await Assert.ThrowsAsync<ValidationException>(() => Service().CreateCleaningTaskAsync(null!, 0, 1, new(room, type, priority, DateTime.UtcNow.AddHours(1)), default));
     [Fact] public async Task Past_due_never_reaches_persistence() => await Assert.ThrowsAsync<ValidationException>(() => Service().CreateCleaningTaskAsync(null!, 0, 1, new(1, 1, 1, DateTime.UtcNow.AddHours(-1)), default));
+    [Fact] public async Task Linked_creation_requires_source_and_loaded_version_together()
+    {
+        var input = new CreateCleaningTaskRequest(1,1,1,DateTime.UtcNow.AddDays(1),InternalRequestId:7);
+        await Assert.ThrowsAsync<ValidationException>(()=>Service().CreateCleaningTaskAsync(null!,0,1,input,default));
+        await Assert.ThrowsAsync<ValidationException>(()=>Service().CreateCleaningTaskAsync(null!,0,1,input with {RequestLink=new("not-a-version",true)},default));
+        await Assert.ThrowsAsync<ValidationException>(()=>Service().CreateCleaningTaskAsync(null!,0,1,input with {InternalRequestId=null,RequestLink=new("AAAAAAAAAAE=",true)},default));
+    }
+    [Fact] public void Linked_completion_requirement_cannot_default_from_omitted_json()
+        => Assert.Throws<JsonException>(()=>JsonSerializer.Deserialize<CleaningRequestLink>("{\"Version\":\"AAAAAAAAAAE=\"}"));
     [Theory]
     [InlineData("status")]
     [InlineData("actorId")]

@@ -35,8 +35,17 @@ public sealed partial class RoomTypeCreationService
         if (input.RoomId <= 0 || input.CleaningTypeId <= 0 || input.PriorityId <= 0) throw new ValidationException("Positive room/type/priority identifiers required.");
         WorkflowDue(input.DueAt, clock.GetUtcNow().UtcDateTime);
         var instruction = ChecklistText(input.Instruction, 4000, false);
+        if (input.InternalRequestId is <= 0 || (input.InternalRequestId == null) != (input.RequestLink == null))
+            throw new ValidationException("Linked creation requires a request, version and explicit completion requirement.");
+        if (input.RequestLink != null) CleaningRequestVersion(input.RequestLink);
         return BatchAsync(ticket, sid, branch, async (actor, token) =>
         {
+            if (input.InternalRequestId is {} request)
+            {
+                var source = await db.InternalRequests.AsNoTracking().SingleAsync(r => r.InternalRequestId == request && r.BranchId == branch, token);
+                if (!(await HotelOps.Api.Services.InternalRequests.InternalRequestDecisionStore.RevisionAsync(db, request, token)).SequenceEqual(CleaningRequestVersion(input.RequestLink!))) return new(RoomTypeBatchStatus.Stale);
+                if (source.Status is not ("ACCEPTED" or "IN_PROGRESS")) return new(RoomTypeBatchStatus.Inactive);
+            }
             if (!await LifecycleInstalled(token) || !await HousekeepingInstalled(token) || !await HotelOps.Api.Data.ProgressSchema.InstalledAsync(db, token)) return new(RoomTypeBatchStatus.SchemaRequired);
             var room = await db.Rooms.FromSqlInterpolated($"SELECT * FROM dbo.rooms WITH(UPDLOCK,HOLDLOCK) WHERE room_id={input.RoomId} AND branch_id={branch}").AsNoTracking().SingleOrDefaultAsync(token);
             if (room == null) return new(RoomTypeBatchStatus.NotFound);
@@ -75,8 +84,10 @@ public sealed partial class RoomTypeCreationService
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({room.RoomId},{task.CleaningTaskId},'PENDING_CLEANING',{blocked},{actor},{now})", token);
             var dto = new CreatedCleaningTask(task.CleaningTaskId, branch, room.RoomId, task.TaskNo, "PENDING_ASSIGNMENT", "PENDING_CLEANING", blocked);
             await BatchAuditAsync(actor, branch, "cleaning_tasks", task.CleaningTaskId, null, dto, ["create", "currentCycle", "readinessEvent"], token);
+            if (input.InternalRequestId is {} linkedRequest)
+                await WriteCleaningSourceLink(actor, branch, linkedRequest, task.CleaningTaskId, input.RequestLink!, token);
             return new(RoomTypeBatchStatus.Success, dto, WorkflowTag((await CleaningState(task.CleaningTaskId, token)).Revision));
-        }, ct, permissionCode: "CLEANING_ASSIGN");
+        }, ct, featurePermission: token => CleaningSourceAuthority(ticket.UserId, branch, input.InternalRequestId, token));
     }
     private Task<bool> HousekeepingInstalled(CancellationToken ct) => HotelOps.Api.Data.HousekeepingSchema.InstalledAsync(db, ct);
 }

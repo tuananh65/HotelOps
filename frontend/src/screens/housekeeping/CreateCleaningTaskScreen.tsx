@@ -1,21 +1,29 @@
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   cleaningOptions,
   createCleaning,
   createError,
   type CreateOptions,
+  cleaningSource, type CleaningSource,
 } from "../../api/dev1/cleaningCreate";
 import { PageHeader } from "../../ui";
+import { useAuth } from "../../auth/AuthProvider";
+import { ApiError } from "../../api/dev1/client";
 export default function CreateCleaningTaskScreen() {
+  const { state } = useAuth();
+  const owner = state.status === "AUTHENTICATED" && state.pending === null ? state.authorityGeneration : null;
+  const pending = useRef(false), controller = useRef<AbortController | null>(null);
   const [params, setParams] = useSearchParams(),
     nav = useNavigate();
   const branch = params.get("branchId") || "",
     room = params.get("roomId") || "",
-    key = branch + ":" + room;
+    request = params.get("requestId") || "",
+    key = branch + ":" + room + ":" + request + ":" + owner;
   const [result, setResult] = useState<{
       key: string;
       data: CreateOptions;
+      source?: CleaningSource;
     } | null>(null),
     [error, setError] = useState(""),
     [busy, setBusy] = useState(false),
@@ -23,39 +31,53 @@ export default function CreateCleaningTaskScreen() {
     [submitted, setSubmitted] = useState(false);
   useEffect(() => {
     const abort = new AbortController();
+    controller.current = abort; pending.current = false; setBusy(false);
     setResult(null);
     setError("");
     setSubmitted(false);
-    if (branch && room)
-      cleaningOptions(branch, room, abort.signal)
-        .then((data) => {
-          if (!abort.signal.aborted) setResult({ key, data });
+    if (owner && branch && (room || request))
+      (async () => {
+        const source=request ? await cleaningSource(branch,request,abort.signal) : undefined;
+        const selectedRoom=room || (source?.roomId ? String(source.roomId) : "");
+        if (!selectedRoom) throw new ApiError(400,"SOURCE_ROOM_REQUIRED");
+        return {data:await cleaningOptions(branch,selectedRoom,abort.signal),source};
+      })()
+        .then(({data,source}) => {
+          if (!abort.signal.aborted) setResult({ key, data, source });
         })
         .catch((e) => {
-          if (!abort.signal.aborted) setError(createError(e));
+          if (!abort.signal.aborted) setError(request && e instanceof ApiError && e.status === 403
+            ? "MSG02: Creating cleaning requires target permission and current request authority. Link existing work or ask the responsible role."
+            : e instanceof ApiError && e.code === "SOURCE_ROOM_REQUIRED" ? "This request has no room. Select a room in the request branch to continue."
+            : createError(e));
         });
     return () => abort.abort();
-  }, [branch, room, key, retry]);
+  }, [branch, room, request, owner, key, retry]);
   const data = result?.key === key ? result.data : null;
+  const source = result?.key === key ? result.source : undefined;
   function load(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     setParams({
       branchId: String(f.get("branchId") || ""),
       roomId: String(f.get("roomId") || ""),
+      ...(request ? {requestId:request} : {}),
     });
     setRetry((v) => v + 1);
   }
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!data || busy || submitted) return;
+    const abort = controller.current;
+    if (!data || !owner || busy || submitted || pending.current || !abort || abort.signal.aborted) return;
     const f = new FormData(e.currentTarget);
+    if (source && !["required", "optional"].includes(String(f.get("mandatory")))) { setError("Select whether this cleaning is required for completion."); return; }
     const assignImmediately =
       (e.nativeEvent as SubmitEvent).submitter?.getAttribute("name") ===
       "saveAndAssign";
     setBusy(true);
     setError("");
     setSubmitted(true);
+    pending.current = true;
     try {
       const d = await createCleaning(branch, {
         roomId: data.roomId,
@@ -63,16 +85,23 @@ export default function CreateCleaningTaskScreen() {
         priorityId: Number(f.get("priorityId")),
         dueAt: String(f.get("dueAt") || ""),
         instruction: String(f.get("instruction") || "").trim() || null,
-      });
+        ...(source ? {internalRequestId:source.requestId,requestLink:{version:source.version,mandatory:f.get("mandatory")==="required"}} : {}),
+      }, abort.signal);
+      if (abort.signal.aborted) return;
       nav(
         assignImmediately
           ? `/cleaning/assignment?branchId=${branch}&taskId=${d.id}`
           : `/cleaning/tasks/${d.id}?branchId=${branch}&monitor=1&kind=cleaning`,
       );
     } catch (e) {
-      setError(createError(e));
+      if (!abort.signal.aborted) {
+        setError(request ? e instanceof ApiError && e.status === 403
+          ? "MSG02: Creating cleaning requires target permission and current request authority. Link existing work or ask the responsible role."
+          : "Save not confirmed. Reload current request and linked cleaning before trying again." : createError(e));
+        if (request) setResult(null);
+      }
     } finally {
-      setBusy(false);
+      if (!abort.signal.aborted) { setBusy(false); pending.current = false; }
     }
   }
   return (
@@ -90,6 +119,7 @@ export default function CreateCleaningTaskScreen() {
         <button disabled={busy}>Tải cấu hình phòng</button>
       </form>
       {error && <p role="alert">{error}</p>}
+      {request && error && <button disabled={busy} onClick={() => setRetry(v => v + 1)}>Reload request prefill</button>}
       {!data && (
         <p>Chọn phòng và chi nhánh hợp lệ để tải cấu hình từ máy chủ.</p>
       )}
@@ -117,7 +147,11 @@ export default function CreateCleaningTaskScreen() {
               Open existing cleaning task
             </Link>
           )}
-          <form onSubmit={submit}>
+          <form key={`${key}:${retry}`} onSubmit={submit}>
+            {source && <><p>Source request: {source.requestId}. Creating cleaning does not close the request.</p>
+              <label>Request completion requirement<select aria-label="Request completion requirement" name="mandatory" required defaultValue="">
+                <option value="">Select requirement</option><option value="required">Required for completion</option><option value="optional">Optional</option>
+              </select></label></>}
             <label>
               Loại vệ sinh
               <select aria-label="Loại vệ sinh" name="cleaningTypeId" required>
@@ -130,7 +164,7 @@ export default function CreateCleaningTaskScreen() {
             </label>
             <label>
               Ưu tiên
-              <select aria-label="Ưu tiên" name="priorityId" required>
+              <select aria-label="Ưu tiên" name="priorityId" required defaultValue={source?.priorityId ?? undefined}>
                 {data.priorities.map((x) => (
                   <option key={x.id} value={x.id}>
                     {x.name}
@@ -140,11 +174,11 @@ export default function CreateCleaningTaskScreen() {
             </label>
             <label>
               Hạn UTC (ISO 8601)
-              <input name="dueAt" required placeholder="YYYY-MM-DDTHH:mm:ssZ" />
+              <input name="dueAt" required placeholder="YYYY-MM-DDTHH:mm:ssZ" defaultValue={source?.deadline ?? ""} />
             </label>
             <label>
               Hướng dẫn
-              <input name="instruction" maxLength={4000} />
+              <input name="instruction" maxLength={4000} defaultValue={source?.instruction ?? ""} />
             </label>
             <button
               className="primary"

@@ -60,6 +60,7 @@ export function InternalRequestCleaningLinksPanel({ id }: { id: number }) {
     <button disabled={busy} onClick={() => setRevision(v => v + 1)}>Reload linked tasks</button>
     {candidates && <button disabled={busy} onClick={() => { setCandidates(false); setPage(1); }}>View linked tasks</button>}
     {!candidates && view?.canLink && <button disabled={busy} onClick={() => { setCandidates(true); setPage(1); }}>Link existing cleaning task</button>}
+    {!candidates && view?.canLink && <Link to={`/cleaning/tasks/new?branchId=${view.branchId}&requestId=${id}`}>Create new cleaning task</Link>}
     {view && <>
       {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} tasks on this page.</p>}
       <ul>{view.items.map(t => <li key={t.taskId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}

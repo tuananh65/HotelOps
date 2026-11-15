@@ -53,6 +53,18 @@ test("create conflicts fail once without unsafe automatic retry", async () => {
   await assert.rejects(createCleaning("7", input), (e) => e.status === 409);
   assert.equal(posts, 1);
 });
+test("linked cleaning binds explicit requirement and source version and never retries stale creation", async () => {
+  let posts=0;
+  const linked={...input,internalRequestId:8,requestLink:{version:"AAAAAAAAAAE=",mandatory:false}};
+  globalThis.fetch=async(url,o)=>{
+    if(url.endsWith("/auth/csrf"))return Response.json({headerName:"X-CSRF-TOKEN",csrfToken:"fresh"});
+    posts++;assert.equal(o.headers["If-Match"],'"AAAAAAAAAAE="');assert.deepEqual(JSON.parse(o.body),linked);
+    return Response.json({title:"STALE"},{status:412});
+  };
+  await assert.rejects(createCleaning("7",linked),e=>e.status===412);assert.equal(posts,1);
+  await assert.rejects(createCleaning("7",{...input,internalRequestId:8}),/SOURCE_VERSION_REQUIRED/);
+  assert.equal(posts,1);
+});
 test("create refuses invalid inputs and malformed CSRF before business POST", async () => {
   globalThis.fetch = () => {
     throw Error("must not fetch");

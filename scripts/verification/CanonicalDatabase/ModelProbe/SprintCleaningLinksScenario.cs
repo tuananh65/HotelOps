@@ -84,5 +84,6 @@ internal static class SprintCleaningLinksScenario
         Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_cleaning_links l JOIN dbo.audit_logs a ON a.audit_id=l.audit_id WHERE l.internal_request_id={request} AND l.cleaning_task_id={tasks[2].CleaningTaskId} AND l.is_mandatory=0 AND a.actor_user_id={actor}").SingleAsync(ct) == 1,
             "browser optional cleaning link and audit persist atomically");
         Check(await db.InternalRequests.AnyAsync(r => r.InternalRequestId == request && r.Status == "IN_PROGRESS" && r.ClosedAt == null, ct), "cleaning link does not close request");
+        await SprintCleaningCreationScenario.RunAsync(db,http,actor,request,type.RoomTypeId,floor.FloorId,cleaningType,username,password,checks,ct);
     }
 }

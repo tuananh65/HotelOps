@@ -22,7 +22,18 @@ public sealed class CleaningTaskLifecycleController(RoomTypeCreationService serv
         => Run(false, (ticket, sid) => service.ReadCandidateCleaningInboxAsync(ticket, sid, branchId, ct));
     [HttpPost("api/branches/{branchId:long}/cleaning-tasks")]
     public Task<IActionResult> Create(long branchId, CreateCleaningTaskRequest input, CancellationToken ct)
-        => Run(true, (ticket, sid) => service.CreateCleaningTaskAsync(ticket, sid, branchId, input, ct));
+    {
+        if (input.InternalRequestId != null)
+        {
+            if (!Request.Headers.ContainsKey("If-Match")) return Task.FromResult<IActionResult>(Problem(statusCode: 428, title: "IF_MATCH_REQUIRED"));
+            if (input.RequestLink == null || Request.Headers.IfMatch.Count != 1 || Request.Headers.IfMatch[0] != '"' + input.RequestLink.Version + '"')
+                return Task.FromResult<IActionResult>(Problem(statusCode: 400, title: "SOURCE_VERSION_INVALID"));
+        }
+        return Run(true, (ticket, sid) => service.CreateCleaningTaskAsync(ticket, sid, branchId, input, ct));
+    }
+    [HttpGet("api/branches/{branchId:long}/cleaning-request-context/{request:long}")]
+    public Task<IActionResult> RequestContext(long branchId, long request, CancellationToken ct)
+        => Run(false, (ticket, sid) => service.CleaningRequestContextAsync(ticket, sid, branchId, request, ct));
     private async Task<IActionResult> Run(bool created, Func<HotelOps.Api.Services.Authentication.SessionReference, long, Task<RoomTypeBatchResult>> action)
     {
         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");

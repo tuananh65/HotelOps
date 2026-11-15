@@ -21,6 +21,17 @@ export interface CreateInput {
   priorityId: number;
   dueAt: string;
   instruction: string | null;
+  internalRequestId?: number;
+  requestLink?: { version: string; mandatory: boolean };
+}
+export interface CleaningSource { requestId: number; branchId: number; roomId: number | null; priorityId: number | null; instruction: string; deadline: string | null; version: string }
+export async function cleaningSource(branch: string, request: string, signal: AbortSignal): Promise<CleaningSource> {
+  const b=positiveId(branch), id=positiveId(request);
+  const v=await getJson(`/branches/${b}/cleaning-request-context/${id}`,signal) as CleaningSource;
+  if (!v || v.requestId!==id || v.branchId!==b || typeof v.instruction!=="string" || !/^[A-Za-z0-9+/]{11}=$/.test(v.version)
+    || ![v.roomId,v.priorityId].every(n=>n===null || Number.isSafeInteger(n)&&n!>0)
+    || !(v.deadline===null || typeof v.deadline==="string" && /Z$/.test(v.deadline) && Number.isFinite(Date.parse(v.deadline)))) throw new ApiError(502,"INVALID_CLEANING_SOURCE");
+  return v;
 }
 function checkOptions(v: unknown, b: number, r: number): CreateOptions {
   const d = v as CreateOptions;
@@ -80,6 +91,10 @@ export async function createCleaning(
   signal?: AbortSignal,
 ) {
   const b = positiveId(branch);
+  if (input.internalRequestId !== undefined) {
+    positiveId(String(input.internalRequestId));
+    if (!input.requestLink || !/^[A-Za-z0-9+/]{11}=$/.test(input.requestLink.version) || typeof input.requestLink.mandatory!=="boolean") throw Error("SOURCE_VERSION_REQUIRED");
+  } else if (input.requestLink !== undefined) throw Error("SOURCE_REQUIRED");
   for (const n of [input.roomId, input.cleaningTypeId, input.priorityId])
     positiveId(String(n));
   if (
@@ -108,6 +123,7 @@ export async function createCleaning(
       Accept: "application/json",
       "Content-Type": "application/json",
       "X-CSRF-TOKEN": token.csrfToken,
+      ...(input.requestLink ? { "If-Match": `"${input.requestLink.version}"` } : {}),
     },
     body: JSON.stringify({
       roomId: input.roomId,
@@ -115,6 +131,7 @@ export async function createCleaning(
       priorityId: input.priorityId,
       dueAt: input.dueAt,
       instruction: input.instruction,
+      ...(input.internalRequestId ? { internalRequestId: input.internalRequestId, requestLink: input.requestLink } : {}),
     }),
   });
   const d = result.body as {

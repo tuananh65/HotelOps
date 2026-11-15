@@ -1,0 +1,298 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_09fc2e38",
+  "fixtureUserId": 1071253,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "linkedCreationCheck": "approved IR_VIEW catalog contract preserved on clone"
+    },
+    {
+      "linkedCreationCheck": "existing TASK_VIEW scope compatible"
+    },
+    {
+      "linkedCreationCheck": "existing TASK_MANAGE scope compatible"
+    },
+    {
+      "linkedCreationCheck": "approved NORMAL priority active; no existing catalog entry overwritten"
+    },
+    {
+      "linkedCreationCheck": "public source prefill authorized"
+    },
+    {
+      "linkedCreationCheck": "prefill comes from authorized source request"
+    },
+    {
+      "linkedCreationCheck": "linked create retains CSRF and source If-Match"
+    },
+    {
+      "linkedCreationCheck": "linked create cannot omit completion metadata"
+    },
+    {
+      "linkedCreationCheck": "target task management cannot bypass missing source department mapping"
+    },
+    {
+      "linkedCreationCheck": "source IR_PROCESS cannot bypass target TASK_MANAGE"
+    },
+    {
+      "linkedCreationCheck": "cross branch linked creation denied"
+    },
+    {
+      "linkedCreationCheck": "stale source version creates no task"
+    },
+    {
+      "linkedCreationCheck": "public source prefill authorized"
+    },
+    {
+      "linkedCreationCheck": "injected link failure denies public creation"
+    },
+    {
+      "linkedCreationCheck": "public source prefill authorized"
+    },
+    {
+      "linkedCreationCheck": "task definition criteria link audit and source revision roll back together"
+    },
+    {
+      "linkedCreationCheck": "public linked task creation succeeds"
+    },
+    {
+      "linkedCreationCheck": "same-key retry returns original committed task despite advanced source version"
+    },
+    {
+      "linkedCreationCheck": "same key changed definition cannot replace task or link"
+    },
+    {
+      "linkedCreationCheck": "created task retains explicit source provenance and pending physical state"
+    },
+    {
+      "linkedCreationCheck": "created mandatory link and audit committed exactly once"
+    },
+    {
+      "linkedCreationCheck": "public source prefill authorized"
+    },
+    {
+      "linkedCreationCheck": "concurrent different keys on one source version commit only one task"
+    },
+    {
+      "linkedCreationCheck": "idempotent replay rechecks current receiving department after route"
+    },
+    {
+      "linkedCreationCheck": "public source prefill authorized"
+    },
+    {
+      "linkedCreationBrowser": {
+        "success": true,
+        "stage": "complete",
+        "task": 100374,
+        "optionalTask": 100375,
+        "deadline": "2026-11-17T20:25Z",
+        "checks": [
+          "Canonical request prefill -\u003E full task definition -\u003E explicit required choice -\u003E atomic creation -\u003E persisted linked work reload",
+          "Tasks source selector uses scoped request list, prefill and explicit optional choice; Save and Assign opens the created task",
+          "101 historical attachments accessible without losing draft; mapped manager changes deadline with reason, saves progress and reloads persisted deadline without closing request"
+        ]
+      }
+    },
+    {
+      "linkedCreationCheck": "manager deadline change and reason persisted with audit through public UI"
+    },
+    {
+      "linkedCreationCheck": "browser created task and required link persist in SQL"
+    },
+    {
+      "linkedCreationCheck": "Tasks source selector creates optional request link without inferring mandatory status"
+    },
+    {
+      "linkedCreationCheck": "linked creation never closes the request"
+    },
+    {
+      "linkedCreationCheck": "public evidence first page is bounded with exact scoped total"
+    },
+    {
+      "linkedCreationCheck": "public evidence cursor retrieves historical file without duplicate or version mutation"
+    },
+    {
+      "linkedCreationCheck": "invalid evidence cursor rejected"
+    },
+    {
+      "cleaningLinkCheck": "candidate list excludes foreign branch"
+    },
+    {
+      "cleaningLinkCheck": "foreign cleaning task rejected"
+    },
+    {
+      "cleaningLinkCheck": "completed cleaning task rejected"
+    },
+    {
+      "cleaningLinkCheck": "source processing authority does not bypass target OWN scope"
+    },
+    {
+      "cleaningLinkCheck": "missing current receiving department mapping denies link"
+    },
+    {
+      "cleaningLinkCheck": "injected link failure rejects mutation"
+    },
+    {
+      "cleaningLinkCheck": "link failure rolls back audit and request revision"
+    },
+    {
+      "cleaningLinkCheck": "concurrent cleaning links commit once and reject stale contender"
+    },
+    {
+      "cleaningLinkCheck": "duplicate cleaning link rejected"
+    },
+    {
+      "cleaningLinkBrowser": {
+        "success": true,
+        "checks": [
+          "Select visible open cleaning task, explicitly choose Optional, save and reload durable link with canonical target"
+        ]
+      }
+    },
+    {
+      "cleaningLinkCheck": "browser optional cleaning link and audit persist atomically"
+    },
+    {
+      "cleaningLinkCheck": "cleaning link does not close request"
+    },
+    {
+      "cleaningCreationCheck": "authorized cleaning prefill uses current source"
+    },
+    {
+      "cleaningCreationCheck": "linked cleaning creation requires CSRF and source If-Match"
+    },
+    {
+      "cleaningCreationCheck": "IR_PROCESS cannot bypass target CLEANING_ASSIGN"
+    },
+    {
+      "cleaningCreationCheck": "target cleaning authority cannot bypass source department mapping"
+    },
+    {
+      "cleaningCreationCheck": "stale source creates no cleaning task"
+    },
+    {
+      "cleaningCreationCheck": "injected link failure rejects cleaning creation"
+    },
+    {
+      "cleaningCreationCheck": "task cycle readiness link audit and source version roll back together"
+    },
+    {
+      "cleaningCreationBrowser": {
+        "success": true,
+        "task": 680,
+        "checks": [
+          "Request prefill uses UC028 form; explicit Required; Save and Assign creates cleaning and reloads durable source link"
+        ]
+      }
+    },
+    {
+      "cleaningCreationCheck": "browser created cleaning current cycle and mandatory link persist with audit"
+    },
+    {
+      "cleaningCreationCheck": "retry with old source version cannot create a second cleaning cycle"
+    },
+    {
+      "cleaningCreationCheck": "linked cleaning creation never closes request"
+    },
+    {
+      "linkedCreationCheck": "existing handler scope compatible"
+    },
+    {
+      "handlerBrowser": {
+        "success": true,
+        "checks": [
+          "HK_STAFF current handler updates and reloads result without manager mapping",
+          "Deadline input absent; forged deadline rejected403 without version or deadline change"
+        ]
+      }
+    },
+    {
+      "linkedCreationCheck": "public handler progress result and audit persisted"
+    },
+    {
+      "linkedCreationCheck": "former handler has no current update action"
+    },
+    {
+      "linkedCreationCheck": "former handler public mutation denied despite retained request read access"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
