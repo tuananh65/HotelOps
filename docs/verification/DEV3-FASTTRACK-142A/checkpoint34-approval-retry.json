@@ -1,0 +1,102 @@
+{
+  "success": true,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical approval admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "approve via canonical UI",
+            "state": "PASSED",
+            "readiness": "READY",
+            "message": "MSG08",
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate approval denied",
+          "reload persisted approval and effective readiness"
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "hostedRetry": true,
+      "revokedRecipientDenied": true,
+      "restoredAccessRetried": true,
+      "noApprovalReplay": true
+    },
+    {
+      "blocked": false,
+      "persistedBusinessAndNotification": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    },
+    {
+      "blocked": true,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical approval admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "approve via canonical UI",
+            "state": "PASSED",
+            "readiness": "BLOCKED",
+            "message": "MSG17",
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate approval denied",
+          "reload persisted approval and effective readiness"
+        ]
+      }
+    },
+    {
+      "blocked": true,
+      "hostedRetry": true,
+      "revokedRecipientDenied": true,
+      "restoredAccessRetried": true,
+      "noApprovalReplay": true
+    },
+    {
+      "blocked": true,
+      "persistedBusinessAndNotification": true
+    },
+    {
+      "blocked": true,
+      "cleanup": true
+    }
+  ],
+  "failure": null
+}

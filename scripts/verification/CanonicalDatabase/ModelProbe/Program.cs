@@ -10,6 +10,12 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 2 && args[0] == "--sprint-approval-race")
+    return await SprintApprovalBrowserProbe.RunAsync(args[1], approvalRace: true);
+if (args.Length == 2 && args[0] == "--sprint-approval-block-race")
+    return await SprintApprovalBrowserProbe.RunAsync(args[1], concurrentBlock: true);
+if (args.Length == 2 && args[0] == "--sprint-approval-retry")
+    return await SprintApprovalBrowserProbe.RunAsync(args[1], retry: true);
 if (args.Length == 2 && args[0] == "--sprint-approval-browser")
     return await SprintApprovalBrowserProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-readiness")

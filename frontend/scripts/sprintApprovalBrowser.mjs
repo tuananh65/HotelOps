@@ -66,29 +66,57 @@ try {
     checks.push({ label, status: result.status, unchanged: true });
   }
   stage = "approve via canonical UI";
-  const response = page.waitForResponse(
-    (r) =>
-      r.url() === origin + api + "/approve" && r.request().method() === "POST",
-  );
-  await page
-    .getByRole("button", { name: "Approve inspection", exact: true })
-    .click();
-  const ack = await response,
+  let body, acknowledgement;
+  if (fixture.approvalRace) {
+    stage = "concurrent approval with one ETag";
+    const raced = await Promise.all(
+      [1, 2].map(() =>
+        request(api + "/approve", "POST", {
+          "X-CSRF-TOKEN": csrf,
+          "If-Match": before.etag,
+        }),
+      ),
+    );
+    const statuses = raced.map((r) => r.status).sort((a, b) => a - b);
+    if (JSON.stringify(statuses) !== "[200,412]")
+      throw Error("Approval race: " + JSON.stringify(statuses));
+    const winner = raced.find((r) => r.status === 200);
+    body = JSON.parse(winner.text);
+    acknowledgement = winner.status;
+    checks.push({ label: stage, statuses });
+    await page.reload();
+  } else {
+    const response = page.waitForResponse(
+      (r) =>
+        r.url() === origin + api + "/approve" &&
+        r.request().method() === "POST",
+    );
+    await page
+      .getByRole("button", { name: "Approve inspection", exact: true })
+      .click();
+    const ack = await response;
     body = await ack.json();
+    acknowledgement = ack.status();
+  }
   if (
-    ack.status() !== 200 ||
+    acknowledgement !== 200 ||
     body.state !== "PASSED" ||
     body.effectiveReadiness !== (fixture.blocked ? "BLOCKED" : "READY") ||
     body.messageCode !== (fixture.blocked ? "MSG17" : "MSG08") ||
-    body.notification !== "DELIVERED"
+    !(
+      fixture.retry ? ["PENDING_DELIVERY"] : ["DELIVERED", "ALREADY_DELIVERED"]
+    ).includes(body.notification)
   )
     throw Error("Approval response mismatch: " + JSON.stringify(body));
   await page.getByText(/^State: PASSED\./).waitFor();
-  await page
-    .getByText(
-      fixture.blocked ? /MSG17: Inspection passed/ : /MSG08: Inspection passed/,
-    )
-    .waitFor();
+  if (!fixture.approvalRace)
+    await page
+      .getByText(
+        fixture.blocked
+          ? /MSG17: Inspection passed/
+          : /MSG08: Inspection passed/,
+      )
+      .waitFor();
   checks.push({
     label: stage,
     state: body.state,
@@ -105,13 +133,29 @@ try {
     throw Error("Duplicate status " + duplicate.status);
   checks.push(stage);
   stage = "reload persisted approval and effective readiness";
+  const expectedReadiness = (
+    fixture.concurrentBlock ? !fixture.blocked : fixture.blocked
+  )
+    ? "BLOCKED"
+    : "READY";
+  if (fixture.concurrentBlock) {
+    const deadline = Date.now() + 10000;
+    while (Date.now() < deadline) {
+      const latest = await request(api + "/execution");
+      if (
+        latest.status === 200 &&
+        JSON.parse(latest.text).effectiveReadiness === expectedReadiness
+      )
+        break;
+      await new Promise((resolve) => setTimeout(resolve, 100));
+    }
+  }
   await page.reload();
   await page.getByText(/^State: PASSED\./).waitFor();
   await page
-    .getByText(
-      `Effective room readiness: ${fixture.blocked ? "BLOCKED" : "READY"}.`,
-      { exact: true },
-    )
+    .getByText(`Effective room readiness: ${expectedReadiness}.`, {
+      exact: true,
+    })
     .waitFor();
   checks.push(stage);
   process.stdout.write(JSON.stringify({ success: true, checks }));

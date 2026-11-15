@@ -27,6 +27,10 @@ builder.Services.AddScoped<HotelOps.Api.Services.Users.UserProfileService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.InsightAccess>();
 builder.Services.AddOptions<HotelOps.Api.Services.Notifications.NotificationCenterOptions>().BindConfiguration("NotificationCenter").Validate(o => o.RetentionDays is >= 1 and <= 3650).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.NotificationCenterService>();
+builder.Services.AddOptions<HotelOps.Api.Services.Notifications.InspectionNotificationWorkerOptions>()
+    .BindConfiguration("InspectionNotifications").Validate(o => o.PollSeconds is >= 1 and <= 3600).ValidateOnStart();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.IInspectionNotificationDelivery, HotelOps.Api.Services.Notifications.InspectionPassedNotificationDelivery>();
+builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.InspectionNotificationWorker>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.DashboardService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportAccess>();

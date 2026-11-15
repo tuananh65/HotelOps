@@ -10,10 +10,15 @@ namespace HotelOps.Api.Services.Notifications;
 
 internal sealed record InspectionNotificationHint(long AuditId, long RecipientUserId);
 
-// Not registered as a hosted worker until the full approval composition is accepted.
+internal interface IInspectionNotificationDelivery
+{
+    Task<InspectionNotificationHint[]> ReadPendingAsync(int limit, long afterAuditId, CancellationToken ct);
+    Task<string> DeliverAsync(long auditId, long recipientHint, CancellationToken ct);
+}
+
 // Audit is the durable event source; notification/inbox rows are the delivery receipt.
 // Never purge these events while delivery is outstanding. No schema or permission seeds.
-internal sealed class InspectionPassedNotificationDelivery(HotelOpsDbContext db, TimeProvider clock)
+internal sealed class InspectionPassedNotificationDelivery(HotelOpsDbContext db, TimeProvider clock) : IInspectionNotificationDelivery
 {
     private const string Kind = "INSPECTION_PASSED";
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
