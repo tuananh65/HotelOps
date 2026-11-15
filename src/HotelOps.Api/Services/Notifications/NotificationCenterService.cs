@@ -118,6 +118,18 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"IR_WITHDRAWN",SourceType:"INTERNAL_REQUEST_WITHDRAWAL",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await InternalRequests.InternalRequestWithdrawalService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var withdrawal=await InternalRequests.InternalRequestWithdrawalDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id&&r.RecipientId==user,ct);
+            var scope=await new InternalRequests.InternalRequestReadAccess(db).ReadAsync(user,now,ct);
+            if(withdrawal==null||withdrawal.ActorId!=source.CreatedBy||withdrawal.At!=source.CreatedAt
+                ||!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==withdrawal.RequestId&&r.ReceivingDepartmentId==withdrawal.DepartmentId,ct)
+                ||!await new InternalRequests.InternalRequestProcessAuthority(db).AllowsDepartmentAsync(user,withdrawal.BranchId,withdrawal.DepartmentId,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={withdrawal.RequestId}");
+        }
         if(source is {NotificationType:"IR_ROUTED",SourceType:"INTERNAL_REQUEST_ROUTE",SourceId:>0})
         {
             await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);

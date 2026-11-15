@@ -21,6 +21,16 @@ async function fixture(run) {
     if (request.resourceType() === "document") return route.fulfill({ contentType: "text/html", body: '<div id="root"></div>' });
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
+    if (path === "/api/internal-requests/1/withdrawal") {
+      if(request.method()==="POST") {
+        state.withdrawalPosts=(state.withdrawalPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        assert.deepEqual(request.postDataJSON(),{reason:"No longer needed"});
+        if(state.hold) await new Promise(resolve=>{state.release=resolve;});
+        return json({requestId:1,status:"CANCELLED",version:"AAAAAAAAAAE=",message:"MSG08"},state.withdrawalStatus??200);
+      }
+      return json({requestId:1,status:"PENDING_ACCEPTANCE",version:"AAAAAAAAAAA=",canWithdraw:state.canWithdraw??false});
+    }
     if (path === "/api/internal-requests/1/decision") {
       if(request.method()==="POST") {
         state.decisionPosts++;
@@ -251,4 +261,26 @@ for(const status of [200,412])test(`link ${status} requires explicit mandatory f
   await panel.getByRole("button",{name:"Save task link",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:status===200?"MSG08: Task linked":"Request changed"}).waitFor();
   assert.equal(state.linkPosts,1);assert.equal(await panel.getByLabel("Open task",{exact:true}).count(),0);
+}));
+test("withdrawal requires reason and stale response is not replayed",async()=>fixture(async(page,state)=>{
+  state.canWithdraw=true;state.withdrawalStatus=412;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Withdraw request",exact:true});
+  await panel.getByRole("button",{name:"Withdraw request",exact:true}).click();
+  await panel.getByText("Enter a withdrawal reason.",{exact:true}).waitFor();assert.equal(state.withdrawalPosts??0,0);
+  await panel.getByLabel("Withdrawal reason",{exact:true}).fill("  No longer needed  ");
+  await panel.getByRole("button",{name:"Withdraw request",exact:true}).click();
+  await panel.getByText("Request changed. Reload before withdrawing.",{exact:true}).waitFor();
+  assert.equal(state.withdrawalPosts,1);assert.equal(await panel.getByRole("button",{name:"Withdraw request",exact:true}).count(),0);
+}));
+test("withdrawal double click sends once and loses authority with session",async()=>fixture(async(page,state)=>{
+  state.canWithdraw=true;state.hold=true;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Withdraw request",exact:true});
+  await panel.getByLabel("Withdrawal reason",{exact:true}).fill("No longer needed");
+  const sent=page.waitForRequest(r=>r.method()==="POST"&&new URL(r.url()).pathname.endsWith("/withdrawal"));
+  await panel.getByRole("button",{name:"Withdraw request",exact:true}).evaluate(b=>{b.click();b.click();});await sent;
+  state.session=401;await page.evaluate(()=>window.historyStore.revalidate());
+  await page.getByRole("button",{name:"Sign in",exact:true}).waitFor();state.release?.();
+  assert.equal(state.withdrawalPosts,1);assert.equal(await page.getByLabel("Withdrawal reason",{exact:true}).count(),0);
 }));

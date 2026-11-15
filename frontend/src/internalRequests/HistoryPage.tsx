@@ -5,6 +5,7 @@ import { InternalRequestDecisionPanel } from "./DecisionPanel";
 import { InternalRequestProgressPanel } from "./ProgressPanel";
 import { InternalRequestTaskLinksPanel } from "./TaskLinksPanel";
 import { InternalRequestCleaningLinksPanel } from "./CleaningLinksPanel";
+import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
 import {
   decodeHistory,
   decodeTimeline,
@@ -300,6 +301,7 @@ export function InternalRequestHistoryPage() {
         <section aria-label="Request timeline">
           <h2>Request {visible.timeline.requestId}</h2>
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
+          <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
           <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} />

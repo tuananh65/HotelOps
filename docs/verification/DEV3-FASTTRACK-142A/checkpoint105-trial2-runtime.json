@@ -1,0 +1,158 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_34650d57",
+  "fixtureUserId": 1071253,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "withdrawalCheck": "approved IR_VIEW catalog contract"
+    },
+    {
+      "withdrawalCheck": "public withdrawal context readable"
+    },
+    {
+      "withdrawalCheck": "requester can withdraw Pending Acceptance"
+    },
+    {
+      "withdrawalCheck": "CSRF and If-Match required"
+    },
+    {
+      "withdrawalCheck": "blank reason rejected"
+    },
+    {
+      "withdrawalCheck": "public withdrawal context readable"
+    },
+    {
+      "withdrawalCheck": "mapped manager cannot withdraw someone else\u0027s request"
+    },
+    {
+      "withdrawalCheck": "public withdrawal context readable"
+    },
+    {
+      "withdrawalCheck": "accepted request cannot be withdrawn"
+    },
+    {
+      "withdrawalCheck": "stale version rejected"
+    },
+    {
+      "withdrawalCheck": "public withdrawal context readable"
+    },
+    {
+      "withdrawalCheck": "requester without current branch access denied"
+    },
+    {
+      "withdrawalCheck": "outbox fault rejects withdrawal"
+    },
+    {
+      "withdrawalCheck": "public withdrawal context readable"
+    },
+    {
+      "withdrawalCheck": "status reason event audit and revision roll back with outbox"
+    },
+    {
+      "withdrawalBrowser": {
+        "success": true,
+        "checks": [
+          "Requester withdraws Pending Acceptance with reason; refreshed timeline is Cancelled and hides Withdraw"
+        ]
+      }
+    },
+    {
+      "withdrawalCheck": "browser withdrawal persisted with reason event and audit"
+    },
+    {
+      "withdrawalCheck": "retry cannot duplicate withdrawal"
+    },
+    {
+      "withdrawalCheck": "revoked department mapping denies delivery"
+    },
+    {
+      "withdrawalCheck": "eligible mapped manager receives durable idempotent notification"
+    },
+    {
+      "withdrawalCheck": "notification source reopens authorized request"
+    },
+    {
+      "withdrawalCheck": "notification source rechecks mapping after delivery"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
