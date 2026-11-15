@@ -155,6 +155,7 @@ internal static class SprintLinkedTaskCreationScenario
             && olderEvidence.GetProperty("version").GetString() == latestEvidence.GetProperty("version").GetString(), "public evidence cursor retrieves historical file without duplicate or version mutation");
         using var invalidCursor = await http.GetAsync($"{evidencePath}?evidenceBefore=0", ct);
         Check((int)invalidCursor.StatusCode == 400, "invalid evidence cursor rejected");
+        await SprintCleaningLinksScenario.RunAsync(db, http, actor, request, username, password, checks, ct);
         // Continue the same owned request as a real HK_STAFF handler with no manager mapping.
         var staffRole = await db.Roles.SingleAsync(r => r.RoleCode == "HK_STAFF" && r.IsActive, ct);
         foreach (var code in new[] { "IR_VIEW", "IR_PROCESS" })

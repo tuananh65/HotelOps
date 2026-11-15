@@ -4,6 +4,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { InternalRequestDecisionPanel } from "./DecisionPanel";
 import { InternalRequestProgressPanel } from "./ProgressPanel";
 import { InternalRequestTaskLinksPanel } from "./TaskLinksPanel";
+import { InternalRequestCleaningLinksPanel } from "./CleaningLinksPanel";
 import {
   decodeHistory,
   decodeTimeline,
@@ -301,6 +302,7 @@ export function InternalRequestHistoryPage() {
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
+          <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
           <h3>Events</h3>
           {visible.timeline.events.length === 0 && (
             <p>No events on this page.</p>

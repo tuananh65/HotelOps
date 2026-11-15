@@ -15,7 +15,7 @@ try {
    [Guid]$receipt.databaseGuid -eq [Guid]::Empty){throw 'Verified disposable clone receipt required'}
  # Adapt only identity literals in previously reviewed scripts to the independently
  # verified new clone. The original disposable source schema remains unchanged.
- foreach($cap in @('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning')) {
+ foreach($cap in @('TaskEntry','TaskSubmission','TaskVerification','TaskDecline','TaskPlanning','InternalRequestCleaningLinks','InternalRequestCleaningLinks')) {
   $sourcePath=Join-Path $PSScriptRoot "CanonicalDatabase/${cap}Isolated.sql"
   $sql=[IO.File]::ReadAllText($sourcePath)
   foreach($literal in @('HotelOps_DEV3_142A_20261114_cc78c13f','1D5A9B53-7D19-435A-96AB-9FDFF447B6E0','cc78c13ffc124efcad67b3d804baa84c')) {
