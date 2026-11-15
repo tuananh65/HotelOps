@@ -33,6 +33,13 @@ internal static class SprintIncidentLinkScenario
             return((int)response.StatusCode,response.Content.Headers.ContentType?.MediaType?.Contains("json")==true?await response.Content.ReadFromJsonAsync<JsonElement>(ct):default);
         }
         async Task<string> Version(){var v=await Send(HttpMethod.Get,path);Check(v.Status==200,"linked list readable");return v.Body.GetProperty("version").GetString()!;}
+        foreach(var legacy in new[]{hidden,foreign,incident})
+        {
+            await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.RelatedIncidentId,(long?)legacy),ct);
+            var history=await Send(HttpMethod.Get,path);
+            Check(history.Status==200&&history.Body.GetProperty("total").GetInt32()==(legacy==incident?1:0),"legacy reference obeys independent incident read and branch scope");
+            if(legacy==incident)Check(history.Body.GetProperty("items")[0].GetProperty("mandatory").ValueKind==JsonValueKind.Null,"legacy requirement remains unclassified");
+        }
         var candidates=await Send(HttpMethod.Get,path+"?candidates=true");
         Check(candidates.Status==200&&candidates.Body.GetProperty("total").GetInt32()==1&&candidates.Body.GetProperty("items")[0].GetProperty("incidentId").GetInt64()==incident,"candidate intersection excludes unrelated and cross-branch incidents");
         var version=await Version();var input=new{incidentId=incident,mandatory=true};
@@ -60,6 +67,9 @@ internal static class SprintIncidentLinkScenario
         version=await Version();Check((await Send(HttpMethod.Post,path,input,version)).Status==409,"duplicate link rejected");
         Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_incident_links l JOIN dbo.audit_logs a ON l.audit_id=a.audit_id WHERE l.internal_request_id={request} AND l.incident_id={incident} AND l.is_mandatory=1 AND a.actor_user_id={actor}").SingleAsync(ct)==1,"required link and actor audit persisted exactly once");
         Check(await db.InternalRequests.Where(r=>r.InternalRequestId==request).Select(r=>r.Status).SingleAsync(ct)=="IN_PROGRESS","linking does not close request");
+        var overlap=await Send(HttpMethod.Get,path);
+        Check(overlap.Body.GetProperty("total").GetInt32()==1&&overlap.Body.GetProperty("items").GetArrayLength()==1
+            &&overlap.Body.GetProperty("items")[0].GetProperty("mandatory").GetBoolean(),"explicit classification overrides legacy unknown without duplicate row");
         var race=new Incident{IncidentNo="D3RACE"+Guid.NewGuid().ToString("N")[..8],BranchId=row.BranchId,IncidentTitle="Synthetic race",Description="Synthetic",Status="OPEN",ReportedBy=actor,DiscoveredAt=DateTime.UtcNow,ReportedAt=DateTime.UtcNow};
         db.Incidents.Add(race);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
         version=await Version();

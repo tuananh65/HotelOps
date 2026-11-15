@@ -13,7 +13,7 @@ using Microsoft.EntityFrameworkCore;
 namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestIncidentLinkInput(long IncidentId, [property: JsonRequired] bool Mandatory);
-public sealed record InternalRequestIncidentLinkRow(long IncidentId, string Code, string Title, string? State, bool Mandatory, string Path);
+public sealed record InternalRequestIncidentLinkRow(long IncidentId, string Code, string Title, string? State, bool? Mandatory, string Path);
 public sealed record InternalRequestIncidentLinksView(long RequestId, string Version, bool CanLink, InternalRequestIncidentLinkRow[] Items, int Total, int Page, bool Candidates, long BranchId);
 internal sealed class InternalRequestIncidentLinkRecord { public long IncidentId { get; set; } public bool Mandatory { get; set; } }
 
@@ -87,7 +87,7 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
             var open = states.Where(s => s.State == "OPEN" || s.State == "IN_PROGRESS" || s.State == "RESOLVED").Select(s => s.IncidentId);
             tasks = tasks.Where(t => open.Contains(t.IncidentId) && !linked.Contains(t.IncidentId));
         }
-        else tasks = tasks.Where(t => linked.Contains(t.IncidentId));
+        else tasks = tasks.Where(t => linked.Contains(t.IncidentId) || t.IncidentId == request.RelatedIncidentId);
         var total = await tasks.CountAsync(ct);
         var rows = await tasks.OrderBy(t => t.IncidentId).Skip((page - 1) * 25).Take(25).ToArrayAsync(ct);
         var ids = rows.Select(t => t.IncidentId).ToArray();
@@ -102,7 +102,7 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
             var finalOpen = States().Where(s => s.State == "OPEN" || s.State == "IN_PROGRESS" || s.State == "RESOLVED").Select(s => s.IncidentId);
             finalTasks = finalTasks.Where(t => finalOpen.Contains(t.IncidentId) && !linked.Contains(t.IncidentId));
         }
-        else finalTasks = finalTasks.Where(t => linked.Contains(t.IncidentId));
+        else finalTasks = finalTasks.Where(t => linked.Contains(t.IncidentId) || t.IncidentId == request.RelatedIncidentId);
         // An expiring grant must not leak the old total on an empty or later page.
         if (await finalTasks.CountAsync(ct) != total) throw new InternalRequestReadException(403, "IR_TARGET_SCOPE_CHANGED");
         canLink = request.Status is "ACCEPTED" or "IN_PROGRESS" && await authority.AllowsCurrentRequestAsync(ticket.UserId, id, ct);
@@ -110,7 +110,7 @@ public sealed class InternalRequestIncidentLinks(HotelOpsDbContext db, InternalR
         var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
         await tx.CommitAsync(ct);
         return new(id, Convert.ToBase64String(version), canLink, rows.Select(t => new InternalRequestIncidentLinkRow(t.IncidentId,
-            t.IncidentNo, t.IncidentTitle, stateMap.GetValueOrDefault(t.IncidentId), metadata.GetValueOrDefault(t.IncidentId),
+            t.IncidentNo, t.IncidentTitle, stateMap.GetValueOrDefault(t.IncidentId), metadata.TryGetValue(t.IncidentId, out var mandatory) ? mandatory : (bool?)null,
             $"/operations/incidents/{t.IncidentId}")).ToArray(), total, page, candidates, request.BranchId);
     }
 

@@ -10,6 +10,7 @@ try{
   for(const direction of ["SENT","RECEIVED"]){const response=page.waitForResponse(r=>new URL(r.url()).pathname==="/api/internal-requests"&&new URL(r.url()).searchParams.get("direction")===direction);await page.getByLabel("Direction",{exact:true}).selectOption(direction);const reply=await response;assert.equal(reply.status(),200);assert.deepEqual((await reply.json()).items.map(r=>r.id),[fixture.request]);}
   await page.goto(`${origin}/internal-requests?requestId=${fixture.request}`);stage="choose incident";
   const panel=page.getByRole("region",{name:"Linked incidents",exact:true});
+  stage="legacy incident";await panel.getByText(/Completion requirement unclassified/).waitFor();
   await panel.getByRole("button",{name:"Link existing incident",exact:true}).click();
   await panel.getByLabel("Open incident",{exact:true}).selectOption(String(fixture.incident));
   await panel.getByLabel("Completion requirement",{exact:true}).selectOption("required");
