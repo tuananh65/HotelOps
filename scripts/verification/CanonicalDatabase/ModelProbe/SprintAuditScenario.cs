@@ -33,9 +33,9 @@ internal static class SprintAuditScenario
             foreach(var branch in new long?[]{own.BranchId,foreign.BranchId,null})
             {
                 var audit=new AuditLog {BranchId=branch,ActorUserId=actor,EntityType=prefix,EntityId="42",Action="UPDATE",OccurredAt=DateTime.UtcNow,
-                    ChangedFields="[\"status\",\"closedAt\",\"password\",\"token\"]",
-                    OldValues="{\"status\":\"PENDING\",\"closedAt\":\"2026-11-14T00:00:00Z\",\"password\":\"SYNTHETIC_SECRET\"}",
-                    NewValues="{\"status\":\"COMPLETED\",\"closedAt\":null,\"token\":\"SYNTHETIC_SECRET\",\"nested\":{\"status\":\"SYNTHETIC_SECRET\"}}"};
+                    ChangedFields="[\"status\",\"closedAt\",\"notificationId\",\"readAt\",\"acknowledgedAt\",\"password\",\"token\"]",
+                    OldValues="{\"notificationId\":42,\"readAt\":null,\"acknowledgedAt\":null,\"status\":\"PENDING\",\"closedAt\":\"2026-11-14T00:00:00Z\",\"password\":\"SYNTHETIC_SECRET\"}",
+                    NewValues="{\"notificationId\":42,\"readAt\":\"2026-11-15T17:00:00Z\",\"acknowledgedAt\":\"2026-11-15T17:00:01Z\",\"status\":\"COMPLETED\",\"closedAt\":null,\"token\":\"SYNTHETIC_SECRET\",\"nested\":{\"status\":\"SYNTHETIC_SECRET\"}}"};
                 db.AuditLogs.Add(audit); await db.SaveChangesAsync(ct); ids.Add(audit.AuditId);
             }
             db.ChangeTracker.Clear();
@@ -44,9 +44,10 @@ internal static class SprintAuditScenario
                 throw new Exception("Branch-scoped audit list leaked foreign/global rows");
             var detail=await Get("/api/audit-logs/"+ids[0],200);
             if(detail.GetProperty("before").GetProperty("status").GetString()!="PENDING"||detail.GetProperty("after").GetProperty("status").GetString()!="COMPLETED"
-                ||detail.GetProperty("before").EnumerateObject().Count()!=2||detail.GetProperty("after").EnumerateObject().Count()!=2
+                ||detail.GetProperty("before").EnumerateObject().Count()!=5||detail.GetProperty("after").EnumerateObject().Count()!=5
                 ||detail.GetProperty("after").GetProperty("closedAt").ValueKind!=JsonValueKind.Null
-                ||detail.GetProperty("entry").GetProperty("changedFields").GetArrayLength()!=2)
+                ||detail.GetProperty("after").GetProperty("acknowledgedAt").GetString()!="2026-11-15T17:00:01Z"
+                ||detail.GetProperty("entry").GetProperty("changedFields").GetArrayLength()!=5)
                 throw new Exception("Audit redaction discarded business status or exposed unknown fields");
             await Get("/api/audit-logs/"+ids[1],404);
             await Get("/api/audit-logs/"+ids[2],404);

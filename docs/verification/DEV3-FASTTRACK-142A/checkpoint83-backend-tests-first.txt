@@ -1,0 +1,51 @@
+  Determining projects to restore...
+  All projects are up-to-date for restore.
+  HotelOps.Api -> D:\HotelOps\HotelOps_Fullstack_Shared\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Dev1.RegressionTests -> D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll
+Test run for D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+dotnet : [xUnit.net 00:00:00.89]
+AuditRedactionTests.NotificationWriterUtcOffsetAndFractionalPrecisionRemainVisible [FAIL]
+At line:2 char:109
++ ... 0){exit 1}; dotnet test tests/HotelOps.Dev1.RegressionTests/HotelOps. ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: ([xUnit.net 00:0...nVisible [FAIL]:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+  Failed AuditRedactionTests.NotificationWriterUtcOffsetAndFractionalPrecisionRemainVisible [10 ms]
+  Error Message:
+   Assert.Equal() Failure: Strings differ
+                                  ↓ (pos 38)
+Expected: ···"-15T17:00:00.1234567+00:00","acknowledged"···
+Actual:   ···"-15T17:00:00.1234567\\u002B00:00","acknowl"···
+                                  ↑ (pos 38)
+  Stack Trace:
+     at AuditRedactionTests.NotificationWriterUtcOffsetAndFractionalPrecisionRemainVisible() in D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\AuditRedactionTests.cs:line 18
+   at System.Reflection.MethodBaseInvoker.InterpretedInvoke_Method(Object obj, IntPtr* args)
+   at System.Reflection.MethodBaseInvoker.InvokeWithNoArgs(Object obj, BindingFlags invokeAttr)
+[xUnit.net 00:00:00.93]     HotelOps.Dev1.RegressionTests.RoomOperationalStatusTransitionTests.Sql_atomicity_concurrency_and_persisted_ownership_acceptance [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.RoomOperationalStatusTransitionTests.Sql_atomicity_concurrency_and_persisted_ownership_acceptance [1 ms]
+[xUnit.net 00:00:02.35]     HotelOps.Dev1.RegressionTests.TurnoverLiveTests.Real_HTTPS_turnover_reads_existing_trial_sources_without_business_writes [SKIP]
+[xUnit.net 00:00:02.35]     HotelOps.Dev1.RegressionTests.TurnoverHistorySqlTests.History_readonly_scope_source_identity_current_cycle_ordering_and_pagination [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.TurnoverLiveTests.Real_HTTPS_turnover_reads_existing_trial_sources_without_business_writes [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.TurnoverHistorySqlTests.History_readonly_scope_source_identity_current_cycle_ordering_and_pagination [1 ms]
+[xUnit.net 00:00:02.35]     HotelOps.Dev1.RegressionTests.TaskRoleRevocationSqlTests.CurrentTaskCapabilityLossAlternativeGrantHistoryAndUnknownWorkflowUseRealSql [SKIP]
+[xUnit.net 00:00:02.35]     HotelOps.Dev1.RegressionTests.ReworkWorkflowSqlTests.Rework_SQL_lifecycle_source_security_atomicity_and_replay [SKIP]
+[xUnit.net 00:00:02.35]     HotelOps.Dev1.RegressionTests.ReworkLiveTests.Real_HTTPS_rework_synthetic_source_accept_start_submit_and_SQL [SKIP]
+[xUnit.net 00:00:02.35]     HotelOps.Dev1.RegressionTests.CleaningResumeSqlTests.Resume_component_preserves_transaction_and_source_guards [SKIP]
+[xUnit.net 00:00:02.36]     HotelOps.Dev1.RegressionTests.CleaningMonitorFs016Tests.Monitor_reads_current_cycle_and_unresolved_blockers_without_writing_source [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.TaskRoleRevocationSqlTests.CurrentTaskCapabilityLossAlternativeGrantHistoryAndUnknownWorkflowUseRealSql [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.ReworkWorkflowSqlTests.Rework_SQL_lifecycle_source_security_atomicity_and_replay [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.ReworkLiveTests.Real_HTTPS_rework_synthetic_source_accept_start_submit_and_SQL [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningResumeSqlTests.Resume_component_preserves_transaction_and_source_guards [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningMonitorFs016Tests.Monitor_reads_current_cycle_and_unresolved_blockers_without_writing_source [1 ms]
+[xUnit.net 00:00:02.37]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle [SKIP]
+[xUnit.net 00:00:02.37]     HotelOps.Dev1.RegressionTests.CleaningClosureLiveTests.Real_HTTPS_cookie_CSRF_Report_Resume_Complete_replay_and_SQL [SKIP]
+[xUnit.net 00:00:02.37]     HotelOps.Dev1.RegressionTests.CleaningCancellationSqlTests.Cancellation_security_source_atomicity_and_replay [SKIP]
+[xUnit.net 00:00:02.37]     HotelOps.Dev1.RegressionTests.CancellationLiveTests.Real_HTTPS_cancellation_authorization_preconditions_replay_and_SQL [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningClosureLiveTests.Real_HTTPS_cookie_CSRF_Report_Resume_Complete_replay_and_SQL [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningCancellationSqlTests.Cancellation_security_source_atomicity_and_replay [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CancellationLiveTests.Real_HTTPS_cancellation_authorization_preconditions_replay_and_SQL [1 ms]
+
+Failed!  - Failed:     1, Passed:   644, Skipped:    12, Total:   657, Duration: 1 s - HotelOps.Dev1.RegressionTests.dll (net10.0)

@@ -14,7 +14,8 @@ public static class AuditRedaction
         "assigneeId", "custodianUserId", "isActive", "isOpenCoverage", "approvedQty", "requestedQty",
         "fulfilledQty", "receivedBaseQty", "requestedBaseQty", "signedBaseQty", "minimumQty",
         "actualStartAt", "plannedStartAt", "plannedEndAt", "resolvedAt", "closedAt", "completedAt",
-        "dueAt", "occurredAt", "fromStatus", "toStatus", "format", "rowCount", "snapshotId"
+        "dueAt", "occurredAt", "fromStatus", "toStatus", "format", "rowCount", "snapshotId",
+        "notificationId", "readAt", "acknowledgedAt"
     };
 
     public static IReadOnlyList<string>? Fields(string? json)
@@ -53,8 +54,23 @@ public static class AuditRedaction
             if (!Allowed.Contains(pair.Key)) continue;
             if (pair.Value is null) { result[pair.Key] = null; continue; }
             // Accepted fields contain scalar business facts only, never nested blobs.
-            if (pair.Value is JsonValue scalar) result[pair.Key] = scalar.DeepClone();
+            if (pair.Value is JsonValue scalar && ReviewedNotificationValue(pair.Key, scalar)) result[pair.Key] = scalar.DeepClone();
         }
         return result;
+    }
+
+    // Notification acknowledgement writers persist identifiers and UTC instants,
+    // never arbitrary text. Do not open a new free-text channel through these keys.
+    private static bool ReviewedNotificationValue(string key, JsonValue value)
+    {
+        if (key.Equals("notificationId", StringComparison.OrdinalIgnoreCase))
+            return value.TryGetValue<long>(out var id) && id > 0;
+        if (key.Equals("readAt", StringComparison.OrdinalIgnoreCase) || key.Equals("acknowledgedAt", StringComparison.OrdinalIgnoreCase))
+            return value.TryGetValue<string>(out var text) && text.Length is >=20 and <=33
+                && (text.EndsWith('Z') || text.EndsWith("+00:00", StringComparison.Ordinal))
+                && DateTimeOffset.TryParseExact(text, ["yyyy-MM-dd'T'HH:mm:ssK", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFFK"],
+                    System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date)
+                && date.Offset == TimeSpan.Zero;
+        return true;
     }
 }

@@ -34,6 +34,12 @@ internal static class SprintNotificationAcknowledgmentScenario
         var after=await Recipients();await Call([own],204);
         if(await Recipients()!=after||await db.AuditLogs.CountAsync(a=>a.EntityType=="notification_recipients",ct)!=audits+1)
             throw new Exception("Acknowledgment retry changed timestamp or duplicated audit");
+        var audit=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="notification_recipients").OrderByDescending(a=>a.AuditId).FirstAsync(ct);
+        using(var facts=JsonDocument.Parse(JsonSerializer.Serialize(HotelOps.Api.Services.Insights.AuditRedaction.Read(audit.NewValues))))
+            if(facts.RootElement.GetProperty("notificationId").GetInt64()!=own
+                ||facts.RootElement.GetProperty("readAt").GetString() is not {} readTime ||!readTime.EndsWith("+00:00")
+                ||facts.RootElement.GetProperty("acknowledgedAt").GetString() is not {} ackTime ||!ackTime.EndsWith("+00:00"))
+                throw new Exception("Persisted acknowledgment audit lost typed UTC timestamps in read projection");
         using var response=await http.GetAsync("/api/notifications?acknowledged=true",ct);
         var page=await response.Content.ReadFromJsonAsync<JsonElement>(cancellationToken:ct);
         if(!response.IsSuccessStatusCode||page.GetProperty("totalCount").GetInt32()!=1||page.GetProperty("items")[0].GetProperty("id").GetInt64()!=own)

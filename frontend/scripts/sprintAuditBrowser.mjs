@@ -123,6 +123,9 @@ try {
       text.includes("PENDING") &&
         text.includes("COMPLETED") &&
         text.includes("closedAt") &&
+        text.includes("acknowledgedAt") &&
+        text.includes("readAt") &&
+        text.includes("2026-11-15T17:00:01Z") &&
         text.includes("null"),
     );
     assert.ok(

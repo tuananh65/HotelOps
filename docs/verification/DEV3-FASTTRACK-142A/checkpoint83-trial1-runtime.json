@@ -1,0 +1,189 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071172,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "auditPath": "/api/audit-logs",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "auditPath": "/api/audit-logs?entityType=D3-AUDIT-1bd2c85a",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "auditPath": "/api/audit-logs/116081",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "auditPath": "/api/audit-logs/116082",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "auditPath": "/api/audit-logs/116083",
+      "expected": 404,
+      "actual": 404
+    },
+    {
+      "auditPath": "/api/audit-logs?branchId=70940",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "auditPath": "/api/audit-logs?departmentId=1",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "auditPath": "/api/audit-logs?pageSize=101",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "auditPath": "/api/audit-logs?from=2026-11-15\u0026to=2026-11-14",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "auditPath": "/api/audit-logs?entityType=D3-AUDIT-1bd2c85a\u0026entityId=missing",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "auditBrowser": {
+        "success": true,
+        "mode": "branch-admin",
+        "checks": [
+          "newest-first ordering, safe changed-field summaries and stable pagination",
+          "combined actor/date/entity/action/branch/search filters; exact record history removes incidental filters but preserves branch scope; before/after null and secret redaction",
+          "creation-only history, honest absent-before values, empty list with applied filters and recovery",
+          "branch/global history scope and no audit edit/delete endpoint"
+        ]
+      }
+    },
+    {
+      "auditPath": "/api/audit-logs?entityType=D3-AUDIT-1bd2c85a",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "auditPath": "/api/audit-logs/116083",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "auditBrowser": {
+        "success": true,
+        "mode": "global-admin",
+        "checks": [
+          "newest-first ordering, safe changed-field summaries and stable pagination",
+          "combined actor/date/entity/action/branch/search filters; exact record history removes incidental filters but preserves branch scope; before/after null and secret redaction",
+          "creation-only history, honest absent-before values, empty list with applied filters and recovery",
+          "branch/global history scope and no audit edit/delete endpoint"
+        ]
+      }
+    },
+    {
+      "auditFingerprintUnchanged": true
+    },
+    {
+      "auditPath": "/api/audit-logs/116081",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "auditPath": "/api/audit-logs/options",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "auditPath": "/api/audit-logs",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "auditBrowser": {
+        "success": true,
+        "mode": "denied-owner",
+        "checks": [
+          "Owner without Administrator assignment cannot list or inspect audit history"
+        ]
+      }
+    },
+    {
+      "auditScopeRedactionAndRevocation": true
+    },
+    {
+      "auditFixtureCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": true,
+  "scope": "Real canonical browser/HTTPS/SQL audit filters, pagination, record chronology and redacted field comparison; branch/global Administrator admission and revocation; no audit mutation endpoint"
+}

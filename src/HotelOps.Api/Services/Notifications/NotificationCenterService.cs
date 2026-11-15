@@ -79,8 +79,8 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             if(states[recipient.RecipientId].AcknowledgedAt!=null)continue;
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.notification_recipients SET acknowledged_at={now},read_at=COALESCE(read_at,{now}) WHERE recipient_id={recipient.RecipientId} AND acknowledged_at IS NULL",ct);
             db.AuditLogs.Add(new AuditLog {ActorUserId=user,EntityType="notification_recipients",EntityId=recipient.RecipientId.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
-                OldValues=System.Text.Json.JsonSerializer.Serialize(new {acknowledgedAt=(DateTime?)null,readAt=recipient.ReadAt}),
-                NewValues=System.Text.Json.JsonSerializer.Serialize(new {notificationId=recipient.NotificationId,acknowledgedAt=now,readAt=recipient.ReadAt??now}),
+                OldValues=System.Text.Json.JsonSerializer.Serialize(new {acknowledgedAt=(DateTimeOffset?)null,readAt=recipient.ReadAt is {} read?Utc(read):(DateTimeOffset?)null}),
+                NewValues=System.Text.Json.JsonSerializer.Serialize(new {notificationId=recipient.NotificationId,acknowledgedAt=Utc(now),readAt=Utc(recipient.ReadAt??now)}),
                 ChangedFields=recipient.ReadAt==null?"[\"acknowledgedAt\",\"readAt\"]":"[\"acknowledgedAt\"]"});
         }
         await db.SaveChangesAsync(ct);await tx.CommitAsync(ct);
