@@ -23,10 +23,10 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service,
             Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), request, ct));
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/execution")]
     public Task<IActionResult> ReadRework(long branchId, long id, CancellationToken ct)
-        => Rework(branchId, id, "read", null, ct);
+        => Run(false, (ticket, sid) => service.ReadAssignedReworkAsync(ticket, sid, branchId, id, EvidenceRoot, ct));
     [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/evidence/{attachmentId:long}")]
     public Task<IActionResult> ReworkEvidence(long branchId, long id, long attachmentId, CancellationToken ct)
-        => Run(false, (ticket, sid) => service.ExecuteReworkAsync(ticket, sid, branchId, id, "read", null, null, null, EvidenceRoot, ct, attachmentId));
+        => Run(false, (ticket, sid) => service.ReadAssignedReworkAsync(ticket, sid, branchId, id, EvidenceRoot, ct, attachmentId));
     [HttpPost("api/branches/{branchId:long}/reworks/{id:long}/accept")]
     public Task<IActionResult> AcceptRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
         => Rework(branchId, id, "accept", request, ct);

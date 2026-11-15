@@ -50,13 +50,15 @@ export default function ReworkExecutionPanel({
     return () => abort.abort();
   }, [branch, id, refresh]);
   const action: ReworkAction | null =
-    data?.state === "PENDING_ACCEPTANCE"
-      ? "accept"
-      : data?.state === "ACCEPTED"
-        ? "start"
-        : data?.state === "IN_PROGRESS"
-          ? "complete"
-          : null;
+    data?.capability === "READ_ONLY"
+      ? null
+      : data?.state === "PENDING_ACCEPTANCE"
+        ? "accept"
+        : data?.state === "ACCEPTED"
+          ? "start"
+          : data?.state === "IN_PROGRESS"
+            ? "complete"
+            : null;
   async function send(command: NonNullable<typeof pending>) {
     try {
       await mutateRework(
@@ -155,8 +157,7 @@ export default function ReworkExecutionPanel({
           </p>
           <p>
             Inspection {data.inspectionId} · Cycle {data.cleaningTaskId} ·
-            PROVISIONAL_NOT_ACCEPTED · Nguồn synthetic chỉ dùng trial, chưa
-            shared acceptance.
+            {data.sourceAuthority}
           </p>
           <form key={data.sourceETag} onSubmit={submit}>
             <fieldset disabled={busy || !!pending}>

@@ -1,0 +1,58 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { build } from "esbuild";
+await build({
+  entryPoints: ["src/notifications/inboxApi.ts"],
+  bundle: true,
+  platform: "node",
+  format: "esm",
+  outfile: ".test-output/rework-notification/inbox.mjs",
+});
+const { resolveInboxSource } =
+  await import("../.test-output/rework-notification/inbox.mjs");
+test("source resolver uses current same-origin session and only accepts canonical rework paths", async () => {
+  const abort = new AbortController();
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, "/api/notifications/7/source");
+    assert.equal(options.credentials, "same-origin");
+    assert.equal(options.cache, "no-store");
+    assert.equal(options.redirect, "error");
+    assert.equal(options.signal, abort.signal);
+    return Response.json({ path: "/cleaning/reworks/9?branchId=2" });
+  };
+  assert.equal(
+    await resolveInboxSource(7, abort.signal),
+    "/cleaning/reworks/9?branchId=2",
+  );
+  for (const path of [
+    "https://example.invalid/",
+    "//example.invalid",
+    "/cleaning/reworks/9?branchId=2&next=evil",
+    "/cleaning/reworks/0?branchId=2",
+    "/cleaning/reworks/9?branchId=0",
+    null,
+  ]) {
+    globalThis.fetch = async () => Response.json({ path });
+    await assert.rejects(
+      resolveInboxSource(7, abort.signal),
+      /Invalid notification source/,
+    );
+  }
+});
+test("source denial is not retried or replaced with a stored action URL", async () => {
+  for (const status of [401, 403, 404, 503]) {
+    let calls = 0;
+    globalThis.fetch = async () => {
+      calls++;
+      return Response.json(
+        { path: "/cleaning/reworks/9?branchId=2" },
+        { status },
+      );
+    };
+    await assert.rejects(
+      resolveInboxSource(7, new AbortController().signal),
+      (e) => e.status === status,
+    );
+    assert.equal(calls, 1);
+  }
+});

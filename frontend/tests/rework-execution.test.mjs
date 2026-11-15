@@ -24,8 +24,8 @@ const source = {
   dueAtUtc: null,
   sourceETag: tag,
   inspectionETag: tag,
-  capability: "PROVISIONAL_NOT_ACCEPTED",
-  sourceAuthority: "SYNTHETIC_TEST_ONLY",
+  capability: "READ_ONLY",
+  sourceAuthority: "FE05_COMMITTED_V1",
   defects: [
     {
       id: 8,
@@ -36,7 +36,7 @@ const source = {
     },
   ],
 };
-test("rework read binds identity, ETag and provisional source, cookie transport and cancellation", async () => {
+test("rework read binds identity, ETag and committed source, cookie transport and cancellation", async () => {
   const abort = new AbortController();
   globalThis.fetch = async (url, opts) => {
     assert.match(url, /\/branches\/2\/reworks\/3\/execution$/);
@@ -48,6 +48,8 @@ test("rework read binds identity, ETag and provisional source, cookie transport 
   for (const bad of [
     { ...source, id: 4 },
     { ...source, sourceAuthority: "ACCEPTED" },
+    { ...source, sourceAuthority: "SYNTHETIC_TEST_ONLY" },
+    { ...source, capability: "UNVERIFIED" },
     { ...source, defects: [...source.defects, ...source.defects] },
     { ...source, state: "READY" },
   ]) {

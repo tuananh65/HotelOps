@@ -13,7 +13,7 @@ const initial = {
   sourceETag: tag,
   inspectionETag: tag,
   capability: "PROVISIONAL_NOT_ACCEPTED",
-  sourceAuthority: "SYNTHETIC_TEST_ONLY",
+  sourceAuthority: "FE05_COMMITTED_V1",
   defects: [
     {
       id: 8,

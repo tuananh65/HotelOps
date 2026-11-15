@@ -1,3 +1,4 @@
+import { AssignedReworkRead } from "../features/inspectionExecution/AssignedReworkRead";
 import { NotificationCenter } from "../notifications/NotificationCenter";
 import { TaskReadPage } from "../operationalTasks/TaskReadPage";
 import { UsersRouteBoundary } from "../users/UsersRouteBoundary";
@@ -135,6 +136,16 @@ export function SharedAuthHost({
           )
         }
       />
+      {notificationsEnabled && (
+        <Route
+          path="/cleaning/reworks/:id"
+          element={
+            <Protected>
+              <AssignedReworkRead />
+            </Protected>
+          }
+        />
+      )}
       {notificationsEnabled && (
         <Route
           path="/notifications"

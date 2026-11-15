@@ -1,10 +1,17 @@
 ﻿import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
-import { InboxFailure, readInbox, markInboxRead, type Inbox } from "./inboxApi";
+import {
+  InboxFailure,
+  readInbox,
+  markInboxRead,
+  resolveInboxSource,
+  type Inbox,
+} from "./inboxApi";
 export function NotificationCenter() {
   const { state, actions } = useAuth();
+  const navigate = useNavigate();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.session &&
@@ -68,6 +75,29 @@ export function NotificationCenter() {
     owner && result?.owner === owner && result.key === key ? result : null;
   const data = visible?.data;
   const operation = write?.owner === owner ? write : null;
+  async function openSource(id: number) {
+    if (!owner || pending.current) return;
+    const controller = new AbortController();
+    pending.current = controller;
+    setWrite({ owner, busy: true });
+    try {
+      const path = await resolveInboxSource(id, controller.signal);
+      if (current.current === owner && !controller.signal.aborted)
+        navigate(path);
+    } catch (error) {
+      if (current.current === owner && !controller.signal.aborted) {
+        setWrite({
+          owner,
+          busy: false,
+          message: "Source is unavailable or access has changed.",
+        });
+        if (error instanceof InboxFailure && error.status === 401)
+          actions.invalidateSession(owner);
+      }
+    } finally {
+      if (pending.current === controller) pending.current = null;
+    }
+  }
   async function mark(id: number | null) {
     if (!owner || pending.current) return;
     const controller = new AbortController();
@@ -169,10 +199,7 @@ export function NotificationCenter() {
                 Unread: {data.unreadCount}. Matching: {data.totalCount}.
                 Snapshot: {data.snapshot}
               </p>
-              <p>
-                Opening source records and acknowledging critical alerts are not
-                yet available.
-              </p>
+              <p>Acknowledging critical alerts is not yet available.</p>
               {data.items.length === 0 ? (
                 <p>No matching notifications.</p>
               ) : (
@@ -180,6 +207,14 @@ export function NotificationCenter() {
                   {data.items.map((row) => (
                     <li key={row.id}>
                       <h2>{row.title}</h2>
+                      {row.type === "REWORK_ASSIGNED" && (
+                        <button
+                          disabled={!!operation?.busy}
+                          onClick={() => void openSource(row.id)}
+                        >
+                          Open rework
+                        </button>
+                      )}
                       <p>{row.message}</p>
                       <p>
                         {row.type} · {row.priority} ·{" "}

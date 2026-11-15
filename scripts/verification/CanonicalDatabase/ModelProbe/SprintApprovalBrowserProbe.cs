@@ -147,7 +147,8 @@ internal static class SprintApprovalBrowserProbe
                             throw new Exception("Persisted rework/defect/assignee/audit mismatch");
                         await SprintReworkAuthorityProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
                         await SprintReworkDeliveryProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
-                        checks.Add(new{blocked,reworkPersisted=true,selectedDefects=true,assignee=cleaner,audit=true,reworkDelivery=true,reworkDeliveryRollback=true,reworkDeliveryRevocation=true,reworkConcurrentRetry=true,committedAuthority=true,leastPrivilegeReader=true,sourceTamperDenied=true,disabledIssuerDenied=true,unauthorizedDenied=true,noShiftAssignee=true,ineligibleAssigneesDenied=true});
+                        await SprintAssignedReworkProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
+                        checks.Add(new{blocked,reworkPersisted=true,selectedDefects=true,assignee=cleaner,audit=true,assignedReadWithRealSession=true,sourceResolution=true,revokedSourceDenied=true,foreignEvidenceDenied=true,reworkDelivery=true,reworkDeliveryRollback=true,reworkDeliveryRevocation=true,reworkConcurrentRetry=true,committedAuthority=true,leastPrivilegeReader=true,sourceTamperDenied=true,disabledIssuerDenied=true,unauthorizedDenied=true,noShiftAssignee=true,ineligibleAssigneesDenied=true});
                     }
                 }
                 else

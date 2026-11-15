@@ -85,3 +85,20 @@ export async function markInboxRead(
     { method: "POST", headers: { "X-CSRF-TOKEN": csrf.csrfToken } },
   );
 }
+
+export async function resolveInboxSource(
+  id: number,
+  signal: AbortSignal,
+): Promise<string> {
+  if (!Number.isSafeInteger(id) || id <= 0)
+    throw new Error("Invalid notification identifier");
+  const data = await (
+    await request(`/api/notifications/${id}/source`, signal)
+  ).json();
+  if (
+    typeof data?.path !== "string" ||
+    !/^\/cleaning\/reworks\/[1-9][0-9]*\?branchId=[1-9][0-9]*$/.test(data.path)
+  )
+    throw new Error("Invalid notification source");
+  return data.path;
+}

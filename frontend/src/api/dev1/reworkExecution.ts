@@ -13,8 +13,8 @@ export interface ReworkExecution {
   dueAtUtc: string | null;
   sourceETag: string;
   inspectionETag: string;
-  capability: "PROVISIONAL_NOT_ACCEPTED";
-  sourceAuthority: "SYNTHETIC_TEST_ONLY";
+  capability: "READ_ONLY" | "PROVISIONAL_NOT_ACCEPTED";
+  sourceAuthority: "FE05_COMMITTED_V1";
   defects: {
     id: number;
     description: string;
@@ -73,8 +73,8 @@ export async function readRework(
       "IN_PROGRESS",
       "PENDING_REINSPECTION",
     ].includes(d.state) ||
-    d.capability !== "PROVISIONAL_NOT_ACCEPTED" ||
-    d.sourceAuthority !== "SYNTHETIC_TEST_ONLY" ||
+    !["READ_ONLY", "PROVISIONAL_NOT_ACCEPTED"].includes(d.capability) ||
+    d.sourceAuthority !== "FE05_COMMITTED_V1" ||
     !validTag(d.sourceETag) ||
     result.etag !== d.sourceETag ||
     !validTag(d.inspectionETag) ||

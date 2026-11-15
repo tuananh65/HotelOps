@@ -9,6 +9,7 @@ namespace HotelOps.Api.Controllers;
 public sealed class NotificationsController(NotificationCenterService service):ControllerBase
 {
     [HttpGet] public Task<NotificationPage> List([FromQuery] NotificationQuery query,CancellationToken ct)=>service.ListAsync(query,ct);
+    [HttpGet("{id:long}/source")] public Task<NotificationSource> Source(long id,CancellationToken ct)=>service.ResolveSourceAsync(id,ct);
     [HttpPost("{id:long}/read")] public async Task<IActionResult> Read(long id,CancellationToken ct){await service.MarkReadAsync(id,ct);return NoContent();}
     [HttpPost("read-all")] public async Task<IActionResult> ReadAll(CancellationToken ct){await service.MarkReadAsync(null,ct);return NoContent();}
 }

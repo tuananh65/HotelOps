@@ -55,5 +55,25 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         await query.Where(r=>r.ReadAt==null).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,now),ct);
         await tx.CommitAsync(ct);
     }
+    public async Task<NotificationSource> ResolveSourceAsync(long id,CancellationToken ct)
+    {
+        if(id<=0)throw new InsightException(400,"INVALID_ID","Invalid notification identifier.");
+        await using var tx=await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable,ct);
+        var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
+        var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
+            .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId}).SingleOrDefaultAsync(ct);
+        if(source is not {NotificationType:"REWORK_ASSIGNED",SourceType:"CLEANING_REWORK",SourceId:>0})
+            throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+        var branch=await db.CleaningReworks.AsNoTracking().Where(w=>w.ReworkId==source.SourceId&&w.AssigneeUserId==user
+            &&w.CleaningTask.Room.IsActive&&w.CleaningTask.Room.Floor.IsActive
+            &&(w.CleaningTask.Room.AreaId==null||w.CleaningTask.Room.Area!.IsActive))
+            .Select(w=>(long?)w.CleaningTask.Room.BranchId).SingleOrDefaultAsync(ct);
+        if(branch==null||!(await ReworkRecipientReadAccess.EvaluateAsync(db,user,branch.Value,source.SourceId.Value,"CLEANING_VIEW",now,ct)).IsGranted)
+            throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+        await tx.CommitAsync(ct);
+        // Never redirect to stored/user-provided ActionUrl. Target API authenticates source again.
+        return new($"/cleaning/reworks/{source.SourceId.Value}?branchId={branch.Value}");
+    }
     private static DateTimeOffset Utc(DateTime value)=>new(DateTime.SpecifyKind(value,DateTimeKind.Utc));
 }
+public sealed record NotificationSource(string Path);
