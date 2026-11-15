@@ -1,0 +1,58 @@
+? flag missing blocks route and navigation without requests (2710.1293ms)
+? flag false blocks route and navigation without requests (2312.498ms)
+? flag TRUE blocks route and navigation without requests (2350.0379ms)
+? flag ON exposes dashboard link; route waits for explicit branch (2477.3403ms)
+? unconfirmed/restricted redirects /login without workday GET (2322.2807ms)
+? unconfirmed/restricted redirects /change-password without workday GET (2305.8927ms)
+? branch validation and edit invalidate old selection immediately (2523.3124ms)
+? router preserves independent permission when own-shifts denied (2323.0393ms)
+? router preserves independent permission when current denied (2304.6977ms)
+? backend inactive 404 is unavailable for both independent reads (2320.6094ms)
+? branch change aborts late current and preserves FE01/FE02 navigation (2520.1271ms)
+? tests 3437
+? suites 0
+? pass 3434
+? fail 2
+? cancelled 0
+? skipped 1
+? todo 0
+? duration_ms 1198168.1093
+
+? failing tests:
+
+test at tests\change-department-browser.test.mjs:177:1
+? late mutation cannot restore identity after session invalidation (2274.2386ms)
+  page.evaluate: TypeError: waiting.get(...) is not a function
+      at Object.finish (<anonymous>:15415:38)
+      at eval (eval at evaluate (:311:30), <anonymous>:2:22)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\change-department-browser.test.mjs:187:13
+      at async run (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\change-department-browser.test.mjs:66:5) {
+    log: []
+  }
+
+test at tests\users-router-integration.test.mjs:989:1
+? Login and Logout navigation remain unchanged around real Users route (2544.6274ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + [
+  +   '/api/reports/options',
+  +   '/api/internal-requests?pageSize=1',
+  +   '/api/reports/options',
+  +   '/api/internal-requests?pageSize=1'
+  + ]
+  - []
+  
+      at withUsers (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/users-router-integration.test.mjs:277:12)
+      at async TestContext.<anonymous> (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/users-router-integration.test.mjs:990:3)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '/api/reports/options', '/api/internal-requests?pageSize=1', '/api/reports/options', '/api/internal-requests?pageSize=1' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

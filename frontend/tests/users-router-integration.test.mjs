@@ -284,12 +284,20 @@ async function withUsers(path, scenario, run) {
     for (const call of await calls(page)) {
       assert.equal(
         call.credentials,
-        call.url.startsWith("/api/dashboards/") ? "same-origin" : "include",
+        call.url.startsWith("/api/dashboards/") ||
+          call.url.startsWith("/api/reports/") ||
+          call.url === "/api/internal-requests?pageSize=1"
+          ? "same-origin"
+          : "include",
       );
       assert.equal(call.cache, "no-store");
       assert.equal(call.headers.authorization, undefined);
-      if (call.url.startsWith("/api/users")) {
-        assert.equal(call.method, "GET");
+      if (
+        call.url.startsWith("/api/users") ||
+        call.url === "/api/reports/options" ||
+        call.url === "/api/internal-requests?pageSize=1"
+      ) {
+        assert.equal(call.url.startsWith("/api/users") ? call.method : call.method ?? "GET", "GET");
         assert.equal(call.body, undefined);
         assert.equal(call.headers["x-csrf-token"], undefined);
         assert.ok(!call.url.includes("includeAccess"));
@@ -995,15 +1003,26 @@ test("Login and Logout navigation remain unchanged around real Users route", asy
         [listUrl]: [ok(directory())],
         "/api/dashboards/options": [problem(403), problem(403)],
         "/api/dashboards/operations?": [problem(403), problem(403)],
+        "/api/reports/options": [problem(403), problem(403)],
+        "/api/internal-requests?pageSize=1": [problem(403), problem(403)],
       },
     },
     async (page) => {
       await heading(page, "Sign In");
+      assert.equal((await calls(page, "/api/reports/options")).length, 0);
+      assert.equal((await calls(page, "/api/internal-requests?pageSize=1")).length, 0);
       await page.getByLabel("Username or email").fill("reviewer");
       await page.getByLabel("Password", { exact: true }).fill(secret);
       await page.getByRole("button", { name: "Sign in", exact: true }).click();
       await pathIs(page, "/dashboard");
       await heading(page, "Operations dashboard");
+      await page.waitForFunction(() =>
+        ["/api/reports/options", "/api/internal-requests?pageSize=1"].every(
+          (url) => window.usersTest.calls.some((call) => call.url === url),
+        ),
+      );
+      assert.equal(await page.getByRole("link", { name: "Reports", exact: true }).count(), 0);
+      assert.equal(await page.getByRole("link", { name: "Internal requests", exact: true }).count(), 0);
       assert.equal((await calls(page, "/api/auth/session")).length, 2);
       await navigate(page, "/users");
       await page.getByRole("link", { name: "Directory Target" }).waitFor();
