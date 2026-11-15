@@ -18,6 +18,12 @@ namespace HotelOps.Api.Controllers;
 public sealed class WorkProgressController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/assignment")]
+    public Task<IActionResult> ReadAssignment(long branch, long id, CancellationToken ct, int page = 1, string? search = null)
+        => Execute((ticket, sid) => service.ReadTaskAssignmentAsync(ticket, sid, branch, id, page, search, ct), false);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/assignment")]
+    public Task<IActionResult> AssignTask(long branch, long id, AssignOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.AssignOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpPost("api/branches/{branch:long}/room-types/{id:long}/cleaning-items")]
     public Task<IActionResult> Template(long branch, long id, InitializeProgressRequest input, CancellationToken ct)
         => Initialize(branch, id, "template", input, ct);

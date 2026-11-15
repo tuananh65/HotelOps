@@ -1,0 +1,17 @@
+result
+--------------------------------------------------------------
+THREE_CLONES_ABSENT_SOURCE_EMPTY_ORIGINAL_TASK_GUARDS_RESTORED
+name                                                                                                                             definition                                                                                                                                                                                                                                                       is_disabled is_not_trusted
+-------------------------------------------------------------------------------------------------------------------------------- ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- ----------- --------------
+CK_operational_tasks_source_type                                                                                                 ([source_type] IS NULL OR ([source_type]='MANUAL' OR [source_type]='INTERNAL_REQUEST' OR [source_type]='MAINTENANCE' OR [source_type]='INSPECTION' OR [source_type]='CLEANING'))                                                                                           0              0
+CK_operational_tasks_status                                                                                                      ([status]='CANCELLED' OR [status]='COMPLETED' OR [status]='BLOCKED' OR [status]='IN_PROGRESS' OR [status]='TODO')                                                                                                                                                          0              0
+CK_task_progress_state_v1                                                                                                        ([workflow_status]='PAUSED' OR [workflow_status]='IN_PROGRESS')                                                                                                                                                                                                            0              0
+result
+--------------------------------------
+C67_FIVE_CLONES_ABSENT_SOURCE_RESTORED
+result
+------------------------------------
+C68_SOURCE_RESTORED_AND_CLONE_ABSENT
+result
+---------------------------------------
+C69_THREE_CLONES_ABSENT_SOURCE_RESTORED

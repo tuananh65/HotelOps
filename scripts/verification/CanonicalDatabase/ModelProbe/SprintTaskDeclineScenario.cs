@@ -146,5 +146,6 @@ internal static class SprintTaskDeclineScenario
         Check(await Deliver(browserAudit.AuditId)=="DELIVERED","browser committed decline delivered to manager");
         await Browser(new{username=manager.Username,password,branch,task=browserTask.TaskId,code=browserTask.TaskCode,mode="manager"});
         Check(await db.WorkIntervals.CountAsync(i=>i.UserId==actor,ct)==2,"Decline never opens or closes unrelated existing work intervals");
+        await SprintTaskAssignmentScenario.RunAsync(db,http,managerHttp,actor,manager,branch,foreign,department,browserTask.TaskId,checks,ct,username,password);
     }
 }

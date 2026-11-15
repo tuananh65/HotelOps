@@ -1,0 +1,11 @@
+{
+    "database":  "HotelOps_DEV3_142A_CriteriaTrial_027c5281",
+    "success":  true,
+    "hostStopped":  true,
+    "kind":  "Assignment",
+    "scope":  "Real opt-in hosted worker recovery of one committed synthetic event; no new business transition",
+    "eventId":  115690,
+    "singleDelivery":  true,
+    "recipientCount":  2,
+    "sourceUnchanged":  true
+}

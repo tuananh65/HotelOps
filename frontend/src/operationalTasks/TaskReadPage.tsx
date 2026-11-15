@@ -6,6 +6,7 @@ import { TaskProgressPanel } from "./TaskProgressPanel";
 import { TaskCriteriaSetup } from "./TaskCriteriaSetup";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskVerificationPanel } from "./TaskVerificationPanel";
+import { TaskAssignmentPanel } from "./TaskAssignmentPanel";
 import {
   readTasks,
   taskWorkflowStates,
@@ -31,6 +32,7 @@ export function TaskReadPage() {
     "",
   );
   const [declined, setDeclined] = useState<AuthorityGeneration | null>(null);
+  const [assigned, setAssigned] = useState<AuthorityGeneration | null>(null);
   const [progressRevision, setProgressRevision] = useState(0);
   const [query, setQuery] = useState<{
     branch: number;
@@ -167,6 +169,11 @@ export function TaskReadPage() {
           MSG19: Task declined and returned to Pending Assignment.
         </p>
       )}
+      {assigned === owner && (
+        <p role="status">
+          MSG08: Task assigned. The new executor must accept before starting.
+        </p>
+      )}
       {query && (
         <button
           onClick={() => setQuery({ ...query, revision: query.revision + 1 })}
@@ -215,6 +222,18 @@ export function TaskReadPage() {
             {detail.task.dueAt ?? "Not specified"}
           </p>
           <p>{detail.completionNote}</p>
+          <TaskAssignmentPanel
+            key={`assign:${owner}:${detail.task.branchId}:${detail.task.id}:${query?.revision}`}
+            branch={detail.task.branchId}
+            task={detail.task.id}
+            owner={owner}
+            onAssigned={() => {
+              setAssigned(owner);
+              setResult(null);
+              setProgressRevision((n) => n + 1);
+              if (query) setQuery({ ...query, revision: query.revision + 1 });
+            }}
+          />
           {detail.task.status === "IN_PROGRESS" && (
             <TaskCriteriaSetup
               key={`setup:${owner}:${detail.task.branchId}:${detail.task.id}`}
