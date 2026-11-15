@@ -45,6 +45,25 @@ try {
     checks.push(
       "DEPT_MANAGER with REPORT_VIEW cannot open reports or see report navigation",
     );
+  } else if (fixture.mode === "requests") {
+    stage = "request report preview";
+    await page.getByLabel("Report type",{exact:true}).selectOption("requests");
+    await page.getByLabel("Branch",{exact:true}).selectOption(String(fixture.branch));
+    const ready=page.waitForResponse(r=>r.url().endsWith("/api/reports/requests/preview")&&r.request().method()==="POST");
+    await page.getByRole("button",{name:"Preview",exact:true}).click();
+    const response=await ready;assert.equal(response.status(),200);const snapshot=await response.json();
+    assert.equal(snapshot.totalCount,1);assert.equal(snapshot.rows[0].overdue,true);
+    await page.getByRole("columnheader",{name:"overdue",exact:true}).waitFor();
+    await page.getByRole("cell",{name:"true",exact:true}).waitFor();
+    for(const format of ["CSV","XLSX"]){
+      stage="request report "+format;
+      const pending=page.waitForEvent("download");await page.getByRole("button",{name:"Export "+format,exact:true}).click();
+      const file=await pending;assert.equal(file.suggestedFilename(),`requests-${snapshot.snapshotId}.${format.toLowerCase()}`);
+      const stream=await file.createReadStream();const parts=[];for await(const chunk of stream)parts.push(chunk);
+      const bytes=Buffer.concat(parts);if(format==="CSV"){assert.ok(bytes.toString("utf8").includes('"overdue"'));assert.ok(bytes.toString("utf8").includes('"true"'));}else assert.equal(bytes.readUInt32LE(0),0x04034b50);
+      await file.delete();
+    }
+    exports.push(snapshot.snapshotId);checks.push("RPT07 overdue visible in canonical preview and downloaded CSV/XLSX");
   } else {
     stage = "select branch";
     await page

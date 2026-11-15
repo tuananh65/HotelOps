@@ -86,6 +86,23 @@ internal static class SprintReportApiScenario
             db.UserRoles.Add(new(){UserId=actor,RoleId=operationsRole,BranchId=branch.BranchId,AssignedAt=DateTime.UtcNow.AddMinutes(-1),IsActive=true});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
             await Browser("operations-manager");
+            var requestType=new InternalRequestType{TypeCode=prefix,TypeName="Synthetic report requests",IsActive=true};
+            db.InternalRequestTypes.Add(requestType);await db.SaveChangesAsync(ct);
+            var overdueRequest=new InternalRequest{RequestNo=prefix,BranchId=branch.BranchId,RequestTypeId=requestType.RequestTypeId,
+                RequesterId=actor,Subject="Synthetic overdue request",Description="Synthetic",Status="IN_PROGRESS",CreatedAt=DateTime.UtcNow,DueAt=DateTime.UtcNow.AddHours(-1)};
+            db.InternalRequests.Add(overdueRequest);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            await Browser("requests");
+            using var requestPreview=await Post("/api/reports/requests/preview",new{branchId=branch.BranchId});requestPreview.EnsureSuccessStatusCode();
+            var requestReport=await requestPreview.Content.ReadFromJsonAsync<JsonElement>(ct);
+            Check(requestReport.GetProperty("rows")[0].GetProperty("overdue").GetBoolean(),"public request preview calculates overdue at snapshot time");
+            var requestSnapshot=requestReport.GetProperty("snapshotId").GetString()!;
+            var frozen=HotelOps.Api.Services.Insights.ReportCsvRenderer.Render(JsonSerializer.Deserialize<HotelOps.Api.DTOs.Insights.ReportResult>(requestReport.GetRawText(),new JsonSerializerOptions(JsonSerializerDefaults.Web))!).Content;
+            await db.InternalRequests.Where(r=>r.InternalRequestId==overdueRequest.InternalRequestId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.DueAt,DateTime.UtcNow.AddHours(1)),ct);
+            using(var exported=await Post($"/api/reports/snapshots/{requestSnapshot}/export",new{format="csv"}))
+                Check((int)exported.StatusCode==200&&(await exported.Content.ReadAsByteArrayAsync(ct)).SequenceEqual(frozen),"public overdue CSV remains frozen after source deadline change");
+            using var refreshed=await Post("/api/reports/requests/preview",new{branchId=branch.BranchId});refreshed.EnsureSuccessStatusCode();
+            Check(!(await refreshed.Content.ReadFromJsonAsync<JsonElement>(ct)).GetProperty("rows")[0].GetProperty("overdue").GetBoolean(),"fresh public snapshot reflects updated deadline");
+            Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==requestSnapshot,ct)==1,"overdue CSV has persisted export audit");
             Check(await db.OperationalTasks.CountAsync(t=>t.BranchId==branch.BranchId,ct)==26
                 && await db.OperationalTasks.Where(t=>t.TaskCode==prefix).Select(t=>t.ProgressPercent).SingleAsync(ct)==73
                 && await db.OperationalTasks.Where(t=>t.BranchId==branch.BranchId&&t.TaskCode!=prefix).AllAsync(t=>t.ProgressPercent==0&&t.Status=="TODO",ct),
@@ -95,6 +112,8 @@ internal static class SprintReportApiScenario
         {
             db.ChangeTracker.Clear();await using var cleanup=await db.Database.BeginTransactionAsync(CancellationToken.None);
             await db.AuditLogs.Where(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT").ExecuteDeleteAsync(CancellationToken.None);
+            await db.InternalRequests.Where(r=>r.BranchId==branch.BranchId&&r.RequestNo==prefix).ExecuteDeleteAsync(CancellationToken.None);
+            await db.InternalRequestTypes.Where(t=>t.TypeCode==prefix).ExecuteDeleteAsync(CancellationToken.None);
             await db.OperationalTasks.Where(t=>t.BranchId==branch.BranchId&&t.TaskCode.StartsWith(prefix)).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserRoles.Where(r=>r.UserId==actor).ExecuteDeleteAsync(CancellationToken.None);
             await db.UserBranchAccesses.Where(a=>a.UserId==actor&&a.BranchId==branch.BranchId).ExecuteDeleteAsync(CancellationToken.None);
