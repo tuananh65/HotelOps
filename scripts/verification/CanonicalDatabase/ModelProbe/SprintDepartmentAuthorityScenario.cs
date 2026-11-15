@@ -64,6 +64,11 @@ internal static class SprintDepartmentAuthorityScenario
                     await SprintInternalRequestCompletionUiScenario.RunAsync(db,http??throw new Exception("HTTP required"),actor,requests[0],checks,ct,username!,password!);
                     return;
                 }
+                if(Environment.GetEnvironmentVariable("DEV3_VERIFY_OWN_TIME_LOG")=="1")
+                {
+                    await SprintOwnTimeLogScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,branch,department,checks,ct);
+                    return;
+                }
                 if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_COMPLETION")=="1")
                 {
                     await SprintInternalRequestCompletionScenario.RunAsync(db,actor,requests[0],checks,ct);

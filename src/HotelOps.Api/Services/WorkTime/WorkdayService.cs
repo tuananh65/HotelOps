@@ -47,6 +47,17 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             return snapshot is null ? new(204) : new(200, snapshot);
         }, ct);
 
+    public Task<WorkdayResult> OwnTimeLogAsync(long branchId,DateOnly date,int page,int pageSize,CancellationToken ct)
+    {
+        if(date.Year<1900||date==DateOnly.MaxValue||page<1||pageSize is <1 or >100||(long)(page-1)*pageSize>int.MaxValue)
+            return Task.FromResult(new WorkdayResult(400,Code:"INVALID_TIME_LOG_QUERY"));
+        return Execute(branchId,"ATTENDANCE_RECORD",async actor=>
+        {
+            var result=await OwnTimeLogReader.ReadAsync(db,actor.UserId,branchId,date,page,pageSize,ct);
+            return new(200,result);
+        },ct);
+    }
+
     public Task<WorkdayResult> EndAsync(long branchId, long workdayId, byte[] expectedVersion,
         bool pauseAll, CancellationToken ct)
         => Execute(branchId, "ATTENDANCE_RECORD", async actor =>

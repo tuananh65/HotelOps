@@ -21,6 +21,11 @@ public sealed class WorkdayReadsController(WorkdayService service) : ControllerB
     public Task<IActionResult> Current(long branchId, CancellationToken ct)
         => Execute(() => service.CurrentAsync(branchId, ct));
 
+    [HttpGet("own-time-log")]
+    public Task<IActionResult> OwnTimeLog(long branchId,[FromQuery] DateOnly date,CancellationToken ct,
+        [FromQuery] int page=1,[FromQuery] int pageSize=50)
+        => Execute(() => service.OwnTimeLogAsync(branchId,date,page,pageSize,ct));
+
     private async Task<IActionResult> Execute(Func<Task<WorkdayResult>> action)
     {
         if (!Request.IsHttps) return Problem(statusCode: 400, title: "HTTPS_REQUIRED");
