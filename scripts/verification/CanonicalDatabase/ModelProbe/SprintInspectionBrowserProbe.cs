@@ -48,12 +48,20 @@ internal static class SprintInspectionBrowserProbe
             }
             if(!existing.IsActive) throw new Exception("Existing major severity must be active");
             severity=existing.ReferenceId;
+            // The preceding fixture verifies the exact disposable identity and an empty baseline.
+            await db.Database.ExecuteSqlRawAsync("""
+                IF OBJECT_ID('dbo.CK_DEV3_InspectionExecutionAuditFault','C') IS NOT NULL
+                    THROW 51999,'Foreign audit fault constraint; trial refused',1;
+                ALTER TABLE dbo.audit_logs ADD CONSTRAINT CK_DEV3_InspectionExecutionAuditFault
+                    CHECK(entity_type<>'room_inspections' OR new_values NOT LIKE '%Synthetic audit fault%');
+                """,ct);
         }
         async Task Cleanup(CancellationToken token)
         {
             // Only IDs returned by the guarded fixture. Legacy templates have branch_id NULL;
             // no trigger is disabled and no application immutability rule is relaxed.
             await db.Database.ExecuteSqlInterpolatedAsync($"""
+                ALTER TABLE dbo.audit_logs DROP CONSTRAINT CK_DEV3_InspectionExecutionAuditFault;
                 DECLARE @version bigint=(SELECT version_id FROM dbo.room_inspections WHERE inspection_id={inspection});
                 DECLARE @list bigint=(SELECT checklist_id FROM dbo.inspection_checklist_versions WHERE version_id=@version);
                 DECLARE @type bigint=(SELECT room_type_id FROM dbo.rooms WHERE room_id={room});
@@ -113,11 +121,18 @@ internal static class SprintInspectionBrowserProbe
                 throw new Exception("Expected exactly six inspection audits including two edits");
             if(await db.InspectionDefects.Where(d=>d.InspectionId==inspection).Select(d=>d.Description).SingleAsync(ct)!="Synthetic stain final")
                 throw new Exception("Edited defect not persisted");
-            var attachment=await db.Attachments.AsNoTracking().SingleAsync(a=>a.EntityType=="INSPECTION"&&a.EntityId==inspection,ct);
-            if(!System.Text.RegularExpressions.Regex.IsMatch(attachment.StorageKey,"^[a-f0-9]{32}\\.png$"))throw new Exception("Unexpected evidence key");
-            var bytes=await File.ReadAllBytesAsync(Path.Combine(root,attachment.StorageKey),ct);
-            if(!bytes.SequenceEqual(new byte[]{137,80,78,71,13,10,26,10}))throw new Exception("Persisted evidence bytes mismatch");
-            checks.Add(new{persistedState=state,inspectionAudits=6,defects=1,defectEditsPersisted=true,evidenceBytesVerified=true});
+            var attachments=await db.Attachments.AsNoTracking().Where(a=>a.EntityType=="INSPECTION"&&a.EntityId==inspection).ToArrayAsync(ct);
+            if(attachments.Length!=2 || await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.inspection_result_attachments a JOIN dbo.inspection_results r ON r.result_id=a.result_id WHERE r.inspection_id={inspection}").SingleAsync(ct)!=1
+                ||await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.inspection_defect_attachments a JOIN dbo.inspection_defects d ON d.defect_id=a.defect_id WHERE d.inspection_id={inspection}").SingleAsync(ct)!=1)
+                throw new Exception("Criterion/defect evidence links mismatch");
+            foreach(var attachment in attachments)
+            {
+                if(!System.Text.RegularExpressions.Regex.IsMatch(attachment.StorageKey,"^[a-f0-9]{32}\\.png$"))throw new Exception("Unexpected evidence key");
+                var bytes=await File.ReadAllBytesAsync(Path.Combine(root,attachment.StorageKey),ct);
+                if(!bytes.SequenceEqual(new byte[]{137,80,78,71,13,10,26,10}))throw new Exception("Persisted evidence bytes mismatch");
+            }
+            if(Directory.EnumerateFiles(root).Count()!=attachments.Length) throw new Exception("Rolled-back evidence left orphan files");
+            checks.Add(new{persistedState=state,inspectionAudits=6,defects=1,defectEditsPersisted=true,evidenceBytesVerified=true,criterionAndDefectEvidenceLinked=true});
         }
         catch(Exception e){failure=e.GetType().Name+": "+e.Message;}
         finally

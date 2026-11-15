@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import { createInspectionApi, InspectionApiError } from "./api";
+import {
+  createInspectionApi,
+  InspectionApiError,
+  type InspectionIncomplete,
+} from "./api";
 import { RequestReworkForm } from "./RequestReworkForm";
 import {
   encodeEvidence,
@@ -27,6 +31,9 @@ export function InspectionWorkspace({
   const [busy, setBusy] = useState(false);
   const [reload, setReload] = useState(0);
   const [error, setError] = useState("");
+  const [incomplete, setIncomplete] = useState<InspectionIncomplete | null>(
+    null,
+  );
   const [notice, setNotice] = useState("");
   const [why, setWhy] = useState("");
   const [rejectConfirmed, setRejectConfirmed] = useState(false);
@@ -34,6 +41,10 @@ export function InspectionWorkspace({
     Record<number, "PASS" | "FAIL" | "">
   >({});
   const [notes, setNotes] = useState<Record<number, string>>({});
+  const [criterionUploads, setCriterionUploads] = useState<
+    Record<number, File[]>
+  >({});
+  const [uploadGeneration, setUploadGeneration] = useState(0);
   const [selection, setSelection] = useState("");
   const [editingDefect, setEditingDefect] = useState<number | null>(null);
   const [severity, setSeverity] = useState("");
@@ -57,6 +68,7 @@ export function InspectionWorkspace({
     const api = createInspectionApi({ signal: scope.signal, onSessionInvalid });
     setCurrent(null);
     setError("");
+    setIncomplete(null);
     setNotice("");
     setBlocked(false);
     setBusy(true);
@@ -67,6 +79,8 @@ export function InspectionWorkspace({
         setCurrent(result);
         setEditingDefect(null);
         setUploads([]);
+        setCriterionUploads({});
+        setUploadGeneration((n) => n + 1);
         setOutcomes(
           Object.fromEntries(
             result.value.criteria.map((c) => [
@@ -93,6 +107,15 @@ export function InspectionWorkspace({
   }, [branch, id, reload]);
   function handle(e: unknown) {
     if (e instanceof InspectionApiError) {
+      if (
+        e.incomplete &&
+        current?.value.state === "INSPECTING" &&
+        e.incomplete.versionId === current.value.versionId &&
+        e.incomplete.missingItems.every((item) =>
+          current.value.criteria.some((c) => c.itemId === item.itemId),
+        )
+      )
+        setIncomplete(e.incomplete);
       if (e.status === 401 || e.status === 403) {
         onDenied(e.status);
         setCurrent(null);
@@ -128,6 +151,7 @@ export function InspectionWorkspace({
     const api = createInspectionApi({ signal: scope.signal, onSessionInvalid });
     setBusy(true);
     setError("");
+    setIncomplete(null);
     setNotice("");
     try {
       let result: LoadedInspection;
@@ -159,6 +183,21 @@ export function InspectionWorkspace({
           task.signal,
         );
       else if (kind === "save") {
+        if (
+          Object.values(criterionUploads).reduce(
+            (n, files) => n + files.length,
+            0,
+          ) > 5
+        )
+          throw new Error("MSG23: At most five evidence files per save.");
+        if (
+          current.value.criteria.some(
+            (c) => criterionUploads[c.itemId]?.length && !outcomes[c.itemId],
+          )
+        )
+          throw new Error(
+            "MSG03: Select Pass or Fail before saving criterion evidence.",
+          );
         const results: CriterionResult[] = current.value.criteria
           .filter(
             (c) =>
@@ -169,6 +208,12 @@ export function InspectionWorkspace({
             outcome: outcomes[c.itemId] as "PASS" | "FAIL",
             note: optionalNote(notes[c.itemId] ?? ""),
           }));
+        for (const result of results) {
+          const photos = [];
+          for (const file of criterionUploads[result.itemId] ?? [])
+            photos.push(await encodeEvidence(file, task.signal));
+          if (photos.length) result.photos = photos;
+        }
         result = await api.save(
           branch,
           id,
@@ -207,6 +252,10 @@ export function InspectionWorkspace({
       }
       if (task.signal.aborted || scope.signal.aborted) return;
       setCurrent(result);
+      if (kind === "save") {
+        setCriterionUploads({});
+        setUploadGeneration((n) => n + 1);
+      }
       setBlocked(false);
       setUploads([]);
       setEditingDefect(null);
@@ -235,7 +284,28 @@ export function InspectionWorkspace({
     <section aria-label="Inspection execution">
       <h2>Inspection #{id}</h2>
       <p>Branch #{branch}. Inspection execution and approval.</p>
-      {error && <p role="alert">{error}</p>}
+      {error && (
+        <p role="alert" style={{ color: "#b91c1c" }}>
+          {error}
+        </p>
+      )}
+      {incomplete && current && (
+        <ul aria-label="Missing inspection items">
+          {incomplete.missingItems.map((item) => (
+            <li key={item.itemId}>
+              #{item.itemId}{" "}
+              {
+                current.value.criteria.find((c) => c.itemId === item.itemId)
+                  ?.criterion
+              }
+              :{" "}
+              {item.requirement === "RESULT_REQUIRED"
+                ? "Record and save Pass or Fail for this required criterion."
+                : "Add a defect with a description for this failed criterion."}
+            </li>
+          ))}
+        </ul>
+      )}
       {notice && <p role="status">{notice}</p>}
       {blocked && (
         <p role="alert">
@@ -273,6 +343,21 @@ export function InspectionWorkspace({
             Effective room readiness:{" "}
             {current.value.effectiveReadiness ?? "UNKNOWN"}.
           </p>
+          {current.value.state === "PENDING_CONCLUSION" && (
+            <p aria-label="Inspection summary">
+              Passed criteria:{" "}
+              {
+                current.value.criteria.filter((c) => c.outcome === "PASS")
+                  .length
+              }
+              ; failed criteria:{" "}
+              {
+                current.value.criteria.filter((c) => c.outcome === "FAIL")
+                  .length
+              }
+              ; defects: {current.value.defects.length}.
+            </p>
+          )}
           {current.value.notification && (
             <p>Notification: {current.value.notification}</p>
           )}
@@ -380,6 +465,7 @@ export function InspectionWorkspace({
               <label>
                 Note{" "}
                 <textarea
+                  aria-label="Note"
                   value={notes[c.itemId] ?? ""}
                   maxLength={4000}
                   onChange={(e) =>
@@ -387,6 +473,25 @@ export function InspectionWorkspace({
                   }
                 />
               </label>
+              <label>
+                Criterion evidence #{c.itemId} (JPG, PNG, PDF; up to 10 MiB
+                each)
+                <input
+                  key={`${c.itemId}:${uploadGeneration}`}
+                  type="file"
+                  multiple
+                  accept="image/jpeg,image/png,application/pdf"
+                  onChange={(e) =>
+                    setCriterionUploads((v) => ({
+                      ...v,
+                      [c.itemId]: Array.from(e.target.files ?? []),
+                    }))
+                  }
+                />
+              </label>
+              {!!c.evidenceIds?.length && (
+                <p>Saved evidence files: {c.evidenceIds.length}</p>
+              )}
             </fieldset>
           ))}
           <button

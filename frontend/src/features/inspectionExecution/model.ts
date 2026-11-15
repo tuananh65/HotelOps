@@ -112,7 +112,7 @@ export function reason(value: string): string {
 }
 export function optionalNote(value: string, max = 4000): string | null {
   const s = value.trim();
-  if (s.length > max || /[\x00-\x1f\x7f-\x9f]/.test(s))
+  if (s.length > max || /[\x00-\x09\x0b\x0c\x0e-\x1f\x7f-\x9f]/.test(s))
     throw new Error("Invalid note");
   return s || null;
 }

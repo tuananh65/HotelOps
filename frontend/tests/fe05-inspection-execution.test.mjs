@@ -31,6 +31,93 @@ const { createInspectionApi, InspectionApiError } = await import(
   data(apiSource)
 );
 const tag = '"0123456789ABCDEF"';
+test("criterion notes allow multiline content while retaining length and control-character guards", () => {
+  assert.equal(
+    model.optionalNote("  First line\r\nSecond line\n  "),
+    "First line\r\nSecond line",
+  );
+  assert.equal(model.optionalNote(" \r\n "), null);
+  assert.equal(model.optionalNote("x".repeat(4000)).length, 4000);
+  for (const value of [
+    "x".repeat(4001),
+    "unsafe\u0000note",
+    "unsafe\u007fnote",
+    "unsafe\u0085note",
+  ])
+    assert.throws(() => model.optionalNote(value));
+});
+test("finish exposes only scoped, versioned missing-item diagnostics without retry", async () => {
+  const problem = {
+    title: "INSPECTION_INCOMPLETE",
+    messageCode: "MSG03",
+    inspectionId: 42,
+    branchId: 7,
+    versionId: 31,
+    etag: tag,
+    missingItems: [
+      { itemId: 17, requirement: "RESULT_REQUIRED" },
+      { itemId: 18, requirement: "DEFECT_REQUIRED" },
+    ],
+  };
+  for (const body of [
+    problem,
+    { ...problem, branchId: 8 },
+    { ...problem, inspectionId: 43 },
+    { ...problem, etag: '"1111111111111111"' },
+    { ...problem, versionId: 0 },
+    { ...problem, missingItems: [] },
+    {
+      ...problem,
+      missingItems: [problem.missingItems[0], problem.missingItems[0]],
+    },
+    {
+      ...problem,
+      missingItems: [{ itemId: 17, requirement: "EXECUTE_SCRIPT" }],
+    },
+    { ...problem, missingItems: [null] },
+  ]) {
+    let writes = 0;
+    const api = client(async (path) =>
+      path === "/api/auth/csrf" ? csrf() : (writes++, json(body, 400)),
+    );
+    await assert.rejects(
+      api.finish(7, 42, tag, "Finish inspection"),
+      (error) => {
+        assert.equal(error.status, 400);
+        assert.equal(error.uncertain, false);
+        assert.deepEqual(
+          error.incomplete,
+          body === problem
+            ? { versionId: 31, missingItems: problem.missingItems }
+            : undefined,
+        );
+        return true;
+      },
+    );
+    assert.equal(writes, 1);
+  }
+});
+test("session cancellation while reading finish diagnostics discards their contents", async () => {
+  const controller = new AbortController();
+  const api = client(
+    async (path) =>
+      path === "/api/auth/csrf"
+        ? csrf()
+        : {
+            ok: false,
+            status: 400,
+            json: async () => {
+              controller.abort();
+              return { title: "INSPECTION_INCOMPLETE" };
+            },
+          },
+    () => {},
+    controller,
+  );
+  await assert.rejects(api.finish(7, 42, tag, "Finish inspection"), {
+    name: "AbortError",
+  });
+});
 const item = {
   id: null,
   itemId: 17,

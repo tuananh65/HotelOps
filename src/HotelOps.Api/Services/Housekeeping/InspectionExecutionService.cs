@@ -24,6 +24,13 @@ public sealed partial class RoomTypeCreationService
     private static bool WorkflowStrongTag(string? tag) => tag is { Length: 18 } && tag[0] == '"' && tag[^1] == '"'
         && tag.Skip(1).Take(16).All(c => c is >= '0' and <= '9' or >= 'A' and <= 'F');
     private static string WorkflowReason(string? text) => ChecklistText(text, 500);
+    private static string InspectionCriterionNote(string? text)
+    {
+        var note = (text ?? "").Trim();
+        if (note.Length > 4000 || note.Any(c => char.IsControl(c) && c is not ('\r' or '\n')))
+            throw new ValidationException("Criterion note must contain at most 4000 characters without unsupported control characters.");
+        return note;
+    }
 
     public async Task<RoomTypeBatchResult> ExecuteInspectionAsync(SessionReference ticket, long sid, long branch, long id, string? expected,
         string operation, SaveInspectionRequest? save, RecordInspectionDefectRequest? defect, string? reason, string privateRoot, CancellationToken ct, long? defectId = null)
@@ -75,7 +82,7 @@ public sealed partial class RoomTypeCreationService
                     foreach (var result in save.Results)
                     {
                         if (!validItems.Contains(result.ItemId) || result.Outcome is not ("PASS" or "FAIL")) throw new ValidationException("Result must be PASS/FAIL for an active assigned criterion.");
-                        var note = ChecklistText(result.Note, 4000, false);
+                        var note = InspectionCriterionNote(result.Note);
                         if (result.Outcome == "PASS" && await db.InspectionDefects.AnyAsync(d => d.InspectionId == id && d.ChecklistItemId == result.ItemId, token))
                             return new(RoomTypeBatchStatus.InvalidReference);
                         var row = await db.InspectionResults.SingleOrDefaultAsync(r => r.InspectionId == id && r.ChecklistItemId == result.ItemId, token);
@@ -95,8 +102,15 @@ public sealed partial class RoomTypeCreationService
                     var criteria = await db.InspectionChecklistItems.AsNoTracking().Where(i => i.VersionId == source.VersionId && i.IsActive).ToArrayAsync(token);
                     var results = await db.InspectionResults.AsNoTracking().Where(r => r.InspectionId == id && r.ChecklistItem.VersionId == source.VersionId).ToArrayAsync(token);
                     var defects = await db.InspectionDefects.AsNoTracking().Where(d => d.InspectionId == id && d.Description.Trim() != "").Select(d => d.ChecklistItemId).ToArrayAsync(token);
-                    if (criteria.Length == 0 || criteria.Any(i => i.IsRequired && !results.Any(r => r.ChecklistItemId == i.ItemId && r.Outcome is "PASS" or "FAIL"))
-                        || results.Any(r => r.Outcome == "FAIL" && !defects.Contains(r.ChecklistItemId))) return new(RoomTypeBatchStatus.InvalidReference);
+                    if (criteria.Length == 0) return new(RoomTypeBatchStatus.InvalidReference);
+                    var missing = criteria.OrderBy(i => i.SortOrder).ThenBy(i => i.ItemId)
+                        .Where(i => i.IsRequired && !results.Any(r => r.ChecklistItemId == i.ItemId && r.Outcome is "PASS" or "FAIL"))
+                        .Select(i => new InspectionMissingItemDto(i.ItemId, "RESULT_REQUIRED"))
+                        .Concat(results.Where(r => r.Outcome == "FAIL" && !defects.Contains(r.ChecklistItemId))
+                            .OrderBy(r => r.ChecklistItemId).Select(r => new InspectionMissingItemDto(r.ChecklistItemId, "DEFECT_REQUIRED")))
+                        .ToArray();
+                    if (missing.Length > 0) return new(RoomTypeBatchStatus.InvalidReference,
+                        new InspectionIncompleteDto(id, branch, source.VersionId, WorkflowTag(state.Revision), missing));
                     var now = clock.GetUtcNow().UtcDateTime;
                     await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_inspections SET workflow_status={"PENDING_CONCLUSION"},status={"IN_PROGRESS"},inspected_at={now} WHERE inspection_id={id}", token);
                 }

@@ -93,6 +93,10 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
                 { Response.Headers["X-Content-Type-Options"]="nosniff"; return File(file.Content,file.ContentType,file.Name); }
                 return StatusCode(created?201:200,result.Value);
             }
+            if(result.Status==RoomTypeBatchStatus.InvalidReference && result.Value is InspectionIncompleteDto incomplete)
+                return Problem(statusCode:400,title:"INSPECTION_INCOMPLETE",extensions:new Dictionary<string,object?>
+                    { ["messageCode"]="MSG03", ["inspectionId"]=incomplete.InspectionId, ["branchId"]=incomplete.BranchId,
+                      ["versionId"]=incomplete.VersionId, ["etag"]=incomplete.ETag, ["missingItems"]=incomplete.MissingItems });
             return Problem(statusCode:result.Status switch{RoomTypeBatchStatus.SessionInvalid=>401,RoomTypeBatchStatus.Forbidden=>403,RoomTypeBatchStatus.NotFound=>404,
                 RoomTypeBatchStatus.InvalidReference=>400,RoomTypeBatchStatus.Stale=>412,RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate=>409,_=>503},title:result.Status.ToString().ToUpperInvariant());
         }

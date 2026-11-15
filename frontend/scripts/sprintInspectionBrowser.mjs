@@ -156,14 +156,119 @@ try {
     ...headers,
     "If-Match": (await snapshot()).etag,
   });
+  async function missingItems(requirement, explanation) {
+    stage = "UI lists " + requirement;
+    const before = await snapshot();
+    await page
+      .getByLabel("Reason", { exact: true })
+      .fill("Synthetic inspection verification");
+    const acknowledgement = page.waitForResponse(
+      (r) => r.url() === api + "/finish" && r.request().method() === "POST",
+    );
+    await page.getByRole("button", { name: /^Finish/ }).click();
+    const response = await acknowledgement;
+    const problem = await response.json();
+    if (
+      response.status() !== 400 ||
+      problem.title !== "INSPECTION_INCOMPLETE" ||
+      problem.messageCode !== "MSG03" ||
+      problem.inspectionId !== fixture.inspection ||
+      problem.branchId !== fixture.branch ||
+      problem.versionId !== before.body.versionId ||
+      problem.etag !== before.etag ||
+      JSON.stringify(problem.missingItems) !==
+        JSON.stringify([
+          { itemId: before.body.criteria[0].itemId, requirement },
+        ])
+    )
+      throw Error(
+        "Missing-item response is not scoped to current inspection revision",
+      );
+    await page
+      .getByRole("list", { name: "Missing inspection items" })
+      .getByText(explanation, { exact: false })
+      .waitFor();
+    const after = await snapshot();
+    if (JSON.stringify(before) !== JSON.stringify(after))
+      throw Error("Incomplete finish mutated inspection");
+    checks.push({ label: stage, snapshotUnchanged: true });
+  }
+  await missingItems("RESULT_REQUIRED", "Record and save Pass or Fail");
+  const inspectionStarted = await snapshot();
+  for (const invalidNote of ["x".repeat(4001), "unsafe\u0000note"])
+    await rejected(
+      "invalid criterion note rejected",
+      api + "/results",
+      400,
+      {
+        reason: "Synthetic note validation",
+        results: [
+          {
+            itemId: inspectionStarted.body.criteria[0].itemId,
+            outcome: "FAIL",
+            note: invalidNote,
+          },
+        ],
+      },
+      { ...headers, "If-Match": inspectionStarted.etag },
+      "PUT",
+    );
+  await rejected(
+    "criterion audit failure rolls back result and uploaded file",
+    api + "/results",
+    500,
+    {
+      reason: "Synthetic audit fault",
+      results: [
+        {
+          itemId: inspectionStarted.body.criteria[0].itemId,
+          outcome: "FAIL",
+          photos: [
+            {
+              name: "rollback.png",
+              mimeType: "image/png",
+              base64: "iVBORw0KGgo=",
+            },
+          ],
+        },
+      ],
+    },
+    { ...headers, "If-Match": inspectionStarted.etag },
+    "PUT",
+  );
   stage = "save failed criterion";
   await page.getByRole("combobox", { name: /^Result/ }).selectOption("FAIL");
+  await page
+    .getByLabel("Note", { exact: true })
+    .fill("Synthetic criterion note\nSecond line");
+  await page
+    .getByLabel(/^Criterion evidence #/)
+    .setInputFiles({
+      name: "criterion.png",
+      mimeType: "image/png",
+      buffer: Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+    });
   await page.getByRole("button", { name: "Save results", exact: true }).click();
   await page
     .getByLabel("Failed criterion")
     .locator("option")
     .filter({ hasText: "Synthetic criterion" })
     .waitFor({ state: "attached" });
+  checks.push(stage);
+  stage =
+    "save draft reload retains criterion note and evidence while Inspecting";
+  await page.reload();
+  await page.getByText(/^State: INSPECTING\./).waitFor();
+  if (
+    (await page.getByLabel("Note", { exact: true }).inputValue()) !==
+    "Synthetic criterion note\nSecond line"
+  )
+    throw Error("Draft note lost");
+  await page.getByText("Saved evidence files: 1", { exact: true }).waitFor();
+  if (
+    await page.getByRole("list", { name: "Missing inspection items" }).count()
+  )
+    throw Error("Stale missing-item list survived reload");
   checks.push(stage);
   const failed = await snapshot();
   await rejected(
@@ -173,12 +278,26 @@ try {
     reason,
     { ...headers, "If-Match": failed.etag },
   );
+  await missingItems("DEFECT_REQUIRED", "Add a defect with a description");
   const defect = {
     itemId: failed.body.criteria[0].itemId,
     severityId: fixture.severity,
     description: "Synthetic rejected defect",
     location: "Synthetic bed",
   };
+  await rejected(
+    "defect audit failure rolls back defect and uploaded file",
+    api + "/defects",
+    500,
+    {
+      ...defect,
+      description: "Synthetic audit fault",
+      photos: [
+        { name: "rollback.png", mimeType: "image/png", base64: "iVBORw0KGgo=" },
+      ],
+    },
+    { ...headers, "If-Match": failed.etag },
+  );
   await rejected(
     "foreign criterion",
     api + "/defects",
@@ -278,6 +397,14 @@ try {
   );
   stage = "concurrent finish with one shared ETag";
   const beforeFinish = await snapshot();
+  await rejected(
+    "finish audit failure rolls back lifecycle and revision",
+    api + "/finish",
+    500,
+    { reason: "Synthetic audit fault" },
+    { ...headers, "If-Match": beforeFinish.etag },
+  );
+  stage = "concurrent finish with one shared ETag";
   const racing = await Promise.all(
     [1, 2].map(() =>
       request(api + "/finish", {
@@ -300,6 +427,11 @@ try {
     .getByRole("button", { name: "Verify current state (GET)", exact: true })
     .click();
   await page.getByText(/^State: PENDING_CONCLUSION\./).waitFor();
+  await page
+    .getByText("Passed criteria: 0; failed criteria: 1; defects: 1.", {
+      exact: true,
+    })
+    .waitFor();
   checks.push(stage);
   stage = "edit defect while pending conclusion";
   await page
@@ -337,9 +469,10 @@ try {
       success: false,
       stage,
       checks,
-      screen: stage.startsWith("edit defect")
-        ? await browser.contexts()[0].pages()[0].locator("body").innerText()
-        : undefined,
+      screen:
+        stage.startsWith("edit defect") || stage.startsWith("save draft")
+          ? await browser.contexts()[0].pages()[0].locator("body").innerText()
+          : undefined,
       diagnostic: stage.startsWith("edit defect")
         ? String(error?.message ?? "Browser failure")
         : String(error?.message ?? "Browser failure").split("\n")[0],

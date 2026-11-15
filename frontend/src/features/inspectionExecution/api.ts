@@ -10,11 +10,19 @@ import {
   type EvidenceUpload,
   type SeverityOption,
 } from "./model";
+export interface InspectionIncomplete {
+  versionId: number;
+  missingItems: Array<{
+    itemId: number;
+    requirement: "RESULT_REQUIRED" | "DEFECT_REQUIRED";
+  }>;
+}
 export class InspectionApiError extends Error {
   constructor(
     public status: number,
     message: string,
     public uncertain = false,
+    public incomplete?: InspectionIncomplete,
   ) {
     super(message);
   }
@@ -46,6 +54,7 @@ export function createInspectionApi(
     body?: unknown,
     etag?: string,
     signal?: AbortSignal,
+    finishSource?: { branch: number; id: number },
   ): Promise<Response> {
     const active = signal ? AbortSignal.any([signal, lifetime]) : lifetime;
     active.throwIfAborted();
@@ -103,6 +112,41 @@ export function createInspectionApi(
     active.throwIfAborted();
     if (!response.ok) {
       if (response.status === 401) authority.onSessionInvalid?.(); // Synchronous, while operation remains live.
+      if (response.status === 400 && finishSource) {
+        const body = await response.json().catch(() => null);
+        active.throwIfAborted();
+        if (
+          body?.title === "INSPECTION_INCOMPLETE" &&
+          body.messageCode === "MSG03" &&
+          body.inspectionId === finishSource.id &&
+          body.branchId === finishSource.branch &&
+          body.etag === etag &&
+          Number.isSafeInteger(body.versionId) &&
+          body.versionId > 0 &&
+          Array.isArray(body.missingItems) &&
+          body.missingItems.length > 0 &&
+          body.missingItems.every((item: unknown) => {
+            if (!item || typeof item !== "object") return false;
+            const entry = item as Record<string, unknown>;
+            return (
+              Number.isSafeInteger(entry.itemId) &&
+              (entry.itemId as number) > 0 &&
+              ["RESULT_REQUIRED", "DEFECT_REQUIRED"].includes(
+                entry.requirement as string,
+              )
+            );
+          }) &&
+          new Set(
+            body.missingItems.map((item: { itemId: number }) => item.itemId),
+          ).size === body.missingItems.length
+        )
+          throw new InspectionApiError(
+            400,
+            "MSG03: Complete the missing items, save your changes, then finish inspection.",
+            false,
+            { versionId: body.versionId, missingItems: body.missingItems },
+          );
+      }
       throw new InspectionApiError(
         response.status,
         response.status === 401
@@ -411,6 +455,7 @@ export function createInspectionApi(
           { reason: reason(inputReason) },
           etag,
           signal,
+          { branch, id },
         ),
         branch,
         id,
