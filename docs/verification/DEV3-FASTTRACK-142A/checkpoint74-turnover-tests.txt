@@ -1,0 +1,13 @@
+✔ turnover uses cookie GET, allowlisted UTC filters and cancellation with no mutation (18.7404ms)
+✔ turnover rejects wrong room, branch, invented accepted outcome and pagination (1.3615ms)
+✔ turnover rejects unsafe query before network and propagates unavailable result filter (0.4873ms)
+✔ detail enforces cycle/source/evidence identity and does not expose denied Inspection subset (1.3761ms)
+✔ history 401/403/404/503 errors never trigger retry or prototype fallback (0.9401ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.7222

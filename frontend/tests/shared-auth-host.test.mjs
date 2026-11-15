@@ -137,21 +137,25 @@ async function pageAt(path, status) {
 }
 
 test("inspection history admission denial never mounts the history workspace", async () => {
+  for (const destination of ["/inspection-history/42?branchId=7", "/inspection-history?branchId=7"]) {
   for (const status of [403, 503]) {
-    const p = await pageAt("/inspection-history/42?branchId=7");
+    const p = await pageAt(destination);
     await p.evaluate(status => {
       window.businessReply = { status, body: {} };
       window.fixture.set("AUTHENTICATED");
     }, status);
     await p.getByText("Inspection history is unavailable or access has changed.", { exact: true }).waitFor();
-    assert.ok((await p.evaluate(() => window.calls)).every(path => path === "/api/inspection-history/42?branchId=7"));
+    assert.ok((await p.evaluate(() => window.calls)).every(path => destination.includes("/42")
+      ? path === "/api/inspection-history/42?branchId=7" : path.startsWith("/api/inspection-history?branchId=7&")));
     assert.equal(await p.getByRole("heading", { name: "Defects", exact: true }).count(), 0);
     await p.close();
+  }
   }
 });
 
 test("inspection history validates destination before any business read", async () => {
-  for (const path of ["/inspection-history/0?branchId=7", "/inspection-history/42?branchId=7&branchId=8", "/inspection-history/42?branchId=7&extra=1"]) {
+  for (const path of ["/inspection-history/0?branchId=7", "/inspection-history/42?branchId=7&branchId=8", "/inspection-history/42?branchId=7&extra=1",
+    "/inspection-history?branchId=0", "/inspection-history?branchId=7&branchId=8", "/inspection-history?branchId=7&extra=1"]) {
     const p = await pageAt(path, "AUTHENTICATED");
     await p.getByText("Invalid inspection history destination.", { exact: true }).waitFor();
     assert.deepEqual(await p.evaluate(() => window.calls), []);

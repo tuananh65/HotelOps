@@ -58,7 +58,7 @@ public sealed partial class RoomTypeCreationService
         new HistoryInspectionDto(i.InspectionId, i.InspectionNo, i.RoomId, i.Room.RoomNumber, i.Room.BranchId, i.CleaningTaskId,
             i.VersionId, i.Version.VersionNo, i.InspectorUserId, i.InspectorUser.FullName, i.Status, i.Result,
             i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt, i.SummaryNote,
-            i.CleaningReworks.Count(r => r.CleaningTask.RoomId == i.RoomId && r.CleaningTaskId == i.CleaningTaskId)));
+            i.CleaningReworks.Count(r => r.CleaningTask.RoomId == i.RoomId && r.CleaningTaskId == i.CleaningTaskId), null, null, null));
 
     public Task<RoomTypeBatchResult> InspectionHistoryAsync(SessionReference ticket, long sid, OperationalHistoryQuery input, long? inspectionId, CancellationToken ct, long? attachmentId = null, string? privateRoot = null)
     {
@@ -91,11 +91,17 @@ public sealed partial class RoomTypeCreationService
             if (q.To is { } to) inspections = inspections.Where(x => (x.InspectedAt ?? x.ScheduledAt ?? x.CreatedAt) <= to);
             if (q.Result != null) inspections = inspections.Where(x => x.Result == q.Result);
             if (q.InspectorId != null) inspections = inspections.Where(x => x.InspectorUserId == q.InspectorId);
-            if (q.HousekeeperId != null) inspections = inspections.Where(x => x.CleaningTaskId != null && x.CleaningTask!.CleaningAssignments.Any(a => a.AssigneeUserId == q.HousekeeperId));
+            if (q.HousekeeperId != null)
+            {
+                if (!await CleanerAttributionInstalled(token)) return new(RoomTypeBatchStatus.SchemaRequired);
+                var cleaned = HistoricalInspectionCleaners().Where(a => a.UserId == q.HousekeeperId).Select(a => a.InspectionId);
+                inspections = inspections.Where(x => cleaned.Contains(x.InspectionId));
+            }
             if (q.Search != null) inspections = inspections.Where(x => x.InspectionNo.Contains(q.Search) || x.Room.RoomNumber.Contains(q.Search) || x.SummaryNote != null && x.SummaryNote.Contains(q.Search));
             var total = await inspections.CountAsync(token);
             var page = await HistoryInspectionRows(inspections.OrderByDescending(x => x.InspectedAt ?? x.ScheduledAt ?? x.CreatedAt)
                 .ThenByDescending(x => x.InspectionId).Skip((q.Page - 1) * q.PageSize).Take(q.PageSize)).TagWith("UC048:Page").ToArrayAsync(token);
+            page = await WithHistoryCounts(page, token);
             if (!await HistoryFinal("INSPECTION_VIEW", branches, token)) return new(RoomTypeBatchStatus.Forbidden);
             return new(RoomTypeBatchStatus.Success, new OperationalHistoryPage<HistoryInspectionDto>(page, total, q));
         }, ct, allowScopedList: true, requireRoomTypeSchema: false, permissionCode: "INSPECTION_VIEW");
@@ -184,7 +190,11 @@ public sealed partial class RoomTypeCreationService
         .Select(r => new HistoryReworkDto(r.ReworkId, r.CleaningTaskId, r.InspectionId, r.AssigneeUserId, r.Reason, r.Status, r.RequestedAt, r.CompletedAt, r.Note)).ToArrayAsync(ct);
     private async Task<HistoryInspectionDetailDto[]> HistoryInspectionDetails(HistoryInspectionDto[] rows, CancellationToken ct)
     {
+        rows = await WithHistoryCounts(rows, ct);
         var ids = rows.Select(x => x.Id).ToArray(); var versions = rows.Select(x => x.VersionId).Distinct().ToArray();
+        var cleaners = await CleanerAttributionInstalled(ct)
+            ? await HistoricalInspectionCleaners().Where(a => ids.Contains(a.InspectionId)).ToDictionaryAsync(a => a.InspectionId, ct)
+            : new Dictionary<long, HistoricalInspectionCleaner>();
         var cycles = rows.Where(x => x.CleaningTaskId != null).Select(x => x.CleaningTaskId!.Value).Distinct().ToArray();
         var items = await db.InspectionChecklistItems.AsNoTracking().Where(x => versions.Contains(x.VersionId)).OrderBy(x => x.SortOrder).ThenBy(x => x.ItemId).ToArrayAsync(ct);
         var itemIds = items.Select(i => i.ItemId).ToArray();
@@ -197,6 +207,7 @@ public sealed partial class RoomTypeCreationService
         var reworks = await Reworks(cycles, ct); var assignments = await Assignments(cycles, ct);
         var related = await HistoryInspectionRows(db.RoomInspections.AsNoTracking().Where(i => cycles.Contains(i.CleaningTaskId ?? 0) && i.RoomId == i.CleaningTask!.RoomId)
             .OrderBy(i => i.InspectedAt ?? i.ScheduledAt ?? i.CreatedAt).ThenBy(i => i.InspectionId)).ToArrayAsync(ct);
+        related = await WithHistoryCounts(related, ct);
         var evidence = await HistoryEvidence(cycles, ids, defects.Select(d => d.DefectId).ToArray(), reworks.Select(r => r.Id).ToArray(), "", 0, ct);
         var locations = Array.Empty<DefectLocationRow>(); var defectFiles = Array.Empty<InspectionPhotoRow>(); var resultFiles = Array.Empty<InspectionPhotoRow>();
         if (await HousekeepingSchema.InstalledAsync(db, ct))
@@ -220,7 +231,9 @@ public sealed partial class RoomTypeCreationService
             reworks.Where(r => r.InspectionId == row.Id).ToArray(), related.Where(i => i.CleaningTaskId == row.CleaningTaskId).ToArray(),
             evidence.Where(e => e.EntityType == "INSPECTION" && e.EntityId == row.Id || e.EntityType == "CLEANING_TASK" && e.EntityId == row.CleaningTaskId
                 )
-                .Select(e => e with { DownloadPath = $"/api/inspection-history/{row.Id}/evidence/{e.Id}?branchId={row.BranchId}" }).ToArray())).ToArray();
+                .Select(e => e with { DownloadPath = $"/api/inspection-history/{row.Id}/evidence/{e.Id}?branchId={row.BranchId}" }).ToArray(),
+            cleaners.TryGetValue(row.Id, out var cleaner)
+                ? new HistoryCleanerDto(cleaner.UserId, cleaner.Name, cleaner.AssignmentId, DateTime.SpecifyKind(cleaner.CompletedAt, DateTimeKind.Utc)) : null)).ToArray();
     }
     public sealed class DefectLocationRow { public long InspectionId { get; set; } public long TargetId { get; set; } public string? Location { get; set; } }
     public sealed class InspectionPhotoRow { public long InspectionId { get; set; } public long TargetId { get; set; } public long AttachmentId { get; set; } }

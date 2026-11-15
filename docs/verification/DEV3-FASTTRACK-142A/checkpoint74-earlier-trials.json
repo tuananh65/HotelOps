@@ -1,0 +1,18 @@
+[
+    {
+        "trial":  1,
+        "success":  true,
+        "failure":  null,
+        "parentRecords":  22,
+        "historyFlows":  6,
+        "cleanup":  "Independent SQL cleanup PASS; original guards restored"
+    },
+    {
+        "trial":  2,
+        "success":  false,
+        "failure":  "SqlException: String or binary data would be truncated in table \u0027HotelOps_DEV3_142A_20261114_cc78c13f.dbo.cleaning_tasks\u0027, column \u0027task_no\u0027. Truncated value: \u0027D3-HISTORY-6B786546-D58F-4B58-AB8E-D18D2\u0027.\r\nThe statement has been terminated.",
+        "parentRecords":  4,
+        "historyFlows":  1,
+        "cleanup":  "Independent SQL cleanup PASS; original guards restored"
+    }
+]

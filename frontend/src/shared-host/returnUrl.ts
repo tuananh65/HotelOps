@@ -67,6 +67,10 @@ export function approvedReturnDestination(
     return safe;
   const assignedRework = /^\/cleaning\/reworks\/([1-9][0-9]*)$/.exec(path);
   const history = /^\/inspection-history\/([1-9][0-9]*)$/.exec(path);
+  if (path === "/inspection-history") {
+    const query = new URLSearchParams(safe.split("?")[1] || "");
+    if ([...query.keys()].every(key => key === "branchId")) return safe;
+  }
   if (history && Number.isSafeInteger(Number(history[1]))) {
     const query = new URLSearchParams(safe.split("?")[1] || "");
     if (

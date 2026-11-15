@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useLocation, useParams } from "react-router-dom";
+import { Link, useLocation, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { HistoryRoute } from "../features/inspectionHistory/HistoryRoute";
 import {
@@ -13,8 +13,25 @@ export function InspectionHistoryAuthRoute() {
   const { state } = useAuth();
   const { id } = useParams();
   const location = useLocation();
+  const [, setParams] = useSearchParams();
+  const [branchInput, setBranchInput] = useState("");
+  const [inputError, setInputError] = useState("");
   const query = new URLSearchParams(location.search);
-  let branch: number, inspection: number;
+  if (!id && !location.search) return (
+    <main>
+      <h1>Inspection history</h1>
+      <form onSubmit={(event) => {
+        event.preventDefault();
+        try { setParams({ branchId: String(positiveId(branchInput)) }); setInputError(""); }
+        catch { setInputError("Enter a valid branch ID."); }
+      }}>
+        <label>Branch ID<input inputMode="numeric" value={branchInput} onChange={event => setBranchInput(event.target.value)} /></label>
+        <button type="submit">View inspection history</button>
+      </form>
+      {inputError && <p role="alert">{inputError}</p>}
+    </main>
+  );
+  let branch: number, inspection: number | undefined;
   try {
     if (
       query.getAll("branchId").length !== 1 ||
@@ -22,7 +39,7 @@ export function InspectionHistoryAuthRoute() {
     )
       throw Error();
     branch = positiveId(query.get("branchId") ?? "");
-    inspection = positiveId(id ?? "");
+    inspection = id === undefined ? undefined : positiveId(id);
   } catch {
     return <p role="alert">Invalid inspection history destination.</p>;
   }
@@ -47,7 +64,7 @@ function AdmittedHistory({
   inspection,
 }: {
   branch: number;
-  inspection: number;
+  inspection?: number;
 }) {
   const { state, actions } = useAuth();
   const generation = state.authorityGeneration;
@@ -59,8 +76,8 @@ function AdmittedHistory({
     const abort = new AbortController();
     lifetime.current = abort;
     setAdmission("pending");
-    void createHistoryApi(branch, abort.signal)
-      .detail(inspection)
+    const api = createHistoryApi(branch, abort.signal);
+    void (inspection === undefined ? api.list({ page: 1, pageSize: 20 }) : api.detail(inspection))
       .then(() => {
         if (!abort.signal.aborted) setAdmission("granted");
       })
@@ -76,6 +93,7 @@ function AdmittedHistory({
     <main>
       <h1>Inspection history</h1>
       <Link to="/notifications">Notifications</Link>
+      <Link to="/inspection-history">Change branch</Link>
       {admission === "pending" && (
         <p role="status">Checking inspection history access...</p>
       )}
@@ -86,7 +104,7 @@ function AdmittedHistory({
       )}
       {admission === "granted" && state.session && (
         <HistoryRoute
-          initialId={String(inspection)}
+          initialId={inspection === undefined ? undefined : String(inspection)}
           context={{
             authorization: "granted",
             sessionKey: "admitted-history",

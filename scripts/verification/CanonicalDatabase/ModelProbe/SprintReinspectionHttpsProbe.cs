@@ -199,6 +199,8 @@ internal static class SprintReinspectionHttpsProbe
                     executorTicket,executorSid,password,ct);
             }
             finally { if (!process.HasExited) process.Kill(true); }
+            if (Environment.GetEnvironmentVariable("DEV3_INSPECTION_HISTORY") == "1")
+                await SprintInspectionHistoryProbe.VerifyAsync(db, actor, password, branch, rework, ct);
             host.Kill(true); await host.WaitForExitAsync(ct); await output; await errors;
         }
         finally

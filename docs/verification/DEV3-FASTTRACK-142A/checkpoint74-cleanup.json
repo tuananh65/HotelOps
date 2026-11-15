@@ -1,0 +1,21 @@
+{
+    "success":  true,
+    "runtimeSuccess":  true,
+    "parentCheckRecords":  22,
+    "historyBrowserFlows":  8,
+    "historyCheckRecords":  114,
+    "historyModes":  [
+                         "supervisor",
+                         "later-cycle",
+                         "operations",
+                         "revoked",
+                         "supervisor",
+                         "later-cycle",
+                         "operations",
+                         "revoked"
+                     ],
+    "sqlCleanup":  "PASS exact GUID/run identity; zero synthetic rows; original guards restored",
+    "httpsListeners":  0,
+    "privateFiles":  0,
+    "sharedDatabaseMutation":  false
+}

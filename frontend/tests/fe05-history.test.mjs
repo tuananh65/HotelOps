@@ -21,6 +21,15 @@ const { createHistoryApi, HistoryError } =
   await import("../.test-output/history/api.mjs");
 const { HistoryRoute, historyScope } =
   await import("../.test-output/history/HistoryRoute.mjs");
+await build({ entryPoints: ["src/shared-host/returnUrl.ts"], outfile: ".test-output/history/returnUrl.mjs", bundle: true, platform: "node", format: "esm" });
+const { approvedReturnDestination } = await import("../.test-output/history/returnUrl.mjs");
+test("history list return admission keeps exact branch query and requires revalidation", () => {
+  assert.equal(approvedReturnDestination("/inspection-history", true), "/inspection-history");
+  assert.equal(approvedReturnDestination("/inspection-history?branchId=7", true), "/inspection-history?branchId=7");
+  for (const path of ["/inspection-history?branchId=7&branchId=8", "/inspection-history?branchId=0", "/inspection-history?scope=ALL"])
+    assert.equal(approvedReturnDestination(path, true), null);
+  assert.equal(approvedReturnDestination("/inspection-history?branchId=7", false), null);
+});
 const host = {
   authorization: "granted",
   sessionKey: "s1",
@@ -112,6 +121,28 @@ const detail = () => ({
   ],
   cycleInspections: [row()],
   evidence: [evidence()],
+});
+
+test("official completedBy must match retained assignment identity", () => {
+  const value = detail();
+  value.completedBy = { userId: 2, name: "Cleaner", assignmentId: 1, completedAt: "2026-11-13T10:00:00Z" };
+  assert.equal(m.decodeDetail(value, 7, 42).completedBy.userId, 2);
+  assert.throws(() => m.decodeDetail({ ...value, completedBy: { ...value.completedBy, userId: 99 } }, 7, 42));
+  assert.throws(() => m.decodeDetail({ ...value, completedBy: { ...value.completedBy, assignmentId: 99 } }, 7, 42));
+  assert.throws(() => m.decodeDetail({ ...value, completedBy: { ...value.completedBy, completedAt: "invalid" } }, 7, 42));
+});
+
+test("history counts retain separate scopes and reject invalid totals", () => {
+  const value = detail();
+  value.inspection.defectCount = 1;
+  value.inspection.reinspectionCount = 2;
+  value.inspection.cycleFailedInspectionCount = 3;
+  assert.equal(m.decodeDetail(value, 7, 42).inspection.reinspectionCount, 2);
+  for (const key of ["defectCount", "reinspectionCount", "cycleFailedInspectionCount"]) {
+    assert.throws(() => m.decodeDetail({ ...value, inspection: { ...value.inspection, [key]: -1 } }, 7, 42));
+    assert.throws(() => m.decodeDetail({ ...value, inspection: { ...value.inspection, [key]: 1.5 } }, 7, 42));
+    assert.equal(m.decodeDetail({ ...value, inspection: { ...value.inspection, [key]: null } }, 7, 42).inspection[key], null);
+  }
 });
 const q = { page: 1, pageSize: 20 };
 const page = () => ({

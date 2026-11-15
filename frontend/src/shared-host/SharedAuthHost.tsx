@@ -77,7 +77,13 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
-      {notificationsEnabled && (
+      {(notificationsEnabled || inspectionExecutionEnabled) && (
+        <Route
+          path="/inspection-history"
+          element={<Protected><InspectionHistoryAuthRoute /></Protected>}
+        />
+      )}
+      {(notificationsEnabled || inspectionExecutionEnabled) && (
         <Route
           path="/inspection-history/:id"
           element={
@@ -261,6 +267,7 @@ export function SharedAuthHost({
         element={
           <Protected>
             <Link to="/profile">Profile</Link>
+            {(inspectionExecutionEnabled || notificationsEnabled) && <Link to="/inspection-history">Inspection history</Link>}
             {usersReadEnabled && <Link to="/users">Users</Link>}
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}

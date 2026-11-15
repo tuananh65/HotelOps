@@ -244,7 +244,7 @@ export function HistoryWorkspace({
             value={form.pageSize}
             onChange={(e) => setForm({ ...form, pageSize: e.target.value })}
           >
-            {[10, 20, 50, 100].map((value) => (
+            {[1, 10, 20, 50, 100].map((value) => (
               <option key={value}>{value}</option>
             ))}
           </select>
@@ -261,7 +261,7 @@ export function HistoryWorkspace({
             {page.total} bản ghi · Trang {page.filters.page}
           </p>
           {!page.items.length ? (
-            <p>Không có lịch sử khớp bộ lọc đã áp dụng.</p>
+            <p role="status">MSG10 — Không có lịch sử khớp bộ lọc đã áp dụng.</p>
           ) : (
             <table>
               <caption>Lịch sử Inspection</caption>
@@ -274,7 +274,10 @@ export function HistoryWorkspace({
                   <th>Checklist lịch sử</th>
                   <th>Trạng thái / Kết quả</th>
                   <th>Cleaning task</th>
-                  <th>Rework (API)</th>
+                  <th>Lượt yêu cầu làm lại</th>
+                  <th>Lỗi của lượt kiểm tra</th>
+                  <th>Kiểm lại trong cleaning cycle</th>
+                  <th>Lượt không đạt trong cleaning cycle</th>
                 </tr>
               </thead>
               <tbody>
@@ -298,6 +301,9 @@ export function HistoryWorkspace({
                     </td>
                     <td>{row.cleaningTaskId ?? "—"}</td>
                     <td>{row.reworkCount}</td>
+                    <td>{row.defectCount ?? "Chưa xác minh"}</td>
+                    <td>{row.reinspectionCount ?? "Chưa xác minh"}</td>
+                    <td>{row.cycleFailedInspectionCount ?? "Chưa xác minh"}</td>
                   </tr>
                 ))}
               </tbody>
@@ -323,7 +329,11 @@ export function HistoryWorkspace({
           <h2>{detail.inspection.number}</h2>
           <InspectionSummary row={detail.inspection} />
           <p>{detail.inspection.summary}</p>
-          <h3>Nhân viên liên quan</h3>
+          <h3>Người hoàn tất dọn phòng</h3>
+          <p>{detail.completedBy
+            ? `${detail.completedBy.name} (#${detail.completedBy.userId}) · ${detail.completedBy.completedAt}`
+            : "Chưa có bằng chứng xác nhận người hoàn tất dọn phòng."}</p>
+          <h3>Lịch sử phân công dọn phòng</h3>
           {detail.housekeepers.map((a) => (
             <p key={a.id}>
               {a.name} (#{a.userId}) · {a.status} · {a.assignedAt} —{" "}
@@ -421,6 +431,8 @@ function InspectionSummary({ row }: { row: Inspection }) {
       Checklist #{row.versionId} v{row.versionNumber} · {row.inspectorName} (#
       {row.inspectorId}) · {row.status} / {row.result ?? "Chưa kết luận"} ·{" "}
       {row.at}
+      {" · "}Lỗi: {row.defectCount ?? "Chưa xác minh"} · Kiểm lại trong cycle: {row.reinspectionCount ?? "Chưa xác minh"}
+      {" · "}Không đạt trong cycle: {row.cycleFailedInspectionCount ?? "Chưa xác minh"}
     </p>
   );
 }

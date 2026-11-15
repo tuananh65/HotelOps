@@ -8,7 +8,8 @@ public sealed record HistoryAssignmentDto(long Id, long UserId, string Name, str
 public sealed record HistoryProgressDto(long Id, int Percent, string? Status, long? BlockerTypeId, string? Note, long ActorId, DateTime At);
 public sealed record HistoryInspectionDto(long Id, string Number, long RoomId, string RoomNumber, long BranchId, long? CleaningTaskId,
     long VersionId, int VersionNumber, long InspectorId, string InspectorName, string Status, string? Result,
-    DateTime At, string? Summary, int ReworkCount);
+    DateTime At, string? Summary, int ReworkCount, int? DefectCount = null,
+    int? ReinspectionCount = null, int? CycleFailedInspectionCount = null);
 public sealed record HistoryCriterionDto(long? Id, long ItemId, string Criterion, string? Description, bool Mandatory, string? PassCondition,
     string? Outcome, string? Note, DateTime? At, string? Group = null, IReadOnlyList<long>? EvidenceIds = null);
 public sealed record HistoryDefectDto(long Id, long? ItemId, string Description, string Status, long? SeverityId,
@@ -19,7 +20,8 @@ public sealed record HistoryEvidenceDto(long Id, string EntityType, long EntityI
 public sealed record HistoryInspectionDetailDto(HistoryInspectionDto Inspection, IReadOnlyList<HistoryAssignmentDto> Housekeepers,
     IReadOnlyList<HistoryCriterionDto> Criteria, IReadOnlyList<HistoryDefectDto> Defects,
     IReadOnlyList<HistoryReworkDto> Reworks, IReadOnlyList<HistoryInspectionDto> CycleInspections,
-    IReadOnlyList<HistoryEvidenceDto> Evidence);
+    IReadOnlyList<HistoryEvidenceDto> Evidence, HistoryCleanerDto? CompletedBy = null);
+public sealed record HistoryCleanerDto(long UserId, string Name, long AssignmentId, DateTime CompletedAt);
 public sealed record HistoryCycleDto(long Id, string Number, long RoomId, string RoomNumber, long BranchId, string CleaningType,
     string Status, DateTime At, DateTime? Start, DateTime? End, string? Result, int ReworkCount, string? CancellationReason,
     IReadOnlyList<HistoryAssignmentDto> Assignees);

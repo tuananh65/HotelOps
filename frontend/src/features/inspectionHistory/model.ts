@@ -1,6 +1,6 @@
-// Existing OperationalHistoryDtos.cs contract. Counts are not interchangeable:
-// DEFECT_COUNT_SEMANTICS / REINSPECTION_COUNT_SEMANTICS / DEPARTMENT_AUTHORIZATION
-// remain REQUIRES_CONFIRMATION. No inferred count or department grant here.
+// Counts have distinct scopes: this inspection's defects; explicitly bound
+// reinspection rounds and concluded failures in its cleaning cycle. Null is unknown.
+// API admission determines current scope; a count grants no additional access.
 export const MAX_EVIDENCE_BYTES = 10 * 1024 * 1024;
 export interface Filters {
   roomId?: number | null;
@@ -29,6 +29,9 @@ export interface Inspection {
   at: string;
   summary: string | null;
   reworkCount: number;
+  defectCount?: number | null;
+  reinspectionCount?: number | null;
+  cycleFailedInspectionCount?: number | null;
 }
 export interface Assignment {
   id: number;
@@ -87,6 +90,7 @@ export interface Evidence {
 }
 export interface Detail {
   inspection: Inspection;
+  completedBy?: { userId: number; name: string; assignmentId: number; completedAt: string } | null;
   housekeepers: Assignment[];
   criteria: Criterion[];
   defects: Defect[];
@@ -188,6 +192,7 @@ function inspection(v: unknown, branch: number): v is Inspection {
     id(v.versionNumber) &&
     id(v.inspectorId) &&
     count(v.reworkCount) &&
+    [v.defectCount, v.reinspectionCount, v.cycleFailedInspectionCount].every(value => value == null || count(value)) &&
     [v.number, v.roomNumber, v.inspectorName, v.status].every(str) &&
     text(v.result) &&
     text(v.summary) &&
@@ -268,6 +273,9 @@ export function decodeDetail(
         (c.group === undefined || text(c.group)) &&
         evidenceIds(c.evidenceIds),
     ) ||
+    (v.completedBy != null && !(obj(v.completedBy) && id(v.completedBy.userId) && str(v.completedBy.name)
+      && id(v.completedBy.assignmentId) && date(v.completedBy.completedAt)
+      && v.housekeepers.some((a: Assignment) => a.id === v.completedBy.assignmentId && a.userId === v.completedBy.userId))) ||
     !list(
       v.defects,
       (d) =>
