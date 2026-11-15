@@ -124,8 +124,12 @@ export function RequestReworkForm({
       </button>
       {receipt ? (
         <p role="status">
-          Rework #{receipt.id} is pending acceptance. Notification:{" "}
-          {receipt.notification}.
+          Rework #{receipt.id} is pending acceptance.{" "}
+          {receipt.notification === "PENDING_DELIVERY"
+            ? "The assignee notification is queued for delivery."
+            : receipt.notification === "DELIVERED"
+              ? "The assignee has been notified."
+              : "Assignee notification delivery has not been confirmed."}
         </p>
       ) : options?.existingReworkId ? (
         <p role="alert">

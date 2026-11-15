@@ -50,4 +50,3 @@ internal static class SprintRejectionDeliveryProbe
         if(await Pending()!=0)throw new Exception("Completed failed event still pending");
     }
 }
-
