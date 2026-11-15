@@ -101,6 +101,27 @@ const source = {
     },
   ],
 };
+test("canonical submission binds the durable publication and never accepts usable room readiness", async () => {
+  for (const readiness of ["BLOCKED", "PENDING_INSPECTION", "PENDING_CLEANING", "READY", "UNKNOWN"]) {
+    for (const matchingPublication of [true, false]) {
+      globalThis.fetch = async (url) => url.endsWith("/auth/csrf")
+        ? Response.json({ headerName: "X-CSRF-TOKEN", csrfToken: "token" })
+        : Response.json({
+          id: 3, branchId: 2, cleaningTaskId: 4, inspectionId: 5, assigneeId: 7,
+          action: "complete", state: "PENDING_REINSPECTION", operationId: operation,
+          sourceETag: tag, occurredAtUtc: "2026-11-15T00:00:00Z", intervalId: 9,
+          publicationId: matchingPublication ? operation : crypto.randomUUID(), readiness,
+          notification: "PENDING_DELIVERY", contract: "FE04_REWORK_SUBMISSION_V1",
+        }, { headers: { ETag: tag } });
+      const result = mutateRework("2", "3", "complete", tag, operation,
+        { note: "Submit", remediations: [{ defectId: 8, note: "Fixed" }] },
+        { signal: new AbortController().signal, isCurrent: () => true });
+      if (matchingPublication && ["BLOCKED", "PENDING_INSPECTION", "PENDING_CLEANING"].includes(readiness))
+        assert.equal((await result).state, "PENDING_REINSPECTION");
+      else await assert.rejects(result, /INVALID_REWORK_RESPONSE/);
+    }
+  }
+});
 test("rework read binds identity, ETag and committed source, cookie transport and cancellation", async () => {
   const abort = new AbortController();
   globalThis.fetch = async (url, opts) => {

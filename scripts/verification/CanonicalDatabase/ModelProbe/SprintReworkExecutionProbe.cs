@@ -74,7 +74,8 @@ internal static class SprintReworkExecutionProbe
             var room=await db.CleaningReworks.Where(w=>w.ReworkId==id).Select(w=>w.CleaningTask.RoomId).SingleAsync(ct);
             var now=DateTime.UtcNow;
             var expectedReadiness=await db.RoomBlocks.AnyAsync(b=>b.RoomId==room&&b.BlockedAt<=now&&(b.ReleasedAt==null||b.ReleasedAt>now),ct)?"BLOCKED":"REWORK_REQUIRED";
-            await SprintReworkHttpsProbe.VerifyAsync(db,actor,branch,id,username,password,expectedReadiness,ct);
+            await SprintReworkSubmissionProbe.VerifyAsync(db,ticket,sid,branch,id,ct,
+                ()=>SprintReworkHttpsProbe.VerifyAsync(db,actor,branch,id,username,password,expectedReadiness,ct,submission:true));
             var before=await Tag();var acceptKey=Guid.NewGuid();
             if((await Call("start",before,Guid.NewGuid())).Status!=RoomTypeBatchStatus.Inactive)throw new Exception("Start bypassed acceptance");
             var accepted=await Call("accept",before,acceptKey);

@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintReworkHttpsProbe
 {
-    internal static async Task VerifyAsync(HotelOpsDbContext db,long actor,long branch,long rework,string username,string password,string readiness,CancellationToken ct)
+    internal static async Task VerifyAsync(HotelOpsDbContext db,long actor,long branch,long rework,string username,string password,string readiness,CancellationToken ct,bool submission=false)
     {
         if(await db.Database.SqlQueryRaw<int>("""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='meita'
@@ -38,6 +38,14 @@ internal static class SprintReworkHttpsProbe
         Process? host=null;
         try
         {
+            if(submission)await db.Database.ExecuteSqlRawAsync("""
+                ALTER ROLE hotelops_rework_submission_writer ADD MEMBER DEV3_142A_ReworkHttps;
+                GRANT UPDATE ON dbo.work_intervals TO DEV3_142A_ReworkHttps;
+                GRANT UPDATE ON dbo.cleaning_rework_defects TO DEV3_142A_ReworkHttps;
+                GRANT INSERT ON dbo.attachments TO DEV3_142A_ReworkHttps;
+                GRANT INSERT ON dbo.fs016_rework_evidence TO DEV3_142A_ReworkHttps;
+                DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO DEV3_142A_ReworkHttps;
+                """,ct);
             var department=await db.Users.Where(u=>u.UserId==actor).Select(u=>u.DepartmentId!.Value).SingleAsync(ct);
             db.Workdays.Add(new Workday{UserId=actor,BranchId=branch,DepartmentId=department,WorkDate=DateOnly.FromDateTime(DateTime.UtcNow),
                 IsUnscheduled=true,UnscheduledReason="Synthetic HTTPS receive fixture",Status="WORKING",StartedAt=DateTime.UtcNow.AddMinutes(-1)});
@@ -73,22 +81,24 @@ internal static class SprintReworkHttpsProbe
             {
                 try
                 {
-                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch,rework,readiness}).AsMemory(),ct);process.StandardInput.Close();
+                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch,rework,readiness,submission}).AsMemory(),ct);process.StandardInput.Close();
                     var browserOutput=process.StandardOutput.ReadToEndAsync(ct);var browserErrors=process.StandardError.ReadToEndAsync(ct);
                     await process.WaitForExitAsync(ct);var result=JsonSerializer.Deserialize<JsonElement>(await browserOutput);await browserErrors;
                     if(process.ExitCode!=0||!result.GetProperty("success").GetBoolean())throw new Exception("Restricted receive browser: "+result.GetRawText());
                 }
                 finally{if(!process.HasExited)process.Kill(true);}
             }
-            if(await db.WorkIntervals.CountAsync(w=>w.UserId==actor&&w.WorkItemKind=="REWORK"&&w.WorkItemId==rework&&w.ClosedAt==null,ct)!=1
-                ||await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="cleaning_reworks"&&a.EntityId==rework.ToString(),ct)!=2
-                ||await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.cleaning_reworks WHERE rework_id={rework}").SingleAsync(ct)!="IN_PROGRESS")
+            if(await db.WorkIntervals.CountAsync(w=>w.UserId==actor&&w.WorkItemKind=="REWORK"&&w.WorkItemId==rework&&w.ClosedAt==null,ct)!=(submission?0:1)
+                ||await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="cleaning_reworks"&&a.EntityId==rework.ToString(),ct)!=(submission?3:2)
+                ||await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.cleaning_reworks WHERE rework_id={rework}").SingleAsync(ct)!=(submission?"PENDING_REINSPECTION":"IN_PROGRESS"))
                 throw new Exception("HTTPS receive did not persist one interval and two task audits");
+            if(submission)await SprintReworkSubmissionDeliveryProbe.VerifyAsync(db,actor,branch,rework,ct);
             host.Kill(true);await host.WaitForExitAsync(ct);await output;await errors;
         }
         finally
         {
             if(host!=null){if(!host.HasExited){host.Kill(true);await host.WaitForExitAsync(CancellationToken.None);}host.Dispose();}
+            if(submission)await db.Database.ExecuteSqlRawAsync("ALTER ROLE hotelops_rework_submission_writer DROP MEMBER DEV3_142A_ReworkHttps",CancellationToken.None);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 DELETE dbo.work_intervals WHERE user_id={actor} AND work_item_kind='REWORK' AND work_item_id={rework};
                 DELETE dbo.workdays WHERE user_id={actor};

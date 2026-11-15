@@ -149,6 +149,13 @@ internal static class SprintApprovalBrowserProbe
                         await SprintReworkAuthorityProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
                         await SprintReworkDeliveryProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
                         await SprintAssignedReworkProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
+                        checks.Add(new{blocked,submissionSql=true,submissionRemediationAttribution=true,submissionIntervalClosed=true,
+                            submissionUploadRollback=true,submissionAuditRollback=true,concurrentSubmissionOneReceipt=true,
+                            submissionChangedRequestDenied=true,submissionStaleDenied=true,submissionRevocationDenied=true,
+                            submissionDisabledIssuerDenied=true,submissionSchemaRestored=true,submissionHttps=true,
+                            submissionPerDefectForm=true,submissionPhotoHttps=true,submissionReload=true,submissionCsrfEtag=true,
+                            submissionDeliveryRollback=true,submissionDeliveryRevocation=true,submissionDeliveryDeduplicated=true,
+                            submissionSupervisorInboxHttps=true,submissionSupervisorSourceFailClosed=true});
                         checks.Add(new{blocked,committedAcceptStart=true,receiveReplay=true,changedRequestKeyDenied=true,
                             noWorkdayRollback=true,busyStartDenied=true,startAuditRollback=true,concurrentStartOneInterval=true,executionSchemaRestored=true});
                         checks.Add(new{blocked,restrictedReceiveBrowser=true,defectPhotoHttps=true,receiveCsrfEtag=true,receiveAcceptStartHttps=true,

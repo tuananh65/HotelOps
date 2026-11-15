@@ -13,7 +13,8 @@ export interface ReworkExecution {
   dueAtUtc: string | null;
   sourceETag: string;
   inspectionETag: string;
-  capability: "READ_ONLY" | "ACCEPT_START" | "PROVISIONAL_NOT_ACCEPTED";
+  capability:
+    "READ_ONLY" | "ACCEPT_START" | "SUBMIT_REWORK" | "PROVISIONAL_NOT_ACCEPTED";
   sourceAuthority: "FE05_COMMITTED_V1";
   defects: {
     id: number;
@@ -73,9 +74,12 @@ export async function readRework(
       "IN_PROGRESS",
       "PENDING_REINSPECTION",
     ].includes(d.state) ||
-    !["READ_ONLY", "ACCEPT_START", "PROVISIONAL_NOT_ACCEPTED"].includes(
-      d.capability,
-    ) ||
+    ![
+      "READ_ONLY",
+      "ACCEPT_START",
+      "SUBMIT_REWORK",
+      "PROVISIONAL_NOT_ACCEPTED",
+    ].includes(d.capability) ||
     d.sourceAuthority !== "FE05_COMMITTED_V1" ||
     !validTag(d.sourceETag) ||
     result.etag !== d.sourceETag ||
@@ -141,7 +145,7 @@ export async function mutateRework(
     throw Error("INVALID_REWORK_COMMAND");
   validateReworkCommand(action, command);
   scope?.signal.throwIfAborted();
-  if (scope && (!scope.isCurrent() || action === "complete"))
+  if (scope && !scope.isCurrent())
     throw new DOMException("Invalid current rework action", "AbortError");
   const csrf = (await getJson("/auth/csrf", scope?.signal)) as {
     headerName?: string;
@@ -181,7 +185,12 @@ export async function mutateRework(
     ![d.cleaningTaskId, d.inspectionId, d.assigneeId].every(validId) ||
     !validTag(d.sourceETag) ||
     response.etag !== d.sourceETag ||
-    d.contract !== (scope ? "FE05_COMMITTED_V1" : "PROVISIONAL_NOT_ACCEPTED") ||
+    d.contract !==
+      (scope
+        ? action === "complete"
+          ? "FE04_REWORK_SUBMISSION_V1"
+          : "FE05_COMMITTED_V1"
+        : "PROVISIONAL_NOT_ACCEPTED") ||
     typeof d.occurredAtUtc !== "string" ||
     !/Z$/.test(d.occurredAtUtc) ||
     !Number.isFinite(Date.parse(d.occurredAtUtc)) ||
@@ -192,12 +201,18 @@ export async function mutateRework(
         complete: "PENDING_REINSPECTION",
       }[action] ||
     (scope
-      ? !["BLOCKED", "REWORK_REQUIRED"].includes(d.readiness)
+      ? !(
+          action === "complete"
+            ? ["BLOCKED", "PENDING_INSPECTION", "PENDING_CLEANING"]
+            : ["BLOCKED", "REWORK_REQUIRED"]
+        ).includes(d.readiness)
       : d.readiness !==
         (action === "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED")) ||
     (action === "accept" ? d.intervalId !== null : !validId(d.intervalId)) ||
     (action === "complete"
-      ? !validGuid(d.publicationId) || d.notification !== "PENDING_DELIVERY"
+      ? !validGuid(d.publicationId) ||
+        d.notification !== "PENDING_DELIVERY" ||
+        (scope && d.publicationId.toLowerCase() !== operation.toLowerCase())
       : d.publicationId !== null || d.notification !== "NOT_REQUIRED")
   )
     invalid();

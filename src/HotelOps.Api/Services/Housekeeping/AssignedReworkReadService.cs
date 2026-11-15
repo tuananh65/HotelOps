@@ -26,10 +26,13 @@ public sealed partial class RoomTypeCreationService
             var proof=await ReadTrustedReworkAuthorityAsync(actor,branch,id,root,token);
             if(proof==null)return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"INSPECTION_AUTHORITY_UNPROVEN");
             var state=await ReworkState(id,token);
-            if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS"))
+            if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "PENDING_REINSPECTION"))
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_EXECUTION_READ_CONTRACT_REQUIRED");
+            var submitted=state.State=="PENDING_REINSPECTION";
+            if(submitted&&await ReadCurrentReworkSubmission(actor,branch,id,root,token)==null)
+                return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_SUBMISSION_UNPROVEN");
             // A legacy remediation writer is not composed into this initial receive/start contract.
-            if(await db.Database.SqlQueryRaw<int>("SELECT CASE WHEN COL_LENGTH('dbo.cleaning_rework_defects','remediation_note') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(token)==1
+            if(!submitted&&await db.Database.SqlQueryRaw<int>("SELECT CASE WHEN COL_LENGTH('dbo.cleaning_rework_defects','remediation_note') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(token)==1
                 &&await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id} AND remediation_note IS NOT NULL").SingleAsync(token)>0)
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_REMEDIATION_READ_CONTRACT_REQUIRED");
             var defects=await db.Database.SqlQuery<long>($"SELECT defect_id AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id}").ToArrayAsync(token);
@@ -45,11 +48,13 @@ public sealed partial class RoomTypeCreationService
                     SELECT l.attachment_id AS Value FROM dbo.inspection_defect_attachments l JOIN dbo.attachments a ON a.attachment_id=l.attachment_id
                     WHERE l.defect_id={defect} AND a.deleted_at IS NULL AND a.entity_type='INSPECTION' AND a.entity_id={row.InspectionId}
                     """).ToArrayAsync(token);
-                output.Add(new(defect,description,null,photos,[]));
+                var remediation=submitted?await db.Database.SqlQuery<string>($"SELECT remediation_note AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id} AND defect_id={defect}").SingleAsync(token):null;
+                var remediationPhotos=submitted?await db.Database.SqlQuery<long>($"SELECT attachment_id AS Value FROM dbo.fs016_rework_evidence WHERE rework_id={id} AND defect_id={defect}").ToArrayAsync(token):[];
+                output.Add(new(defect,description,remediation,photos,remediationPhotos));
             }
             if(attachmentId is {} file)
             {
-                var allowed=output.SelectMany(d=>d.InspectionAttachmentIds).ToArray();
+                var allowed=output.SelectMany(d=>d.InspectionAttachmentIds.Concat(d.RemediationAttachmentIds)).ToArray();
                 var metadata=await db.Attachments.AsNoTracking().Where(a=>a.AttachmentId==file&&allowed.Contains(a.AttachmentId)&&a.DeletedAt==null)
                     .Select(a=>new HotelOps.Api.DTOs.HotelStructure.HistoryEvidenceDto(a.AttachmentId,a.EntityType,a.EntityId,
                         a.OriginalFileName??a.FileName,a.MimeType,a.FileSizeBytes,a.UploadedAt,"")).ToArrayAsync(token);
@@ -61,7 +66,9 @@ public sealed partial class RoomTypeCreationService
                 WorkflowTag(proof.Binding.InspectionRevision),output,
                 state.State is "PENDING_ACCEPTANCE" or "ACCEPTED" && await AssignedReworkExecutionInstalled(token)
                     &&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
-                    ? "ACCEPT_START" : "READ_ONLY",ReworkAuthorityContract.Origin),WorkflowTag(state.Revision));
+                    ? "ACCEPT_START" : state.State=="IN_PROGRESS"&&await ReworkSubmissionInstalled(token)
+                        &&await ReworkSubmissionWriterAvailable(token)&&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
+                        ? "SUBMIT_REWORK" : "READ_ONLY",ReworkAuthorityContract.Origin),WorkflowTag(state.Revision));
         },ct,featurePermission:token=>ReworkAccess(ticket.UserId,branch,id,"CLEANING_VIEW",token),
             eligibility:token=>EligibleReworkAssignees(branch,clock.GetUtcNow().UtcDateTime).AnyAsync(u=>u.UserId==ticket.UserId,token));
     }

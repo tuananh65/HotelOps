@@ -6,7 +6,9 @@ import {
   readRework,
   mutateRework,
   type ReworkExecution,
+  type ReworkCommand,
 } from "../../api/dev1/reworkExecution";
+import { ReworkSubmissionForm } from "./ReworkSubmissionForm";
 
 export function AssignedReworkRead() {
   const { state, actions } = useAuth();
@@ -30,6 +32,7 @@ export function AssignedReworkRead() {
   const [saved, setSaved] = useState<{
     owner: typeof owner;
     source: string;
+    submitted: boolean;
   } | null>(null);
   const [result, setResult] = useState<{
     owner: typeof owner;
@@ -46,10 +49,15 @@ export function AssignedReworkRead() {
     void readRework(branch, id, abort.signal)
       .then((data) => {
         if (
-          !["READ_ONLY", "ACCEPT_START"].includes(data.capability) ||
-          !["PENDING_ACCEPTANCE", "ACCEPTED", "IN_PROGRESS"].includes(
-            data.state,
-          )
+          !["READ_ONLY", "ACCEPT_START", "SUBMIT_REWORK"].includes(
+            data.capability,
+          ) ||
+          ![
+            "PENDING_ACCEPTANCE",
+            "ACCEPTED",
+            "IN_PROGRESS",
+            "PENDING_REINSPECTION",
+          ].includes(data.state)
         )
           throw new ApiError(502, "UNSUPPORTED_REWORK_READ_STATE");
         if (!abort.signal.aborted) setResult({ owner, key, data });
@@ -76,7 +84,10 @@ export function AssignedReworkRead() {
   }, [owner, key, branch, id, actions]);
   const visible =
     owner && result?.owner === owner && result.key === key ? result : null;
-  async function execute(action: "accept" | "start") {
+  async function execute(
+    action: "accept" | "start" | "complete",
+    command?: ReworkCommand,
+  ) {
     const scope = lifetime.current;
     const data = visible?.data;
     if (
@@ -85,8 +96,16 @@ export function AssignedReworkRead() {
       scope.signal.aborted ||
       writing.current ||
       !data ||
-      data.capability !== "ACCEPT_START" ||
-      data.state !== (action === "accept" ? "PENDING_ACCEPTANCE" : "ACCEPTED")
+      currentOwner.current !== owner ||
+      data.capability !==
+        (action === "complete" ? "SUBMIT_REWORK" : "ACCEPT_START") ||
+      data.state !==
+        (action === "accept"
+          ? "PENDING_ACCEPTANCE"
+          : action === "start"
+            ? "ACCEPTED"
+            : "IN_PROGRESS") ||
+      (action === "complete" && !command)
     )
       return;
     writing.current = true;
@@ -98,14 +117,20 @@ export function AssignedReworkRead() {
         action,
         data.sourceETag,
         crypto.randomUUID(),
-        { note: action === "accept" ? "Accepted rework" : "Started rework" },
+        command || {
+          note: action === "accept" ? "Accepted rework" : "Started rework",
+        },
         {
           signal: scope.signal,
           isCurrent: () => currentOwner.current === owner,
         },
       );
       if (!scope.signal.aborted && currentOwner.current === owner) {
-        setSaved({ owner, source: `${branch}:${id}` });
+        setSaved({
+          owner,
+          source: `${branch}:${id}`,
+          submitted: action === "complete",
+        });
         setRevision((v) => v + 1);
       }
     } catch (error) {
@@ -144,7 +169,11 @@ export function AssignedReworkRead() {
       {visible?.data &&
         saved?.owner === owner &&
         saved.source === `${branch}:${id}` && (
-          <p role="status">Rework has been saved successfully.</p>
+          <p role="status">
+            {saved.submitted
+              ? "Rework has been submitted and is waiting for reinspection."
+              : "Rework has been saved successfully."}
+          </p>
         )}
       {busy && <p role="status">Saving rework...</p>}
       {visible?.data && (
@@ -162,6 +191,15 @@ export function AssignedReworkRead() {
             {visible.data.defects.map((defect) => (
               <li key={defect.id}>
                 <p>{defect.description}</p>
+                {defect.remediation && <p>Remediation: {defect.remediation}</p>}
+                {defect.remediationAttachmentIds.map((file) => (
+                  <a
+                    key={`remediation-${file}`}
+                    href={`/api/branches/${visible.data!.branchId}/reworks/${visible.data!.id}/evidence/${file}`}
+                  >
+                    View remediation photo {file}
+                  </a>
+                ))}
                 {defect.inspectionAttachmentIds.map((file) => (
                   <a
                     key={file}
@@ -186,8 +224,21 @@ export function AssignedReworkRead() {
               </button>
             )}
           {visible.data.capability === "READ_ONLY" && (
-            <p>Further actions are currently unavailable.</p>
+            <p>
+              {visible.data.state === "PENDING_REINSPECTION"
+                ? "Waiting for reinspection."
+                : "Further actions are currently unavailable."}
+            </p>
           )}
+          {visible.data.capability === "SUBMIT_REWORK" &&
+            visible.data.state === "IN_PROGRESS" && (
+              <ReworkSubmissionForm
+                key={visible.data.sourceETag}
+                data={visible.data}
+                busy={busy}
+                submit={(command) => execute("complete", command)}
+              />
+            )}
         </>
       )}
     </main>

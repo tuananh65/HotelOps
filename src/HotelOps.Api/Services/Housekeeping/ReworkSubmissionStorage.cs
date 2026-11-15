@@ -13,7 +13,7 @@ public sealed partial class RoomTypeCreationService
     private sealed record ReworkSubmissionReceipt(string Contract,string Issuer,int IssuerVersion,long ActorUserId,long BranchId,long ReworkId,
         Guid OperationId,long WriterTransactionId,Guid AuthorityOperationId,string SourceDigest,string RemediationDigest,ReworkCommandResult Entity);
     private sealed class SubmissionLedgerRow
-    {public string Json{get;set;}="";public byte[] Fingerprint{get;set;}=[];}
+    {public string Json{get;set;}="";public byte[] Fingerprint{get;set;}=[];public Guid OperationId{get;set;}}
     private sealed class SubmissionRemediationRow
     {public long DefectId{get;set;}public string? Note{get;set;}public long? Actor{get;set;}public DateTime? OccurredAt{get;set;}}
     private sealed class SubmissionFileRow
@@ -71,7 +71,7 @@ public sealed partial class RoomTypeCreationService
         byte[] fingerprint,string? root,CancellationToken ct)
     {
         var stored=await db.Database.SqlQuery<SubmissionLedgerRow>($"""
-            SELECT result_json AS Json,fingerprint AS Fingerprint FROM dbo.notification_operation_reservations WITH(HOLDLOCK)
+            SELECT result_json AS Json,fingerprint AS Fingerprint,operation_key AS OperationId FROM dbo.notification_operation_reservations WITH(HOLDLOCK)
             WHERE actor_user_id={actor} AND operation_key={operation} AND completed=1 AND fingerprint_version=1
             """).SingleOrDefaultAsync(ct);
         if(stored==null)return(false,null);
@@ -94,12 +94,26 @@ public sealed partial class RoomTypeCreationService
             JOIN dbo.cleaning_reworks w ON w.rework_id=p.rework_id AND w.inspection_id=p.inspection_id AND w.cleaning_task_id=p.cleaning_task_id
             JOIN dbo.fe04_rework_authority_issuers x ON x.issuer=p.issuer AND x.version=p.issuer_version AND x.is_active=1
             JOIN sys.sql_modules m ON m.object_id=x.writer_object_id AND m.execute_as_principal_id=-2
+            JOIN dbo.notification_operation_reservations original WITH(HOLDLOCK)
+              ON original.actor_user_id=p.actor_user_id AND original.operation_key=p.operation_key AND original.completed=1
             JOIN dbo.work_intervals wi ON wi.interval_id={entity.IntervalId} AND wi.user_id={actor} AND wi.branch_id={branch}
               AND wi.work_item_kind='REWORK' AND wi.work_item_id=w.rework_id AND wi.closed_by={actor} AND wi.closed_at={entity.OccurredAtUtc}
             WHERE p.rework_id={rework} AND p.branch_id={branch} AND w.assignee_user_id={actor}
               AND p.inspection_id={entity.InspectionId} AND p.cleaning_task_id={entity.CleaningTaskId}
               AND p.origin='FE05_COMMITTED_V1' AND p.issuer='FE05.UC045.UC046' AND p.contract_version=1
+              AND p.issuer_version=1 AND p.writer_transaction_id>0 AND p.writer_transaction_id<>CURRENT_TRANSACTION_ID()
+              AND x.writer_object_id=OBJECT_ID('dbo.fe05_issue_rework_authority')
               AND p.operation_key={receipt.AuthorityOperationId} AND CONVERT(varchar(64),p.source_digest,2)={receipt.SourceDigest}
+              AND JSON_VALUE(CASE WHEN ISJSON(original.result_json)=1 THEN original.result_json ELSE N'[]' END,'$.contract')='FE05_REWORK_AUTHORITY_V1'
+              AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(original.result_json)=1 THEN original.result_json ELSE N'[]' END,'$.writerTransactionId'))=p.writer_transaction_id
+              AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(original.result_json)=1 THEN original.result_json ELSE N'[]' END,'$.reworkId'))=p.rework_id
+              AND JSON_VALUE(CASE WHEN ISJSON(original.result_json)=1 THEN original.result_json ELSE N'[]' END,'$.sourceDigest')=CONVERT(varchar(64),p.source_digest,2)
+              AND (SELECT COUNT(*) FROM dbo.audit_logs originalAudit WITH(HOLDLOCK)
+                WHERE originalAudit.actor_user_id=p.actor_user_id AND originalAudit.branch_id=p.branch_id
+                  AND originalAudit.entity_type='cleaning_reworks' AND TRY_CONVERT(bigint,originalAudit.entity_id)=p.rework_id
+                  AND TRY_CONVERT(uniqueidentifier,JSON_VALUE(CASE WHEN ISJSON(originalAudit.new_values)=1 THEN originalAudit.new_values ELSE N'[]' END,'$.operationId'))=p.operation_key
+                  AND JSON_VALUE(CASE WHEN ISJSON(originalAudit.new_values)=1 THEN originalAudit.new_values ELSE N'[]' END,'$.authorityContract')='FE05_REWORK_AUTHORITY_V1'
+                  AND JSON_VALUE(CASE WHEN ISJSON(originalAudit.new_values)=1 THEN originalAudit.new_values ELSE N'[]' END,'$.sourceDigest')=CONVERT(varchar(64),p.source_digest,2))=1
               AND x.source_commit LIKE REPLICATE('[0-9a-f]',40)
               AND HASHBYTES('SHA2_256',CONVERT(varbinary(max),m.definition))=x.module_digest
             """).SingleAsync(ct)!=1)return(true,null);
@@ -114,5 +128,20 @@ public sealed partial class RoomTypeCreationService
         var remediation=await ReworkRemediationDigest(rework,entity.CleaningTaskId,actor,root,ct);
         return source!=null&&Convert.ToHexString(source.SourceDigest)==receipt.SourceDigest&&remediation!=null&&Convert.ToHexString(remediation)==receipt.RemediationDigest
             ?(true,receipt):(true,null);
+    }
+
+    private async Task<ReworkSubmissionReceipt?> ReadCurrentReworkSubmission(long actor,long branch,long rework,string? root,CancellationToken ct)
+    {
+        if(!await ReworkSubmissionInstalled(ct))return null;
+        var rows=await db.Database.SqlQuery<SubmissionLedgerRow>($"""
+            SELECT TOP(2) result_json AS Json,fingerprint AS Fingerprint,operation_key AS OperationId
+            FROM dbo.notification_operation_reservations WITH(HOLDLOCK)
+            WHERE actor_user_id={actor} AND completed=1 AND fingerprint_version=1
+              AND JSON_VALUE(CASE WHEN ISJSON(result_json)=1 THEN result_json ELSE N'[]' END,'$.contract')={ReworkSubmissionContract}
+              AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(result_json)=1 THEN result_json ELSE N'[]' END,'$.reworkId'))={rework}
+            ORDER BY operation_key
+            """).ToArrayAsync(ct);
+        if(rows.Length!=1)return null;
+        return (await ReadReworkSubmissionReceipt(actor,branch,rework,rows[0].OperationId,rows[0].Fingerprint,root,ct)).Receipt;
     }
 }

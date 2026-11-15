@@ -1,4 +1,5 @@
 import { chromium } from "@playwright/test";
+import { verifySubmission } from "./sprintReworkSubmitBrowser.mjs";
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const fixture = JSON.parse(input);
@@ -198,6 +199,10 @@ try {
     await page.getByRole("button", { name: /^(Accept|Start) rework$/ }).count()
   )
     throw Error("Completed receive actions remain enabled");
+  if (fixture.submission) {
+    stage = "submit rework";
+    await verifySubmission(page, fixture, path, startBody);
+  }
   process.stdout.write(
     JSON.stringify({
       success: true,
@@ -208,6 +213,7 @@ try {
       start: true,
       explicitReplay: true,
       reload: true,
+      submission: !!fixture.submission,
       effectiveReadiness: fixture.readiness,
     }),
   );

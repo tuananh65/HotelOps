@@ -8,10 +8,11 @@ using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.HotelStructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 internal static class SprintReworkSubmissionProbe
 {
-    internal static async Task VerifyAsync(HotelOpsDbContext db,SessionReference ticket,long sid,long branch,long id,CancellationToken ct)
+    internal static async Task VerifyAsync(HotelOpsDbContext db,SessionReference ticket,long sid,long branch,long id,CancellationToken ct,Func<Task>? browser=null)
     {
         var actor=ticket.UserId;
         var task=await db.CleaningReworks.Where(w=>w.ReworkId==id).Select(w=>w.CleaningTaskId).SingleAsync(ct);
@@ -26,7 +27,13 @@ internal static class SprintReworkSubmissionProbe
         async Task Install()
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"EXEC sys.sp_set_session_context @key=N'DEV3.SourceCommit',@value={commit}",ct);
-            await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintReworkSubmission.sql",ct),ct);
+            // Execute the reviewed batch verbatim: its JSON literals are not composite-format placeholders.
+            await using(var command=db.Database.GetDbConnection().CreateCommand())
+            {
+                command.Transaction=db.Database.CurrentTransaction!.GetDbTransaction();
+                command.CommandText=await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/ModelProbe/SprintReworkSubmission.sql",ct);
+                await command.ExecuteNonQueryAsync(ct);
+            }
             await db.Database.ExecuteSqlRawAsync("""
                 ALTER ROLE hotelops_rework_submission_writer ADD MEMBER DEV3_ReworkExecutor;
                 GRANT UPDATE ON dbo.cleaning_rework_defects TO DEV3_ReworkExecutor;
@@ -92,6 +99,7 @@ internal static class SprintReworkSubmissionProbe
         }
         try
         {
+            if(browser!=null){await browser();return;}
             if((await Call(Guid.NewGuid(),body,"\"FFFFFFFFFFFFFFFF\"")).Status!=RoomTypeBatchStatus.Stale)throw new Exception("Stale submission admitted");
             try{await Call(Guid.NewGuid(),body with{Remediations=[]});throw new Exception("Missing remediation admitted");}
             catch(ValidationException){}
@@ -118,6 +126,19 @@ internal static class SprintReworkSubmissionProbe
                 ||await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.notification_operation_reservations WHERE actor_user_id={actor} AND operation_key={operation} AND completed=1").SingleAsync(ct)!=1)
                 throw new Exception("Submission did not close interval/create one durable receipt");
             if((await Call(operation,body with{Note="Different request"})).Status!=RoomTypeBatchStatus.Duplicate)throw new Exception("Submission operation key reused with changed request");
+            await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={actor}",ct);
+            try
+            {
+                if((await Call(operation,body)).Status==RoomTypeBatchStatus.Success)throw new Exception("Submission replay bypassed revoked branch access");
+            }
+            finally{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={actor}",ct);}
+            await db.Database.ExecuteSqlRawAsync("UPDATE dbo.fe04_rework_authority_issuers SET is_active=0 WHERE issuer='FE04.UC036' AND version=1",ct);
+            try
+            {
+                if((await Call(operation,body)).Status!=RoomTypeBatchStatus.Duplicate)throw new Exception("Submission replay trusted disabled writer");
+            }
+            finally{await db.Database.ExecuteSqlRawAsync("UPDATE dbo.fe04_rework_authority_issuers SET is_active=1 WHERE issuer='FE04.UC036' AND version=1",ct);}
+            if((await Call(operation,body)).Status!=RoomTypeBatchStatus.Success)throw new Exception("Valid submission replay not restored");
             if((await Call(Guid.NewGuid(),body)).Status!=RoomTypeBatchStatus.Stale)throw new Exception("Old submission ETag reused");
             if(!await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id} AND remediation_note='Defect remedied' AND remediated_by={actor}").AnyAsync(n=>n==defects.Length,ct))
                 throw new Exception("Remediation attribution missing");
