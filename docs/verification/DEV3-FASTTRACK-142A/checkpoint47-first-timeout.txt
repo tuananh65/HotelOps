@@ -1,0 +1,7 @@
+Initial browser-conclusion trial terminated at the existing four-minute harness budget.
+Process session 29443: exit -532462766, TaskCanceledException at SprintApprovalBrowserProbe.cs line 236 (post-cleanup verification reused the cancelled token).
+No success receipt was produced. This run is NOT PASS.
+Read-only SQL observation during the run found a SELECT waiting on LCK_M_U; no blocking query was killed and no retry was started while the process remained live.
+After the terminal exit, independent SELECTs confirmed users=0, branches=0, cleaning_reworks=0, attachments=0, binding table absent, ordinary projection triggers enabled. Private evidence files=0.
+The concurrently executing full frontend suite finished 3269 PASS, 1 SKIP, 0 FAIL (293 seconds).
+The longer browser-conclusion fixture now has an eight-minute bound; legacy modes retain four minutes. Post-cleanup checks use a noncancelled token so timeout failures reach the receipt. No product timeout or security guard was relaxed.

@@ -251,7 +251,8 @@ internal static class SprintReinspectionAssignmentProbe
             await using (var reset = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
             { await Cleanup(); await Install(); await reset.CommitAsync(ct); }
             await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, ct);
-            await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
+            if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
+                await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
         }
         finally
         {

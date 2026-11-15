@@ -97,7 +97,70 @@ try {
       throw Error("Generic inspection endpoint changed reinspection");
     return { detail: true, evidence: true, foreignDenied: true, readiness: d.effectiveReadiness };
   }, { branch: fixture.branch, inspection: body.id, actor: fixture.actor, rework: fixture.rework });
-  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true,
+  let conclusion = null;
+  if (fixture.conclude) {
+    stage = "canonical conclusion admission";
+    await page.getByRole("link", { name: "Open reinspection", exact: true }).click();
+    await page.waitForURL(`${origin}/reinspections/${fixture.branch}/${body.id}/execution`);
+    await page.getByRole("heading", { name: "Reinspect room", exact: true }).waitFor();
+    const path = `/api/branches/${fixture.branch}/reinspections/${body.id}`;
+    const negative = await page.evaluate(async ({ path, outcome }) => {
+      const response = await fetch(path + "/execution", { credentials: "include" }), d = await response.json();
+      const csrf = await (await fetch("/api/auth/csrf", { credentials: "include" })).json();
+      const command = { reworkETag: d.reworkETag, bindingETag: d.bindingETag, reason: "Synthetic conclusion validation",
+        defects: d.defects.map(x => ({ defectId: x.id, fixed: outcome === "PASS", note: "Checked", photos: [] })) };
+      const headers = { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": d.sourceETag, "Idempotency-Key": crypto.randomUUID() };
+      const send = async (h, body = command) => (await fetch(path + "/conclude", { method: "POST", credentials: "include", headers: h, body: JSON.stringify(body) })).status;
+      const noCsrf = { ...headers }; delete noCsrf["X-CSRF-TOKEN"];
+      const noTag = { ...headers }; delete noTag["If-Match"];
+      const statuses = [await send(noCsrf), await send(noTag), await send({ ...headers, "If-Match": '"FFFFFFFFFFFFFFFF"' }),
+        await send(headers, { ...command, bindingETag: '"FFFFFFFFFFFFFFFF"' }), await send(headers, { ...command, reworkETag: '"FFFFFFFFFFFFFFFF"' }),
+        await send(headers, { ...command, defects: [] }), await send(headers, { ...command, defects: [{ defectId: 2147483647, fixed: true }] })];
+      const after = await fetch(path + "/execution", { credentials: "include" });
+      if (after.status !== 200 || after.headers.get("ETag") !== d.sourceETag) throw Error("Rejected HTTP conclusion mutated source");
+      return { statuses, d };
+    }, { path, outcome: fixture.outcome });
+    if (JSON.stringify(negative.statuses) !== JSON.stringify([400, 428, 412, 412, 412, 400, 400]))
+      throw Error("Conclusion security/preconditions: " + JSON.stringify(negative.statuses));
+    const original = page.getByRole("link", { name: `Original inspection #${negative.d.originalInspectionId}`, exact: true });
+    await original.waitFor();
+    await page.getByRole("button", { name: "Review conclusion", exact: true }).click();
+    if (await page.getByRole("button", { name: "Confirm conclusion", exact: true }).count()) throw Error("Empty decisions passed form validation");
+    for (const defect of negative.d.defects) {
+      await page.getByLabel(`Result for defect #${defect.id}`, { exact: true }).selectOption(fixture.outcome === "PASS" ? "FIXED" : "NOT_FIXED");
+      await page.getByLabel(`Note for defect #${defect.id}`, { exact: true }).fill("Checked synthetic remediation");
+    }
+    await page.getByLabel(`Photos for defect #${negative.d.defects[0].id}`, { exact: true }).setInputFiles({ name: "synthetic-reinspection.png", mimeType: "image/png",
+      buffer: Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS1cAAAAASUVORK5CYII=", "base64") });
+    await page.getByLabel("Conclusion reason", { exact: true }).fill("Synthetic browser conclusion");
+    await page.getByRole("button", { name: "Review conclusion", exact: true }).click();
+    stage = "canonical HTTPS conclusion";
+    const pendingConclusion = page.waitForResponse(r => r.url().endsWith(path + "/conclude") && r.request().method() === "POST");
+    await page.getByRole("button", { name: "Confirm conclusion", exact: true }).click();
+    const concludedResponse = await pendingConclusion, concluded = await concludedResponse.json();
+    if (concludedResponse.status() !== 200 || concluded.state !== (fixture.outcome === "PASS" ? "PASSED" : "FAILED")
+      || concluded.contract !== "FE05_REINSPECTION_CONCLUSION_V1" || concluded.effectiveReadiness !== (detailCheck.readiness === "BLOCKED" ? "BLOCKED" : fixture.outcome === "PASS" ? "READY" : "REWORK_REQUIRED"))
+      throw Error("HTTPS conclusion rejected: " + concludedResponse.status() + " " + JSON.stringify(concluded));
+    await page.getByText(fixture.outcome === "PASS" ? "Reinspection Passed. Rework Completed." : "Reinspection Failed. Rework Failed.", { exact: true }).waitFor();
+    if (detailCheck.readiness === "BLOCKED") await page.getByText("The room remains blocked (MSG17).", { exact: true }).waitFor();
+    if (fixture.outcome === "FAIL") {
+      stage = "next-round Request Rework admission";
+      await page.getByRole("heading", { name: "Request cleaning rework", exact: true }).waitFor();
+      await page.getByRole("group", { name: "Defects, assignee and due time", exact: true }).waitFor();
+      if (await page.getByRole("checkbox").count() !== negative.d.defects.length) throw Error("Remaining defects not offered for next rework");
+      for (const checkbox of await page.getByRole("checkbox").all()) if (!await checkbox.isChecked()) throw Error("Remaining defect not preselected");
+    }
+    if (await page.getByRole("button", { name: "Confirm conclusion", exact: true }).count()) throw Error("Duplicate conclusion form remains");
+    const sentHeaders = await concludedResponse.request().allHeaders(), sentBody = concludedResponse.request().postData();
+    const replay = await page.evaluate(async ({ path, headers, body }) => {
+      const post = async b => { const r = await fetch(path + "/conclude", { method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": headers["x-csrf-token"], "If-Match": headers["if-match"], "Idempotency-Key": headers["idempotency-key"] }, body: b }); return { status: r.status, body: await r.json() }; };
+      return { same: await post(body), changed: await post(JSON.stringify({ ...JSON.parse(body), reason: "Changed conclusion replay" })) };
+    }, { path, headers: sentHeaders, body: sentBody });
+    if (replay.same.status !== 200 || JSON.stringify(replay.same.body) !== JSON.stringify(concluded) || replay.changed.status !== 409) throw Error("HTTPS conclusion replay mismatch");
+    conclusion = { success: true, outcome: fixture.outcome, csrfEtag: true, staleAggregate: true, exactDefects: true, photo: true, replay: true, readiness: concluded.effectiveReadiness };
+  }
+  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true, conclusion,
     invalidInspectorDueDenied: true, foreignBranchDenied: true, replay: true, reloadPersisted: true, reinspectionRead: detailCheck }));
 } catch (error) {
   process.stdout.write(JSON.stringify({ success: false, stage, diagnostic: String(error.message).split("\n")[0] })); process.exitCode = 1;

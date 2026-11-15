@@ -30,6 +30,16 @@ internal static class SprintReinspectionHttpsProbe
             GRANT INSERT,UPDATE ON dbo.user_sessions TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT,UPDATE ON dbo.room_inspections TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT ON dbo.audit_logs TO DEV3_142A_ReinspectionHttps;
+            GRANT UPDATE ON dbo.fe05_reinspection_defect_results_v1 TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.fe05_reinspection_defect_attachments_v1 TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.inspection_results TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT,UPDATE ON dbo.inspection_defects TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.inspection_defect_attachments TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.attachments TO DEV3_142A_ReinspectionHttps;
+            GRANT UPDATE ON dbo.cleaning_reworks TO DEV3_142A_ReinspectionHttps;
+            GRANT UPDATE ON dbo.cleaning_tasks TO DEV3_142A_ReinspectionHttps;
+            GRANT UPDATE ON dbo.rooms TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.room_status_history TO DEV3_142A_ReinspectionHttps;
             DENY INSERT,UPDATE,DELETE ON dbo.fs016_rework_source_proofs TO DEV3_142A_ReinspectionHttps;
             DENY INSERT,UPDATE,DELETE ON dbo.notification_operation_reservations TO DEV3_142A_ReinspectionHttps;
             DENY INSERT,UPDATE,DELETE ON dbo.fe05_reinspection_bindings_v1 TO DEV3_142A_ReinspectionHttps;
@@ -74,7 +84,10 @@ internal static class SprintReinspectionHttpsProbe
             using var process = Process.Start(browser) ?? throw new Exception("Reinspection browser unavailable");
             try
             {
-                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework }).AsMemory(), ct);
+                var conclude = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") == "1";
+                var outcome = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME") ?? "PASS";
+                if (outcome is not ("PASS" or "FAIL")) throw new Exception("Explicit PASS/FAIL browser outcome required");
+                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework, conclude, outcome }).AsMemory(), ct);
                 process.StandardInput.Close();
                 var browserOutput = process.StandardOutput.ReadToEndAsync(ct); var browserErrors = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct); var result = JsonSerializer.Deserialize<JsonElement>(await browserOutput); await browserErrors;
@@ -82,10 +95,24 @@ internal static class SprintReinspectionHttpsProbe
                 var inspection = result.GetProperty("inspection").GetInt64();
                 if (await db.Database.SqlQuery<int>($"""
                     SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
-                    JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id={actor} AND i.workflow_status='ASSIGNED'
+                    JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.inspector_user_id={actor}
+                      AND i.workflow_status={(conclude ? outcome == "PASS" ? "PASSED" : "FAILED" : "ASSIGNED")}
                     WHERE b.inspection_id={inspection} AND b.rework_id={rework} AND b.branch_id={branch}
                       AND (SELECT COUNT(*) FROM dbo.audit_logs WHERE entity_type='REINSPECTION' AND entity_id=CONVERT(nvarchar(50),b.inspection_id) AND action='CREATE')=1
                     """).SingleAsync(ct) != 1) throw new Exception("Browser assignment persistence/audit mismatch");
+                if (conclude && (!result.GetProperty("conclusion").GetProperty("success").GetBoolean()
+                    || await db.Database.SqlQuery<int>($"""
+                        SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
+                        JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.result={outcome} AND i.status='COMPLETED'
+                        JOIN dbo.cleaning_reworks w ON w.rework_id=b.rework_id AND w.status='COMPLETED'
+                          AND w.workflow_status={(outcome == "PASS" ? "COMPLETED" : "FAILED")} AND w.completed_at=i.inspected_at
+                        JOIN dbo.cleaning_tasks t ON t.cleaning_task_id=b.cleaning_task_id
+                          AND t.workflow_status={(outcome == "PASS" ? "COMPLETED" : "REWORK_REQUIRED")}
+                        WHERE b.inspection_id={inspection} AND b.rework_id={rework}
+                          AND (SELECT COUNT(*) FROM dbo.audit_logs WHERE entity_type='REINSPECTION' AND entity_id=CONVERT(nvarchar(50),b.inspection_id) AND action='UPDATE')=1
+                          AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_attachments_v1 WHERE inspection_id=b.inspection_id)
+                          AND NOT EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=b.inspection_id AND (fixed IS NULL OR recorded_by<>{actor}))
+                        """).SingleAsync(ct) != 1)) throw new Exception("Browser conclusion persistence/audit/evidence mismatch");
             }
             finally { if (!process.HasExited) process.Kill(true); }
             host.Kill(true); await host.WaitForExitAsync(ct); await output; await errors;

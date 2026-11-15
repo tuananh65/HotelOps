@@ -57,7 +57,9 @@ export function approvedReturnDestination(
   if (!safe || !revalidated) return null;
   const path = safe.split("?")[0];
   const inspection =
-    /^\/inspections\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(path);
+    /^\/(?:inspections|reinspections)\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
+      path,
+    );
   if (
     inspection &&
     inspection.slice(1).every((id) => Number.isSafeInteger(Number(id)))

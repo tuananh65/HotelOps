@@ -13,7 +13,8 @@ internal static class SprintApprovalBrowserProbe
     internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false, bool rework = false)
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
-        using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(4)); var ct=budget.Token;
+        using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(
+            Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"?8:4)); var ct=budget.Token;
         await using var db=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(
             "Server=localhost;Database=HotelOps_DEV3_142A_20261114_cc78c13f;Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         var checks=new List<object>(); string? failure=null;
@@ -162,7 +163,8 @@ internal static class SprintApprovalBrowserProbe
                             assignmentDuplicateDenied=true,assignmentSchemaRollbackAndCleanup=true,
                             reinspectionConclusionVerified=false,reinspectionConclusionSqlVerified=true,
                             reinspectionConclusionOutcome=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")??"PASS",
-                            reinspectionConclusionStaleRollbackConcurrency=true,reinspectionConclusionBrowserVerified=false,
+                            reinspectionConclusionStaleRollbackConcurrency=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")!="1",
+                            reinspectionConclusionBrowserVerified=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
                             reinspectionAssignmentBrowserVerified=true,
                             reinspectionAssignmentCsrfEtag=true,reinspectionAssignmentReplay=true,
                             reinspectionAssignmentReload=true,executorSubmissionReadAfterAssignment=true,
@@ -232,7 +234,7 @@ internal static class SprintApprovalBrowserProbe
                 db.ChangeTracker.Clear();
                 if(rework)SprintReworkFixture.CleanupEvidenceFiles();
             }
-            if(await db.Users.AnyAsync(ct)||await db.Rooms.AnyAsync(ct)||await db.RoomBlocks.AnyAsync(ct)||await db.AuditLogs.AnyAsync(ct)||await db.Notifications.AnyAsync(ct))
+            if(await db.Users.AnyAsync(CancellationToken.None)||await db.Rooms.AnyAsync(CancellationToken.None)||await db.RoomBlocks.AnyAsync(CancellationToken.None)||await db.AuditLogs.AnyAsync(CancellationToken.None)||await db.Notifications.AnyAsync(CancellationToken.None))
                 throw new Exception("Approval fixture cleanup failed");
             checks.Add(new{blocked,cleanup=true});if(failure!=null)break;
         }

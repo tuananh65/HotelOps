@@ -171,7 +171,12 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
       {visible?.error && <p role="alert">{visible.error}</p>}
       {confirmed && (
         <p role="status">
-          Inspection assigned successfully. Inspection #{confirmed.id}.
+          <span>
+            Inspection assigned successfully. Inspection #{confirmed.id}.
+          </span>
+          <Link to={`/reinspections/${branch}/${confirmed.id}/execution`}>
+            Open reinspection
+          </Link>
         </p>
       )}
       {message && <p role="alert">{message}</p>}
@@ -186,7 +191,14 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
           </p>
           {data.existingInspectionId !== null && (
             <p role="status">
-              An inspection is already assigned: #{data.existingInspectionId}.
+              <span>
+                An inspection is already assigned: #{data.existingInspectionId}.
+              </span>
+              <Link
+                to={`/reinspections/${branch}/${data.existingInspectionId}/execution`}
+              >
+                Open reinspection
+              </Link>
             </p>
           )}
           {!data.canAssign && data.existingInspectionId === null && (
@@ -207,22 +219,20 @@ function Assignment({ branch, id }: { branch: string; id: string }) {
               }}
             >
               <fieldset disabled={busy || review}>
-                <label htmlFor="reinspection-inspector">
-                  Inspector
-                </label>
-                  <select
-                    id="reinspection-inspector"
-                    required
-                    value={inspector}
-                    onChange={(event) => setInspector(event.target.value)}
-                  >
-                    <option value="">Select inspector</option>
-                    {data.inspectors.map((person) => (
-                      <option key={person.id} value={person.id}>
-                        {person.name}
-                      </option>
-                    ))}
-                  </select>
+                <label htmlFor="reinspection-inspector">Inspector</label>
+                <select
+                  id="reinspection-inspector"
+                  required
+                  value={inspector}
+                  onChange={(event) => setInspector(event.target.value)}
+                >
+                  <option value="">Select inspector</option>
+                  {data.inspectors.map((person) => (
+                    <option key={person.id} value={person.id}>
+                      {person.name}
+                    </option>
+                  ))}
+                </select>
                 <label>
                   Due time
                   <input
