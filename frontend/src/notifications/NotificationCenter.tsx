@@ -349,6 +349,7 @@ export function NotificationCenter() {
                         "IR_CREATED",
                         "IR_CLOSED",
                         "IR_HANDOVER",
+                        "IR_ESCALATED",
                       ].includes(row.type) && (
                         <button
                           disabled={!!operation?.busy}
@@ -366,7 +367,7 @@ export function NotificationCenter() {
                             "TASK_REOPENED",
                           ].includes(row.type)
                             ? "Open task"
-                            : ["IR_CREATED", "IR_CLOSED", "IR_HANDOVER"].includes(row.type) ? "Open request"
+                            : ["IR_CREATED", "IR_CLOSED", "IR_HANDOVER", "IR_ESCALATED"].includes(row.type) ? "Open request"
                             : row.type === "REWORK_SUBMITTED"
                               ? "Assign reinspection"
                               : [

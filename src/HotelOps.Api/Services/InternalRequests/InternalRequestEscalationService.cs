@@ -6,14 +6,17 @@ using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Users;
+using HotelOps.Api.Services.Notifications;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.InternalRequests;
 
 public sealed record InternalRequestEscalationInput(string Reason, long? PriorityId = null, DateTimeOffset? Deadline = null);
 public sealed record InternalRequestEscalationResult(long RequestId, long EventId, string Version);
+public sealed record InternalRequestEscalationView(long RequestId,string Version,string TimingStatus,bool CanEscalate,bool HasOpen,
+    DateTime CreatedAt,DateTime? Deadline,long? PriorityId,InternalRequestFilterValue[] Priorities);
 
-// UC122 priority/deadline intervention. No public adapter until acknowledgment delivery is integrated.
+// UC122 priority/deadline intervention with durable, acknowledgment-required notification intent.
 public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlSessionService sessions, ICurrentUserAccessor current)
 {
     internal static string Validate(InternalRequestEscalationInput input)
@@ -46,6 +49,28 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
         if(!valid.IsValid||valid.Session?.SessionId!=sid||valid.Session.IsRestricted)throw new InternalRequestReadException(401,"SESSION_INVALID");
     }
 
+    public async Task<InternalRequestEscalationView> ReadAsync(SessionReference ticket,long sid,long id,CancellationToken ct)
+    {
+        if(id<=0)throw new ValidationException("Request required.");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId],ct);await SessionAsync(ticket,sid,ct);
+        var authority=new InternalRequestEscalationAuthority(db);
+        if(!await authority.AllowsAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_ESCALATION_AUTHORITY_REQUIRED");
+        if(!await InstalledAsync(db,ct)||!await NotificationAcknowledgmentStore.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"IR_ESCALATION_SCHEMA_REQUIRED");
+        var row=await db.InternalRequests.AsNoTracking().SingleAsync(r=>r.InternalRequestId==id,ct);
+        var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
+        var timing=InternalRequestTiming.Classify(row.Status,row.CreatedAt,row.DueAt,now);
+        var open=await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_escalations WHERE internal_request_id={id} AND state='OPEN'").SingleAsync(ct)>0;
+        var priorities=await db.ReferenceValues.AsNoTracking().Where(r=>r.GroupCode=="PRIORITY"&&r.IsActive).OrderBy(r=>r.SortOrder).ThenBy(r=>r.ReferenceId)
+            .Select(r=>new InternalRequestFilterValue(r.ReferenceId,r.DisplayName)).ToArrayAsync(ct);
+        var version=await InternalRequestDecisionStore.RevisionAsync(db,id,ct);
+        await SessionAsync(ticket,sid,ct);
+        if(!await authority.AllowsAsync(ticket.UserId,id,ct))throw new InternalRequestReadException(403,"IR_AUTHORITY_CHANGED");
+        await tx.CommitAsync(ct);
+        return new(id,Convert.ToBase64String(version),timing,!open&&timing is "AT_RISK" or "OVERDUE",open,
+            DateTime.SpecifyKind(row.CreatedAt,DateTimeKind.Utc),row.DueAt is {} due?DateTime.SpecifyKind(due,DateTimeKind.Utc):null,row.PriorityId,priorities);
+    }
+
     private Task<long[]> CandidatesAsync(long request,CancellationToken ct) => db.Database.SqlQuery<long>($"""
         SELECT requester_id AS Value FROM dbo.internal_requests WHERE internal_request_id={request}
         UNION SELECT a.assignee_id FROM dbo.internal_request_assignments a WHERE a.internal_request_id={request} AND a.status='ACTIVE'
@@ -60,7 +85,7 @@ public sealed class InternalRequestEscalationService(HotelOpsDbContext db, ISqlS
         var reason=Validate(input);
         if(id<=0||version.Length!=8)throw new ValidationException("Loaded request and version required.");
         if(db.ChangeTracker.Entries().Any()||db.Database.CurrentTransaction!=null)throw new InvalidOperationException("Clean escalation context required.");
-        if(!await InstalledAsync(db,ct))throw new InternalRequestReadException(503,"IR_ESCALATION_SCHEMA_REQUIRED");
+        if(!await InstalledAsync(db,ct)||!await NotificationAcknowledgmentStore.InstalledAsync(db,ct))throw new InternalRequestReadException(503,"IR_ESCALATION_SCHEMA_REQUIRED");
         var candidates=await CandidatesAsync(id,ct);
         await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
         try

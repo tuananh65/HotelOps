@@ -1,0 +1,41 @@
+import {chromium} from "@playwright/test";
+import assert from "node:assert/strict";
+let input="";for await(const chunk of process.stdin)input+=chunk;const fixture=JSON.parse(input);input="";
+let browser,stage="login";
+try {
+  browser=await chromium.launch({executablePath:"C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",headless:true});
+  const context=await browser.newContext({timezoneId:"UTC"});const page=await context.newPage();page.setDefaultTimeout(15000);
+  const origin="https://localhost:7142";await page.goto(origin+`/internal-requests?requestId=${fixture.request}`);
+  await page.getByLabel("Username or email").fill(fixture.username);await page.getByLabel("Password",{exact:true}).fill(fixture.password);fixture.password="";
+  await page.getByRole("button",{name:"Sign in",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Escalate request",exact:true});stage="validation";
+  await panel.getByRole("button",{name:"Escalate request",exact:true}).click();
+  stage="reason validation";
+  await panel.getByText("Enter a reason of at least 10 characters without control characters.",{exact:true}).waitFor();
+  stage="reason input";
+  await panel.getByLabel("Escalation reason",{exact:true}).fill("Synthetic browser escalation intervention");
+  stage="priority selection";
+  await panel.getByLabel("New priority",{exact:true}).selectOption(String(fixture.priority));
+  stage="deadline input";
+  await panel.getByLabel("New deadline (local time)",{exact:true}).fill(fixture.deadline.slice(0,16));
+  let posts=0;page.on("request",r=>{if(r.method()==="POST"&&new URL(r.url()).pathname===`/api/internal-requests/${fixture.request}/escalation`)posts++;});
+  stage="submit";const response=page.waitForResponse(r=>r.request().method()==="POST"&&new URL(r.url()).pathname===`/api/internal-requests/${fixture.request}/escalation`);
+  await panel.getByRole("button",{name:"Escalate request",exact:true}).evaluate(b=>{b.click();b.click();});
+  assert.equal((await response).status(),200);
+  await page.getByText("MSG08: Request escalated.",{exact:true}).waitFor();
+  await panel.getByText("This request already has an Open escalation.",{exact:true}).waitFor();assert.equal(posts,1);
+  await page.getByText("Synthetic browser escalation intervention",{exact:true}).waitFor();
+  stage="worker notification";await page.goto(origin+"/notifications");
+  const notice=page.getByRole("listitem").filter({hasText:"Internal request escalated"});
+  for(let i=0;i<20&&await notice.count()===0;i++){await page.getByRole("button",{name:"Refresh",exact:true}).click();await page.waitForTimeout(1000);}
+  await notice.getByText("Awaiting acknowledgment",{exact:true}).waitFor();
+  await notice.getByRole("checkbox").check();
+  stage="acknowledgment";await page.getByRole("button",{name:"Acknowledge selected",exact:true}).click();
+  await notice.getByText("Acknowledged:",{exact:false}).waitFor();
+  await notice.getByRole("button",{name:"Open request",exact:true}).click();
+  await page.waitForURL(origin+`/internal-requests?requestId=${fixture.request}`);
+  await page.getByText("Synthetic browser escalation intervention",{exact:true}).waitFor();
+  assert.equal(await page.getByRole("button",{name:"Escalate request",exact:true}).count(),0);
+  stage="logout";await page.goto(origin+"/profile");await page.getByRole("button",{name:"Logout",exact:true}).click();await page.waitForURL(origin+"/login");
+  console.log(JSON.stringify({success:true,checks:["Reason validation; priority and local deadline; one POST on double click; MSG08/history/Open state; hosted-worker alert; explicit acknowledgment; authorized source; logout"]}));
+} catch {console.log(JSON.stringify({success:false,stage}));process.exitCode=1;} finally {await browser?.close();}

@@ -9,6 +9,7 @@ import { InternalRequestIncidentLinksPanel } from "./IncidentLinksPanel";
 import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
 import { InternalRequestIntakeLink } from "./IntakePage";
 import { InternalRequestCompletionPanel } from "./CompletionPanel";
+import { InternalRequestEscalationPanel } from "./EscalationPanel";
 import { InternalRequestHandoverPanel } from "./HandoverPanel";
 import {
   decodeHistory,
@@ -78,6 +79,8 @@ export function InternalRequestHistoryPage() {
     && Number.isSafeInteger(Number(requestIds[0])) ? Number(requestIds[0]) : null;
   const setSelected = (id: number | null) => setSearchParams(id === null ? {} : { requestId: String(id) });
   const [completionNotice, setCompletionNotice] = useState<number | null>(null);
+  const [escalationNotice, setEscalationNotice] = useState<number | null>(null);
+  useEffect(() => setEscalationNotice(null), [selected, owner]);
   useEffect(() => setCompletionNotice(null), [selected, owner]);
   const [eventPage, setEventPage] = useState(1);
   const [assignmentPage, setAssignmentPage] = useState(1);
@@ -331,6 +334,8 @@ export function InternalRequestHistoryPage() {
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
+          {escalationNotice === visible.timeline.requestId && <p role="status">MSG08: Request escalated.</p>}
+          <InternalRequestEscalationPanel id={visible.timeline.requestId} onSaved={() => { setEscalationNotice(visible.timeline?.requestId ?? null); setRevision(v => v + 1); }} />
           <InternalRequestHandoverPanel id={visible.timeline.requestId} />
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
           <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} />

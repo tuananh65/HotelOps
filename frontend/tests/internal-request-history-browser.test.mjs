@@ -21,6 +21,18 @@ async function fixture(run) {
     if (request.resourceType() === "document") return route.fulfill({ contentType: "text/html", body: '<div id="root"></div>' });
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
+    if (path === "/api/internal-requests/1/escalation") {
+      if (!state.escalationAllowed) return json({},403);
+      if (request.method() === "POST") {
+        state.escalationPosts=(state.escalationPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        assert.deepEqual(request.postDataJSON(),{reason:"Required escalation reason",priorityId:7,deadline:null});
+        if(state.hold) await new Promise(resolve=>{state.release=resolve;});
+        return json({},412);
+      }
+      return json({requestId:1,version:"AAAAAAAAAAA=",timingStatus:"AT_RISK",canEscalate:true,hasOpen:false,
+        createdAt:"2026-11-15T00:00:00Z",deadline:"2026-11-16T00:00:00Z",priorityId:null,priorities:[{id:7,name:"High"}]});
+    }
     if(path === "/api/internal-requests/1/completion") {
       if(request.method()==="POST") {
         state.completionPosts=(state.completionPosts??0)+1;
@@ -142,6 +154,19 @@ test("refresh denial removes previously visible history", async () => fixture(as
   await page.getByRole("button", { name: "Refresh history", exact: true }).click();
   await page.getByRole("alert").filter({ hasText: "do not have access" }).waitFor();
   assert.equal(await page.getByText("PRIVATE REQUEST <script>", { exact: true }).count(), 0);
+}));
+
+test("escalation validates reason and stale double click never replays", async () => fixture(async(page,state)=>{
+  state.escalationAllowed=true;await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Escalate request",exact:true});
+  await panel.getByRole("button",{name:"Escalate request",exact:true}).click();
+  await panel.getByText("Enter a reason of at least 10 characters without control characters.",{exact:true}).waitFor();
+  assert.equal(state.escalationPosts??0,0);
+  await panel.getByLabel("Escalation reason",{exact:true}).fill("Required escalation reason");
+  await panel.getByLabel("New priority",{exact:true}).selectOption("7");
+  await panel.getByRole("button",{name:"Escalate request",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByText("Request changed. Reload before escalating.",{exact:true}).waitFor();
+  assert.equal(state.escalationPosts,1);assert.equal(await panel.getByLabel("Escalation reason",{exact:true}).count(),0);
 }));
 test("status filter has an accessible name and sends the selected value", async () => fixture(async (page) => {
   const request = page.waitForRequest(r => new URL(r.url()).pathname === "/api/internal-requests" && new URL(r.url()).searchParams.get("status") === "SUBMITTED");

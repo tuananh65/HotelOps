@@ -1,0 +1,120 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_3a99198b",
+  "fixtureUserId": 1071268,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "escalationUiCheck": "DH with permission cannot read escalation capability"
+    },
+    {
+      "escalationUiCheck": "HTTPS capability uses approved time window and current OM role"
+    },
+    {
+      "escalationUiCheck": "CSRF ETag and stale version enforced by HTTPS mutation"
+    },
+    {
+      "escalationUiCheck": "cross-branch escalation denied"
+    },
+    {
+      "escalationUiCheck": "revoked OM role denied at mutation"
+    },
+    {
+      "escalationUiCheck": "real browser priority/deadline escalation notification acknowledgment and source workflow: {\u0022success\u0022:true,\u0022checks\u0022:[\u0022Reason validation; priority and local deadline; one POST on double click; MSG08/history/Open state; hosted-worker alert; explicit acknowledgment; authorized source; logout\u0022]}\n"
+    },
+    {
+      "escalationUiCheck": "SQL confirms chosen intervention with unchanged creation and lifecycle"
+    },
+    {
+      "escalationUiCheck": "SQL history preserves browser reason once"
+    },
+    {
+      "escalationUiCheck": "SQL confirms worker recipient read and acknowledgment"
+    },
+    {
+      "escalationUiCheck": "stale public replay cannot duplicate escalation"
+    },
+    {
+      "escalationUiCheck": "fresh capability excludes second Open escalation"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
