@@ -184,6 +184,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/internal-requests?requestId={progress.RequestId}");
         }
+        if(source is {NotificationType:"IR_ESCALATED",SourceType:"INTERNAL_REQUEST_ESCALATION",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await InternalRequests.InternalRequestEscalationService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var escalation=await InternalRequests.InternalRequestEscalationDelivery.Query(db)
+                .SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id&&r.RecipientId==user,ct);
+            if(escalation==null||escalation.ActorId!=source.CreatedBy||escalation.At!=source.CreatedAt
+                ||!await InternalRequests.InternalRequestEscalationDelivery.CanReadAsync(db,escalation,now,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={escalation.RequestId}");
+        }
         if(source is {NotificationType:"IR_READY",SourceType:"INTERNAL_REQUEST_PROGRESS",SourceId:>0})
         {
             if(!await InternalRequests.InternalRequestProgressService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

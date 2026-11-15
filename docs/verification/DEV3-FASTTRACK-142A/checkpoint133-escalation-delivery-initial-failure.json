@@ -1,0 +1,137 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_22d36957",
+  "fixtureUserId": 1071268,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "escalationCheck": "Department Head with IR_OVERDUE_HANDLE cannot escalate"
+    },
+    {
+      "escalationCheck": "stale version denied"
+    },
+    {
+      "escalationCheck": "revoked Operations Manager role denied"
+    },
+    {
+      "escalationCheck": "terminal CLOSED denied"
+    },
+    {
+      "escalationCheck": "terminal REJECTED denied"
+    },
+    {
+      "escalationCheck": "terminal CANCELLED denied"
+    },
+    {
+      "escalationCheck": "under eighty percent denied"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "invalid intervention rejected without side effects"
+    },
+    {
+      "escalationCheck": "outbox fault rolls back event and audit"
+    },
+    {
+      "escalationCheck": "outbox fault rolls back request and version"
+    },
+    {
+      "escalationCheck": "outbox fault leaves no escalation"
+    },
+    {
+      "escalationCheck": "concurrent requests create exactly one escalation and reject stale loser"
+    },
+    {
+      "escalationCheck": "one Open escalation persists"
+    },
+    {
+      "escalationCheck": "escalation reason and audit provenance persisted"
+    },
+    {
+      "escalationCheck": "requester handler manager deduplicated into one durable intent"
+    },
+    {
+      "escalationCheck": "deadline updated without resetting creation or authoritative lifecycle"
+    },
+    {
+      "escalationCheck": "second Open escalation denied with current version"
+    },
+    {
+      "escalationCheck": "inactive priority cannot be used for intervention"
+    },
+    {
+      "escalationCheck": "overdue request priority intervention preserves deadline and lifecycle"
+    },
+    {
+      "escalationCheck": "committed escalation is pending delivery"
+    },
+    {
+      "escalationCheck": "branch access revoked after intent prevents delivery"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    }
+  ],
+  "failure": "DbUpdateException: Could not save changes because the target table has database triggers. Please configure your table accordingly, see https://aka.ms/efcore-docs-sqlserver-save-changes-and-output-clause for more information.",
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": false,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
