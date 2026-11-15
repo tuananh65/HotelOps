@@ -94,6 +94,25 @@ BEGIN SET NOCOUNT ON; SET XACT_ABORT ON;
   OR(@state=''PASSED'' AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=@inspection AND fixed=0))
   OR(@state=''FAILED'' AND NOT EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=@inspection AND fixed=0))
   THROW 51999,''Persisted complete reinspection outcome required'',1;
+ IF EXISTS(SELECT defect_id FROM dbo.cleaning_rework_defects WHERE rework_id=@rework
+   EXCEPT SELECT defect_id FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=@inspection AND rework_id=@rework)
+  OR EXISTS(SELECT defect_id FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=@inspection
+   EXCEPT SELECT defect_id FROM dbo.cleaning_rework_defects WHERE rework_id=@rework)
+  OR (SELECT COUNT(*) FROM dbo.inspection_defects WHERE inspection_id=@inspection)
+    <>(SELECT COUNT(*) FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=@inspection AND fixed=0)
+  OR EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_results_v1 x JOIN dbo.inspection_defects original ON original.defect_id=x.defect_id
+    WHERE x.inspection_id=@inspection AND x.fixed=0 AND NOT EXISTS(SELECT 1 FROM dbo.inspection_defects d
+      JOIN dbo.inspection_results r ON r.inspection_id=d.inspection_id AND r.checklist_item_id=d.checklist_item_id AND r.outcome=''FAIL''
+      WHERE d.inspection_id=@inspection AND d.checklist_item_id=original.checklist_item_id AND d.description=original.description AND d.status=''OPEN''))
+  THROW 51999,''Exact selected results and remaining defects required'',1;
+ DECLARE @readiness varchar(30)=CASE WHEN EXISTS(SELECT 1 FROM dbo.room_blocks WITH(HOLDLOCK) WHERE room_id=@room
+   AND blocked_at<=@ended AND(released_at IS NULL OR released_at>@ended)) THEN ''BLOCKED''
+   WHEN @state=''PASSED'' THEN ''READY'' ELSE ''REWORK_REQUIRED'' END;
+ IF ISNULL(JSON_VALUE(@entity,''$.effectiveReadiness''),'''')<>@readiness
+  OR ISNULL(JSON_VALUE(@entity,''$.messageCode''),'''')<>CASE WHEN @readiness=''BLOCKED'' THEN ''MSG17'' ELSE ''MSG08'' END
+  OR ISNULL(JSON_VALUE(@entity,''$.notification''),'''')<>''PENDING_DELIVERY''
+  OR(@readiness=''READY'' AND NOT EXISTS(SELECT 1 FROM dbo.rooms WHERE room_id=@room AND operational_status=''READY''))
+  THROW 51999,''Reinspection effective readiness receipt mismatch'',1;
  IF ISNULL(JSON_VALUE(@entity,''$.contract''),'''')<>''FE05_REINSPECTION_CONCLUSION_V1''
   OR ISNULL(TRY_CONVERT(bigint,JSON_VALUE(@entity,''$.id'')),0)<>@inspection OR ISNULL(TRY_CONVERT(bigint,JSON_VALUE(@entity,''$.reworkId'')),0)<>@rework
   OR ISNULL(TRY_CONVERT(bigint,JSON_VALUE(@entity,''$.branchId'')),0)<>@branch OR ISNULL(TRY_CONVERT(bigint,JSON_VALUE(@entity,''$.roomId'')),0)<>@room

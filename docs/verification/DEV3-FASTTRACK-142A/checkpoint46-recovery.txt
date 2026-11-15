@@ -1,0 +1,7 @@
+users_count branches_count attachments_count binding_table submission_evidence
+----------- -------------- ----------------- ------------- -------------------
+0 0 0 NULL NULL
+name trial_reference
+---- ---------------
+TR_hk_defects_v1 0
+TR_hk_results_v1 0

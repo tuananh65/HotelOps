@@ -27,13 +27,20 @@ internal static class SprintReinspectionAssignmentProbe
         var source = await db.CleaningReworks.AsNoTracking().Where(w => w.ReworkId == rework)
             .Select(w => new { w.Inspection.InspectorUserId, w.Inspection.VersionId, w.CleaningTaskId }).SingleAsync(ct);
         var actor = source.InspectorUserId;
+        var roomId = await db.CleaningTasks.Where(t => t.CleaningTaskId == source.CleaningTaskId).Select(t => t.RoomId).SingleAsync(ct);
+        var originalRoomStatus = await db.Rooms.Where(r => r.RoomId == roomId).Select(r => r.OperationalStatus).SingleAsync(ct);
         var user = await db.Users.AsNoTracking().SingleAsync(u => u.UserId == actor, ct);
         var original = await db.Database.SqlQueryRaw<string>("SELECT definition AS Value FROM sys.check_constraints WHERE parent_object_id=OBJECT_ID('dbo.cleaning_reworks') AND name='CK_rework_workflow_v1' AND is_disabled=0 AND is_not_trusted=0").SingleAsync(ct);
         var installed = false;
+        var originalGuards = await db.Database.SqlQuery<string>($"""
+            SELECT m.definition AS Value FROM sys.sql_modules m JOIN sys.triggers t ON t.object_id=m.object_id
+            WHERE t.name IN('TR_hk_results_v1','TR_hk_defects_v1') AND t.is_disabled=0
+            """).ToArrayAsync(ct);
+        if (originalGuards.Length != 2) throw new Exception("Original projection guards required");
         async Task Install()
         {
             await db.Database.ExecuteSqlInterpolatedAsync($"EXEC sys.sp_set_session_context @key=N'DEV3.SourceCommit',@value={commit}", ct);
-            foreach (var file in new[] { "SprintReinspectionWorkflow.sql", "SprintReinspectionWriters.sql" })
+            foreach (var file in new[] { "SprintReinspectionWorkflow.sql", "SprintReinspectionProjectionGuards.sql", "SprintReinspectionWriters.sql" })
             {
                 await using var command = db.Database.GetDbConnection().CreateCommand();
                 command.Transaction = db.Database.CurrentTransaction!.GetDbTransaction();
@@ -45,24 +52,50 @@ internal static class SprintReinspectionAssignmentProbe
                 GRANT SELECT ON SCHEMA::dbo TO DEV3_Reinspector;
                 GRANT VIEW DEFINITION TO DEV3_Reinspector;
                 GRANT INSERT,UPDATE ON dbo.room_inspections TO DEV3_Reinspector;
+                GRANT UPDATE ON dbo.fe05_reinspection_defect_results_v1 TO DEV3_Reinspector;
+                GRANT INSERT ON dbo.fe05_reinspection_defect_attachments_v1 TO DEV3_Reinspector;
+                GRANT INSERT ON dbo.inspection_results TO DEV3_Reinspector;
+                GRANT INSERT,UPDATE ON dbo.inspection_defects TO DEV3_Reinspector;
+                GRANT INSERT ON dbo.inspection_defect_attachments TO DEV3_Reinspector;
+                GRANT INSERT ON dbo.attachments TO DEV3_Reinspector;
+                GRANT UPDATE ON dbo.cleaning_reworks TO DEV3_Reinspector;
+                GRANT UPDATE ON dbo.cleaning_tasks TO DEV3_Reinspector;
+                GRANT UPDATE ON dbo.rooms TO DEV3_Reinspector;
+                GRANT INSERT ON dbo.room_status_history TO DEV3_Reinspector;
                 ALTER ROLE hotelops_reinspection_writer ADD MEMBER DEV3_Reinspector;
                 """, ct);
         }
         async Task Cleanup()
         {
+            var keys = await db.Database.SqlQuery<string>($"""
+                SELECT a.storage_key AS Value FROM dbo.attachments a JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=a.entity_id
+                WHERE b.rework_id={rework} AND a.entity_type='INSPECTION' AND a.uploaded_by={actor}
+                """).ToArrayAsync(CancellationToken.None);
+            foreach (var definition in originalGuards)
+                await db.Database.ExecuteSqlRawAsync(definition.Replace("CREATE TRIGGER", "ALTER TRIGGER"), CancellationToken.None);
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 IF EXISTS(SELECT 1 FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id<>{rework})
                   THROW 51999,'Unexpected reinspection source; cleanup refused',1;
                 DECLARE @owned TABLE(id bigint PRIMARY KEY);
                 INSERT @owned SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework};
+                UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @owned);
                 DROP TABLE dbo.fe05_reinspection_defect_attachments_v1;
                 DROP TABLE dbo.fe05_reinspection_defect_results_v1;
                 DROP TABLE dbo.fe05_reinspection_bindings_v1;
                 DELETE dbo.audit_logs WHERE entity_type='REINSPECTION' AND TRY_CONVERT(bigint,entity_id) IN(SELECT id FROM @owned);
                 DELETE dbo.notification_operation_reservations WHERE actor_user_id={actor}
-                  AND JSON_VALUE(result_json,'$.contract')='FE05_REINSPECTION_ASSIGNMENT_V1'
+                  AND JSON_VALUE(result_json,'$.contract') IN('FE05_REINSPECTION_ASSIGNMENT_V1','FE05_REINSPECTION_CONCLUSION_V1')
                   AND TRY_CONVERT(bigint,JSON_VALUE(result_json,'$.reworkId'))={rework};
+                DELETE dbo.room_status_history WHERE trigger_type='INSPECTION' AND trigger_id IN(SELECT id FROM @owned);
+                DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id WHERE d.inspection_id IN(SELECT id FROM @owned);
+                DELETE dbo.attachments WHERE entity_type='INSPECTION' AND entity_id IN(SELECT id FROM @owned);
+                DELETE dbo.inspection_defects WHERE inspection_id IN(SELECT id FROM @owned);
+                DELETE dbo.inspection_results WHERE inspection_id IN(SELECT id FROM @owned);
                 DELETE dbo.room_inspections WHERE inspection_id IN(SELECT id FROM @owned);
+                UPDATE dbo.cleaning_reworks SET workflow_status='PENDING_REINSPECTION',status='IN_PROGRESS',completed_at=NULL
+                  WHERE rework_id={rework} AND workflow_status IN('FAILED','COMPLETED');
+                UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED',status='IN_PROGRESS' WHERE cleaning_task_id={source.CleaningTaskId} AND (workflow_status<>'REWORK_REQUIRED' OR status<>'IN_PROGRESS');
+                UPDATE dbo.rooms SET operational_status={originalRoomStatus} WHERE room_id={roomId} AND operational_status<>{originalRoomStatus};
                 DROP PROCEDURE dbo.fe05_bind_reinspection;
                 DROP PROCEDURE dbo.fe05_commit_reinspection;
                 ALTER ROLE hotelops_reinspection_writer DROP MEMBER DEV3_Reinspector;
@@ -74,6 +107,11 @@ internal static class SprintReinspectionAssignmentProbe
                 EXEC sys.sp_executesql @ddl;
                 EXEC sys.sp_dropextendedproperty @name=N'HotelOps.Reinspection.V1';
                 """, CancellationToken.None);
+            foreach (var name in keys)
+            {
+                if (Path.GetFileName(name) != name || name.Contains(':')) throw new Exception("Owned evidence filename required");
+                File.Delete(Path.Combine(SprintReworkFixture.EvidenceRoot, name));
+            }
         }
         try
         {
@@ -213,6 +251,7 @@ internal static class SprintReinspectionAssignmentProbe
             await using (var reset = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
             { await Cleanup(); await Install(); await reset.CommitAsync(ct); }
             await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, ct);
+            await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
         }
         finally
         {

@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 1 && args[0] == "--sprint-reinspection-recover")
+    return await SprintReinspectionRecovery.RunAsync();
 if (args.Length == 2 && args[0] == "--sprint-application-role")
     return await SprintApplicationRoleProbe.RunAsync(args[1]);
 if (args.Length == 2 && args[0] == "--sprint-rework-browser")

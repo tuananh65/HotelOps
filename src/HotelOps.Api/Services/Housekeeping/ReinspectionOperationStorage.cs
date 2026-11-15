@@ -54,6 +54,8 @@ public sealed partial class RoomTypeCreationService
             ||!CryptographicOperations.FixedTimeEquals(row.Fingerprint,fingerprint)||!await CheckReinspectionWriter(issuer,writer,false,ct))return(true,null);
         if (assignment && (receipt.Entity is not ReinspectionAssignmentResult entity
             || !ValidReinspectionAssignmentReceipt(entity, branch, receipt.InspectionId, receipt.ReworkId, operation))) return (true, null);
+        if (!assignment && (receipt.Entity is not ReinspectionConclusionResult concluded
+            || !ValidReinspectionConclusionReceipt(concluded, branch, receipt.InspectionId, receipt.ReworkId, operation))) return (true, null);
         if(await db.Database.SqlQuery<int>($"""
             SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b WITH(HOLDLOCK)
             JOIN dbo.room_inspections i ON i.inspection_id=b.inspection_id AND i.cleaning_task_id=b.cleaning_task_id AND i.room_id=b.room_id AND i.version_id=b.version_id
@@ -74,6 +76,17 @@ public sealed partial class RoomTypeCreationService
             && result.Id == inspection && result.ReworkId == rework && result.BranchId == branch
             && result.OperationId == operation && result.Contract == ReinspectionAssignmentContract
             && result.State == "ASSIGNED" && result.Notification == "PENDING_DELIVERY" && WorkflowStrongTag(result.SourceETag);
+
+    public static bool ValidReinspectionConclusionReceipt(ReinspectionConclusionResult? result, long branch,
+        long inspection, long rework, Guid operation)
+        => result != null && branch > 0 && inspection > 0 && rework > 0 && operation != Guid.Empty
+            && result.Id == inspection && result.ReworkId == rework && result.BranchId == branch
+            && result.CleaningTaskId > 0 && result.RoomId > 0 && result.OperationId == operation
+            && result.Contract == ReinspectionConclusionContract && result.Notification == "PENDING_DELIVERY"
+            && WorkflowStrongTag(result.SourceETag) && WorkflowStrongTag(result.ReworkETag)
+            && (result.State == "PASSED" && result.ReworkState == "COMPLETED" && result.EffectiveReadiness is "READY" or "BLOCKED"
+                || result.State == "FAILED" && result.ReworkState == "FAILED" && result.EffectiveReadiness is "REWORK_REQUIRED" or "BLOCKED")
+            && result.MessageCode == (result.EffectiveReadiness == "BLOCKED" ? "MSG17" : "MSG08");
 
     private async Task<T> ReadWrittenReinspectionResult<T>(long actor,Guid operation,CancellationToken ct) where T:class
     {

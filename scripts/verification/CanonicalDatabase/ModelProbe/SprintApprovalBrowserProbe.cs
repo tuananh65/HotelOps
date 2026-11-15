@@ -160,7 +160,10 @@ internal static class SprintApprovalBrowserProbe
                             assignmentBranchRevocationDenied=true,assignmentAuditRollback=true,
                             assignmentConcurrentReplayOneBinding=true,assignmentChangedRequestDenied=true,
                             assignmentDuplicateDenied=true,assignmentSchemaRollbackAndCleanup=true,
-                            reinspectionConclusionVerified=false,reinspectionAssignmentBrowserVerified=true,
+                            reinspectionConclusionVerified=false,reinspectionConclusionSqlVerified=true,
+                            reinspectionConclusionOutcome=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")??"PASS",
+                            reinspectionConclusionStaleRollbackConcurrency=true,reinspectionConclusionBrowserVerified=false,
+                            reinspectionAssignmentBrowserVerified=true,
                             reinspectionAssignmentCsrfEtag=true,reinspectionAssignmentReplay=true,
                             reinspectionAssignmentReload=true,executorSubmissionReadAfterAssignment=true,
                             assignedReinspectionDetailSqlHttps=true,assignedReinspectionEvidenceHttps=true,
@@ -212,10 +215,20 @@ internal static class SprintApprovalBrowserProbe
                 }
                 }
             }
-            catch(Exception error){failure=error.GetType().Name+": "+error.Message;}
+            catch(Exception error){failure=error.GetType().Name+": "+error.Message;
+                if(error.InnerException is Microsoft.Data.SqlClient.SqlException sql) failure+=" SQL "+sql.Number+": "+sql.Message;}
             finally
             {
-                if(committed){await using var cleanup=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,CancellationToken.None);await Cleanup(CancellationToken.None);await cleanup.CommitAsync(CancellationToken.None);}
+                try
+                {
+                    if(committed){await using var cleanup=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,CancellationToken.None);await Cleanup(CancellationToken.None);await cleanup.CommitAsync(CancellationToken.None);}
+                }
+                catch(Exception cleanupError)
+                {
+                    failure=(failure??"Business checks finished")+"; CLEANUP_FAILED: "+cleanupError.Message;
+                    await File.WriteAllTextAsync(report,JsonSerializer.Serialize(new{success=false,checks,failure,cleanupFailed=true},new JsonSerializerOptions{WriteIndented=true}));
+                    throw;
+                }
                 db.ChangeTracker.Clear();
                 if(rework)SprintReworkFixture.CleanupEvidenceFiles();
             }
