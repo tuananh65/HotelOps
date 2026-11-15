@@ -11,7 +11,7 @@ internal static class SprintAuthProbe
 {
     // Exact target from this sprint's independently verified provision receipt; no arbitrary connection input.
     private const string Database = "HotelOps_DEV3_142A_20261114_cc78c13f";
-    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false, bool reports = false, bool taskEntry = false,string? taskSubmissionReceipt=null,bool taskVerification=false,bool taskDecline=false)
+    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false, bool reports = false, bool taskEntry = false,string? taskSubmissionReceipt=null,bool taskVerification=false,bool taskDecline=false,bool credentials=false,bool departmentAuthority=false)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(reports || audit ? 8 : taskSubmissionReceipt==null?2:6));
@@ -93,6 +93,8 @@ internal static class SprintAuthProbe
             await Check(HttpMethod.Get, "/api/auth/session", 200);
             await Check(HttpMethod.Get, "/api/users", 403);
             if (audit) await SprintAuditScenario.RunAsync(db, http, user.UserId, checks, ct, name, password);
+            if (credentials) await SprintCredentialScenario.RunAsync(db, checks, ct);
+            if (departmentAuthority) await SprintDepartmentAuthorityScenario.RunAsync(db,user.UserId,checks,ct);
             if (roleAssignment) await SprintRoleAssignmentScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct);
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
@@ -127,7 +129,7 @@ internal static class SprintAuthProbe
             }
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { database, fixtureUserId = user.UserId,
                 checks, failure, cleanup = cleaned, cleanupRequiresDatabaseDrop=taskCriteria, success = failure == null && (cleaned || taskCriteria),
-                scope = taskDecline ? "Real UC104 Assign/Reassign plus UC107 Accept/Decline, workload, current ownership, atomic interval closure, rollback, notification and canonical browser; isolated clone cleanup required" : taskVerification ? "Real task submission, Return/restart/resubmit, verification/Closed, time, audit and private assignee handoff; Internal Request requester enforced, other legacy sources gated" : taskSubmissionReceipt!=null ? "Real UC112 submission/results/evidence/interval/audit/notification and canonical browser handoff; whole-clone drop required; UC105 verification not implemented"
+                scope = departmentAuthority ? "Department authority service and transaction SQL verification; not public mutation E2E" : taskDecline ? "Real UC104 Assign/Reassign plus UC107 Accept/Decline, workload, current ownership, atomic interval closure, rollback, notification and canonical browser; isolated clone cleanup required" : taskVerification ? "Real task submission, Return/restart/resubmit, verification/Closed, time, audit and private assignee handoff; Internal Request requester enforced, other legacy sources gated" : taskSubmissionReceipt!=null ? "Real UC112 submission/results/evidence/interval/audit/notification and canonical browser handoff; whole-clone drop required; UC105 verification not implemented"
                     : taskCriteria ? "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
                     : browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"
@@ -136,6 +138,7 @@ internal static class SprintAuthProbe
                     : taskRead ? "Real HTTPS/SQL and canonical browser task progress, evidence upload/private download, paused execution, audit, stale/concurrent writes and scope denials; criteria mutation and create/lifecycle acceptance excluded"
                     : notifications ? "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
                     : activation ? "Real HTTPS/SQL account activation, concurrency preconditions and credential preservation; deactivation remains unavailable"
+                    : credentials ? "Canonical browser credential changes, session revocation/logout and SQL audit; synthetic disposable fixture"
                     : reports ? "Real HTTPS/SQL and canonical browser report actor restriction, preview snapshot, CSV admission/audit and revocation; detailed RPT indicators remain partial"
                     : dashboard ? "Real HTTPS/SQL auth and scoped dashboard reads; no browser or all-KPI acceptance"
                     : roleAssignment ? "Real HTTPS/SQL auth and supported role assignment with temporary synthetic admin grant; revocation not tested"

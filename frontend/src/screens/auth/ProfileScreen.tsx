@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
 import type { AuthError } from "../../auth/authStore";
 
@@ -22,6 +22,7 @@ function logoutMessage(error: AuthError): string {
 export default function ProfileScreen() {
   const { state, actions } = useAuth();
   const nav = useNavigate();
+  const location = useLocation();
   const [busy, setBusy] = useState(false);
   const [identityHidden, setIdentityHidden] = useState(false);
   const [error, setError] = useState("");
@@ -76,6 +77,9 @@ export default function ProfileScreen() {
         {session ? (
           <>
             <h2>{session.user.name}</h2>
+            {location.state?.passwordChanged === true && !session.mustChangePassword && (
+              <p role="status">MSG08: Password changed successfully.</p>
+            )}
             <dl className="metadata">
               <div>
                 <dt>ID</dt>

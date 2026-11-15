@@ -1,0 +1,129 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071203,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "credentialBrowser": {
+        "success": true,
+        "checks": [
+          "temporary email login restricts business access; CSRF, weak, mismatched and unchanged passwords rejected",
+          "UI lists unmet password requirements and same-password rejection",
+          "canonical forced change promotes session, confirms success and revokes both old own and other sessions",
+          "ordinary change and Logout work through UI; ended session denied; repeated logout succeeds",
+          "old credential rejected; final credential logs in and public Logout ends it"
+        ]
+      }
+    },
+    {
+      "credentialCheck": "canonical credential browser acceptance"
+    },
+    {
+      "credentialCheck": "SQL stores final hash and clears temporary marker"
+    },
+    {
+      "credentialCheck": "all browser-created sessions durably revoked after logout"
+    },
+    {
+      "credentialCheck": "two password changes have committed audits"
+    },
+    {
+      "credentialCheck": "logout audits record correct actor"
+    },
+    {
+      "credentialCheck": "audit contains no passwords or hashes"
+    },
+    {
+      "credentialCheck": "invalid input rejected before mutation"
+    },
+    {
+      "credentialCheck": "audit fault prevents password-change success"
+    },
+    {
+      "credentialCheck": "audit fault prevents logout success"
+    },
+    {
+      "credentialCheck": "audit faults roll back credentials, revocations, replacement sessions and audit atomically"
+    },
+    {
+      "credentialCheck": "failed mutations retain usable original session"
+    },
+    {
+      "credentialCheck": "explicit retry after fault succeeds"
+    },
+    {
+      "credentialCheck": "expired session logout is idempotent success"
+    },
+    {
+      "credentialCheck": "expired session cannot be reused after logout"
+    },
+    {
+      "credentialCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": true,
+  "scope": "Canonical browser credential changes, session revocation/logout and SQL audit; synthetic disposable fixture"
+}

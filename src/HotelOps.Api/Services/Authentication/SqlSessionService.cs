@@ -120,7 +120,9 @@ public sealed class SqlSessionService(HotelOpsDbContext db, ISessionRevocationSe
 
     private async Task WriteAuditAsync(long userId, string action, DateTime now, CancellationToken ct)
     {
-        var audit = Audit(userId, action, now); db.AuditLogs.Add(audit);
+        var audit = Audit(userId, action, now);
+        if (action == "SESSION_REVOKE") audit.ActorUserId = userId;
+        db.AuditLogs.Add(audit);
         try { await db.SaveChangesAsync(ct); }
         finally { db.Entry(audit).State = EntityState.Detached; }
     }

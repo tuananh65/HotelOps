@@ -1,5 +1,9 @@
 # DEV3 approved FASTTRACK-142A decisions
 
+## FE13 Department Head mutation authority (approved during checkpoint90)
+
+Explicit user–branch–department mapping is approved for UC115/116/118 and Department Head mutations. A user may manage multiple departments in one branch. Require active user, current DEPT_MANAGER role, valid IR_PROCESS grant and an exact mapping to the request's current receiving department. IR_VIEW never implies processing authority; never infer from User.DepartmentId or Department.ManagerUserId. Routing requires revalidation against the new receiving department. Missing mapping/capability fails closed. Verify wrong department/branch, revoked grant, concurrent mapping changes, concurrency, transaction/audit/rollback. Schema trial only on identity-guarded disposable SQL; shared/production DB unchanged. Prioritize canonical FE13 UI/API/SQL workflow; deadline unchanged.
+
 ## Business workflow acceleration (leader directive during checkpoint88)
 
 Keep the original deadline2026-11-16T17:50Z and current worktree; reconcile remote without resetting. Prioritize near-complete related UCs, then FE13 UC123/114/116/115/117/118/120, FE11 UC102/105/111 and actual UC006/010 public operations, FE14/15 core acceptance, then high-readiness remaining modules. Use60-120-minute workflow batches and proportional focused verification; reuse established infrastructure. Missing authority/status contracts must fail closed while independent work continues. No artificial COMPLETE_VERIFIED upgrades or documentation-only checkpoints. Track new completed UCs, demonstrated workflows, exact gaps, runtime/regression and time remaining. Original SQL/Git/security boundaries remain; direct canonical commit/push is reaffirmed.

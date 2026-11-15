@@ -3,6 +3,20 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
 import type { AuthError } from "../../auth/authStore";
 
+function unmetPasswordItems(current: string, next: string): string[] {
+  // Match server UTF-16 char categories; advisory feedback never grants success.
+  const units = next.split("");
+  const items: string[] = [];
+  if (next.length < 8 || next.length > 256) items.push("Use 8 to 256 characters.");
+  if (!units.some(c => /\p{Lu}/u.test(c))) items.push("Add an uppercase letter.");
+  if (!units.some(c => /\p{Ll}/u.test(c))) items.push("Add a lowercase letter.");
+  if (!units.some(c => /\p{Nd}/u.test(c))) items.push("Add a digit.");
+  if (!units.some(c => /[\p{P}\p{S}]/u.test(c))) items.push("Add a special character.");
+  if (units.some(c => /\p{Cc}/u.test(c))) items.push("Remove control characters.");
+  if (current === next) items.push("Choose a password different from your current password.");
+  return items;
+}
+
 function changePasswordMessage(error: AuthError): string {
   if (error.kind === "busy")
     return "Another authentication operation is in progress. Please wait before trying again.";
@@ -12,7 +26,7 @@ function changePasswordMessage(error: AuthError): string {
     if (error.status === 400 && error.code === "CURRENT_PASSWORD_INVALID")
       return "The current password is incorrect.";
     if (error.status === 400 && error.code === "PASSWORD_POLICY_VIOLATION")
-      return "The new password does not meet the server password policy. Please choose a different password.";
+      return "The new password does not meet the server password policy. Use 8–256 characters with uppercase, lowercase, a digit and a special character; no control characters; choose a password different from your current password.";
     if (error.status === 400 && error.code === "VALIDATION_FAILED")
       return "Please check all password fields and confirmation.";
     if (error.status === 400 && error.code === "CSRF_VALIDATION_FAILED")
@@ -70,8 +84,13 @@ export default function ChangePasswordScreen() {
         confirmNewPassword,
       });
       if (!mounted.current) return;
-      if (result.ok) navigate("/profile");
-      else setError(changePasswordMessage(result.error));
+      if (result.ok) navigate("/profile", { state: { passwordChanged: true } });
+      else {
+        const details = result.error.kind === "http" && result.error.status === 400
+          && result.error.code === "PASSWORD_POLICY_VIOLATION"
+          ? unmetPasswordItems(currentPassword, newPassword).join(" ") : "";
+        setError([changePasswordMessage(result.error), details].filter(Boolean).join(" "));
+      }
     } catch {
       if (mounted.current)
         setError(
@@ -103,7 +122,7 @@ export default function ChangePasswordScreen() {
       </aside>
       <main className="auth-panel">
         <h1>Change Password</h1>
-        <p>Password requirements are checked by the server.</p>
+        <p>Use 8–256 characters with uppercase, lowercase, a digit and a special character. The password must differ from your current password and contain no control characters. Requirements are checked by the server.</p>
         {!confirmed && (
           <p role="status">
             A confirmed session is required to change your password.
