@@ -117,6 +117,7 @@ internal static class SprintReworkExecutionProbe
             if((await Call("start",startTag,Guid.NewGuid())).Status!=RoomTypeBatchStatus.Stale)throw new Exception("Stale start was accepted");
             if(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="cleaning_reworks"&&a.EntityId==id.ToString(),ct)!=2)
                 throw new Exception("Accept/start audits duplicated or missing");
+            await SprintReworkSubmissionProbe.VerifyAsync(db,ticket,sid,branch,id,ct);
         }
         finally
         {

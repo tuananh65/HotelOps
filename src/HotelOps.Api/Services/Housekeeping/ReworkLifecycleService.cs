@@ -291,6 +291,8 @@ public sealed partial class RoomTypeCreationService
         && r.State == (action == "accept" ? "ACCEPTED" : action == "start" ? "IN_PROGRESS" : "PENDING_REINSPECTION")
         && (contract == AssignedReworkExecutionContract
             ? action is "accept" or "start" && r.Readiness is "BLOCKED" or "REWORK_REQUIRED"
+            : contract == ReworkSubmissionContract
+            ? action == "complete" && r.Readiness is "BLOCKED" or "PENDING_INSPECTION" or "PENDING_CLEANING"
             : r.Readiness == (action == "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED"))
         && (action == "accept" ? r.IntervalId == null : r.IntervalId > 0)
         && (action == "complete" ? r.PublicationId is { } p && p != Guid.Empty && r.Notification == "PENDING_DELIVERY"

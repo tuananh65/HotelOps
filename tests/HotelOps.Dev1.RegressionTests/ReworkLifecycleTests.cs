@@ -10,6 +10,20 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class ReworkLifecycleTests
 {
     [Theory]
+    [InlineData("PENDING_INSPECTION",true)]
+    [InlineData("PENDING_CLEANING",true)]
+    [InlineData("BLOCKED",true)]
+    [InlineData("READY",false)]
+    [InlineData("UNKNOWN",false)]
+    public void Submitted_receipt_cannot_claim_a_usable_room(string readiness,bool valid)
+    {
+        var operation=Guid.NewGuid();
+        var receipt=new ReworkCommandResult(1,2,3,4,5,"complete","PENDING_REINSPECTION",operation,
+            "\"0000000000000001\"",DateTime.UtcNow,6,operation,readiness,"PENDING_DELIVERY","FE04_REWORK_SUBMISSION_V1");
+        Assert.Equal(valid,RoomTypeCreationService.ValidReworkReceipt(receipt,5,2,1,3,4,operation,"complete","FE04_REWORK_SUBMISSION_V1"));
+        Assert.False(RoomTypeCreationService.ValidReworkReceipt(receipt with{PublicationId=null},5,2,1,3,4,operation,"complete","FE04_REWORK_SUBMISSION_V1"));
+    }
+    [Theory]
     [InlineData("actor")][InlineData("operation")][InlineData("fingerprint")]
     [InlineData("incomplete")][InlineData("version")][InlineData("json")]
     [InlineData("synthetic-complete")][InlineData("source")]
