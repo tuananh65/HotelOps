@@ -1,0 +1,107 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071243,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "internalRequestProgressCheck": "mapped manager can update with no handler inference"
+    },
+    {
+      "internalRequestProgressCheck": "unmapped non-handler denied despite IR_PROCESS"
+    },
+    {
+      "internalRequestProgressCheck": "current handler without management mapping cannot change deadline"
+    },
+    {
+      "internalRequestProgressCheck": "current assignment does not bypass revoked role"
+    },
+    {
+      "internalRequestProgressCheck": "handler outside receiving department denied"
+    },
+    {
+      "internalRequestProgressCheck": "former handler loses progress authority immediately"
+    },
+    {
+      "internalRequestProgressCheck": "deadline requires nonblank reason"
+    },
+    {
+      "internalRequestProgressCheck": "stale progress cannot overwrite current result"
+    },
+    {
+      "internalRequestProgressCheck": "outbox fault rolls back snapshot event audit and request version"
+    },
+    {
+      "internalRequestProgressCheck": "rollback preserves audit count"
+    },
+    {
+      "internalRequestProgressCheck": "100 percent never closes request"
+    },
+    {
+      "internalRequestProgressCheck": "only transition to 100 creates requester notification intent"
+    },
+    {
+      "internalRequestProgressCheck": "concurrent progress updates commit once and reject stale contender"
+    },
+    {
+      "internalRequestProgressCleanup": true
+    },
+    {
+      "departmentAuthorityCleanup": true
+    }
+  ],
+  "failure": "Exception: Progress browser failed at canonical progress",
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": false,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}

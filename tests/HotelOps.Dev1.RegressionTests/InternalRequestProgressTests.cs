@@ -7,6 +7,9 @@ namespace HotelOps.Dev1.RegressionTests;
 public sealed class InternalRequestProgressTests
 {
     [Fact]
+    public void MissingPercentCannotSilentlyResetProgressToZero() =>
+        Assert.Throws<System.Text.Json.JsonException>(() => System.Text.Json.JsonSerializer.Deserialize<InternalRequestProgressInput>("{}"));
+    [Fact]
     public void ProgressBoundsAndPersistenceTextLimitsAreEnforced()
     {
         foreach(var percent in new[]{-1,101})

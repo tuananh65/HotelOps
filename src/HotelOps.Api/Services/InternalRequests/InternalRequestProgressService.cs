@@ -10,8 +10,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.InternalRequests;
 
-public sealed record InternalRequestProgressInput(int Percent, string? Note, string? Result, DateTimeOffset? Deadline, string? DeadlineReason);
+public sealed record InternalRequestProgressInput([property: System.Text.Json.Serialization.JsonRequired] int Percent, string? Note, string? Result, DateTimeOffset? Deadline, string? DeadlineReason);
 public sealed record InternalRequestProgressResult(long RequestId, long EventId, string Status, string Version);
+public sealed record InternalRequestProgressView(long RequestId, string Status, string Version, int? Percent,
+    string? Note, string? Result, DateTime? Deadline, bool CanUpdate, bool CanChangeDeadline);
 internal sealed class InternalRequestProgressRow
 {
     public int Percent { get; set; }
@@ -20,7 +22,7 @@ internal sealed class InternalRequestProgressRow
     public long EventId { get; set; }
 }
 
-// Internal transaction participant until delivery, attachments and public UI integration are verified.
+// GBR149 progress and result updates; closure remains a separate operation.
 public sealed class InternalRequestProgressService(HotelOpsDbContext db, InternalRequestProgressAuthority authority,
     ISqlSessionService sessions, ICurrentUserAccessor current)
 {
@@ -64,6 +66,33 @@ public sealed class InternalRequestProgressService(HotelOpsDbContext db, Interna
     internal static Task<InternalRequestProgressRow?> SnapshotAsync(HotelOpsDbContext db, long id, CancellationToken ct) =>
         db.Database.SqlQuery<InternalRequestProgressRow>($"SELECT progress_percent AS [Percent],note AS Note,result_note AS Result,event_id AS EventId FROM dbo.internal_request_progress WHERE internal_request_id={id}")
             .SingleOrDefaultAsync(ct);
+
+    public async Task<InternalRequestProgressView> ReadAsync(SessionReference ticket, long sid, long id, CancellationToken ct)
+    {
+        if (id <= 0) throw new ValidationException("Request identifier required.");
+        await using var tx = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct);
+        await new UserEligibilityLock(db).LockAsync([ticket.UserId], ct);
+        await SessionAsync(ticket, sid, ct);
+        if (!await InternalRequestDecisionStore.InstalledAsync(db, ct) || !await InstalledAsync(db, ct))
+            throw new InternalRequestReadException(503, "IR_PROGRESS_SCHEMA_REQUIRED");
+        // Acquire request lock before authority/snapshot reads, matching mutation lock order.
+        var access = await authority.ResolveAsync(ticket.UserId, id, ct);
+        var now = DateTime.UtcNow;
+        var scope = await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId, now, ct);
+        var request = await scope.Apply(db.InternalRequests.AsNoTracking(), now).SingleOrDefaultAsync(r => r.InternalRequestId == id, ct);
+        if (request == null) throw new InternalRequestReadException(404, "IR_NOT_FOUND");
+        var snapshot = await SnapshotAsync(db, id, ct);
+        var version = await InternalRequestDecisionStore.RevisionAsync(db, id, ct);
+        await SessionAsync(ticket, sid, ct);
+        var finalNow = DateTime.UtcNow;
+        var finalScope = await new InternalRequestReadAccess(db).ReadAsync(ticket.UserId, finalNow, ct);
+        if (!await finalScope.Apply(db.InternalRequests.AsNoTracking(), finalNow).AnyAsync(r => r.InternalRequestId == id, ct))
+            throw new InternalRequestReadException(403, "IR_SCOPE_CHANGED");
+        access = await authority.ResolveAsync(ticket.UserId, id, ct);
+        await tx.CommitAsync(ct);
+        return new(id, request.Status, Convert.ToBase64String(version), snapshot?.Percent, snapshot?.Note, snapshot?.Result,
+            request.DueAt is {} due ? DateTime.SpecifyKind(due, DateTimeKind.Utc) : null, access.CanUpdate, access.CanChangeDeadline);
+    }
 
     public async Task<InternalRequestProgressResult> UpdateAsync(SessionReference ticket, long sid, long id, byte[] version,
         InternalRequestProgressInput input, CancellationToken ct)

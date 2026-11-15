@@ -4,6 +4,9 @@ using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.InternalRequests;
+using HotelOps.Api.Services.Notifications;
+using HotelOps.Api.Services.Insights;
+using Microsoft.Extensions.Options;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,7 +15,7 @@ internal static class SprintInternalRequestProgressScenario
     private sealed class Identity(CurrentUserInfo user):ICurrentUserAccessor
     {public bool TryGetCurrentUser(out CurrentUserInfo result){result=user;return true;}}
 
-    internal static async Task RunAsync(HotelOpsDbContext db,long actor,long request,List<object> checks,CancellationToken ct)
+    internal static async Task RunAsync(HotelOpsDbContext db,long actor,long request,List<object> checks,CancellationToken ct,string? username=null,string? password=null)
     {
         // Parent has verified exact disposable identity and exclusively owned synthetic fixture.
         var original=await db.InternalRequests.AsNoTracking().SingleAsync(r=>r.InternalRequestId==request,ct);
@@ -20,6 +23,7 @@ internal static class SprintInternalRequestProgressScenario
         var credential=SessionCredential.Generate();var now=DateTime.UtcNow;
         var session=new UserSession{UserId=actor,SessionKeyHash=SessionCredential.Hash(credential),CreatedAt=now,ExpiresAt=now.AddMinutes(20)};
         var triggerInstalled=false;var schemaInstalled=false;
+        var createdView=false;long viewGrant=0;
         void Check(bool value,string label){if(!value)throw new Exception(label);checks.Add(new{internalRequestProgressCheck=label});}
         Task<byte[]> Revision()=>db.Database.SqlQuery<byte[]>($"SELECT row_version AS Value FROM dbo.internal_requests WHERE internal_request_id={request}").SingleAsync(ct);
         try
@@ -95,6 +99,32 @@ internal static class SprintInternalRequestProgressScenario
             }
             var race=await Task.WhenAll(Race("Concurrent A"),Race("Concurrent B"));
             Check(race.Order().SequenceEqual(new[]{200,412}),"concurrent progress updates commit once and reject stale contender");
+            if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_PROGRESS_BROWSER")=="1")
+            {
+                createdView=!await db.Permissions.AnyAsync(p=>p.PermissionCode=="IR_VIEW",ct);
+                await db.Database.ExecuteSqlRawAsync(await File.ReadAllTextAsync("scripts/verification/CanonicalDatabase/InternalRequestViewIsolated.sql",ct),ct);
+                var role=await db.Roles.SingleAsync(r=>r.RoleCode=="DEPT_MANAGER",ct);
+                var permission=await db.Permissions.SingleAsync(p=>p.PermissionCode=="IR_VIEW",ct);
+                if(await db.RolePermissions.AnyAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==permission.PermissionId,ct))throw new Exception("Preserve existing view grant");
+                var grant=new RolePermission{RoleId=role.RoleId,PermissionId=permission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow};
+                db.RolePermissions.Add(grant);await db.SaveChangesAsync(ct);viewGrant=grant.RolePermissionId;db.ChangeTracker.Clear();
+                checks.Add(new{progressBrowser=await SprintInternalRequestProgressBrowser.RunAsync(username??throw new Exception("Username required"),password??throw new Exception("Password required"),request,ct)});
+                Check(await db.Database.SqlQuery<int>($"SELECT progress_percent AS Value FROM dbo.internal_request_progress WHERE internal_request_id={request}").SingleAsync(ct)==100,
+                    "browser progress persists 100 in SQL");
+                Check(await db.NotificationRecipients.CountAsync(r=>r.UserId==actor&&r.Notification.SourceType=="INTERNAL_REQUEST_PROGRESS"&&r.DeliveryStatus=="DELIVERED",ct)==2,
+                    "two readiness transitions delivered by hosted worker without duplicates");
+                var receipt=await db.Notifications.AsNoTracking().Where(n=>n.SourceType=="INTERNAL_REQUEST_PROGRESS"&&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==n.SourceId)).OrderBy(n=>n.NotificationId).FirstAsync(ct);
+                var options=Options.Create(new NotificationCenterOptions());
+                var delivery=new InternalRequestProgressDelivery(db,TimeProvider.System,options);
+                Check(await delivery.DeliverAsync(receipt.SourceId!.Value,ct)=="ALREADY_DELIVERED","delivery retry reuses verified recipient receipt");
+                await db.RolePermissions.Where(g=>g.RolePermissionId==viewGrant).ExecuteDeleteAsync(ct);viewGrant=0;
+                Check(await delivery.DeliverAsync(receipt.SourceId.Value,ct)=="RECIPIENT_READ_DENIED","revoked read grant denies delivery even with existing receipt");
+                var center=new NotificationCenterService(db,new Identity(new(actor,session.SessionId,false)),TimeProvider.System,options);
+                var sourceDenied=false;try{await center.ResolveSourceAsync(receipt.NotificationId,ct);}catch(InsightException){sourceDenied=true;}
+                Check(sourceDenied,"revoked read grant denies readiness notification source");
+                var readDenied=false;try{await service.ReadAsync(ticket,session.SessionId,request,ct);}catch(InternalRequestReadException e)when(e.Status==404){readDenied=true;}
+                Check(readDenied,"progress read requires current IR_VIEW independently of processing grant");
+            }
             await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.Status,"CLOSED"),ct);
             await Denied(new(80,null,null,null,null),403,"closed request rejects progress");
         }
@@ -107,6 +137,11 @@ internal static class SprintInternalRequestProgressScenario
                 await db.Database.ExecuteSqlInterpolatedAsync($"DELETE o FROM dbo.internal_request_progress_outbox o JOIN dbo.internal_request_events e ON e.event_id=o.event_id WHERE e.internal_request_id={request}",CancellationToken.None);
                 await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.internal_request_progress WHERE internal_request_id={request}",CancellationToken.None);
             }
+            var notices=await db.Notifications.Where(n=>n.SourceType=="INTERNAL_REQUEST_PROGRESS"&&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==n.SourceId)).Select(n=>n.NotificationId).ToArrayAsync(CancellationToken.None);
+            await db.NotificationRecipients.Where(r=>notices.Contains(r.NotificationId)).ExecuteDeleteAsync(CancellationToken.None);
+            await db.Notifications.Where(n=>notices.Contains(n.NotificationId)).ExecuteDeleteAsync(CancellationToken.None);
+            if(viewGrant>0)await db.RolePermissions.Where(g=>g.RolePermissionId==viewGrant).ExecuteDeleteAsync(CancellationToken.None);
+            if(createdView)await db.Permissions.Where(p=>p.PermissionCode=="IR_VIEW").ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequestAssignments.Where(a=>a.InternalRequestId==request).ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequestEvents.Where(e=>e.InternalRequestId==request).ExecuteDeleteAsync(CancellationToken.None);
             await db.AuditLogs.Where(a=>a.EntityType=="internal_requests"&&a.EntityId==request.ToString()).ExecuteDeleteAsync(CancellationToken.None);

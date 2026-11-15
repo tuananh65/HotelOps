@@ -55,7 +55,7 @@ internal static class SprintDepartmentAuthorityScenario
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({actor},{branch},{department},DATEADD(minute,-1,SYSUTCDATETIME()))",ct);
             await AssertAllowed(requests[0],true,"exact current department mapping allows");
             if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_PROGRESS")=="1")
-                await SprintInternalRequestProgressScenario.RunAsync(db,actor,requests[0],checks,ct);
+                await SprintInternalRequestProgressScenario.RunAsync(db,actor,requests[0],checks,ct,username,password);
             else if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_WORKER_BROWSER")=="1")
                 await SprintInternalRequestWorkerScenario.RunAsync(db,actor,requests[0],username??throw new Exception("Username required"),password??throw new Exception("Password required"),checks,ct);
             else if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_DECISION")=="1")

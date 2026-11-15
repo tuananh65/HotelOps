@@ -47,6 +47,14 @@ async function fixture(run) {
       }
       return json({requestId:1,status:"ACCEPTED",version:"AAAAAAAAAAE=",handlerId:null,handlers:[{userId:42,name:"Eligible Handler",openRequests:2}]});
     }
+    if(path === "/api/internal-requests/1/progress") {
+      if(request.method()==="POST") {
+        state.progressPosts=(state.progressPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAE="},state.progressPostStatus??200);
+      }
+      return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false},state.progressStatus??200);
+    }
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
     if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
@@ -159,4 +167,26 @@ test("stale route response hides target options and never replays mutation",asyn
   await panel.getByRole("button",{name:"Route request",exact:true}).click();
   await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
   assert.equal(state.routePosts,1);assert.equal(await panel.getByLabel("Target department",{exact:true}).count(),0);
+}));
+
+test("progress read does not grant mutation and reload denial removes private snapshot", async()=>fixture(async(page,state)=>{
+  await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
+  const panel=page.getByRole("region",{name:"Request progress",exact:true});
+  await panel.getByText("PRIVATE RESULT",{exact:true}).waitFor();
+  assert.equal(await panel.getByRole("button",{name:"Save progress",exact:true}).count(),0);
+  state.progressStatus=403;await panel.getByRole("button",{name:"Reload progress",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Progress unavailable"}).waitFor();
+  assert.equal(await panel.getByText("PRIVATE RESULT",{exact:true}).count(),0);
+}));
+for(const status of [200,412])test(`progress ${status} uses CSRF/ETag, prevents double submit and requires reload`,async()=>fixture(async(page,state)=>{
+  state.progressAllowed=true;state.progressPostStatus=status;
+  await page.goto("https://history.test/internal-requests?requestId=1");await page.addScriptTag({content:compiled.outputFiles[0].text});
+  const panel=page.getByRole("region",{name:"Request progress",exact:true});
+  await panel.getByLabel("Progress percent",{exact:true}).fill("100");
+  await panel.getByLabel("Progress note",{exact:true}).fill("Updated note");
+  await panel.getByLabel("Result note",{exact:true}).fill("Updated result");
+  assert.equal(await panel.getByLabel("New deadline (UTC)",{exact:true}).count(),0);
+  await panel.getByRole("button",{name:"Save progress",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByRole("status").filter({hasText:status===200?"MSG08: Progress saved":"Request changed"}).waitFor();
+  assert.equal(state.progressPosts,1);assert.equal(await panel.getByLabel("Progress percent",{exact:true}).count(),0);
 }));
