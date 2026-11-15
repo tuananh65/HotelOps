@@ -1,3 +1,4 @@
+import { MyTimeLogPage } from "../workTime/MyTimeLogPage";
 import { InitialInspectionAssignmentPage } from "../features/inspectionExecution/InitialInspectionAssignmentPage";
 import { PendingInspectionsPage } from "../features/inspectionExecution/PendingInspectionsPage";
 import { AssignedReworkRead } from "../features/inspectionExecution/AssignedReworkRead";
@@ -85,6 +86,7 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      {operationalTasksEnabled && <Route path="/my-time-log" element={<Protected><MyTimeLogPage /></Protected>} />}
       {incidentReadEnabled && <Route path="/operations/*" element={<Protected><Dev2Workspace readOnly enabledModules={["incidents"]} /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {internalRequestsEnabled && <Route path="/internal-requests/new" element={<Protected><InternalRequestIntakePage /></Protected>} />}
@@ -288,6 +290,7 @@ export function SharedAuthHost({
             {internalRequestsEnabled && <InternalRequestAccessLink />}
             {internalRequestsEnabled && <InternalRequestIntakeLink />}
             {incidentReadEnabled && <Link to="/operations/incidents">Incidents</Link>}
+            {operationalTasksEnabled && <Link to="/my-time-log">My Time Log</Link>}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>
             )}

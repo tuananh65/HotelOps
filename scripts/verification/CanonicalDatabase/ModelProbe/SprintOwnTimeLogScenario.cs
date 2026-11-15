@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
 using HotelOps.Api.Data;
@@ -6,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintOwnTimeLogScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,long branch,long department,List<object> checks,CancellationToken ct)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,long branch,long department,List<object> checks,CancellationToken ct,string username,string password)
     {
         void Check(bool ok,string name){if(!ok)throw new Exception(name);checks.Add(new{ownTimeLogCheck=name});}
         var role=await db.Roles.SingleAsync(r=>r.RoleCode=="DEPT_MANAGER",ct);
@@ -50,5 +51,11 @@ internal static class SprintOwnTimeLogScenario
         await db.RolePermissions.Where(g=>g.RolePermissionId==grant.RolePermissionId).ExecuteDeleteAsync(ct);
         using(var response=await http.GetAsync(path,ct))Check((int)response.StatusCode==403,"revoked attendance grant denies own time log");
         db.RolePermissions.Add(new(){RoleId=role.RoleId,PermissionId=permission.PermissionId,DataScope=grant.DataScope,GrantedAt=grant.GrantedAt});await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true};start.ArgumentList.Add("frontend/scripts/sprintOwnTimeLogBrowser.mjs");
+        using var browser=Process.Start(start)??throw new Exception("Own time log browser unavailable");
+        var output=browser.StandardOutput.ReadToEndAsync(ct);var errors=browser.StandardError.ReadToEndAsync(ct);
+        try{await browser.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,branch,foreign,date=date.ToString("yyyy-MM-dd")}));browser.StandardInput.Close();await browser.WaitForExitAsync(ct);
+            var proof=JsonSerializer.Deserialize<JsonElement>(await output);_=await errors;checks.Add(new{ownTimeLogBrowser=proof});if(browser.ExitCode!=0||!proof.GetProperty("success").GetBoolean())throw new Exception("Own time log browser failed at "+proof.GetProperty("stage").GetString());
+        }finally{if(!browser.HasExited)browser.Kill(entireProcessTree:true);}
     }
 }

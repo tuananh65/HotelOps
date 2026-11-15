@@ -66,7 +66,7 @@ internal static class SprintDepartmentAuthorityScenario
                 }
                 if(Environment.GetEnvironmentVariable("DEV3_VERIFY_OWN_TIME_LOG")=="1")
                 {
-                    await SprintOwnTimeLogScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,branch,department,checks,ct);
+                    await SprintOwnTimeLogScenario.RunAsync(db,http??throw new Exception("Owned HTTP client required"),actor,branch,department,checks,ct,username??throw new Exception("Username required"),password??throw new Exception("Password required"));
                     return;
                 }
                 if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_COMPLETION")=="1")
