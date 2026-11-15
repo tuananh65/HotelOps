@@ -28,12 +28,26 @@ internal static class SprintRequestDirectionScenario
         await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.department_management_access SET revoked_at=NULL WHERE user_id={actor} AND branch_id={row.BranchId} AND department_id={row.ReceivingDepartmentId}",ct);
         var grant=await db.RolePermissions.AsNoTracking().SingleAsync(g=>g.Role.RoleCode=="DEPT_MANAGER"&&g.Permission.PermissionCode=="IR_PROCESS",ct);
         await db.RolePermissions.Where(g=>g.RolePermissionId==grant.RolePermissionId).ExecuteDeleteAsync(ct);
-        try{Check((await Read("RECEIVED")).Length==0,"revoked IR_PROCESS removes manager Received despite IR_VIEW");}
+        try
+        {
+            Check((await Read("RECEIVED")).Length==0,"revoked IR_PROCESS removes manager Received despite IR_VIEW");
+            await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.AssigneeId,actor),ct);
+            Check((await Read("RECEIVED")).SequenceEqual(new[]{request}),"current handler retains Received with IR_VIEW after manager processing grant revoked");
+            Check((await Read("SENT")).SequenceEqual(new[]{request}),"Sent remains requester-based after processing grant revoked");
+        }
         finally{db.RolePermissions.Add(new(){RoleId=grant.RoleId,PermissionId=grant.PermissionId,DataScope=grant.DataScope,GrantedAt=grant.GrantedAt});await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();}
         var readGrant=await db.RolePermissions.AsNoTracking().SingleAsync(g=>g.Role.RoleCode=="DEPT_MANAGER"&&g.Permission.PermissionCode=="IR_VIEW",ct);
         await db.RolePermissions.Where(g=>g.RolePermissionId==readGrant.RolePermissionId).ExecuteDeleteAsync(ct);
-        try{using var denied=await http.GetAsync("/api/internal-requests?direction=RECEIVED",ct);Check((int)denied.StatusCode==403,"processing and mapping cannot replace IR_VIEW");}
+        try
+        {
+            foreach(var direction in new[]{"SENT","RECEIVED"})
+            {
+                using var denied=await http.GetAsync("/api/internal-requests?direction="+direction,ct);
+                Check((int)denied.StatusCode==403,"requester, current handler and manager cannot replace IR_VIEW for "+direction);
+            }
+        }
         finally{db.RolePermissions.Add(new(){RoleId=readGrant.RoleId,PermissionId=readGrant.PermissionId,DataScope=readGrant.DataScope,GrantedAt=readGrant.GrantedAt});await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();}
         Check((await Read("RECEIVED")).SequenceEqual(new[]{request}),"restored current grants and mapping allow Received");
+        await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.AssigneeId,other),ct);
     }
 }

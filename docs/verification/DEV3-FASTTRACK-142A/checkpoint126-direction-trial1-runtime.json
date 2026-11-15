@@ -1,0 +1,323 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_c3b86d61",
+  "fixtureUserId": 1071263,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "incidentReadCheck": "IR_PROCESS department manager does not gain incident read"
+    },
+    {
+      "incidentReadCheck": "existing incident grant supports branch read"
+    },
+    {
+      "incidentReadCheck": "existing incident grant supports branch read"
+    },
+    {
+      "incidentReadCheck": "lead branch count and pagination exclude foreign branch"
+    },
+    {
+      "incidentReadCheck": "explicit branch and foreign branch detail guards"
+    },
+    {
+      "incidentReadCheck": "invalid pagination rejected and empty filtered list preserved"
+    },
+    {
+      "incidentReadCheck": "staff BRANCH catalog grant is narrowed to reported or assigned before count"
+    },
+    {
+      "incidentReadCheck": "staff detail independently enforces ownership"
+    },
+    {
+      "incidentReadBrowser": {
+        "success": true,
+        "checks": [
+          "Maintenance Staff sees scoped incident list and follows assigned incident detail; unrelated incident absent"
+        ]
+      }
+    },
+    {
+      "incidentReadCheck": "reassignment immediately removes former staff read"
+    },
+    {
+      "incidentReadCheck": "revoked role denies even incident reporter"
+    },
+    {
+      "incidentLinkCheck": "approved IR_VIEW contract"
+    },
+    {
+      "requestDirectionCheck": "direction SENT read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "requester and mapped manager appears once in both; foreign branch excluded"
+    },
+    {
+      "requestDirectionCheck": "invalid direction rejected"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "direction SENT read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "routing removes previous receiving manager but preserves Sent"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "current handler receives without department mapping"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "former handler removed immediately after assignment change"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "revoked mapping removes manager Received"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "revoked IR_PROCESS removes manager Received despite IR_VIEW"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "current handler retains Received with IR_VIEW after manager processing grant revoked"
+    },
+    {
+      "requestDirectionCheck": "direction SENT read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "Sent remains requester-based after processing grant revoked"
+    },
+    {
+      "requestDirectionCheck": "requester, current handler and manager cannot replace IR_VIEW for SENT"
+    },
+    {
+      "requestDirectionCheck": "requester, current handler and manager cannot replace IR_VIEW for RECEIVED"
+    },
+    {
+      "requestDirectionCheck": "direction RECEIVED read"
+    },
+    {
+      "requestDirectionCheck": "filtered count agrees with scoped list"
+    },
+    {
+      "requestDirectionCheck": "restored current grants and mapping allow Received"
+    },
+    {
+      "incidentLinkCheck": "legacy reference obeys independent incident read and branch scope"
+    },
+    {
+      "incidentLinkCheck": "legacy reference obeys independent incident read and branch scope"
+    },
+    {
+      "incidentLinkCheck": "legacy reference obeys independent incident read and branch scope"
+    },
+    {
+      "incidentLinkCheck": "legacy requirement remains unclassified"
+    },
+    {
+      "incidentLinkCheck": "candidate intersection excludes unrelated and cross-branch incidents"
+    },
+    {
+      "incidentLinkCheck": "linked list readable"
+    },
+    {
+      "incidentLinkCheck": "CSRF required"
+    },
+    {
+      "incidentLinkCheck": "loaded If-Match required"
+    },
+    {
+      "incidentLinkCheck": "mandatory flag must be explicit"
+    },
+    {
+      "incidentLinkCheck": "unrelated incident denied despite IR_PROCESS"
+    },
+    {
+      "incidentLinkCheck": "cross branch incident denied"
+    },
+    {
+      "incidentLinkCheck": "revoked department mapping denies mutation"
+    },
+    {
+      "incidentLinkCheck": "closed incident cannot be linked"
+    },
+    {
+      "incidentLinkCheck": "injected link failure rejected"
+    },
+    {
+      "incidentLinkCheck": "linked list readable"
+    },
+    {
+      "incidentLinkCheck": "failure rolls back audit and request version"
+    },
+    {
+      "incidentLinkBrowser": {
+        "success": true,
+        "checks": [
+          "Canonical Sent and Received select current authorized request",
+          "Link existing incident with explicit mandatory flag; saved link opens scoped incident detail"
+        ]
+      }
+    },
+    {
+      "incidentLinkCheck": "canonical browser links required incident and opens independently authorized detail"
+    },
+    {
+      "incidentLinkCheck": "stale version rejected after browser mutation"
+    },
+    {
+      "incidentLinkCheck": "linked list readable"
+    },
+    {
+      "incidentLinkCheck": "duplicate link rejected"
+    },
+    {
+      "incidentLinkCheck": "required link and actor audit persisted exactly once"
+    },
+    {
+      "incidentLinkCheck": "linking does not close request"
+    },
+    {
+      "incidentLinkCheck": "explicit classification overrides legacy unknown without duplicate row"
+    },
+    {
+      "incidentLinkCheck": "linked list readable"
+    },
+    {
+      "incidentLinkCheck": "concurrent same-version links yield one200 and one412"
+    },
+    {
+      "incidentLinkCheck": "one optional link persisted under concurrency"
+    },
+    {
+      "incidentLinkCheck": "target role revocation removes link disclosure even with IR_VIEW"
+    },
+    {
+      "incidentReadCheck": "read contract does not admit incident mutations"
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}
