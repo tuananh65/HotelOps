@@ -7,6 +7,8 @@ export interface HistoryRow {
   status: string;
   deadline: string | null;
   overdue: boolean;
+  createdAt?: string;
+  timingStatus?: "ON_TIME" | "AT_RISK" | "OVERDUE" | "TERMINAL" | "INVALID_WINDOW";
   currentAssigneeId: number | null;
 }
 export interface HistoryPage {
@@ -105,6 +107,10 @@ export function decodeHistory(v: unknown): HistoryPage {
         text(r.status) &&
         nullableDate(r.deadline) &&
         typeof r.overdue === "boolean" &&
+        ((r.timingStatus === undefined && r.createdAt === undefined) ||
+          (date(r.createdAt) && typeof r.timingStatus === "string" &&
+            ["ON_TIME", "AT_RISK", "OVERDUE", "TERMINAL", "INVALID_WINDOW"].includes(r.timingStatus) &&
+            r.overdue === (r.timingStatus === "OVERDUE"))) &&
         (r.currentAssigneeId === null || id(r.currentAssigneeId)),
     )
   )

@@ -275,6 +275,7 @@ export function InternalRequestHistoryPage() {
                   <th>Current handler</th>
                   <th>Deadline</th>
                   <th>Overdue</th>
+                  <th>Time window</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,6 +301,11 @@ export function InternalRequestHistoryPage() {
                     </td>
                     <td>{row.deadline ?? "No deadline"}</td>
                     <td>{row.overdue ? "Yes" : "No"}</td>
+                    <td>{row.timingStatus === "AT_RISK" ? "At risk (80% or more elapsed)"
+                      : row.timingStatus === "OVERDUE" ? "Overdue"
+                      : row.timingStatus === "ON_TIME" ? "Under 80% elapsed"
+                      : row.timingStatus === "TERMINAL" ? "Finished"
+                      : "Valid creation time and deadline required"}</td>
                   </tr>
                 ))}
               </tbody>

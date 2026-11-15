@@ -9,6 +9,13 @@ test("history decoder rejects unsafe IDs, malformed counts and non-UTC dates", (
   assert.equal(decodeHistory(page()).items[0].subject, "<script>literal</script>");
   for (const value of [{ ...page(), totalCount: -1 }, { ...page(), pageSize: 101 }, { ...page(), snapshotUtc: "2026-11-16" }, { ...page(), items: [{ ...page().items[0], id: 1e20 }] }, { ...page(), items: [{ ...page().items[0], subject: {} }] }]) assert.throws(() => decodeHistory(value));
 });
+test("timing status comes from the server and rejects contradictory overdue flags", () => {
+  const row = { ...page().items[0], createdAt: "2026-11-15T00:00:00Z", timingStatus: "AT_RISK" };
+  assert.equal(decodeHistory({ ...page(), items: [row] }).items[0].timingStatus, "AT_RISK");
+  for (const change of [{ timingStatus: "unknown" }, { createdAt: "2026-11-15" }, { overdue: true }, { timingStatus: "OVERDUE" }, { createdAt: undefined }])
+    assert.throws(() => decodeHistory({ ...page(), items: [{ ...row, ...change }] }));
+  assert.equal(decodeHistory(page()).items[0].timingStatus, undefined);
+});
 test("timeline decoder binds identity and rejects malformed history", () => {
   const value = { requestId: 1, eventTotalCount: 0, assignmentTotalCount: 0, events: [], assignments: [], feedback: null };
   assert.equal(decodeTimeline(value, 1).requestId, 1);

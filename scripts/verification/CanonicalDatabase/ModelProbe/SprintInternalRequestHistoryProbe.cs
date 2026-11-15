@@ -86,6 +86,26 @@ internal static class SprintInternalRequestHistoryProbe
             {bool rejected=false;try{await InternalRequestHistoryQueries.TimelineAsync(scoped,a.InternalRequestId,query,ct);}catch(System.ComponentModel.DataAnnotations.ValidationException){rejected=true;}Check(rejected,"invalid timeline pagination rejected");}
             foreach(var filter in new[]{new InternalRequestHistoryFilter(Page:0),new InternalRequestHistoryFilter(PageSize:101),new InternalRequestHistoryFilter(Page:int.MaxValue,PageSize:100),new InternalRequestHistoryFilter(Search:"bad\ninput"),new InternalRequestHistoryFilter(Status:"bad\tstatus")})
             {bool rejected=false;try{await InternalRequestHistoryQueries.ListAsync(scoped,filter,now,ct);}catch(System.ComponentModel.DataAnnotations.ValidationException){rejected=true;}Check(rejected,"invalid pagination rejected");}
+            // UC122 approved clock origin and current-deadline classification over persisted SQL values.
+            var origin=now.AddMinutes(-80);
+            await db.InternalRequests.Where(r=>r.InternalRequestId==equal.InternalRequestId)
+                .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.CreatedAt,origin).SetProperty(r=>r.DueAt,origin.AddMinutes(100)),ct);
+            foreach(var boundary in new[]{(79,"ON_TIME"),(80,"AT_RISK"),(100,"AT_RISK"),(101,"OVERDUE")})
+            {
+                var timed=await InternalRequestHistoryQueries.ListAsync(scoped.Where(r=>r.InternalRequestId==equal.InternalRequestId),new(),origin.AddMinutes(boundary.Item1),ct);
+                Check(timed.Items.Single().TimingStatus==boundary.Item2&&timed.Items.Single().Overdue==(boundary.Item2=="OVERDUE"),$"persisted window at {boundary.Item1} percent = {boundary.Item2}");
+                Check(timed.Items.Single().CreatedAt==origin&&timed.Items.Single().CreatedAt.Kind==DateTimeKind.Utc,"official creation timestamp retained in UTC");
+            }
+            await db.InternalRequests.Where(r=>r.InternalRequestId==equal.InternalRequestId)
+                .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.DueAt,origin.AddMinutes(200)).SetProperty(r=>r.UpdatedAt,now),ct);
+            var extended=await InternalRequestHistoryQueries.ListAsync(scoped.Where(r=>r.InternalRequestId==equal.InternalRequestId),new(),now,ct);
+            Check(extended.Items.Single().TimingStatus=="ON_TIME"&&extended.Items.Single().CreatedAt==origin,"current deadline recalculates risk without using updated_at as origin");
+            Check(all.Items.Single(r=>r.Id==closed.InternalRequestId).TimingStatus=="TERMINAL","closed request never at risk");
+            Check(all.Items.Single(r=>r.Id==undated.InternalRequestId).TimingStatus=="INVALID_WINDOW","missing deadline cannot qualify");
+            await db.InternalRequests.Where(r=>r.InternalRequestId==equal.InternalRequestId)
+                .ExecuteUpdateAsync(s=>s.SetProperty(r=>r.DueAt,origin),ct);
+            var invalid=await InternalRequestHistoryQueries.ListAsync(scoped.Where(r=>r.InternalRequestId==equal.InternalRequestId),new(),now,ct);
+            Check(invalid.Items.Single().TimingStatus=="INVALID_WINDOW"&&!invalid.Items.Single().Overdue,"nonpositive allowed window fails closed");
             bool duplicateRejected=false;
             try{
                 await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.internal_request_assignments(internal_request_id,assignee_id,assigned_by,assigned_at,status) VALUES({a.InternalRequestId},{actor},{actor},{now},'ACTIVE')",ct);

@@ -115,7 +115,7 @@ async function fixture(run) {
     }
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
-    if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
+    if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null, ...(state.timing ?? {}) }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
     return json({}, 403);
   });
   try {
@@ -124,6 +124,19 @@ async function fixture(run) {
     await run(page, state);
   } finally { await page.close(); }
 }
+test("time window shows server risk and refresh removes it after deadline change or revoked read", async () => fixture(async (page, state) => {
+  state.timing = { createdAt:"2026-11-15T00:00:00Z", timingStatus:"AT_RISK" };
+  await page.getByRole("button",{name:"Refresh history",exact:true}).click();
+  await page.getByRole("cell",{name:"At risk (80% or more elapsed)",exact:true}).waitFor();
+  state.timing.timingStatus = "ON_TIME";
+  await page.getByRole("button",{name:"Refresh history",exact:true}).click();
+  await page.getByRole("cell",{name:"Under 80% elapsed",exact:true}).waitFor();
+  assert.equal(await page.getByText("At risk (80% or more elapsed)",{exact:true}).count(),0);
+  state.history = 403;
+  await page.getByRole("button",{name:"Refresh history",exact:true}).click();
+  await page.getByRole("alert").filter({hasText:"do not have access"}).waitFor();
+  assert.equal(await page.getByText("Under 80% elapsed",{exact:true}).count(),0);
+}));
 test("refresh denial removes previously visible history", async () => fixture(async (page, state) => {
   state.history = 403;
   await page.getByRole("button", { name: "Refresh history", exact: true }).click();
