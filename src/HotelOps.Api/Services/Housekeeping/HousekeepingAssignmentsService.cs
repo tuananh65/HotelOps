@@ -98,7 +98,7 @@ public sealed partial class RoomTypeCreationService
         }, ct, additionalUsers: [input.InspectorId], eligibility: async token => input.DueAt > clock.GetUtcNow().UtcDateTime && await EligibleInspector(input.InspectorId, branch, token), permissionCode: "INSPECTION_PERFORM");
     }
 
-    public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket, long sid, long branch, long inspection, string tag, RequestReworkRequest input, CancellationToken ct)
+    public Task<RoomTypeBatchResult> RequestCleaningReworkAsync(SessionReference ticket, long sid, long branch, long inspection, string tag, RequestReworkRequest input, CancellationToken ct, string? evidenceRoot = null)
     {
         if (inspection <= 0 || input.AssigneeId <= 0 || input.DefectIds == null || input.DefectIds.Count is < 1 or > 200
             || input.DefectIds.Distinct().Count() != input.DefectIds.Count || !WorkflowStrongTag(tag)) throw new ValidationException("Invalid rework request.");
@@ -119,12 +119,15 @@ public sealed partial class RoomTypeCreationService
                 && d.ChecklistItem != null && d.ChecklistItem.VersionId == row.VersionId
                 && db.InspectionResults.Any(r => r.InspectionId == inspection && r.ChecklistItemId == d.ChecklistItemId && r.Outcome == "FAIL"), token) != input.DefectIds.Count)
                 return new(RoomTypeBatchStatus.InvalidReference);
+            if (!await ReworkAuthorityIssuerAvailable(token)) return new(RoomTypeBatchStatus.SchemaRequired);
             var rework = new CleaningRework { InspectionId = inspection, CleaningTaskId = row.CleaningTaskId.Value, AssigneeUserId = input.AssigneeId, Reason = reason, Status = "PENDING", RequestedAt = clock.GetUtcNow().UtcDateTime };
             db.Add(rework); await db.SaveChangesAsync(token); db.ChangeTracker.Clear();
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_reworks SET workflow_status={"PENDING_ACCEPTANCE"},due_at={input.DueAt} WHERE rework_id={rework.ReworkId}", token);
             foreach (var defect in input.DefectIds) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.cleaning_rework_defects(rework_id,defect_id) VALUES({rework.ReworkId},{defect})", token);
             var after = new HousekeepingWriteDto(rework.ReworkId, "PENDING_ACCEPTANCE");
-            await BatchAuditAsync(actor, branch, "cleaning_reworks", rework.ReworkId, null, new { reason, defects = input.DefectIds, entity = after }, ["assignee", "defects", "dueAt"], token);
+            // The protected issuer records the CREATE audit, operation receipt and immutable proof
+            // in this same transaction. An unexecutable task must not be acknowledged as created.
+            await IssueReworkAuthorityInCallerTransactionAsync(actor, branch, rework.ReworkId, evidenceRoot, token);
             return new(RoomTypeBatchStatus.Success, after);
         }, ct, additionalUsers: [input.AssigneeId], eligibility: token => DueHousekeeper(input.AssigneeId, branch, input.DueAt, token), permissionCode: "INSPECTION_PERFORM");
     }

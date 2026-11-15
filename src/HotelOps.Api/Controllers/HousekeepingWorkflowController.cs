@@ -43,7 +43,7 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
         => Execute((ticket,sid) => service.AssignInspectionAsync(ticket,sid,branchId,id,input,ct),false,true);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
-        => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct),true,true);
+        => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct,Root),true,true);
     [HttpGet("api/branches/{branchId:long}/inspections/{id:long}/rework-options")]
     public Task<IActionResult> ReworkOptions(long branchId, long id, CancellationToken ct)
         => Execute((ticket,sid) => service.ReadInspectionReworkOptionsAsync(ticket,sid,branchId,id,ct),false);

@@ -8,6 +8,7 @@ internal static class SprintReworkFixture
     internal static async Task SeedAsync(HotelOpsDbContext db,long actor,long cleaner,long branch,CancellationToken ct)
     {
         if(db.Database.CurrentTransaction==null)throw new Exception("Fixture transaction required");
+        await SprintReworkAuthorityFixture.InstallAsync(db,ct);
         var department=new Department{BranchId=branch,DepartmentCode="HK",DepartmentName="Synthetic housekeeping",IsActive=true};
         db.Departments.Add(department);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
         await db.Database.ExecuteSqlInterpolatedAsync($"""
@@ -26,7 +27,11 @@ internal static class SprintReworkFixture
         await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
     }
     internal static Task CleanupAsync(HotelOpsDbContext db,long cleaner,long branch,long inspection,CancellationToken ct)
-        =>db.Database.ExecuteSqlInterpolatedAsync($"""
+        => CleanupCoreAsync(db,cleaner,branch,inspection,ct);
+    private static async Task CleanupCoreAsync(HotelOpsDbContext db,long cleaner,long branch,long inspection,CancellationToken ct)
+    {
+        await SprintReworkAuthorityFixture.CleanupAsync(db,inspection,ct);
+        await db.Database.ExecuteSqlInterpolatedAsync($"""
             DELETE d FROM dbo.cleaning_rework_defects d JOIN dbo.cleaning_reworks r ON r.rework_id=d.rework_id WHERE r.inspection_id={inspection};
             DELETE dbo.cleaning_reworks WHERE inspection_id={inspection};
             DELETE a FROM dbo.shift_assignments a JOIN dbo.work_shifts s ON s.shift_id=a.shift_id WHERE s.branch_id={branch} AND a.user_id={cleaner};
@@ -35,4 +40,5 @@ internal static class SprintReworkFixture
             UPDATE dbo.users SET department_id=NULL WHERE user_id={cleaner};
             DELETE dbo.departments WHERE branch_id={branch} AND department_code='HK';
             """,ct);
+    }
 }
