@@ -128,7 +128,7 @@ export function decodeSnapshot(
     Number(v.totalCount) > 50000 ||
     !strings(v.missingSources) ||
     !strings(v.exportFormats) ||
-    v.exportFormats.some((f) => f !== "csv") ||
+    v.exportFormats.some((f) => f !== "csv" && f !== "xlsx") ||
     !Array.isArray(v.sections) ||
     !v.sections.every(
       (s) =>
@@ -217,29 +217,33 @@ export function createReportApi(
         query,
       );
     },
-    async export(snapshot: ReportSnapshot) {
+    async export(snapshot: ReportSnapshot, format: "csv" | "xlsx" = "csv") {
       if (
         !/^[a-f0-9]{32}$/.test(snapshot.snapshotId) ||
         !reportTypes.includes(snapshot.key) ||
-        !snapshot.exportFormats.includes("csv")
+        !["csv", "xlsx"].includes(format) ||
+        !snapshot.exportFormats.includes(format)
       )
         throw new Error("Invalid export identity");
       const response = await request(
         `/api/reports/snapshots/${snapshot.snapshotId}/export`,
-        { format: "csv" },
+        { format },
       );
       if (
         response.headers
           .get("Content-Type")
           ?.split(";")[0]
           .trim()
-          .toLowerCase() !== "text/csv"
+          .toLowerCase() !==
+        (format === "csv"
+          ? "text/csv"
+          : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
       )
-        throw new Error("Invalid CSV response");
+        throw new Error(`Invalid ${format.toUpperCase()} response`);
       const blob = await response.blob();
       signal.throwIfAborted();
-      if (blob.size > 100 * 1024 * 1024) throw new Error("CSV too large");
-      return { blob, name: `${snapshot.key}-${snapshot.snapshotId}.csv` };
+      if (blob.size > 100 * 1024 * 1024) throw new Error("Export too large");
+      return { blob, name: `${snapshot.key}-${snapshot.snapshotId}.${format}` };
     },
   };
 }

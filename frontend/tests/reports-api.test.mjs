@@ -36,6 +36,24 @@ const snapshot = () => ({
   missingSources: ["Partial report"],
   exportFormats: ["csv"],
 });
+test("XLSX requires advertised capability and preserves format and MIME", async () => {
+  const report = snapshot();
+  report.exportFormats = ["csv", "xlsx"];
+  assert.deepEqual(decodeSnapshot(report, "tasks", query).exportFormats, ["csv", "xlsx"]);
+  const calls = [];
+  const api = createReportApi(new AbortController().signal, async (path, init) => {
+    calls.push({ path, init });
+    if (path === "/api/auth/csrf") return Response.json({ csrfToken: "token" });
+    return new Response(new Uint8Array([80, 75, 3, 4]), { headers: {
+      "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    } });
+  });
+  const file = await api.export(report, "xlsx");
+  assert.equal(file.name, `tasks-${report.snapshotId}.xlsx`);
+  assert.deepEqual(JSON.parse(calls[1].init.body), { format: "xlsx" });
+  assert.equal(calls[1].init.headers["X-CSRF-TOKEN"], "token");
+  await assert.rejects(api.export(snapshot(), "xlsx"), /Invalid export identity/);
+});
 test("report return URL requires revalidation and rejects query injection", () => {
   assert.equal(approvedReturnDestination("/reports", true), "/reports");
   assert.equal(approvedReturnDestination("/reports", false), null);

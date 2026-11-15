@@ -11,11 +11,7 @@ public static class ReportCsvRenderer
 {
     public static ExportFile Render(ReportResult report)
     {
-        if (!Guid.TryParseExact(report.SnapshotId, "N", out _) || !ReportSnapshotQueries.Keys.Contains(report.Key))
-            throw new InsightException(422, "INVALID_SNAPSHOT", "Invalid report identity.");
-        var rows = report.Sections.Sum(section => (long)section.Rows.Count);
-        if (rows > 50000 || rows != report.TotalCount)
-            throw new InsightException(422, "REPORT_ROW_LIMIT", "Report row count is invalid; no rows were truncated.");
+        Validate(report);
         var text = new StringBuilder();
         void Line(IEnumerable<string> values)
         {
@@ -23,28 +19,42 @@ public static class ReportCsvRenderer
             if (text.Length > 32 * 1024 * 1024)
                 throw new InsightException(422, "EXPORT_TOO_LARGE", "Narrow the report filters.");
         }
-        Line(["Report", report.Key]);
-        Line(["Snapshot ID", report.SnapshotId]);
-        Line(["Snapshot UTC", report.Snapshot.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)]);
-        Line(["Branches", string.Join(';', report.Filters.BranchIds)]);
-        Line(["Department", report.Filters.DepartmentId?.ToString(CultureInfo.InvariantCulture) ?? "All permitted"]);
-        Line(["Period UTC", report.Filters.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            report.Filters.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)]);
-        if (report.AppliedFilters is { } filters)
-            foreach (var filter in filters.OrderBy(pair => pair.Key, StringComparer.Ordinal))
-                Line(["Filter", filter.Key, filter.Value ?? ""]);
-        foreach (var missing in report.MissingSources) Line(["Unavailable indicator", missing]);
-        foreach (var section in report.Sections)
-        {
-            Line(["Section", section.Key]);
-            Line(section.Columns);
-            foreach (var row in section.Rows)
-                Line(section.Columns.Select(column => row.TryGetValue(column, out var value)
-                    ? Scalar(value) : throw new InsightException(422, "INVALID_SNAPSHOT", "A report column is missing.")));
-        }
+        foreach (var row in Lines(report)) Line(row);
         // UTF-8 BOM supports Vietnamese text in spreadsheet applications.
         var bytes = Encoding.UTF8.GetPreamble().Concat(Encoding.UTF8.GetBytes(text.ToString())).ToArray();
         return new(bytes, "text/csv; charset=utf-8", $"{report.Key}-{report.SnapshotId}.csv");
+    }
+
+    internal static void Validate(ReportResult report)
+    {
+        if (!Guid.TryParseExact(report.SnapshotId, "N", out _) || !ReportSnapshotQueries.Keys.Contains(report.Key))
+            throw new InsightException(422, "INVALID_SNAPSHOT", "Invalid report identity.");
+        var rows = report.Sections.Sum(section => (long)section.Rows.Count);
+        if (rows > 50000 || rows != report.TotalCount)
+            throw new InsightException(422, "REPORT_ROW_LIMIT", "Report row count is invalid; no rows were truncated.");
+    }
+
+    internal static IEnumerable<IEnumerable<string>> Lines(ReportResult report)
+    {
+        yield return ["Report", report.Key];
+        yield return ["Snapshot ID", report.SnapshotId];
+        yield return ["Snapshot UTC", report.Snapshot.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture)];
+        yield return ["Branches", string.Join(';', report.Filters.BranchIds)];
+        yield return ["Department", report.Filters.DepartmentId?.ToString(CultureInfo.InvariantCulture) ?? "All permitted"];
+        yield return ["Period UTC", report.Filters.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+            report.Filters.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)];
+        if (report.AppliedFilters is { } filters)
+            foreach (var filter in filters.OrderBy(pair => pair.Key, StringComparer.Ordinal))
+                yield return ["Filter", filter.Key, filter.Value ?? ""];
+        foreach (var missing in report.MissingSources) yield return ["Unavailable indicator", missing];
+        foreach (var section in report.Sections)
+        {
+            yield return ["Section", section.Key];
+            yield return section.Columns;
+            foreach (var row in section.Rows)
+                yield return section.Columns.Select(column => row.TryGetValue(column, out var value)
+                    ? Scalar(value) : throw new InsightException(422, "INVALID_SNAPSHOT", "A report column is missing."));
+        }
     }
 
     private static string Cell(string value)

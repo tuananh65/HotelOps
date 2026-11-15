@@ -34,6 +34,7 @@ internal static class SprintReportApiScenario
             using(var denied=await http.GetAsync("/api/reports/options",ct))Check((int)denied.StatusCode==403,"DEPT_MANAGER options denied despite REPORT_VIEW");
             using(var denied=await Post("/api/reports/tasks/preview",new{branchId=branch.BranchId}))Check((int)denied.StatusCode==403,"DEPT_MANAGER preview denied");
             using(var denied=await Post("/api/reports/snapshots/unknown/export",new{format="csv"}))Check((int)denied.StatusCode==403,"DEPT_MANAGER export denied before snapshot lookup");
+            using(var denied=await Post("/api/reports/snapshots/unknown/export",new{format="xlsx"}))Check((int)denied.StatusCode==403,"DEPT_MANAGER XLSX denied despite REPORT_VIEW");
             checks.Add(new { reportBrowser = await SprintReportsBrowser.RunAsync(username,password,branch.BranchId,department,"denied",ct) });
             db.UserRoles.Add(new(){UserId=actor,RoleId=ownerRole,AssignedAt=DateTime.UtcNow.AddMinutes(-1),IsActive=true});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
@@ -52,9 +53,17 @@ internal static class SprintReportApiScenario
                 Check((int)export.StatusCode==200&&csv.SequenceEqual(expectedCsv),"CSV exports exact frozen preview after source change");
             }
             Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==id&&a.Action=="CREATE",ct)==1,"CSV export audit committed before delivery");
+            using(var denied=await Post($"/api/reports/snapshots/{id}/export",new{format="xlsx"},false))Check((int)denied.StatusCode==400,"XLSX requires CSRF");
+            var expectedXlsx=HotelOps.Api.Services.Insights.ReportXlsxRenderer.Render(
+                JsonSerializer.Deserialize<HotelOps.Api.DTOs.Insights.ReportResult>(report.GetRawText(),new JsonSerializerOptions(JsonSerializerDefaults.Web))!).Content;
+            using(var export=await Post($"/api/reports/snapshots/{id}/export",new{format="xlsx"}))
+                Check((int)export.StatusCode==200 && export.Content.Headers.ContentType?.MediaType==HotelOps.Api.Services.Insights.ReportXlsxRenderer.ContentType
+                    && (await export.Content.ReadAsByteArrayAsync(ct)).SequenceEqual(expectedXlsx),"XLSX exports frozen snapshot after source changed");
+            Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==id&&a.NewValues!.Contains("\"format\":\"xlsx\""),ct)==1,"XLSX audit records actual format");
             await db.UserRoles.Where(r=>r.UserId==actor&&r.RoleId==ownerRole).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
             using(var denied=await Post($"/api/reports/snapshots/{id}/export",new{format="csv"}))Check((int)denied.StatusCode==403,"revoked allowed role prevents export of owned cached snapshot");
-            Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT",ct)==1,"denied export creates no success audit");
+            using(var denied=await Post($"/api/reports/snapshots/{id}/export",new{format="xlsx"}))Check((int)denied.StatusCode==403,"revoked role prevents XLSX export");
+            Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT",ct)==2,"denied export creates no success audit");
             for(var index=1;index<=25;index++)
                 db.OperationalTasks.Add(new(){TaskCode=prefix+"P"+index,Title="Synthetic report pagination",BranchId=branch.BranchId,DepartmentId=department,
                     Status="TODO",ProgressPercent=0,CreatedBy=actor,CreatedAt=DateTime.UtcNow});
@@ -67,7 +76,7 @@ internal static class SprintReportApiScenario
                 foreach(var snapshot in result.GetProperty("exports").EnumerateArray())
                 {
                     var snapshotId=snapshot.GetString();
-                    Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==snapshotId&&a.Action=="CREATE",ct)==1,"browser CSV export has exactly one persisted audit: "+mode);
+                    Check(await db.AuditLogs.CountAsync(a=>a.ActorUserId==actor&&a.EntityType=="REPORT_EXPORT"&&a.EntityId==snapshotId&&a.Action=="CREATE",ct)==2,"browser CSV and XLSX export each have a persisted audit: "+mode);
                 }
                 Check(await db.UserSessions.CountAsync(s=>s.UserId==actor&&s.RevokedAt==null,ct)==1,"browser session revoked on logout: "+mode);
             }

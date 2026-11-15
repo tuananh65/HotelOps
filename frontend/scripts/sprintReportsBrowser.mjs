@@ -113,6 +113,18 @@ try {
       );
       assert.ok(csv.includes('"progressPercent"'));
       await file.delete();
+      stage = "XLSX download " + expected.totalCount;
+      const xlsxPending = page.waitForEvent("download");
+      await page.getByRole("button", { name: "Export XLSX", exact: true }).click();
+      const xlsx = await xlsxPending;
+      assert.equal(xlsx.suggestedFilename(), `tasks-${expected.snapshotId}.xlsx`);
+      const xlsxStream = await xlsx.createReadStream();
+      const parts = [];
+      for await (const chunk of xlsxStream) parts.push(chunk);
+      const bytes = Buffer.concat(parts);
+      assert.equal(bytes.readUInt32LE(0), 0x04034b50);
+      assert.ok(bytes.includes(Buffer.from("xl/worksheets/sheet1.xml")));
+      await xlsx.delete();
       stage = "export success message";
       exports.push(expected.snapshotId);
       await page

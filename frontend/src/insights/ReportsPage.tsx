@@ -116,7 +116,7 @@ export function ReportsPage() {
     setMessage("");
     setPage(0);
   }
-  async function run(exporting: boolean) {
+  async function run(exporting: boolean, format: "csv" | "xlsx" = "csv") {
     if (!owner || !options || operation.current) return;
     const controller = new AbortController();
     operation.current = controller;
@@ -126,7 +126,7 @@ export function ReportsPage() {
     if (!exporting) setSnapshot(null);
     try {
       if (exporting && snapshot) {
-        const file = await api.export(snapshot);
+        const file = await api.export(snapshot, format);
         if (controller.signal.aborted) return;
         const url = URL.createObjectURL(file.blob);
         const link = document.createElement("a");
@@ -180,8 +180,8 @@ export function ReportsPage() {
       {options && (
         <>
           <p>
-            Periods use UTC. Export limit: {options.exportRowLimit} rows. CSV is
-            currently available.
+            Periods use UTC. Export limit: {options.exportRowLimit} rows. CSV
+            and XLSX are available.
           </p>
           <form
             onSubmit={(e) => {
@@ -357,6 +357,12 @@ export function ReportsPage() {
                 onClick={() => void run(true)}
               >
                 Export CSV
+              </button>
+              <button
+                disabled={busy || !snapshot.exportFormats.includes("xlsx")}
+                onClick={() => void run(true, "xlsx")}
+              >
+                Export XLSX
               </button>
             </section>
           )}
