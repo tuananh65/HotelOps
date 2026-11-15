@@ -283,10 +283,11 @@ public sealed partial class RoomTypeCreationService
               AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.authorityEvidenceDigest')={Convert.ToHexString(authority.EvidenceDigest)}
             """).SingleAsync(ct) == 1;
 
-    public static bool ValidReworkReceipt(ReworkCommandResult? r, long actor, long branch, long id, long task, long inspection, Guid op, string action)
+    public static bool ValidReworkReceipt(ReworkCommandResult? r, long actor, long branch, long id, long task, long inspection, Guid op, string action,
+        string contract = "PROVISIONAL_NOT_ACCEPTED")
         => r != null && r.Id == id && r.BranchId == branch && r.AssigneeId == actor && r.CleaningTaskId == task
         && r.InspectionId == inspection && r.OperationId == op && r.Action == action && WorkflowStrongTag(r.SourceETag)
-        && r.Contract == "PROVISIONAL_NOT_ACCEPTED" && r.OccurredAtUtc.Kind == DateTimeKind.Utc
+        && r.Contract == contract && r.OccurredAtUtc.Kind == DateTimeKind.Utc
         && r.State == (action == "accept" ? "ACCEPTED" : action == "start" ? "IN_PROGRESS" : "PENDING_REINSPECTION")
         && r.Readiness == (action == "complete" ? "PENDING_INSPECTION" : "REWORK_REQUIRED")
         && (action == "accept" ? r.IntervalId == null : r.IntervalId > 0)

@@ -37,8 +37,11 @@ public sealed class CleaningExecutionController(RoomTypeCreationService service,
     public Task<IActionResult> CompleteRework(long branchId, long id, ReworkActionRequest request, CancellationToken ct)
         => Rework(branchId, id, "complete", request, ct);
     private Task<IActionResult> Rework(long branch, long id, string action, ReworkActionRequest? input, CancellationToken ct)
-        => Run(action != "read", (ticket, sid) => service.ExecuteReworkAsync(ticket, sid, branch, id, action,
-            Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input, EvidenceRoot, ct));
+        => Run(action != "read", (ticket, sid) => action is "accept" or "start"
+            ? service.ExecuteAssignedReworkAsync(ticket, sid, branch, id, action,
+                Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input!, EvidenceRoot, ct)
+            : service.ExecuteReworkAsync(ticket, sid, branch, id, action,
+                Request.Headers.IfMatch.ToString(), Request.Headers["Idempotency-Key"].ToString(), input, EvidenceRoot, ct));
     [HttpGet("api/branches/{branchId:long}/cleaning-tasks/{id:long}/execution")]
     public Task<IActionResult> Read(long branchId, long id, CancellationToken ct)
         => Run(false, (ticket, sid) => service.ReadCleaningExecutionAsync(ticket, sid, branchId, id, ct));

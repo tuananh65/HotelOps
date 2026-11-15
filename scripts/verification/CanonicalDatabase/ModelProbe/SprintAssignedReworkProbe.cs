@@ -84,6 +84,7 @@ internal static class SprintAssignedReworkProbe
             finally{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={cleaner}",ct);}
         }
         finally{await db.Database.ExecuteSqlRawAsync("DROP USER DEV3_AssignedReworkReader",ct);}
+        await SprintReworkExecutionProbe.VerifyAsync(db,ticket,sid,branch,rework,ct);
     }
     private sealed class Identity(CurrentUserInfo value):ICurrentUserAccessor
     {public bool TryGetCurrentUser(out CurrentUserInfo user){user=value;return true;}}
