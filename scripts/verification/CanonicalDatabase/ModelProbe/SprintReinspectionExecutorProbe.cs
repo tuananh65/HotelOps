@@ -16,7 +16,7 @@ using Microsoft.Extensions.Options;
 internal static class SprintReinspectionExecutorProbe
 {
     // Parent has verified the exact disposable identity and owns all source/evidence cleanup.
-    internal static async Task VerifyAsync(HotelOpsDbContext db,SessionReference ticket,long sid,long branch,long rework,CancellationToken ct,bool browser=false)
+    internal static async Task VerifyAsync(HotelOpsDbContext db,SessionReference ticket,long sid,long branch,long rework,CancellationToken ct,bool browser=false,long? nextRework=null)
     {
         var inspection=await db.Database.SqlQuery<long>($"SELECT inspection_id AS Value FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework} AND submission_actor={ticket.UserId}").SingleAsync(ct);
         var audit=await db.AuditLogs.AsNoTracking().SingleAsync(a=>a.EntityType=="REINSPECTION"&&a.EntityId==inspection.ToString()&&a.Action=="UPDATE",ct);
@@ -105,6 +105,8 @@ internal static class SprintReinspectionExecutorProbe
         else if(await Send()!="SOURCE_DENIED")throw new Exception("Failed incorrectly delivered as Passed");
         if(browser)
         {
+            var nextNotice=nextRework is {} next?await db.Notifications.AsNoTracking().Where(n=>n.NotificationType=="REWORK_ASSIGNED"&&n.SourceType=="CLEANING_REWORK"&&n.SourceId==next)
+                .Select(n=>(long?)n.NotificationId).SingleAsync(ct):null;
             var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==ticket.UserId,ct);
             var password=Convert.ToHexString(RandomNumberGenerator.GetBytes(32))+"Aa1!";
             var hash=new PasswordHasher<User>().HashPassword(user,password);
@@ -116,7 +118,7 @@ internal static class SprintReinspectionExecutorProbe
                 using var process=Process.Start(start)??throw new Exception("Executor browser unavailable");
                 try
                 {
-                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=user.Username,password,branch,rework,inspection,notice,state=ended.State,readiness=ended.Conclusion.EffectiveReadiness}).AsMemory(),ct);
+                    await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=user.Username,password,branch,rework,inspection,notice,nextRework,nextNotice,state=ended.State,readiness=ended.Conclusion.EffectiveReadiness}).AsMemory(),ct);
                     process.StandardInput.Close();var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);
                     await process.WaitForExitAsync(ct);var result=JsonSerializer.Deserialize<JsonElement>(await output);await errors;
                     if(process.ExitCode!=0||!result.GetProperty("success").GetBoolean())throw new Exception("Executor browser: "+result.GetRawText());

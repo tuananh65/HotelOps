@@ -45,23 +45,48 @@ internal static class SprintReworkFixture
         => CleanupCoreAsync(db,cleaner,branch,inspection,ct);
     private static async Task CleanupCoreAsync(HotelOpsDbContext db,long cleaner,long branch,long inspection,CancellationToken ct)
     {
-        await db.Database.ExecuteSqlInterpolatedAsync($"""
-            DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
-              JOIN dbo.cleaning_reworks w ON w.rework_id=n.source_id WHERE n.source_type='CLEANING_REWORK' AND w.inspection_id={inspection};
-            DELETE n FROM dbo.notifications n JOIN dbo.cleaning_reworks w ON w.rework_id=n.source_id WHERE n.source_type='CLEANING_REWORK' AND w.inspection_id={inspection};
-            """,ct);
+        // Retained next-round source evidence must survive until the last source-based test.
+        var retainedFiles=await db.Database.SqlQuery<string>($"""
+            SELECT a.storage_key AS Value FROM dbo.attachments a JOIN dbo.room_inspections i ON i.inspection_id=a.entity_id
+            JOIN dbo.room_inspections original ON original.inspection_id={inspection}
+            JOIN dbo.rooms room ON room.room_id=i.room_id AND room.branch_id={branch}
+            WHERE a.entity_type='INSPECTION' AND i.inspection_id<>original.inspection_id
+              AND i.cleaning_task_id=original.cleaning_task_id AND i.room_id=original.room_id
+              AND i.version_id=original.version_id AND i.inspector_user_id=original.inspector_user_id
+              AND a.uploaded_by=original.inspector_user_id
+            """).ToArrayAsync(ct);
+        if(retainedFiles.Any(name=>Path.GetFileName(name)!=name||name.Contains(':')))throw new Exception("Owned source evidence filename required");
+        // Exact disposable identity and all proof ownership are checked before any deletion.
+        // Drop the owned trial proof store normally; never disable its immutability guard.
         await SprintReworkAuthorityFixture.CleanupAsync(db,inspection,ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"""
-            DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id WHERE d.inspection_id={inspection};
-            DELETE dbo.attachments WHERE entity_type='INSPECTION' AND entity_id={inspection};
-            DELETE d FROM dbo.cleaning_rework_defects d JOIN dbo.cleaning_reworks r ON r.rework_id=d.rework_id WHERE r.inspection_id={inspection};
-            DELETE dbo.cleaning_reworks WHERE inspection_id={inspection};
+            DECLARE @task bigint=(SELECT cleaning_task_id FROM dbo.room_inspections WHERE inspection_id={inspection});
+            DECLARE @children TABLE(id bigint PRIMARY KEY);
+            INSERT @children SELECT i.inspection_id FROM dbo.room_inspections i JOIN dbo.room_inspections original ON original.inspection_id={inspection}
+              WHERE i.cleaning_task_id=@task AND i.inspection_id<>original.inspection_id AND i.room_id=original.room_id
+                AND i.inspector_user_id=original.inspector_user_id AND i.version_id=original.version_id;
+            DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
+              JOIN dbo.cleaning_reworks w ON w.rework_id=n.source_id WHERE n.source_type='CLEANING_REWORK' AND w.cleaning_task_id=@task
+                AND(w.inspection_id={inspection} OR w.inspection_id IN(SELECT id FROM @children));
+            DELETE n FROM dbo.notifications n JOIN dbo.cleaning_reworks w ON w.rework_id=n.source_id WHERE n.source_type='CLEANING_REWORK' AND w.cleaning_task_id=@task
+              AND(w.inspection_id={inspection} OR w.inspection_id IN(SELECT id FROM @children));
+            DELETE d FROM dbo.cleaning_rework_defects d JOIN dbo.cleaning_reworks r ON r.rework_id=d.rework_id WHERE r.cleaning_task_id=@task
+              AND(r.inspection_id={inspection} OR r.inspection_id IN(SELECT id FROM @children));
+            DELETE dbo.cleaning_reworks WHERE cleaning_task_id=@task AND(inspection_id={inspection} OR inspection_id IN(SELECT id FROM @children));
+            UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @children);
+            DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id
+              WHERE d.inspection_id={inspection} OR d.inspection_id IN(SELECT id FROM @children);
+            DELETE dbo.attachments WHERE entity_type='INSPECTION' AND(entity_id={inspection} OR entity_id IN(SELECT id FROM @children));
+            DELETE dbo.inspection_defects WHERE inspection_id IN(SELECT id FROM @children);
+            DELETE dbo.inspection_results WHERE inspection_id IN(SELECT id FROM @children);
+            DELETE dbo.room_inspections WHERE inspection_id IN(SELECT id FROM @children);
             DELETE a FROM dbo.shift_assignments a JOIN dbo.work_shifts s ON s.shift_id=a.shift_id WHERE s.branch_id={branch} AND a.user_id={cleaner};
             DELETE dbo.work_shifts WHERE branch_id={branch};
             DELETE dbo.shift_templates WHERE branch_id={branch} AND shift_code='D3-REWORK';
             UPDATE dbo.users SET department_id=NULL WHERE user_id={cleaner};
             DELETE dbo.departments WHERE branch_id={branch} AND department_code='HK';
             """,ct);
+        foreach(var name in retainedFiles)File.Delete(Path.Combine(EvidenceRoot,name));
         CleanupEvidenceFiles();
     }
 }

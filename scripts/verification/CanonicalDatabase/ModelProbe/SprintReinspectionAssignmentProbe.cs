@@ -70,6 +70,7 @@ internal static class SprintReinspectionAssignmentProbe
             var keys = await db.Database.SqlQuery<string>($"""
                 SELECT a.storage_key AS Value FROM dbo.attachments a JOIN dbo.fe05_reinspection_bindings_v1 b ON b.inspection_id=a.entity_id
                 WHERE b.rework_id={rework} AND a.entity_type='INSPECTION' AND a.uploaded_by={actor}
+                  AND NOT EXISTS(SELECT 1 FROM dbo.cleaning_reworks child WHERE child.inspection_id=b.inspection_id)
                 """).ToArrayAsync(CancellationToken.None);
             foreach (var definition in originalGuards)
                 await db.Database.ExecuteSqlRawAsync(definition.Replace("CREATE TRIGGER", "ALTER TRIGGER"), CancellationToken.None);
@@ -81,7 +82,12 @@ internal static class SprintReinspectionAssignmentProbe
                 DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
                   WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id={rework} AND n.created_by={actor};
                 DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id={rework} AND created_by={actor};
-                UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @owned);
+                -- A Failed reinspection may now own the next committed Request Rework.
+                -- Retain that immutable source until the outer owned-authority cleanup drops
+                -- its trial proof table and deletes the descendant rework before inspection.
+                DECLARE @deletable TABLE(id bigint PRIMARY KEY);
+                INSERT @deletable SELECT id FROM @owned o WHERE NOT EXISTS(SELECT 1 FROM dbo.cleaning_reworks w WHERE w.inspection_id=o.id);
+                UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @deletable);
                 DROP TABLE dbo.fe05_reinspection_defect_attachments_v1;
                 DROP TABLE dbo.fe05_reinspection_defect_results_v1;
                 DROP TABLE dbo.fe05_reinspection_bindings_v1;
@@ -90,11 +96,11 @@ internal static class SprintReinspectionAssignmentProbe
                   AND JSON_VALUE(result_json,'$.contract') IN('FE05_REINSPECTION_ASSIGNMENT_V1','FE05_REINSPECTION_CONCLUSION_V1')
                   AND TRY_CONVERT(bigint,JSON_VALUE(result_json,'$.reworkId'))={rework};
                 DELETE dbo.room_status_history WHERE trigger_type='INSPECTION' AND trigger_id IN(SELECT id FROM @owned);
-                DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id WHERE d.inspection_id IN(SELECT id FROM @owned);
-                DELETE dbo.attachments WHERE entity_type='INSPECTION' AND entity_id IN(SELECT id FROM @owned);
-                DELETE dbo.inspection_defects WHERE inspection_id IN(SELECT id FROM @owned);
-                DELETE dbo.inspection_results WHERE inspection_id IN(SELECT id FROM @owned);
-                DELETE dbo.room_inspections WHERE inspection_id IN(SELECT id FROM @owned);
+                DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id WHERE d.inspection_id IN(SELECT id FROM @deletable);
+                DELETE dbo.attachments WHERE entity_type='INSPECTION' AND entity_id IN(SELECT id FROM @deletable);
+                DELETE dbo.inspection_defects WHERE inspection_id IN(SELECT id FROM @deletable);
+                DELETE dbo.inspection_results WHERE inspection_id IN(SELECT id FROM @deletable);
+                DELETE dbo.room_inspections WHERE inspection_id IN(SELECT id FROM @deletable);
                 UPDATE dbo.cleaning_reworks SET workflow_status='PENDING_REINSPECTION',status='IN_PROGRESS',completed_at=NULL
                   WHERE rework_id={rework} AND workflow_status IN('FAILED','COMPLETED');
                 UPDATE dbo.cleaning_tasks SET workflow_status='REWORK_REQUIRED',status='IN_PROGRESS' WHERE cleaning_task_id={source.CleaningTaskId} AND (workflow_status<>'REWORK_REQUIRED' OR status<>'IN_PROGRESS');

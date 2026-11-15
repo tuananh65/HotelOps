@@ -39,6 +39,9 @@ internal static class SprintReinspectionHttpsProbe
             GRANT INSERT ON dbo.inspection_defect_attachments TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT ON dbo.attachments TO DEV3_142A_ReinspectionHttps;
             GRANT UPDATE ON dbo.cleaning_reworks TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.cleaning_reworks TO DEV3_142A_ReinspectionHttps;
+            GRANT INSERT ON dbo.cleaning_rework_defects TO DEV3_142A_ReinspectionHttps;
+            ALTER ROLE hotelops_rework_writer ADD MEMBER DEV3_142A_ReinspectionHttps;
             GRANT UPDATE ON dbo.cleaning_tasks TO DEV3_142A_ReinspectionHttps;
             GRANT UPDATE ON dbo.rooms TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT ON dbo.room_status_history TO DEV3_142A_ReinspectionHttps;
@@ -88,8 +91,10 @@ internal static class SprintReinspectionHttpsProbe
             {
                 var conclude = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") == "1";
                 var outcome = Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME") ?? "PASS";
+                var nextRound=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1";
                 if (outcome is not ("PASS" or "FAIL")) throw new Exception("Explicit PASS/FAIL browser outcome required");
-                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework, conclude, outcome }).AsMemory(), ct);
+                if(nextRound&&(!conclude||outcome!="FAIL"))throw new Exception("Next round requires browser Failed conclusion");
+                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username = user.Username, password, actor, branch, rework, conclude, outcome, nextRound, executor=executorTicket.UserId }).AsMemory(), ct);
                 process.StandardInput.Close();
                 var browserOutput = process.StandardOutput.ReadToEndAsync(ct); var browserErrors = process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct); var result = JsonSerializer.Deserialize<JsonElement>(await browserOutput); await browserErrors;
@@ -115,7 +120,27 @@ internal static class SprintReinspectionHttpsProbe
                           AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_attachments_v1 WHERE inspection_id=b.inspection_id)
                           AND NOT EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=b.inspection_id AND (fixed IS NULL OR recorded_by<>{actor}))
                         """).SingleAsync(ct) != 1)) throw new Exception("Browser conclusion persistence/audit/evidence mismatch");
-                if(conclude)await SprintReinspectionExecutorProbe.VerifyAsync(db,executorTicket,executorSid,branch,rework,ct,browser:true);
+                long? nextRework=nextRound?result.GetProperty("nextRework").GetInt64():null;
+                if(nextRework is {} next)
+                {
+                    if(next<=0||next==rework||await db.Database.SqlQuery<int>($"""
+                        SELECT COUNT(*) AS Value FROM dbo.cleaning_reworks w JOIN dbo.fs016_rework_source_proofs p ON p.rework_id=w.rework_id
+                        WHERE w.rework_id={next} AND w.inspection_id={inspection} AND w.assignee_user_id={executorTicket.UserId}
+                          AND w.workflow_status='PENDING_ACCEPTANCE' AND w.status='PENDING' AND p.inspection_id={inspection} AND p.branch_id={branch}
+                          AND(SELECT COUNT(*) FROM dbo.cleaning_rework_defects d WHERE d.rework_id=w.rework_id)>0
+                          AND NOT EXISTS(SELECT 1 FROM dbo.cleaning_rework_defects d JOIN dbo.inspection_defects defect ON defect.defect_id=d.defect_id
+                            WHERE d.rework_id=w.rework_id AND defect.inspection_id<>{inspection})
+                        """).SingleAsync(ct)!=1)throw new Exception("Next rework protected source/persistence mismatch");
+                    var nextAudit=await db.AuditLogs.AsNoTracking().SingleAsync(a=>a.EntityType=="cleaning_reworks"&&a.EntityId==next.ToString()&&a.Action=="CREATE",ct);
+                    var delivery=typeof(HotelOps.Api.Services.HotelStructure.RoomTypeCreationService).Assembly.GetType("HotelOps.Api.Services.Notifications.InspectionPassedNotificationDelivery")!;
+                    for(var attempt=0;attempt<2;attempt++)
+                    {
+                        await using var fresh=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options);
+                        var delivered=await(Task<string>)delivery.GetMethod("DeliverAsync")!.Invoke(Activator.CreateInstance(delivery,fresh,TimeProvider.System),[nextAudit.AuditId,-1L,ct])!;
+                        if(delivered!="DELIVERED")throw new Exception("Next rework notification denied: "+delivered);
+                    }
+                }
+                if(conclude)await SprintReinspectionExecutorProbe.VerifyAsync(db,executorTicket,executorSid,branch,rework,ct,browser:true,nextRework:nextRework);
             }
             finally { if (!process.HasExited) process.Kill(true); }
             host.Kill(true); await host.WaitForExitAsync(ct); await output; await errors;
@@ -126,6 +151,7 @@ internal static class SprintReinspectionHttpsProbe
             await db.Database.ExecuteSqlInterpolatedAsync($"""
                 UPDATE dbo.users SET password_hash={user.PasswordHash} WHERE user_id={actor};
                 ALTER ROLE hotelops_reinspection_writer DROP MEMBER DEV3_142A_ReinspectionHttps;
+                ALTER ROLE hotelops_rework_writer DROP MEMBER DEV3_142A_ReinspectionHttps;
                 DROP APPLICATION ROLE DEV3_142A_ReinspectionHttps;
                 """, CancellationToken.None);
         }

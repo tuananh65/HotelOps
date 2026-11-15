@@ -21,7 +21,18 @@ internal static class SprintReworkAuthorityFixture
         await db.Database.ExecuteSqlInterpolatedAsync($"""
             IF @@TRANCOUNT<>1 OR DB_NAME()<>'HotelOps_DEV3_142A_20261114_cc78c13f'
               OR NOT EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID() AND database_guid='1D5A9B53-7D19-435A-96AB-9FDFF447B6E0')
-              OR EXISTS(SELECT 1 FROM dbo.fs016_rework_source_proofs WHERE inspection_id<>{inspection})
+              OR NOT EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='DEV3.Sprint142A.Run' AND CONVERT(nvarchar(128),value)='cc78c13ffc124efcad67b3d804baa84c')
+              OR CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))<>'meita'
+              OR EXISTS(SELECT 1 FROM dbo.fs016_rework_source_proofs p WHERE NOT EXISTS(
+                SELECT 1 FROM dbo.room_inspections original JOIN dbo.room_inspections owned
+                  ON owned.cleaning_task_id=original.cleaning_task_id AND owned.room_id=original.room_id
+                  AND owned.inspector_user_id=original.inspector_user_id AND owned.version_id=original.version_id
+                JOIN dbo.rooms room ON room.room_id=original.room_id
+                JOIN dbo.branches b ON b.branch_id=room.branch_id AND b.branch_code='D3-EVIDENCE'
+                JOIN dbo.users u ON u.user_id=original.inspector_user_id AND u.username='D3-EVIDENCE'
+                WHERE original.inspection_id={inspection} AND original.inspection_no='D3-EVIDENCE'
+                  AND p.inspection_id=owned.inspection_id AND p.cleaning_task_id=original.cleaning_task_id
+                  AND p.room_id=original.room_id AND p.branch_id=room.branch_id AND p.actor_user_id=u.user_id))
               THROW 51996,'Owned authority cleanup only',1;
             SELECT actor_user_id,operation_key INTO #owned_authority_operations FROM dbo.fs016_rework_source_proofs;
             DROP PROCEDURE dbo.fe05_issue_rework_authority;

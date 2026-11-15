@@ -97,7 +97,7 @@ try {
       throw Error("Generic inspection endpoint changed reinspection");
     return { detail: true, evidence: true, foreignDenied: true, readiness: d.effectiveReadiness };
   }, { branch: fixture.branch, inspection: body.id, actor: fixture.actor, rework: fixture.rework });
-  let conclusion = null;
+  let conclusion = null, nextRework = null;
   if (fixture.conclude) {
     stage = "canonical conclusion admission";
     await page.getByRole("link", { name: "Open reinspection", exact: true }).click();
@@ -175,9 +175,32 @@ try {
     }, path);
     if (terminal.state !== concluded.state || terminal.conclusion.operationId !== concluded.operationId) throw Error("Reload changed conclusion receipt");
     if (fixture.outcome === "FAIL") await page.getByRole("group", { name: "Defects, assignee and due time", exact: true }).waitFor();
+    if (fixture.nextRound) {
+      stage = "commit next-round Request Rework";
+      const form = page.getByRole("region", { name: "Request cleaning rework", exact: true });
+      await form.getByLabel("Housekeeper").selectOption(String(fixture.executor));
+      const due = await page.evaluate(() => new Date(Date.now() + 7200000 - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16));
+      await form.getByLabel("Rework due time", { exact: true }).fill(due);
+      await form.getByLabel("Rework reason", { exact: true }).fill("Resolve remaining defects after failed reinspection");
+      const nextPath = `/api/branches/${fixture.branch}/inspections/${body.id}/reworks`;
+      const pending = page.waitForResponse(r => r.url().endsWith(nextPath) && r.request().method() === "POST");
+      await form.getByRole("button", { name: "Save rework request", exact: true }).click();
+      const response = await pending, next = await response.json();
+      if (response.status() !== 201 || !Number.isSafeInteger(next.id) || next.id <= 0 || next.id === fixture.rework || next.state !== "PENDING_ACCEPTANCE")
+        throw Error("Next-round request rejected: " + response.status() + " " + JSON.stringify(next));
+      nextRework = next.id;
+      await form.getByText(new RegExp(`Rework #${next.id} is pending acceptance`)).waitFor();
+      const requestHeaders = await response.request().allHeaders(), requestBody = response.request().postData();
+      const duplicate = await page.evaluate(async ({ path, headers, body }) => (await fetch(path, { method: "POST", credentials: "include",
+        headers: { "Content-Type": "application/json", "If-Match": headers["if-match"], "X-CSRF-TOKEN": headers["x-csrf-token"] }, body })).status,
+        { path: nextPath, headers: requestHeaders, body: requestBody });
+      if (duplicate !== 409) throw Error("Duplicate next round admitted: " + duplicate);
+      await page.reload();
+      await page.getByText(`MSG03: Open rework #${next.id} already exists.`, { exact: true }).waitFor();
+    }
     conclusion = { success: true, outcome: fixture.outcome, csrfEtag: true, staleAggregate: true, exactDefects: true, photo: true, replay: true, readiness: concluded.effectiveReadiness };
   }
-  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true, conclusion,
+  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true, conclusion, nextRework,
     invalidInspectorDueDenied: true, foreignBranchDenied: true, replay: true, reloadPersisted: true, reinspectionRead: detailCheck }));
 } catch (error) {
   process.stdout.write(JSON.stringify({ success: false, stage, diagnostic: String(error.message).split("\n")[0] })); process.exitCode = 1;

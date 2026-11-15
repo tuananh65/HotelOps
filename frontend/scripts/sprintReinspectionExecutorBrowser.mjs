@@ -47,6 +47,23 @@ try {
   }, { fixture, photos });
   if (checks.status !== 200 || !checks.tag || checks.state !== fixture.state || !checks.inspectionDenied || !checks.evidence)
     throw Error("Executor HTTPS proof failed: " + JSON.stringify(checks));
+  if (fixture.nextRework) {
+    await page.goto(origin + "/notifications");
+    const row = page.getByRole("listitem").filter({ has: page.getByRole("button", { name: `Mark notification ${fixture.nextNotice} as read`, exact: true }) });
+    await row.getByRole("heading", { name: "Cleaning rework assigned", exact: true }).waitFor();
+    await row.getByRole("button", { name: "Open rework", exact: true }).click();
+    await page.waitForURL(origin + `/cleaning/reworks/${fixture.nextRework}?branchId=${fixture.branch}`);
+    await page.getByText(`Rework #${fixture.nextRework}: pending acceptance.`, { exact: true }).waitFor();
+    await page.reload();
+    await page.getByText(`Rework #${fixture.nextRework}: pending acceptance.`, { exact: true }).waitFor();
+    const next = await page.evaluate(async f => {
+      const response = await fetch(`/api/branches/${f.branch}/reworks/${f.nextRework}/execution`, { credentials: "include" });
+      const data = await response.json();
+      return response.status === 200 && data.inspectionId === f.inspection && data.state === "PENDING_ACCEPTANCE" &&
+        data.sourceAuthority === "FE05_COMMITTED_V1" && data.sourceETag === response.headers.get("ETag") && data.defects.length > 0;
+    }, fixture);
+    if (!next) throw Error("Next-round executor source proof failed");
+  }
   process.stdout.write(JSON.stringify({ success: true, terminalExecutor: true, reload: true, ownEvidence: true,
     inspectionDenied: true, inboxSource: !!fixture.notice, readAcknowledgement: !!fixture.notice }));
 } catch (error) {

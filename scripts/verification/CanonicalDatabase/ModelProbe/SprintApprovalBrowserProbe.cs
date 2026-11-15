@@ -169,6 +169,8 @@ internal static class SprintApprovalBrowserProbe
                             terminalReadRecomputesReadiness=true,terminalReadDoesNotReopenMutation=true,
                             executorTerminalReadSql=true,executorTerminalEvidenceSql=true,executorTerminalRevocationTamperDenied=true,
                             executorTerminalBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
+                            nextRoundCommittedBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1",
+                            nextRoundNotificationExecutorSource=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1",
                             reinspectionPassedDeliveryRollbackRetryDedup=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")!="FAIL",
                             reinspectionPassedInboxSourceBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"&&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_OUTCOME")!="FAIL",
                             terminalReloadBrowserVerified=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1",
@@ -184,7 +186,15 @@ internal static class SprintApprovalBrowserProbe
                         checks.Add(new{blocked,restrictedReceiveBrowser=true,defectPhotoHttps=true,receiveCsrfEtag=true,receiveAcceptStartHttps=true,
                             receiveReload=true,receiveReplayHttps=true,receiveEffectiveReadiness=true,restrictedRoleCleanup=true});
                         checks.Add(new{blocked,assigneeInboxBrowser=true,inboxReloadPersistence=true,notificationSourceHttps=true,privilegedDetailFailClosed=true});
-                        await SprintReworkCreationProbe.VerifyAsync(db,actor,password,branch,inspection,cleaner,created.ReworkId,ct);
+                        // A committed next round makes the first Failed inspection historical.
+                        // Exercise audit rollback/concurrent creation against the current Failed
+                        // source, after the browser has verified its real Pending Acceptance handoff.
+                        var creationInspection=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_NEXT_ROUND")=="1"
+                            ?await db.RoomInspections.AsNoTracking().Where(i=>i.CleaningTaskId==task&&i.Result=="FAIL")
+                                .OrderByDescending(i=>i.InspectionId).Select(i=>i.InspectionId).FirstAsync(ct):inspection;
+                        var creationRework=await db.CleaningReworks.AsNoTracking().Where(w=>w.InspectionId==creationInspection)
+                            .Select(w=>w.ReworkId).SingleAsync(ct);
+                        await SprintReworkCreationProbe.VerifyAsync(db,actor,password,branch,creationInspection,cleaner,creationRework,ct);
                         checks.Add(new{blocked,reworkCreateAuditRollback=true,reworkCreateConcurrency=true,oneOpenRework=true});
                         checks.Add(new{blocked,reworkPersisted=true,selectedDefects=true,assignee=cleaner,audit=true,assignedReadWithRealSession=true,sourceResolution=true,revokedSourceDenied=true,foreignEvidenceDenied=true,reworkDelivery=true,reworkDeliveryRollback=true,reworkDeliveryRevocation=true,reworkConcurrentRetry=true,committedAuthority=true,leastPrivilegeReader=true,sourceTamperDenied=true,disabledIssuerDenied=true,unauthorizedDenied=true,noShiftAssignee=true,ineligibleAssigneesDenied=true});
                     }
