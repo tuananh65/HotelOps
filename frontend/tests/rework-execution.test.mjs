@@ -122,6 +122,21 @@ test("canonical submission binds the durable publication and never accepts usabl
     }
   }
 });
+test("terminal own rework requires coherent read-only conclusion and preserves current readiness separately", async () => {
+  for (const state of ["COMPLETED", "FAILED"]) {
+    const data = { ...source, state, conclusion: { reinspectionId: 15, state: state === "COMPLETED" ? "PASSED" : "FAILED",
+      effectiveReadiness: "PENDING_CLEANING", readinessAtConclusion: "BLOCKED" } };
+    globalThis.fetch = async () => Response.json(data, { headers: { ETag: tag } });
+    assert.equal((await readRework("2", "3")).conclusion.effectiveReadiness, "PENDING_CLEANING");
+    for (const broken of [ { ...data, conclusion: null }, { ...data, capability: "ACCEPT_START" },
+      { ...data, state: "PENDING_REINSPECTION" }, { ...data, conclusion: { ...data.conclusion, reinspectionId: 5 } },
+      { ...data, conclusion: { ...data.conclusion, state: "ASSIGNED" } },
+      { ...data, conclusion: { ...data.conclusion, readinessAtConclusion: "UNKNOWN" } } ]) {
+      globalThis.fetch = async () => Response.json(broken, { headers: { ETag: tag } });
+      await assert.rejects(readRework("2", "3"), /INVALID_REWORK_RESPONSE/);
+    }
+  }
+});
 test("rework read binds identity, ETag and committed source, cookie transport and cancellation", async () => {
   const abort = new AbortController();
   globalThis.fetch = async (url, opts) => {

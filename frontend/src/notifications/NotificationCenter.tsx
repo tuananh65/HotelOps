@@ -207,7 +207,7 @@ export function NotificationCenter() {
                   {data.items.map((row) => (
                     <li key={row.id}>
                       <h2>{row.title}</h2>
-                      {row.type === "REWORK_ASSIGNED" && (
+                      {["REWORK_ASSIGNED", "REINSPECTION_PASSED"].includes(row.type) && (
                         <button
                           disabled={!!operation?.busy}
                           onClick={() => void openSource(row.id)}

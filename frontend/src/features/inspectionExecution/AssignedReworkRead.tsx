@@ -57,6 +57,8 @@ export function AssignedReworkRead() {
             "ACCEPTED",
             "IN_PROGRESS",
             "PENDING_REINSPECTION",
+            "COMPLETED",
+            "FAILED",
           ].includes(data.state)
         )
           throw new ApiError(502, "UNSUPPORTED_REWORK_READ_STATE");
@@ -187,6 +189,14 @@ export function AssignedReworkRead() {
             {visible.data.inspectionId}.
           </p>
           <p>Due: {visible.data.dueAtUtc || "Not specified"}</p>
+          {visible.data.conclusion && (
+            <section aria-label="Reinspection result">
+              <p>Reinspection #{visible.data.conclusion.reinspectionId}: {visible.data.conclusion.state.toLowerCase()}.</p>
+              <p>Current room readiness: {visible.data.conclusion.effectiveReadiness}.</p>
+              <p>Readiness at conclusion: {visible.data.conclusion.readinessAtConclusion}.</p>
+              <p>This rework is closed. Room availability is checked against current room conditions.</p>
+            </section>
+          )}
           <ul>
             {visible.data.defects.map((defect) => (
               <li key={defect.id}>
@@ -223,7 +233,7 @@ export function AssignedReworkRead() {
                 Start rework
               </button>
             )}
-          {visible.data.capability === "READ_ONLY" && (
+          {visible.data.capability === "READ_ONLY" && !visible.data.conclusion && (
             <p>
               {visible.data.state === "PENDING_REINSPECTION"
                 ? "Waiting for reinspection."

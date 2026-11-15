@@ -16,6 +16,12 @@ export interface ReworkExecution {
   capability:
     "READ_ONLY" | "ACCEPT_START" | "SUBMIT_REWORK" | "PROVISIONAL_NOT_ACCEPTED";
   sourceAuthority: "FE05_COMMITTED_V1";
+  conclusion?: {
+    reinspectionId: number;
+    state: "PASSED" | "FAILED";
+    effectiveReadiness: string;
+    readinessAtConclusion: string;
+  } | null;
   defects: {
     id: number;
     description: string;
@@ -73,6 +79,8 @@ export async function readRework(
       "ACCEPTED",
       "IN_PROGRESS",
       "PENDING_REINSPECTION",
+      "COMPLETED",
+      "FAILED",
     ].includes(d.state) ||
     ![
       "READ_ONLY",
@@ -107,6 +115,15 @@ export async function readRework(
       d.defects.length
   )
     invalid();
+  const terminal = d.state === "COMPLETED" || d.state === "FAILED";
+  if (terminal) {
+    const c = d.conclusion;
+    if (!c || !validId(c.reinspectionId) || c.reinspectionId === d.inspectionId ||
+      c.state !== (d.state === "COMPLETED" ? "PASSED" : "FAILED") ||
+      d.capability !== "READ_ONLY" ||
+      !["INACTIVE", "BLOCKED", "READY", "REWORK_REQUIRED", "PENDING_CLEANING", "PENDING_INSPECTION", "CLEANING_IN_PROGRESS", "UNKNOWN"].includes(c.effectiveReadiness) ||
+      !(c.state === "PASSED" ? ["READY", "BLOCKED"] : ["REWORK_REQUIRED", "BLOCKED"]).includes(c.readinessAtConclusion)) invalid();
+  } else if (d.conclusion != null) invalid();
   return d;
 }
 export function validateReworkCommand(

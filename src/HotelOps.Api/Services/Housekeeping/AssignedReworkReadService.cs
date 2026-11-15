@@ -22,22 +22,42 @@ public sealed partial class RoomTypeCreationService
                 &&(w.CleaningTask.Room.AreaId==null||w.CleaningTask.Room.Area!.IsActive))
                 .Select(w=>new{w.ReworkId,w.InspectionId,w.CleaningTaskId,w.CleaningTask.RoomId}).SingleOrDefaultAsync(token);
             if(row==null)return new(RoomTypeBatchStatus.NotFound);
-            if(await db.CleaningReworks.CountAsync(w=>w.InspectionId==row.InspectionId&&w.Status!="COMPLETED"&&w.Status!="CANCELLED",token)!=1)
-                return LifecycleFailure(RoomTypeBatchStatus.Inactive,"DUPLICATE_REWORK_SOURCE");
             var state=await ReworkState(id,token);
-            if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "PENDING_REINSPECTION"))
+            var terminal=state.State is "COMPLETED" or "FAILED";
+            if(!terminal&&await db.CleaningReworks.CountAsync(w=>w.InspectionId==row.InspectionId&&w.Status!="COMPLETED"&&w.Status!="CANCELLED",token)!=1)
+                return LifecycleFailure(RoomTypeBatchStatus.Inactive,"DUPLICATE_REWORK_SOURCE");
+            if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "PENDING_REINSPECTION" or "COMPLETED" or "FAILED"))
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_EXECUTION_READ_CONTRACT_REQUIRED");
-            var submitted=state.State=="PENDING_REINSPECTION";
+            var submitted=terminal||state.State=="PENDING_REINSPECTION";
+            ReworkConclusionDto? conclusion=null;
+            if(terminal)
+            {
+                if(!await ReinspectionWorkflowInstalled(token))return new(RoomTypeBatchStatus.SchemaRequired);
+                var inspections=await db.Database.SqlQuery<ExecutorReinspectionSource>($"""
+                    SELECT inspection_id AS InspectionId,reinspector_user_id AS InspectorId
+                    FROM dbo.fe05_reinspection_bindings_v1 WITH(HOLDLOCK)
+                    WHERE rework_id={id} AND branch_id={branch} AND submission_actor={actor}
+                    """).ToArrayAsync(token);
+                if(inspections.Length!=1)return new(RoomTypeBatchStatus.Unavailable);
+                // Caller admission remains the executor's own CLEANING_VIEW. The historical
+                // inspector identity validates the protected producer receipt, not caller rights.
+                var proof=await ReadReinspectionInCallerTransactionAsync(inspections[0].InspectorId,branch,
+                    inspections[0].InspectionId,root,null,token,allowTerminal:true);
+                if(proof.Value is not ReinspectionExecutionDto {Conclusion:{} ended} execution
+                    ||execution.ReworkId!=id||ended.ReworkState!=state.State||ended.ReworkETag!=WorkflowTag(state.Revision))
+                    return new(RoomTypeBatchStatus.Unavailable);
+                conclusion=new(execution.Id,ended.State,execution.EffectiveReadiness,ended.EffectiveReadiness);
+            }
             ReworkAuthorityBinding? binding;
             if(submitted)
             {
                 // Assignment makes the original inspection historical. Only the authenticated,
                 // immutable submission receipt can authorize this read-only acknowledgement.
                 var receipt=await ReadCurrentReworkSubmission(actor,branch,id,root,token);
-                if(receipt==null||receipt.Entity.SourceETag!=WorkflowTag(state.Revision))
+                if(receipt==null||(!terminal&&receipt.Entity.SourceETag!=WorkflowTag(state.Revision)))
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_SUBMISSION_UNPROVEN");
                 var snapshot=await BuildReworkAuthoritySnapshotAsync(db.Database.GetDbConnection(),db.Database.CurrentTransaction!.GetDbTransaction(),id,root,token);
-                if(snapshot==null||snapshot.CurrentCycleId!=row.CleaningTaskId||Convert.ToHexString(snapshot.SourceDigest)!=receipt.SourceDigest)
+                if(snapshot==null||(!terminal&&snapshot.CurrentCycleId!=row.CleaningTaskId)||Convert.ToHexString(snapshot.SourceDigest)!=receipt.SourceDigest)
                     return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_SUBMISSION_SOURCE_CHANGED");
                 binding=snapshot.Binding;
             }
@@ -80,8 +100,13 @@ public sealed partial class RoomTypeCreationService
                     &&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
                     ? "ACCEPT_START" : state.State=="IN_PROGRESS"&&await ReworkSubmissionInstalled(token)
                         &&await ReworkSubmissionWriterAvailable(token)&&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
-                        ? "SUBMIT_REWORK" : "READ_ONLY",ReworkAuthorityContract.Origin),WorkflowTag(state.Revision));
+                        ? "SUBMIT_REWORK" : "READ_ONLY",ReworkAuthorityContract.Origin,conclusion),WorkflowTag(state.Revision));
         },ct,featurePermission:token=>ReworkAccess(ticket.UserId,branch,id,"CLEANING_VIEW",token),
             eligibility:token=>EligibleReworkAssignees(branch,clock.GetUtcNow().UtcDateTime).AnyAsync(u=>u.UserId==ticket.UserId,token));
+    }
+    private sealed class ExecutorReinspectionSource
+    {
+        public long InspectionId {get;set;}
+        public long InspectorId {get;set;}
     }
 }

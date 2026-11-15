@@ -11,11 +11,8 @@ public sealed partial class RoomTypeCreationService
 {
     private Task<bool> EligibleHousekeeper(long user, long branch, DateTime now, CancellationToken ct)
         => EligibleHousekeepers(branch, now).AnyAsync(u => u.UserId == user, ct);
-    private IQueryable<User> EligibleReworkAssignees(long branch, DateTime now) => db.Users.AsNoTracking().Where(u =>
-        u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
-        && u.Department != null && u.Department.IsActive && u.Department.BranchId == branch && u.Department.DepartmentCode == "HK"
-        && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
-        && db.UserRoles.Any(r => r.UserId == u.UserId && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_STAFF" && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)));
+    private IQueryable<User> EligibleReworkAssignees(long branch, DateTime now)
+        => HotelOps.Api.Services.Notifications.ReworkRecipientReadAccess.EligibleAssignees(db, branch, now);
     private IQueryable<User> EligibleHousekeepers(long branch, DateTime now) => EligibleReworkAssignees(branch, now).Where(u =>
         db.ShiftAssignments.Any(a => a.UserId == u.UserId && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
             && a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch

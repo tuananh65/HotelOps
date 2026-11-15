@@ -62,7 +62,7 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId}).SingleOrDefaultAsync(ct);
-        if(source is not {NotificationType:"REWORK_ASSIGNED",SourceType:"CLEANING_REWORK",SourceId:>0})
+        if(source is not {NotificationType:"REWORK_ASSIGNED" or "REINSPECTION_PASSED",SourceType:"CLEANING_REWORK",SourceId:>0})
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var branch=await db.CleaningReworks.AsNoTracking().Where(w=>w.ReworkId==source.SourceId&&w.AssigneeUserId==user
             &&w.CleaningTask.Room.IsActive&&w.CleaningTask.Room.Floor.IsActive
@@ -70,6 +70,19 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             .Select(w=>(long?)w.CleaningTask.Room.BranchId).SingleOrDefaultAsync(ct);
         if(branch==null||!(await ReworkRecipientReadAccess.EvaluateAsync(db,user,branch.Value,source.SourceId.Value,"CLEANING_VIEW",now,ct)).IsGranted)
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+        if(source.NotificationType==ReinspectionPassedNotificationSource.Kind)
+        {
+            if(!await ReworkRecipientReadAccess.EligibleAssignees(db,branch.Value,now).AnyAsync(u=>u.UserId==user,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var audits=await db.AuditLogs.FromSqlInterpolated($"""
+                SELECT * FROM dbo.audit_logs WHERE entity_type='REINSPECTION' AND action='UPDATE' AND branch_id={branch.Value}
+                  AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.reworkId'))={source.SourceId.Value}
+                  AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.notification.kind')='REINSPECTION_PASSED'
+                """).AsNoTracking().ToArrayAsync(ct);
+            var proof=audits.Length==1?await ReinspectionPassedNotificationSource.VerifyAsync(db,audits[0],ct):null;
+            if(proof==null||proof.Notification.RecipientUserId!=user||proof.ReworkId!=source.SourceId.Value||proof.BranchId!=branch)
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+        }
         await tx.CommitAsync(ct);
         // Never redirect to stored/user-provided ActionUrl. Target API authenticates source again.
         return new($"/cleaning/reworks/{source.SourceId.Value}?branchId={branch.Value}");

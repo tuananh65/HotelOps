@@ -208,6 +208,23 @@ test("canonical assigned source displays committed defects, then clears them on 
     );
   });
 });
+test("executor terminal acknowledgement is read-only, separates readiness and clears on session loss", async () => {
+  await scenario(async (page, state) => {
+    for (const ended of ["COMPLETED", "FAILED"]) {
+      state.data = { ...source, state: ended, conclusion: { reinspectionId: 15, state: ended === "COMPLETED" ? "PASSED" : "FAILED",
+        effectiveReadiness: "PENDING_CLEANING", readinessAtConclusion: "BLOCKED" } };
+      await page.getByRole("button", { name: "Refresh rework" }).click();
+      await page.getByText(`Reinspection #15: ${ended === "COMPLETED" ? "passed" : "failed"}.`, { exact: true }).waitFor();
+      await page.getByText("Current room readiness: PENDING_CLEANING.", { exact: true }).waitFor();
+      await page.getByText("Readiness at conclusion: BLOCKED.", { exact: true }).waitFor();
+      assert.equal(await page.getByRole("button", { name: /Accept rework|Start rework|Submit rework|Conclude/ }).count(), 0);
+    }
+    state.signedIn = false;
+    await page.evaluate(() => window.reworkTest.revalidate());
+    await page.waitForURL(/\/login/);
+    assert.equal(await page.getByRole("region", { name: "Reinspection result" }).count(), 0);
+  });
+});
 test("source 401 invalidates the current session and removes prior details", async () => {
   await scenario(async (page, state) => {
     await page.getByText("PRIVATE-DEFECT", { exact: true }).waitFor();

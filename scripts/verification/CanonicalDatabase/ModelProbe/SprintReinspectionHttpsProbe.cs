@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintReinspectionHttpsProbe
 {
-    internal static async Task VerifyAsync(HotelOpsDbContext db, long actor, long branch, long rework, CancellationToken ct)
+    internal static async Task VerifyAsync(HotelOpsDbContext db, long actor, long branch, long rework,
+        HotelOps.Api.Services.Authentication.SessionReference executorTicket,long executorSid,CancellationToken ct)
     {
         if (await db.Database.SqlQueryRaw<int>("""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='meita'
@@ -30,6 +31,7 @@ internal static class SprintReinspectionHttpsProbe
             GRANT INSERT,UPDATE ON dbo.user_sessions TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT,UPDATE ON dbo.room_inspections TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT ON dbo.audit_logs TO DEV3_142A_ReinspectionHttps;
+            GRANT UPDATE ON dbo.notification_recipients TO DEV3_142A_ReinspectionHttps;
             GRANT UPDATE ON dbo.fe05_reinspection_defect_results_v1 TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT ON dbo.fe05_reinspection_defect_attachments_v1 TO DEV3_142A_ReinspectionHttps;
             GRANT INSERT ON dbo.inspection_results TO DEV3_142A_ReinspectionHttps;
@@ -113,6 +115,7 @@ internal static class SprintReinspectionHttpsProbe
                           AND EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_attachments_v1 WHERE inspection_id=b.inspection_id)
                           AND NOT EXISTS(SELECT 1 FROM dbo.fe05_reinspection_defect_results_v1 WHERE inspection_id=b.inspection_id AND (fixed IS NULL OR recorded_by<>{actor}))
                         """).SingleAsync(ct) != 1)) throw new Exception("Browser conclusion persistence/audit/evidence mismatch");
+                if(conclude)await SprintReinspectionExecutorProbe.VerifyAsync(db,executorTicket,executorSid,branch,rework,ct,browser:true);
             }
             finally { if (!process.HasExited) process.Kill(true); }
             host.Kill(true); await host.WaitForExitAsync(ct); await output; await errors;

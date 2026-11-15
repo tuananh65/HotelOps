@@ -78,6 +78,9 @@ internal static class SprintReinspectionAssignmentProbe
                   THROW 51999,'Unexpected reinspection source; cleanup refused',1;
                 DECLARE @owned TABLE(id bigint PRIMARY KEY);
                 INSERT @owned SELECT inspection_id FROM dbo.fe05_reinspection_bindings_v1 WHERE rework_id={rework};
+                DELETE r FROM dbo.notification_recipients r JOIN dbo.notifications n ON n.notification_id=r.notification_id
+                  WHERE n.notification_type='REINSPECTION_PASSED' AND n.source_type='CLEANING_REWORK' AND n.source_id={rework} AND n.created_by={actor};
+                DELETE dbo.notifications WHERE notification_type='REINSPECTION_PASSED' AND source_type='CLEANING_REWORK' AND source_id={rework} AND created_by={actor};
                 UPDATE dbo.room_inspections SET workflow_status='INSPECTING',status='IN_PROGRESS',result=NULL WHERE inspection_id IN(SELECT id FROM @owned);
                 DROP TABLE dbo.fe05_reinspection_defect_attachments_v1;
                 DROP TABLE dbo.fe05_reinspection_defect_results_v1;
@@ -250,10 +253,12 @@ internal static class SprintReinspectionAssignmentProbe
             // Restore only this synthetic assignment before the independent public UI trial.
             await using (var reset = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
             { await Cleanup(); await Install(); await reset.CommitAsync(ct); }
-            await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, ct);
+            await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, executorTicket, executorSid, ct);
             if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
                 await SprintReinspectionConclusionProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
             await SprintReinspectionTerminalReadProbe.VerifyAsync(db, ticket, sid, branch, rework, ct);
+            if (Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE") != "1")
+                await SprintReinspectionExecutorProbe.VerifyAsync(db, executorTicket, executorSid, branch, rework, ct);
         }
         finally
         {

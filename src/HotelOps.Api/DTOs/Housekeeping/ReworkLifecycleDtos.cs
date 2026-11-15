@@ -10,7 +10,9 @@ public sealed record ReworkDefectDto(long Id, string Description, string? Remedi
 public sealed record ReworkExecutionDto(long Id, long BranchId, long CleaningTaskId, long InspectionId, long RoomId,
     long AssigneeId, string State, DateTime? DueAtUtc, string SourceETag, string InspectionETag,
     IReadOnlyList<ReworkDefectDto> Defects, string Capability = "PROVISIONAL_NOT_ACCEPTED",
-    string SourceAuthority = "SYNTHETIC_TEST_ONLY");
+    string SourceAuthority = "SYNTHETIC_TEST_ONLY", ReworkConclusionDto? Conclusion = null);
+public sealed record ReworkConclusionDto(long ReinspectionId, string State, string EffectiveReadiness,
+    string ReadinessAtConclusion);
 public sealed record ReworkCommandResult(long Id, long BranchId, long CleaningTaskId, long InspectionId, long AssigneeId,
     string Action, string State, Guid OperationId, string SourceETag, DateTime OccurredAtUtc,
     long? IntervalId, Guid? PublicationId, string Readiness, string Notification,
