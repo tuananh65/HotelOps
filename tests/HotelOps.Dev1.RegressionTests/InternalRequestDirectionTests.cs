@@ -49,6 +49,9 @@ public sealed class InternalRequestDirectionTests
     {
         var now=DateTime.UtcNow;
         var sent=new InternalRequest{InternalRequestId=1,RequesterId=7,ReceivingDepartmentId=11};
+        // The same request qualifies as requester, current handler and mapped manager.
+        // Each direction must still return one row before counting/pagination.
+        sent.InternalRequestAssignments.Add(new(){AssigneeId=7,Status="ACTIVE",AssignedAt=now.AddMinutes(-1)});
         var managed=new InternalRequest{InternalRequestId=2,RequesterId=8,ReceivingDepartmentId=11};
         var handled=new InternalRequest{InternalRequestId=3,RequesterId=8,ReceivingDepartmentId=12};
         handled.InternalRequestAssignments.Add(new(){AssigneeId=7,Status="ACTIVE",AssignedAt=now.AddMinutes(-1)});

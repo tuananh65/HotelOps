@@ -1,0 +1,148 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_b8d72cbd",
+  "fixtureUserId": 1071253,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "handoverCheck": "receiver real session authenticated"
+    },
+    {
+      "handoverCheck": "authorized handover read"
+    },
+    {
+      "handoverCheck": "authorized handover read"
+    },
+    {
+      "handoverCheck": "only current handler can submit despite manager read/process role"
+    },
+    {
+      "handoverCheck": "CSRF and request ETag mandatory"
+    },
+    {
+      "handoverCheck": "noncurrent handler cannot initiate handover"
+    },
+    {
+      "handoverCheck": "summary mandatory"
+    },
+    {
+      "handoverCheck": "receiver outside receiving department denied"
+    },
+    {
+      "handoverCheck": "outbox failure rejects submit"
+    },
+    {
+      "handoverCheck": "authorized handover read"
+    },
+    {
+      "handoverCheck": "submit fault rolls back event audit and request version"
+    },
+    {
+      "handoverCheck": "valid submit creates pending handover"
+    },
+    {
+      "handoverCheck": "pending handover preserves sender responsibility"
+    },
+    {
+      "handoverCheck": "second pending handover rejected"
+    },
+    {
+      "handoverCheck": "only designated receiver may decide"
+    },
+    {
+      "handoverCheck": "reject requires reason"
+    },
+    {
+      "handoverCheck": "reject leaves sender sole active handler"
+    },
+    {
+      "handoverCheck": "stale decision cannot replay"
+    },
+    {
+      "handoverBrowser": {
+        "success": false,
+        "stage": "sender select receiver",
+        "diagnostic": {
+          "status": 200,
+          "keys": [
+            "requestId",
+            "version",
+            "handoverId",
+            "state",
+            "receiverId",
+            "summary",
+            "note",
+            "canSubmit",
+            "canDecide",
+            "receivers"
+          ],
+          "canSubmit": true,
+          "canDecide": false,
+          "receivers": 1,
+          "handoverId": null,
+          "state": null,
+          "version": "AAAAAAAApBw=",
+          "summary": null,
+          "note": null
+        }
+      }
+    },
+    {
+      "departmentAuthorityCleanup": "Verified whole-clone drop required; immutable task records retained"
+    }
+  ],
+  "failure": "Exception: Handover browser failed at sender select receiver",
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": false,
+  "scope": "Department authority service and transaction SQL verification; not public mutation E2E"
+}

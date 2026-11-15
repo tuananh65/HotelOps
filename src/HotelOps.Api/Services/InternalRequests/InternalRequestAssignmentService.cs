@@ -105,6 +105,7 @@ public sealed class InternalRequestAssignmentService(HotelOpsDbContext db, Inter
                 throw new InternalRequestReadException(409, "IR_ASSIGNMENT_INCONSISTENT");
             if (active.Any(a => a.AssigneeId == input.HandlerId)) throw new InternalRequestReadException(409, "IR_HANDLER_UNCHANGED");
             // End the old assignment before inserting the new one: the existing filtered unique index stays authoritative.
+            await InternalRequestHandoverStore.EnsureNoPendingAsync(db,id,ct);
             await db.InternalRequestAssignments.Where(a => a.InternalRequestId == id && a.Status == "ACTIVE")
                 .ExecuteUpdateAsync(s => s.SetProperty(a => a.Status, "REASSIGNED").SetProperty(a => a.EndedAt, now), ct);
             var changed = await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.internal_requests SET status='IN_PROGRESS',updated_at={now} WHERE internal_request_id={id} AND row_version={expectedVersion}", ct);

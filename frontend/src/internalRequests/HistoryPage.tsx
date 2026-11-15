@@ -8,6 +8,7 @@ import { InternalRequestCleaningLinksPanel } from "./CleaningLinksPanel";
 import { InternalRequestIncidentLinksPanel } from "./IncidentLinksPanel";
 import { InternalRequestWithdrawalPanel } from "./WithdrawalPanel";
 import { InternalRequestIntakeLink } from "./IntakePage";
+import { InternalRequestHandoverPanel } from "./HandoverPanel";
 import {
   decodeHistory,
   decodeTimeline,
@@ -319,6 +320,7 @@ export function InternalRequestHistoryPage() {
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <InternalRequestWithdrawalPanel id={visible.timeline.requestId} onWithdrawn={() => setRevision(v => v + 1)} />
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
+          <InternalRequestHandoverPanel id={visible.timeline.requestId} />
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
           <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
           <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} />

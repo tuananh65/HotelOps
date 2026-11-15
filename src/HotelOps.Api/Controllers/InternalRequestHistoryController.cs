@@ -55,6 +55,8 @@ public sealed class InternalRequestReadErrorsAttribute : ExceptionFilterAttribut
         var (status, code) = context.Exception switch
         {
             InternalRequestReadException e => (e.Status, e.Code),
+            ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor handover
+                && handover.ControllerTypeInfo.AsType()==typeof(InternalRequestHandoverController) => (400,"INVALID_HANDOVER_INPUT"),
             ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor intake
                 && intake.ControllerTypeInfo.AsType()==typeof(InternalRequestIntakeController) => (400,"INVALID_INTAKE_INPUT"),
             ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor action

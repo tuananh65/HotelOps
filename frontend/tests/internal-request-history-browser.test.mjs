@@ -21,6 +21,20 @@ async function fixture(run) {
     if (request.resourceType() === "document") return route.fulfill({ contentType: "text/html", body: '<div id="root"></div>' });
     if (path === "/api/auth/session") return json({ user: { id: "42", username: "staff", name: "Synthetic" }, expiresAt: "2026-11-17T00:00:00Z", absoluteExpiresAt: "2026-11-17T12:00:00Z", mustChangePassword: false, csrfToken: "test" }, state.session);
     if (path === "/api/auth/csrf") return json({ csrfToken: "test" });
+    if (path === "/api/internal-requests/1/handover" || path === "/api/internal-requests/1/handover/decision") {
+      if(request.method()==="POST") {
+        state.handoverPosts=(state.handoverPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');
+        assert.equal(request.headers()["x-csrf-token"],"test");
+        state.handoverBody=request.postDataJSON();
+        return json({requestId:1,handoverId:8,state:"PENDING_ACKNOWLEDGMENT",version:"AAAAAAAAAAE=",message:"MSG08"},state.handoverPostStatus??412);
+      }
+      return json({requestId:1,version:"AAAAAAAAAAA=",handoverId:state.handoverReceiver?8:null,
+        state:state.handoverReceiver?"PENDING_ACKNOWLEDGMENT":null,receiverId:state.handoverReceiver?42:null,
+        summary:state.handoverReceiver?"PRIVATE HANDOVER":null,note:null,
+        canSubmit:state.handoverSender??false,canDecide:state.handoverReceiver??false,
+        receivers:state.handoverSender?[{id:43,name:"Eligible receiver"}]:[]},state.handoverReadStatus??200);
+    }
     if (path === "/api/internal-requests/1/withdrawal") {
       if(request.method()==="POST") {
         state.withdrawalPosts=(state.withdrawalPosts??0)+1;
@@ -323,4 +337,35 @@ test("incident linking requires explicit mandatory selection and never replays s
   await panel.getByRole("button",{name:"Save incident link",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
   assert.equal(state.incidentPosts,1);assert.equal(await panel.getByLabel("Open incident",{exact:true}).count(),0);
+}));
+
+test("handover sender validates input, uses CSRF/ETag and never replays a stale write",async()=>fixture(async(page,state)=>{
+  state.handoverSender=true;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Request handover",exact:true});
+  await panel.getByRole("button",{name:"Submit handover",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Enter the required"}).waitFor();
+  assert.equal(state.handoverPosts??0,0);
+  await panel.getByLabel("New handler",{exact:true}).selectOption("43");
+  await panel.getByLabel("Status summary",{exact:true}).fill("  Pending inspection  ");
+  await panel.getByRole("button",{name:"Submit handover",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByText("Request changed. Reload before deciding.",{exact:true}).waitFor();
+  assert.equal(state.handoverPosts,1);
+  assert.deepEqual(state.handoverBody,{receiverId:43,summary:"Pending inspection",note:null});
+  assert.equal(await panel.getByLabel("New handler",{exact:true}).count(),0);
+}));
+
+test("handover receiver requires rejection reason and removes receipt after read revocation",async()=>fixture(async(page,state)=>{
+  state.handoverReceiver=true;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Request handover",exact:true});
+  await panel.getByText("PRIVATE HANDOVER",{exact:true}).waitFor();
+  await panel.getByRole("button",{name:"Reject handover",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Enter the required"}).waitFor();
+  assert.equal(state.handoverPosts??0,0);
+  state.handoverReadStatus=403;
+  await panel.getByRole("button",{name:"Reload handover",exact:true}).click();
+  await panel.getByText("Handover unavailable. Reload current access and responsibility.",{exact:true}).waitFor();
+  assert.equal(await panel.getByText("PRIVATE HANDOVER",{exact:true}).count(),0);
+  assert.equal(await panel.getByRole("button",{name:"Acknowledge handover",exact:true}).count(),0);
 }));
