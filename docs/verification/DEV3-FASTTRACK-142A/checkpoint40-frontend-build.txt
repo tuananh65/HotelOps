@@ -1,0 +1,14 @@
+
+> hotelops@0.1.0 build
+> tsc -b && vite build
+
+src/api/dev1/reworkExecution.ts(143,3): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(144,7): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(144,18): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(146,45): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(156,3): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(157,7): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(157,17): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(161,5): error TS2304: Cannot find name 'scope'.
+src/api/dev1/reworkExecution.ts(184,21): error TS2304: Cannot find name 'scope'.
+src/features/inspectionExecution/AssignedReworkRead.tsx(98,9): error TS2554: Expected 6 arguments, but got 7.

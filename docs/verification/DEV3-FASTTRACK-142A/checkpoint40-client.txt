@@ -1,0 +1,57 @@
+✔ canonical assigned source displays committed defects, then clears them on session loss (3201.6694ms)
+✔ source 401 invalidates the current session and removes prior details (2438.4142ms)
+✔ unsupported lifecycle capability is not displayed as pending acceptance (2437.1696ms)
+✔ rework read binds identity, ETag and committed source, cookie transport and cancellation (16.1768ms)
+✖ rework mutations use current CSRF with original key, ETag and immutable body on explicit retry (0.4003ms)
+✔ rework refuses malformed command and missing per-defect remediation before network (0.2238ms)
+✖ rework never retries automatically or falls back on auth, stale or unavailable responses (0.4521ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 5
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18235.7955
+
+✖ failing tests:
+
+test at tests\rework-execution.test.mjs:61:1
+✖ rework mutations use current CSRF with original key, ETag and immutable body on explicit retry (0.4003ms)
+  ReferenceError [Error]: scope is not defined
+      at mutateRework (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/.test-output/fs016/rework.mjs:129:3)
+      at TestContext.<anonymous> (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/rework-execution.test.mjs:96:9)
+      at Test.runInAsyncScope (node:async_hooks:226:14)
+      at Test.run (node:internal/test_runner/test:1402:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+      at Test.postRun (node:internal/test_runner/test:1542:19)
+      at Test.run (node:internal/test_runner/test:1467:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3)
+
+test at tests\rework-execution.test.mjs:123:1
+✖ rework never retries automatically or falls back on auth, stale or unavailable responses (0.4521ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+
+  Caught error:
+
+  ReferenceError: scope is not defined
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/rework-execution.test.mjs:135:5)
+      at async Test.run (node:internal/test_runner/test:1409:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:974:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: ReferenceError: scope is not defined
+        at mutateRework (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/.test-output/fs016/rework.mjs:129:3)
+        at TestContext.<anonymous> (file:///D:/HotelOps/HotelOps_Fullstack_Shared/frontend/tests/rework-execution.test.mjs:136:7)
+        at Test.runInAsyncScope (node:async_hooks:226:14)
+        at Test.run (node:internal/test_runner/test:1402:25)
+        at Test.processPendingSubtests (node:internal/test_runner/test:974:18)
+        at Test.postRun (node:internal/test_runner/test:1542:19)
+        at Test.run (node:internal/test_runner/test:1467:12)
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:974:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }

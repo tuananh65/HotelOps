@@ -1,0 +1,15 @@
+✔ canonical assigned source displays committed defects, then clears them on session loss (2795.9607ms)
+✔ source 401 invalidates the current session and removes prior details (2429.9676ms)
+✔ unsupported lifecycle capability is not displayed as pending acceptance (2418.0974ms)
+✔ rework read binds identity, ETag and committed source, cookie transport and cancellation (15.895ms)
+✔ rework mutations use current CSRF with original key, ETag and immutable body on explicit retry (1.0189ms)
+✔ rework refuses malformed command and missing per-defect remediation before network (0.2452ms)
+✔ rework never retries automatically or falls back on auth, stale or unavailable responses (0.8487ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14462.3911

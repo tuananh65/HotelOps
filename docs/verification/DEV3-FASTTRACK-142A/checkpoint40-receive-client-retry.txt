@@ -1,0 +1,17 @@
+✔ canonical receive workflow accepts and starts using current CSRF and committed receipts (2910.9861ms)
+✔ canonical assigned source displays committed defects, then clears them on session loss (2363.705ms)
+✔ source 401 invalidates the current session and removes prior details (2388.8072ms)
+✔ unsupported lifecycle capability is not displayed as pending acceptance (2390.2998ms)
+✔ canonical mutation cannot cross a changed session during CSRF bootstrap (15.8493ms)
+✔ rework read binds identity, ETag and committed source, cookie transport and cancellation (2.0644ms)
+✔ rework mutations use current CSRF with original key, ETag and immutable body on explicit retry (0.8241ms)
+✔ rework refuses malformed command and missing per-defect remediation before network (0.2727ms)
+✔ rework never retries automatically or falls back on auth, stale or unavailable responses (0.9269ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16955.8444

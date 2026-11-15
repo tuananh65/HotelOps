@@ -1,0 +1,32 @@
+✖ canonical receive workflow accepts and starts using current CSRF and committed receipts (33075.9845ms)
+✔ canonical assigned source displays committed defects, then clears them on session loss (2374.8226ms)
+✔ source 401 invalidates the current session and removes prior details (2402.9437ms)
+✔ unsupported lifecycle capability is not displayed as pending acceptance (2381.7217ms)
+✔ canonical mutation cannot cross a changed session during CSRF bootstrap (20.378ms)
+✔ rework read binds identity, ETag and committed source, cookie transport and cancellation (2.0311ms)
+✔ rework mutations use current CSRF with original key, ETag and immutable body on explicit retry (0.926ms)
+✔ rework refuses malformed command and missing per-defect remediation before network (0.2977ms)
+✔ rework never retries automatically or falls back on auth, stale or unavailable responses (1.1136ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 40799.0433
+
+✖ failing tests:
+
+test at tests\assigned-rework-route.test.mjs:166:1
+✖ canonical receive workflow accepts and starts using current CSRF and committed receipts (33075.9845ms)
+  locator.click: Timeout 30000ms exceeded.
+  Call log:
+  [2m  - waiting for getByRole('button', { name: 'Start rework', exact: true })[22m
+
+      at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\assigned-rework-route.test.mjs:173:8
+      at async scenario (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\assigned-rework-route.test.mjs:154:5)
+      at async TestContext.<anonymous> (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\assigned-rework-route.test.mjs:167:3) {
+    name: 'TimeoutError',
+    log: [ "  - waiting for getByRole('button', { name: 'Start rework', exact: true })" ]
+  }
