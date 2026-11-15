@@ -1,0 +1,575 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_f5da7eeb",
+  "fixtureUserId": 1071131,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/operational-tasks",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/70914/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "submissionCheck": "criteria initialized by authorized API"
+    },
+    {
+      "submissionCheck": "anonymous submission with valid CSRF denied"
+    },
+    {
+      "submissionCheck": "missing submission capability fails closed"
+    },
+    {
+      "submissionCheck": "revoked executor permission denies submission"
+    },
+    {
+      "submissionCheck": "pending state without a committed submission fails closed"
+    },
+    {
+      "submissionCheck": "Paused task cannot submit"
+    },
+    {
+      "submissionCheck": "submission requires its current work interval"
+    },
+    {
+      "submissionCheck": "persistence note length enforced without writes"
+    },
+    {
+      "submissionCheck": "submission requires ETag"
+    },
+    {
+      "submissionCheck": "submission requires CSRF"
+    },
+    {
+      "submissionCheck": "unassigned submission denied"
+    },
+    {
+      "submissionCheck": "foreign branch submission denied"
+    },
+    {
+      "submissionCheck": "missing mandatory result returns MSG03 and exact criterion label"
+    },
+    {
+      "submissionCheck": "failed criteria submission rolls back partial result edits and all business writes"
+    },
+    {
+      "submissionCheck": "invalid second evidence rolls back first file, criteria, interval and history"
+    },
+    {
+      "submissionCheck": "submission audit failure rolls back interval, file, results, event and workflow"
+    },
+    {
+      "submissionCheck": "concurrent Submit yields one success and one stale response"
+    },
+    {
+      "submissionCheck": "submission awaits verification and does not close task"
+    },
+    {
+      "submissionCheck": "fresh repeated submission denied"
+    },
+    {
+      "submissionCheck": "pending submission locks progress updates"
+    },
+    {
+      "submissionCheck": "mandatory FAIL is a recorded result, not an automatic verification rejection"
+    },
+    {
+      "submissionCheck": "actual work ends but legacy task completion remains unset"
+    },
+    {
+      "submissionCheck": "result and handover persist separately with newlines"
+    },
+    {
+      "submissionCheck": "submitter downloads private submitted evidence"
+    },
+    {
+      "submissionCheck": "revoked Department Head gets no delivery"
+    },
+    {
+      "submissionCheck": "delivery failure rolls back notice and recipient, preserving source intent"
+    },
+    {
+      "submissionCheck": "concurrent delivery retries both reconcile the same committed event"
+    },
+    {
+      "submissionCheck": "delivery retry is idempotent with one recipient per event"
+    },
+    {
+      "success": true,
+      "mode": "submit",
+      "stage": "logout",
+      "checks": [
+        "canonical login",
+        "open active task",
+        "missing required result is actionable",
+        "enter result handover and evidence",
+        "submit and lock pending state",
+        "reload preserves snapshot and notes",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submit",
+          "method": "POST",
+          "status": 400
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submit",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "submissionCheck": "canonical submission browser stage accepted"
+    },
+    {
+      "submissionCheck": "browser persists a distinct submission snapshot"
+    },
+    {
+      "submissionCheck": "later results never rewrite earlier submission snapshot"
+    },
+    {
+      "success": true,
+      "mode": "review",
+      "stage": "logout",
+      "checks": [
+        "canonical login",
+        "inbox opens canonical task snapshot",
+        "manager private evidence download",
+        "reload retains manager read access",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/notifications/989/source",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "submissionCheck": "canonical submission browser stage accepted"
+    },
+    {
+      "submissionCheck": "manager HTTP login for source reauthorization"
+    },
+    {
+      "submissionCheck": "manager opens committed task source"
+    },
+    {
+      "verificationCheck": "Department Head reads actionable pending verification"
+    },
+    {
+      "verificationCheck": "anonymous verification denied with valid CSRF"
+    },
+    {
+      "verificationCheck": "verification requires ETag"
+    },
+    {
+      "verificationCheck": "verification requires CSRF"
+    },
+    {
+      "verificationCheck": "executor cannot impersonate verifier"
+    },
+    {
+      "verificationCheck": "foreign branch verification denied"
+    },
+    {
+      "verificationCheck": "Return minimum reason and Accept verification note enforced"
+    },
+    {
+      "verificationCheck": "another submission identity rejected"
+    },
+    {
+      "verificationCheck": "validation and authorization denials leave all workflow records unchanged"
+    },
+    {
+      "verificationCheck": "submitter with manager authority still cannot verify own cycle"
+    },
+    {
+      "verificationCheck": "requester cannot verify even when distinct from submitter"
+    },
+    {
+      "verificationCheck": "earlier performer in same cycle cannot verify another submitter"
+    },
+    {
+      "verificationCheck": "unknown linked requester provenance fails closed"
+    },
+    {
+      "verificationCheck": "linked source without its identity also fails closed"
+    },
+    {
+      "verificationCheck": "verification failure rolls back audit, decision, workflow, assignment and notification intent"
+    },
+    {
+      "verificationCheck": "concurrent Return yields one committed decision and one stale response"
+    },
+    {
+      "verificationCheck": "Return preserves the same assignment and requires Start again"
+    },
+    {
+      "verificationCheck": "verification delivery revalidates assignee access"
+    },
+    {
+      "verificationCheck": "verification concurrent delivery is idempotent"
+    },
+    {
+      "success": true,
+      "mode": "resubmit",
+      "stage": "logout",
+      "checks": [
+        "login",
+        "open assignee notification",
+        "Start returned task",
+        "resubmit corrected work",
+        "reload authoritative outcome",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/notifications/990/source",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/start",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submit",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "verificationCheck": "canonical verification browser resubmit accepted"
+    },
+    {
+      "verificationCheck": "Start after Return preserves first actual start"
+    },
+    {
+      "requesterCheck": "valid same-branch Internal Request resolves a distinct official requester"
+    },
+    {
+      "requesterCheck": "linked requester is denied even though the operational task creator differs"
+    },
+    {
+      "requesterCheck": "source requester changed after review is reauthorized at mutation"
+    },
+    {
+      "requesterCheck": "task creator cannot verify even when linked requester is another user"
+    },
+    {
+      "requesterCheck": "foreign-branch source cannot confer verification authority"
+    },
+    {
+      "requesterCheck": "source receiving department inconsistent with branch fails closed"
+    },
+    {
+      "requesterCheck": "source requester department inconsistent with branch fails closed"
+    },
+    {
+      "requesterCheck": "MAINTENANCE linked provenance remains explicitly unsupported"
+    },
+    {
+      "requesterCheck": "INSPECTION linked provenance remains explicitly unsupported"
+    },
+    {
+      "requesterCheck": "CLEANING linked provenance remains explicitly unsupported"
+    },
+    {
+      "requesterCheck": "MANUAL linked provenance remains explicitly unsupported"
+    },
+    {
+      "requesterCheck": "source denials create no verification or state transition"
+    },
+    {
+      "requesterCheck": "verified source restored for real browser Return/resubmit/Accept"
+    },
+    {
+      "verificationCheck": "prior performer remains excluded across Return and resubmission"
+    },
+    {
+      "success": true,
+      "mode": "RETURN",
+      "stage": "logout",
+      "checks": [
+        "login",
+        "review result and actual effort",
+        "validate decision note",
+        "commit RETURN",
+        "reload authoritative outcome",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "verificationCheck": "canonical verification browser RETURN accepted"
+    },
+    {
+      "success": true,
+      "mode": "resubmit",
+      "stage": "logout",
+      "checks": [
+        "login",
+        "open assignee notification",
+        "Start returned task",
+        "resubmit corrected work",
+        "reload authoritative outcome",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/notifications/991/source",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/start",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submit",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "verificationCheck": "canonical verification browser resubmit accepted"
+    },
+    {
+      "success": true,
+      "mode": "ACCEPT",
+      "stage": "logout",
+      "checks": [
+        "login",
+        "review result and actual effort",
+        "validate decision note",
+        "commit ACCEPT",
+        "reload authoritative outcome",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "verificationCheck": "canonical verification browser ACCEPT accepted"
+    },
+    {
+      "verificationCheck": "two Return cycles and final Accept persist distinct verifier history"
+    },
+    {
+      "verificationCheck": "direct history retains original requester; linked Return and Accept persist official Internal Request requester"
+    },
+    {
+      "verificationCheck": "linked verification audit preserves exact source identity and separate task creator"
+    },
+    {
+      "verificationCheck": "operational task verification does not mutate the source request lifecycle"
+    },
+    {
+      "verificationCheck": "reviewed actual effort equals closed effective intervals, with no time opened by Return or Verify"
+    },
+    {
+      "verificationCheck": "Accept closes parent and current assignment atomically"
+    },
+    {
+      "verificationCheck": "closed task refuses another decision"
+    },
+    {
+      "success": true,
+      "mode": "closed",
+      "stage": "logout",
+      "checks": [
+        "login",
+        "open assignee notification",
+        "Closed result remains readable by executor",
+        "closed private evidence",
+        "reload authoritative outcome",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/notifications/992/source",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/verification",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "verificationCheck": "canonical verification browser closed accepted"
+    },
+    {
+      "verificationCheck": "closed-task source and private submission revalidate current reader authority"
+    },
+    {
+      "criteriaTriggerPreserved": true,
+      "wholeCloneDropRequired": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": true,
+  "scope": "Real task submission, Return/restart/resubmit, verification/Closed, time, audit and private assignee handoff; Internal Request requester enforced, other legacy sources gated"
+}

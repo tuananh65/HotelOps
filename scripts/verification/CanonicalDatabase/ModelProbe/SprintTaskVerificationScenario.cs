@@ -84,6 +84,7 @@ internal static class SprintTaskVerificationScenario
         }
         await Browser("resubmit",executorName,"First corrected task result");
         Check((await db.OperationalTasks.AsNoTracking().SingleAsync(t=>t.TaskId==task,ct)).ActualStartAt==firstStart,"Start after Return preserves first actual start");
+        var requesterSource=await SprintTaskRequesterScenario.RunAsync(db,manager,actor,verifier,branch,foreign,department,task,checks,ct);
         // Return does not start the new processing cycle described by UC106.
         // A performer before Return remains excluded after a new submission.
         managerDay.WorkdayId=0;db.Workdays.Add(managerDay);await db.SaveChangesAsync(ct);
@@ -98,6 +99,15 @@ internal static class SprintTaskVerificationScenario
         await Browser("ACCEPT",managerName,"Verified all submitted operational results");
         var closed=await Send(manager,HttpMethod.Get,root+"/verification");submission=closed.Body.GetProperty("submissionId").GetInt64();
         Check(closed.Body.GetProperty("state").GetString()=="CLOSED"&&closed.Body.GetProperty("decisions").GetArrayLength()==3,"two Return cycles and final Accept persist distinct verifier history");
+        var decisionRows=closed.Body.GetProperty("decisions").EnumerateArray().ToArray();
+        Check(decisionRows[0].GetProperty("requestedBy").GetInt64()==actor&&decisionRows.Skip(1).All(d=>d.GetProperty("requestedBy").GetInt64()==requesterSource.RequesterId),
+            "direct history retains original requester; linked Return and Accept persist official Internal Request requester");
+        var linkedAudits=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="operational_tasks"&&a.EntityId==task.ToString()&&a.NewValues!=null&&a.NewValues.Contains("requesterSource")).ToArrayAsync(ct);
+        Check(linkedAudits.Count(a=>{using var j=JsonDocument.Parse(a.NewValues!);return j.RootElement.GetProperty("requesterSource").GetProperty("type").GetString()=="INTERNAL_REQUEST"
+            &&j.RootElement.GetProperty("requesterSource").GetProperty("id").GetInt64()==requesterSource.RequestId&&j.RootElement.GetProperty("taskCreatedBy").GetInt64()==actor;})==2,
+            "linked verification audit preserves exact source identity and separate task creator");
+        Check(await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==requesterSource.RequestId&&r.RequesterId==requesterSource.RequesterId&&r.Status=="IN_PROGRESS"&&r.UpdatedAt==null,ct),
+            "operational task verification does not mutate the source request lifecycle");
         var seconds=await db.Database.SqlQuery<long>($"SELECT COALESCE(SUM(DATEDIFF_BIG(second,effective_started_at,effective_ended_at)),0) AS Value FROM dbo.work_intervals WHERE work_item_kind='TASK' AND work_item_id={task} AND closed_at IS NOT NULL").SingleAsync(ct);
         Check(closed.Body.GetProperty("actualEffortSeconds").GetInt64()==seconds&&!await db.WorkIntervals.AnyAsync(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==task&&i.ClosedAt==null,ct),"reviewed actual effort equals closed effective intervals, with no time opened by Return or Verify");
         Check(await db.OperationalTaskAssignments.CountAsync(a=>a.TaskId==task&&a.AssignmentStatus=="ACTIVE",ct)==0&&await db.OperationalTasks.AnyAsync(t=>t.TaskId==task&&t.Status=="COMPLETED"&&t.CompletedAt!=null,ct),"Accept closes parent and current assignment atomically");

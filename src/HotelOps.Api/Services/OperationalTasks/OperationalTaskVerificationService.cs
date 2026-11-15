@@ -39,8 +39,9 @@ public sealed partial class RoomTypeCreationService
             if(version==null)return new(RoomTypeBatchStatus.SchemaRequired);
             var decisions=await TaskVerificationStore.Query(db).Where(v=>v.TaskId==id).OrderBy(v=>v.SubmissionId).ToArrayAsync(token);
             var performers=await TaskCyclePerformers(id,submission.ProgressId,token);
-            var separate=actor!=task.CreatedBy&&actor!=submission.SubmittedBy&&!performers.Contains(actor);
-            var supported=task.SourceId==null&&task.SourceType is null or "MANUAL";
+            var source=await TaskRequesterSource.ResolveAsync(db,task,token);
+            var separate=actor!=task.CreatedBy&&actor!=source?.RequestedBy&&actor!=submission.SubmittedBy&&!performers.Contains(actor);
+            var supported=source!=null;
             var can=version.State=="PENDING_VERIFICATION"&&separate&&supported&&(await VerificationManager(actor,branch,token)).IsGranted;
             return new(RoomTypeBatchStatus.Success,new TaskVerificationReviewDto(id,branch,submission.ProgressId,version.State,
                 await TaskEffort(id,branch,token),can,!separate?"MSG22":!supported?"SOURCE_PROVENANCE_REQUIRED":null,decisions.Select(TaskVerificationStore.Dto).ToArray()),WorkflowTag(version.Revision));
@@ -67,9 +68,10 @@ public sealed partial class RoomTypeCreationService
             if(version.State!="PENDING_VERIFICATION"||task.Status!="IN_PROGRESS"||task.CompletedAt!=null)return new(RoomTypeBatchStatus.Inactive);
             var submitted=await TaskSubmissionStore.Query(db).Where(s=>s.TaskId==id&&s.BranchId==branch).OrderByDescending(s=>s.ProgressId).FirstOrDefaultAsync(token);
             if(submitted==null||submitted.ProgressId!=input.SubmissionId||owner!=submitted.SubmittedBy)return new(RoomTypeBatchStatus.Stale);
-            if(task.SourceId!=null||task.SourceType is not (null or "MANUAL"))return new(RoomTypeBatchStatus.SchemaRequired); // Linked requester provenance must be resolved, never guessed.
+            var source=await TaskRequesterSource.ResolveAsync(db,task,token);
+            if(source==null)return new(RoomTypeBatchStatus.SchemaRequired);
             var performers=await TaskCyclePerformers(id,submitted.ProgressId,token);
-            if(actor==task.CreatedBy||actor==submitted.SubmittedBy||performers.Contains(actor))return new(RoomTypeBatchStatus.Forbidden,new TaskEntryFailure("MSG22"));
+            if(actor==source.RequestedBy||actor==task.CreatedBy||actor==submitted.SubmittedBy||performers.Contains(actor))return new(RoomTypeBatchStatus.Forbidden,new TaskEntryFailure("MSG22"));
             if(!performers.Contains(submitted.SubmittedBy)||!await ProgressOwned(false,id,branch,submitted.SubmittedBy,token)
                 ||!await db.OperationalTaskAssignments.AnyAsync(a=>a.AssignmentId==submitted.AssignmentId&&a.AssignmentStatus=="ACTIVE"&&a.EndedAt==null,token)
                 ||await db.WorkIntervals.AnyAsync(i=>i.WorkItemKind=="TASK"&&i.WorkItemId==id&&i.ClosedAt==null,token)
@@ -79,11 +81,12 @@ public sealed partial class RoomTypeCreationService
             var effort=await TaskEffort(id,branch,token);if(effort<0||now<submitted.SubmittedAt)return new(RoomTypeBatchStatus.Inactive);
             var audit=new AuditLog{ActorUserId=actor,BranchId=branch,EntityType="operational_tasks",EntityId=id.ToString(System.Globalization.CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
                 OldValues=JsonSerializer.Serialize(new{workflowState="PENDING_VERIFICATION"}),
-                NewValues=JsonSerializer.Serialize(new{operation="VERIFY",submissionId=submitted.ProgressId,decision=input.Decision,workflowState=state,requestedBy=task.CreatedBy,submittedBy=submitted.SubmittedBy,performedBy=performers,verifiedBy=actor,note,actualEffortSeconds=effort,notificationKind=accept?"TASK_VERIFIED":"TASK_RETURNED"}),
+                NewValues=JsonSerializer.Serialize(new{operation="VERIFY",submissionId=submitted.ProgressId,decision=input.Decision,workflowState=state,requestedBy=source.RequestedBy,
+                    taskCreatedBy=task.CreatedBy,requesterSource=new{type=source.SourceType,id=source.SourceId},submittedBy=submitted.SubmittedBy,performedBy=performers,verifiedBy=actor,note,actualEffortSeconds=effort,notificationKind=accept?"TASK_VERIFIED":"TASK_RETURNED"}),
                 ChangedFields="[\"workflowState\",\"verification\",\"assignment\",\"notificationIntent\"]"};
             db.AuditLogs.Add(audit);await db.SaveChangesAsync(token);db.ChangeTracker.Clear();
             var performedJson=JsonSerializer.Serialize(performers);
-            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_verification_events(submission_id,requested_by,performed_by_json,verified_by,decision,note,decided_at,actual_effort_seconds,audit_id) VALUES({submitted.ProgressId},{task.CreatedBy},{performedJson},{actor},{input.Decision},{note},{now},{effort},{audit.AuditId})",token);
+            await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_verification_events(submission_id,requested_by,performed_by_json,verified_by,decision,note,decided_at,actual_effort_seconds,audit_id) VALUES({submitted.ProgressId},{source.RequestedBy},{performedJson},{actor},{input.Decision},{note},{now},{effort},{audit.AuditId})",token);
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.task_progress_versions SET workflow_status={state} WHERE task_id={id}; UPDATE dbo.operational_tasks SET status={physical},completed_at={ (accept?(DateTime?)now:null)},updated_at={now} WHERE task_id={id}",token);
             if(accept)await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.operational_task_assignments SET assignment_status='COMPLETED',ended_at={now} WHERE assignment_id={submitted.AssignmentId}",token);
             db.OperationalTaskProgresses.Add(new(){TaskId=id,ReportedBy=actor,ReportedAt=now,ProgressPercent=task.ProgressPercent,OldStatus="IN_PROGRESS",NewStatus=physical,Description=accept?"Task verification accepted.":"Task returned for more work."});

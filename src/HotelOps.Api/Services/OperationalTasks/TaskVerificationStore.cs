@@ -46,7 +46,9 @@ internal static class TaskVerificationStore
           AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.operation')='VERIFY'
           AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.submissionId'))=v.submission_id
           AND JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.decision')=v.decision
+          AND TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.requestedBy'))=v.requested_by
         WHERE v.verified_by<>v.requested_by AND v.verified_by<>e.submitted_by
+          AND v.verified_by<>COALESCE(TRY_CONVERT(bigint,JSON_VALUE(CASE WHEN ISJSON(a.new_values)=1 THEN a.new_values ELSE N'[]' END,'$.taskCreatedBy')),v.requested_by)
           AND NOT EXISTS(SELECT 1 FROM OPENJSON(v.performed_by_json) p WHERE TRY_CONVERT(bigint,p.value)=v.verified_by)
           AND t.department_id IN(SELECT department_id FROM dbo.departments WHERE branch_id=t.branch_id)
           AND (t.room_id IS NULL OR EXISTS(SELECT 1 FROM dbo.rooms r WHERE r.room_id=t.room_id AND r.branch_id=t.branch_id))
