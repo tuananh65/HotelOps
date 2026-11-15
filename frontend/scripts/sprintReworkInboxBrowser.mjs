@@ -3,14 +3,16 @@ let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const fixture = JSON.parse(input);
 input = "";
-let browser;
+let browser, page;
+let stage = "login route",
+  loginStatus = null;
 try {
   browser = await chromium.launch({
     executablePath:
       "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe",
     headless: true,
   });
-  const page = await browser.newPage();
+  page = await browser.newPage();
   page.setDefaultTimeout(45000);
   const origin = "https://localhost:7142";
   await page.goto(origin + "/notifications");
@@ -18,8 +20,14 @@ try {
   await page.getByLabel("Username or email").fill(fixture.username);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password);
   fixture.password = "";
+  stage = "assignee login";
+  const login = page.waitForResponse((r) =>
+    r.url().endsWith("/api/auth/login"),
+  );
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  loginStatus = (await login).status();
   await page.waitForURL(origin + "/notifications");
+  stage = "delivered inbox and reload";
   await page
     .getByRole("heading", { name: "Cleaning rework assigned", exact: true })
     .waitFor();
@@ -44,6 +52,7 @@ try {
       ),
   );
   await page.getByRole("button", { name: "Open rework", exact: true }).click();
+  stage = "source route";
   if ((await source).status() !== 200)
     throw Error("Current assignee cannot resolve source");
   await page.waitForURL(
@@ -75,6 +84,9 @@ try {
   process.stdout.write(
     JSON.stringify({
       success: false,
+      stage,
+      loginStatus,
+      path: page ? new URL(page.url()).pathname : null,
       diagnostic: String(error.message).split("\n")[0],
     }),
   );

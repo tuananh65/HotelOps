@@ -15,6 +15,23 @@ await build({
 });
 const { validateReturnUrl, approvedReturnDestination } =
   await import("../.test-output/shared-host/shared-host/returnUrl.js");
+
+test("canonical inbox and assigned rework retain a validated login destination", () => {
+  for (const path of ["/notifications", "/cleaning/reworks/12?branchId=3"]) {
+    assert.equal(approvedReturnDestination(path, true), path);
+    assert.equal(approvedReturnDestination(path, false), null);
+  }
+  for (const path of [
+    "/cleaning/reworks/12",
+    "/cleaning/reworks/0?branchId=3",
+    "/cleaning/reworks/9007199254740992?branchId=3",
+    "/cleaning/reworks/12?branchId=0",
+    "/cleaning/reworks/12?branchId=3&branchId=4",
+    "/notifications?redirect=https://evil.test",
+  ]) {
+    assert.equal(approvedReturnDestination(path, true), null);
+  }
+});
 for (const bad of [
   "https://evil.test",
   "//evil.test",

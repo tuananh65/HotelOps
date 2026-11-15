@@ -63,6 +63,13 @@ export function approvedReturnDestination(
     inspection.slice(1).every((id) => Number.isSafeInteger(Number(id)))
   )
     return safe;
+  const assignedRework = /^\/cleaning\/reworks\/([1-9][0-9]*)$/.exec(path);
+  if (
+    assignedRework &&
+    Number.isSafeInteger(Number(assignedRework[1])) &&
+    new URLSearchParams(safe.split("?")[1] || "").has("branchId")
+  )
+    return safe;
   // UC041/049 and unintegrated features remain excluded; flags are OFF.
   return [
     "/rooms/status",
@@ -72,6 +79,7 @@ export function approvedReturnDestination(
     "/rework",
     "/profile",
     "/operational-tasks",
+    "/notifications",
   ].includes(path) || /^\/(?:cleaning\/tasks|rework)\/[1-9][0-9]*$/.test(path)
     ? safe
     : null;
