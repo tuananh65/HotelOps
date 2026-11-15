@@ -1,0 +1,82 @@
+using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Services.Users;
+using Microsoft.EntityFrameworkCore;
+using Xunit;
+
+namespace HotelOps.Dev1.RegressionTests;
+
+[Collection("HotelOps isolated SQL")]
+public sealed class InternalRequestRoleSqlTests
+{
+    [TaskRoleTrialFact]
+    public async Task CurrentInternalRequestHandlerCapabilityLossAndInconsistencyUseRealSql()
+    {
+        using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        var ct = budget.Token;
+        await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
+            .UseSqlServer("Server=localhost;Database=HotelOps_DEV3_142A_20261114_cc78c13f;Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
+        Assert.Equal(1, await db.Database.SqlQuery<int>($"""
+            SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='meita'
+              AND DB_NAME()='HotelOps_DEV3_142A_20261114_cc78c13f'
+              AND EXISTS(SELECT 1 FROM sys.database_recovery_status WHERE database_id=DB_ID()
+                AND database_guid='1D5A9B53-7D19-435A-96AB-9FDFF447B6E0')
+              AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='DEV3.Sprint142A.Run'
+                AND CONVERT(nvarchar(128),value)='cc78c13ffc124efcad67b3d804baa84c')
+            THEN 1 ELSE 0 END AS Value
+            """).SingleAsync(ct));
+        Assert.False(await db.Users.AnyAsync(ct)); Assert.False(await db.Branches.AnyAsync(ct));
+        Assert.True(await ProgressSchema.InstalledAsync(db, ct));
+        var now = DateTime.UtcNow;
+        var prefix = "D3ROLE" + Guid.NewGuid().ToString("N")[..10];
+        await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable, ct);
+        try
+        {
+            var branch = new Branch { BranchCode=prefix,BranchName="Synthetic revoke dependency",IsActive=true };
+            db.Branches.Add(branch); await db.SaveChangesAsync(ct);
+            var department = new Department { BranchId=branch.BranchId,DepartmentCode=prefix,DepartmentName="Synthetic",IsActive=true };
+            db.Departments.Add(department); await db.SaveChangesAsync(ct);
+            var user = new User { EmployeeCode=prefix,Username=prefix,FullName="Synthetic dependency executor",Email=prefix+"@example.invalid",
+                PasswordHash="NO_LOGIN_SYNTHETIC_HASH",EmploymentStatus="ACTIVE",AccountStatus="ACTIVE",CreatedAt=now,
+                PrimaryBranchId=branch.BranchId,DepartmentId=department.DepartmentId };
+            db.Users.Add(user); await db.SaveChangesAsync(ct);
+            await new UserEligibilityLock(db).LockAsync([user.UserId],ct);
+            db.UserBranchAccesses.Add(new(){UserId=user.UserId,BranchId=branch.BranchId,GrantedAt=now.AddMinutes(-1),AccessLevel="STANDARD"});
+            var permission=await db.Permissions.SingleOrDefaultAsync(p=>p.PermissionCode=="IR_VIEW",ct);
+            if(permission==null){var template=await db.Permissions.SingleAsync(p=>p.PermissionCode=="IR_CREATE",ct);permission=new(){PermissionCode="IR_VIEW",PermissionName="View internal requests",ModuleCode=template.ModuleCode,ResourceCode=template.ResourceCode,ActionCode="VIEW"};db.Permissions.Add(permission);await db.SaveChangesAsync(ct);}
+            var role=await db.Roles.SingleAsync(r=>r.RoleCode=="DEPT_MANAGER",ct);
+            if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==role.RoleId&&g.PermissionId==permission.PermissionId,ct))db.RolePermissions.Add(new(){RoleId=role.RoleId,PermissionId=permission.PermissionId,DataScope="BRANCH",GrantedAt=now});
+            var selected=new UserRole{UserId=user.UserId,RoleId=role.RoleId,BranchId=branch.BranchId,AssignedAt=now.AddMinutes(-1),IsActive=true};db.UserRoles.Add(selected);
+            var type=new InternalRequestType{TypeCode=prefix,TypeName="Synthetic request type",IsActive=true};db.InternalRequestTypes.Add(type);await db.SaveChangesAsync(ct);
+            var request=new InternalRequest{RequestNo=prefix,BranchId=branch.BranchId,RequesterId=user.UserId,RequesterDepartmentId=department.DepartmentId,ReceivingDepartmentId=department.DepartmentId,
+                RequestTypeId=type.RequestTypeId,Subject="Synthetic assigned request",Description="Synthetic revoke evidence",Status="IN_PROGRESS",CreatedAt=now};
+            db.InternalRequests.Add(request);await db.SaveChangesAsync(ct);
+            var assignment=new InternalRequestAssignment{InternalRequestId=request.InternalRequestId,AssigneeId=user.UserId,AssignedBy=user.UserId,AssignedAt=now.AddMinutes(-1),Status="ACTIVE"};db.InternalRequestAssignments.Add(assignment);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            async Task<Dev1ResponsibilityReview> Read()=>await new RevokeRoleResponsibilities(db,TimeProvider.System).ReadAsync(user.UserId,selected.UserRoleId,false,ct);
+            var label=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
+            Assert.Contains(label,(await Read()).Blockers);
+            // A second scoped grant preserves permission but cannot certify role/department semantics.
+            var alternate=new UserRole{UserId=user.UserId,RoleId=role.RoleId,BranchId=branch.BranchId,AssignedAt=now.AddMinutes(-1),IsActive=true};
+            // Duplicate active user-role keys may be forbidden: use a separate existing role.
+            alternate.RoleId=await db.Roles.Where(r=>r.RoleCode=="OPERATIONS_MANAGER").Select(r=>r.RoleId).SingleAsync(ct);
+            foreach(var code in new[]{"IR_PROCESS","IR_VIEW"}){
+                var p=await db.Permissions.SingleAsync(p=>p.PermissionCode==code,ct);
+                if(!await db.RolePermissions.AnyAsync(g=>g.RoleId==alternate.RoleId&&g.PermissionId==p.PermissionId,ct))db.RolePermissions.Add(new(){RoleId=alternate.RoleId,PermissionId=p.PermissionId,DataScope="BRANCH",GrantedAt=now});
+            }
+            db.UserRoles.Add(alternate);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            var preserved=await Read();Assert.DoesNotContain(label,preserved.Blockers);Assert.Contains(label+"_UNKNOWN",preserved.Unresolved);
+            await db.UserRoles.Where(r=>r.UserRoleId==alternate.UserRoleId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.ExpiresAt,now),ct);
+            Assert.Contains(label,(await Read()).Blockers);
+            await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(u=>u.SetProperty(a=>a.AssignedAt,now.AddDays(1)),ct);
+            Assert.Contains(label+"_INCONSISTENT",(await Read()).Unresolved);
+            await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(u=>u.SetProperty(a=>a.AssignedAt,now.AddMinutes(-1)),ct);
+            await db.InternalRequests.Where(r=>r.InternalRequestId==request.InternalRequestId).ExecuteUpdateAsync(u=>u.SetProperty(r=>r.Status,"CLOSED"),ct);
+            Assert.Contains(label+"_UNKNOWN",(await Read()).Unresolved);
+            await db.InternalRequestAssignments.Where(a=>a.AssignmentId==assignment.AssignmentId).ExecuteUpdateAsync(u=>u.SetProperty(a=>a.Status,"COMPLETED").SetProperty(a=>a.EndedAt,now),ct);
+            var history=await Read();Assert.DoesNotContain(label,history.Blockers);Assert.DoesNotContain(label+"_UNKNOWN",history.Unresolved);
+            Assert.NotEmpty(UserRoleRevocationService.PendingReleaseGates);
+        }
+        finally{await tx.RollbackAsync(CancellationToken.None);db.ChangeTracker.Clear();}
+        Assert.False(await db.Users.AnyAsync(ct));Assert.False(await db.Branches.AnyAsync(ct));Assert.False(await db.InternalRequests.AnyAsync(ct));
+    }
+}
