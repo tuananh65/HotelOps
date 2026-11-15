@@ -59,6 +59,8 @@ public sealed class InternalRequestReadErrorsAttribute : ExceptionFilterAttribut
                 && action.ControllerTypeInfo.AsType()==typeof(InternalRequestDecisionController) => (400,"INVALID_DECISION_INPUT"),
             ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor assignment
                 && assignment.ControllerTypeInfo.AsType()==typeof(InternalRequestAssignmentController) => (400,"INVALID_ASSIGNMENT_INPUT"),
+            ValidationException when context.ActionDescriptor is Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor route
+                && route.ControllerTypeInfo.AsType()==typeof(InternalRequestRouteController) => (400,"INVALID_ROUTE_INPUT"),
             ValidationException => (400,"INVALID_HISTORY_QUERY"),
             DbException or TimeoutException => (503, "IR_SOURCE_UNAVAILABLE"),
             _ => (0, "")

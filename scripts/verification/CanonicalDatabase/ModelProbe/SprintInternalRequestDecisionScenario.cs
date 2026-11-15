@@ -75,6 +75,8 @@ internal static class SprintInternalRequestDecisionScenario
             if(await db.RolePermissions.AnyAsync(g=>g.RoleId==managerRole.RoleId&&g.PermissionId==readPermission.PermissionId,ct))throw new Exception("Do not overwrite pre-existing IR_VIEW grant");
             var grant=new RolePermission{RoleId=managerRole.RoleId,PermissionId=readPermission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow};
             db.RolePermissions.Add(grant);await db.SaveChangesAsync(ct);viewGrant=grant.RolePermissionId;db.ChangeTracker.Clear();
+            if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_ROUTE")=="1")
+                await SprintInternalRequestRouteScenario.RunAsync(db,actor,request,ticket,session.SessionId,checks,ct,username,password);
             if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_ASSIGNMENT")=="1")
                 await SprintInternalRequestAssignmentScenario.RunAsync(db,actor,request,ticket,session.SessionId,checks,ct);
             Check((await delivery.PendingAsync(0,100,ct)).Contains(accepted.EventId),"committed decision intent is discoverable for retry");

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import { InternalRequestAssignmentPanel } from "./AssignmentPanel";
+import { InternalRequestRoutePanel } from "./RoutePanel";
 
 interface DecisionView {
   requestId: number; subject: string; description: string; status: string;
@@ -84,6 +85,9 @@ export function InternalRequestDecisionPanel({ id }: { id: number }) {
       <h3>{view.subject}</h3><p>{view.description}</p><p>Status: {view.status}</p>
       <p>Submitted: {view.submittedAt}; age: {Math.floor(view.ageSeconds / 60)} minutes.</p>
       <p>Deadline (UTC): {view.deadline ?? "No deadline"}</p>
+      {view.canDecide && <InternalRequestRoutePanel id={id} onRouted={() => {
+        setResult(null); setMessage("MSG08: Request routed. Reload decision to check the new department and your current access.");
+      }} />}
       {(view.status === "ACCEPTED" || view.status === "IN_PROGRESS") && <InternalRequestAssignmentPanel id={id} />}
       {view.canDecide && <div aria-busy={busy}>
         <label>Decision reason<input value={reason} maxLength={4000} disabled={busy} onChange={e => setReason(e.target.value)} /></label>

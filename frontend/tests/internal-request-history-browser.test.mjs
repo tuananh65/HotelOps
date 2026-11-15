@@ -14,7 +14,7 @@ after(async () => browser?.close());
 async function fixture(run) {
   const page = await browser.newPage();
   page.setDefaultTimeout(10000);
-  const state = { session: 200, history: 200, decision: 200, canDecide:true, decisionPosts:0, postStatus:200, hold:false, release:null, assignmentPosts:0, assignmentStatus:200 };
+  const state = { session: 200, history: 200, decision: 200, canDecide:true, decisionPosts:0, postStatus:200, hold:false, release:null, assignmentPosts:0, assignmentStatus:200, routePosts:0, routeStatus:200 };
   await page.route("**/*", async route => {
     const request = route.request(), path = new URL(request.url()).pathname;
     const json = (data, status=200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data) });
@@ -31,6 +31,13 @@ async function fixture(run) {
       }
       return json({requestId:1,subject:"PRIVATE DECISION",description:"PRIVATE DESCRIPTION",status:"PENDING_ACCEPTANCE",
         submittedAt:"2026-11-16T00:00:00Z",deadline:null,ageSeconds:60,version:"AAAAAAAAAAA=",canDecide:state.canDecide},state.decision);
+    }
+    if (path === "/api/internal-requests/1/route") {
+      if(request.method()==="POST") {
+        state.routePosts++;assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        return json({requestId:1,departmentId:5,eventId:1,version:"AAAAAAAAAAE="},state.routeStatus);
+      }
+      return json({requestId:1,status:"PENDING_ACCEPTANCE",version:"AAAAAAAAAAA=",departments:[{departmentId:5,name:"Receiving team"}]});
     }
     if (path === "/api/internal-requests/1/assignment") {
       if(request.method()==="POST") {
@@ -129,4 +136,26 @@ test("accepted request assignment succeeds with ETag and CSRF then requires fres
   await panel.getByRole("button",{name:"Assign request handler",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:"MSG08: Handler assigned"}).waitFor();
   assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Request handler",{exact:true}).count(),0);
+}));
+
+test("route requires reason then clears old decision authority after committed response",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Route request",exact:true});
+  await panel.getByLabel("Target department",{exact:true}).selectOption("5");
+  await panel.getByRole("button",{name:"Route request",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"at least 10 characters"}).waitFor();assert.equal(state.routePosts,0);
+  await panel.getByLabel("Routing reason",{exact:true}).fill("Route to responsible team");
+  await panel.getByRole("button",{name:"Route request",exact:true}).evaluate(b=>{b.click();b.click();});
+  await page.getByRole("status").filter({hasText:"MSG08: Request routed"}).waitFor();
+  assert.equal(state.routePosts,1);assert.equal(await page.getByRole("button",{name:"Accept request",exact:true}).count(),0);
+}));
+
+test("stale route response hides target options and never replays mutation",async()=>fixture(async(page,state)=>{
+  state.routeStatus=412;await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Route request",exact:true});
+  await panel.getByLabel("Target department",{exact:true}).selectOption("5");
+  await panel.getByLabel("Routing reason",{exact:true}).fill("Route to responsible team");
+  await panel.getByRole("button",{name:"Route request",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
+  assert.equal(state.routePosts,1);assert.equal(await panel.getByLabel("Target department",{exact:true}).count(),0);
 }));

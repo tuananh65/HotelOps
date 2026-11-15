@@ -16,6 +16,7 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
         if(!options.Value.Enabled)return;
         long cursor=0;
         long assignmentCursor=0;
+        long routeCursor=0;
         while(!ct.IsCancellationRequested)
         {
             try
@@ -42,6 +43,17 @@ internal sealed class InternalRequestNotificationWorker(IServiceScopeFactory sco
                     catch(Exception error){logger.LogWarning("Internal request assignment notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
                 }
                 assignmentCursor=assignments.Length==100?assignments[^1]:0;
+                long[] routes;
+                await using(var scope=scopes.CreateAsyncScope())
+                    routes=await scope.ServiceProvider.GetRequiredService<InternalRequestRouteDelivery>().PendingAsync(routeCursor,ct);
+                foreach(var id in routes)
+                {
+                    await using var scope=scopes.CreateAsyncScope();
+                    try{await scope.ServiceProvider.GetRequiredService<InternalRequestRouteDelivery>().DeliverEventAsync(id,ct);}
+                    catch(OperationCanceledException)when(ct.IsCancellationRequested){throw;}
+                    catch(Exception error){logger.LogWarning("Internal request route notice {EventId} retained after {ErrorType}",id,error.GetType().Name);}
+                }
+                routeCursor=routes.Length==100?routes[^1]:0;
             }
             catch(OperationCanceledException)when(ct.IsCancellationRequested){break;}
             catch(Exception error){logger.LogWarning("Internal request notification scan retained after {ErrorType}",error.GetType().Name);}

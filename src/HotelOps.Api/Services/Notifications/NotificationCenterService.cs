@@ -118,6 +118,18 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"IR_ROUTED",SourceType:"INTERNAL_REQUEST_ROUTE",SourceId:>0})
+        {
+            await new HotelOps.Api.Services.Users.UserEligibilityLock(db).LockAsync([user],ct);
+            if(!await InternalRequests.InternalRequestRouteService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var route=await InternalRequests.InternalRequestRouteDelivery.Query(db).SingleOrDefaultAsync(r=>r.EventId==source.SourceId&&r.NotificationId==id&&r.RecipientId==user,ct);
+            var scope=await new InternalRequests.InternalRequestReadAccess(db).ReadAsync(user,now,ct);
+            if(route==null||route.ActorId!=source.CreatedBy||route.At!=source.CreatedAt
+                ||!await scope.Apply(db.InternalRequests.AsNoTracking(),now).AnyAsync(r=>r.InternalRequestId==route.RequestId&&(route.IsRequester||r.ReceivingDepartmentId==route.DepartmentId),ct)
+                ||!route.IsRequester&&!await new InternalRequests.InternalRequestProcessAuthority(db).AllowsDepartmentAsync(user,route.BranchId,route.DepartmentId,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/internal-requests?requestId={route.RequestId}");
+        }
         if(source is {NotificationType:"IR_ASSIGNED",SourceType:"INTERNAL_REQUEST_ASSIGNMENT",SourceId:>0})
         {
             if(!await InternalRequests.InternalRequestAssignmentService.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
