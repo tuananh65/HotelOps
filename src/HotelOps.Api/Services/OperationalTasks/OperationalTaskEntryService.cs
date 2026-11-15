@@ -43,7 +43,7 @@ public sealed partial class RoomTypeCreationService
                 if (WorkflowTag(version.Revision) != expected) return new(RoomTypeBatchStatus.Stale);
                 var from = start ? "ACCEPTED" : "ASSIGNED";
                 var to = start ? "IN_PROGRESS" : "ACCEPTED";
-                if (version.State != from || task.Status != "TODO" || !start && task.ActualStartAt != null || task.CompletedAt != null)
+                if (version.State != from || task.Status != "TODO" || task.CompletedAt != null)
                     return new(RoomTypeBatchStatus.Inactive);
                 // Change workflow before the legacy parent bumps its rowversion. Every
                 // later guard/failure rolls this write back with interval and audit.
@@ -69,7 +69,7 @@ public sealed partial class RoomTypeCreationService
                 await db.SaveChangesAsync(token);
                 await BatchAuditAsync(actor, branch, "operational_tasks", id,
                     new { workflowState = from, task.ActualStartAt },
-                    new { workflowState = to, operation = start ? "START" : "ACCEPT", actualStartAt = start ? task.ActualStartAt ?? now : (DateTime?)null, intervalId },
+                    new { workflowState = to, operation = start ? "START" : "ACCEPT", actualStartAt = start ? task.ActualStartAt ?? now : task.ActualStartAt, intervalId },
                     start ? ["workflowState", "actualStartAt", "workInterval"] : ["workflowState"], token);
                 return new(RoomTypeBatchStatus.Success, await ProgressDto(false, id, branch, to, token),
                     WorkflowTag((await ProgressRevision(false, id, token))!.Revision));

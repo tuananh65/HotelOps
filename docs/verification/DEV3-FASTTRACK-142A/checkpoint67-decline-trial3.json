@@ -1,0 +1,349 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_412e53c7",
+  "fixtureUserId": 1071131,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/operational-tasks",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/70914/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "entryCheck": "unauthenticated accept denied"
+    },
+    {
+      "entryCheck": "unauthenticated start denied"
+    },
+    {
+      "entryCheck": "both mutations require ETag"
+    },
+    {
+      "entryCheck": "both mutations require CSRF"
+    },
+    {
+      "entryCheck": "unassigned acceptance denied"
+    },
+    {
+      "entryCheck": "unassigned start denied"
+    },
+    {
+      "entryCheck": "foreign branch denied"
+    },
+    {
+      "entryCheck": "Assigned task cannot skip Accept"
+    },
+    {
+      "entryCheck": "entry denials do not change task version, history, interval or audit"
+    },
+    {
+      "entryCheck": "missing entry capability fails closed"
+    },
+    {
+      "entryCheck": "revoked executor permission denies both entry operations"
+    },
+    {
+      "entryCheck": "inactive source department denies acceptance"
+    },
+    {
+      "entryCheck": "prestart progress mutation refused server-side"
+    },
+    {
+      "entryCheck": "failed acceptance audit rolls back state, version, parent and history"
+    },
+    {
+      "entryCheck": "concurrent Accept produces exactly one success and one stale response"
+    },
+    {
+      "entryCheck": "fresh retry cannot accept twice"
+    },
+    {
+      "entryCheck": "Accept does not start time or require a workday"
+    },
+    {
+      "entryCheck": "Start requires Working workday and returns MSG30"
+    },
+    {
+      "entryCheck": "missing workday rolls back workflow and parent writes"
+    },
+    {
+      "entryCheck": "another open interval returns MSG31 and rolls back all writes"
+    },
+    {
+      "entryCheck": "lost current responsibility prevents Start"
+    },
+    {
+      "entryCheck": "assignment changes invalidate the old ETag"
+    },
+    {
+      "entryCheck": "injected final task audit failure rejects Start"
+    },
+    {
+      "entryCheck": "audit failure rolls back workflow, first start, progress, interval and both audits"
+    },
+    {
+      "entryCheck": "concurrent Start creates exactly one interval"
+    },
+    {
+      "entryCheck": "first actual start equals authoritative server interval timestamp"
+    },
+    {
+      "entryCheck": "running task rejects fresh Accept and Start retries"
+    },
+    {
+      "entryCheck": "exactly two entry audits and one interval audit persist"
+    },
+    {
+      "entryCheck": "MAINTENANCE_STAFF accepts and starts under its real scoped executor permission"
+    },
+    {
+      "entryCheck": "STOREKEEPER accepts and starts under its real scoped executor permission"
+    },
+    {
+      "entryCheck": "starting an Accepted task with a prior first start preserves that timestamp"
+    },
+    {
+      "success": true,
+      "stage": "logout protects task route",
+      "checks": [
+        "canonical login",
+        "read assigned task",
+        "accept task",
+        "reload accepted state",
+        "start task",
+        "save real progress",
+        "pause with approved catalog",
+        "resume without new reason",
+        "reload and persisted history",
+        "logout protects task route"
+      ],
+      "requests": [
+        {
+          "action": "progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "action": "accept",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "progress",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "action": "start",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "progress",
+          "method": "PUT",
+          "status": 200
+        },
+        {
+          "action": "pause",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "resume",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "action": "progress",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "entryCheck": "canonical browser Accept/Start/Progress/Pause/Resume workflow accepted"
+    },
+    {
+      "entryCheck": "browser persists progress, two work intervals and original first start across pause/resume"
+    },
+    {
+      "declineCheck": "Department Head session established"
+    },
+    {
+      "declineCheck": "anonymous Decline with CSRF denied"
+    },
+    {
+      "declineCheck": "Decline requires strong ETag"
+    },
+    {
+      "declineCheck": "Decline requires CSRF"
+    },
+    {
+      "declineCheck": "manager cannot decline another assignee\u0027s task"
+    },
+    {
+      "declineCheck": "foreign branch Decline denied"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 0"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 4"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 4001"
+    },
+    {
+      "declineCheck": "invalid decline reason rejected: length 10"
+    },
+    {
+      "declineCheck": "all input and authority denials leave state, assignment, audit, progress and time unchanged"
+    },
+    {
+      "declineCheck": "missing decline capability fails closed"
+    },
+    {
+      "declineCheck": "missing workflow filter capability fails closed"
+    },
+    {
+      "declineCheck": "revoked executor permission denies Decline"
+    },
+    {
+      "declineCheck": "stale Decline refused"
+    },
+    {
+      "declineCheck": "audit failure rolls back Decline and cannot publish notification intent"
+    },
+    {
+      "declineCheck": "final permission gate revalidates after assignment removal and rolls back revocation and decline"
+    },
+    {
+      "declineCheck": "concurrent Decline commits once; loser has lost assignment authority"
+    },
+    {
+      "declineCheck": "Decline confirms MSG19 and fresh version; short nonblank reason accepted"
+    },
+    {
+      "declineCheck": "assignee removed without erasing assignment history or original note"
+    },
+    {
+      "declineCheck": "manager reads canonical Pending Assignment while legacy status remains valid"
+    },
+    {
+      "declineCheck": "former assignee cannot read task detail or progress"
+    },
+    {
+      "declineCheck": "OWN list excludes declined tasks"
+    },
+    {
+      "declineCheck": "workflow filter applies before pagination/count"
+    },
+    {
+      "declineCheck": "legacy status is not accepted as an invented workflow"
+    },
+    {
+      "declineCheck": "intent includes only eligible Department Head in branch"
+    },
+    {
+      "declineCheck": "revoked manager denied delivery"
+    },
+    {
+      "declineCheck": "delivery failure rolls back notification but preserves durable intent"
+    },
+    {
+      "declineCheck": "concurrent delivery retries converge"
+    },
+    {
+      "declineCheck": "exactly one manager delivery receipt"
+    },
+    {
+      "declineCheck": "eligible recipient opens task source"
+    },
+    {
+      "declineCheck": "source opening revalidates manager authority"
+    },
+    {
+      "declineCheck": "MAINTENANCE_STAFF declines with real scoped permission"
+    },
+    {
+      "declineCheck": "STOREKEEPER declines with real scoped permission"
+    },
+    {
+      "declineCheck": "Assigned task with historical first start can accept without losing time history"
+    },
+    {
+      "declineCheck": "Accepted task cannot Decline"
+    },
+    {
+      "declineCheck": "Accept versus Decline commits exactly one assignment response"
+    },
+    {
+      "success": false,
+      "mode": "decline",
+      "stage": "scoped workflow list",
+      "checks": [
+        "canonical login"
+      ],
+      "requests": [
+        {
+          "path": "/operational-tasks",
+          "method": "GET",
+          "status": 200
+        }
+      ],
+      "error": "locator.selectOption: Timeout 15000ms exceeded.\nCall log:\n\u001B[2m  - waiting for getByLabel(\u0027Workflow status\u0027, { exact: true })\u001B[22m\n"
+    },
+    {
+      "criteriaTriggerPreserved": true,
+      "wholeCloneDropRequired": true
+    }
+  ],
+  "failure": "Exception: canonical decline browser \u003C\u003Ef__AnonymousType114\u00606",
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": false,
+  "scope": "Real UC107 Accept/Decline, current ownership, rollback, notification and workflow list/filter; isolated clone cleanup required"
+}

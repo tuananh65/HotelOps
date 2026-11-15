@@ -1,0 +1,5 @@
+result
+----------------------
+TASK_DECLINE_INSTALLED
+
+(1 rows affected)

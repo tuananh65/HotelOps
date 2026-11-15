@@ -159,7 +159,7 @@ internal static class SprintTaskEntryScenario
         using var process = Process.Start(start) ?? throw new Exception("Browser unavailable");
         try
         {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, branch, code = started.TaskCode })); process.StandardInput.Close();
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new { username, password, branch, code = started.TaskCode, expectCriteria = await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.task_completion_criteria WHERE task_id={task}").SingleAsync(ct) > 0 })); process.StandardInput.Close();
             var stdout = process.StandardOutput.ReadToEndAsync(ct); var stderr = process.StandardError.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct); using var json = JsonDocument.Parse(await stdout); _ = await stderr;
             checks.Add(json.RootElement.Clone()); Check(json.RootElement.GetProperty("success").GetBoolean(), "canonical browser Accept/Start/Progress/Pause/Resume workflow accepted");

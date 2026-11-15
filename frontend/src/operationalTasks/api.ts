@@ -1,3 +1,13 @@
+export const taskWorkflowStates = [
+  "PENDING_ASSIGNMENT",
+  "ASSIGNED",
+  "ACCEPTED",
+  "IN_PROGRESS",
+  "PAUSED",
+  "PENDING_VERIFICATION",
+  "CLOSED",
+] as const;
+export type TaskWorkflowState = (typeof taskWorkflowStates)[number];
 export interface TaskRow {
   id: number;
   code: string;
@@ -5,6 +15,7 @@ export interface TaskRow {
   departmentId: number;
   title: string;
   status: string;
+  workflowStatus?: TaskWorkflowState | null;
   progressPercent: number;
   dueAt: string | null;
 }
@@ -18,6 +29,7 @@ export interface TaskDetail {
   task: TaskRow;
   description: string | null;
   completionNote: string | null;
+  priority?: string | null;
   progressTotalCount: number;
   progress: {
     id: number;
@@ -49,7 +61,8 @@ function row(x: TaskRow, branch: number) {
     [x.code, x.title, x.status].every((v) => typeof v === "string") &&
     count(x.progressPercent) &&
     x.progressPercent <= 100 &&
-    text(x.dueAt)
+    text(x.dueAt) &&
+    (x.workflowStatus == null || taskWorkflowStates.includes(x.workflowStatus))
   );
 }
 export async function readTasks(
@@ -58,13 +71,20 @@ export async function readTasks(
   search: string,
   id: number | null,
   signal: AbortSignal,
+  workflowStatus?: TaskWorkflowState,
 ): Promise<TaskPage | TaskDetail> {
   if (!positive(branch) || !positive(page) || (id !== null && !positive(id)))
     throw new Error("Invalid task identifiers");
+  if (
+    workflowStatus !== undefined &&
+    !taskWorkflowStates.includes(workflowStatus)
+  )
+    throw new Error("Invalid workflow filter");
   const query = new URLSearchParams({
     page: String(page),
     pageSize: "25",
     ...(id === null ? { search } : {}),
+    ...(id === null && workflowStatus ? { workflowStatus } : {}),
   });
   const response = await fetch(
     `/api/branches/${branch}/operational-tasks${id === null ? "" : `/${id}`}?${query}`,
@@ -93,6 +113,7 @@ export async function readTasks(
     data.task.id !== id ||
     !text(data.description) ||
     !text(data.completionNote) ||
+    (data.priority !== undefined && !text(data.priority)) ||
     !count(data.progressTotalCount) ||
     !Array.isArray(data.progress) ||
     !data.progress.every(

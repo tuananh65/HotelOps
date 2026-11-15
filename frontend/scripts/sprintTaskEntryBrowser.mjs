@@ -13,7 +13,8 @@ try {
   await page.getByRole("button", { name: fixture.code + ": Synthetic task 0", exact: true }).click();
   await page.getByText("Task execution state: ASSIGNED", { exact: true }).waitFor();
   if (await page.getByRole("button", { name: "Save progress", exact: true }).isEnabled()) throw new Error("Assigned progress editable"); checks.push(stage);
-  stage = "accept task"; await page.getByRole("button", { name: "Accept task", exact: true }).click(); await page.getByRole("status").filter({ hasText: /^Task accepted\.$/ }).waitFor();
+  if (fixture.expectCriteria) await page.getByText("Inspect result before commitment", { exact: false }).first().waitFor();
+  stage = "accept task"; await page.getByRole("button", { name: "Accept task", exact: true }).click(); await page.getByRole("status").filter({ hasText: /^MSG08: Task accepted\.$/ }).waitFor();
   await page.getByText("Task execution state: ACCEPTED", { exact: true }).waitFor(); checks.push(stage);
   stage = "reload accepted state"; await page.getByRole("button", { name: "Reload progress (discard edits)", exact: true }).click(); await page.getByText("Task execution state: ACCEPTED", { exact: true }).waitFor(); checks.push(stage);
   stage = "start task"; await page.getByRole("button", { name: "Start task", exact: true }).click(); await page.getByText("Task started. Working time is now being recorded.", { exact: true }).waitFor();

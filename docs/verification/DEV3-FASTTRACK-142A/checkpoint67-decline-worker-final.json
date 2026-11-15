@@ -1,0 +1,10 @@
+{
+    "database":  "HotelOps_DEV3_142A_CriteriaTrial_4c319dc6",
+    "success":  true,
+    "hostStopped":  true,
+    "kind":  "Decline",
+    "scope":  "Real opt-in hosted worker recovery of one committed synthetic event; no new business transition",
+    "eventId":  115659,
+    "singleDelivery":  true,
+    "sourceUnchanged":  true
+}

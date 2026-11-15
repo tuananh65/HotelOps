@@ -234,6 +234,59 @@ export async function enterTask(
     throw new Error("Task entry could not be confirmed");
   return result;
 }
+export async function declineTask(
+  branch: number,
+  task: number,
+  current: TaskProgressSnapshot,
+  reason: string,
+  signal: AbortSignal,
+) {
+  validate(current.data, branch, task);
+  if (
+    !tag(current.etag) ||
+    current.data.state !== "ASSIGNED" ||
+    !reason.trim() ||
+    reason.length > 4000 ||
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f]/.test(reason)
+  )
+    throw new Error("An assigned task and a valid decline reason are required");
+  const csrf = await (await request("/api/auth/csrf", signal)).json();
+  if (
+    csrf?.headerName !== "X-CSRF-TOKEN" ||
+    typeof csrf.csrfToken !== "string" ||
+    !csrf.csrfToken.trim() ||
+    /[\r\n]/.test(csrf.csrfToken)
+  )
+    throw new Error("Invalid CSRF response");
+  signal.throwIfAborted();
+  const response = await request(
+    path(branch, task).replace(/\/progress$/, "/decline"),
+    signal,
+    {
+      method: "POST",
+      headers: {
+        "X-CSRF-TOKEN": csrf.csrfToken,
+        "If-Match": current.etag,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason: reason.trim() }),
+    },
+  );
+  const result = await response.json();
+  const etag = response.headers.get("etag");
+  if (
+    !etag ||
+    !tag(etag) ||
+    etag === current.etag ||
+    result?.taskId !== task ||
+    result.branchId !== branch ||
+    result.state !== "PENDING_ASSIGNMENT" ||
+    result.messageCode !== "MSG19"
+  )
+    throw new Error("Task decline could not be confirmed");
+  return result;
+}
+
 export async function pauseTask(
   branch: number,
   task: number,

@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintTaskReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false,bool entry=false,bool submission=false,bool verification=false)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false,bool entry=false,bool submission=false,bool verification=false,bool decline=false)
     {
         if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct)||await db.Attachments.AnyAsync(ct))throw new Exception("Empty task/evidence fixture required");
         var evidenceRoot=Path.GetFullPath("TestResults/sprint25-evidence");
@@ -40,7 +40,7 @@ internal static class SprintTaskReadScenario
             db.OperationalTaskProgresses.AddRange(new OperationalTaskProgress{TaskId=tasks[0],ReportedBy=actor,ReportedAt=DateTime.UtcNow.AddMinutes(-1),ProgressPercent=10,NewStatus="TODO",Description="Earlier synthetic update"},
                 new OperationalTaskProgress{TaskId=tasks[0],ReportedBy=actor,ReportedAt=DateTime.UtcNow,ProgressPercent=20,NewStatus="TODO",Description="Latest synthetic update"});
             await db.SaveChangesAsync(ct);assignment=a.AssignmentId;db.ChangeTracker.Clear();
-            if(!criteria)await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[0]},{(entry?"ASSIGNED":"IN_PROGRESS")})",ct);
+            if(!criteria || decline)await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[0]},{(entry?"ASSIGNED":"IN_PROGRESS")})",ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[3]},'IN_PROGRESS')",ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.operational_task_assignments(task_id,assignee_id,assigned_by,assigned_at,assignment_status) VALUES({tasks[3]},{actor},{actor},SYSUTCDATETIME(),'ACTIVE')",ct);
         }
@@ -84,6 +84,7 @@ internal static class SprintTaskReadScenario
             var grant=new UserRole{UserId=actor,RoleId=role,BranchId=branches[0],IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-2)};
             db.UserRoles.Add(grant);db.UserBranchAccesses.Add(new(){UserId=actor,BranchId=branches[0],AccessLevel="STANDARD",GrantedAt=DateTime.UtcNow.AddMinutes(-2)});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            if(decline) { await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.operational_tasks SET status='IN_PROGRESS' WHERE task_id={tasks[0]}; UPDATE dbo.task_progress_versions SET workflow_status='IN_PROGRESS' WHERE task_id={tasks[0]}; INSERT dbo.task_completion_criteria(task_id,label,is_required,sort_order) VALUES({tasks[0]},N'Inspect result before commitment',1,0); UPDATE dbo.operational_tasks SET status='TODO' WHERE task_id={tasks[0]}; UPDATE dbo.task_progress_versions SET workflow_status='ASSIGNED' WHERE task_id={tasks[0]}",ct); await SprintTaskEntryScenario.RunAsync(db,http,actor,branches[0],branches[1],department,tasks[0],tasks[1],checks,ct,username,password); await SprintTaskDeclineScenario.RunAsync(db,http,actor,branches[0],branches[1],department,checks,ct,username,password); return; }
             if(submission) { await SprintTaskSubmissionScenario.RunAsync(db,http,actor,branches[0],branches[1],department,tasks[0],tasks[1],checks,ct,username,password,verification); return; }
             if(entry) { await SprintTaskEntryScenario.RunAsync(db,http,actor,branches[0],branches[1],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             if(resume) { await SprintTaskResumeScenario.RunAsync(db,http,actor,branches[0],department,tasks[0],tasks[1],checks,ct,username,password); return; }

@@ -8,6 +8,8 @@ import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskVerificationPanel } from "./TaskVerificationPanel";
 import {
   readTasks,
+  taskWorkflowStates,
+  type TaskWorkflowState,
   TaskReadFailure,
   type TaskPage,
   type TaskDetail,
@@ -25,6 +27,10 @@ export function TaskReadPage() {
       : null;
   const [branch, setBranch] = useState("");
   const [search, setSearch] = useState("");
+  const [workflowStatus, setWorkflowStatus] = useState<TaskWorkflowState | "">(
+    "",
+  );
+  const [declined, setDeclined] = useState<AuthorityGeneration | null>(null);
   const [progressRevision, setProgressRevision] = useState(0);
   const [query, setQuery] = useState<{
     branch: number;
@@ -32,6 +38,7 @@ export function TaskReadPage() {
     page: number;
     id: number | null;
     revision: number;
+    workflowStatus?: TaskWorkflowState;
   } | null>(null);
   const [result, setResult] = useState<{
     owner: AuthorityGeneration;
@@ -70,6 +77,7 @@ export function TaskReadPage() {
       query.search,
       query.id,
       controller.signal,
+      query.workflowStatus,
     )
       .then((data) => {
         if (!controller.signal.aborted) setResult({ owner, key, data });
@@ -107,7 +115,14 @@ export function TaskReadPage() {
           e.preventDefault();
           const id = Number(branch);
           if (/^[1-9]\d*$/.test(branch) && Number.isSafeInteger(id))
-            setQuery({ branch: id, search, page: 1, id: null, revision: 0 });
+            setQuery({
+              branch: id,
+              search,
+              page: 1,
+              id: null,
+              revision: 0,
+              workflowStatus: workflowStatus || undefined,
+            });
         }}
       >
         <label>
@@ -128,8 +143,30 @@ export function TaskReadPage() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </label>
+        <label>
+          Workflow status
+          <select
+            aria-label="Workflow status"
+            value={workflowStatus}
+            onChange={(e) =>
+              setWorkflowStatus(e.target.value as TaskWorkflowState | "")
+            }
+          >
+            <option value="">All workflows</option>
+            {taskWorkflowStates.map((s) => (
+              <option key={s} value={s}>
+                {s.replaceAll("_", " ")}
+              </option>
+            ))}
+          </select>
+        </label>
         <button>Load tasks</button>
       </form>
+      {declined === owner && (
+        <p role="status">
+          MSG19: Task declined and returned to Pending Assignment.
+        </p>
+      )}
       {query && (
         <button
           onClick={() => setQuery({ ...query, revision: query.revision + 1 })}
@@ -152,8 +189,8 @@ export function TaskReadPage() {
                 >
                   {task.code}: {task.title}
                 </button>{" "}
-                — {task.status}, {task.progressPercent}%
-                {task.dueAt && <>; due {task.dueAt}</>}
+                — {task.workflowStatus ?? "Workflow unavailable"},{" "}
+                {task.progressPercent}%{task.dueAt && <>; due {task.dueAt}</>}
               </li>
             ))}
           </ul>
@@ -168,10 +205,15 @@ export function TaskReadPage() {
           </button>
           <h2>{detail.task.title}</h2>
           <p>
-            {detail.task.code} — {detail.task.status},{" "}
+            {detail.task.code} —{" "}
+            {detail.task.workflowStatus ?? "Workflow unavailable"},{" "}
             {detail.task.progressPercent}%
           </p>
           <p>{detail.description}</p>
+          <p>
+            Priority: {detail.priority ?? "Not specified"}; deadline:{" "}
+            {detail.task.dueAt ?? "Not specified"}
+          </p>
           <p>{detail.completionNote}</p>
           {detail.task.status === "IN_PROGRESS" && (
             <TaskCriteriaSetup
@@ -188,6 +230,17 @@ export function TaskReadPage() {
               branch={detail.task.branchId}
               task={detail.task.id}
               owner={owner}
+              onDeclined={() => {
+                setDeclined(owner);
+                setResult(null);
+                if (query)
+                  setQuery({
+                    ...query,
+                    id: null,
+                    page: 1,
+                    revision: query.revision + 1,
+                  });
+              }}
             />
           )}
           <h3>Progress history</h3>

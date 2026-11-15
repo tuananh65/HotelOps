@@ -42,6 +42,9 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/start")]
     public Task<IActionResult> StartTask(long branch, long id, CancellationToken ct)
         => Execute((ticket, sid) => service.EnterOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), true, ct), true);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/decline")]
+    public Task<IActionResult> DeclineTask(long branch, long id, DeclineOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.DeclineOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpGet("api/branches/{branch:long}/cleaning-tasks/{id:long}/progress")]
     public Task<IActionResult> ReadCleaning(long branch, long id, CancellationToken ct) => Progress(branch, id, true, null, ct);
     [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/submit")]

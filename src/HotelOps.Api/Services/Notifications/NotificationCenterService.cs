@@ -85,6 +85,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             await tx.CommitAsync(ct);
             return new($"/operational-tasks?branchId={submission.BranchId}&taskId={submission.TaskId}");
         }
+        if(source is {NotificationType:TaskDeclineStore.NotificationKind,SourceType:"TASK_DECLINE",SourceId:>0})
+        {
+            if(!await TaskDeclineStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var submission=await TaskDeclineStore.Query(db).SingleOrDefaultAsync(s=>s.AuditId==source.SourceId,ct);
+            if(submission==null||submission.DeclinedBy!=source.CreatedBy||submission.DeclinedAt!=source.CreatedAt
+                ||user==submission.DeclinedBy||!(System.Text.Json.JsonSerializer.Deserialize<long[]>(submission.RecipientsJson)??[]).Contains(user)
+                ||!(await TaskSubmissionAccess.ManagersAsync(db,submission.BranchId,now,ct)).Contains(user))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/operational-tasks?branchId={submission.BranchId}&taskId={submission.TaskId}");
+        }
         if(source is {NotificationType:InspectionFailedNotificationSource.Kind,SourceType:"INSPECTION",SourceId:>0})
         {
             var audits=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="INSPECTION"&&a.EntityId==source.SourceId.Value.ToString()&&a.Action=="UPDATE").ToArrayAsync(ct);

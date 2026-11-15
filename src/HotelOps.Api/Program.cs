@@ -34,6 +34,7 @@ builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.Inspection
 builder.Services.AddOptions<HotelOps.Api.Services.Notifications.TaskNotificationOptions>()
     .BindConfiguration("TaskNotifications").Validate(o=>o.PollSeconds is >=1 and <=3600).ValidateOnStart();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskSubmissionNotificationDelivery>();
+builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskDeclineNotificationDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.TaskVerificationNotificationDelivery>();
 builder.Services.AddHostedService<HotelOps.Api.Services.Notifications.TaskNotificationWorker>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();

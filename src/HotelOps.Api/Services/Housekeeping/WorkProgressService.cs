@@ -153,7 +153,7 @@ public sealed partial class RoomTypeCreationService
                 else if (version.State is "ASSIGNED" or "ACCEPTED")
                 {
                     if (input != null || attachmentId != null || !await TaskEntryInstalled(token)
-                        || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "TODO" && (version.State == "ACCEPTED" || t.ActualStartAt == null) && t.CompletedAt == null, token))
+                        || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "TODO" && t.CompletedAt == null, token))
                         return new(RoomTypeBatchStatus.Inactive);
                 }
                 else if(version.State=="PENDING_VERIFICATION")

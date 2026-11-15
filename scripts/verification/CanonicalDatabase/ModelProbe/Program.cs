@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage;
 
+if (args.Length == 3 && args[0] == "--sprint-task-decline")
+    return await SprintAuthProbe.RunAsync(args[2],taskRead:true,taskCriteria:true,taskEntry:true,taskSubmissionReceipt:args[1],taskDecline:true);
 if (args.Length == 1 && args[0] == "--sprint-reinspection-recover")
     return await SprintReinspectionRecovery.RunAsync();
 if (args.Length == 2 && args[0] == "--sprint-application-role")

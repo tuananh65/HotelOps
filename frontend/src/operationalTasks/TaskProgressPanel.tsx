@@ -6,6 +6,7 @@ import { submitTask } from "./submission";
 import {
   readTaskProgress,
   enterTask,
+  declineTask,
   resumeTask,
   pauseTask,
   readPauseReasons,
@@ -21,10 +22,12 @@ export function TaskProgressPanel({
   branch,
   task,
   owner,
+  onDeclined,
 }: {
   branch: number;
   task: number;
   owner: AuthorityGeneration;
+  onDeclined?: () => void;
 }) {
   const { actions } = useAuth();
   const [current, setCurrent] = useState<TaskProgressSnapshot | null>(null);
@@ -34,6 +37,7 @@ export function TaskProgressPanel({
   const [percent, setPercent] = useState(0);
   const [items, setItems] = useState<Criterion[]>([]);
   const [note, setNote] = useState("");
+  const [declineReason, setDeclineReason] = useState("");
   const [completing, setCompleting] = useState(false);
   const [resultNote, setResultNote] = useState("");
   const [handoverNote, setHandoverNote] = useState("");
@@ -51,6 +55,7 @@ export function TaskProgressPanel({
     setPercent(value.data.percent);
     setItems(value.data.items);
     setNote("");
+    setDeclineReason("");
     setCompleting(false);
     setResultNote("");
     setHandoverNote("");
@@ -138,6 +143,48 @@ export function TaskProgressPanel({
         setMessage(
           "Progress saved. Reaching 100% does not complete this task.",
         );
+      }
+    } catch (reason) {
+      if (!controller.signal.aborted) failure(reason);
+    } finally {
+      saving.current = false;
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
+  async function decline() {
+    if (
+      !current ||
+      current.data.state !== "ASSIGNED" ||
+      busy ||
+      locked ||
+      saving.current
+    )
+      return;
+    if (!declineReason.trim()) {
+      setError("A decline reason is required.");
+      return;
+    }
+    saving.current = true;
+    const controller = new AbortController();
+    active.current = controller;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      await declineTask(
+        branch,
+        task,
+        current,
+        declineReason,
+        controller.signal,
+      );
+      if (!controller.signal.aborted) {
+        setCurrent(null);
+        setItems([]);
+        setDeclineReason("");
+        setLocked(true);
+        setMessage("MSG19: Task declined and returned to Pending Assignment.");
+        onDeclined?.();
       }
     } catch (reason) {
       if (!controller.signal.aborted) failure(reason);
@@ -238,7 +285,7 @@ export function TaskProgressPanel({
         show(updated);
         setMessage(
           action === "accept"
-            ? "Task accepted."
+            ? "MSG08: Task accepted."
             : "Task started. Working time is now being recorded.",
         );
       }
@@ -380,9 +427,29 @@ export function TaskProgressPanel({
         </section>
       )}
       {current?.data.state === "ASSIGNED" && (
-        <button disabled={busy || locked} onClick={() => void enter("accept")}>
-          Accept task
-        </button>
+        <section aria-label="Assignment response">
+          <button
+            disabled={busy || locked}
+            onClick={() => void enter("accept")}
+          >
+            Accept task
+          </button>
+          <label>
+            Decline reason
+            <textarea
+              maxLength={4000}
+              disabled={busy || locked}
+              value={declineReason}
+              onChange={(e) => setDeclineReason(e.target.value)}
+            />
+          </label>
+          <button
+            disabled={busy || locked || !declineReason.trim()}
+            onClick={() => void decline()}
+          >
+            Decline task
+          </button>
+        </section>
       )}
       {current?.data.state === "ACCEPTED" && (
         <button disabled={busy || locked} onClick={() => void enter("start")}>
