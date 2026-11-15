@@ -17,7 +17,11 @@ const { validateReturnUrl, approvedReturnDestination } =
   await import("../.test-output/shared-host/shared-host/returnUrl.js");
 
 test("canonical inbox and assigned rework retain a validated login destination", () => {
-  for (const path of ["/notifications", "/cleaning/reworks/12?branchId=3"]) {
+  for (const path of [
+    "/notifications",
+    "/cleaning/reworks/12?branchId=3",
+    "/inspection-history/12?branchId=3",
+  ]) {
     assert.equal(approvedReturnDestination(path, true), path);
     assert.equal(approvedReturnDestination(path, false), null);
   }
@@ -28,6 +32,10 @@ test("canonical inbox and assigned rework retain a validated login destination",
     "/cleaning/reworks/12?branchId=0",
     "/cleaning/reworks/12?branchId=3&branchId=4",
     "/notifications?redirect=https://evil.test",
+    "/inspection-history/12",
+    "/inspection-history/12?branchId=3&roomId=4",
+    "/inspection-history/12?branchId=3&branchId=4",
+    "/inspection-history/9007199254740992?branchId=3",
   ]) {
     assert.equal(approvedReturnDestination(path, true), null);
   }
@@ -128,6 +136,29 @@ async function pageAt(path, status) {
   if (status) await page.evaluate((s) => window.fixture.set(s), status);
   return page;
 }
+
+test("inspection history admission denial never mounts the history workspace", async () => {
+  for (const status of [403, 503]) {
+    const p = await pageAt("/inspection-history/42?branchId=7");
+    await p.evaluate(status => {
+      window.businessReply = { status, body: {} };
+      window.fixture.set("AUTHENTICATED");
+    }, status);
+    await p.getByText("Inspection history is unavailable or access has changed.", { exact: true }).waitFor();
+    assert.ok((await p.evaluate(() => window.calls)).every(path => path === "/api/inspection-history/42?branchId=7"));
+    assert.equal(await p.getByRole("heading", { name: "Defects", exact: true }).count(), 0);
+    await p.close();
+  }
+});
+
+test("inspection history validates destination before any business read", async () => {
+  for (const path of ["/inspection-history/0?branchId=7", "/inspection-history/42?branchId=7&branchId=8", "/inspection-history/42?branchId=7&extra=1"]) {
+    const p = await pageAt(path, "AUTHENTICATED");
+    await p.getByText("Invalid inspection history destination.", { exact: true }).waitFor();
+    assert.deepEqual(await p.evaluate(() => window.calls), []);
+    await p.close();
+  }
+});
 
 test("reinspection assignment renders eligible inspector and hides source on session loss", async () => {
   const p = await pageAt("/inspections/reworks/12/assign?branchId=7");
@@ -339,6 +370,7 @@ for (const path of [
   "/dashboard",
   "/notifications",
   "/inspections/7/42/execution",
+  "/inspection-history/42?branchId=7",
 ]) {
   for (const state of [
     "INITIALIZING",

@@ -2,9 +2,9 @@ import { useCallback, useEffect, useState } from "react";
 import { positiveId } from "./model";
 import { HistoryWorkspace } from "./HistoryWorkspace";
 
-/** Isolated DEV3 integration input, not an AuthProvider or permission authority.
- * Real host must resolve branch-scoped INSPECTION_VIEW and rotate sessionKey on
- * session replacement/revalidation. No production route is registered here.
+/** Host integration input, not an AuthProvider or permission authority.
+ * The canonical host admits this workspace only after a scoped history API read
+ * and remounts it on session authority replacement. APIs authorize every read.
  */
 export interface HistoryHostContext {
   authorization: "unresolved" | "denied" | "granted";

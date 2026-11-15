@@ -1,0 +1,32 @@
+server_name database_name
+----------- -------------
+meita HotelOps_DEV3_142A_20261114_cc78c13f
+database_guid
+-------------
+1D5A9B53-7D19-435A-96AB-9FDFF447B6E0
+users_count branches_count reworks_count attachments_count intervals_count notifications_count
+----------- -------------- ------------- ----------------- --------------- -------------------
+0 0 0 0 0 0
+binding_table conclusion_writer binding_writer
+------------- ----------------- --------------
+NULL NULL NULL
+name
+----
+name is_disabled trial_reference
+---- ----------- ---------------
+TR_hk_defects_v1 0 0
+TR_hk_results_v1 0 0
+name is_disabled is_not_trusted
+---- ----------- --------------
+CK_rework_workflow_v1 0 0
+name
+----
+race_delay_trigger room_blocks_count incidents_count
+------------------ ----------------- ---------------
+NULL 0 0
+inspections_count checklist_versions_count checklist_items_count
+----------------- ------------------------ ---------------------
+0 0 0
+PrivateFiles=0
+FinalRejectionSourceCases=2
+FinalCleanupCases=2

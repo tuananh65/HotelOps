@@ -13,6 +13,8 @@ internal static class SprintApprovalBrowserProbe
     internal static async Task<int> RunAsync(string report, bool retry = false, bool concurrentBlock = false, bool approvalRace = false, bool rejection = false, bool rework = false)
     {
         if(File.Exists(report)) throw new IOException("Evidence already exists");
+        var rejectionSource=Environment.GetEnvironmentVariable("DEV3_REJECTION_SOURCE")=="1";
+        if(rejectionSource&&!rework)throw new InvalidOperationException("Rejection source requires owned rework/evidence fixture");
         if(Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"
             &&Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1")
             throw new InvalidOperationException("SQL block-race mode and browser-conclusion mode are mutually exclusive");
@@ -21,7 +23,7 @@ internal static class SprintApprovalBrowserProbe
             throw new InvalidOperationException("Retirement trial requires browser conclusion mode");
         using var budget=new CancellationTokenSource(TimeSpan.FromMinutes(
             Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BROWSER_CONCLUDE")=="1"
-            ||Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"?8:4)); var ct=budget.Token;
+            ||Environment.GetEnvironmentVariable("DEV3_REINSPECTION_BLOCK_RACE")=="1"||rejectionSource?8:4)); var ct=budget.Token;
         await using var db=new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(
             "Server=localhost;Database=HotelOps_DEV3_142A_20261114_cc78c13f;Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         var checks=new List<object>(); string? failure=null;
@@ -141,6 +143,11 @@ internal static class SprintApprovalBrowserProbe
                 if(rejection)
                 {
                     await SprintRejectionDeliveryProbe.VerifyAsync(db,actor,cleaner,branch,inspection,ct);
+                    if(rejectionSource)
+                    {
+                        await SprintRejectionSourceProbe.VerifyAsync(db,actor,cleaner,branch,inspection,password,ct);
+                        checks.Add(new{blocked,rejectionSourceBrowser=true,supervisorAndOfficialCleaner=true,historyPhotoReload=true,sourceRoleBranchRevocation=true,sourceAuditTamperDenied=true,sourceReceiptMembership=true,storedActionUrlIgnored=true});
+                    }
                     if(await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.cleaning_tasks WHERE cleaning_task_id={task}").SingleAsync(ct)!="REWORK_REQUIRED"
                         ||await db.RoomInspections.Where(i=>i.InspectionId==inspection).Select(i=>i.Result).SingleAsync(ct)!="FAIL"
                         ||await db.Rooms.Where(r=>r.RoomId==room).Select(r=>r.OperationalStatus).SingleAsync(ct)!="INSPECTION")

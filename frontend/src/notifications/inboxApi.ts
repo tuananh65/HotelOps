@@ -97,8 +97,16 @@ export async function resolveInboxSource(
   ).json();
   if (
     typeof data?.path !== "string" ||
-    !/^\/cleaning\/reworks\/[1-9][0-9]*\?branchId=[1-9][0-9]*$/.test(data.path)
+    !/^\/(?:cleaning\/reworks|inspection-history)\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.test(
+      data.path,
+    )
   )
+    throw new Error("Invalid notification source");
+  const ids =
+    /^\/(?:cleaning\/reworks|inspection-history)\/([1-9][0-9]*)\?branchId=([1-9][0-9]*)$/.exec(
+      data.path,
+    )!;
+  if (!ids.slice(1).every((id) => Number.isSafeInteger(Number(id))))
     throw new Error("Invalid notification source");
   return data.path;
 }

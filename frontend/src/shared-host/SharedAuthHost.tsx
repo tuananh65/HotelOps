@@ -15,6 +15,7 @@ import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
 import { ChecklistAuthRoute } from "./ChecklistAuthRoute";
 import { InspectionExecutionAuthRoute } from "./InspectionExecutionAuthRoute";
+import { InspectionHistoryAuthRoute } from "./InspectionHistoryAuthRoute";
 import { loginDestination } from "./returnUrl";
 import { useRef } from "react";
 import { type ReactNode } from "react";
@@ -74,6 +75,16 @@ export function SharedAuthHost({
 } = {}) {
   return (
     <Routes>
+      {notificationsEnabled && (
+        <Route
+          path="/inspection-history/:id"
+          element={
+            <Protected>
+              <InspectionHistoryAuthRoute />
+            </Protected>
+          }
+        />
+      )}
       {operationalTasksEnabled && (
         <Route
           path="/operational-tasks"
