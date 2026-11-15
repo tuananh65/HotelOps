@@ -15,15 +15,20 @@ internal static class SprintReworkAuthorityProbe
         var eligible=typeof(RoomTypeCreationService).GetMethod("EligibleReworkAssignees",BindingFlags.Instance|BindingFlags.NonPublic)!;
         async Task<bool> Eligible()=>await ((IQueryable<User>)eligible.Invoke(service,[branch,DateTime.UtcNow])!).AnyAsync(u=>u.UserId==cleaner,ct);
         // Mutations below are only to the guarded synthetic fixture and always rolled back.
-        foreach(var scenario in new[]{"no-shift","inactive","wrong-branch","wrong-department","inactive-role"})
+        foreach(var scenario in new[]{"no-shift","inactive","branch-revoked","wrong-branch","wrong-department","inactive-role"})
         {
             await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"DELETE dbo.shift_assignments WHERE user_id={cleaner}",ct);
             switch(scenario)
             {
                 case "inactive": await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET account_status='LOCKED' WHERE user_id={cleaner}",ct);break;
-                case "wrong-branch": await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={cleaner}",ct);break;
-                case "wrong-department": await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET department_id=NULL WHERE user_id={cleaner}",ct);break;
+                case "branch-revoked": await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=SYSUTCDATETIME() WHERE user_id={cleaner}",ct);break;
+                case "wrong-branch": await db.Database.ExecuteSqlInterpolatedAsync($"""
+                    INSERT dbo.branches(branch_code,branch_name) VALUES('D3-REWORK-OTHER','Synthetic other branch');
+                    DECLARE @other bigint=SCOPE_IDENTITY();
+                    UPDATE dbo.user_roles SET branch_id=@other WHERE user_id={cleaner};
+                    """,ct);break;
+                case "wrong-department": await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.departments SET department_code='D3-OTHER' WHERE department_id=(SELECT department_id FROM dbo.users WHERE user_id={cleaner})",ct);break;
                 case "inactive-role": await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_roles SET is_active=0 WHERE user_id={cleaner}",ct);break;
             }
             if(await Eligible()!=(scenario=="no-shift"))throw new Exception("Rework eligibility mismatch: "+scenario);
@@ -49,6 +54,16 @@ internal static class SprintReworkAuthorityProbe
                         throw new Exception("Reader may forge authority");
                     var proof=await (Task<ReworkAuthorityProof?>)read.Invoke(service,[scenario=="unauthorized" ? 0L : cleaner,branch,rework,null,ct])!;
                     if((proof!=null)!=(scenario=="committed"))throw new Exception("Committed authority mismatch: "+scenario);
+                    if(proof!=null)
+                    {
+                        await db.Database.ExecuteSqlInterpolatedAsync($"""
+                            EXEC dbo.fe05_issue_rework_authority @actor={proof.ActorUserId},@branch={branch},@rework={rework},
+                              @operation={proof.OperationId},@source_digest={proof.SourceDigest},@evidence_digest={proof.EvidenceDigest};
+                            """,ct);
+                        if(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.audit_logs WHERE entity_type='cleaning_reworks' AND entity_id={rework.ToString()}").SingleAsync(ct)!=1
+                            || await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.notification_operation_reservations WHERE actor_user_id={proof.ActorUserId} AND operation_key={proof.OperationId}").SingleAsync(ct)!=1)
+                            throw new Exception("Authority retry duplicated occurrence");
+                    }
                 }
                 finally {await db.Database.ExecuteSqlRawAsync("REVERT",ct);}
                 await tx.RollbackAsync(ct);

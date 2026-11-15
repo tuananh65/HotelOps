@@ -35,3 +35,7 @@ Checkpoint32 actual schema finding: UX_room_blocks_active uniquely constrains ro
 On Failed inspection, notify every active Housekeeping Supervisor with valid access to the inspection branch and INSPECTION_VIEW, plus the actual cleaner identified by official cleaner attribution. Deduplicate to one notification per user/event. Recheck recipient eligibility before delivery and source authorization when opening the record. Persist notification intent in the Reject transaction; rollback must publish nothing. Preserve retry, idempotency and audit, without expanding inspection read permissions.
 
 UC045_SUPERVISOR_RECIPIENT_SCOPE=ALL_ELIGIBLE_SUPERVISORS_IN_INSPECTION_BRANCH. No shared database mutation or production deployment is authorized.
+
+## UC046: Request Rework assignee (approved during checkpoint37)
+
+Apply GBR-046: active account/employment, valid active HK_STAFF assignment, current branch access and matching active Housekeeping department. Request Rework and its options do not require a currently active PLANNED shift. Preserve separate Accept/Start/Resume shift and workday guards. Require current Failed inspection, no open rework, selected failed defects, assignee and future UTC deadline; create Pending Acceptance plus audit atomically. Assignee notification must follow commit and deduplicate. No shared database or production changes.
