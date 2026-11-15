@@ -1,0 +1,19 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": false,
+        "stage": "login and canonical rejection admission",
+        "checks": [],
+        "diagnostic": "page.waitForURL: Timeout 45000ms exceeded."
+      }
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    }
+  ],
+  "failure": "Exception: Browser failed at login and canonical rejection admission"
+}
