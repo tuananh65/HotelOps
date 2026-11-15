@@ -10,6 +10,8 @@ try{
   await page.getByLabel("Username or email").fill(fixture.username);await page.getByLabel("Password",{exact:true}).fill(fixture.password);fixture.password="";
   await page.getByRole("button",{name:"Sign in",exact:true}).click();
   const links=page.getByRole("region",{name:"Linked operational tasks",exact:true});
+  stage="legacy task visibility";await links.getByText(/Completion requirement unclassified/).waitFor();
+  checks.push("Historical source task visible with unclassified completion requirement");
   stage="request prefill";await links.getByRole("button",{name:"Create new operational task",exact:true}).click();
   const form=page.getByRole("region",{name:"Create operational task",exact:true});
   await form.getByLabel("Task title",{exact:true}).waitFor();

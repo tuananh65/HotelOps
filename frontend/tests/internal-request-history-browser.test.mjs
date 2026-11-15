@@ -111,7 +111,7 @@ async function fixture(run) {
       }
       return json({requestId:1,branchId:1,version:"AAAAAAAAAAA=",canLink:state.linkAllowed??false,page:1,total:1,
         candidates:new URL(request.url()).searchParams.get("candidates")==="true",
-        items:[{taskId:7,code:"TASK7",title:"PRIVATE LINKED TASK",state:"IN_PROGRESS",mandatory:true,path:"/operational-tasks?branchId=1&taskId=7"}]},state.linkStatus??200);
+        items:[{taskId:7,code:"TASK7",title:"PRIVATE LINKED TASK",state:"IN_PROGRESS",mandatory:state.legacyTask ? null : true,path:"/operational-tasks?branchId=1&taskId=7"}]},state.linkStatus??200);
     }
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
@@ -397,4 +397,14 @@ test("completion blockers hide mutation without disclosing target identifiers",a
   await panel.getByRole("status").filter({hasText:"MSG34"}).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Complete request",exact:true}).count(),0);
   assert.equal(await panel.getByLabel("Completion result",{exact:true}).count(),0);
+}));
+
+ test("historical task requirement is unclassified rather than optional",async()=>fixture(async(page,state)=>{
+ state.legacyTask=true; await page.getByRole("button",{name:"IR1",exact:true}).click();
+ const panel=page.getByRole("region",{name:"Linked operational tasks",exact:true});
+ await panel.getByText(/Completion requirement unclassified/).waitFor();
+ assert.equal(await panel.getByText("Optional",{exact:true}).count(),0);
+ state.linkStatus=403;await panel.getByRole("button",{name:"Reload linked tasks",exact:true}).click();
+ await panel.getByRole("status").filter({hasText:"Linked tasks unavailable"}).waitFor();
+ assert.equal(await panel.getByRole("link").count(),0);
 }));

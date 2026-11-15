@@ -112,6 +112,34 @@ internal static class SprintLinkedTaskCreationScenario
         Check((await Send(HttpMethod.Post, root, input, input.RequestLink!.Version)).Status == 403, "idempotent replay rechecks current receiving department after route");
         await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.department_management_access(user_id,branch_id,department_id,granted_at) VALUES({actor},{branch},{nextDepartment},SYSUTCDATETIME())", ct);
         context = await Context();
+        // Legacy provenance is visible without inventing Required/Optional classification.
+        var legacyIds = new List<long>();
+        for (var i = 0; i < 3; i++)
+        {
+            var targetBranch = i == 1 ? otherBranch : branch;
+            var targetDepartment = await db.Departments.Where(d => d.BranchId == targetBranch).Select(d => d.DepartmentId).FirstAsync(ct);
+            var legacy = new OperationalTask { TaskCode = "D3LEGACY" + Guid.NewGuid().ToString("N")[..10], Title = "Synthetic historical task",
+                BranchId = targetBranch, DepartmentId = targetDepartment, SourceType = i == 2 ? "MAINTENANCE" : "INTERNAL_REQUEST",
+                SourceId = request, Status = "COMPLETED", CompletedAt = now, CreatedAt = now, CreatedBy = actor };
+            db.OperationalTasks.Add(legacy); await db.SaveChangesAsync(ct); db.ChangeTracker.Clear(); legacyIds.Add(legacy.TaskId);
+        }
+        var linkPath = $"/api/internal-requests/{request}/linked-tasks";
+        var legacyView = await http.GetFromJsonAsync<JsonElement>(linkPath, ct);
+        var legacyRows = legacyView.GetProperty("items").EnumerateArray().ToArray();
+        Check(legacyView.GetProperty("total").GetInt32() == 3 && legacyRows.Count(x => x.GetProperty("taskId").GetInt64() == task) == 1,
+            "source and explicit link overlap returns one row with correct total");
+        Check(legacyRows.Single(x => x.GetProperty("taskId").GetInt64() == legacyIds[0]).GetProperty("mandatory").ValueKind == JsonValueKind.Null
+            && !legacyRows.Any(x => legacyIds.Skip(1).Contains(x.GetProperty("taskId").GetInt64())),
+            "legacy completed task is unclassified; foreign branch and wrong source type excluded");
+        var taskViewGrant = await db.RolePermissions.AsNoTracking().SingleAsync(g => g.RoleId == role.RoleId && g.Permission.PermissionCode == "TASK_VIEW", ct);
+        try
+        {
+            await db.RolePermissions.Where(g => g.RolePermissionId == taskViewGrant.RolePermissionId).ExecuteUpdateAsync(u => u.SetProperty(g => g.DataScope, "OWN"), ct);
+            var hidden = await http.GetFromJsonAsync<JsonElement>(linkPath, ct);
+            Check(hidden.GetProperty("total").GetInt32() == 0 && hidden.GetProperty("items").GetArrayLength() == 0,
+                "IR_VIEW does not expose legacy or explicit tasks after independent TASK_VIEW scope revocation");
+        }
+        finally { await db.RolePermissions.Where(g => g.RolePermissionId == taskViewGrant.RolePermissionId).ExecuteUpdateAsync(u => u.SetProperty(g => g.DataScope, taskViewGrant.DataScope), CancellationToken.None); }
         // Synthetic historical metadata on the already identity-verified whole clone.
         // No file payload/download claim: this checks the public evidence-list query.
         var evidenceEvent = new InternalRequestEvent { InternalRequestId = request, EventType = "PROGRESS", OldStatus = "IN_PROGRESS", NewStatus = "IN_PROGRESS", ActorId = actor, OccurredAt = now };

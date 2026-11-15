@@ -106,8 +106,8 @@ internal static class SprintInternalRequestTaskLinksScenario
                 finally { if (!browser.HasExited) browser.Kill(entireProcessTree: true); }
             }
             var links = await service.ReadAsync(ticket, session.SessionId, request, false, 1, ct);
-            Check(links.Total == 3 && links.Items.Single(t => t.TaskId == tasks[0]).Mandatory && !links.Items.Single(t => t.TaskId == tasks[1]).Mandatory
-                && links.Items.Single(t => t.TaskId == tasks[2]).Mandatory, "mandatory and optional metadata persist with authenticated browser link");
+            Check(links.Total == 3 && links.Items.Single(t => t.TaskId == tasks[0]).Mandatory == true && links.Items.Single(t => t.TaskId == tasks[1]).Mandatory == false
+                && links.Items.Single(t => t.TaskId == tasks[2]).Mandatory == true, "mandatory and optional metadata persist with authenticated browser link");
             Check(await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.internal_request_task_links l JOIN dbo.audit_logs a ON a.audit_id=l.audit_id WHERE l.internal_request_id={request} AND a.actor_user_id={actor} AND a.entity_type='internal_requests'").SingleAsync(ct) == 3,
                 "every link retains audit provenance");
             Check(await db.InternalRequests.AnyAsync(r => r.InternalRequestId == request && r.Status == original.Status && r.ClosedAt == null, ct), "linking never closes request");

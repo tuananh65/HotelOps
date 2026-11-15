@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { InternalRequestTaskCreationPanel } from "./TaskCreationPanel";
 
-interface Item { taskId: number; code: string; title: string; state: string | null; mandatory: boolean; path: string }
+interface Item { taskId: number; code: string; title: string; state: string | null; mandatory: boolean | null; path: string }
 interface View { requestId: number; branchId: number; version: string; canLink: boolean; items: Item[]; total: number; page: number; candidates: boolean }
 const validVersion = (v: unknown): v is string => typeof v === "string" && /^[A-Za-z0-9+/]{11}=$/.test(v);
 class Failure extends Error { constructor(readonly status: number) { super("Linked work unavailable"); } }
@@ -31,7 +31,7 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
       if (!v || v.requestId !== id || !Number.isSafeInteger(v.branchId) || v.branchId <= 0 || !validVersion(v.version) || typeof v.canLink !== "boolean" || v.candidates !== candidates || v.page !== page
         || !Number.isSafeInteger(v.total) || v.total < 0 || !Array.isArray(v.items) || v.items.length > 25 || v.items.length > v.total
         || v.items.some(t => !Number.isSafeInteger(t.taskId) || t.taskId <= 0 || typeof t.code !== "string" || typeof t.title !== "string"
-          || !(t.state === null || typeof t.state === "string") || typeof t.mandatory !== "boolean" || typeof t.path !== "string"
+          || !(t.state === null || typeof t.state === "string") || !(t.mandatory === null || typeof t.mandatory === "boolean") || typeof t.path !== "string"
           || !new RegExp(`^/operational-tasks\\?branchId=[1-9][0-9]*&taskId=${t.taskId}$`).test(t.path))) throw new Error("Invalid linked work response");
       if (!abort.signal.aborted) setLoaded({ owner, key, view: v });
     }).catch(e => { if (!abort.signal.aborted) { setMessage("Linked tasks unavailable. Reload to check current access."); if (e instanceof Failure && e.status === 401) actions.invalidateSession(owner!); } });
@@ -67,7 +67,7 @@ export function InternalRequestTaskLinksPanel({ id }: { id: number }) {
     {view && <>
       {view.items.length === 0 && <p>No visible {candidates ? "open" : "linked"} tasks on this page.</p>}
       <ul>{view.items.map(t => <li key={t.taskId}><Link to={t.path}>{t.code}: {t.title}</Link> — {t.state ?? "Status unavailable"}
-        {!candidates && <span> — {t.mandatory ? "Required for completion" : "Optional"}</span>}</li>)}</ul>
+        {!candidates && <span> — {t.mandatory === null ? "Completion requirement unclassified" : t.mandatory ? "Required for completion" : "Optional"}</span>}</li>)}</ul>
       <button disabled={busy || page <= 1} onClick={() => setPage(p => p - 1)}>Previous tasks</button><span> Page {page} </span>
       <button disabled={busy || page * 25 >= view.total} onClick={() => setPage(p => p + 1)}>Next tasks</button>
       {candidates && view.canLink && <div aria-busy={busy}>
