@@ -54,6 +54,7 @@ builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalReques
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestDecisionService>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestProgressAuthority>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestProgressService>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestTaskLinks>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestProgressDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestAssignmentService>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestAssignmentDelivery>();

@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { InternalRequestDecisionPanel } from "./DecisionPanel";
 import { InternalRequestProgressPanel } from "./ProgressPanel";
+import { InternalRequestTaskLinksPanel } from "./TaskLinksPanel";
 import {
   decodeHistory,
   decodeTimeline,
@@ -299,6 +300,7 @@ export function InternalRequestHistoryPage() {
           <h2>Request {visible.timeline.requestId}</h2>
           <InternalRequestDecisionPanel id={visible.timeline.requestId} />
           <InternalRequestProgressPanel id={visible.timeline.requestId} />
+          <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} />
           <h3>Events</h3>
           {visible.timeline.events.length === 0 && (
             <p>No events on this page.</p>

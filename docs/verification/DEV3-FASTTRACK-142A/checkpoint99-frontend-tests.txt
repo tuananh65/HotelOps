@@ -1,0 +1,29 @@
+✔ refresh denial removes previously visible history (3386.903ms)
+✔ status filter has an accessible name and sends the selected value (2514.0244ms)
+✔ session revalidation removes request history before login (2448.1524ms)
+✔ request notification deep link loads only the selected authorized timeline and back clears it (6997.5038ms)
+✔ decision stale response requires reload without replay or retained details (2592.176ms)
+✔ decision double click sends once and session loss hides details while request is pending (2807.6499ms)
+✔ read access without processing authority exposes no decision action (2592.5328ms)
+✔ accept offers assignment; stale assign clears form without replay (2821.8728ms)
+✔ accepted request assignment succeeds with ETag and CSRF then requires fresh load (2691.9482ms)
+✔ route requires reason then clears old decision authority after committed response (2716.3522ms)
+✔ stale route response hides target options and never replays mutation (2753.6139ms)
+✔ progress read does not grant mutation and reload denial removes private snapshot (5083.2359ms)
+✔ progress 200 uses CSRF/ETag, prevents double submit and requires reload (5077.3253ms)
+✔ progress 412 uses CSRF/ETag, prevents double submit and requires reload (5033.3333ms)
+✔ linked task read grants no mutation and revoked read clears target metadata (2606.4294ms)
+✔ link 200 requires explicit mandatory flag, sends once and clears stale options (2700.7364ms)
+✔ link 412 requires explicit mandatory flag, sends once and clears stale options (2686.1096ms)
+✔ history decoder rejects unsafe IDs, malformed counts and non-UTC dates (1.6758ms)
+✔ timeline decoder binds identity and rejects malformed history (0.2339ms)
+✔ history transport carries cookies, cancellation and no-store without mutations (20.3955ms)
+✔ history return destination requires revalidation and accepts no extra redirect parameters (0.704ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 58315.1307

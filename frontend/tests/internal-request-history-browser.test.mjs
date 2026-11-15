@@ -56,6 +56,17 @@ async function fixture(run) {
       }
       return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAA=",percent:25,note:"PRIVATE PROGRESS",result:"PRIVATE RESULT",deadline:null,canUpdate:state.progressAllowed??false,canChangeDeadline:false},state.progressStatus??200);
     }
+    if (path === "/api/internal-requests/1/linked-tasks") {
+      if(request.method()==="POST") {
+        state.linkPosts=(state.linkPosts??0)+1;
+        assert.equal(request.headers()["if-match"],'"AAAAAAAAAAA="');assert.equal(request.headers()["x-csrf-token"],"test");
+        assert.deepEqual(request.postDataJSON(),{taskId:7,mandatory:true});
+        return json({requestId:1,taskId:7,mandatory:true,version:"AAAAAAAAAAE="},state.linkPostStatus??200);
+      }
+      return json({requestId:1,version:"AAAAAAAAAAA=",canLink:state.linkAllowed??false,page:1,total:1,
+        candidates:new URL(request.url()).searchParams.get("candidates")==="true",
+        items:[{taskId:7,code:"TASK7",title:"PRIVATE LINKED TASK",state:"IN_PROGRESS",mandatory:true,path:"/operational-tasks?branchId=1&taskId=7"}]},state.linkStatus??200);
+    }
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
     if (path === "/api/internal-requests") return json({ items: [{ id: 1, number: "IR1", branchId: 1, receivingDepartmentId: null, subject: "PRIVATE REQUEST <script>", status: "SUBMITTED", deadline: null, overdue: false, currentAssigneeId: null }], totalCount: 1, page: 1, pageSize: 25, snapshotUtc: "2026-11-16T00:00:00Z" }, state.history);
@@ -192,4 +203,27 @@ for(const status of [200,412])test(`progress ${status} uses CSRF/ETag, prevents 
   await panel.getByRole("button",{name:"Save progress",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:status===200?"MSG08: Progress saved":"Request changed"}).waitFor();
   assert.equal(state.progressPosts,1);assert.equal(await panel.getByLabel("Progress percent",{exact:true}).count(),0);
+}));
+
+test("linked task read grants no mutation and revoked read clears target metadata",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Linked operational tasks",exact:true});
+  await panel.getByRole("link",{name:"TASK7: PRIVATE LINKED TASK",exact:true}).waitFor();
+  assert.equal(await panel.getByRole("button",{name:"Link existing task",exact:true}).count(),0);
+  state.linkStatus=404;await panel.getByRole("button",{name:"Reload linked tasks",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Linked tasks unavailable"}).waitFor();
+  assert.equal(await panel.getByRole("link").count(),0);
+}));
+for(const status of [200,412])test(`link ${status} requires explicit mandatory flag, sends once and clears stale options`,async()=>fixture(async(page,state)=>{
+  state.linkAllowed=true;state.linkPostStatus=status;
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Linked operational tasks",exact:true});
+  await panel.getByRole("button",{name:"Link existing task",exact:true}).click();
+  await panel.getByLabel("Open task",{exact:true}).selectOption("7");
+  await panel.getByRole("button",{name:"Save task link",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Select a task and whether"}).waitFor();assert.equal(state.linkPosts??0,0);
+  await panel.getByLabel("Completion requirement",{exact:true}).selectOption("required");
+  await panel.getByRole("button",{name:"Save task link",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByRole("status").filter({hasText:status===200?"MSG08: Task linked":"Request changed"}).waitFor();
+  assert.equal(state.linkPosts,1);assert.equal(await panel.getByLabel("Open task",{exact:true}).count(),0);
 }));
