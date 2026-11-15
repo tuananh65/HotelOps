@@ -29,6 +29,9 @@ builder.Services.AddOptions<HotelOps.Api.Services.Notifications.NotificationCent
 builder.Services.AddScoped<HotelOps.Api.Services.Notifications.NotificationCenterService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.AuditReadService>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.DashboardService>();
+builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportAccess>();
+builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportService>();
+builder.Services.AddSingleton<HotelOps.Api.Services.Insights.ReportSnapshotStore>();
 
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
     options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance).UseSqlServer(

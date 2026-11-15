@@ -8,7 +8,7 @@ namespace HotelOps.Api.Services.Insights;
 
 // Query component only. The caller must authorize the exact filters and retain a
 // SERIALIZABLE transaction across authorization, materialization and final admission.
-// No controller/DI registration until the GBR-162/catalog role conflict is resolved.
+// ReportService owns admission under the approved UC135 actor restriction.
 public sealed class ReportSnapshotQueries(HotelOpsDbContext db)
 {
     public static IReadOnlyList<string> Keys { get; } = Array.AsReadOnly(new[] { "rooms", "inspections", "incidents", "assets", "items", "tasks", "requests" });

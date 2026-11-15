@@ -204,9 +204,12 @@ export default function RoomStatusBoardScreen() {
             {board.totalCount} phòng phù hợp · Trang {board.page}
           </p>
           <ul aria-label="Bộ đếm trạng thái">
+            {Object.entries(board.effectiveReadinessCounts ?? {}).map(([state, count]) => (
+              <li key={`effective-${state}`}>Effective {state}: {count}</li>
+            ))}
             {board.statusCounts?.map((c) => (
               <li key={c.operationalStatusCode}>
-                {c.operationalStatusCode}: {c.count}
+                Recorded {c.operationalStatusCode}: {c.count}
               </li>
             ))}
           </ul>
@@ -235,7 +238,7 @@ export default function RoomStatusBoardScreen() {
                           <td>
                             <Link to={href(r.id)}>{r.roomNumber}</Link>
                           </td>
-                          <td>{r.operationalStatusCode}</td>
+                          <td>{r.effectiveReadiness ?? "UNKNOWN"} (recorded: {r.operationalStatusCode})</td>
                           <td>{r.isActive ? "Có" : "Không"}</td>
                           <td>{r.area?.name || "—"}</td>
                           <td>{r.roomType.name}</td>
@@ -269,7 +272,7 @@ export default function RoomStatusBoardScreen() {
             {detail.room.roomType.name}
           </p>
           <p>
-            Trạng thái vận hành: {detail.room.operationalStatusCode} · Hoạt
+            Effective readiness: {detail.room.effectiveReadiness ?? "UNKNOWN"} · Recorded: {detail.room.operationalStatusCode} · Hoạt
             động: {detail.room.isActive ? "Có" : "Không"}
           </p>
           <p>{detail.description}</p>

@@ -11,7 +11,7 @@ internal static class SprintAuthProbe
 {
     // Exact target from this sprint's independently verified provision receipt; no arbitrary connection input.
     private const string Database = "HotelOps_DEV3_142A_20261114_cc78c13f";
-    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false)
+    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false, bool reports = false)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
         using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
@@ -89,6 +89,7 @@ internal static class SprintAuthProbe
             if (activation) await SprintActivationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (dashboard) await SprintDashboardScenario.RunAsync(db, http, user.UserId, checks, ct);
+            if (reports) await SprintReportApiScenario.RunAsync(db,http,user.UserId,checks,ct);
             if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password,taskCriteria,taskResume);
             await Check(HttpMethod.Post, "/api/auth/logout", 400);
             await Check(HttpMethod.Post, "/api/auth/logout", 204, csrf: sessionCsrf);
@@ -123,6 +124,7 @@ internal static class SprintAuthProbe
                     : taskRead ? "Real HTTPS/SQL and canonical browser task progress, evidence upload/private download, paused execution, audit, stale/concurrent writes and scope denials; criteria mutation and create/lifecycle acceptance excluded"
                     : notifications ? "Real HTTPS/SQL recipient inbox and read markers; no source-opening or acknowledgment acceptance"
                     : activation ? "Real HTTPS/SQL account activation, concurrency preconditions and credential preservation; deactivation remains unavailable"
+                    : reports ? "Real HTTPS/SQL report actor restriction, preview snapshot, CSV admission/audit and revocation; no browser or full UC135 acceptance"
                     : dashboard ? "Real HTTPS/SQL auth and scoped dashboard reads; no browser or all-KPI acceptance"
                     : roleAssignment ? "Real HTTPS/SQL auth and supported role assignment with temporary synthetic admin grant; revocation not tested"
                     : audit ? "Real HTTPS/SQL auth and audit list/detail with temporary branch-scoped SYS_ADMIN grant; no browser acceptance"

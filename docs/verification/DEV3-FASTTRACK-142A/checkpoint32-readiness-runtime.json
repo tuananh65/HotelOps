@@ -1,0 +1,14 @@
+{
+  "success": false,
+  "checks": [
+    "never-passed cycle follows GBR044 priority and cannot authorize use",
+    "completed passed current cycle is effectively Ready without rewriting stored code",
+    "two effective incident blocks override Passed; expected-release time does not release",
+    "removing one block preserves other effective block",
+    "inactive overrides effective blocks and Passed",
+    "last block removal recomputes passed current cycle"
+  ],
+  "failure": "SqlException: Invalid column name \u0027requested_by\u0027.",
+  "rollback": true,
+  "scope": "Actual SQL readiness reads; guarded index trial and fixtures rolled back; no HTTPS/conclusion acceptance"
+}

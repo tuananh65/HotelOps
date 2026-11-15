@@ -99,7 +99,8 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                     }
                     var blocks = await RoomOperationalReadQueries.UnreleasedBlocks(db.RoomBlocks.AsNoTracking(), requestedRoom)
                         .TagWith("UC027:UnreleasedBlocks").ToArrayAsync(ct);
-                    detail = new(selected.Value,selected.Description,evidence,UnreleasedBlocks:blocks.Select(b => b with
+                    var readiness = await new EffectiveRoomReadiness(db).ReadAsync([requestedRoom], DateTime.UtcNow, ct);
+                    detail = new(selected.Value with { EffectiveReadiness = readiness.GetValueOrDefault(requestedRoom)?.Readiness ?? "UNKNOWN" },selected.Description,evidence,UnreleasedBlocks:blocks.Select(b => b with
                     {
                         BlockedAtUtc = DateTime.SpecifyKind(b.BlockedAtUtc, DateTimeKind.Utc),
                         ExpectedReleaseAtUtc = b.ExpectedReleaseAtUtc is { } at ? DateTime.SpecifyKind(at, DateTimeKind.Utc) : null
@@ -131,6 +132,9 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
                     r.OperationalStatus, r.IsActive))
                 .TagWith("UC023:Page").ToListAsync(ct);
 
+            var effective = await new EffectiveRoomReadiness(db).ReadAsync(await rooms.Select(r => r.RoomId).ToArrayAsync(ct), DateTime.UtcNow, ct);
+            items = items.Select(r => r with { EffectiveReadiness = effective.GetValueOrDefault(r.Id)?.Readiness ?? "UNKNOWN" }).ToList();
+
             // Locks prevent SQL revocation races, but time can still expire while waiting.
             // Recheck policy and time-dependent grants before publishing any data.
             if (!await HasSessionAsync(authenticatedSession, actor, ct))
@@ -138,7 +142,8 @@ public sealed class RoomDirectoryService(HotelOpsDbContext db, ICurrentUserAcces
             access = await Access();
             if (!access.IsGranted) return Denied(access);
             await tx.CommitAsync(ct);
-            return new(RoomDirectoryStatus.Success, new(items, query.Page, query.PageSize, total, counts));
+            return new(RoomDirectoryStatus.Success, new(items, query.Page, query.PageSize, total, counts)
+            { EffectiveReadinessCounts = effective.Values.GroupBy(r => r.Readiness).ToDictionary(g => g.Key, g => g.LongCount()) });
         }
         catch (DbException error) when (ct.IsCancellationRequested)
         {

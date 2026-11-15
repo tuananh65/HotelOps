@@ -21,7 +21,7 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
         var quantities = new List<QuantityRow>();
         var missing = new List<string>
         {
-            "UC131: stored room codes differ from SRS display states; no lifecycle translation is inferred",
+            "UC131: effective readiness follows GBR-044; unavailable lifecycle sources remain UNKNOWN and never count as Ready",
             "KPI-03: first-inspection cleaning-cycle contract unavailable",
             "KPI-04/05: task CLOSED and overdue policy differ from stored task states; status distribution only",
             "KPI-06: approved closed WorkInterval source unavailable",
@@ -36,10 +36,14 @@ public sealed class DashboardService(HotelOpsDbContext db, InsightAccess access,
                 .Select(g => new { Status = g.Key, Count = g.LongCount() }).OrderBy(g => g.Status).ToArrayAsync(ct);
             groups.AddRange(roomGroups.Select(g => new DistributionRow("rooms.operational_status", g.Status, g.Count)));
             var total = roomGroups.Sum(g => g.Count);
-            var ready = roomGroups.Where(g => g.Status == "READY").Sum(g => g.Count);
+            var effective = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
+                .ReadAsync(await rooms.Select(r => r.RoomId).ToArrayAsync(ct), now.UtcDateTime, ct);
+            var ready = effective.Values.LongCount(r => r.CanUse);
+            groups.AddRange(effective.Values.GroupBy(r => r.Readiness)
+                .Select(g => new DistributionRow("rooms.effective_readiness", g.Key, g.LongCount())));
             metrics.Add(new("activeRooms", "Active rooms", total, "count", "rooms", "/room-readiness"));
-            metrics.Add(new("readyRooms", "Recorded READY rooms", ready, "count", "rooms.operational_status=READY"));
-            metrics.Add(new("readyRatio", "Recorded READY ratio", total == 0 ? null : 100m * ready / total, "percent", "Recorded status only; effective readiness unavailable"));
+            metrics.Add(new("readyRooms", "Effectively ready rooms", ready, "count", "GBR-044 effective readiness"));
+            metrics.Add(new("readyRatio", "Effective ready ratio", total == 0 ? null : 100m * ready / total, "percent", "GBR-044; UNKNOWN never counts as ready"));
             var cleaning = db.CleaningTasks.AsNoTracking().Where(t => branches.Contains(t.Room.BranchId));
             groups.AddRange(await cleaning.GroupBy(t => t.Status)
                 .Select(g => new DistributionRow("cleaning_tasks.status", g.Key, g.LongCount(), null)).ToArrayAsync(ct));

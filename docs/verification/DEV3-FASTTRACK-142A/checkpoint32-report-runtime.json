@@ -1,0 +1,74 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 950298,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "reportCheck": "catalog DEPT_MANAGER actually has REPORT_VIEW"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER options denied despite REPORT_VIEW"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER preview denied"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER export does not expose data"
+    },
+    {
+      "reportCheck": "OWNER REPORT_VIEW options accepted alongside denied role"
+    },
+    {
+      "reportCheck": "report preview requires CSRF"
+    },
+    {
+      "reportCheck": "authorized preview materializes scoped task"
+    },
+    {
+      "reportFixtureCleanup": true
+    }
+  ],
+  "failure": "Exception: CSV exports exact frozen preview after source change",
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": false,
+  "scope": "Real HTTPS/SQL login-session-logout; no privileged roles or browser workflow acceptance"
+}

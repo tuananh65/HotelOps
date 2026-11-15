@@ -51,9 +51,16 @@ public sealed record RoomDirectoryAreaDto(long Id, string Code, string Name);
 public sealed record RoomDirectoryTypeDto(long Id, string Code, string Name);
 public sealed record RoomDirectoryItemDto(long Id, long BranchId, string RoomNumber,
     RoomDirectoryFloorDto Floor, RoomDirectoryAreaDto? Area, RoomDirectoryTypeDto RoomType,
-    string OperationalStatusCode, bool IsActive);
+    string OperationalStatusCode, bool IsActive)
+{
+    public string EffectiveReadiness { get; init; } = "UNKNOWN";
+    public bool CanUseRoom => EffectiveReadiness == "READY";
+}
 public sealed record RoomDirectoryResponse(IReadOnlyList<RoomDirectoryItemDto> Items,
-    int Page, int PageSize, long TotalCount, IReadOnlyList<RoomStatusCountDto>? StatusCounts = null);
+    int Page, int PageSize, long TotalCount, IReadOnlyList<RoomStatusCountDto>? StatusCounts = null)
+{
+    public IReadOnlyDictionary<string, long> EffectiveReadinessCounts { get; init; } = new Dictionary<string, long>();
+}
 
 public sealed record RoomStatusSourceDto(string? Type, long? Id, string Availability);
 public sealed record RoomStatusEventDto(long Id, string? FromStatusCode, string ToStatusCode,

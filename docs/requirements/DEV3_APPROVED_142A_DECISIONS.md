@@ -16,8 +16,16 @@ Operations Manager or Owner AND REPORT_VIEW, with applicable branch/department s
 
 UC136/137 keep their separate Administrator actor; do not apply UC135 policy to them. Preserve CSRF, snapshot consistency, CSV safety and audit. Add positive/negative tests, especially DEPT_MANAGER with REPORT_VIEW.
 
-Checkpoint31 status: decision is approved, no further role approval needed. Feature policy, report admission/API/UI/export audit implementation remains PENDING; this checkpoint does not claim it is applied.
+Checkpoint32: feature policy and preview/CSV API admission/audit are implemented and HTTPS/SQL tested. Canonical report UI remains pending; no full UC135 acceptance.
 
 ## Remaining contracts
 
-FE05 Room Blocked mapping and FE13 read authorization are not resolved by these decisions. Resolve against SRS and actual schema or state the exact conflict; never bypass protection. Database edits must remain narrow, additive and isolated.
+FE13 read authorization remains unresolved. Database edits must remain narrow and isolated.
+
+## FE05 effective readiness (approved after checkpoint31)
+
+Keep existing rooms.operational_status values. Never write BLOCKED into that column or translate it to OUT_OF_SERVICE. Calculate effective readiness using GBR-044: inactive first, then any effective block, then current cleaning/inspection lifecycle. Passed inspection is Ready only without effective blocks and with all lifecycle conditions met. Removing one block must recalculate from current data, including other blocks and the current cycle.
+
+APIs, Room Status Board, Dashboard and all room-usability consumers must use effective readiness. Unsupported or unknown readiness must fail closed for use decisions. Preserve history, transaction, concurrency and MSG17. Verify Passed+block, multiple blocks, removal, failed inspection and concurrent block changes. Do not alter generated entities or CHECK constraints to introduce status codes.
+
+Checkpoint32 actual schema finding: UX_room_blocks_active uniquely constrains room_id for unreleased rows, conflicting with multiple incident-room blocks. A narrow guarded disposable-only trial replaces it with uniqueness on (room_id,incident_id), matching GBR-075. The trial is rolled back together with synthetic fixtures; no lasting schema deployment has occurred. Existing room_status_history CHECK values and room_readiness_events' PENDING_CLEANING-only CHECK are retained; effective transition history/writer composition is still pending.

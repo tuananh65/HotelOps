@@ -9,6 +9,8 @@ export interface RoomDirectoryItem {
   area: { id: number; code: string; name: string } | null;
   roomType: { id: number; code: string; name: string };
   operationalStatusCode: string;
+  effectiveReadiness?: string;
+  canUseRoom?: boolean;
   isActive: boolean;
 }
 export interface RoomDirectoryResponse {
@@ -17,6 +19,7 @@ export interface RoomDirectoryResponse {
   pageSize: number;
   totalCount: number;
   statusCounts?: { operationalStatusCode: string; count: number }[] | null;
+  effectiveReadinessCounts?: Record<string, number>;
 }
 export const roomStatusCodes = [
   "AVAILABLE",

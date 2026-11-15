@@ -56,6 +56,9 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
             var total = await rows.CountAsync(token);
             var page = await rows.OrderBy(x => x.DueAt == null).ThenBy(x => x.DueAt).ThenBy(x => x.Id).ThenBy(x => x.Kind)
                 .Skip((input.Page - 1) * input.PageSize).Take(input.PageSize).ToListAsync(token);
+            var readiness = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db)
+                .ReadAsync(page.Select(x => x.RoomId).Distinct().ToArray(), now, token);
+            foreach (var item in page) item.EffectiveReadiness = readiness.GetValueOrDefault(item.RoomId)?.Readiness ?? "UNKNOWN";
             return new(CleaningMonitorStatus.Success,
                 new CleaningMonitorPage(page.Select(x => Item(x, now)).ToArray(), total, input.Page, input.PageSize,
                     from, to, HotelTimezone.Id, now));
@@ -80,6 +83,8 @@ public sealed class CleaningMonitorService(HotelOpsDbContext db, ICurrentUserAcc
         {
             var row = await (await RowsAsync(branchId, now, token)).SingleOrDefaultAsync(x => x.Kind == kind && x.Id == id, token);
             if (row is null) return new(CleaningMonitorStatus.NotFound);
+            var readiness = await new HotelOps.Api.Services.Rooms.EffectiveRoomReadiness(db).ReadAsync([row.RoomId], now, token);
+            row.EffectiveReadiness = readiness.GetValueOrDefault(row.RoomId)?.Readiness ?? "UNKNOWN";
             var assignments = db.CleaningAssignments.AsNoTracking().Where(x => x.CleaningTaskId == row.CleaningTaskId);
             var assignmentCount = await assignments.CountAsync(token);
             var assignmentRows = await assignments.OrderByDescending(x => x.AssignedAt).ThenByDescending(x => x.AssignmentId)
