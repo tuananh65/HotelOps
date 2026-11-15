@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintTaskReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false)
     {
         if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct)||await db.Attachments.AnyAsync(ct))throw new Exception("Empty task/evidence fixture required");
         var evidenceRoot=Path.GetFullPath("TestResults/sprint25-evidence");
@@ -46,6 +46,9 @@ internal static class SprintTaskReadScenario
         }
         async Task Cleanup(CancellationToken token)
         {
+            await db.WorkIntervals.Where(i=>i.UserId==actor && i.WorkItemKind=="TASK" && tasks.Contains(i.WorkItemId)).ExecuteDeleteAsync(token);
+            await db.Workdays.Where(d=>d.UserId==actor && branches.Contains(d.BranchId)).ExecuteDeleteAsync(token);
+            await db.AuditLogs.Where(a=>a.ActorUserId==actor && a.EntityType=="work_intervals").ExecuteDeleteAsync(token);
             var attachments=await db.Attachments.AsNoTracking().Where(a=>a.EntityType=="TASK"&&tasks.Contains(a.EntityId)&&a.UploadedBy==actor).ToArrayAsync(token);
             foreach(var attachment in attachments)
             {
@@ -80,6 +83,7 @@ internal static class SprintTaskReadScenario
             var grant=new UserRole{UserId=actor,RoleId=role,BranchId=branches[0],IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-2)};
             db.UserRoles.Add(grant);db.UserBranchAccesses.Add(new(){UserId=actor,BranchId=branches[0],AccessLevel="STANDARD",GrantedAt=DateTime.UtcNow.AddMinutes(-2)});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            if(resume) { await SprintTaskResumeScenario.RunAsync(db,http,actor,branches[0],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             var page=await Get(root,200);if(page.GetProperty("totalCount").GetInt32()!=1||page.GetProperty("items")[0].GetProperty("id").GetInt64()!=tasks[0])throw new Exception("OWN list leaked tasks");
             var detail=await Get(root+"/"+tasks[0]+"?pageSize=1",200);
             if(detail.GetProperty("progressTotalCount").GetInt32()!=2||detail.GetProperty("progress")[0].GetProperty("description").GetString()!="Latest synthetic update")throw new Exception("History order/page mismatch");

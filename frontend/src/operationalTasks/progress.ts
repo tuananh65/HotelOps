@@ -132,6 +132,40 @@ export async function readTaskProgress(
 ) {
   return snapshot(await request(path(branch, task), signal), branch, task);
 }
+export async function resumeTask(
+  branch: number,
+  task: number,
+  current: TaskProgressSnapshot,
+  signal: AbortSignal,
+) {
+  validate(current.data, branch, task);
+  if (!tag(current.etag) || current.data.state !== "PAUSED")
+    throw new Error("Only a paused task can be resumed");
+  const csrf = await (await request("/api/auth/csrf", signal)).json();
+  if (
+    csrf?.headerName !== "X-CSRF-TOKEN" ||
+    typeof csrf.csrfToken !== "string" ||
+    !csrf.csrfToken.trim() ||
+    /[\r\n]/.test(csrf.csrfToken)
+  )
+    throw new Error("Invalid CSRF response");
+  signal.throwIfAborted();
+  const result = await snapshot(
+    await request(
+      path(branch, task).replace(/\/progress$/, "/resume"),
+      signal,
+      {
+        method: "POST",
+        headers: { "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": current.etag },
+      },
+    ),
+    branch,
+    task,
+  );
+  if (result.data.state !== "IN_PROGRESS" || result.etag === current.etag)
+    throw new Error("Task resume could not be confirmed");
+  return result;
+}
 export async function initializeTaskProgress(
   branch: number,
   task: number,

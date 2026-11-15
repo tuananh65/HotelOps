@@ -14,7 +14,7 @@ const source = ts.transpileModule(
     },
   },
 ).outputText;
-const { readTaskProgress, saveTaskProgress, initializeTaskProgress, TaskProgressError } = await import(
+const { resumeTask, readTaskProgress, saveTaskProgress, initializeTaskProgress, TaskProgressError } = await import(
   "data:text/javascript;base64," + Buffer.from(source).toString("base64")
 );
 const data = {
@@ -218,4 +218,13 @@ test('duplicate initialization is not retried',async t=>{
  const mock=t.mock.method(globalThis,'fetch',async url=>url==='/api/auth/csrf'?Response.json({headerName:'X-CSRF-TOKEN',csrfToken:'synthetic'}):new Response('',{status:409}));
  await assert.rejects(initializeTaskProgress(2,4,[{label:'A',required:true}],'Valid setup reason',signal),e=>e instanceof TaskProgressError&&e.status===409);
  assert.equal(mock.mock.callCount(),2);
+});
+
+test("resume binds paused snapshot, fresh CSRF and ETag",async()=>{
+ const old=globalThis.fetch,calls=[];globalThis.fetch=async(url,options)=>{calls.push({url,options});return calls.length===1?Response.json({headerName:"X-CSRF-TOKEN",csrfToken:"fresh"}):response(data,'"0000000000000002"');};
+ try{const result=await resumeTask(2,4,{data:{...data,state:"PAUSED"},etag},signal);assert.equal(result.data.state,"IN_PROGRESS");assert.equal(calls[1].url,"/api/branches/2/operational-tasks/4/resume");assert.equal(calls[1].options.method,"POST");assert.equal(calls[1].options.headers["If-Match"],etag);assert.equal(calls[1].options.headers["X-CSRF-TOKEN"],"fresh");}finally{globalThis.fetch=old;}
+});
+test("resume rejects running state and never retries stale mutation",async()=>{
+ const old=globalThis.fetch;let count=0;globalThis.fetch=async()=>++count===1?Response.json({headerName:"X-CSRF-TOKEN",csrfToken:"fresh"}):new Response(null,{status:412});
+ try{await assert.rejects(()=>resumeTask(2,4,current,signal));assert.equal(count,0);await assert.rejects(()=>resumeTask(2,4,{data:{...data,state:"PAUSED"},etag},signal));assert.equal(count,2);}finally{globalThis.fetch=old;}
 });

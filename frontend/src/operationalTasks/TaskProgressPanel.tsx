@@ -4,6 +4,7 @@ import type { AuthorityGeneration } from "../auth/authStore";
 import { uploadFile } from "../api/dev1/cleaningProgress";
 import {
   readTaskProgress,
+  resumeTask,
   saveTaskProgress,
   TaskProgressError,
   type TaskProgressSnapshot,
@@ -124,6 +125,38 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted) setBusy(false);
     }
   }
+  async function resume() {
+    if (!current || busy || locked || saving.current) return;
+    saving.current = true;
+    const controller = new AbortController();
+    active.current = controller;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await resumeTask(
+        branch,
+        task,
+        current,
+        controller.signal,
+      );
+      if (!controller.signal.aborted) {
+        setCurrent(updated);
+        setMessage("Task resumed. Working time is now being recorded.");
+      }
+    } catch (reason) {
+      if (!controller.signal.aborted) {
+        failure(reason);
+        if (reason instanceof TaskProgressError && reason.status === 409)
+          setError(
+            "Task could not be resumed. A working workday and no other open interval are required. Reload to review its current state.",
+          );
+      }
+    } finally {
+      saving.current = false;
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
   return (
     <section aria-label="Task progress editor">
       <h3>Update progress</h3>
@@ -133,6 +166,11 @@ export function TaskProgressPanel({
       {busy && <p role="status">Loading or saving progress…</p>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
+      {current?.data.state === "PAUSED" && (
+        <button disabled={busy || locked} onClick={() => void resume()}>
+          Resume task
+        </button>
+      )}
       {current && (
         <section aria-label="Saved task evidence">
           <h4>Saved evidence</h4>
