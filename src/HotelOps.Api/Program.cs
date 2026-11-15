@@ -37,9 +37,14 @@ builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportService>();
 builder.Services.AddSingleton<HotelOps.Api.Services.Insights.ReportSnapshotStore>();
 
+var isolatedSqlRole=IsolatedSqlApplicationRole.FromConfiguration(builder.Configuration,builder.Environment);
+if(isolatedSqlRole!=null)builder.Services.AddSingleton(isolatedSqlRole);
 builder.Services.AddDbContext<HotelOpsDbContext>(options =>
-    options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance).UseSqlServer(
-        builder.Configuration.GetConnectionString("HotelOpsDb")));
+{
+    options.AddInterceptors(HotelOps.Api.Services.Notifications.CandidateCommitGuard.Instance, HotelOps.Api.Services.Notifications.CandidateCommandGuard.Instance);
+    if(isolatedSqlRole!=null)options.AddInterceptors(isolatedSqlRole);
+    options.UseSqlServer(builder.Configuration.GetConnectionString("HotelOpsDb"));
+});
 
 // Add services to the container.
 // FE-04: additive registrations; provisional execution remains opt-in and isolated.

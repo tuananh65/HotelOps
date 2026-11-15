@@ -12,7 +12,7 @@ public enum SchemaCompatibility
 }
 
 /// <summary>Read-only deployment prerequisite, not a migration or a complete schema audit.</summary>
-public sealed class StartupSchemaValidator(HotelOpsDbContext db)
+public sealed class StartupSchemaValidator(HotelOpsDbContext db,IsolatedSqlApplicationRole? applicationRole=null)
 {
     public async Task<SchemaCompatibility> ValidateAsync(CancellationToken cancellationToken)
     {
@@ -25,7 +25,10 @@ public sealed class StartupSchemaValidator(HotelOpsDbContext db)
             // The scoped DbContext owns/disposes this connection, including on startup failure.
             var connection = db.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
+            {
                 await connection.OpenAsync(budget.Token);
+                if(applicationRole!=null)await applicationRole.ActivateAsync(connection,budget.Token);
+            }
             connected = true;
             await using var command = connection.CreateCommand();
             command.CommandTimeout = 15;
