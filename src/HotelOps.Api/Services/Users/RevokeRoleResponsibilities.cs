@@ -82,6 +82,19 @@ internal sealed class RevokeRoleResponsibilities(HotelOpsDbContext db, TimeProvi
                 }
             }
         }
+        var internalAssignments=await db.InternalRequestAssignments.AsNoTracking()
+            .Where(a=>a.AssigneeId==target&&a.Status=="ACTIVE")
+            .Select(a=>new {a.InternalRequestId,a.AssignedAt,a.EndedAt,a.InternalRequest.Status,a.InternalRequest.BranchId,
+                DepartmentValid=a.InternalRequest.ReceivingDepartmentId!=null&&a.InternalRequest.ReceivingDepartment!.BranchId==a.InternalRequest.BranchId,
+                Owners=a.InternalRequest.InternalRequestAssignments.Count(x=>x.Status=="ACTIVE"&&x.EndedAt==null)})
+            .ToArrayAsync(ct);
+        foreach(var request in internalAssignments)
+        {
+            var fact=$"INTERNAL_REQUEST_HANDLER:{request.InternalRequestId}";
+            if(request.EndedAt!=null||request.AssignedAt>now||request.Owners!=1||!request.DepartmentValid)
+            {unresolved.Add(fact+"_INCONSISTENT");continue;}
+            Record(RevokeRoleGrantImpact.InternalRequestHandler(request.Status,before,after,request.BranchId,now),fact);
+        }
         // Other designated FE11 roles and all writer coordination remain explicit gates;
         // an empty target assignment set is not complete role-dependency acceptance.
         // Current assignee only; never CreatedBy, ReviewedBy or Incident.ReportedBy.

@@ -49,4 +49,17 @@ public static class RevokeRoleGrantImpact
         .Where(g => PermissionGrantRules.IsEligible(g.Path, nowUtc))
         .Select(g => $"{g.Path.PermissionCode}/{PermissionGrantRules.EffectiveScope(g.Path) ?? "UNKNOWN"}/{g.Path.BranchId}")
         .Distinct(StringComparer.Ordinal).Order(StringComparer.Ordinal).ToArray();
+
+    public static RevokeCapabilityImpact InternalRequestHandler(string? state,
+        IReadOnlyList<RevokeGrant> before,IReadOnlyList<RevokeGrant> after,long? branch,DateTime nowUtc)
+    {
+        if(state!="IN_PROGRESS")return RevokeCapabilityImpact.Unknown;
+        // Current handler mutation independently requires both permissions. Losing
+        // either is sufficient positive evidence; surviving grants do not prove
+        // allowed actor roles, current department eligibility or mapping.
+        var process=Evaluate(before,after,"IR_PROCESS",branch,true,nowUtc);
+        var read=Evaluate(before,after,"IR_VIEW",branch,true,nowUtc);
+        return process==RevokeCapabilityImpact.Lost||read==RevokeCapabilityImpact.Lost
+            ? RevokeCapabilityImpact.Lost:RevokeCapabilityImpact.Unknown;
+    }
 }
