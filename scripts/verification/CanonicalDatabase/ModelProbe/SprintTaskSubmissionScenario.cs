@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore;
 internal static class SprintTaskSubmissionScenario
 {
     internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,long branch,long foreign,long department,long task,long other,
-        List<object> checks,CancellationToken ct,string username,string password)
+        List<object> checks,CancellationToken ct,string username,string password,bool verification=false)
     {
         var root=$"/api/branches/{branch}/operational-tasks/{task}";
         void Check(bool pass,string name){if(!pass)throw new Exception(name);checks.Add(new{submissionCheck=name});}
@@ -139,6 +139,11 @@ internal static class SprintTaskSubmissionScenario
         Check((await Send(HttpMethod.Post,"/api/auth/login",new{username=manager.Username,password},client:managerHttp)).Status==200,"manager HTTP login for source reauthorization");
         var notification=await db.Notifications.AsNoTracking().Where(n=>n.SourceType=="TASK_SUBMISSION"&&n.SourceId==latestId).SingleAsync(ct);
         Check((await Send(HttpMethod.Get,$"/api/notifications/{notification.NotificationId}/source",client:managerHttp)).Status==200,"manager opens committed task source");
+        if(verification)
+        {
+            await SprintTaskVerificationScenario.RunAsync(db,http,managerHttp,actor,manager.UserId,branch,foreign,department,task,checks,ct,username,manager.Username,password);
+            return;
+        }
         await db.UserRoles.Where(r=>r.UserId==manager.UserId).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
         Check((await Send(HttpMethod.Get,$"/api/notifications/{notification.NotificationId}/source",client:managerHttp)).Status==404
             &&(await Send(HttpMethod.Get,root+"/submission",client:managerHttp)).Status==403,"source opening and snapshot reread revalidate current manager authority");

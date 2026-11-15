@@ -109,6 +109,7 @@ public sealed partial class RoomTypeCreationService
         },ct,requireRoomTypeSchema:false,featurePermission:async token=>
         {
             if(await ProgressOwned(false,id,branch,ticket.UserId,token) && (await ProgressAccess(false,id,branch,ticket.UserId,token)).IsGranted)return new(PermissionDecision.Granted);
+            if(await TaskVerificationStore.ExecutorReadAsync(db,ticket.UserId,branch,id,clock.GetUtcNow().UtcDateTime,token))return new(PermissionDecision.Granted);
             return new((await TaskSubmissionAccess.ManagersAsync(db,branch,clock.GetUtcNow().UtcDateTime,token)).Contains(ticket.UserId)?PermissionDecision.Granted:PermissionDecision.Denied);
         });
 }

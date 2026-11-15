@@ -63,6 +63,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:"TASK_VERIFIED" or "TASK_RETURNED",SourceType:"TASK_VERIFICATION",SourceId:>0})
+        {
+            if(!await TaskVerificationStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var decision=await TaskVerificationStore.Query(db).SingleOrDefaultAsync(v=>v.SubmissionId==source.SourceId,ct);
+            if(decision==null||decision.SubmittedBy!=user||decision.VerifiedBy!=source.CreatedBy||decision.DecidedAt!=source.CreatedAt
+                ||source.NotificationType!=(decision.Decision=="ACCEPT"?"TASK_VERIFIED":"TASK_RETURNED")
+                ||!await TaskSubmissionStore.Query(db).AnyAsync(s=>s.ProgressId==decision.SubmissionId,ct)
+                ||!await TaskVerificationStore.ExecutorReadAsync(db,user,decision.BranchId,decision.TaskId,now,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);return new($"/operational-tasks?branchId={decision.BranchId}&taskId={decision.TaskId}");
+        }
         if(source is {NotificationType:TaskSubmissionStore.NotificationKind,SourceType:"TASK_SUBMISSION",SourceId:>0})
         {
             if(!await TaskSubmissionStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

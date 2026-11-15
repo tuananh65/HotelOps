@@ -47,6 +47,12 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/submit")]
     public Task<IActionResult> SubmitTask(long branch,long id,SubmitOperationalTaskRequest input,CancellationToken ct)
         =>Execute((ticket,sid)=>service.SubmitOperationalTaskAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),input,Root,ct),true);
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/verification")]
+    public Task<IActionResult> ReadVerification(long branch,long id,CancellationToken ct)
+        =>Execute((ticket,sid)=>service.ReadTaskVerificationAsync(ticket,sid,branch,id,ct),false);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/verification")]
+    public Task<IActionResult> VerifyTask(long branch,long id,VerifyOperationalTaskRequest input,CancellationToken ct)
+        =>Execute((ticket,sid)=>service.VerifyOperationalTaskAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),input,ct),true);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/submission")]
     public Task<IActionResult> TaskSubmission(long branch,long id,CancellationToken ct)
         =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct),false);

@@ -1,0 +1,268 @@
+{
+  "database": "HotelOps_DEV3_142A_CriteriaTrial_e484ba02",
+  "fixtureUserId": 1071131,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/operational-tasks",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/70914/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "submissionCheck": "criteria initialized by authorized API"
+    },
+    {
+      "submissionCheck": "anonymous submission with valid CSRF denied"
+    },
+    {
+      "submissionCheck": "missing submission capability fails closed"
+    },
+    {
+      "submissionCheck": "revoked executor permission denies submission"
+    },
+    {
+      "submissionCheck": "pending state without a committed submission fails closed"
+    },
+    {
+      "submissionCheck": "Paused task cannot submit"
+    },
+    {
+      "submissionCheck": "submission requires its current work interval"
+    },
+    {
+      "submissionCheck": "persistence note length enforced without writes"
+    },
+    {
+      "submissionCheck": "submission requires ETag"
+    },
+    {
+      "submissionCheck": "submission requires CSRF"
+    },
+    {
+      "submissionCheck": "unassigned submission denied"
+    },
+    {
+      "submissionCheck": "foreign branch submission denied"
+    },
+    {
+      "submissionCheck": "missing mandatory result returns MSG03 and exact criterion label"
+    },
+    {
+      "submissionCheck": "failed criteria submission rolls back partial result edits and all business writes"
+    },
+    {
+      "submissionCheck": "invalid second evidence rolls back first file, criteria, interval and history"
+    },
+    {
+      "submissionCheck": "submission audit failure rolls back interval, file, results, event and workflow"
+    },
+    {
+      "submissionCheck": "concurrent Submit yields one success and one stale response"
+    },
+    {
+      "submissionCheck": "submission awaits verification and does not close task"
+    },
+    {
+      "submissionCheck": "fresh repeated submission denied"
+    },
+    {
+      "submissionCheck": "pending submission locks progress updates"
+    },
+    {
+      "submissionCheck": "mandatory FAIL is a recorded result, not an automatic verification rejection"
+    },
+    {
+      "submissionCheck": "actual work ends but legacy task completion remains unset"
+    },
+    {
+      "submissionCheck": "result and handover persist separately with newlines"
+    },
+    {
+      "submissionCheck": "submitter downloads private submitted evidence"
+    },
+    {
+      "submissionCheck": "revoked Department Head gets no delivery"
+    },
+    {
+      "submissionCheck": "delivery failure rolls back notice and recipient, preserving source intent"
+    },
+    {
+      "submissionCheck": "concurrent delivery retries both reconcile the same committed event"
+    },
+    {
+      "submissionCheck": "delivery retry is idempotent with one recipient per event"
+    },
+    {
+      "success": true,
+      "mode": "submit",
+      "stage": "logout",
+      "checks": [
+        "canonical login",
+        "open active task",
+        "missing required result is actionable",
+        "enter result handover and evidence",
+        "submit and lock pending state",
+        "reload preserves snapshot and notes",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submit",
+          "method": "POST",
+          "status": 400
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submit",
+          "method": "POST",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "submissionCheck": "canonical submission browser stage accepted"
+    },
+    {
+      "submissionCheck": "browser persists a distinct submission snapshot"
+    },
+    {
+      "submissionCheck": "later results never rewrite earlier submission snapshot"
+    },
+    {
+      "success": true,
+      "mode": "review",
+      "stage": "logout",
+      "checks": [
+        "canonical login",
+        "inbox opens canonical task snapshot",
+        "manager private evidence download",
+        "reload retains manager read access",
+        "logout"
+      ],
+      "requests": [
+        {
+          "path": "/api/notifications/989/source",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        },
+        {
+          "path": "/api/branches/70914/operational-tasks/100205/submission",
+          "method": "GET",
+          "status": 200
+        }
+      ]
+    },
+    {
+      "submissionCheck": "canonical submission browser stage accepted"
+    },
+    {
+      "submissionCheck": "manager HTTP login for source reauthorization"
+    },
+    {
+      "submissionCheck": "manager opens committed task source"
+    },
+    {
+      "verificationCheck": "Department Head reads actionable pending verification"
+    },
+    {
+      "verificationCheck": "anonymous verification denied with valid CSRF"
+    },
+    {
+      "verificationCheck": "verification requires ETag"
+    },
+    {
+      "verificationCheck": "verification requires CSRF"
+    },
+    {
+      "verificationCheck": "executor cannot impersonate verifier"
+    },
+    {
+      "verificationCheck": "foreign branch verification denied"
+    },
+    {
+      "verificationCheck": "Return minimum reason and Accept verification note enforced"
+    },
+    {
+      "verificationCheck": "another submission identity rejected"
+    },
+    {
+      "verificationCheck": "validation and authorization denials leave all workflow records unchanged"
+    },
+    {
+      "verificationCheck": "submitter with manager authority still cannot verify own cycle"
+    },
+    {
+      "verificationCheck": "requester cannot verify even when distinct from submitter"
+    },
+    {
+      "verificationCheck": "earlier performer in same cycle cannot verify another submitter"
+    },
+    {
+      "criteriaTriggerPreserved": true,
+      "wholeCloneDropRequired": true
+    }
+  ],
+  "failure": "SqlException: The UPDATE statement conflicted with the CHECK constraint \u0022CK_operational_tasks_source_type\u0022. The conflict occurred in database \u0022HotelOps_DEV3_142A_CriteriaTrial_e484ba02\u0022, table \u0022dbo.operational_tasks\u0022, column \u0027source_type\u0027.\r\nThe statement has been terminated.",
+  "cleanup": false,
+  "cleanupRequiresDatabaseDrop": true,
+  "success": false,
+  "scope": "Real task submission, Return/restart/resubmit, verification/Closed, time, audit and private assignee handoff; linked-request provenance remains gated"
+}

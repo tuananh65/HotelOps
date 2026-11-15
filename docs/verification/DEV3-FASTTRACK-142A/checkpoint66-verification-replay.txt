@@ -1,0 +1,5 @@
+result
+------------------------------
+TASK_VERIFICATION_V1_INSTALLED
+
+(1 rows affected)

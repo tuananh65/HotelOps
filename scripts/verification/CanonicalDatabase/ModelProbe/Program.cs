@@ -36,6 +36,8 @@ if (args.Length == 2 && args[0] == "--sprint-inspection-browser")
     return await SprintInspectionBrowserProbe.RunAsync(args[1]);
 if (args.Length == 3 && args[0] == "--sprint-task-submission")
     return await SprintAuthProbe.RunAsync(args[2],taskRead:true,taskCriteria:true,taskSubmissionReceipt:args[1]);
+if (args.Length == 3 && args[0] == "--sprint-task-verification")
+    return await SprintAuthProbe.RunAsync(args[2],taskRead:true,taskCriteria:true,taskSubmissionReceipt:args[1],taskVerification:true);
 if (args.Length == 2 && args[0] == "--sprint-task-entry")
     return await SprintAuthProbe.RunAsync(args[1], taskRead: true, taskEntry: true);
 if (args.Length == 2 && args[0] == "--sprint-task-resume")

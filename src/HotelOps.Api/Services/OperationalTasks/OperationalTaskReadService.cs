@@ -3,6 +3,7 @@ using HotelOps.Api.DTOs.OperationalTasks;
 using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.OperationalTasks;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.HotelStructure;
@@ -23,8 +24,17 @@ public sealed partial class RoomTypeCreationService
             var tasks = db.OperationalTasks.AsNoTracking().Where(t => t.BranchId == branch && t.Department.BranchId == branch
                 && (t.RoomId == null || t.Room!.BranchId == branch) && (t.AreaId == null || t.Area!.BranchId == branch));
             if (wideScope != true)
-                tasks = tasks.Where(t => t.OperationalTaskAssignments.Count(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now) == 1
+            {
+                if(await TaskVerificationStore.InstalledAsync(db,token))
+                {
+                    var closedOwn=TaskVerificationStore.ClosedTaskIds(db,ticket.UserId);
+                    tasks=tasks.Where(t=>t.OperationalTaskAssignments.Count(a=>a.AssignmentStatus=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now)==1
+                        &&t.OperationalTaskAssignments.Any(a=>a.AssigneeId==ticket.UserId&&a.AssignmentStatus=="ACTIVE"&&a.EndedAt==null&&a.AssignedAt<=now)
+                        ||closedOwn.Contains(t.TaskId));
+                }
+                else tasks = tasks.Where(t => t.OperationalTaskAssignments.Count(a => a.AssignmentStatus == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now) == 1
                     && t.OperationalTaskAssignments.Any(a => a.AssigneeId == ticket.UserId && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null && a.AssignedAt <= now));
+            }
             if (taskId is { } id)
             {
                 var entity = await tasks.SingleOrDefaultAsync(t => t.TaskId == id, token);

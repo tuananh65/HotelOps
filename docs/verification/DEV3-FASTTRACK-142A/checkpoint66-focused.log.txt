@@ -1,0 +1,41 @@
+✔ accept sends fresh CSRF and exact version, validates committed state (17.3369ms)
+✔ start sends fresh CSRF and exact version, validates committed state (0.5116ms)
+✔ entry rejects invalid action, state or version before network (0.5311ms)
+✔ prestart progress is readable but cannot be saved (0.7613ms)
+✔ entry rejects a successful HTTP response without changed state and version (0.8505ms)
+✔ workday and occupied interval errors preserve approved message codes (0.7086ms)
+✔ task response requires exact identity, kind, state, criteria and strong version (18.8243ms)
+✔ paused task is accepted without converting its state (0.4665ms)
+✔ save gets fresh CSRF and sends exact criterion outcome with ETag, no completion request (1.1579ms)
+✔ foreign criteria, duplicates, invalid percent and control text never reach network (0.2815ms)
+✔ invalid CSRF cannot dispatch a write (0.3134ms)
+✔ authority abort after CSRF prevents write (0.3242ms)
+✔ stale and unknown outcomes are never retried (0.5624ms)
+✔ unsafe IDs never reach network (1.173ms)
+✔ saved evidence must belong to this exact task and use its protected download endpoint (1.1684ms)
+✔ initialization validates definitions before dispatch (0.3921ms)
+✔ initialization uses fresh CSRF and validates created task identity (0.3537ms)
+✔ duplicate initialization is not retried (0.2475ms)
+✔ resume binds paused snapshot, fresh CSRF and ETag (0.4209ms)
+✔ resume rejects running state and never retries stale mutation (0.2614ms)
+✔ pause binds reason and note to running snapshot with fresh CSRF and ETag (0.3381ms)
+✔ pause rejects paused snapshot before fetching and does not retry stale write (0.295ms)
+✔ pause catalog rejects invalid IDs and accepts backend labels (0.2852ms)
+✔ submission binds criteria, multiline notes, CSRF and exact ETag without closing (17.2397ms)
+✔ paused, accepted, pending, foreign and stale-looking snapshots do not dispatch (0.5217ms)
+✔ missing criteria remains a correctable business error and is never retried (0.5452ms)
+✔ success requires pending verification and a new strong version (0.7644ms)
+✔ review rejects a snapshot with foreign identity or an unscoped evidence link (0.6903ms)
+✔ verification binds the exact submission, ETag, CSRF and authority snapshot (16.1889ms)
+✔ self or denied review, closed state, foreign scope and short Return never dispatch (0.3951ms)
+✔ stale verification is surfaced without replay (0.6161ms)
+✔ verification success with wrong workflow or unchanged version is unconfirmed (0.7826ms)
+✔ read rejects foreign task and impossible separation-of-duties history (0.7123ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 374.5817
