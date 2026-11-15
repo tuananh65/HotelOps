@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
 import { useAuth } from "../../auth/AuthProvider";
+import { ApiError } from "../../api/dev1/client";
 import {
   readRework,
   type ReworkExecution,
 } from "../../api/dev1/reworkExecution";
 
 export function AssignedReworkRead() {
-  const { state } = useAuth();
+  const { state, actions } = useAuth();
   const { id = "" } = useParams();
   const [params] = useSearchParams();
   const branch = params.get("branchId") || "";
@@ -32,9 +33,14 @@ export function AssignedReworkRead() {
     setResult(null);
     void readRework(branch, id, abort.signal)
       .then((data) => {
+        if (
+          data.capability !== "READ_ONLY" ||
+          data.state !== "PENDING_ACCEPTANCE"
+        )
+          throw new ApiError(502, "UNSUPPORTED_REWORK_READ_STATE");
         if (!abort.signal.aborted) setResult({ owner, key, data });
       })
-      .catch(() => {
+      .catch((error) => {
         if (!abort.signal.aborted)
           setResult({
             owner,
@@ -42,9 +48,15 @@ export function AssignedReworkRead() {
             error:
               "Rework is unavailable or you no longer have access. Refresh to try again.",
           });
+        if (
+          !abort.signal.aborted &&
+          error instanceof ApiError &&
+          error.status === 401
+        )
+          actions.invalidateSession(owner);
       });
     return () => abort.abort();
-  }, [owner, key, branch, id]);
+  }, [owner, key, branch, id, actions]);
   const visible =
     owner && result?.owner === owner && result.key === key ? result : null;
   return (
