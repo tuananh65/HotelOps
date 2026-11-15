@@ -4,6 +4,27 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintReworkFixture
 {
+    internal static string EvidenceRoot=>Path.GetFullPath("artifacts/dev3-142a-rework-evidence");
+    private static readonly List<string> ownedFiles=[];
+    internal static async Task SeedEvidenceAsync(HotelOpsDbContext db,long actor,long inspection,CancellationToken ct)
+    {
+        if(db.Database.CurrentTransaction==null)throw new Exception("Evidence fixture transaction required");
+        Directory.CreateDirectory(EvidenceRoot);
+        if((File.GetAttributes(EvidenceRoot)&FileAttributes.ReparsePoint)!=0)throw new Exception("Private fixture root cannot be a link");
+        var name=Guid.NewGuid().ToString("N")+".png";var path=Path.Combine(EvidenceRoot,name);
+        var bytes=Convert.FromBase64String("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aS1cAAAAASUVORK5CYII=");
+        await using(var file=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.None,4096,FileOptions.Asynchronous))
+        {ownedFiles.Add(path);await file.WriteAsync(bytes,ct);}
+        var evidence=new Attachment{EntityType="INSPECTION",EntityId=inspection,FileName="synthetic-defect.png",OriginalFileName="synthetic-defect.png",
+            MimeType="image/png",FileSizeBytes=bytes.Length,StorageKey=name,UploadedBy=actor,UploadedAt=DateTime.UtcNow};
+        db.Attachments.Add(evidence);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.inspection_defect_attachments(defect_id,attachment_id) SELECT defect_id,{evidence.AttachmentId} FROM dbo.inspection_defects WHERE inspection_id={inspection}",ct);
+    }
+    internal static void CleanupEvidenceFiles()
+    {
+        foreach(var path in ownedFiles)File.Delete(path);
+        ownedFiles.Clear();
+    }
     // Invoked only after the exact instance/database/GUID/run guard in SprintApproveFixture.
     internal static async Task SeedAsync(HotelOpsDbContext db,long actor,long cleaner,long branch,CancellationToken ct)
     {
@@ -31,6 +52,8 @@ internal static class SprintReworkFixture
             """,ct);
         await SprintReworkAuthorityFixture.CleanupAsync(db,inspection,ct);
         await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE l FROM dbo.inspection_defect_attachments l JOIN dbo.inspection_defects d ON d.defect_id=l.defect_id WHERE d.inspection_id={inspection};
+            DELETE dbo.attachments WHERE entity_type='INSPECTION' AND entity_id={inspection};
             DELETE d FROM dbo.cleaning_rework_defects d JOIN dbo.cleaning_reworks r ON r.rework_id=d.rework_id WHERE r.inspection_id={inspection};
             DELETE dbo.cleaning_reworks WHERE inspection_id={inspection};
             DELETE a FROM dbo.shift_assignments a JOIN dbo.work_shifts s ON s.shift_id=a.shift_id WHERE s.branch_id={branch} AND a.user_id={cleaner};
@@ -39,5 +62,6 @@ internal static class SprintReworkFixture
             UPDATE dbo.users SET department_id=NULL WHERE user_id={cleaner};
             DELETE dbo.departments WHERE branch_id={branch} AND department_code='HK';
             """,ct);
+        CleanupEvidenceFiles();
     }
 }

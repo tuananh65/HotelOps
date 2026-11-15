@@ -40,6 +40,7 @@ internal static class SprintApprovalBrowserProbe
                           SELECT inspection_id,checklist_item_id,'Synthetic rejection defect','OPEN' FROM dbo.inspection_results WHERE inspection_id={inspection};
                         UPDATE dbo.room_inspections SET workflow_status='PENDING_CONCLUSION' WHERE inspection_id={inspection};
                         """,ct);
+                if(rework)await SprintReworkFixture.SeedEvidenceAsync(db,actor,inspection,ct);
                 var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==actor,ct);
                 var hash=new PasswordHasher<User>().HashPassword(user,password);
                 await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET password_hash={hash} WHERE user_id={actor}",ct);
@@ -150,6 +151,8 @@ internal static class SprintApprovalBrowserProbe
                         await SprintAssignedReworkProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
                         checks.Add(new{blocked,committedAcceptStart=true,receiveReplay=true,changedRequestKeyDenied=true,
                             noWorkdayRollback=true,busyStartDenied=true,startAuditRollback=true,concurrentStartOneInterval=true,executionSchemaRestored=true});
+                        checks.Add(new{blocked,restrictedReceiveBrowser=true,defectPhotoHttps=true,receiveCsrfEtag=true,receiveAcceptStartHttps=true,
+                            receiveReload=true,receiveReplayHttps=true,receiveEffectiveReadiness=true,restrictedRoleCleanup=true});
                         checks.Add(new{blocked,assigneeInboxBrowser=true,inboxReloadPersistence=true,notificationSourceHttps=true,privilegedDetailFailClosed=true});
                         await SprintReworkCreationProbe.VerifyAsync(db,actor,password,branch,inspection,cleaner,created.ReworkId,ct);
                         checks.Add(new{blocked,reworkCreateAuditRollback=true,reworkCreateConcurrency=true,oneOpenRework=true});
@@ -196,6 +199,7 @@ internal static class SprintApprovalBrowserProbe
             {
                 if(committed){await using var cleanup=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,CancellationToken.None);await Cleanup(CancellationToken.None);await cleanup.CommitAsync(CancellationToken.None);}
                 db.ChangeTracker.Clear();
+                if(rework)SprintReworkFixture.CleanupEvidenceFiles();
             }
             if(await db.Users.AnyAsync(ct)||await db.Rooms.AnyAsync(ct)||await db.RoomBlocks.AnyAsync(ct)||await db.AuditLogs.AnyAsync(ct)||await db.Notifications.AnyAsync(ct))
                 throw new Exception("Approval fixture cleanup failed");

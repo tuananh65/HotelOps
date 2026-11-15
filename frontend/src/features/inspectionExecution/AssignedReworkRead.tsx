@@ -27,6 +27,10 @@ export function AssignedReworkRead() {
   const lifetime = useRef<AbortController | null>(null);
   const writing = useRef(false);
   const [busy, setBusy] = useState(false);
+  const [saved, setSaved] = useState<{
+    owner: typeof owner;
+    source: string;
+  } | null>(null);
   const [result, setResult] = useState<{
     owner: typeof owner;
     key: string;
@@ -100,8 +104,10 @@ export function AssignedReworkRead() {
           isCurrent: () => currentOwner.current === owner,
         },
       );
-      if (!scope.signal.aborted && currentOwner.current === owner)
+      if (!scope.signal.aborted && currentOwner.current === owner) {
+        setSaved({ owner, source: `${branch}:${id}` });
         setRevision((v) => v + 1);
+      }
     } catch (error) {
       if (!scope.signal.aborted && currentOwner.current === owner) {
         setResult({
@@ -135,6 +141,11 @@ export function AssignedReworkRead() {
       </button>
       {owner && !visible && <p role="status">Loading rework...</p>}
       {visible?.error && <p role="alert">{visible.error}</p>}
+      {visible?.data &&
+        saved?.owner === owner &&
+        saved.source === `${branch}:${id}` && (
+          <p role="status">Rework has been saved successfully.</p>
+        )}
       {busy && <p role="status">Saving rework...</p>}
       {visible?.data && (
         <>

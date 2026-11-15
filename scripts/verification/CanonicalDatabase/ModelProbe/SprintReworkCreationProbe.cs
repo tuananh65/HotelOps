@@ -37,7 +37,7 @@ internal static class SprintReworkCreationProbe
             var identity=new Identity(new(actor,sid,false));
             var service=new RoomTypeCreationService(context,identity,new PermissionService(identity,new EfPermissionDataSource(context),new UnresolvedPermissionResourceResolver(),TimeProvider.System),
                 new SqlSessionService(context,new SessionRevocationService(context),TimeProvider.System),TimeProvider.System);
-            return (await service.RequestCleaningReworkAsync(ticket,sid,branch,inspection,tag,request,ct)).Status;
+            return (await service.RequestCleaningReworkAsync(ticket,sid,branch,inspection,tag,request,ct,SprintReworkFixture.EvidenceRoot)).Status;
         }
         async Task<string> Snapshot()=>string.Join(":",await db.Database.SqlQueryRaw<int>("""
             SELECT COUNT(*) AS Value FROM dbo.cleaning_reworks

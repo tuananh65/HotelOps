@@ -52,7 +52,7 @@ internal static class SprintReworkAuthorityProbe
                 {
                     if(await db.Database.SqlQueryRaw<int>("SELECT HAS_PERMS_BY_NAME('dbo.fs016_rework_source_proofs','OBJECT','INSERT')+HAS_PERMS_BY_NAME('dbo.fs016_rework_source_proofs','OBJECT','UPDATE')+HAS_PERMS_BY_NAME('dbo.fs016_rework_source_proofs','OBJECT','DELETE') AS Value").SingleAsync(ct)!=0)
                         throw new Exception("Reader may forge authority");
-                    var proof=await (Task<ReworkAuthorityProof?>)read.Invoke(service,[scenario=="unauthorized" ? 0L : cleaner,branch,rework,null,ct])!;
+                    var proof=await (Task<ReworkAuthorityProof?>)read.Invoke(service,[scenario=="unauthorized" ? 0L : cleaner,branch,rework,SprintReworkFixture.EvidenceRoot,ct])!;
                     if((proof!=null)!=(scenario=="committed"))throw new Exception("Committed authority mismatch: "+scenario);
                     if(proof!=null)
                     {

@@ -10,7 +10,7 @@ using Microsoft.Data.SqlClient;
 
 internal static class SprintReworkExecutionProbe
 {
-    internal static async Task VerifyAsync(HotelOpsDbContext db,SessionReference ticket,long sid,long branch,long id,CancellationToken ct)
+    internal static async Task VerifyAsync(HotelOpsDbContext db,SessionReference ticket,long sid,long branch,long id,CancellationToken ct,string username,string password)
     {
         var actor=ticket.UserId;
         if(await db.Database.SqlQueryRaw<int>("""
@@ -65,7 +65,7 @@ internal static class SprintReworkExecutionProbe
                 var identity=new Identity(new(actor,sid,false));
                 var service=new RoomTypeCreationService(context,identity,new PermissionService(identity,new EfPermissionDataSource(context),new UnresolvedPermissionResourceResolver(),TimeProvider.System),
                     new SqlSessionService(context,new SessionRevocationService(context),TimeProvider.System),TimeProvider.System);
-                return await service.ExecuteAssignedReworkAsync(ticket,sid,branch,id,action,tag,operation.ToString("D"),new(note),null,ct);
+                return await service.ExecuteAssignedReworkAsync(ticket,sid,branch,id,action,tag,operation.ToString("D"),new(note),SprintReworkFixture.EvidenceRoot,ct);
             }
             finally{await context.Database.ExecuteSqlRawAsync("REVERT",ct);await context.Database.CloseConnectionAsync();}
         }
@@ -74,6 +74,7 @@ internal static class SprintReworkExecutionProbe
             var room=await db.CleaningReworks.Where(w=>w.ReworkId==id).Select(w=>w.CleaningTask.RoomId).SingleAsync(ct);
             var now=DateTime.UtcNow;
             var expectedReadiness=await db.RoomBlocks.AnyAsync(b=>b.RoomId==room&&b.BlockedAt<=now&&(b.ReleasedAt==null||b.ReleasedAt>now),ct)?"BLOCKED":"REWORK_REQUIRED";
+            await SprintReworkHttpsProbe.VerifyAsync(db,actor,branch,id,username,password,expectedReadiness,ct);
             var before=await Tag();var acceptKey=Guid.NewGuid();
             if((await Call("start",before,Guid.NewGuid())).Status!=RoomTypeBatchStatus.Inactive)throw new Exception("Start bypassed acceptance");
             var accepted=await Call("accept",before,acceptKey);

@@ -63,13 +63,13 @@ internal static class SprintAssignedReworkProbe
             await db.Database.ExecuteSqlRawAsync("EXECUTE AS USER='DEV3_AssignedReworkReader'",ct);
             try
             {
-                var result=await service.ReadAssignedReworkAsync(ticket,sid,branch,rework,null,ct);
+                var result=await service.ReadAssignedReworkAsync(ticket,sid,branch,rework,SprintReworkFixture.EvidenceRoot,ct);
                 if(result.Status!=RoomTypeBatchStatus.Success||result.Value is not ReworkExecutionDto dto||dto.AssigneeId!=cleaner
                     ||dto.Capability!="READ_ONLY"||dto.SourceAuthority!="FE05_COMMITTED_V1"||dto.Defects.Count!=1)
                     throw new Exception("Assigned committed read failed: "+result.Status);
-                if((await service.ReadAssignedReworkAsync(ticket,sid,branch,rework,null,ct,long.MaxValue)).Status!=RoomTypeBatchStatus.NotFound)
+                if((await service.ReadAssignedReworkAsync(ticket,sid,branch,rework,SprintReworkFixture.EvidenceRoot,ct,long.MaxValue)).Status!=RoomTypeBatchStatus.NotFound)
                     throw new Exception("Unrelated evidence disclosed");
-                if((await service.ReadAssignedReworkAsync(ticket,sid,long.MaxValue,rework,null,ct)).Status==RoomTypeBatchStatus.Success)
+                if((await service.ReadAssignedReworkAsync(ticket,sid,long.MaxValue,rework,SprintReworkFixture.EvidenceRoot,ct)).Status==RoomTypeBatchStatus.Success)
                     throw new Exception("Wrong branch source disclosed");
             }
             finally{await db.Database.ExecuteSqlRawAsync("REVERT",ct);await db.Database.CloseConnectionAsync();}
@@ -78,13 +78,13 @@ internal static class SprintAssignedReworkProbe
             {
                 try{await inbox.ResolveSourceAsync(notice.NotificationId,ct);throw new Exception("Revoked source link disclosed");}
                 catch(HotelOps.Api.Services.Insights.InsightException){}
-                if((await service.ReadAssignedReworkAsync(ticket,sid,branch,rework,null,ct)).Status==RoomTypeBatchStatus.Success)
+                if((await service.ReadAssignedReworkAsync(ticket,sid,branch,rework,SprintReworkFixture.EvidenceRoot,ct)).Status==RoomTypeBatchStatus.Success)
                     throw new Exception("Revoked reader disclosed source");
             }
             finally{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.user_branch_access SET revoked_at=NULL WHERE user_id={cleaner}",ct);}
         }
         finally{await db.Database.ExecuteSqlRawAsync("DROP USER DEV3_AssignedReworkReader",ct);}
-        await SprintReworkExecutionProbe.VerifyAsync(db,ticket,sid,branch,rework,ct);
+        await SprintReworkExecutionProbe.VerifyAsync(db,ticket,sid,branch,rework,ct,user.Username,secret);
     }
     private sealed class Identity(CurrentUserInfo value):ICurrentUserAccessor
     {public bool TryGetCurrentUser(out CurrentUserInfo user){user=value;return true;}}
