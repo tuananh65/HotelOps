@@ -209,6 +209,7 @@ export function NotificationCenter() {
                       <h2>{row.title}</h2>
                       {[
                         "REWORK_ASSIGNED",
+                        "REWORK_SUBMITTED",
                         "REINSPECTION_PASSED",
                         "INSPECTION_FAILED",
                         "REINSPECTION_ASSIGNED",
@@ -217,12 +218,14 @@ export function NotificationCenter() {
                           disabled={!!operation?.busy}
                           onClick={() => void openSource(row.id)}
                         >
-                          {[
-                            "INSPECTION_FAILED",
-                            "REINSPECTION_ASSIGNED",
-                          ].includes(row.type)
-                            ? "Open inspection"
-                            : "Open rework"}
+                          {row.type === "REWORK_SUBMITTED"
+                            ? "Assign reinspection"
+                            : [
+                                  "INSPECTION_FAILED",
+                                  "REINSPECTION_ASSIGNED",
+                                ].includes(row.type)
+                              ? "Open inspection"
+                              : "Open rework"}
                         </button>
                       )}
                       <p>{row.message}</p>

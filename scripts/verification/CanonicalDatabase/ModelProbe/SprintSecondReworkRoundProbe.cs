@@ -53,14 +53,14 @@ internal static class SprintSecondReworkRoundProbe
                 || await db.AuditLogs.CountAsync(a => a.ActorUserId == executor && a.EntityType == "cleaning_reworks" && a.EntityId == secondRework.ToString(), ct) != 3
                 || await db.Database.SqlQuery<string>($"SELECT workflow_status AS Value FROM dbo.cleaning_reworks WHERE rework_id={secondRework}").SingleAsync(ct) != "PENDING_REINSPECTION")
                 throw new Exception("Second round submission/interval/audit persistence mismatch");
-            await SprintReworkSubmissionDeliveryProbe.VerifyAsync(db, executor, branch, secondRework, ct);
+            var submittedNotice = await SprintReworkSubmissionDeliveryProbe.VerifyAsync(db, executor, branch, secondRework, ct, retain: true);
             var assigned = await Browser("sprintReinspectionAssignmentBrowser.mjs", new { username = supervisor.Username, password = inspectorPassword,
-                actor = inspector, branch, rework = secondRework, conclude = false, outcome = "PASS", nextRound = false, executor }, ct);
+                actor = inspector, branch, rework = secondRework, notification = submittedNotice, conclude = false, outcome = "PASS", nextRound = false, executor }, ct);
             var secondInspection = assigned.GetProperty("inspection").GetInt64();
             await SprintReinspectionNoticeProbe.VerifyAsync(db, inspector, branch, secondInspection, inspectorPassword, ct, initial: true);
             await Browser("sprintReinspectionAssignmentBrowser.mjs", new { username = supervisor.Username, password = inspectorPassword,
                 actor = inspector, branch, rework = secondRework, conclude = true, outcome = "PASS", nextRound = false,
-                existingInspection = secondInspection, executor }, ct);
+                existingInspection = secondInspection, notification = submittedNotice, executor }, ct);
             if (await db.Database.SqlQuery<int>($"""
                 SELECT COUNT(*) AS Value FROM dbo.fe05_reinspection_bindings_v1 b
                 JOIN dbo.fe05_reinspection_bindings_v1 prior ON prior.inspection_id=b.original_inspection_id
@@ -79,6 +79,7 @@ internal static class SprintSecondReworkRoundProbe
                 throw new Exception("Second Passed did not preserve the exact Failed history and cycle binding");
             await SprintReinspectionExecutorProbe.VerifyAsync(db, executorTicket, executorSid, branch, secondRework, ct, browser: true);
             await SprintReinspectionNoticeProbe.VerifyAsync(db, inspector, branch, secondInspection, inspectorPassword, ct, initial: false);
+            await SprintSubmissionNoticeSourceProbe.OpenAsync(db, inspector, submittedNotice, branch, secondRework, ct, denied: true);
         }
         finally
         {

@@ -1,0 +1,25 @@
+# FASTTRACK-142A checkpoint 58: submission inbox to reinspection assignment
+
+New COMPLETE_VERIFIED UCs: **0**. Total remains **8 COMPLETE_VERIFIED / 136 PARTIAL**. This removes a concrete navigation gap in the UC036-to-UC041 handoff; initial inspection assignment/reassignment and all UC041 acceptance are still incomplete.
+
+## Product change
+
+Previously, a supervisor received the committed REWORK_SUBMITTED notification, but its source resolver returned 404 and the inbox offered no assignment action. The inbox now offers **Assign reinspection**. Source resolution checks a current delivered inbox item, exact producer/time and unique matching submission audit, registered writer/module digest, protected committed receipt, source identities, current cycle and Pending Reinspection state. Current branch HK_SUPERVISOR eligibility and INSPECTION_VIEW are checked again. The existing delivery verifier is shared with navigation; serializable held reads protect the source, and delivery retains its eligibility/audit locks and transactional deduplication. Active room/floor/area are required consistently with the target options API.
+
+The resolver returns only `/inspections/reworks/{rework}/assign?branchId={branch}`. Stored ActionUrl is ignored; the frontend rejects external URLs, extra parameters and unsafe identifiers. The target API independently validates source/evidence and capabilities; the link grants no permission and does not bypass missing runtime setup. INSPECTION_PERFORM, checklist eligibility, separation of duties, CSRF, ETag and explicit confirmation remain unchanged. Reopening the submission notification after assignment shows the existing inspection. After conclusion, the actionable submission source returns 404; terminal viewing uses the separately verified assignment/Passed notification.
+
+## Direct verification
+
+- `checkpoint58-submitted-assignment-e2e.json`: PASS for normal and blocked rooms. Repeats C57's committed Failed-to-second-Passed composition and now enters the second assignment through the actual supervisor inbox button. The same submission link opens again after assignment, exposes the existing inspection and cannot create a duplicate. Browser concludes Passed, reloads terminal views and verifies private evidence. The earlier Failed history, interval/audit, blocked-readiness and cleanup assertions still pass.
+- New SQL/service source checks use current real fixture sessions: branch revocation, lost supervisor role, malformed audit, disabled submission writer, undelivered notification and substituted producer all deny access; a malicious stored URL cannot alter the canonical destination. The old submission source is denied after the second conclusion. Existing submission delivery fault/revocation/concurrent retry checks are rerun. Worker delivery is explicitly invoked; hosted scheduling is not claimed.
+- Backend solution and ModelProbe build: PASS, **0 compiler warnings/errors**. One newly introduced nullable warning was fixed before final build/runtime. Actual backend regression: **542 PASS / 11 SKIP / 0 FAIL**. Solution-level `dotnet test` exits 0 but the solution has no test project.
+- Frontend typecheck/production build: PASS. Auth/Router, assignment client, execution route and notification source: **61 PASS / 0 FAIL**. Browser-script syntax checks pass. npm ci and the full frontend suite were not rerun; lockfile unchanged.
+- `checkpoint58-cleanup-final.txt`: independently verifies exact disposable identity, zero synthetic rows/private files, absent trial writers/bindings/principals/fault CHECKs, enabled original projection guards and trusted original rework CHECK. All owned runtime hosts stopped.
+
+Known warnings remain: EF unmapped-index warnings, Vite use-client directives and a 676.83 kB chunk, and esbuild import.meta/IIFE test warning. No downgrade or security relaxation was used. No shared database, schema, generated entity, migration or permission catalog changed.
+
+## Remaining work and continuation
+
+UC041 initial assignment is a legacy service endpoint with no canonical active assignment UI; the separate frontend candidate is disabled and its candidate backend is not present in this source. Do not enable that frontend flag and claim completion. Initial assignment needs current actor/cycle authority, concurrency/receipt/notification integration and its actual acceptance flow. Reassignment and published-version compatibility also remain. UC048 still needs full history filtering/paging and later-cycle acceptance. Continue these business workflows, then FE11/FE13 and UC006/010; the sprint remains active.
+
+Initial local/remote SHA: `ebf3bd450c89b084b8179b1a4862805d36413b13`. Canonical branch: `integration/dev1-dev2-dev3-unblock-20261114`. Product files: NotificationCenterService, shared ReworkSubmittedNotificationSource/Delivery, inbox API/UI. Verification files: notification source client tests, submission/assignment browser scripts, submission source probe and composed hooks, plus decision58/matrix/evidence. Normal commit/push follows final changed-path and remote-HEAD checks.

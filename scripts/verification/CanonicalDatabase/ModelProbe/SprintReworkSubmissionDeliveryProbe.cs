@@ -9,7 +9,7 @@ using HotelOps.Api.Entities;
 
 internal static class SprintReworkSubmissionDeliveryProbe
 {
-    internal static async Task VerifyAsync(HotelOpsDbContext db,long actor,long branch,long rework,CancellationToken ct)
+    internal static async Task<long> VerifyAsync(HotelOpsDbContext db,long actor,long branch,long rework,CancellationToken ct,bool retain=false)
     {
         var audit=await db.Database.SqlQuery<long>($"""
             SELECT audit_id AS Value FROM dbo.audit_logs WHERE actor_user_id={actor} AND entity_type='cleaning_reworks'
@@ -36,6 +36,7 @@ internal static class SprintReworkSubmissionDeliveryProbe
         var notice=await db.Notifications.AsNoTracking().SingleAsync(n=>n.NotificationType=="REWORK_SUBMITTED"&&n.SourceId==rework,ct);
         var recipients=await db.NotificationRecipients.AsNoTracking().Where(n=>n.NotificationId==notice.NotificationId).Select(n=>n.UserId).ToArrayAsync(ct);
         if(!recipients.Order().SequenceEqual(supervisors.Order()))throw new Exception("Submission supervisor delivery missing/duplicated/unauthorized");
+        await SprintSubmissionNoticeSourceProbe.VerifyAsync(db,supervisors[0],notice.NotificationId,branch,rework,audit,ct);
         var supervisor=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==supervisors[0],ct);
         var secret=Convert.ToBase64String(RandomNumberGenerator.GetBytes(32))+"Aa1!";
         var hash=new PasswordHasher<User>().HashPassword(supervisor,secret);
@@ -47,7 +48,7 @@ internal static class SprintReworkSubmissionDeliveryProbe
             using var process=Process.Start(start)??throw new Exception("Supervisor inbox browser unavailable");
             try
             {
-                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=supervisor.Username,password=secret,notification=notice.NotificationId}).AsMemory(),ct);process.StandardInput.Close();
+                await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username=supervisor.Username,password=secret,notification=notice.NotificationId,branch,rework}).AsMemory(),ct);process.StandardInput.Close();
                 var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);
                 await process.WaitForExitAsync(ct);var result=JsonSerializer.Deserialize<JsonElement>(await output);await errors;
                 if(process.ExitCode!=0||!result.GetProperty("success").GetBoolean())throw new Exception("Submitted supervisor inbox: "+result.GetRawText());
@@ -56,7 +57,11 @@ internal static class SprintReworkSubmissionDeliveryProbe
         }
         finally{await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.users SET password_hash={supervisor.PasswordHash} WHERE user_id={supervisor.UserId}",CancellationToken.None);}
         // Restore only this synthetic occurrence before the independent SQL submission suite.
-        await db.NotificationRecipients.Where(n=>n.NotificationId==notice.NotificationId).ExecuteDeleteAsync(ct);
-        await db.Notifications.Where(n=>n.NotificationId==notice.NotificationId).ExecuteDeleteAsync(ct);
+        if(!retain)
+        {
+            await db.NotificationRecipients.Where(n=>n.NotificationId==notice.NotificationId).ExecuteDeleteAsync(ct);
+            await db.Notifications.Where(n=>n.NotificationId==notice.NotificationId).ExecuteDeleteAsync(ct);
+        }
+        return notice.NotificationId;
     }
 }

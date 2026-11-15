@@ -31,6 +31,12 @@ test("source resolver uses current session and only accepts canonical rework/his
     "/inspection-history/9?branchId=2",
   );
   for (const path of [
+    "/inspections/reworks/0/assign?branchId=2",
+    "/inspections/reworks/9/assign?branchId=0",
+    "/inspections/reworks/9007199254740992/assign?branchId=2",
+    "/inspections/reworks/9/assign?branchId=9007199254740992",
+    "/inspections/reworks/9/assign?branchId=2&next=evil",
+    "/inspections/reworks/9/assign?branchId=2&branchId=3",
     "/reinspections/0/9/execution",
     "/reinspections/2/0/execution",
     "/reinspections/2/9007199254740992/execution",
@@ -57,6 +63,12 @@ test("source resolver uses current session and only accepts canonical rework/his
   assert.equal(
     await resolveInboxSource(7, abort.signal),
     "/reinspections/2/9/execution",
+  );
+  globalThis.fetch = async () =>
+    Response.json({ path: "/inspections/reworks/9/assign?branchId=2" });
+  assert.equal(
+    await resolveInboxSource(7, abort.signal),
+    "/inspections/reworks/9/assign?branchId=2",
   );
 });
 test("source denial is not retried or replaced with a stored action URL", async () => {

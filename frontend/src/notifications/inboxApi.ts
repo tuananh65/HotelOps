@@ -103,6 +103,9 @@ export async function resolveInboxSource(
     ) ??
     /^\/reinspections\/([1-9][0-9]*)\/([1-9][0-9]*)\/execution$/.exec(
       data.path,
+    ) ??
+    /^\/inspections\/reworks\/([1-9][0-9]*)\/assign\?branchId=([1-9][0-9]*)$/.exec(
+      data.path,
     );
   if (!ids || !ids.slice(1).every((id) => Number.isSafeInteger(Number(id))))
     throw new Error("Invalid notification source");

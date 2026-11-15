@@ -88,6 +88,20 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             await tx.CommitAsync(ct);
             return new($"/reinspections/{proof.BranchId}/{proof.InspectionId}/execution");
         }
+        if(source is {NotificationType:ReworkSubmittedNotificationSource.Kind,SourceType:"CLEANING_REWORK",SourceId:>0})
+        {
+            var audits=await db.AuditLogs.FromSqlInterpolated($"""
+                SELECT * FROM dbo.audit_logs WHERE entity_type='cleaning_reworks' AND action='UPDATE'
+                  AND entity_id=CONVERT(nvarchar(50),{source.SourceId.Value})
+                  AND JSON_VALUE(CASE WHEN ISJSON(new_values)=1 THEN new_values ELSE N'[]' END,'$.contract')='FE04_REWORK_SUBMISSION_V1'
+                """).AsNoTracking().ToArrayAsync(ct);
+            if(audits.Length!=1||audits[0].ActorUserId!=source.CreatedBy||audits[0].OccurredAt!=source.CreatedAt
+                ||await ReworkSubmittedNotificationSource.VerifyAsync(db,audits[0],ct)!="VALID"
+                ||!(await InspectionFailureRecipients.SupervisorsAsync(db,audits[0].BranchId!.Value,now,ct)).Contains(user))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/inspections/reworks/{source.SourceId.Value}/assign?branchId={audits[0].BranchId!.Value}");
+        }
         if(source is not {NotificationType:"REWORK_ASSIGNED" or "REINSPECTION_PASSED",SourceType:"CLEANING_REWORK",SourceId:>0})
             throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
         var branch=await db.CleaningReworks.AsNoTracking().Where(w=>w.ReworkId==source.SourceId&&w.AssigneeUserId==user

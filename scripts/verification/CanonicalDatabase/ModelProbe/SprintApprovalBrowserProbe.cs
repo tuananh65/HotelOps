@@ -177,7 +177,7 @@ internal static class SprintApprovalBrowserProbe
                             submissionDisabledIssuerDenied=true,submissionSchemaRestored=true,submissionHttps=true,
                             submissionPerDefectForm=true,submissionPhotoHttps=true,submissionReload=true,submissionCsrfEtag=true,
                             submissionDeliveryRollback=true,submissionDeliveryRevocation=true,submissionDeliveryDeduplicated=true,
-                            submissionSupervisorInboxHttps=true,submissionSupervisorSourceFailClosed=true});
+                            submissionSupervisorInboxHttps=true,submissionSupervisorSourceVerified=true,submissionSourceRevocationTamperDenied=true});
                         checks.Add(new{blocked,assignmentNoticeDeliveryAndBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE")=="1",
                             assignmentNoticeTerminalBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_ASSIGNMENT_NOTICE")=="1",
                             exactReinspectionAssignmentSql=true,assignmentStaleDenied=true,
@@ -198,6 +198,8 @@ internal static class SprintApprovalBrowserProbe
                             secondRoundReinspectionPassedBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND")=="1",
                             secondRoundClosedIntervalAndAudit=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND")=="1",
                             secondRoundNotificationsAndTerminalBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND")=="1",
+                            submittedInboxToAssignmentBrowser=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND")=="1",
+                            submittedSourceDeniedAfterConclusion=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND")=="1",
                             firstFailedHistoryPreservedAfterSecondPassed=Environment.GetEnvironmentVariable("DEV3_REINSPECTION_COMPLETE_NEXT_ROUND")=="1",
                             originalInspectionScopedRead=true,
                             rejectSourceAfterTerminalLifecycle=rejectionAcceptance,

@@ -10,10 +10,16 @@ try {
   const origin = "https://localhost:7143";
   const destination = `/inspections/reworks/${fixture.rework}/assign?branchId=${fixture.branch}`;
   const api = `/api/branches/${fixture.branch}/reworks/${fixture.rework}`;
-  await page.goto(origin + destination); await page.waitForURL("**/login?*");
+  await page.goto(origin + (fixture.notification ? "/notifications" : destination)); await page.waitForURL("**/login?*");
   await page.getByLabel("Username or email").fill(fixture.username);
   await page.getByLabel("Password", { exact: true }).fill(fixture.password); fixture.password = "";
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  if (fixture.notification) {
+    stage = "submitted notification to assignment";
+    await page.waitForURL(origin + "/notifications");
+    const row = page.getByRole("listitem").filter({ has: page.getByRole("button", { name: `Mark notification ${fixture.notification} as read`, exact: true }) });
+    await row.getByRole("button", { name: "Assign reinspection", exact: true }).click();
+  }
   stage = "return to assignment";
   await page.waitForURL(origin + destination);
   stage = "assignment options";
