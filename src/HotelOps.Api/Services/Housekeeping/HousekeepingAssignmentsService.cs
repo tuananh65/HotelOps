@@ -77,8 +77,9 @@ public sealed partial class RoomTypeCreationService
             var row = await db.CleaningTasks.AsNoTracking().SingleOrDefaultAsync(t => t.CleaningTaskId == task && ids.Contains(t.RoomId), token);
             if (row == null) return new(RoomTypeBatchStatus.NotFound);
             var state = await CleaningState(task, token);
-            if (state.State != "PENDING_INSPECTION" && !await db.Database.SqlQuery<int>($"SELECT CONVERT(int,rework_id) AS [Value] FROM dbo.cleaning_reworks WHERE cleaning_task_id={task} AND workflow_status={"PENDING_REINSPECTION"}").AnyAsync(token))
-                return new(RoomTypeBatchStatus.Inactive);
+            if (await db.Database.SqlQuery<long>($"SELECT rework_id AS [Value] FROM dbo.cleaning_reworks WHERE cleaning_task_id={task} AND workflow_status={"PENDING_REINSPECTION"}").AnyAsync(token))
+                return LifecycleFailure(RoomTypeBatchStatus.Unavailable, "EXACT_REWORK_ASSIGNMENT_REQUIRED");
+            if (state.State != "PENDING_INSPECTION") return new(RoomTypeBatchStatus.Inactive);
             if (await db.CleaningAssignments.AnyAsync(a => a.CleaningTaskId == task && a.AssigneeUserId == input.InspectorId && a.AssignmentStatus != "CANCELLED", token)
                 || await db.CleaningProgressLogs.AnyAsync(p => p.CleaningTaskId == task && p.LoggedBy == input.InspectorId, token)
                 || await db.CleaningReworks.AnyAsync(r => r.CleaningTaskId == task && r.AssigneeUserId == input.InspectorId, token)) return new(RoomTypeBatchStatus.InvalidReference);

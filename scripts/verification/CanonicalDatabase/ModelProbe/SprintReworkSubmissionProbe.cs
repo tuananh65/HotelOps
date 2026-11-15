@@ -142,6 +142,7 @@ internal static class SprintReworkSubmissionProbe
             if((await Call(Guid.NewGuid(),body)).Status!=RoomTypeBatchStatus.Stale)throw new Exception("Old submission ETag reused");
             if(!await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id} AND remediation_note='Defect remedied' AND remediated_by={actor}").AnyAsync(n=>n==defects.Length,ct))
                 throw new Exception("Remediation attribution missing");
+            await SprintReinspectionAssignmentProbe.VerifyAsync(db,branch,id,commit,ct);
         }
         finally
         {

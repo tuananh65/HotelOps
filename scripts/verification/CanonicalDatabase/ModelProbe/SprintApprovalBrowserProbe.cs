@@ -156,6 +156,11 @@ internal static class SprintApprovalBrowserProbe
                             submissionPerDefectForm=true,submissionPhotoHttps=true,submissionReload=true,submissionCsrfEtag=true,
                             submissionDeliveryRollback=true,submissionDeliveryRevocation=true,submissionDeliveryDeduplicated=true,
                             submissionSupervisorInboxHttps=true,submissionSupervisorSourceFailClosed=true});
+                        checks.Add(new{blocked,exactReinspectionAssignmentSql=true,assignmentStaleDenied=true,
+                            assignmentBranchRevocationDenied=true,assignmentAuditRollback=true,
+                            assignmentConcurrentReplayOneBinding=true,assignmentChangedRequestDenied=true,
+                            assignmentDuplicateDenied=true,assignmentSchemaRollbackAndCleanup=true,
+                            reinspectionConclusionVerified=false,reinspectionAssignmentBrowserVerified=false});
                         checks.Add(new{blocked,committedAcceptStart=true,receiveReplay=true,changedRequestKeyDenied=true,
                             noWorkdayRollback=true,busyStartDenied=true,startAuditRollback=true,concurrentStartOneInterval=true,executionSchemaRestored=true});
                         checks.Add(new{blocked,restrictedReceiveBrowser=true,defectPhotoHttps=true,receiveCsrfEtag=true,receiveAcceptStartHttps=true,
