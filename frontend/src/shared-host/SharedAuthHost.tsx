@@ -13,6 +13,7 @@ import { BranchStructureTree } from "../hotel/BranchStructureTree";
 import { AuditPage } from "../audit/AuditPage";
 import { DashboardPage } from "../insights/DashboardPage";
 import { ReportsPage, ReportAccessLink } from "../insights/ReportsPage";
+import { InternalRequestHistoryPage, InternalRequestAccessLink } from "../internalRequests/HistoryPage";
 import { AssignUserRoleFlowBoundary } from "../users/AssignUserRoleFlowBoundary";
 import { ActivateUserFlowBoundary } from "../users/ActivateUserFlowBoundary";
 import { LoginRoute } from "./LoginRoute";
@@ -64,6 +65,7 @@ export function SharedAuthHost({
   notificationsEnabled = false,
   inspectionExecutionEnabled = false,
   operationalTasksEnabled = false,
+  internalRequestsEnabled = false,
 }: {
   checklistEnabled?: boolean;
   usersReadEnabled?: boolean;
@@ -75,9 +77,11 @@ export function SharedAuthHost({
   notificationsEnabled?: boolean;
   inspectionExecutionEnabled?: boolean;
   operationalTasksEnabled?: boolean;
+  internalRequestsEnabled?: boolean;
 } = {}) {
   return (
     <Routes>
+      {internalRequestsEnabled && <Route path="/internal-requests" element={<Protected><InternalRequestHistoryPage /></Protected>} />}
       {dashboardEnabled && <Route path="/reports" element={<Protected><ReportsPage /></Protected>} />}
       {(notificationsEnabled || inspectionExecutionEnabled) && (
         <Route
@@ -275,6 +279,7 @@ export function SharedAuthHost({
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}
             {dashboardEnabled && <Link to="/dashboard">Dashboard</Link>}
             {dashboardEnabled && <ReportAccessLink />}
+            {internalRequestsEnabled && <InternalRequestAccessLink />}
             {operationalTasksEnabled && (
               <Link to="/operational-tasks">Operational tasks</Link>
             )}

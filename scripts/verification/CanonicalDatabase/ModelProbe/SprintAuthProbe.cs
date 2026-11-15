@@ -98,7 +98,7 @@ internal static class SprintAuthProbe
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (dashboard) await SprintDashboardScenario.RunAsync(db, http, user.UserId, checks, ct);
             if (reports && Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_READ")=="1")
-                await SprintInternalRequestReadScenario.RunAsync(db,http,user.UserId,checks,ct);
+                await SprintInternalRequestReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password);
             if (reports) await SprintReportApiScenario.RunAsync(db,http,user.UserId,checks,ct,name,password);
             if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password,taskCriteria,taskResume,taskEntry,taskSubmissionReceipt!=null,taskVerification,taskDecline);
             await Check(HttpMethod.Post, "/api/auth/logout", 400);

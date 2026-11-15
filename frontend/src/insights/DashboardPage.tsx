@@ -1,5 +1,6 @@
 import { DashboardFilters } from "./DashboardFilters";
 import { ReportAccessLink } from "./ReportsPage";
+import { InternalRequestAccessLink } from "../internalRequests/HistoryPage";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
@@ -74,6 +75,7 @@ export function DashboardPage() {
       <h1>Operations dashboard</h1>
       <nav>
         <ReportAccessLink />{" "}
+        <InternalRequestAccessLink />{" "}
         <Link to="/users">Users</Link> <Link to="/hotel">Structure</Link>{" "}
         <Link to="/rooms/status">Room status board</Link>{" "}
         <Link to="/notifications">Notifications</Link>{" "}

@@ -1,0 +1,297 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071186,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 403"
+    },
+    {
+      "internalRequestReadCheck": "catalog seed idempotent"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 200"
+    },
+    {
+      "internalRequestReadCheck": "requester and current handler see exactly related requests"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/92/timeline: 404"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/93/timeline: 404"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests?branchId=70951: 403"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/91/timeline: 200"
+    },
+    {
+      "internalRequestBrowser": {
+        "success": true,
+        "mode": "related",
+        "checks": [
+          "authorized current assignment rendered from persisted request timeline",
+          "empty search and inaccessible request remain safe",
+          "logout clears access and protected route returns to login"
+        ]
+      }
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/91/timeline: 200"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/91/timeline: 404"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests?pageSize=2: 200"
+    },
+    {
+      "internalRequestReadCheck": "DH branch scope precedes count and pagination without department inference"
+    },
+    {
+      "internalRequestBrowser": {
+        "success": true,
+        "mode": "manager",
+        "checks": [
+          "branch authorization and SQL pagination render 25 plus 1",
+          "authorized current assignment rendered from persisted request timeline",
+          "empty search and inaccessible request remain safe",
+          "logout clears access and protected route returns to login"
+        ]
+      }
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/91/timeline: 200"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests?branchId=70951: 403"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 403"
+    },
+    {
+      "internalRequestBrowser": {
+        "success": true,
+        "mode": "denied",
+        "checks": [
+          "revoked role hides history and navigation",
+          "logout clears access and protected route returns to login"
+        ]
+      }
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 200"
+    },
+    {
+      "internalRequestReadCheck": "Operations Manager scoped read"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 200"
+    },
+    {
+      "internalRequestReadCheck": "Administrator explicit scoped grant"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests/93/timeline: 404"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests?pageSize=101: 400"
+    },
+    {
+      "internalRequestReadCheck": "/api/internal-requests: 403"
+    },
+    {
+      "internalRequestReadCheck": "read endpoints leave business status unchanged"
+    },
+    {
+      "internalRequestReadCleanup": true
+    },
+    {
+      "reportCheck": "catalog DEPT_MANAGER actually has REPORT_VIEW"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER options denied despite REPORT_VIEW"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER preview denied"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER export denied before snapshot lookup"
+    },
+    {
+      "reportCheck": "DEPT_MANAGER XLSX denied despite REPORT_VIEW"
+    },
+    {
+      "reportBrowser": {
+        "success": true,
+        "mode": "denied",
+        "checks": [
+          "DEPT_MANAGER with REPORT_VIEW cannot open reports or see report navigation",
+          "browser session logout persisted via CSRF-protected endpoint"
+        ],
+        "exports": []
+      }
+    },
+    {
+      "reportCheck": "OWNER REPORT_VIEW options accepted alongside denied role"
+    },
+    {
+      "reportCheck": "report preview requires CSRF"
+    },
+    {
+      "reportCheck": "authorized preview materializes scoped task"
+    },
+    {
+      "exportStatus": 200
+    },
+    {
+      "reportCheck": "CSV exports exact frozen preview after source change"
+    },
+    {
+      "reportCheck": "CSV export audit committed before delivery"
+    },
+    {
+      "reportCheck": "XLSX requires CSRF"
+    },
+    {
+      "reportCheck": "XLSX exports frozen snapshot after source changed"
+    },
+    {
+      "reportCheck": "XLSX audit records actual format"
+    },
+    {
+      "reportCheck": "revoked allowed role prevents export of owned cached snapshot"
+    },
+    {
+      "reportCheck": "revoked role prevents XLSX export"
+    },
+    {
+      "reportCheck": "denied export creates no success audit"
+    },
+    {
+      "reportBrowser": {
+        "success": true,
+        "mode": "owner",
+        "checks": [
+          "26 persisted task rows paginate 25 plus 1 without changing snapshot",
+          "real canonical preview and CSV download preserve snapshot, filters and partial indicator disclosure",
+          "editing filters invalidates old preview; empty snapshot remains exportable with headers",
+          "eligible actor sees report navigation",
+          "browser session logout persisted via CSRF-protected endpoint"
+        ],
+        "exports": [
+          "f68fe73ed72d4545b7a91264bea4b2c5",
+          "9b739297640c46dda6d581f92689543c"
+        ]
+      }
+    },
+    {
+      "reportCheck": "browser CSV and XLSX export each have a persisted audit: owner"
+    },
+    {
+      "reportCheck": "browser CSV and XLSX export each have a persisted audit: owner"
+    },
+    {
+      "reportCheck": "browser session revoked on logout: owner"
+    },
+    {
+      "reportBrowser": {
+        "success": true,
+        "mode": "operations-manager",
+        "checks": [
+          "26 persisted task rows paginate 25 plus 1 without changing snapshot",
+          "real canonical preview and CSV download preserve snapshot, filters and partial indicator disclosure",
+          "editing filters invalidates old preview; empty snapshot remains exportable with headers",
+          "eligible actor sees report navigation",
+          "browser session logout persisted via CSRF-protected endpoint"
+        ],
+        "exports": [
+          "efa91b79450741019cfbf0a8b62f2526",
+          "a06957000bf24bfabbbafb76d7819ef9"
+        ]
+      }
+    },
+    {
+      "reportCheck": "browser CSV and XLSX export each have a persisted audit: operations-manager"
+    },
+    {
+      "reportCheck": "browser CSV and XLSX export each have a persisted audit: operations-manager"
+    },
+    {
+      "reportCheck": "browser session revoked on logout: operations-manager"
+    },
+    {
+      "reportCheck": "browser previews and CSV leave synthetic business rows unchanged"
+    },
+    {
+      "reportFixtureCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": true,
+  "scope": "Real HTTPS/SQL and canonical browser report actor restriction, preview snapshot, CSV admission/audit and revocation; detailed RPT indicators remain partial"
+}

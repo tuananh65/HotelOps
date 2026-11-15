@@ -1,5 +1,9 @@
 # DEV3 approved FASTTRACK-142A decisions
 
+## Business workflow acceleration (leader directive during checkpoint88)
+
+Keep the original deadline2026-11-16T17:50Z and current worktree; reconcile remote without resetting. Prioritize near-complete related UCs, then FE13 UC123/114/116/115/117/118/120, FE11 UC102/105/111 and actual UC006/010 public operations, FE14/15 core acceptance, then high-readiness remaining modules. Use60-120-minute workflow batches and proportional focused verification; reuse established infrastructure. Missing authority/status contracts must fail closed while independent work continues. No artificial COMPLETE_VERIFIED upgrades or documentation-only checkpoints. Track new completed UCs, demonstrated workflows, exact gaps, runtime/regression and time remaining. Original SQL/Git/security boundaries remain; direct canonical commit/push is reaffirmed.
+
 ## JOB06: user decision at checkpoint84 — ARCHIVE BEFORE PURGE
 
 User explicitly selected OPTION 2: design archive/retention before purging audit older than365 days; preserve task submission/verification/reopen receipt history, provenance and integrity. No cascade, FK/trigger disabling or receipt deletion. Archive needs explicit access and finite personal-data retention policy. Prepare migration and verify on disposable SQL before any schema/storage change; never mutate shared/production DB. When safe archival is unavailable, JOB06 must skip referenced rows, record the blocker and continue independent work. This supersedes the pending retention question from checkpoint82. [Design and unexecuted acceptance gates](../verification/DEV3-FASTTRACK-142A/JOB06_ARCHIVE_DESIGN.md).

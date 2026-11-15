@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintInternalRequestReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db, HttpClient http, long actor, List<object> checks, CancellationToken ct)
+    internal static async Task RunAsync(HotelOpsDbContext db, HttpClient http, long actor, List<object> checks, CancellationToken ct, string username, string password)
     {
         // Called only after SprintAuthProbe's exact disposable identity and empty-fixture checks.
         var prefix = "D3IR" + Guid.NewGuid().ToString("N")[..8];
@@ -38,7 +38,7 @@ internal static class SprintInternalRequestReadScenario
                 new Department{BranchId=branch,DepartmentCode=prefix+"B",DepartmentName="Synthetic B",IsActive=true}};
             db.Departments.AddRange(departments);await db.SaveChangesAsync(ct);
             db.UserBranchAccesses.Add(new(){UserId=actor,BranchId=branch,GrantedAt=DateTime.UtcNow.AddMinutes(-1)});
-            var rows=Enumerable.Range(0,4).Select(i=>new InternalRequest {RequestNo=prefix+i,BranchId=i==3?wrong:branch,
+            var rows=Enumerable.Range(0,27).Select(i=>new InternalRequest {RequestNo=prefix+i,BranchId=i==3?wrong:branch,
                 RequestTypeId=type.RequestTypeId,RequesterId=i==0?actor:other.UserId,ReceivingDepartmentId=i==3?null:departments[0].DepartmentId,
                 Subject="Synthetic history "+i,Description="Synthetic only",Status="SUBMITTED",CreatedAt=DateTime.UtcNow,DueAt=DateTime.UtcNow.AddHours(i-2)}).ToArray();
             db.InternalRequests.AddRange(rows);await db.SaveChangesAsync(ct);ids=rows.Select(r=>r.InternalRequestId).ToArray();
@@ -60,26 +60,29 @@ internal static class SprintInternalRequestReadScenario
             await Get($"/api/internal-requests/{ids[2]}/timeline",404);await Get($"/api/internal-requests/{ids[3]}/timeline",404);
             await Get($"/api/internal-requests?branchId={wrong}",403);
             await Get($"/api/internal-requests/{ids[1]}/timeline");
+            checks.Add(new { internalRequestBrowser = await SprintInternalRequestBrowser.RunAsync(username,password,ids[1],ids[3],"related",ct) });
             await db.InternalRequests.Where(r=>r.InternalRequestId==ids[1]).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReceivingDepartmentId,departments[1].DepartmentId),ct);
             await Get($"/api/internal-requests/{ids[1]}/timeline");
             await db.InternalRequestAssignments.Where(a=>a.InternalRequestId==ids[1]).ExecuteUpdateAsync(s=>s.SetProperty(a=>a.EndedAt,DateTime.UtcNow),ct);
             await Get($"/api/internal-requests/{ids[1]}/timeline",404);
             await Role("DEPT_MANAGER","BRANCH");
             var manager=await Get("/api/internal-requests?pageSize=2");
-            Check(manager.GetProperty("totalCount").GetInt32()==3&&manager.GetProperty("items").GetArrayLength()==2,"DH branch scope precedes count and pagination without department inference");
+            Check(manager.GetProperty("totalCount").GetInt32()==26&&manager.GetProperty("items").GetArrayLength()==2,"DH branch scope precedes count and pagination without department inference");
+            checks.Add(new { internalRequestBrowser = await SprintInternalRequestBrowser.RunAsync(username,password,ids[1],ids[3],"manager",ct) });
             await Get($"/api/internal-requests/{ids[1]}/timeline");
             await Get($"/api/internal-requests?branchId={wrong}",403);
             await db.UserRoles.Where(r=>r.UserId==actor).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.IsActive,false),ct);
             await Get("/api/internal-requests",403);
+            checks.Add(new { internalRequestBrowser = await SprintInternalRequestBrowser.RunAsync(username,password,ids[1],ids[3],"denied",ct) });
             await Role("OPERATIONS_MANAGER","BRANCH");
-            Check((await Get("/api/internal-requests")).GetProperty("totalCount").GetInt32()==3,"Operations Manager scoped read");
+            Check((await Get("/api/internal-requests")).GetProperty("totalCount").GetInt32()==26,"Operations Manager scoped read");
             await Role("SYS_ADMIN","BRANCH");
-            Check((await Get("/api/internal-requests")).GetProperty("totalCount").GetInt32()==3,"Administrator explicit scoped grant");
+            Check((await Get("/api/internal-requests")).GetProperty("totalCount").GetInt32()==26,"Administrator explicit scoped grant");
             await Get($"/api/internal-requests/{ids[3]}/timeline",404);
             await Get("/api/internal-requests?pageSize=101",400);
             await db.RolePermissions.Where(p=>addedGrants.Contains(p.RolePermissionId)).ExecuteDeleteAsync(ct);
             await Get("/api/internal-requests",403);
-            Check(await db.InternalRequests.CountAsync(r=>ids.Contains(r.InternalRequestId)&&r.Status=="SUBMITTED",ct)==4,"read endpoints leave business status unchanged");
+            Check(await db.InternalRequests.CountAsync(r=>ids.Contains(r.InternalRequestId)&&r.Status=="SUBMITTED",ct)==27,"read endpoints leave business status unchanged");
         }
         finally
         {

@@ -14,6 +14,7 @@ export function AuthRouteHost() {
       notificationsEnabled
       inspectionExecutionEnabled
       operationalTasksEnabled
+      internalRequestsEnabled
     />
   );
 }
