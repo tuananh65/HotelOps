@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../auth/AuthProvider";
+import { InternalRequestAssignmentPanel } from "./AssignmentPanel";
 
 interface DecisionView {
   requestId: number; subject: string; description: string; status: string;
@@ -83,6 +84,7 @@ export function InternalRequestDecisionPanel({ id }: { id: number }) {
       <h3>{view.subject}</h3><p>{view.description}</p><p>Status: {view.status}</p>
       <p>Submitted: {view.submittedAt}; age: {Math.floor(view.ageSeconds / 60)} minutes.</p>
       <p>Deadline (UTC): {view.deadline ?? "No deadline"}</p>
+      {(view.status === "ACCEPTED" || view.status === "IN_PROGRESS") && <InternalRequestAssignmentPanel id={id} />}
       {view.canDecide && <div aria-busy={busy}>
         <label>Decision reason<input value={reason} maxLength={4000} disabled={busy} onChange={e => setReason(e.target.value)} /></label>
         <label>Adjusted deadline (UTC)<input type="datetime-local" value={deadline} disabled={busy} onChange={e => setDeadline(e.target.value)} /></label>

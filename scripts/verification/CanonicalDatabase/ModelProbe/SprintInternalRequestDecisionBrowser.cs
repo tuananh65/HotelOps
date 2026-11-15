@@ -11,7 +11,7 @@ internal static class SprintInternalRequestDecisionBrowser
         var output=process.StandardOutput.ReadToEndAsync(ct);var errors=process.StandardError.ReadToEndAsync(ct);
         try
         {
-            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,request,accept}));process.StandardInput.Close();
+            await process.StandardInput.WriteAsync(JsonSerializer.Serialize(new{username,password,request,accept,assign=accept&&Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_ASSIGNMENT")=="1"}));process.StandardInput.Close();
             await process.WaitForExitAsync(ct);var result=JsonSerializer.Deserialize<JsonElement>(await output);_=await errors;
             if(process.ExitCode!=0||!result.GetProperty("success").GetBoolean())throw new Exception("Decision browser failed at "+result.GetProperty("stage").GetString());
             return result;

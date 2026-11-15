@@ -52,6 +52,8 @@ builder.Services.AddScoped<HotelOps.Api.Services.Insights.ReportService>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestReadAccess>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestProcessAuthority>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestDecisionService>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestAssignmentService>();
+builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestAssignmentDelivery>();
 builder.Services.AddScoped<HotelOps.Api.Services.InternalRequests.InternalRequestDecisionDelivery>();
 builder.Services.AddOptions<HotelOps.Api.Services.InternalRequests.InternalRequestNotificationOptions>()
     .BindConfiguration("InternalRequestNotifications").Validate(o=>o.PollSeconds is >=1 and <=3600).ValidateOnStart();

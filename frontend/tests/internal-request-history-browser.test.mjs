@@ -13,7 +13,8 @@ before(async () => { browser = await chromium.launch({ executablePath: "C:/Progr
 after(async () => browser?.close());
 async function fixture(run) {
   const page = await browser.newPage();
-  const state = { session: 200, history: 200, decision: 200, canDecide:true, decisionPosts:0, postStatus:200, hold:false, release:null };
+  page.setDefaultTimeout(10000);
+  const state = { session: 200, history: 200, decision: 200, canDecide:true, decisionPosts:0, postStatus:200, hold:false, release:null, assignmentPosts:0, assignmentStatus:200 };
   await page.route("**/*", async route => {
     const request = route.request(), path = new URL(request.url()).pathname;
     const json = (data, status=200) => route.fulfill({ status, contentType: "application/json", body: JSON.stringify(data) });
@@ -30,6 +31,14 @@ async function fixture(run) {
       }
       return json({requestId:1,subject:"PRIVATE DECISION",description:"PRIVATE DESCRIPTION",status:"PENDING_ACCEPTANCE",
         submittedAt:"2026-11-16T00:00:00Z",deadline:null,ageSeconds:60,version:"AAAAAAAAAAA=",canDecide:state.canDecide},state.decision);
+    }
+    if (path === "/api/internal-requests/1/assignment") {
+      if(request.method()==="POST") {
+        state.assignmentPosts++; assert.equal(request.headers()["if-match"],'"AAAAAAAAAAE="');
+        assert.equal(request.headers()["x-csrf-token"],"test");
+        return json({requestId:1,status:"IN_PROGRESS",version:"AAAAAAAAAAI="},state.assignmentStatus);
+      }
+      return json({requestId:1,status:"ACCEPTED",version:"AAAAAAAAAAE=",handlerId:null,handlers:[{userId:42,name:"Eligible Handler",openRequests:2}]});
     }
     if (path === "/api/internal-requests/options") return json({ statuses: ["SUBMITTED"], types: [], priorities: [], departments: [] }, state.history);
     if (path === "/api/internal-requests/1/timeline") return json({requestId:1,events:[],eventTotalCount:0,assignments:[],assignmentTotalCount:0,feedback:null},state.history);
@@ -100,4 +109,24 @@ test("read access without processing authority exposes no decision action",async
   await panel.getByText("PRIVATE DESCRIPTION",{exact:true}).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Accept request",exact:true}).count(),0);
   assert.equal(await panel.getByRole("button",{name:"Reject request",exact:true}).count(),0);
+}));
+
+test("accept offers assignment; stale assign clears form without replay",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  await page.getByRole("button",{name:"Accept request",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Assign request handler",exact:true});
+  await panel.getByLabel("Request handler",{exact:true}).selectOption("42");state.assignmentStatus=412;
+  await panel.getByRole("button",{name:"Assign request handler",exact:true}).click();
+  await panel.getByRole("status").filter({hasText:"Request changed"}).waitFor();
+  assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Request handler",{exact:true}).count(),0);
+}));
+
+test("accepted request assignment succeeds with ETag and CSRF then requires fresh load",async()=>fixture(async(page,state)=>{
+  await page.getByRole("button",{name:"IR1",exact:true}).click();
+  await page.getByRole("button",{name:"Accept request",exact:true}).click();
+  const panel=page.getByRole("region",{name:"Assign request handler",exact:true});
+  await panel.getByLabel("Request handler",{exact:true}).selectOption("42");
+  await panel.getByRole("button",{name:"Assign request handler",exact:true}).evaluate(b=>{b.click();b.click();});
+  await panel.getByRole("status").filter({hasText:"MSG08: Handler assigned"}).waitFor();
+  assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Request handler",{exact:true}).count(),0);
 }));

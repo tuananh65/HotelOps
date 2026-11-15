@@ -16,6 +16,7 @@ internal static class SprintInternalRequestDecisionScenario
     internal static async Task RunAsync(HotelOpsDbContext db,long actor,long request,List<object> checks,CancellationToken ct,string? username=null,string? password=null)
     {
         var original=await db.InternalRequests.AsNoTracking().SingleAsync(r=>r.InternalRequestId==request,ct);
+        var originalDepartment=await db.Users.Where(u=>u.UserId==actor).Select(u=>u.DepartmentId).SingleAsync(ct);
         var credential=SessionCredential.Generate();var now=DateTime.UtcNow;
         var session=new UserSession{UserId=actor,SessionKeyHash=SessionCredential.Hash(credential),CreatedAt=now,ExpiresAt=now.AddMinutes(20)};
         var trigger="TR_DEV3_IRDecision_"+Guid.NewGuid().ToString("N");var installed=false;
@@ -29,9 +30,14 @@ internal static class SprintInternalRequestDecisionScenario
         }
         async Task ClearDecisions()
         {
-            var notices=await db.Notifications.Where(n=>n.SourceType=="INTERNAL_REQUEST_DECISION"
+            var notices=await db.Notifications.Where(n=>(n.SourceType=="INTERNAL_REQUEST_DECISION"||n.SourceType=="INTERNAL_REQUEST_ASSIGNMENT")
                 &&db.InternalRequestEvents.Any(e=>e.InternalRequestId==request&&e.EventId==n.SourceId)).Select(n=>n.NotificationId).ToArrayAsync(CancellationToken.None);
             await db.Database.ExecuteSqlInterpolatedAsync($"DELETE o FROM dbo.internal_request_decision_outbox o JOIN dbo.internal_request_events e ON e.event_id=o.event_id WHERE e.internal_request_id={request}",CancellationToken.None);
+            if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_ASSIGNMENT")=="1")
+            {
+                await db.Database.ExecuteSqlInterpolatedAsync($"DELETE o FROM dbo.internal_request_assignment_outbox o JOIN dbo.internal_request_events e ON e.event_id=o.event_id WHERE e.internal_request_id={request}",CancellationToken.None);
+                await db.InternalRequestAssignments.Where(a=>a.InternalRequestId==request).ExecuteDeleteAsync(CancellationToken.None);
+            }
             await db.NotificationRecipients.Where(r=>notices.Contains(r.NotificationId)).ExecuteDeleteAsync(CancellationToken.None);
             await db.Notifications.Where(n=>notices.Contains(n.NotificationId)).ExecuteDeleteAsync(CancellationToken.None);
             await db.InternalRequestEvents.Where(e=>e.InternalRequestId==request).ExecuteDeleteAsync(CancellationToken.None);
@@ -69,6 +75,8 @@ internal static class SprintInternalRequestDecisionScenario
             if(await db.RolePermissions.AnyAsync(g=>g.RoleId==managerRole.RoleId&&g.PermissionId==readPermission.PermissionId,ct))throw new Exception("Do not overwrite pre-existing IR_VIEW grant");
             var grant=new RolePermission{RoleId=managerRole.RoleId,PermissionId=readPermission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow};
             db.RolePermissions.Add(grant);await db.SaveChangesAsync(ct);viewGrant=grant.RolePermissionId;db.ChangeTracker.Clear();
+            if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_ASSIGNMENT")=="1")
+                await SprintInternalRequestAssignmentScenario.RunAsync(db,actor,request,ticket,session.SessionId,checks,ct);
             Check((await delivery.PendingAsync(0,100,ct)).Contains(accepted.EventId),"committed decision intent is discoverable for retry");
             Check(await delivery.DeliverAsync(accepted.EventId,ct)=="DELIVERED"&&await delivery.DeliverAsync(accepted.EventId,ct)=="ALREADY_DELIVERED","requester notification delivery is idempotent");
             var notice=await db.Notifications.SingleAsync(n=>n.SourceType=="INTERNAL_REQUEST_DECISION"&&n.SourceId==accepted.EventId,ct);db.ChangeTracker.Clear();
@@ -79,7 +87,7 @@ internal static class SprintInternalRequestDecisionScenario
             Check(sourceDenied,"revoked IR_VIEW denies opening historical decision notification");
             var stale=false;try{await service.DecideAsync(ticket,session.SessionId,request,version,new(false,"Stale decision",null),ct);}catch(InternalRequestReadException e)when(e.Status==412){stale=true;}
             Check(stale,"stale version cannot overwrite accepted decision");
-            var notPending=false;try{await service.DecideAsync(ticket,session.SessionId,request,Convert.FromBase64String(accepted.Version),new(false,"Duplicate decision",null),ct);}catch(InternalRequestReadException e)when(e.Status==409){notPending=true;}
+            var notPending=false;try{await service.DecideAsync(ticket,session.SessionId,request,await Revision(),new(false,"Duplicate decision",null),ct);}catch(InternalRequestReadException e)when(e.Status==409){notPending=true;}
             Check(notPending,"current version still cannot decide an already accepted request");
             await ClearDecisions();await Pending();version=await Revision();
             var invalid=false;try{await service.DecideAsync(ticket,session.SessionId,request,version,new(false,"  ",null),ct);}catch(ValidationException){invalid=true;}
@@ -112,16 +120,24 @@ internal static class SprintInternalRequestDecisionScenario
                 if(username==null||password==null)throw new Exception("Browser fixture credentials required");
                 var browserGrant=new RolePermission{RoleId=managerRole.RoleId,PermissionId=readPermission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow};
                 db.RolePermissions.Add(browserGrant);await db.SaveChangesAsync(ct);viewGrant=browserGrant.RolePermissionId;db.ChangeTracker.Clear();
+                var assignBrowser=Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_ASSIGNMENT")=="1";
+                if(assignBrowser)await db.Users.Where(u=>u.UserId==actor).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,original.ReceivingDepartmentId),ct);
                 foreach(var accept in new[]{true,false})
                 {
                     await ClearDecisions();await Pending();
                     checks.Add(new{internalRequestDecisionBrowser=await SprintInternalRequestDecisionBrowser.RunAsync(username,password,request,accept,ct)});
-                    var committed=await db.InternalRequestEvents.AsNoTracking().SingleAsync(e=>e.InternalRequestId==request,ct);
+                    var committed=await db.InternalRequestEvents.AsNoTracking().SingleAsync(e=>e.InternalRequestId==request&&(e.EventType=="ACCEPT"||e.EventType=="REJECT"),ct);
                     Check(committed.NewStatus==(accept?"ACCEPTED":"REJECTED")&&committed.ActorId==actor
-                        &&await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==request&&r.Status==committed.NewStatus,ct)
+                        &&await db.InternalRequests.AnyAsync(r=>r.InternalRequestId==request&&r.Status==(assignBrowser&&accept?"IN_PROGRESS":committed.NewStatus),ct)
                         &&await db.AuditLogs.AnyAsync(a=>a.EntityType=="internal_requests"&&a.EntityId==request.ToString()&&a.ActorUserId==actor,ct),
                         "browser decision state event and audit persisted in SQL");
                     Check(await delivery.DeliverAsync(committed.EventId,ct)=="DELIVERED","browser decision produces deliverable requester intent");
+                    if(assignBrowser&&accept)
+                    {
+                        var assigned=await db.InternalRequestEvents.AsNoTracking().SingleAsync(e=>e.InternalRequestId==request&&e.EventType=="ASSIGN",ct);
+                        Check(await db.InternalRequestAssignments.AnyAsync(a=>a.InternalRequestId==request&&a.AssigneeId==actor&&a.Status=="ACTIVE",ct),"browser Accept to Assign persists handler and In Progress");
+                        Check(await new InternalRequestAssignmentDelivery(db,TimeProvider.System,Options.Create(new NotificationCenterOptions())).DeliverAsync(assigned.EventId,actor,ct)=="DELIVERED","browser assignment intent delivers after commit");
+                    }
                 }
             }
         }
@@ -132,6 +148,7 @@ internal static class SprintInternalRequestDecisionScenario
             if(installed)await ClearDecisions();
             if(viewGrant>0)await db.RolePermissions.Where(g=>g.RolePermissionId==viewGrant).ExecuteDeleteAsync(CancellationToken.None);
             if(createdPermission)await db.Permissions.Where(p=>p.PermissionCode=="IR_VIEW").ExecuteDeleteAsync(CancellationToken.None);
+            await db.Users.Where(u=>u.UserId==actor).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,originalDepartment),CancellationToken.None);
             await db.InternalRequests.Where(r=>r.InternalRequestId==request).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.Status,original.Status)
                 .SetProperty(r=>r.SubmittedAt,original.SubmittedAt).SetProperty(r=>r.DueAt,original.DueAt).SetProperty(r=>r.UpdatedAt,original.UpdatedAt),CancellationToken.None);
             if(session.SessionId>0)await db.UserSessions.Where(s=>s.SessionId==session.SessionId).ExecuteDeleteAsync(CancellationToken.None);

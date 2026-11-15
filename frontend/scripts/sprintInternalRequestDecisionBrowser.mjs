@@ -45,6 +45,29 @@ try{
   await panel.getByText(`Status: ${fixture.accept?"ACCEPTED":"REJECTED"}`,{exact:true}).waitFor();
   assert.equal(await panel.getByRole("button",{name:"Accept request",exact:true}).count(),0);
   checks.push(`${fixture.accept?"Accept with adjusted deadline":"Reject with required reason"} persisted; stale retry denied; reload shows committed state`);
+  if(fixture.assign){
+    stage="assign accepted request";
+    const assignment=page.getByRole("region",{name:"Assign request handler",exact:true});
+    const select=assignment.getByLabel("Request handler",{exact:true});await select.waitFor();
+    const option=await select.locator('option:not([value=""])').first().getAttribute("value");assert.ok(option);
+    const assignmentPath=`/api/internal-requests/${fixture.request}/assignment`;
+    const loaded=await page.evaluate(async p=>(await fetch(p)).json(),assignmentPath);
+    const guards=await page.evaluate(async({p,v,h})=>{
+      const csrf=await(await fetch("/api/auth/csrf")).json();
+      const post=async headers=>(await fetch(p,{method:"POST",headers:{"Content-Type":"application/json",...headers},body:JSON.stringify({handlerId:Number(h),note:null})})).status;
+      return [await post({"If-Match":`"${v}"`}),await post({"X-CSRF-TOKEN":csrf.csrfToken})];
+    },{p:assignmentPath,v:loaded.version,h:option});assert.deepEqual(guards,[400,428]);
+    await select.selectOption(option);
+    await assignment.getByRole("button",{name:"Assign request handler",exact:true}).click();
+    await assignment.getByRole("status").filter({hasText:"MSG08: Handler assigned"}).waitFor();
+    const staleAssignment=await page.evaluate(async({p,v,h})=>{
+      const csrf=await(await fetch("/api/auth/csrf")).json();
+      return(await fetch(p,{method:"POST",headers:{"Content-Type":"application/json","X-CSRF-TOKEN":csrf.csrfToken,"If-Match":`"${v}"`},body:JSON.stringify({handlerId:Number(h),note:null})})).status;
+    },{p:assignmentPath,v:loaded.version,h:option});assert.equal(staleAssignment,412);
+    await panel.getByRole("button",{name:"Reload decision",exact:true}).click();
+    await panel.getByText("Status: IN_PROGRESS",{exact:true}).waitFor();
+    checks.push("Accept offers handler assignment; UI assignment commits In Progress; CSRF/version guards and stale retry enforced");
+  }
   stage="logout";await page.goto(origin+"/profile");await page.getByRole("button",{name:"Logout",exact:true}).click();await page.waitForURL(origin+"/login");
   console.log(JSON.stringify({success:true,checks}));
 }catch(error){console.log(JSON.stringify({success:false,stage,errorType:error?.name,checks}));process.exitCode=1;}
