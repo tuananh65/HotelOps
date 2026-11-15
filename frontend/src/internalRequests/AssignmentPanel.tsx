@@ -13,7 +13,7 @@ async function json(path: string, signal: AbortSignal, init?: RequestInit): Prom
   if (!r.headers.get("content-type")?.includes("application/json")) throw new Error("Invalid response");
   return r.json();
 }
-export function InternalRequestAssignmentPanel({ id }: { id: number }) {
+export function InternalRequestAssignmentPanel({ id, onAssigned }: { id: number; onAssigned?: (version: string) => void }) {
   const { state, actions } = useAuth();
   const owner = state.status === "AUTHENTICATED" && state.pending === null && !state.session?.mustChangePassword ? state.authorityGeneration : null;
   const [result, setResult] = useState<{ owner: typeof owner; id: number; view: AssignmentView } | null>(null);
@@ -58,6 +58,7 @@ export function InternalRequestAssignmentPanel({ id }: { id: number }) {
       if (!abort.signal.aborted) {
         setResult(null); setHandler(""); setNote("");
         setMessage("MSG08: Handler assigned. Request is In Progress. Reload handlers before another change.");
+        onAssigned?.(raw.version);
       }
     } catch (e) {
       if (!abort.signal.aborted) {

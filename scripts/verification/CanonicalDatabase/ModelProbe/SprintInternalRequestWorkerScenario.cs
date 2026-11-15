@@ -32,6 +32,12 @@ internal static class SprintInternalRequestWorkerScenario
             var grant=new RolePermission{RoleId=role.RoleId,PermissionId=permission.PermissionId,DataScope="BRANCH",GrantedAt=DateTime.UtcNow};
             db.RolePermissions.Add(grant);await db.SaveChangesAsync(ct);grantId=grant.RolePermissionId;db.ChangeTracker.Clear();
             await db.Users.Where(u=>u.UserId==actor).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.DepartmentId,original.ReceivingDepartmentId),ct);
+            if(Environment.GetEnvironmentVariable("DEV3_VERIFY_IR_LIFECYCLE")=="1")
+            {
+                await Clear();
+                await SprintInternalRequestLifecycleScenario.RunAsync(db,actor,request,username,password,checks,ct);
+                return;
+            }
             foreach(var accept in new[]{true,false})
             {
                 await Clear();

@@ -88,7 +88,10 @@ export function InternalRequestDecisionPanel({ id }: { id: number }) {
       {view.canDecide && <InternalRequestRoutePanel id={id} onRouted={() => {
         setResult(null); setMessage("MSG08: Request routed. Reload decision to check the new department and your current access.");
       }} />}
-      {(view.status === "ACCEPTED" || view.status === "IN_PROGRESS") && <InternalRequestAssignmentPanel id={id} />}
+      {(view.status === "ACCEPTED" || view.status === "IN_PROGRESS") && <InternalRequestAssignmentPanel id={id} onAssigned={version => {
+        setResult(previous => previous?.owner === owner && previous.id === id
+          ? { ...previous, view: { ...previous.view, status: "IN_PROGRESS", version, canDecide: false } } : previous);
+      }} />}
       {view.canDecide && <div aria-busy={busy}>
         <label>Decision reason<input value={reason} maxLength={4000} disabled={busy} onChange={e => setReason(e.target.value)} /></label>
         <label>Adjusted deadline (UTC)<input type="datetime-local" value={deadline} disabled={busy} onChange={e => setDeadline(e.target.value)} /></label>

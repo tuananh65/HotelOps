@@ -1,0 +1,173 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071237,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "departmentAuthorityCheck": "idempotent guarded schema and trusted foreign keys"
+    },
+    {
+      "departmentAuthorityCheck": "existing IR_PROCESS grant has supported scope"
+    },
+    {
+      "departmentAuthorityCheck": "IR_PROCESS and DEPT_MANAGER without mapping deny"
+    },
+    {
+      "departmentAuthorityCheck": "exact current department mapping allows"
+    },
+    {
+      "sourceManagerRoute": {
+        "success": true,
+        "checks": [
+          "Route API enforces CSRF, loaded version and GBR012 reason",
+          "Route remains Pending Acceptance; old manager loses UI and API processing authority"
+        ]
+      }
+    },
+    {
+      "destinationManagerLifecycle": {
+        "success": true,
+        "checks": [
+          "Destination manager receives hosted-worker Route notice and resolves authorized source; assignment requires acceptance",
+          "New manager Accepts, Assigns and Reassigns in canonical UI; immediate In Progress, current handler/workloads and stale-version/lifecycle guards verified",
+          "Canonical history renders all four lifecycle events and ended/current assignment provenance after refresh",
+          "Current handler receives hosted-worker assignment notice and authorized source; IR_VIEW and DEPT_MANAGER grant without mapping cannot reassign"
+        ]
+      }
+    },
+    {
+      "internalRequestLifecycleCheck": "public lifecycle persists Route Accept Assign Reassign in order"
+    },
+    {
+      "internalRequestLifecycleCheck": "each public event retains its actual acting manager"
+    },
+    {
+      "internalRequestLifecycleCheck": "request remains In Progress in the destination department"
+    },
+    {
+      "internalRequestLifecycleCheck": "public reassignment preserves ended assignment and one current handler"
+    },
+    {
+      "internalRequestLifecycleCheck": "all four public operations persist audit"
+    },
+    {
+      "internalRequestLifecycleCheck": "hosted worker delivers exactly seven expected recipient/event receipts without duplicates"
+    },
+    {
+      "internalRequestLifecycleCleanup": true
+    },
+    {
+      "workerBrowserCleanup": true
+    },
+    {
+      "departmentAuthorityCheck": "cross branch denies even requester"
+    },
+    {
+      "departmentAuthorityCheck": "composite FK rejects cross-branch department mapping"
+    },
+    {
+      "departmentAuthorityCheck": "missing schema capability denies"
+    },
+    {
+      "departmentAuthorityCheck": "inactive receiving department denies"
+    },
+    {
+      "departmentAuthorityCheck": "routing rechecks new receiving department"
+    },
+    {
+      "departmentAuthorityCheck": "one manager can explicitly manage multiple departments"
+    },
+    {
+      "departmentAuthorityCheck": "revoked role denies despite mapping"
+    },
+    {
+      "departmentAuthorityCheck": "revoked permission denies despite active mapped role"
+    },
+    {
+      "departmentAuthorityCheck": "inactive actor denies"
+    },
+    {
+      "departmentAuthorityCheck": "authority established in transaction"
+    },
+    {
+      "departmentAuthorityCheck": "concurrent mapping revocation waits for authorized transaction"
+    },
+    {
+      "departmentAuthorityCheck": "concurrent request routing waits for authorized transaction"
+    },
+    {
+      "departmentAuthorityCheck": "authorized data and audit rollback together"
+    },
+    {
+      "departmentAuthorityCheck": "committed mapping revocation denies next transaction"
+    },
+    {
+      "departmentAuthorityCleanup": true
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/logout",
+      "expected": 204,
+      "actual": 204
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "persistedRevocation": true,
+      "auditPresent": true
+    }
+  ],
+  "failure": null,
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": true,
+  "scope": "Canonical browser Accept/Reject through trusted HTTPS and SQL; session, CSRF, ETag, decision audit and requester intent/delivery"
+}

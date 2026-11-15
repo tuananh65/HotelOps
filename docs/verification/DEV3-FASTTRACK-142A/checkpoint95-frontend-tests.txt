@@ -1,0 +1,23 @@
+✔ refresh denial removes previously visible history (3284.3648ms)
+✔ status filter has an accessible name and sends the selected value (2484.4134ms)
+✔ session revalidation removes request history before login (2474.2811ms)
+✔ request notification deep link loads only the selected authorized timeline and back clears it (7033.7916ms)
+✔ decision stale response requires reload without replay or retained details (2535.5677ms)
+✔ decision double click sends once and session loss hides details while request is pending (2620.9498ms)
+✔ read access without processing authority exposes no decision action (2485.5301ms)
+✔ accept offers assignment; stale assign clears form without replay (2549.0875ms)
+✔ accepted request assignment succeeds with ETag and CSRF then requires fresh load (2556.928ms)
+✔ route requires reason then clears old decision authority after committed response (2548.4191ms)
+✔ stale route response hides target options and never replays mutation (2546.3442ms)
+✔ history decoder rejects unsafe IDs, malformed counts and non-UTC dates (0.8854ms)
+✔ timeline decoder binds identity and rejects malformed history (0.1907ms)
+✔ history transport carries cookies, cancellation and no-store without mutations (17.4934ms)
+✔ history return destination requires revalidation and accepts no extra redirect parameters (0.7728ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33862.6023

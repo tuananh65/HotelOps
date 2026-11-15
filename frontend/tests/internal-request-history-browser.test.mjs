@@ -135,6 +135,7 @@ test("accepted request assignment succeeds with ETag and CSRF then requires fres
   await panel.getByLabel("Request handler",{exact:true}).selectOption("42");
   await panel.getByRole("button",{name:"Assign request handler",exact:true}).evaluate(b=>{b.click();b.click();});
   await panel.getByRole("status").filter({hasText:"MSG08: Handler assigned"}).waitFor();
+  await page.getByText("Status: IN_PROGRESS",{exact:true}).waitFor();
   assert.equal(state.assignmentPosts,1);assert.equal(await panel.getByLabel("Request handler",{exact:true}).count(),0);
 }));
 
