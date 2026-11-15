@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintTaskReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false,bool entry=false)
     {
         if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct)||await db.Attachments.AnyAsync(ct))throw new Exception("Empty task/evidence fixture required");
         var evidenceRoot=Path.GetFullPath("TestResults/sprint25-evidence");
@@ -33,20 +33,20 @@ internal static class SprintTaskReadScenario
             db.Departments.AddRange(d1,d2);await db.SaveChangesAsync(ct);department=d1.DepartmentId;
             var rows=Enumerable.Range(0,4).Select(i=>new OperationalTask{TaskCode=prefix+i,Title="Synthetic task "+i,
                 BranchId=i==2?b2.BranchId:b1.BranchId,DepartmentId=i>=2?d2.DepartmentId:d1.DepartmentId,
-                Status=i is 0 or 3?"IN_PROGRESS":"TODO",ActualStartAt=i==0?DateTime.UtcNow.AddMinutes(-5):null,Description="Synthetic description",CreatedBy=actor,CreatedAt=DateTime.UtcNow}).ToArray();
+                Status=i==3 || i==0&&!entry?"IN_PROGRESS":"TODO",ActualStartAt=i==0&&!entry?DateTime.UtcNow.AddMinutes(-5):null,Description="Synthetic description",CreatedBy=actor,CreatedAt=DateTime.UtcNow}).ToArray();
             db.OperationalTasks.AddRange(rows);await db.SaveChangesAsync(ct);tasks=rows.Select(t=>t.TaskId).ToArray();
             var a=new OperationalTaskAssignment{TaskId=tasks[0],AssigneeId=actor,AssignedBy=actor,AssignedAt=DateTime.UtcNow.AddMinutes(-1),AssignmentStatus="ACTIVE"};
             db.OperationalTaskAssignments.Add(a);
             db.OperationalTaskProgresses.AddRange(new OperationalTaskProgress{TaskId=tasks[0],ReportedBy=actor,ReportedAt=DateTime.UtcNow.AddMinutes(-1),ProgressPercent=10,NewStatus="TODO",Description="Earlier synthetic update"},
                 new OperationalTaskProgress{TaskId=tasks[0],ReportedBy=actor,ReportedAt=DateTime.UtcNow,ProgressPercent=20,NewStatus="TODO",Description="Latest synthetic update"});
             await db.SaveChangesAsync(ct);assignment=a.AssignmentId;db.ChangeTracker.Clear();
-            if(!criteria)await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[0]},'IN_PROGRESS')",ct);
+            if(!criteria)await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[0]},{(entry?"ASSIGNED":"IN_PROGRESS")})",ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.task_progress_versions(task_id,workflow_status) VALUES({tasks[3]},'IN_PROGRESS')",ct);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.operational_task_assignments(task_id,assignee_id,assigned_by,assigned_at,assignment_status) VALUES({tasks[3]},{actor},{actor},SYSUTCDATETIME(),'ACTIVE')",ct);
         }
         async Task Cleanup(CancellationToken token)
         {
-            if (resume) await db.Database.ExecuteSqlInterpolatedAsync($"DELETE e FROM dbo.task_pause_events e JOIN dbo.operational_task_progress p ON p.progress_id=e.progress_id WHERE p.reported_by={actor}", token);
+            if (resume || entry) await db.Database.ExecuteSqlInterpolatedAsync($"DELETE e FROM dbo.task_pause_events e JOIN dbo.operational_task_progress p ON p.progress_id=e.progress_id WHERE p.reported_by={actor}", token);
             await db.WorkIntervals.Where(i=>i.UserId==actor && i.WorkItemKind=="TASK" && tasks.Contains(i.WorkItemId)).ExecuteDeleteAsync(token);
             await db.Workdays.Where(d=>d.UserId==actor && branches.Contains(d.BranchId)).ExecuteDeleteAsync(token);
             await db.AuditLogs.Where(a=>a.ActorUserId==actor && a.EntityType=="work_intervals").ExecuteDeleteAsync(token);
@@ -84,6 +84,7 @@ internal static class SprintTaskReadScenario
             var grant=new UserRole{UserId=actor,RoleId=role,BranchId=branches[0],IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-2)};
             db.UserRoles.Add(grant);db.UserBranchAccesses.Add(new(){UserId=actor,BranchId=branches[0],AccessLevel="STANDARD",GrantedAt=DateTime.UtcNow.AddMinutes(-2)});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            if(entry) { await SprintTaskEntryScenario.RunAsync(db,http,actor,branches[0],branches[1],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             if(resume) { await SprintTaskResumeScenario.RunAsync(db,http,actor,branches[0],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             var page=await Get(root,200);if(page.GetProperty("totalCount").GetInt32()!=1||page.GetProperty("items")[0].GetProperty("id").GetInt64()!=tasks[0])throw new Exception("OWN list leaked tasks");
             var detail=await Get(root+"/"+tasks[0]+"?pageSize=1",200);

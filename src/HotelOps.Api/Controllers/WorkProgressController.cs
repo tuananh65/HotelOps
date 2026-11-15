@@ -35,6 +35,12 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
     [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/resume")]
     public Task<IActionResult> ResumeTask(long branch, long id, CancellationToken ct)
         => Execute((ticket, sid) => service.ResumeOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), ct), true);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/accept")]
+    public Task<IActionResult> AcceptTask(long branch, long id, CancellationToken ct)
+        => Execute((ticket, sid) => service.EnterOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), false, ct), true);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/start")]
+    public Task<IActionResult> StartTask(long branch, long id, CancellationToken ct)
+        => Execute((ticket, sid) => service.EnterOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), true, ct), true);
     [HttpGet("api/branches/{branch:long}/cleaning-tasks/{id:long}/progress")]
     public Task<IActionResult> ReadCleaning(long branch, long id, CancellationToken ct) => Progress(branch, id, true, null, ct);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/progress")]
@@ -74,7 +80,9 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
                 RoomTypeBatchStatus.SessionInvalid => 401, RoomTypeBatchStatus.Forbidden => 403, RoomTypeBatchStatus.NotFound => 404,
                 RoomTypeBatchStatus.Stale => 412, RoomTypeBatchStatus.InvalidReference => 400,
                 RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate => 409, _ => 503
-            }, title: result.Status.ToString().ToUpperInvariant());
+            }, title: result.Status.ToString().ToUpperInvariant(), extensions:
+                result.Value is RoomTypeCreationService.TaskEntryFailure { MessageCode: { } code }
+                    ? new Dictionary<string, object?> { ["messageCode"] = code } : null);
         }
         catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
     }

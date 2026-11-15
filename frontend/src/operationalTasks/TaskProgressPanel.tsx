@@ -4,6 +4,7 @@ import type { AuthorityGeneration } from "../auth/authStore";
 import { uploadFile } from "../api/dev1/cleaningProgress";
 import {
   readTaskProgress,
+  enterTask,
   resumeTask,
   pauseTask,
   readPauseReasons,
@@ -89,7 +90,14 @@ export function TaskProgressPanel({
   }, [branch, task, owner, reload, actions]);
   async function save(event: FormEvent) {
     event.preventDefault();
-    if (!current || busy || locked || saving.current) return;
+    if (
+      !current ||
+      !["IN_PROGRESS", "PAUSED"].includes(current.data.state) ||
+      busy ||
+      locked ||
+      saving.current
+    )
+      return;
     saving.current = true;
     const controller = new AbortController();
     active.current = controller;
@@ -203,6 +211,53 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted) setBusy(false);
     }
   }
+  async function enter(action: "accept" | "start") {
+    if (!current || busy || locked || saving.current) return;
+    saving.current = true;
+    const controller = new AbortController();
+    active.current = controller;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const updated = await enterTask(
+        branch,
+        task,
+        current,
+        action,
+        controller.signal,
+      );
+      if (!controller.signal.aborted) {
+        show(updated);
+        setMessage(
+          action === "accept"
+            ? "Task accepted."
+            : "Task started. Working time is now being recorded.",
+        );
+      }
+    } catch (reason) {
+      if (!controller.signal.aborted) {
+        failure(reason);
+        if (
+          reason instanceof TaskProgressError &&
+          reason.messageCode === "MSG30"
+        )
+          setError(
+            "MSG30: Start a working workday before starting this task. Reload to try again.",
+          );
+        else if (
+          reason instanceof TaskProgressError &&
+          reason.messageCode === "MSG31"
+        )
+          setError(
+            "MSG31: Pause, hold or complete your current work item before starting this task. Reload to try again.",
+          );
+      }
+    } finally {
+      saving.current = false;
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
   return (
     <section aria-label="Task progress editor">
       <h3>Update progress</h3>
@@ -212,6 +267,16 @@ export function TaskProgressPanel({
       {busy && <p role="status">Loading or saving progress…</p>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
+      {current?.data.state === "ASSIGNED" && (
+        <button disabled={busy || locked} onClick={() => void enter("accept")}>
+          Accept task
+        </button>
+      )}
+      {current?.data.state === "ACCEPTED" && (
+        <button disabled={busy || locked} onClick={() => void enter("start")}>
+          Start task
+        </button>
+      )}
       {current?.data.state === "IN_PROGRESS" && (
         <section aria-label="Pause task controls">
           <button disabled={busy || locked} onClick={() => void pause(true)}>
@@ -219,7 +284,8 @@ export function TaskProgressPanel({
           </button>
           <label>
             Pause reason
-            <select aria-label="Pause reason"
+            <select
+              aria-label="Pause reason"
               disabled={busy || locked}
               value={reasonId}
               onChange={(e) => setReasonId(Number(e.target.value))}
@@ -278,7 +344,13 @@ export function TaskProgressPanel({
       {current && (
         <form onSubmit={save}>
           <p>Task execution state: {current.data.state}</p>
-          <fieldset disabled={busy || locked}>
+          <fieldset
+            disabled={
+              busy ||
+              locked ||
+              !["IN_PROGRESS", "PAUSED"].includes(current.data.state)
+            }
+          >
             <legend>Progress and completion criteria</legend>
             <label>
               Progress (%)

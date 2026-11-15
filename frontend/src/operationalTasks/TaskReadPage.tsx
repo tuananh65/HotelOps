@@ -159,7 +159,7 @@ export function TaskReadPage() {
               onInitialized={() => setProgressRevision((n) => n + 1)}
             />
           )}
-          {detail.task.status === "IN_PROGRESS" && (
+          {["TODO", "IN_PROGRESS"].includes(detail.task.status) && (
             <TaskProgressPanel
               key={`${owner}:${detail.task.branchId}:${detail.task.id}:${progressRevision}`}
               branch={detail.task.branchId}

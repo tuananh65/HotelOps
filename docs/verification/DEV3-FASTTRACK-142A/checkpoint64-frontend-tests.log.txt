@@ -1,0 +1,31 @@
+✔ accept sends fresh CSRF and exact version, validates committed state (15.968ms)
+✔ start sends fresh CSRF and exact version, validates committed state (0.5348ms)
+✔ entry rejects invalid action, state or version before network (0.5141ms)
+✔ prestart progress is readable but cannot be saved (0.6746ms)
+✔ entry rejects a successful HTTP response without changed state and version (0.8109ms)
+✔ workday and occupied interval errors preserve approved message codes (0.6571ms)
+✔ task response requires exact identity, kind, state, criteria and strong version (17.3138ms)
+✔ paused task is accepted without converting its state (0.4721ms)
+✔ save gets fresh CSRF and sends exact criterion outcome with ETag, no completion request (1.2335ms)
+✔ foreign criteria, duplicates, invalid percent and control text never reach network (0.2851ms)
+✔ invalid CSRF cannot dispatch a write (0.3027ms)
+✔ authority abort after CSRF prevents write (0.3077ms)
+✔ stale and unknown outcomes are never retried (0.5578ms)
+✔ unsafe IDs never reach network (0.1256ms)
+✔ saved evidence must belong to this exact task and use its protected download endpoint (3.6906ms)
+✔ initialization validates definitions before dispatch (0.545ms)
+✔ initialization uses fresh CSRF and validates created task identity (0.4206ms)
+✔ duplicate initialization is not retried (0.3034ms)
+✔ resume binds paused snapshot, fresh CSRF and ETag (0.3739ms)
+✔ resume rejects running state and never retries stale mutation (0.2848ms)
+✔ pause binds reason and note to running snapshot with fresh CSRF and ETag (0.3307ms)
+✔ pause rejects paused snapshot before fetching and does not retry stale write (0.2106ms)
+✔ pause catalog rejects invalid IDs and accepts backend labels (0.2142ms)
+ℹ tests 23
+ℹ suites 0
+ℹ pass 23
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 351.6523

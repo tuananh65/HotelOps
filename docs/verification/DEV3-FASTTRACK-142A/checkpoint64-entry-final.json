@@ -1,0 +1,64 @@
+{
+  "database": "HotelOps_DEV3_142A_20261114_cc78c13f",
+  "fixtureUserId": 1071127,
+  "checks": [
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "GET",
+      "path": "/api/branches/1/operational-tasks",
+      "expected": 401,
+      "actual": 401
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 400,
+      "actual": 400
+    },
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "persistedSession": true
+    },
+    {
+      "method": "GET",
+      "path": "/api/auth/session",
+      "expected": 200,
+      "actual": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/users",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskPath": "/api/branches/70898/operational-tasks",
+      "expected": 403,
+      "actual": 403
+    },
+    {
+      "taskFixtureCleanup": true
+    }
+  ],
+  "failure": "Exception: unauthenticated accept denied",
+  "cleanup": true,
+  "cleanupRequiresDatabaseDrop": false,
+  "success": false,
+  "scope": "Real HTTPS/SQL Accept/Start with browser continuation into progress/pause/resume, first start and interval/audit atomicity; task creation, decline and completion excluded"
+}

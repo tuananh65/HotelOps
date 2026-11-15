@@ -1,5 +1,8 @@
 export class TaskProgressError extends Error {
-  constructor(public readonly status: number) {
+  constructor(
+    public readonly status: number,
+    public readonly messageCode?: string,
+  ) {
     super(`Task progress request failed (${status})`);
   }
 }
@@ -16,7 +19,7 @@ export interface TaskProgress {
   id: number;
   branchId: number;
   kind: "task";
-  state: "IN_PROGRESS" | "PAUSED";
+  state: "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "PAUSED";
   percent: number;
   items: Criterion[];
   evidence: TaskEvidence[];
@@ -65,7 +68,15 @@ async function request(
     redirect: "error",
     signal,
   });
-  if (!response.ok) throw new TaskProgressError(response.status);
+  if (!response.ok) {
+    const problem = await response.json().catch(() => null);
+    throw new TaskProgressError(
+      response.status,
+      ["MSG30", "MSG31"].includes(problem?.messageCode)
+        ? problem.messageCode
+        : undefined,
+    );
+  }
   return response;
 }
 function validate(data: TaskProgress, branch: number, task: number) {
@@ -74,7 +85,7 @@ function validate(data: TaskProgress, branch: number, task: number) {
     data.id !== task ||
     data.branchId !== branch ||
     data.kind !== "task" ||
-    !["IN_PROGRESS", "PAUSED"].includes(data.state) ||
+    !["ASSIGNED", "ACCEPTED", "IN_PROGRESS", "PAUSED"].includes(data.state) ||
     !percent(data.percent) ||
     !Array.isArray(data.items) ||
     data.items.length > 100 ||
@@ -164,6 +175,48 @@ export async function resumeTask(
   );
   if (result.data.state !== "IN_PROGRESS" || result.etag === current.etag)
     throw new Error("Task resume could not be confirmed");
+  return result;
+}
+export async function enterTask(
+  branch: number,
+  task: number,
+  current: TaskProgressSnapshot,
+  action: "accept" | "start",
+  signal: AbortSignal,
+) {
+  validate(current.data, branch, task);
+  if (
+    !["accept", "start"].includes(action) ||
+    !tag(current.etag) ||
+    current.data.state !== (action === "accept" ? "ASSIGNED" : "ACCEPTED")
+  )
+    throw new Error("Invalid task entry transition");
+  const csrf = await (await request("/api/auth/csrf", signal)).json();
+  if (
+    csrf?.headerName !== "X-CSRF-TOKEN" ||
+    typeof csrf.csrfToken !== "string" ||
+    !csrf.csrfToken.trim() ||
+    /[\r\n]/.test(csrf.csrfToken)
+  )
+    throw new Error("Invalid CSRF response");
+  signal.throwIfAborted();
+  const result = await snapshot(
+    await request(
+      path(branch, task).replace(/\/progress$/, `/${action}`),
+      signal,
+      {
+        method: "POST",
+        headers: { "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": current.etag },
+      },
+    ),
+    branch,
+    task,
+  );
+  if (
+    result.data.state !== (action === "accept" ? "ACCEPTED" : "IN_PROGRESS") ||
+    result.etag === current.etag
+  )
+    throw new Error("Task entry could not be confirmed");
   return result;
 }
 export async function pauseTask(
@@ -307,6 +360,7 @@ export async function saveTaskProgress(
   const url = path(branch, task);
   validate(current.data, branch, task);
   if (
+    !["IN_PROGRESS", "PAUSED"].includes(current.data.state) ||
     !tag(current.etag) ||
     !percent(input.percent) ||
     !text(input.note, 4000) ||

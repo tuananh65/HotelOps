@@ -150,6 +150,12 @@ public sealed partial class RoomTypeCreationService
                     if ((await CleaningState(id, token)).State != "IN_PROGRESS"
                         || !await db.CleaningTasks.AnyAsync(t => t.CleaningTaskId == id && t.Status == "IN_PROGRESS" && t.Room.IsActive, token)) return new(RoomTypeBatchStatus.Inactive);
                 }
+                else if (version.State is "ASSIGNED" or "ACCEPTED")
+                {
+                    if (input != null || attachmentId != null || !await TaskEntryInstalled(token)
+                        || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "TODO" && (version.State == "ACCEPTED" || t.ActualStartAt == null) && t.CompletedAt == null, token))
+                        return new(RoomTypeBatchStatus.Inactive);
+                }
                 else if (version.State is not ("IN_PROGRESS" or "PAUSED") || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "IN_PROGRESS", token))
                     return new(RoomTypeBatchStatus.Inactive);
                 if (input != null && expected != WorkflowTag(version.Revision)) return new(RoomTypeBatchStatus.Stale);
