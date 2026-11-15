@@ -1,0 +1,68 @@
+{
+  "clones": [
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_9d41703a",
+      "run": "9d41703aa4d24d01b9d142f285015c5d",
+      "source": "HotelOps_DEV3_142A_20261114_cc78c13f",
+      "backup": "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-9d41703aa4d24d01b9d142f285015c5d\\owned-source.bak",
+      "status": "DROPPED_AND_BACKUP_REMOVED",
+      "databaseGuid": "3f940558-49fc-4fcd-8e81-1123280aa0aa",
+      "dataFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_9d41703a.mdf",
+      "logFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_9d41703a.ldf"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_544ea7d1",
+      "run": "544ea7d10f434ca7846d508bccc38bef",
+      "source": "HotelOps_DEV3_142A_20261114_cc78c13f",
+      "backup": "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-544ea7d10f434ca7846d508bccc38bef\\owned-source.bak",
+      "status": "DROPPED_AND_BACKUP_REMOVED",
+      "databaseGuid": "a392f6d3-492f-42b3-bf5f-ea70c96f8ad3",
+      "dataFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_544ea7d1.mdf",
+      "logFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_544ea7d1.ldf"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_2633b799",
+      "run": "2633b799d4584f4dbd9bb95a10130459",
+      "source": "HotelOps_DEV3_142A_20261114_cc78c13f",
+      "backup": "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-2633b799d4584f4dbd9bb95a10130459\\owned-source.bak",
+      "status": "DROPPED_AND_BACKUP_REMOVED",
+      "databaseGuid": "a4bfd360-b88a-4cd9-abfe-400aba0a8605",
+      "dataFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_2633b799.mdf",
+      "logFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_2633b799.ldf"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_0c4b59bc",
+      "run": "0c4b59bc882040298d6a443d2c6f5fe1",
+      "source": "HotelOps_DEV3_142A_20261114_cc78c13f",
+      "backup": "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-0c4b59bc882040298d6a443d2c6f5fe1\\owned-source.bak",
+      "status": "DROPPED_AND_BACKUP_REMOVED",
+      "databaseGuid": "648a0cce-6c28-4f56-8d67-c01a8c597fa4",
+      "dataFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_0c4b59bc.mdf",
+      "logFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_0c4b59bc.ldf"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_0db698a8",
+      "run": "0db698a8dcb841f088827da187016dc5",
+      "source": "HotelOps_DEV3_142A_20261114_cc78c13f",
+      "backup": "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-0db698a8dcb841f088827da187016dc5\\owned-source.bak",
+      "status": "DROPPED_AND_BACKUP_REMOVED",
+      "databaseGuid": "7cf7fa81-1913-4c79-9d50-ba5b21e87742",
+      "dataFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_0db698a8.mdf",
+      "logFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_0db698a8.ldf"
+    },
+    {
+      "database": "HotelOps_DEV3_142A_CriteriaTrial_7562dfb4",
+      "run": "7562dfb4b24f40c7a3540a88628170b9",
+      "source": "HotelOps_DEV3_142A_20261114_cc78c13f",
+      "backup": "D:\\HotelOps\\HotelOps_Fullstack_Shared\\TestResults\\criteria-clone-7562dfb4b24f40c7a3540a88628170b9\\owned-source.bak",
+      "status": "DROPPED_AND_BACKUP_REMOVED",
+      "databaseGuid": "0f1983d5-35e5-4aa2-99ee-6974522f8202",
+      "dataFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_7562dfb4.mdf",
+      "logFile": "C:\\Program Files\\Microsoft SQL Server\\MSSQL16.MSSQLSERVER\\MSSQL\\DATA\\HotelOps_DEV3_142A_CriteriaTrial_7562dfb4.ldf"
+    }
+  ],
+  "allClonesDropped": true,
+  "remainingOwnedBackups": 0,
+  "privateEvidenceFiles": 0,
+  "httpsListeners": 0
+}

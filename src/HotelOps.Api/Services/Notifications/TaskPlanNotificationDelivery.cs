@@ -1,0 +1,74 @@
+using System.Data;
+using System.Text.Json;
+using HotelOps.Api.Data;
+using HotelOps.Api.Entities;
+using HotelOps.Api.Services.OperationalTasks;
+using HotelOps.Api.Services.Users;
+using Microsoft.EntityFrameworkCore;
+
+namespace HotelOps.Api.Services.Notifications;
+
+internal sealed class TaskPlanNotificationDelivery(HotelOpsDbContext db,TimeProvider clock)
+{
+    internal async Task<long[]> ReadPendingAsync(long after,int limit,CancellationToken ct)
+    {
+        if(limit is <1 or >100)throw new ArgumentOutOfRangeException(nameof(limit));
+        if(!await TaskPlanningStore.InstalledAsync(db,ct))return [];
+        return await db.Database.SqlQuery<long>($"""
+            SELECT TOP({limit}) e.audit_id AS Value FROM dbo.audit_logs e
+            CROSS APPLY(SELECT CASE WHEN ISJSON(e.new_values)=1 THEN e.new_values ELSE N'[]' END AS payload) j
+            WHERE e.audit_id>{after} AND e.entity_type='operational_tasks' AND e.action='UPDATE'
+              AND JSON_VALUE(j.payload,'$.operation') IN('PLAN','CANCEL_TASK')
+              AND EXISTS(SELECT 1 FROM OPENJSON(j.payload,'$.recipients') r
+              WHERE TRY_CONVERT(bigint,r.value)>0 AND NOT EXISTS(SELECT 1 FROM dbo.notifications n
+                JOIN dbo.notification_recipients x ON x.notification_id=n.notification_id
+                WHERE n.notification_type IN('TASK_PLANNED','TASK_CANCELLED') AND n.source_type='TASK_PLAN' AND n.source_id=e.audit_id
+                  AND x.user_id=TRY_CONVERT(bigint,r.value) AND x.delivery_channel='IN_APP' AND x.delivery_status='DELIVERED'))
+            ORDER BY e.audit_id
+            """).ToArrayAsync(ct);
+    }
+    internal async Task<string> DeliverAsync(long progress,CancellationToken ct)
+    {
+        if(db.Database.CurrentTransaction!=null||db.ChangeTracker.Entries().Any()||System.Transactions.Transaction.Current!=null||db.Database.CreateExecutionStrategy().RetriesOnFailure)
+            throw new InvalidOperationException("Independent clean delivery context required");
+        if(!await TaskPlanningStore.InstalledAsync(db,ct))return "SCHEMA_REQUIRED";
+        var hint=await TaskPlanNotificationStore.Query(db).SingleOrDefaultAsync(s=>s.AuditId==progress,ct);
+        if(hint==null)return "SOURCE_DENIED";
+        var recipients=hint.RecipientId is {} recipientId ? new[] { recipientId } : Array.Empty<long>();
+        if(recipients.Any(u=>u<=0)||recipients.Distinct().Count()!=recipients.Length)return "SOURCE_DENIED";
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);
+        await new UserEligibilityLock(db).LockAsync(recipients.Append(hint.ActorId),ct);
+        var row=await TaskPlanNotificationStore.Query(db).SingleOrDefaultAsync(s=>s.AuditId==progress,ct);
+        if(row==null||row.AuditId!=hint.AuditId||row.RecipientId!=hint.RecipientId||row.Operation!=hint.Operation)return "SOURCE_DENIED";
+        var now=clock.GetUtcNow().UtcDateTime;
+        var eligible=new List<long>();
+        foreach(var user in recipients)
+        {
+            if(!await TaskAssignmentEligibility.Candidates(db,row.BranchId,row.DepartmentId,now).AnyAsync(u=>u.UserId==user,ct))continue;
+            // Cancellation notice is generic and does not restore source access.
+            if(row.Operation=="CANCEL_TASK" || await TaskVerificationStore.ExecutorReadAsync(db,user,row.BranchId,row.TaskId,now,ct))eligible.Add(user);
+        }
+        var notices=await db.Notifications.FromSqlInterpolated($"SELECT * FROM dbo.notifications WITH(UPDLOCK,HOLDLOCK) WHERE source_type='TASK_PLAN' AND source_id={progress}").AsNoTracking().ToArrayAsync(ct);
+        if(notices.Length>1||notices.Any(n=>n.NotificationType!=row.NotificationKind||n.CreatedBy!=row.ActorId||n.CreatedAt!=row.At))throw new InvalidOperationException("Task notification receipt conflict");
+        var notice=notices.SingleOrDefault();
+        foreach(var recipient in eligible)
+        {
+            if(notice==null)
+            {
+                notice=new Notification {NotificationType=row.NotificationKind,SourceType="TASK_PLAN",SourceId=progress,
+                    Title=row.Operation=="CANCEL_TASK"?"Task cancelled":"Task plan changed",Message="A task involving you has changed. Open the source only if you still have access.",Priority="NORMAL",CreatedBy=row.ActorId,CreatedAt=row.At};
+                db.Notifications.Add(notice);await db.SaveChangesAsync(ct);
+            }
+            var receipts=await db.NotificationRecipients.AsNoTracking().Where(r=>r.NotificationId==notice.NotificationId&&r.UserId==recipient).ToArrayAsync(ct);
+            if(receipts.Length>0)
+            {
+                if(receipts.Length!=1||receipts[0].DeliveryChannel!="IN_APP"||receipts[0].DeliveryStatus!="DELIVERED"||receipts[0].DeliveredAt==null)throw new InvalidOperationException("Task delivery receipt conflict");
+                continue;
+            }
+            db.NotificationRecipients.Add(new NotificationRecipient{NotificationId=notice.NotificationId,UserId=recipient,DeliveryChannel="IN_APP",DeliveryStatus="DELIVERED",DeliveredAt=now});
+            await db.SaveChangesAsync(ct);
+        }
+        await tx.CommitAsync(ct);db.ChangeTracker.Clear();
+        return eligible.Count==recipients.Length?"DELIVERED":"RECIPIENT_READ_DENIED";
+    }
+}

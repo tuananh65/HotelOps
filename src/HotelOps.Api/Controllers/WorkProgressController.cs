@@ -18,6 +18,21 @@ namespace HotelOps.Api.Controllers;
 public sealed class WorkProgressController(RoomTypeCreationService service, IWebHostEnvironment environment, IConfiguration configuration) : ControllerBase
 {
     private string Root => configuration["Evidence:PrivateRoot"] ?? Path.Combine(environment.ContentRootPath, "App_Data", "evidence");
+    [HttpGet("api/branches/{branch:long}/operational-tasks/creation-options")]
+    public Task<IActionResult> TaskCreationOptions(long branch, CancellationToken ct, long? department = null)
+        => Execute((ticket, sid) => service.TaskCreationOptionsAsync(ticket, sid, branch, department, ct), false);
+    [HttpPost("api/branches/{branch:long}/operational-tasks")]
+    public Task<IActionResult> CreateTask(long branch, CreateOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.CreateOperationalTaskAsync(ticket, sid, branch, input, ct), false, true);
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/plan")]
+    public Task<IActionResult> ReadTaskPlan(long branch, long id, CancellationToken ct, int page = 1)
+        => Execute((ticket, sid) => service.ReadTaskPlanAsync(ticket, sid, branch, id, page, ct), false);
+    [HttpPut("api/branches/{branch:long}/operational-tasks/{id:long}/plan")]
+    public Task<IActionResult> PlanTask(long branch, long id, PlanOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.PlanOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/cancel")]
+    public Task<IActionResult> CancelTask(long branch, long id, CancelOperationalTaskRequest input, CancellationToken ct)
+        => Execute((ticket, sid) => service.CancelOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), input, ct), true);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/assignment")]
     public Task<IActionResult> ReadAssignment(long branch, long id, CancellationToken ct, int page = 1, string? search = null)
         => Execute((ticket, sid) => service.ReadTaskAssignmentAsync(ticket, sid, branch, id, page, search, ct), false);

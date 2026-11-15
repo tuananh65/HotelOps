@@ -1,0 +1,43 @@
+[
+  {
+    "trial": "DDL initial",
+    "passed": false,
+    "failure": "Msg 1934, Level 16, State 1, Server meita, Line 29\r\nCREATE INDEX failed because the following SET options have incorrect settings: 'QUOTED_IDENTIFIER'. Verify that SET options are correct for use with indexed views and/or indexes on computed columns and/or filtered indexes and/or query notifications and/or XML data type methods and/or spatial index operations.",
+    "resolution": "Explicit filtered-index SET options; transaction rollback and source restoration verified before retry."
+  },
+  {
+    "trial": 1,
+    "passed": false,
+    "failure": "Exception: public Create through Closed and prestart cancellation canonical browser workflows",
+    "stage": "public creation with criteria and expected outcome",
+    "error": "locator.selectOption: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Create operational task' }).getByLabel('Department', { exact: true })\u001b[22m\n"
+  },
+  {
+    "trial": 2,
+    "passed": false,
+    "failure": "Exception: public Create through Closed and prestart cancellation canonical browser workflows",
+    "stage": "manager plans before assignment",
+    "error": "locator.fill: Error: Malformed value\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Task plan' }).getByLabel('Planned start', { exact: true })\u001b[22m\n\u001b[2m    - locator resolved to <input value=\"\" step=\"0.001\" type=\"datetime-local\"/>\u001b[22m\n\u001b[2m    - fill(\"2026-11-15T08:00:00.000\")\u001b[22m\n\u001b[2m  - attempting fill action\u001b[22m\n\u001b[2m    - waiting for element to be visible, enabled and editable\u001b[22m\n"
+  },
+  {
+    "trial": 3,
+    "passed": false,
+    "failure": "Exception: public Create through Closed and prestart cancellation canonical browser workflows",
+    "stage": "assigned deadline reason and previous deadline history",
+    "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByRole('region', { name: 'Task plan' }).getByRole('list', { name: 'Task plan history' }).getByText(/deadline 2026-11-15T03:00:00/) to be visible\u001b[22m\n"
+  },
+  {
+    "trial": 4,
+    "passed": false,
+    "failure": "Exception: canonical decline browser <>f__AnonymousType121`6",
+    "stage": "committed decline and clear own task",
+    "error": "locator.waitFor: Timeout 15000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByText('0 tasks', { exact: true }) to be visible\u001b[22m\n"
+  },
+  {
+    "trial": 5,
+    "passed": false,
+    "failure": "Exception: public Create through Closed and prestart cancellation canonical browser workflows",
+    "stage": "public create and confirmed prestart cancellation",
+    "error": "locator.waitFor: Error: strict mode violation: getByText(/CANCELLED, 0%/) resolved to 2 elements:\n    1) <p>…</p> aka getByText('TASK-')\n    2) <li>…</li> aka getByText('2026-11-15T13:16:32.6225832Z')\n\nCall log:\n\u001b[2m  - waiting for getByText(/CANCELLED, 0%/) to be visible\u001b[22m\n"
+  }
+]

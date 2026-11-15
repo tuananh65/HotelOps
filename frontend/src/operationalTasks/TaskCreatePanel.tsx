@@ -1,0 +1,358 @@
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../auth/AuthProvider";
+import type { AuthorityGeneration } from "../auth/authStore";
+import { TaskProgressError } from "./progress";
+import {
+  createTask,
+  creationOptions,
+  utcPlanTime,
+  validateTaskCreation,
+  type CreateTaskInput,
+  type PlanningOptions,
+} from "./planning";
+import { TaskPlanFields, type PlanDraft } from "./TaskPlanFields";
+
+export function TaskCreatePanel({
+  branch,
+  owner,
+  onCreated,
+}: {
+  branch: number;
+  owner: AuthorityGeneration;
+  onCreated: (task: number, assign: boolean) => void;
+}) {
+  const { actions } = useAuth();
+  const [department, setDepartment] = useState("");
+  const [category, setCategory] = useState("");
+  const [options, setOptions] = useState<PlanningOptions | null>(null);
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [outcome, setOutcome] = useState("");
+  const [criteria, setCriteria] = useState([{ label: "", required: true }]);
+  const [locationType, setLocationType] = useState("department");
+  const [location, setLocation] = useState("");
+  const [plan, setPlan] = useState<PlanDraft>({
+    priority: "",
+    start: "",
+    due: "",
+    minutes: "",
+  });
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const [pending, setPending] = useState<{
+    input: CreateTaskInput;
+    assign: boolean;
+  } | null>(null);
+  const key = useRef(crypto.randomUUID());
+  const saving = useRef(false);
+  const active = useRef<AbortController | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    setOptions(null);
+    setError("");
+    setHidden(false);
+    void creationOptions(
+      branch,
+      department ? Number(department) : null,
+      controller.signal,
+    )
+      .then((data) => {
+        if (!controller.signal.aborted) setOptions(data);
+      })
+      .catch((error) => {
+        if (controller.signal.aborted) return;
+        if (error instanceof TaskProgressError && error.status === 401)
+          actions.invalidateSession(owner);
+        if (error instanceof TaskProgressError && error.status === 403)
+          setHidden(true);
+        else
+          setError(
+            "Task creation options are unavailable. Reload to try again.",
+          );
+      });
+    return () => controller.abort();
+  }, [branch, department, owner, actions, revision]);
+  useEffect(() => () => active.current?.abort(), []);
+  async function save(assign: boolean) {
+    if (saving.current || busy || (!options && !pending)) return;
+    let submission: { input: CreateTaskInput; assign: boolean };
+    try {
+      submission = pending ?? {
+        assign,
+        input: {
+          requestKey: key.current,
+          departmentId: Number(department),
+          categoryId: Number(category),
+          title,
+          description: description.trim() || null,
+          requestedResult: outcome,
+          criteria,
+          priorityId: Number(plan.priority),
+          plannedStartAt: utcPlanTime(plan.start),
+          dueAt: utcPlanTime(plan.due),
+          slaMinutes: plan.minutes ? Number(plan.minutes) : null,
+          roomId: locationType === "room" ? Number(location) : null,
+          areaId: locationType === "area" ? Number(location) : null,
+          internalRequestId: null,
+        },
+      };
+      if (
+        !pending &&
+        ((plan.start && plan.due && plan.due < plan.start) ||
+          !department ||
+          !category ||
+          !plan.priority ||
+          !title.trim() ||
+          !outcome.trim() ||
+          criteria.some((c) => !c.label.trim()))
+      ) {
+        setError(
+          "Complete the required fields; deadline must not precede planned start.",
+        );
+        return;
+      }
+      validateTaskCreation(submission.input);
+    } catch {
+      setError(
+        "Check task fields, unique completion criteria and planning dates before saving.",
+      );
+      return;
+    }
+    saving.current = true;
+    setBusy(true);
+    setError("");
+    setPending(submission);
+    const controller = new AbortController();
+    active.current = controller;
+    try {
+      const result = await createTask(
+        branch,
+        submission.input,
+        controller.signal,
+      );
+      if (!controller.signal.aborted)
+        onCreated(result.taskId, submission.assign);
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      if (error instanceof TaskProgressError && error.status === 401)
+        actions.invalidateSession(owner);
+      if (
+        error instanceof TaskProgressError &&
+        [400, 403, 422].includes(error.status)
+      ) {
+        setPending(null);
+        setError(
+          "Task was not created. Check your scope, category, location, criteria and planning fields.",
+        );
+      } else
+        setError(
+          "Creation could not be confirmed. Check the outcome using the same request before creating another task.",
+        );
+    } finally {
+      saving.current = false;
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
+  if (hidden) return null;
+  return (
+    <section aria-label="Create operational task">
+      <h2>Create operational task</h2>
+      {error && <p role="alert">{error}</p>}
+      {pending && (
+        <>
+          <p>
+            Creation reference: TASK-
+            {pending.input.requestKey.replaceAll("-", "").toUpperCase()}
+          </p>
+          <button disabled={busy} onClick={() => void save(pending.assign)}>
+            Check creation outcome
+          </button>
+        </>
+      )}
+      {!options && !pending && (
+        <button onClick={() => setRevision((n) => n + 1)}>
+          Reload creation options
+        </button>
+      )}
+      {options && (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save(false);
+          }}
+        >
+          <fieldset disabled={busy || pending !== null}>
+            <legend>Task definition</legend>
+            <label>
+              Task title
+              <input
+                required
+                maxLength={200}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </label>
+            <label>
+              Department
+              <select
+                aria-label="Department"
+                required
+                value={department}
+                onChange={(e) => {
+                  setDepartment(e.target.value);
+                  setCategory("");
+                }}
+              >
+                <option value="">Choose department</option>
+                {options.departments.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Work category
+              <select
+                aria-label="Work category"
+                required
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              >
+                <option value="">Choose category</option>
+                {options.categories.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p>
+              Cleaning, incident and material requests use their dedicated
+              workflows.
+            </p>
+            <label>
+              Location type
+              <select
+                aria-label="Location type"
+                value={locationType}
+                onChange={(e) => {
+                  setLocationType(e.target.value);
+                  setLocation("");
+                }}
+              >
+                <option value="department">Department only</option>
+                <option value="room">Room</option>
+                <option value="area">Area</option>
+              </select>
+            </label>
+            {locationType !== "department" && (
+              <label>
+                Location ID
+                <input
+                  required
+                  inputMode="numeric"
+                  pattern="[1-9][0-9]*"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                />
+              </label>
+            )}
+            <label>
+              Task description
+              <textarea
+                maxLength={4000}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+              />
+            </label>
+            <label>
+              Expected outcome
+              <textarea
+                required
+                maxLength={4000}
+                value={outcome}
+                onChange={(e) => setOutcome(e.target.value)}
+              />
+            </label>
+            <fieldset>
+              <legend>Completion criteria</legend>
+              {criteria.map((criterion, index) => (
+                <div key={index}>
+                  <label>
+                    Criterion {index + 1}
+                    <input
+                      required
+                      maxLength={250}
+                      value={criterion.label}
+                      onChange={(e) =>
+                        setCriteria((rows) =>
+                          rows.map((c, i) =>
+                            i === index ? { ...c, label: e.target.value } : c,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={criterion.required}
+                      onChange={(e) =>
+                        setCriteria((rows) =>
+                          rows.map((c, i) =>
+                            i === index
+                              ? { ...c, required: e.target.checked }
+                              : c,
+                          ),
+                        )
+                      }
+                    />
+                    Mandatory criterion {index + 1}
+                  </label>
+                  <button
+                    type="button"
+                    disabled={criteria.length === 1}
+                    onClick={() =>
+                      setCriteria((rows) => rows.filter((_, i) => i !== index))
+                    }
+                  >
+                    Remove criterion {index + 1}
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                disabled={criteria.length >= 100}
+                onClick={() =>
+                  setCriteria((rows) => [
+                    ...rows,
+                    { label: "", required: true },
+                  ])
+                }
+              >
+                Add criterion
+              </button>
+            </fieldset>
+            <TaskPlanFields
+              value={plan}
+              onChange={setPlan}
+              priorities={options.priorities}
+            />
+            <button>Save task</button>
+            <button
+              type="button"
+              onClick={(e) => {
+                if (e.currentTarget.form?.reportValidity()) void save(true);
+              }}
+            >
+              Save and assign
+            </button>
+          </fieldset>
+        </form>
+      )}
+    </section>
+  );
+}

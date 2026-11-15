@@ -11,7 +11,7 @@ internal sealed class TaskWorkflowRow
 
 internal static class TaskWorkflowRead
 {
-    internal static readonly string[] States = ["PENDING_ASSIGNMENT", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "PAUSED", "PENDING_VERIFICATION", "CLOSED"];
+    internal static readonly string[] States = ["PENDING_ASSIGNMENT", "ASSIGNED", "ACCEPTED", "IN_PROGRESS", "PAUSED", "PENDING_VERIFICATION", "CLOSED", "CANCELLED"];
     // Read the same authority as mutations. Never infer Assigned from legacy TODO.
     internal static IQueryable<TaskWorkflowRow> Query(HotelOpsDbContext db, DateTime now) => db.Database.SqlQuery<TaskWorkflowRow>($"""
         SELECT v.task_id AS TaskId,v.workflow_status AS State FROM dbo.task_progress_versions v
@@ -27,5 +27,8 @@ internal static class TaskWorkflowRead
             AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskSubmission.V1' AND CONVERT(nvarchar(20),value)='1'))
           OR (v.workflow_status='CLOSED' AND t.status='COMPLETED' AND t.completed_at IS NOT NULL
             AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskVerification.V1' AND CONVERT(nvarchar(20),value)='1'))
+          OR (v.workflow_status='CANCELLED' AND t.status='CANCELLED'
+            AND NOT EXISTS(SELECT 1 FROM dbo.operational_task_assignments x WHERE x.task_id=t.task_id AND x.assignment_status='ACTIVE' AND x.ended_at IS NULL)
+            AND EXISTS(SELECT 1 FROM sys.extended_properties WHERE class=0 AND name='HotelOps.TaskPlanning.V1' AND CONVERT(nvarchar(20),value)='1'))
         """);
 }

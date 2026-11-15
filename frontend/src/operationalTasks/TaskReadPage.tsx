@@ -7,6 +7,8 @@ import { TaskCriteriaSetup } from "./TaskCriteriaSetup";
 import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import { TaskVerificationPanel } from "./TaskVerificationPanel";
 import { TaskAssignmentPanel } from "./TaskAssignmentPanel";
+import { TaskCreatePanel } from "./TaskCreatePanel";
+import { TaskPlanPanel } from "./TaskPlanPanel";
 import {
   readTasks,
   taskWorkflowStates,
@@ -18,7 +20,7 @@ import {
 
 export function TaskReadPage() {
   const { state, actions } = useAuth();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.session &&
@@ -33,6 +35,7 @@ export function TaskReadPage() {
   );
   const [declined, setDeclined] = useState<AuthorityGeneration | null>(null);
   const [assigned, setAssigned] = useState<AuthorityGeneration | null>(null);
+  const [planned, setPlanned] = useState<AuthorityGeneration | null>(null);
   const [progressRevision, setProgressRevision] = useState(0);
   const [query, setQuery] = useState<{
     branch: number;
@@ -51,23 +54,27 @@ export function TaskReadPage() {
   const key = JSON.stringify(query);
   useEffect(() => {
     const sourceBranch = Number(params.get("branchId"));
-    const sourceTask = Number(params.get("taskId"));
+    const sourceTask = params.has("taskId")
+      ? Number(params.get("taskId"))
+      : null;
     if (
       !owner ||
       !Number.isSafeInteger(sourceBranch) ||
       sourceBranch <= 0 ||
-      !Number.isSafeInteger(sourceTask) ||
-      sourceTask <= 0
+      (sourceTask !== null &&
+        (!Number.isSafeInteger(sourceTask) || sourceTask <= 0))
     )
       return;
     setBranch(String(sourceBranch));
-    setQuery({
+    setQuery((current) => ({
       branch: sourceBranch,
-      search: "",
+      search: current?.branch === sourceBranch ? current.search : "",
+      workflowStatus:
+        current?.branch === sourceBranch ? current.workflowStatus : undefined,
       page: 1,
       id: sourceTask,
       revision: 0,
-    });
+    }));
   }, [params, owner]);
   useEffect(() => {
     if (!owner || !query) return;
@@ -182,6 +189,29 @@ export function TaskReadPage() {
         </button>
       )}
       {visible?.error && <p role="alert">{visible.error}</p>}
+      {planned === owner && (
+        <p role="status">MSG08: Task definition or plan saved.</p>
+      )}
+      {page && query && (
+        <TaskCreatePanel
+          key={`create:${owner}:${query.branch}:${query.revision}`}
+          branch={query.branch}
+          owner={owner}
+          onCreated={(id, assign) => {
+            setPlanned(owner);
+            setResult(null);
+            if (assign)
+              setParams({ branchId: String(query.branch), taskId: String(id) });
+            else
+              setQuery({
+                ...query,
+                id: null,
+                page: 1,
+                revision: query.revision + 1,
+              });
+          }}
+        />
+      )}
       {query && !visible && <p role="status">Loading tasks…</p>}
       {page && (
         <>
@@ -191,7 +221,11 @@ export function TaskReadPage() {
               <li key={task.id}>
                 <button
                   onClick={() =>
-                    query && setQuery({ ...query, id: task.id, page: 1 })
+                    query &&
+                    setParams({
+                      branchId: String(query.branch),
+                      taskId: String(task.id),
+                    })
                   }
                 >
                   {task.code}: {task.title}
@@ -206,7 +240,9 @@ export function TaskReadPage() {
       {detail && (
         <section>
           <button
-            onClick={() => query && setQuery({ ...query, id: null, page: 1 })}
+            onClick={() =>
+              query && setParams({ branchId: String(query.branch) })
+            }
           >
             Back to tasks
           </button>
@@ -222,6 +258,18 @@ export function TaskReadPage() {
             {detail.task.dueAt ?? "Not specified"}
           </p>
           <p>{detail.completionNote}</p>
+          <TaskPlanPanel
+            key={`plan:${owner}:${detail.task.branchId}:${detail.task.id}:${query?.revision}`}
+            branch={detail.task.branchId}
+            task={detail.task.id}
+            owner={owner}
+            onChanged={() => {
+              setPlanned(owner);
+              setResult(null);
+              setProgressRevision((n) => n + 1);
+              if (query) setQuery({ ...query, revision: query.revision + 1 });
+            }}
+          />
           <TaskAssignmentPanel
             key={`assign:${owner}:${detail.task.branchId}:${detail.task.id}:${query?.revision}`}
             branch={detail.task.branchId}
@@ -252,6 +300,7 @@ export function TaskReadPage() {
               onDeclined={() => {
                 setDeclined(owner);
                 setResult(null);
+                if (query) setParams({ branchId: String(query.branch) });
                 if (query)
                   setQuery({
                     ...query,

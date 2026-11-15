@@ -6,6 +6,7 @@ export const taskWorkflowStates = [
   "PAUSED",
   "PENDING_VERIFICATION",
   "CLOSED",
+  "CANCELLED",
 ] as const;
 export type TaskWorkflowState = (typeof taskWorkflowStates)[number];
 export interface TaskRow {

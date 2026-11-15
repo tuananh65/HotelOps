@@ -85,6 +85,16 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
             await tx.CommitAsync(ct);
             return new($"/operational-tasks?branchId={submission.BranchId}&taskId={submission.TaskId}");
         }
+        if(source is {NotificationType:"TASK_PLANNED" or "TASK_CANCELLED",SourceType:"TASK_PLAN",SourceId:>0})
+        {
+            if(!await TaskPlanningStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var plan=await TaskPlanNotificationStore.Query(db).SingleOrDefaultAsync(s=>s.AuditId==source.SourceId,ct);
+            if(plan==null||plan.ActorId!=source.CreatedBy||plan.At!=source.CreatedAt||plan.NotificationKind!=source.NotificationType
+                ||user!=plan.RecipientId||!await TaskVerificationStore.ExecutorReadAsync(db,user,plan.BranchId,plan.TaskId,now,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/operational-tasks?branchId={plan.BranchId}&taskId={plan.TaskId}");
+        }
         if(source is {NotificationType:TaskAssignmentStore.NotificationKind,SourceType:"TASK_ASSIGNMENT",SourceId:>0})
         {
             if(!await TaskDeclineStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

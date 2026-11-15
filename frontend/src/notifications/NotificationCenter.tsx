@@ -219,6 +219,8 @@ export function NotificationCenter() {
                         "TASK_RETURNED",
                         "TASK_DECLINED",
                         "TASK_ASSIGNED",
+                        "TASK_PLANNED",
+                        "TASK_CANCELLED",
                       ].includes(row.type) && (
                         <button
                           disabled={!!operation?.busy}
@@ -230,6 +232,8 @@ export function NotificationCenter() {
                             "TASK_RETURNED",
                             "TASK_DECLINED",
                             "TASK_ASSIGNED",
+                            "TASK_PLANNED",
+                            "TASK_CANCELLED",
                           ].includes(row.type)
                             ? "Open task"
                             : row.type === "REWORK_SUBMITTED"
