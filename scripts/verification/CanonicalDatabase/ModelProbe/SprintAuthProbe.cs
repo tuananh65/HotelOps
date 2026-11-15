@@ -11,14 +11,22 @@ internal static class SprintAuthProbe
 {
     // Exact target from this sprint's independently verified provision receipt; no arbitrary connection input.
     private const string Database = "HotelOps_DEV3_142A_20261114_cc78c13f";
-    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false, bool reports = false, bool taskEntry = false)
+    internal static async Task<int> RunAsync(string reportPath, bool audit = false, bool roleAssignment = false, bool dashboard = false, bool notifications = false, bool browser = false, bool activation = false, bool taskRead = false, bool taskCriteria = false, bool taskResume = false, bool reports = false, bool taskEntry = false,string? taskSubmissionReceipt=null)
     {
         if (File.Exists(reportPath)) throw new IOException("Never overwrite prior runtime evidence");
-        using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+        using var budget = new CancellationTokenSource(TimeSpan.FromMinutes(taskSubmissionReceipt==null?2:6));
         var ct = budget.Token;
         var database=taskCriteria?"HotelOps_DEV3_142A_CriteriaTrial_037b659a":Database;
         var guid=taskCriteria?"57748c4c-9803-49bf-bc30-508e6ea8bd3e":new Guid("1D5A9B53"+"-7D19"+"-435A"+"-96AB"+"-9FDFF447B6E0").ToString();
         var run=taskCriteria?"037b659ad5d348e783301e5d3e1ed3d5":"cc78c13ffc124efcad67b3d804baa84c";
+        if(taskSubmissionReceipt!=null)
+        {
+            using var receipt=JsonDocument.Parse(await File.ReadAllTextAsync(taskSubmissionReceipt,ct));
+            var r=receipt.RootElement; database=r.GetProperty("database").GetString()!;run=r.GetProperty("run").GetString()!;guid=r.GetProperty("databaseGuid").GetString()!;
+            if(!System.Text.RegularExpressions.Regex.IsMatch(run,"^[a-f0-9]{32}$") || database!="HotelOps_DEV3_142A_CriteriaTrial_"+run[..8]
+                || !Guid.TryParse(guid,out var identityGuid)||identityGuid==Guid.Empty||r.GetProperty("status").GetString()!="CLONE_READY"
+                ||r.GetProperty("source").GetString()!=Database)throw new InvalidOperationException("Verified disposable clone receipt required");
+        }
         await using var db = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
             .UseSqlServer($"Server=localhost;Database={database};Integrated Security=true;Encrypt=true;TrustServerCertificate=true").Options);
         await db.Database.OpenConnectionAsync(ct);
@@ -90,7 +98,7 @@ internal static class SprintAuthProbe
             if (notifications) await SprintNotificationScenario.RunAsync(db, http, user.UserId, sessionCsrf, checks, ct, browser ? name : null, browser ? password : null);
             if (dashboard) await SprintDashboardScenario.RunAsync(db, http, user.UserId, checks, ct);
             if (reports) await SprintReportApiScenario.RunAsync(db,http,user.UserId,checks,ct);
-            if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password,taskCriteria,taskResume,taskEntry);
+            if (taskRead) await SprintTaskReadScenario.RunAsync(db,http,user.UserId,checks,ct,name,password,taskCriteria,taskResume,taskEntry,taskSubmissionReceipt!=null);
             await Check(HttpMethod.Post, "/api/auth/logout", 400);
             await Check(HttpMethod.Post, "/api/auth/logout", 204, csrf: sessionCsrf);
             await Check(HttpMethod.Get, "/api/auth/session", 401);
@@ -117,7 +125,8 @@ internal static class SprintAuthProbe
             }
             await File.WriteAllTextAsync(reportPath, JsonSerializer.Serialize(new { database, fixtureUserId = user.UserId,
                 checks, failure, cleanup = cleaned, cleanupRequiresDatabaseDrop=taskCriteria, success = failure == null && (cleaned || taskCriteria),
-                scope = taskCriteria ? "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
+                scope = taskSubmissionReceipt!=null ? "Real UC112 submission/results/evidence/interval/audit/notification and canonical browser handoff; whole-clone drop required; UC105 verification not implemented"
+                    : taskCriteria ? "Real criteria PASS/FAIL/note and evidence browser/API/SQL workflow; immutable criteria retained pending verified whole-clone drop; no full lifecycle acceptance"
                     : browser && activation ? "Real browser HTTPS/SQL login, canonical activation, credential preservation and logout; no mocks; deactivation not accepted"
                     : browser ? "Real browser HTTPS/SQL login, inbox, read markers, reload and logout with production frontend; no mocks"
                     : taskEntry ? "Real HTTPS/SQL Accept/Start with browser continuation into progress/pause/resume, first start and interval/audit atomicity; task creation, decline and completion excluded"

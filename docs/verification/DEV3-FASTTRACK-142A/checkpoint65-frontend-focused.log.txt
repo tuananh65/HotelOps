@@ -1,0 +1,36 @@
+✔ accept sends fresh CSRF and exact version, validates committed state (15.5015ms)
+✔ start sends fresh CSRF and exact version, validates committed state (0.445ms)
+✔ entry rejects invalid action, state or version before network (0.475ms)
+✔ prestart progress is readable but cannot be saved (1.0756ms)
+✔ entry rejects a successful HTTP response without changed state and version (0.856ms)
+✔ workday and occupied interval errors preserve approved message codes (0.6982ms)
+✔ task response requires exact identity, kind, state, criteria and strong version (17.2795ms)
+✔ paused task is accepted without converting its state (0.3958ms)
+✔ save gets fresh CSRF and sends exact criterion outcome with ETag, no completion request (1.0529ms)
+✔ foreign criteria, duplicates, invalid percent and control text never reach network (0.3005ms)
+✔ invalid CSRF cannot dispatch a write (0.2804ms)
+✔ authority abort after CSRF prevents write (0.2848ms)
+✔ stale and unknown outcomes are never retried (0.5154ms)
+✔ unsafe IDs never reach network (0.1095ms)
+✔ saved evidence must belong to this exact task and use its protected download endpoint (1.8085ms)
+✔ initialization validates definitions before dispatch (0.3119ms)
+✔ initialization uses fresh CSRF and validates created task identity (0.3453ms)
+✔ duplicate initialization is not retried (0.3127ms)
+✔ resume binds paused snapshot, fresh CSRF and ETag (0.3368ms)
+✔ resume rejects running state and never retries stale mutation (0.218ms)
+✔ pause binds reason and note to running snapshot with fresh CSRF and ETag (0.2987ms)
+✔ pause rejects paused snapshot before fetching and does not retry stale write (0.2101ms)
+✔ pause catalog rejects invalid IDs and accepts backend labels (0.2096ms)
+✔ submission binds criteria, multiline notes, CSRF and exact ETag without closing (15.4414ms)
+✔ paused, accepted, pending, foreign and stale-looking snapshots do not dispatch (0.4508ms)
+✔ missing criteria remains a correctable business error and is never retried (0.4781ms)
+✔ success requires pending verification and a new strong version (0.7172ms)
+✔ review rejects a snapshot with foreign identity or an unscoped evidence link (0.616ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 28
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 347.6272

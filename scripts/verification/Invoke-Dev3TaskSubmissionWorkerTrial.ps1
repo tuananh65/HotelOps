@@ -1,0 +1,63 @@
+param([Parameter(Mandatory=$true)][string]$CloneReceipt,
+      [Parameter(Mandatory=$true)][string]$ReportPath)
+$ErrorActionPreference='Stop'
+$workspace=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
+if(Test-Path -LiteralPath $ReportPath){throw 'Do not overwrite runtime evidence'}
+$receipt=Get-Content -LiteralPath $CloneReceipt -Raw|ConvertFrom-Json
+if($receipt.status -ne 'CLONE_READY' -or $receipt.run -notmatch '^[a-f0-9]{32}$' -or
+ $receipt.database -cne ('HotelOps_DEV3_142A_CriteriaTrial_'+$receipt.run.Substring(0,8)) -or
+ $receipt.source -cne 'HotelOps_DEV3_142A_20261114_cc78c13f' -or [Guid]$receipt.databaseGuid -eq [Guid]::Empty){throw 'Owned disposable clone required'}
+$connection=[System.Data.SqlClient.SqlConnection]::new('Server=localhost;Database='+$receipt.database+';Integrated Security=true;Encrypt=true;TrustServerCertificate=true')
+function Scalar([string]$sql){$cmd=$connection.CreateCommand();$cmd.CommandText=$sql;try{return $cmd.ExecuteScalar()}finally{$cmd.Dispose()}}
+$hostProcess=$null
+$result=[ordered]@{database=$receipt.database;success=$false;hostStopped=$false;scope='Real opt-in hosted worker recovery of one committed synthetic submission; no new submission or verification transition'}
+try{
+ $connection.Open()
+ if([string](Scalar "SELECT CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))") -cne 'meita' -or
+    [string](Scalar 'SELECT database_guid FROM sys.database_recovery_status WHERE database_id=DB_ID()') -ine $receipt.databaseGuid -or
+    [string](Scalar "SELECT CONVERT(nvarchar(128),value) FROM sys.extended_properties WHERE class=0 AND name='DEV3.Sprint142A.Run'") -cne $receipt.run){throw 'Clone identity mismatch'}
+ if(Get-NetTCPConnection -LocalPort 7142 -State Listen -ErrorAction SilentlyContinue){throw 'Stop previous owned host before worker trial'}
+ if([int](Scalar "SELECT COUNT(*) FROM sys.triggers WHERE name LIKE 'TR_DEV3_Task%Fault'") -ne 0){throw 'Fault trigger remains'}
+ $eventId=[long](Scalar "SELECT MAX(progress_id) FROM dbo.task_submission_events WHERE ISJSON(recipients_json)=1 AND (SELECT COUNT(*) FROM OPENJSON(recipients_json))=1")
+ if($eventId -le 0){throw 'Committed recipient intent required'}
+ $recipient=[long](Scalar "SELECT TRY_CONVERT(bigint,JSON_VALUE(recipients_json,'$[0]')) FROM dbo.task_submission_events WHERE progress_id=$eventId")
+ if($recipient -le 0 -or [int](Scalar "SELECT COUNT(*) FROM dbo.users WHERE user_id=$recipient AND username LIKE 'submit_mgr_%' AND email LIKE '%@example.invalid'") -ne 1){throw 'Exact synthetic manager required'}
+ $audit=[long](Scalar "SELECT audit_id FROM dbo.task_submission_events WHERE progress_id=$eventId")
+ $fingerprint=[string](Scalar "SELECT CONVERT(varchar(64),HASHBYTES('SHA2_256',CONCAT(result_note,handover_note,criteria_json,evidence_json,recipients_json)),2) FROM dbo.task_submission_events WHERE progress_id=$eventId")
+ # Restore only this synthetic recipient and remove its delivered receipt to
+ # simulate recovery. The immutable source event and audit are never rewritten.
+ Scalar @"
+ SET XACT_ABORT ON; BEGIN TRANSACTION;
+ UPDATE ur SET is_active=1 FROM dbo.user_roles ur JOIN dbo.roles r ON r.role_id=ur.role_id
+ WHERE ur.user_id=$recipient AND r.role_code='DEPT_MANAGER';
+ DELETE x FROM dbo.notification_recipients x JOIN dbo.notifications n ON n.notification_id=x.notification_id
+ WHERE n.source_type='TASK_SUBMISSION' AND n.notification_type='TASK_SUBMITTED' AND n.source_id=$eventId;
+ DELETE FROM dbo.notifications WHERE source_type='TASK_SUBMISSION' AND notification_type='TASK_SUBMITTED' AND source_id=$eventId;
+ COMMIT;
+"@ | Out-Null
+ $env:ConnectionStrings__HotelOpsDb=$connection.ConnectionString
+ $env:CanonicalFrontend__Root=Join-Path $workspace 'frontend/dist'
+ $env:Evidence__PrivateRoot=Join-Path $workspace 'TestResults/sprint25-evidence'
+ $env:ASPNETCORE_ENVIRONMENT='Development';$env:ASPNETCORE_URLS='https://localhost:7142'
+ $env:TaskNotifications__Enabled='true';$env:TaskNotifications__PollSeconds='1'
+ $hostProcess=Start-Process dotnet -ArgumentList 'src/HotelOps.Api/bin/Debug/net10.0/HotelOps.Api.dll' -WorkingDirectory $workspace -WindowStyle Hidden -PassThru -RedirectStandardOutput ($ReportPath+'.host.log') -RedirectStandardError ($ReportPath+'.host-error.log')
+ $delivered=0
+ for($attempt=0;$attempt -lt 20;$attempt++){
+  if($hostProcess.HasExited){throw 'Owned worker host exited'}
+  $delivered=[int](Scalar "SELECT COUNT(*) FROM dbo.notifications n JOIN dbo.notification_recipients x ON x.notification_id=n.notification_id WHERE n.source_type='TASK_SUBMISSION' AND n.notification_type='TASK_SUBMITTED' AND n.source_id=$eventId AND x.user_id=$recipient AND x.delivery_channel='IN_APP' AND x.delivery_status='DELIVERED'")
+  if($delivered -eq 1){break}
+  Start-Sleep -Seconds 1
+ }
+ if($delivered -ne 1){throw 'Worker did not deliver committed intent'}
+ Start-Sleep -Seconds 3
+ if([int](Scalar "SELECT COUNT(*) FROM dbo.notifications WHERE source_type='TASK_SUBMISSION' AND notification_type='TASK_SUBMITTED' AND source_id=$eventId") -ne 1 -or
+    [int](Scalar "SELECT COUNT(*) FROM dbo.notification_recipients x JOIN dbo.notifications n ON n.notification_id=x.notification_id WHERE n.source_type='TASK_SUBMISSION' AND n.source_id=$eventId") -ne 1){throw 'Worker created duplicate delivery'}
+ if([string](Scalar "SELECT CONVERT(varchar(64),HASHBYTES('SHA2_256',CONCAT(result_note,handover_note,criteria_json,evidence_json,recipients_json)),2) FROM dbo.task_submission_events WHERE progress_id=$eventId AND audit_id=$audit") -cne $fingerprint){throw 'Worker changed source snapshot'}
+ $result.success=$true;$result.eventId=$eventId;$result.singleDelivery=$true;$result.sourceUnchanged=$true
+}catch{$result.failure=$_.Exception.Message;throw}
+finally{
+ if($hostProcess){if(!$hostProcess.HasExited){Stop-Process -Id $hostProcess.Id};$result.hostStopped=$true}
+ $connection.Dispose()
+ [IO.File]::WriteAllText($ReportPath,($result|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
+}
+$result|ConvertTo-Json

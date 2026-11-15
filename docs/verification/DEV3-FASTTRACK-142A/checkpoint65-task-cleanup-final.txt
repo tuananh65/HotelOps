@@ -1,0 +1,3 @@
+result
+-------------------------------------------------------------
+SOURCE_EMPTY_ORIGINAL_TASK_GUARDS_RESTORED_BOTH_CLONES_ABSENT

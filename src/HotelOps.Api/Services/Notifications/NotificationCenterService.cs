@@ -4,6 +4,7 @@ using HotelOps.Api.Entities;
 using HotelOps.Api.Security.Authorization;
 using HotelOps.Api.Services.Insights;
 using HotelOps.Api.Services.Authentication;
+using HotelOps.Api.Services.OperationalTasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 namespace HotelOps.Api.Services.Notifications;
@@ -62,6 +63,17 @@ public sealed class NotificationCenterService(HotelOpsDbContext db,ICurrentUserA
         var now=clock.GetUtcNow().UtcDateTime;var user=await UserAsync(now,ct);
         var source=await Inbox(user,now).AsNoTracking().Where(r=>r.NotificationId==id)
             .Select(r=>new{r.Notification.NotificationType,r.Notification.SourceType,r.Notification.SourceId,r.Notification.CreatedBy,r.Notification.CreatedAt}).SingleOrDefaultAsync(ct);
+        if(source is {NotificationType:TaskSubmissionStore.NotificationKind,SourceType:"TASK_SUBMISSION",SourceId:>0})
+        {
+            if(!await TaskSubmissionStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var submission=await TaskSubmissionStore.Query(db).SingleOrDefaultAsync(s=>s.ProgressId==source.SourceId,ct);
+            if(submission==null||submission.SubmittedBy!=source.CreatedBy||submission.SubmittedAt!=source.CreatedAt
+                ||user==submission.SubmittedBy||!(System.Text.Json.JsonSerializer.Deserialize<long[]>(submission.RecipientsJson)??[]).Contains(user)
+                ||!(await TaskSubmissionAccess.ManagersAsync(db,submission.BranchId,now,ct)).Contains(user))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/operational-tasks?branchId={submission.BranchId}&taskId={submission.TaskId}");
+        }
         if(source is {NotificationType:InspectionFailedNotificationSource.Kind,SourceType:"INSPECTION",SourceId:>0})
         {
             var audits=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="INSPECTION"&&a.EntityId==source.SourceId.Value.ToString()&&a.Action=="UPDATE").ToArrayAsync(ct);

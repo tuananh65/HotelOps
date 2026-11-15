@@ -1,0 +1,5 @@
+result
+---------------------------
+TASK_SUBMISSION_ROLLED_BACK
+
+(1 rows affected)

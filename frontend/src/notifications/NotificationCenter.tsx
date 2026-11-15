@@ -214,20 +214,23 @@ export function NotificationCenter() {
                         "INSPECTION_FAILED",
                         "REINSPECTION_ASSIGNED",
                         "INSPECTION_ASSIGNED",
+                        "TASK_SUBMITTED",
                       ].includes(row.type) && (
                         <button
                           disabled={!!operation?.busy}
                           onClick={() => void openSource(row.id)}
                         >
-                          {row.type === "REWORK_SUBMITTED"
-                            ? "Assign reinspection"
-                            : [
-                                  "INSPECTION_FAILED",
-                                  "REINSPECTION_ASSIGNED",
-                                  "INSPECTION_ASSIGNED",
-                                ].includes(row.type)
-                              ? "Open inspection"
-                              : "Open rework"}
+                          {row.type === "TASK_SUBMITTED"
+                            ? "Open task"
+                            : row.type === "REWORK_SUBMITTED"
+                              ? "Assign reinspection"
+                              : [
+                                    "INSPECTION_FAILED",
+                                    "REINSPECTION_ASSIGNED",
+                                    "INSPECTION_ASSIGNED",
+                                  ].includes(row.type)
+                                ? "Open inspection"
+                                : "Open rework"}
                         </button>
                       )}
                       <p>{row.message}</p>

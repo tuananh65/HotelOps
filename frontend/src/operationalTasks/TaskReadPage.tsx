@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 import { TaskProgressPanel } from "./TaskProgressPanel";
 import { TaskCriteriaSetup } from "./TaskCriteriaSetup";
+import { TaskSubmissionReview } from "./TaskSubmissionReview";
 import {
   readTasks,
   TaskReadFailure,
@@ -13,6 +14,7 @@ import {
 
 export function TaskReadPage() {
   const { state, actions } = useAuth();
+  const [params] = useSearchParams();
   const owner =
     state.status === "AUTHENTICATED" &&
     state.session &&
@@ -37,6 +39,26 @@ export function TaskReadPage() {
     error?: string;
   } | null>(null);
   const key = JSON.stringify(query);
+  useEffect(() => {
+    const sourceBranch = Number(params.get("branchId"));
+    const sourceTask = Number(params.get("taskId"));
+    if (
+      !owner ||
+      !Number.isSafeInteger(sourceBranch) ||
+      sourceBranch <= 0 ||
+      !Number.isSafeInteger(sourceTask) ||
+      sourceTask <= 0
+    )
+      return;
+    setBranch(String(sourceBranch));
+    setQuery({
+      branch: sourceBranch,
+      search: "",
+      page: 1,
+      id: sourceTask,
+      revision: 0,
+    });
+  }, [params, owner]);
   useEffect(() => {
     if (!owner || !query) return;
     const controller = new AbortController();
@@ -168,6 +190,12 @@ export function TaskReadPage() {
             />
           )}
           <h3>Progress history</h3>
+          <TaskSubmissionReview
+            key={`submission:${owner}:${detail.task.branchId}:${detail.task.id}`}
+            branch={detail.task.branchId}
+            task={detail.task.id}
+            owner={owner}
+          />
           <p>{detail.progressTotalCount} recorded updates</p>
           <ul>
             {detail.progress.map((p) => (

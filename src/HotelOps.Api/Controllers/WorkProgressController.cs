@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.HotelStructure;
 using HotelOps.Api.DTOs.Housekeeping;
+using HotelOps.Api.DTOs.OperationalTasks;
 using HotelOps.Api.Security;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.HotelStructure;
@@ -43,6 +44,15 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
         => Execute((ticket, sid) => service.EnterOperationalTaskAsync(ticket, sid, branch, id, Request.Headers.IfMatch.ToString(), true, ct), true);
     [HttpGet("api/branches/{branch:long}/cleaning-tasks/{id:long}/progress")]
     public Task<IActionResult> ReadCleaning(long branch, long id, CancellationToken ct) => Progress(branch, id, true, null, ct);
+    [HttpPost("api/branches/{branch:long}/operational-tasks/{id:long}/submit")]
+    public Task<IActionResult> SubmitTask(long branch,long id,SubmitOperationalTaskRequest input,CancellationToken ct)
+        =>Execute((ticket,sid)=>service.SubmitOperationalTaskAsync(ticket,sid,branch,id,Request.Headers.IfMatch.ToString(),input,Root,ct),true);
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/submission")]
+    public Task<IActionResult> TaskSubmission(long branch,long id,CancellationToken ct)
+        =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct),false);
+    [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/submission/evidence/{attachment:long}")]
+    public Task<IActionResult> TaskSubmissionEvidence(long branch,long id,long attachment,CancellationToken ct)
+        =>Execute((ticket,sid)=>service.ReadTaskSubmissionAsync(ticket,sid,branch,id,Root,ct,attachment),false);
     [HttpGet("api/branches/{branch:long}/operational-tasks/{id:long}/progress")]
     public Task<IActionResult> ReadTask(long branch, long id, CancellationToken ct) => Progress(branch, id, false, null, ct);
     [HttpPut("api/branches/{branch:long}/cleaning-tasks/{id:long}/progress")]
@@ -82,7 +92,8 @@ public sealed class WorkProgressController(RoomTypeCreationService service, IWeb
                 RoomTypeBatchStatus.Inactive or RoomTypeBatchStatus.Duplicate => 409, _ => 503
             }, title: result.Status.ToString().ToUpperInvariant(), extensions:
                 result.Value is RoomTypeCreationService.TaskEntryFailure { MessageCode: { } code }
-                    ? new Dictionary<string, object?> { ["messageCode"] = code } : null);
+                    ? new Dictionary<string, object?> { ["messageCode"] = code }
+                    : result.Value is TaskSubmissionFailure failure ? new Dictionary<string,object?> { ["messageCode"]=failure.MessageCode,["missingCriteria"]=failure.MissingCriteria } : null);
         }
         catch (ValidationException error) { return Problem(statusCode: 400, title: "VALIDATION_FAILED", detail: error.Message); }
     }

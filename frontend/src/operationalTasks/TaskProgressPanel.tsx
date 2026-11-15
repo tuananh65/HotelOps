@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useAuth } from "../auth/AuthProvider";
 import type { AuthorityGeneration } from "../auth/authStore";
 import { uploadFile } from "../api/dev1/cleaningProgress";
+import { submitTask } from "./submission";
 import {
   readTaskProgress,
   enterTask,
@@ -33,6 +34,9 @@ export function TaskProgressPanel({
   const [percent, setPercent] = useState(0);
   const [items, setItems] = useState<Criterion[]>([]);
   const [note, setNote] = useState("");
+  const [completing, setCompleting] = useState(false);
+  const [resultNote, setResultNote] = useState("");
+  const [handoverNote, setHandoverNote] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [busy, setBusy] = useState(true);
   const [locked, setLocked] = useState(true);
@@ -47,6 +51,9 @@ export function TaskProgressPanel({
     setPercent(value.data.percent);
     setItems(value.data.items);
     setNote("");
+    setCompleting(false);
+    setResultNote("");
+    setHandoverNote("");
     setFiles([]);
     if (fileInput.current) fileInput.current.value = "";
   }
@@ -258,6 +265,73 @@ export function TaskProgressPanel({
       if (!controller.signal.aborted) setBusy(false);
     }
   }
+  async function complete() {
+    if (
+      !current ||
+      current.data.state !== "IN_PROGRESS" ||
+      busy ||
+      locked ||
+      saving.current
+    )
+      return;
+    saving.current = true;
+    const controller = new AbortController();
+    active.current = controller;
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      if (files.length > 5) throw new Error("Too many evidence files");
+      const photos = await Promise.all(files.map(uploadFile));
+      controller.signal.throwIfAborted();
+      await submitTask(
+        branch,
+        task,
+        current,
+        {
+          items: items
+            .filter((i) => i.outcome !== null)
+            .map((i) => ({
+              id: i.id,
+              outcome: i.outcome!,
+              note: i.note?.trim() || null,
+            })),
+          resultNote: resultNote.trim() || null,
+          handoverNote: handoverNote.trim() || null,
+          photos,
+        },
+        controller.signal,
+      );
+      const updated = await readTaskProgress(branch, task, controller.signal);
+      if (!controller.signal.aborted) {
+        show(updated);
+        setMessage(
+          "MSG09: Task submitted for verification. Working interval closed.",
+        );
+      }
+    } catch (reason) {
+      if (!controller.signal.aborted) {
+        if (
+          reason instanceof TaskProgressError &&
+          reason.messageCode === "MSG03"
+        )
+          setError(
+            `MSG03: Record results for required criteria: ${reason.missingCriteria.join(", ")}.`,
+          );
+        else if (
+          reason instanceof TaskProgressError &&
+          reason.messageCode === "MSG23"
+        )
+          setError(
+            "MSG23: Evidence must be PNG, JPEG or PDF, at most 10 MB per file.",
+          );
+        else failure(reason);
+      }
+    } finally {
+      saving.current = false;
+      if (!controller.signal.aborted) setBusy(false);
+    }
+  }
   return (
     <section aria-label="Task progress editor">
       <h3>Update progress</h3>
@@ -267,6 +341,44 @@ export function TaskProgressPanel({
       {busy && <p role="status">Loading or saving progress…</p>}
       {error && <p role="alert">{error}</p>}
       {message && <p role="status">{message}</p>}
+      {current?.data.state === "PENDING_VERIFICATION" && (
+        <p>Awaiting Department Head verification. Progress is locked.</p>
+      )}
+      {current?.data.state === "IN_PROGRESS" && (
+        <section aria-label="Task completion">
+          <button disabled={busy || locked} onClick={() => setCompleting(true)}>
+            Complete task
+          </button>
+          {completing && (
+            <>
+              <p>
+                Review criterion results and evidence below before submitting.
+              </p>
+              <label>
+                Result note
+                <textarea
+                  maxLength={4000}
+                  disabled={busy || locked}
+                  value={resultNote}
+                  onChange={(e) => setResultNote(e.target.value)}
+                />
+              </label>
+              <label>
+                Handover note
+                <textarea
+                  maxLength={4000}
+                  disabled={busy || locked}
+                  value={handoverNote}
+                  onChange={(e) => setHandoverNote(e.target.value)}
+                />
+              </label>
+              <button disabled={busy || locked} onClick={() => void complete()}>
+                Submit completion
+              </button>
+            </>
+          )}
+        </section>
+      )}
       {current?.data.state === "ASSIGNED" && (
         <button disabled={busy || locked} onClick={() => void enter("accept")}>
           Accept task

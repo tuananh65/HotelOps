@@ -2,6 +2,7 @@ export class TaskProgressError extends Error {
   constructor(
     public readonly status: number,
     public readonly messageCode?: string,
+    public readonly missingCriteria: string[] = [],
   ) {
     super(`Task progress request failed (${status})`);
   }
@@ -19,7 +20,8 @@ export interface TaskProgress {
   id: number;
   branchId: number;
   kind: "task";
-  state: "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "PAUSED";
+  state:
+    "ASSIGNED" | "ACCEPTED" | "IN_PROGRESS" | "PAUSED" | "PENDING_VERIFICATION";
   percent: number;
   items: Criterion[];
   evidence: TaskEvidence[];
@@ -72,9 +74,16 @@ async function request(
     const problem = await response.json().catch(() => null);
     throw new TaskProgressError(
       response.status,
-      ["MSG30", "MSG31"].includes(problem?.messageCode)
+      ["MSG03", "MSG23", "MSG30", "MSG31"].includes(problem?.messageCode)
         ? problem.messageCode
         : undefined,
+      Array.isArray(problem?.missingCriteria) &&
+        problem.missingCriteria.length <= 100 &&
+        problem.missingCriteria.every(
+          (s: unknown) => typeof s === "string" && s.length <= 250,
+        )
+        ? problem.missingCriteria
+        : [],
     );
   }
   return response;
@@ -85,7 +94,13 @@ function validate(data: TaskProgress, branch: number, task: number) {
     data.id !== task ||
     data.branchId !== branch ||
     data.kind !== "task" ||
-    !["ASSIGNED", "ACCEPTED", "IN_PROGRESS", "PAUSED"].includes(data.state) ||
+    ![
+      "ASSIGNED",
+      "ACCEPTED",
+      "IN_PROGRESS",
+      "PAUSED",
+      "PENDING_VERIFICATION",
+    ].includes(data.state) ||
     !percent(data.percent) ||
     !Array.isArray(data.items) ||
     data.items.length > 100 ||

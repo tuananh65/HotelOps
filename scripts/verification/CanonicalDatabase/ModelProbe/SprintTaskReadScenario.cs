@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 internal static class SprintTaskReadScenario
 {
-    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false,bool entry=false)
+    internal static async Task RunAsync(HotelOpsDbContext db,HttpClient http,long actor,List<object> checks,CancellationToken ct,string username,string password,bool criteria=false,bool resume=false,bool entry=false,bool submission=false)
     {
         if(await db.Branches.AnyAsync(ct)||await db.OperationalTasks.AnyAsync(ct)||await db.Attachments.AnyAsync(ct))throw new Exception("Empty task/evidence fixture required");
         var evidenceRoot=Path.GetFullPath("TestResults/sprint25-evidence");
@@ -84,6 +84,7 @@ internal static class SprintTaskReadScenario
             var grant=new UserRole{UserId=actor,RoleId=role,BranchId=branches[0],IsActive=true,AssignedAt=DateTime.UtcNow.AddMinutes(-2)};
             db.UserRoles.Add(grant);db.UserBranchAccesses.Add(new(){UserId=actor,BranchId=branches[0],AccessLevel="STANDARD",GrantedAt=DateTime.UtcNow.AddMinutes(-2)});
             await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+            if(submission) { await SprintTaskSubmissionScenario.RunAsync(db,http,actor,branches[0],branches[1],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             if(entry) { await SprintTaskEntryScenario.RunAsync(db,http,actor,branches[0],branches[1],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             if(resume) { await SprintTaskResumeScenario.RunAsync(db,http,actor,branches[0],department,tasks[0],tasks[1],checks,ct,username,password); return; }
             var page=await Get(root,200);if(page.GetProperty("totalCount").GetInt32()!=1||page.GetProperty("items")[0].GetProperty("id").GetInt64()!=tasks[0])throw new Exception("OWN list leaked tasks");

@@ -156,6 +156,12 @@ public sealed partial class RoomTypeCreationService
                         || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "TODO" && (version.State == "ACCEPTED" || t.ActualStartAt == null) && t.CompletedAt == null, token))
                         return new(RoomTypeBatchStatus.Inactive);
                 }
+                else if(version.State=="PENDING_VERIFICATION")
+                {
+                    if(input!=null||!await HotelOps.Api.Services.OperationalTasks.TaskSubmissionStore.InstalledAsync(db,token)
+                        ||!await db.OperationalTasks.AnyAsync(t=>t.TaskId==id&&t.Status=="IN_PROGRESS"&&t.ActualStartAt!=null&&t.CompletedAt==null,token)
+                        ||!await HotelOps.Api.Services.OperationalTasks.TaskSubmissionStore.Query(db).AnyAsync(s=>s.TaskId==id&&s.BranchId==branch,token))return new(RoomTypeBatchStatus.Inactive);
+                }
                 else if (version.State is not ("IN_PROGRESS" or "PAUSED") || !await db.OperationalTasks.AnyAsync(t => t.TaskId == id && t.Status == "IN_PROGRESS", token))
                     return new(RoomTypeBatchStatus.Inactive);
                 if (input != null && expected != WorkflowTag(version.Revision)) return new(RoomTypeBatchStatus.Stale);
