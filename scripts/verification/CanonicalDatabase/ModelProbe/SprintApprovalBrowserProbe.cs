@@ -145,7 +145,8 @@ internal static class SprintApprovalBrowserProbe
                             || await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={created.ReworkId}").SingleAsync(ct)!=1
                             || !await db.AuditLogs.AnyAsync(a=>a.EntityType=="cleaning_reworks"&&a.EntityId==created.ReworkId.ToString(),ct))
                             throw new Exception("Persisted rework/defect/assignee/audit mismatch");
-                        checks.Add(new{blocked,reworkPersisted=true,selectedDefects=true,assignee=cleaner,audit=true});
+                        await SprintReworkAuthorityProbe.VerifyAsync(db,cleaner,branch,created.ReworkId,ct);
+                        checks.Add(new{blocked,reworkPersisted=true,selectedDefects=true,assignee=cleaner,audit=true,committedAuthority=true,leastPrivilegeReader=true,sourceTamperDenied=true,disabledIssuerDenied=true,unauthorizedDenied=true,noShiftAssignee=true,ineligibleAssigneesDenied=true});
                     }
                 }
                 else

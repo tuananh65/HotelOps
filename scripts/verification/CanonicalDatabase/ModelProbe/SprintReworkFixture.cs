@@ -17,14 +17,8 @@ internal static class SprintReworkFixture
               SELECT {cleaner},role_id,{branch},DATEADD(minute,-1,SYSUTCDATETIME()) FROM dbo.roles WHERE role_code='HK_STAFF' AND is_active=1;
             IF @@ROWCOUNT<>1 THROW 51992,'Existing HK staff role required',1;
             """,ct);
-        var template=new ShiftTemplate{BranchId=branch,ShiftCode="D3-REWORK",ShiftName="Synthetic rework shift",StartTime=new(0,0),EndTime=new(23,59),IsActive=true};
-        db.ShiftTemplates.Add(template);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
-        var now=DateTime.UtcNow;
-        var shift=new WorkShift{BranchId=branch,DepartmentId=department.DepartmentId,ShiftTemplateId=template.ShiftTemplateId,
-            ShiftDate=DateOnly.FromDateTime(now),ScheduledStartAt=now.AddMinutes(-30),ScheduledEndAt=now.AddMinutes(90),RequiredStaffCount=1,Status="PLANNED",CreatedBy=actor,CreatedAt=now};
-        db.WorkShifts.Add(shift);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
-        db.ShiftAssignments.Add(new ShiftAssignment{ShiftId=shift.ShiftId,UserId=cleaner,AssignmentStatus="ASSIGNED",AssignedBy=actor,AssignedAt=now.AddMinutes(-1)});
-        await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
+        // GBR-046: prove actual browser creation without any scheduled shift.
+
     }
     internal static Task CleanupAsync(HotelOpsDbContext db,long cleaner,long branch,long inspection,CancellationToken ct)
         => CleanupCoreAsync(db,cleaner,branch,inspection,ct);

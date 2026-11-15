@@ -37,7 +37,7 @@ public sealed partial class RoomTypeCreationService
             if ((await CleaningState(row.CleaningTaskId.Value, token)).State != "REWORK_REQUIRED") return new(RoomTypeBatchStatus.Inactive);
             var cleaner = await ReadInspectionCleanerAttributionAsync(db.Database.GetDbConnection(), db.Database.CurrentTransaction!.GetDbTransaction(), inspection, branch, token);
             if (cleaner == null) return new(RoomTypeBatchStatus.Unavailable);
-            var assignees = await EligibleHousekeepers(branch, clock.GetUtcNow().UtcDateTime)
+            var assignees = await EligibleReworkAssignees(branch, clock.GetUtcNow().UtcDateTime)
                 .OrderByDescending(u => u.UserId == cleaner.CleanerUserId).ThenBy(u => u.FullName).ThenBy(u => u.UserId)
                 .Select(u => new ReworkAssigneeOption(u.UserId, u.FullName, u.UserId == cleaner.CleanerUserId)).ToArrayAsync(token);
             return new(RoomTypeBatchStatus.Success, new InspectionReworkOptionsDto(inspection, branch, null, defects, assignees), WorkflowTag(state.Revision));
