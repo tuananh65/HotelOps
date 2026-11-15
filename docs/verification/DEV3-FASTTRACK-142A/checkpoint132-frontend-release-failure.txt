@@ -1,0 +1,30 @@
+? flag ON exposes dashboard link; route waits for explicit branch (2425.6929ms)
+? unconfirmed/restricted redirects /login without workday GET (2321.3975ms)
+? unconfirmed/restricted redirects /change-password without workday GET (2306.2329ms)
+? branch validation and edit invalidate old selection immediately (2543.2754ms)
+? router preserves independent permission when own-shifts denied (2317.2031ms)
+? router preserves independent permission when current denied (2441.3752ms)
+? backend inactive 404 is unavailable for both independent reads (2352.3729ms)
+? branch change aborts late current and preserves FE01/FE02 navigation (2526.6091ms)
+? tests 3441
+? suites 0
+? pass 3439
+? fail 1
+? cancelled 0
+? skipped 1
+? todo 0
+? duration_ms 1204984.8809
+
+? failing tests:
+
+test at tests\revoke-user-role-browser.test.mjs:187:1
+? late mutation after session invalidation cannot restore protected data (2286.0207ms)
+  page.evaluate: TypeError: waiting.get(...) is not a function
+      at Object.finish (<anonymous>:15899:112)
+      at eval (eval at evaluate (:311:30), <anonymous>:1:22)
+      at UtilityScript.evaluate (<anonymous>:313:16)
+      at UtilityScript.<anonymous> (<anonymous>:1:44)
+      at D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\revoke-user-role-browser.test.mjs:199:13
+      at async run (D:\HotelOps\HotelOps_Fullstack_Shared\frontend\tests\revoke-user-role-browser.test.mjs:99:5) {
+    log: []
+  }
