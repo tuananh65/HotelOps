@@ -1,0 +1,28 @@
+  HotelOps.Api -> D:\HotelOps\HotelOps_Fullstack_Shared\src\HotelOps.Api\bin\Debug\net10.0\HotelOps.Api.dll
+  HotelOps.Dev1.RegressionTests -> D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll
+Test run for D:\HotelOps\HotelOps_Fullstack_Shared\tests\HotelOps.Dev1.RegressionTests\bin\Debug\net10.0\HotelOps.Dev1.RegressionTests.dll (.NETCoreApp,Version=v10.0)
+A total of 1 test files matched the specified pattern.
+[xUnit.net 00:00:00.82]     HotelOps.Dev1.RegressionTests.RoomOperationalStatusTransitionTests.Sql_atomicity_concurrency_and_persisted_ownership_acceptance [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.RoomOperationalStatusTransitionTests.Sql_atomicity_concurrency_and_persisted_ownership_acceptance [1 ms]
+[xUnit.net 00:00:02.21]     HotelOps.Dev1.RegressionTests.TurnoverLiveTests.Real_HTTPS_turnover_reads_existing_trial_sources_without_business_writes [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.TurnoverLiveTests.Real_HTTPS_turnover_reads_existing_trial_sources_without_business_writes [1 ms]
+[xUnit.net 00:00:02.21]     HotelOps.Dev1.RegressionTests.TurnoverHistorySqlTests.History_readonly_scope_source_identity_current_cycle_ordering_and_pagination [SKIP]
+[xUnit.net 00:00:02.21]     HotelOps.Dev1.RegressionTests.ReworkWorkflowSqlTests.Rework_SQL_lifecycle_source_security_atomicity_and_replay [SKIP]
+[xUnit.net 00:00:02.21]     HotelOps.Dev1.RegressionTests.ReworkLiveTests.Real_HTTPS_rework_synthetic_source_accept_start_submit_and_SQL [SKIP]
+[xUnit.net 00:00:02.21]     HotelOps.Dev1.RegressionTests.CleaningResumeSqlTests.Resume_component_preserves_transaction_and_source_guards [SKIP]
+[xUnit.net 00:00:02.21]     HotelOps.Dev1.RegressionTests.CleaningMonitorFs016Tests.Monitor_reads_current_cycle_and_unresolved_blockers_without_writing_source [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.TurnoverHistorySqlTests.History_readonly_scope_source_identity_current_cycle_ordering_and_pagination [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.ReworkWorkflowSqlTests.Rework_SQL_lifecycle_source_security_atomicity_and_replay [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.ReworkLiveTests.Real_HTTPS_rework_synthetic_source_accept_start_submit_and_SQL [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningResumeSqlTests.Resume_component_preserves_transaction_and_source_guards [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningMonitorFs016Tests.Monitor_reads_current_cycle_and_unresolved_blockers_without_writing_source [1 ms]
+[xUnit.net 00:00:02.22]     HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle [SKIP]
+[xUnit.net 00:00:02.22]     HotelOps.Dev1.RegressionTests.CleaningClosureLiveTests.Real_HTTPS_cookie_CSRF_Report_Resume_Complete_replay_and_SQL [SKIP]
+[xUnit.net 00:00:02.22]     HotelOps.Dev1.RegressionTests.CleaningCancellationSqlTests.Cancellation_security_source_atomicity_and_replay [SKIP]
+[xUnit.net 00:00:02.22]     HotelOps.Dev1.RegressionTests.CancellationLiveTests.Real_HTTPS_cancellation_authorization_preconditions_replay_and_SQL [SKIP]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningClosureWorkflowTests.Closure_service_SQL_atomicity_authorization_replay_and_lifecycle [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningClosureLiveTests.Real_HTTPS_cookie_CSRF_Report_Resume_Complete_replay_and_SQL [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CleaningCancellationSqlTests.Cancellation_security_source_atomicity_and_replay [1 ms]
+  Skipped HotelOps.Dev1.RegressionTests.CancellationLiveTests.Real_HTTPS_cancellation_authorization_preconditions_replay_and_SQL [1 ms]
+
+Passed!  - Failed:     0, Passed:   507, Skipped:    11, Total:   518, Duration: 1 s - HotelOps.Dev1.RegressionTests.dll (net10.0)

@@ -1,0 +1,32 @@
+✔ approval retains CSRF/ETag and validates READY result (16.3237ms)
+✔ approval retains CSRF/ETag and validates BLOCKED result (0.4379ms)
+✔ approval never treats missing readiness or conflicting message as success or retries (1.0996ms)
+✔ default denial and stable session/principal/branch scope (0.225ms)
+✔ read GET uses credentials/no-store; rejects cross-branch and missing ETag (0.8466ms)
+✔ start/save/finish use CSRF, strong If-Match, and backend state (0.8079ms)
+✔ 401 sync callback for read, write and CSRF; 403 local only (0.6252ms)
+✔ 401 on mutation response invokes captured callback without retry (0.2216ms)
+✔ aborted/superseded response cannot revoke newer generation (0.1846ms)
+✔ session invalidated during CSRF bootstrap never dispatches mutation (0.2257ms)
+✔ 409/412/428 preserve conflict semantics; 503 and network remain uncertain (0.6106ms)
+✔ defect fails before network when severity catalog is missing or untrusted (0.1747ms)
+✔ finish unexpected result fails uncertain, never implies PASS or READY (0.2087ms)
+✔ criteria bind exactly to inspection's assigned version (0.1245ms)
+✔ No implicit severity and evidence authority (0.0528ms)
+✔ defect editing uses scoped PUT with CSRF and inspection ETag (0.2563ms)
+✔ execution response accepts only valid unique server severity catalog (0.1911ms)
+✔ evidence uploads validate format, extension, signature, size and cancellation (3.4039ms)
+✔ weak/malformed ETags and invalid scope fail before any mutation or CSRF (0.1618ms)
+✔ reject preserves confirmation, CSRF, ETag and REWORK_REQUIRED (0.3254ms)
+✔ reject preserves confirmation, CSRF, ETag and BLOCKED (0.156ms)
+✔ reject rejects unsafe readiness without replay (0.2026ms)
+✔ rework options bind scope, current ETag and unique authoritative choices (0.4165ms)
+✔ rework save uses selected source IDs, CSRF, revision and no unknown-outcome replay (0.6986ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 282.3511
