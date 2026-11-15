@@ -45,6 +45,9 @@ public sealed class HousekeepingWorkflowController(RoomTypeCreationService servi
     public Task<IActionResult> AssignReinspection(long branchId, long id, AssignInspectionRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.AssignReinspectionAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),
             Request.Headers["Idempotency-Key"].ToString(),input,Root,ct),true,true);
+    [HttpGet("api/branches/{branchId:long}/reworks/{id:long}/reinspection-options")]
+    public Task<IActionResult> ReinspectionOptions(long branchId, long id, CancellationToken ct)
+        => Execute((ticket,sid) => service.ReadReinspectionAssignmentAsync(ticket,sid,branchId,id,Root,ct),false);
     [HttpPost("api/branches/{branchId:long}/inspections/{id:long}/reworks")]
     public Task<IActionResult> Rework(long branchId, long id, RequestReworkRequest input, CancellationToken ct)
         => Execute((ticket,sid) => service.RequestCleaningReworkAsync(ticket,sid,branchId,id,Request.Headers.IfMatch.ToString(),input,ct,Root),true,true);

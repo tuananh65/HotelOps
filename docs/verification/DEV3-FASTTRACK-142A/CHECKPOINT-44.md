@@ -1,0 +1,17 @@
+# FASTTRACK-142A checkpoint44: canonical reinspection assignment
+
+New COMPLETE_VERIFIED UCs: **0**. Total remains **6**, with **138 PARTIAL**. This checkpoint closes an integration step within the FE05 workflow; it does not claim UC041 or UC047 completion.
+
+Implemented authorized assignment options and canonical supervisor form at `/inspections/reworks/{id}/assign?branchId={branchId}`. The read verifies current session, supervisor/branch permission, protected submission, current cycle and existing immutable assignment. Inspector choices reuse existing eligibility and cleaner separation. The form preserves authority generation, CSRF, strong ETag and operation-key checks, validates its response and does not automatically retry uncertain writes. The login return allowlist admits only this exact route with a valid branch.
+
+Fixed executor acknowledgement after assignment: a Pending Reinspection read authenticates its immutable submission receipt and current source digest rather than requiring the failed original inspection to remain the latest inspection. Current ownership, scope and source validation remain required; mutation guards are unchanged. The restricted SQL test verifies READ_ONLY capability after assignment.
+
+Direct evidence: `checkpoint44-assignment-label-fixed.json` reports success for normal and effectively blocked fixtures, including Reject → Request Rework → Receive/Start → Submit → Assign Reinspection, persistence, replay and cleanup. The earlier failures are retained: login return was not allowlisted, then the select's implicit label prevented an exact accessible-name locator from finding it. An explicit label/input association fixed the latter. No authorization validator was loosened. That first successful receipt still carries the old assignment-browser=false reporting flag; the subsequent committed-source repeat uses the corrected flag.
+
+`checkpoint44-auth-client-current.txt`: **122 PASS, 0 FAIL**, including UI session-loss hiding. Backend solution build PASS; `dotnet test HotelOps.slnx` succeeds but contains no test project. `checkpoint44-regression-final.txt`: **528 PASS, 11 SKIP, 0 FAIL**, rebuilt against current API source. Frontend production build and TypeScript PASS. No dependency change or repeat npm ci. Existing Vite use-client/chunk-size and existing EF mapping/query warnings remain; no security bypass or shared database mutation.
+
+Runtime uses trusted HTTPS and the identity-guarded disposable database only. Assignment app role denies direct source-proof, binding and operation-ledger mutation. Trial installation is rehearsed with rollback; app role, schema, fixture and private evidence are cleaned. Generated EF entities and shared schema remain unchanged.
+
+Remaining lifecycle gaps: assignment notification delivery/source resolution; UC041 initial-cleaning/reassignment and retired-checklist coverage; UC047 assigned-inspector defect/remediation read, exact Fixed/Not Fixed conclusion, effective readiness/history, executor notification and failed-next-round rework. Preparatory conclusion SQL is not verified functionality. Next highest-impact implementation is this UC047 conclusion on the protected binding, followed by remaining FE11 lifecycle and FE13/UC006/010.
+
+The sprint remains active with original deadline 2026-11-16 17:50 UTC. Final committed-source repeat and canonical Git identities follow in this checkpoint's evidence.

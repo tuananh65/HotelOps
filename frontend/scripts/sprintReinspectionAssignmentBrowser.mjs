@@ -1,0 +1,80 @@
+import { chromium } from "@playwright/test";
+let input = "";
+for await (const chunk of process.stdin) input += chunk;
+const fixture = JSON.parse(input); input = "";
+let browser;
+let stage = "login admission";
+try {
+  browser = await chromium.launch({ executablePath: "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe", headless: true });
+  const page = await browser.newPage(); page.setDefaultTimeout(30000);
+  const origin = "https://localhost:7143";
+  const destination = `/inspections/reworks/${fixture.rework}/assign?branchId=${fixture.branch}`;
+  const api = `/api/branches/${fixture.branch}/reworks/${fixture.rework}`;
+  await page.goto(origin + destination); await page.waitForURL("**/login?*");
+  await page.getByLabel("Username or email").fill(fixture.username);
+  await page.getByLabel("Password", { exact: true }).fill(fixture.password); fixture.password = "";
+  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  stage = "return to assignment";
+  await page.waitForURL(origin + destination);
+  stage = "assignment options";
+  await page.getByRole("heading", { name: "Assign reinspection", exact: true }).waitFor();
+  stage = "options API admission";
+  const admission = await page.evaluate(async api => {
+    const response = await fetch(api + "/reinspection-options", { credentials: "include" });
+    const body = await response.json();
+    return { status: response.status, title: body.title, canAssign: body.canAssign,
+      reason: body.unavailableReason, inspectors: body.inspectors?.length };
+  }, api);
+  if (admission.status !== 200 || !admission.canAssign) throw Error("Assignment options: " + JSON.stringify(admission));
+  stage = "inspector form";
+  await page.getByLabel("Inspector", { exact: true }).waitFor();
+  const security = await page.evaluate(async ({ api, actor, branch, rework }) => {
+    const detailResponse = await fetch(api + "/reinspection-options", { credentials: "include" });
+    const detail = await detailResponse.json();
+    if (detailResponse.status !== 200 || detail.reworkETag !== detailResponse.headers.get("ETag") || !detail.canAssign
+      || !detail.inspectors.some(p => p.id === actor)) throw Error("Assignment options not authorized");
+    const csrf = await (await fetch("/api/auth/csrf", { credentials: "include" })).json();
+    const command = { inspectorId: actor, dueAt: new Date(Date.now() + 3600000).toISOString(), reason: "Synthetic browser assignment" };
+    const headers = { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken,
+      "If-Match": detail.reworkETag, "Idempotency-Key": crypto.randomUUID() };
+    const post = async (h, body = command) => (await fetch(api + "/reinspection", { method: "POST", credentials: "include", headers: h, body: JSON.stringify(body) })).status;
+    const noCsrf = { ...headers }; delete noCsrf["X-CSRF-TOKEN"];
+    const noTag = { ...headers }; delete noTag["If-Match"];
+    const statuses = [await post(noCsrf), await post(noTag), await post({ ...headers, "If-Match": '"FFFFFFFFFFFFFFFF"' }),
+      await post(headers, { ...command, inspectorId: actor + 100000 }), await post(headers, { ...command, dueAt: "2000-01-01T00:00:00Z" })];
+    const foreign = await fetch(`/api/branches/${branch + 100000}/reworks/${rework}/reinspection-options`, { credentials: "include" });
+    return { statuses, foreign: foreign.status };
+  }, { api, actor: fixture.actor, branch: fixture.branch, rework: fixture.rework });
+  stage = "canonical assignment form";
+  if (JSON.stringify(security.statuses) !== JSON.stringify([400, 428, 412, 400, 400]) || ![403, 404].includes(security.foreign))
+    throw Error("Assignment authorization/preconditions: " + JSON.stringify(security));
+  await page.getByLabel("Inspector", { exact: true }).selectOption(String(fixture.actor));
+  const due = new Date(Date.now() + 3600000);
+  const local = `${due.getFullYear()}-${String(due.getMonth() + 1).padStart(2, "0")}-${String(due.getDate()).padStart(2, "0")}T${String(due.getHours()).padStart(2, "0")}:${String(due.getMinutes()).padStart(2, "0")}`;
+  await page.getByLabel("Due time", { exact: true }).fill(local);
+  await page.getByLabel("Assignment reason", { exact: true }).fill("Reinspect submitted remediation");
+  await page.getByRole("button", { name: "Review assignment", exact: true }).click();
+  const pending = page.waitForResponse(response => response.url().endsWith(api + "/reinspection") && response.request().method() === "POST");
+  await page.getByRole("button", { name: "Confirm assignment", exact: true }).click();
+  const response = await pending, body = await response.json();
+  if (response.status() !== 201 || body.contract !== "FE05_REINSPECTION_ASSIGNMENT_V1" || body.state !== "ASSIGNED")
+    throw Error("Canonical assignment failed: " + response.status());
+  await page.getByText(`Inspection assigned successfully. Inspection #${body.id}.`, { exact: true }).waitFor();
+  const headers = await response.request().allHeaders(), requestBody = response.request().postData();
+  const replay = await page.evaluate(async ({ api, headers, requestBody }) => {
+    const send = async value => { const result = await fetch(api + "/reinspection", { method: "POST", credentials: "include",
+      headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": headers["x-csrf-token"], "If-Match": headers["if-match"], "Idempotency-Key": headers["idempotency-key"] }, body: value });
+      return { status: result.status, body: await result.json() }; };
+    return { same: await send(requestBody), changed: await send(JSON.stringify({ ...JSON.parse(requestBody), reason: "Changed replay" })) };
+  }, { api, headers, requestBody });
+  if (replay.same.status !== 201 || replay.same.body.id !== body.id || replay.same.body.sourceETag !== body.sourceETag || replay.changed.status !== 409)
+    throw Error("Assignment replay mismatch");
+  await page.reload();
+  stage = "assignment reload";
+  await page.getByText(`An inspection is already assigned: #${body.id}.`, { exact: true }).waitFor();
+  if (await page.getByRole("button", { name: "Review assignment", exact: true }).count()) throw Error("Duplicate assignment remains editable");
+  process.stdout.write(JSON.stringify({ success: true, inspection: body.id, canonicalAssignment: true, csrfEtag: true,
+    invalidInspectorDueDenied: true, foreignBranchDenied: true, replay: true, reloadPersisted: true }));
+} catch (error) {
+  process.stdout.write(JSON.stringify({ success: false, stage, diagnostic: String(error.message).split("\n")[0] })); process.exitCode = 1;
+} finally { await browser?.close(); }

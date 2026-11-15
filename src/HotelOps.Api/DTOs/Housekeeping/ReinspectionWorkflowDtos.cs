@@ -3,7 +3,8 @@ namespace HotelOps.Api.DTOs.Housekeeping;
 public sealed record ReinspectionAssigneeDto(long Id,string Name);
 public sealed record ReinspectionAssignmentOptionsDto(long ReworkId,long BranchId,long RoomId,long CleaningTaskId,
     long OriginalInspectionId,long VersionId,string ReworkETag,long? ExistingInspectionId,
-    IReadOnlyList<ReinspectionAssigneeDto> Inspectors);
+    IReadOnlyList<ReinspectionAssigneeDto> Inspectors,string RoomNumber,string ChecklistName,int ChecklistVersionNumber,
+    bool CanAssign,string? UnavailableReason=null);
 public sealed record ReinspectionAssignmentResult(long Id,long ReworkId,long BranchId,string State,string SourceETag,
     Guid OperationId,string Notification="PENDING_DELIVERY",string Contract="FE05_REINSPECTION_ASSIGNMENT_V1");
 public sealed record ReinspectionDefectInput(long DefectId,bool? Fixed,string? Note=null,IReadOnlyList<EvidenceUpload>? Photos=null);

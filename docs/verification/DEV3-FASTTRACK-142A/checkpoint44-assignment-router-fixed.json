@@ -1,0 +1,85 @@
+{
+  "success": false,
+  "checks": [
+    {
+      "blocked": false,
+      "browser": {
+        "success": true,
+        "checks": [
+          "login and canonical rejection admission",
+          {
+            "label": "CSRF required",
+            "status": 400,
+            "unchanged": true
+          },
+          {
+            "label": "ETag required",
+            "status": 428,
+            "unchanged": true
+          },
+          {
+            "label": "stale ETag rejected",
+            "status": 412,
+            "unchanged": true
+          },
+          {
+            "label": "reject via canonical UI",
+            "state": "FAILED",
+            "readiness": "REWORK_REQUIRED",
+            "message": null,
+            "notification": "PENDING_DELIVERY"
+          },
+          "duplicate rejection denied",
+          "reload persisted rejection and effective readiness",
+          {
+            "label": "rework CSRF",
+            "status": 400
+          },
+          {
+            "label": "rework revision",
+            "status": 428
+          },
+          {
+            "label": "rework stale",
+            "status": 412
+          },
+          {
+            "label": "rework empty defects",
+            "status": 400
+          },
+          {
+            "label": "rework foreign defect",
+            "status": 400
+          },
+          {
+            "label": "rework ineligible assignee",
+            "status": 400
+          },
+          {
+            "label": "rework past due",
+            "status": 400
+          },
+          {
+            "stage": "Request Rework preselected form and authoritative assignee",
+            "state": "PENDING_ACCEPTANCE",
+            "notification": "PENDING_DELIVERY"
+          },
+          "Existing open rework shown; duplicate API rejected409"
+        ]
+      }
+    },
+    {
+      "blocked": false,
+      "rejection": true,
+      "atomicLifecycle": true,
+      "deduplicatedFanout": true,
+      "revocation": true,
+      "retry": true
+    },
+    {
+      "blocked": false,
+      "cleanup": true
+    }
+  ],
+  "failure": "Exception: Reinspection browser: {\u0022success\u0022:false,\u0022stage\u0022:\u0022assignment options\u0022,\u0022diagnostic\u0022:\u0022locator.waitFor: Timeout 30000ms exceeded.\u0022}"
+}

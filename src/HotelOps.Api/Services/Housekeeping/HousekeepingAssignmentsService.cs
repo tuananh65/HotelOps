@@ -20,14 +20,13 @@ public sealed partial class RoomTypeCreationService
         db.ShiftAssignments.Any(a => a.UserId == u.UserId && a.AssignmentStatus == "ASSIGNED" && a.Shift.Status == "PLANNED"
             && a.Shift.BranchId == branch && a.Shift.DepartmentId == u.DepartmentId && a.Shift.ShiftTemplate.IsActive && a.Shift.ShiftTemplate.BranchId == branch
             && a.Shift.ScheduledStartAt <= now && a.Shift.ScheduledEndAt > now));
-    private async Task<bool> EligibleInspector(long user, long branch, CancellationToken ct)
-    {
-        var now = clock.GetUtcNow().UtcDateTime;
-        return await db.Users.AsNoTracking().AnyAsync(u => u.UserId == user && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
+    private IQueryable<User> EligibleInspectors(long branch, DateTime now)
+        => db.Users.AsNoTracking().Where(u => u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null
             && u.UserBranchAccessUsers.Any(a => a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now)
-            && db.UserRoles.Any(r => r.UserId == user && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_SUPERVISOR"
-                && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)), ct);
-    }
+            && db.UserRoles.Any(r => r.UserId == u.UserId && r.BranchId == branch && r.IsActive && r.Role.IsActive && r.Role.RoleCode == "HK_SUPERVISOR"
+                && r.AssignedAt <= now && (r.ExpiresAt == null || r.ExpiresAt > now)));
+    private Task<bool> EligibleInspector(long user, long branch, CancellationToken ct)
+        => EligibleInspectors(branch, clock.GetUtcNow().UtcDateTime).AnyAsync(u => u.UserId == user, ct);
     private static void WorkflowDue(DateTime due, DateTime now)
     {
         if (due.Kind != DateTimeKind.Utc || due <= now) throw new ValidationException("Due time must be future UTC.");

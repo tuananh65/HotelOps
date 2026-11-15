@@ -3,6 +3,7 @@ using HotelOps.Api.DTOs.Housekeeping;
 using HotelOps.Api.Services.Authentication;
 using HotelOps.Api.Services.Housekeeping;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace HotelOps.Api.Services.HotelStructure;
 
@@ -23,21 +24,32 @@ public sealed partial class RoomTypeCreationService
             if(row==null)return new(RoomTypeBatchStatus.NotFound);
             if(await db.CleaningReworks.CountAsync(w=>w.InspectionId==row.InspectionId&&w.Status!="COMPLETED"&&w.Status!="CANCELLED",token)!=1)
                 return LifecycleFailure(RoomTypeBatchStatus.Inactive,"DUPLICATE_REWORK_SOURCE");
-            var proof=await ReadTrustedReworkAuthorityAsync(actor,branch,id,root,token);
-            if(proof==null)return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"INSPECTION_AUTHORITY_UNPROVEN");
             var state=await ReworkState(id,token);
             if(state.State is not ("PENDING_ACCEPTANCE" or "ACCEPTED" or "IN_PROGRESS" or "PENDING_REINSPECTION"))
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_EXECUTION_READ_CONTRACT_REQUIRED");
             var submitted=state.State=="PENDING_REINSPECTION";
-            if(submitted&&await ReadCurrentReworkSubmission(actor,branch,id,root,token)==null)
-                return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_SUBMISSION_UNPROVEN");
+            ReworkAuthorityBinding? binding;
+            if(submitted)
+            {
+                // Assignment makes the original inspection historical. Only the authenticated,
+                // immutable submission receipt can authorize this read-only acknowledgement.
+                var receipt=await ReadCurrentReworkSubmission(actor,branch,id,root,token);
+                if(receipt==null||receipt.Entity.SourceETag!=WorkflowTag(state.Revision))
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_SUBMISSION_UNPROVEN");
+                var snapshot=await BuildReworkAuthoritySnapshotAsync(db.Database.GetDbConnection(),db.Database.CurrentTransaction!.GetDbTransaction(),id,root,token);
+                if(snapshot==null||snapshot.CurrentCycleId!=row.CleaningTaskId||Convert.ToHexString(snapshot.SourceDigest)!=receipt.SourceDigest)
+                    return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_SUBMISSION_SOURCE_CHANGED");
+                binding=snapshot.Binding;
+            }
+            else binding=(await ReadTrustedReworkAuthorityAsync(actor,branch,id,root,token))?.Binding;
+            if(binding==null)return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"INSPECTION_AUTHORITY_UNPROVEN");
             // A legacy remediation writer is not composed into this initial receive/start contract.
             if(!submitted&&await db.Database.SqlQueryRaw<int>("SELECT CASE WHEN COL_LENGTH('dbo.cleaning_rework_defects','remediation_note') IS NOT NULL THEN 1 ELSE 0 END AS Value").SingleAsync(token)==1
                 &&await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id} AND remediation_note IS NOT NULL").SingleAsync(token)>0)
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_REMEDIATION_READ_CONTRACT_REQUIRED");
             var defects=await db.Database.SqlQuery<long>($"SELECT defect_id AS Value FROM dbo.cleaning_rework_defects WHERE rework_id={id}").ToArrayAsync(token);
             if(defects.Length is <1 or >200||await db.InspectionDefects.CountAsync(d=>defects.Contains(d.DefectId)
-                &&d.InspectionId==row.InspectionId&&d.ChecklistItem!=null&&d.ChecklistItem.VersionId==proof.Binding.VersionId
+                &&d.InspectionId==row.InspectionId&&d.ChecklistItem!=null&&d.ChecklistItem.VersionId==binding.VersionId
                 &&db.InspectionResults.Any(r=>r.InspectionId==d.InspectionId&&r.ChecklistItemId==d.ChecklistItemId&&r.Outcome=="FAIL"),token)!=defects.Length)
                 return LifecycleFailure(RoomTypeBatchStatus.Unavailable,"REWORK_DEFECT_SOURCE_INVALID");
             var output=new List<ReworkDefectDto>();
@@ -63,7 +75,7 @@ public sealed partial class RoomTypeCreationService
             }
             return new(RoomTypeBatchStatus.Success,new ReworkExecutionDto(id,branch,row.CleaningTaskId,row.InspectionId,row.RoomId,actor,
                 state.State, state.DueAt is {} due?DateTime.SpecifyKind(due,DateTimeKind.Utc):null,WorkflowTag(state.Revision),
-                WorkflowTag(proof.Binding.InspectionRevision),output,
+                WorkflowTag(binding.InspectionRevision),output,
                 state.State is "PENDING_ACCEPTANCE" or "ACCEPTED" && await AssignedReworkExecutionInstalled(token)
                     &&(await ReworkAccess(actor,branch,id,"CLEANING_EXECUTE",token)).IsGranted
                     ? "ACCEPT_START" : state.State=="IN_PROGRESS"&&await ReworkSubmissionInstalled(token)

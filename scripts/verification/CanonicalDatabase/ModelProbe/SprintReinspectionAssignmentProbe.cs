@@ -14,7 +14,8 @@ using Microsoft.Extensions.Options;
 internal static class SprintReinspectionAssignmentProbe
 {
     // Nested in the identity-guarded, committed UC036 fixture; never accepts an external database target.
-    internal static async Task VerifyAsync(HotelOpsDbContext db, long branch, long rework, string commit, CancellationToken ct)
+    internal static async Task VerifyAsync(HotelOpsDbContext db, long branch, long rework, string commit,
+        SessionReference executorTicket, long executorSid, CancellationToken ct)
     {
         if (await db.Database.SqlQueryRaw<int>("""
             SELECT CASE WHEN CONVERT(nvarchar(128),SERVERPROPERTY('ServerName'))='meita'
@@ -142,6 +143,26 @@ internal static class SprintReinspectionAssignmentProbe
             if ((await Call(operation, body: input with { Reason = "Changed body" })).Status != RoomTypeBatchStatus.Duplicate
                 || (await Call(Guid.NewGuid())).Status != RoomTypeBatchStatus.Duplicate)
                 throw new Exception("Assignment duplicated or reused changed operation");
+            await using (var context = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>().UseSqlServer(db.Database.GetConnectionString()).Options))
+            {
+                await context.Database.OpenConnectionAsync(ct);
+                await context.Database.ExecuteSqlRawAsync("EXECUTE AS USER='DEV3_ReworkExecutor'", ct);
+                try
+                {
+                    var current = new Identity(new(executorTicket.UserId, executorSid, false));
+                    var service = new RoomTypeCreationService(context, current,
+                        new PermissionService(current, new EfPermissionDataSource(context), new UnresolvedPermissionResourceResolver(), TimeProvider.System),
+                        new SqlSessionService(context, new SessionRevocationService(context), TimeProvider.System), TimeProvider.System);
+                    var read = await service.ReadAssignedReworkAsync(executorTicket, executorSid, branch, rework, SprintReworkFixture.EvidenceRoot, ct);
+                    if (read.Status != RoomTypeBatchStatus.Success || read.Value is not ReworkExecutionDto { State: "PENDING_REINSPECTION", Capability: "READ_ONLY" })
+                        throw new Exception("Reinspection assignment hid the executor's verified submission");
+                }
+                finally { await context.Database.ExecuteSqlRawAsync("REVERT", CancellationToken.None); }
+            }
+            // Restore only this synthetic assignment before the independent public UI trial.
+            await using (var reset = await db.Database.BeginTransactionAsync(IsolationLevel.Serializable, ct))
+            { await Cleanup(); await Install(); await reset.CommitAsync(ct); }
+            await SprintReinspectionHttpsProbe.VerifyAsync(db, actor, branch, rework, ct);
         }
         finally
         {

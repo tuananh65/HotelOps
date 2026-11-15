@@ -32,6 +32,22 @@ test("canonical inbox and assigned rework retain a validated login destination",
     assert.equal(approvedReturnDestination(path, true), null);
   }
 });
+test("exact reinspection assignment return requires a validated branch and fresh session", () => {
+  const path = "/inspections/reworks/12/assign?branchId=3";
+  assert.equal(approvedReturnDestination(path, true), path);
+  assert.equal(approvedReturnDestination(path, false), null);
+  for (const bad of [
+    "/inspections/reworks/12/assign",
+    "/inspections/reworks/0/assign?branchId=3",
+    "/inspections/reworks/9007199254740992/assign?branchId=3",
+    "/inspections/reworks/12/assign?branchId=0",
+    path + "&branchId=4",
+    path + "&roomId=1",
+    path + "&redirect=https://evil.test",
+    path + "#fragment",
+  ])
+    assert.equal(approvedReturnDestination(bad, true), null);
+});
 for (const bad of [
   "https://evil.test",
   "//evil.test",
@@ -112,6 +128,26 @@ async function pageAt(path, status) {
   if (status) await page.evaluate((s) => window.fixture.set(s), status);
   return page;
 }
+
+test("reinspection assignment renders eligible inspector and hides source on session loss", async () => {
+  const p = await pageAt("/inspections/reworks/12/assign?branchId=7");
+  await p.evaluate(() => {
+    window.businessReply = { status: 200, headers: { ETag: '"0123456789ABCDEF"' }, body: {
+      reworkId: 12, branchId: 7, roomId: 11, cleaningTaskId: 22, originalInspectionId: 42,
+      versionId: 55, reworkETag: '"0123456789ABCDEF"', existingInspectionId: null,
+      inspectors: [{ id: 7, name: "Eligible supervisor" }], roomNumber: "701",
+      checklistName: "Verified checklist", checklistVersionNumber: 1, canAssign: true, unavailableReason: null,
+    } };
+    window.fixture.set("AUTHENTICATED");
+  });
+  await p.getByLabel("Inspector", { exact: true }).selectOption("7");
+  await p.getByRole("heading", { name: "Room 701", exact: true }).waitFor();
+  await p.evaluate(() => window.fixture.set("EXPIRED_INVALID"));
+  await p.getByRole("heading", { name: "Room 701", exact: true }).waitFor({ state: "hidden" });
+  assert.equal(await p.getByRole("button", { name: "Review assignment", exact: true }).count(), 0);
+  assert.equal(await p.evaluate(() => window.methods.includes("POST")), false);
+  await p.close();
+});
 
 const inspectionReply = {
   status: 200,

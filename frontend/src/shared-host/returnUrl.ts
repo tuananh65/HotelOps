@@ -70,7 +70,18 @@ export function approvedReturnDestination(
     new URLSearchParams(safe.split("?")[1] || "").has("branchId")
   )
     return safe;
-  // UC041/049 and unintegrated features remain excluded; flags are OFF.
+  const reinspection = /^\/inspections\/reworks\/([1-9][0-9]*)\/assign$/.exec(
+    path,
+  );
+  if (reinspection && Number.isSafeInteger(Number(reinspection[1]))) {
+    const query = new URLSearchParams(safe.split("?")[1] || "");
+    if (
+      query.has("branchId") &&
+      [...query.keys()].every((key) => key === "branchId")
+    )
+      return safe;
+  }
+  // Other UC041/049 candidate routes remain excluded; their flags are OFF.
   return [
     "/rooms/status",
     "/rooms/turnover",
