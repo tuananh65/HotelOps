@@ -1,0 +1,9 @@
+ack_flag ack_time ack_check   trial_trigger
+-------- -------- ----------- -------------
+    NULL     NULL        NULL          NULL
+audit_count
+-----------
+          0
+recipient_count
+---------------
+              0

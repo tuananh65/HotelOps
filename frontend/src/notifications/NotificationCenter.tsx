@@ -126,6 +126,13 @@ export function NotificationCenter() {
             ? "Acknowledged. Source records are unchanged."
             : "Marked as read. Source records are unchanged.",
         });
+        // Read/acknowledgment filters can remove the last row on this page.
+        // Restart the filtered list so remaining matches stay reachable.
+        setQuery((value) => {
+          const parameters = new URLSearchParams(value);
+          parameters.delete("page");
+          return parameters.toString();
+        });
         setRevision((n) => n + 1);
       }
     } catch (error) {

@@ -53,6 +53,7 @@ internal static class SprintNotificationScenario
    else await Call("/api/notifications/acknowledge",503,true,body:new{ids=new[]{own.NotificationId}});
    if(browserUsername!=null&&browserPassword!=null)
    {
+    await SprintNotificationFiltersScenario.RunAsync(db,http,actor,prefix,browserUsername,browserPassword,checks,ct);
     await db.NotificationRecipients.Where(r=>r.UserId==actor&&(r.NotificationId==own.NotificationId||r.NotificationId==second.NotificationId)).ExecuteUpdateAsync(s=>s.SetProperty(r=>r.ReadAt,(DateTime?)null),ct);
     var browser=await SprintNotificationBrowser.RunAsync(browserUsername,browserPassword,own.NotificationId,own.Title,foreign.Title,ct);checks.Add(new{browser});
     if(!browser.GetProperty("success").GetBoolean())throw new Exception("Browser acceptance failed at "+browser.GetProperty("failureStage").GetString());

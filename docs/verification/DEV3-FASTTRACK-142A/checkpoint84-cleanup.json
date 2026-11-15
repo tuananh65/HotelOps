@@ -1,0 +1,8 @@
+﻿{
+    "ownedHttpsListeners":  0,
+    "privateEvidenceFiles":  0,
+    "ackSchemaRolledBack":  true,
+    "sqlEvidence":  "checkpoint84-schema-cleanup.txt",
+    "baselineTrialCleanup":  true,
+    "ackTrialCleanup":  true
+}
