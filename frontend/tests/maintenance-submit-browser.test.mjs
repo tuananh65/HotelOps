@@ -40,3 +40,25 @@ for(const stale of [false,true])test(`Submit validates fields, selects existing 
   assert.equal(await review.isDisabled(),true);
  }finally{await page.close();}
 });
+
+const readBundle = await build({stdin:{resolveDir:process.cwd(),loader:'tsx',contents:`
+import React from 'react';import{createRoot}from'react-dom/client';import{BrowserRouter}from'react-router-dom';
+import{MaintenanceReadView}from'./src/dev2/MaintenanceReadView';
+createRoot(document.getElementById('root')).render(<BrowserRouter><MaintenanceReadView detail canDetail data={{maintenanceWorkId:7,incidentId:8,status:'PENDING',maintenanceWorkLogs:[]}}/></BrowserRouter>);
+`},bundle:true,write:false,format:'iife',jsx:'automatic',define:{'process.env.NODE_ENV':'"production"'}});
+for(const denied of [false,true])test('Maintenance evidence read '+(denied?'denies independent Incident access':'never exposes upload controls'),async()=>{
+ const page=await browser.newPage(),writes=[];page.setDefaultTimeout(5000);
+ try{
+  await page.route('**/*',route=>{
+   const req=route.request(),url=new URL(req.url());if(req.method()!=='GET')writes.push(req.method());
+   if(url.pathname==='/api/incidents/8/evidence')return denied?route.fulfill({status:403,json:{detail:'PRIVATE-DIAGNOSIS'}})
+    :route.fulfill({json:{incidentId:8,page:1,total:1,items:[{id:9,name:'reported.png',note:null,authorId:42,uploadedAt:'2026-11-16T12:00:00Z'}],version:'A'.repeat(43)+'=',canAdd:true,noteTotal:0,notes:[]}});
+   return route.fulfill({contentType:'text/html',body:'<div id="root"></div>'});
+  });
+  await page.goto('https://hotelops.test');await page.addScriptTag({content:readBundle.outputFiles[0].text});
+  if(denied)await page.getByText('Incident evidence is unavailable. Reload to check current access.',{exact:true}).waitFor();
+  else {await page.getByRole('link',{name:'reported.png',exact:true}).waitFor();assert.equal(await page.getByRole('link',{name:'reported.png',exact:true}).getAttribute('href'),'/api/incidents/8/evidence/9');}
+  assert.equal(await page.getByRole('button',{name:'Save evidence',exact:true}).count(),0);
+  assert.ok(!(await page.locator('body').innerText()).includes('PRIVATE-DIAGNOSIS'));assert.deepEqual(writes,[]);
+ }finally{await page.close();}
+});

@@ -3,6 +3,7 @@ namespace HotelOps.Api.DTOs.Maintenance;
 public sealed class MaintenanceWorkLogDto
 {
     public string? ExecutionETag { get; init; }
+    public int? ProgressPercent { get; set; }
     public long LogId { get; init; }
     public long MaintenanceWorkId { get; init; }
     public string WorkNote { get; init; } = string.Empty;

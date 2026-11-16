@@ -25,6 +25,7 @@ function validSelection(s: Selection) {
 export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Values; allowMaterials: boolean }) {
   const { state } = useAuth(), session = state.session;
   const [bound] = useState(session), current = useRef(session); current.current = session;
+  const [percent, setPercent] = useState("");
   const [note, setNote] = useState(""), [selected, setSelected] = useState<Selection[]>([]);
   const [lines, setLines] = useState<Line[]>([]), [page, setPage] = useState(0), [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false), [materialMessage, setMaterialMessage] = useState("");
@@ -35,7 +36,7 @@ export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Value
   const id = data.maintenanceWorkId, tag = data.executionETag, actor = Number(session?.user.id);
   if (!session || session !== bound || data.canLog !== true || !["IN_PROGRESS", "ON_HOLD"].includes(String(data.status))
     || !positiveId(id) || !positiveId(actor) || typeof tag !== "string" || !/^"[0-9A-F]{16}"$/.test(tag)) return null;
-  const valid = note.trim().length > 0 && selected.every(validSelection) && (selected.length === 0 || allowMaterials);
+  const valid = (data.progressPercentAvailable !== true || (/^\d{1,3}$/.test(percent) && Number(percent) <= 100)) && note.trim().length > 0 && selected.every(validSelection) && (selected.length === 0 || allowMaterials);
   async function load(next: number) {
     if (!allowMaterials || sending.current || attempted || current.current !== session) return;
     reader.current?.abort(); const abort = new AbortController(); reader.current = abort;
@@ -74,13 +75,14 @@ export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Value
       const response = await fetch(`/api/maintenance-works/${id}/logs`, {
         method: "POST", credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal,
         headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf.csrfToken, "If-Match": tag as string },
-        body: JSON.stringify({ actorUserId: actor, workNote: note.trim(), spentMinutes: 0,
+        body: JSON.stringify({ actorUserId: actor, ...(data.progressPercentAvailable === true ? { progressPercent: Number(percent) } : {}), workNote: note.trim(), spentMinutes: 0,
           materialUsages: selected.map(s => ({ stockDocumentLineId: s.line.stockDocumentLineId, uomId: s.uomId, usedQty: Number(s.quantity) })) })
       });
       if (!response.ok) throw Error(response.status === 412 ? "Work changed. Reload before recording progress again."
         : "Progress was not confirmed. Reload and check current access, source documents and remaining quantities.");
       const result: unknown = await response.json();
       if (!isObject(result) || result.maintenanceWorkId !== id || result.loggedBy !== actor || !positiveId(result.logId)
+        || (data.progressPercentAvailable === true && result.progressPercent !== Number(percent))
         || result.workNote !== note.trim() || result.status !== data.status || typeof result.executionETag !== "string"
         || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag
         || !Array.isArray(result.materialUsages) || result.materialUsages.length !== selected.length
@@ -98,6 +100,8 @@ export function MaintenanceProgressPanel({ data, allowMaterials }: { data: Value
     <p>Actual effort comes from work intervals. Materials must come from eligible posted issue lines for this incident.</p>
     {message && <p role="status">{message}</p>}
     <fieldset disabled={busy || attempted || review}>
+      {data.progressPercentAvailable === true && <label>Progress (%)<input type="number" min="0" max="100" step="1" value={percent} onChange={e => setPercent(e.target.value)} /></label>}
+      <p>Reaching 100% does not submit or close the work.</p>
       <label>Progress note<textarea value={note} onChange={e => setNote(e.target.value)} /></label>
       {allowMaterials ? <>
         <button disabled={loading} onClick={() => void load(1)}>Load issued materials</button>

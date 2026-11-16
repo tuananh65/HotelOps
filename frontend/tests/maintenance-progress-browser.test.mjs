@@ -7,7 +7,7 @@ import { chromium } from '@playwright/test';
 const bundle = await build({ stdin: { resolveDir: process.cwd(), loader: 'tsx', contents: `
 import React from 'react';import{createRoot}from'react-dom/client';
 import{AuthProvider}from'./src/auth/AuthProvider';import{MaintenanceProgressPanel}from'./src/dev2/MaintenanceProgressPanel';
-createRoot(document.getElementById('root')).render(<AuthProvider><MaintenanceProgressPanel allowMaterials={true} data={{maintenanceWorkId:7,status:'ON_HOLD',canLog:true,executionETag:'"0000000000000001"'}}/></AuthProvider>);
+createRoot(document.getElementById('root')).render(<AuthProvider><MaintenanceProgressPanel allowMaterials={true} data={{maintenanceWorkId:7,status:'ON_HOLD',canLog:true,progressPercentAvailable:true,executionETag:'"0000000000000001"'}}/></AuthProvider>);
 ` }, bundle: true, write: false, format: 'iife', jsx: 'automatic', define: { 'process.env.NODE_ENV': '"production"' } });
 let browser;
 before(async () => {
@@ -32,7 +32,7 @@ for (const mode of ['materials', 'note-only', 'stale']) test(`Progress: ${mode},
       if (url.pathname === '/api/maintenance-works/7/logs') {
         const body = route.request().postDataJSON(); calls.push({ headers: route.request().headers(), body });
         if (mode === 'stale') return route.fulfill({ status: 412, json: {} });
-        return json({ logId: 3, maintenanceWorkId: 7, loggedBy: 42, status: 'ON_HOLD', workNote: body.workNote,
+        return json({ logId: 3, maintenanceWorkId: 7, loggedBy: 42, status: 'ON_HOLD', workNote: body.workNote, progressPercent: body.progressPercent,
           executionETag: '"0000000000000002"', materialUsages: body.materialUsages.map(x => ({ ...x, maintenanceWorkId: 7, maintenanceWorkLogId: 3 })) });
       }
       return route.fulfill({ contentType: 'text/html', body: '<div id="root"></div>' });
@@ -41,6 +41,8 @@ for (const mode of ['materials', 'note-only', 'stale']) test(`Progress: ${mode},
     const review = page.getByRole('button', { name: 'Review progress', exact: true }); await review.waitFor();
     assert.equal(await review.isDisabled(), true);
     await page.getByLabel('Progress note').fill(' Replaced worn seal ');
+    for(const value of ['-1','101','0.5']) {await page.getByLabel('Progress (%)',{exact:true}).fill(value);assert.equal(await review.isDisabled(),true);}
+    await page.getByLabel('Progress (%)',{exact:true}).fill('100');
     await page.getByRole('button', { name: 'Load issued materials' }).click();
     if (mode === 'note-only') await page.getByText('Material availability is unavailable. Current inventory and material request access are required.', { exact: true }).waitFor();
     else {
@@ -60,7 +62,7 @@ for (const mode of ['materials', 'note-only', 'stale']) test(`Progress: ${mode},
     await page.getByText(mode === 'stale' ? 'Work changed. Reload before recording progress again.' : 'Progress recorded. Reload the work detail before another action.', { exact: true }).waitFor();
     assert.equal(calls.length, 1); assert.equal(calls[0].headers['if-match'], '"0000000000000001"');
     assert.equal(calls[0].headers['x-csrf-token'], 'synthetic');
-    assert.deepEqual(calls[0].body, { actorUserId: 42, workNote: 'Replaced worn seal', spentMinutes: 0, materialUsages: mode === 'note-only' ? [] : [
+    assert.deepEqual(calls[0].body, { actorUserId: 42, progressPercent: 100, workNote: 'Replaced worn seal', spentMinutes: 0, materialUsages: mode === 'note-only' ? [] : [
       { stockDocumentLineId: 100, uomId: 2, usedQty: 2 }, { stockDocumentLineId: 101, uomId: 1, usedQty: 1 }] });
     assert.equal(await review.isDisabled(), true);
   } finally { await page.close(); }

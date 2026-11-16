@@ -1,4 +1,5 @@
 import { MaintenanceVerifyPanel } from "./MaintenanceVerifyPanel";
+import { IncidentEvidencePanel } from "./IncidentEvidencePanel";
 import { MaintenanceReturnPanel } from "./MaintenanceReturnPanel";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
@@ -49,6 +50,9 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
     </section>}
     {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} />}
     {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
+    {typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0
+      && !(canSubmit && data.canSubmit === true) &&
+      <IncidentEvidencePanel key={data.incidentId} incidentId={data.incidentId} readOnly />}
     {(canStart || canResume || canHold) && <MaintenanceResumePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowStart={canStart} allowResume={canResume} allowHold={canHold} />}
     <h3>{show(data.workNo)} — {show(data.title)}</h3>
     <dl><dt>Status</dt><dd>{show(data.status)}</dd><dt>Assignee</dt><dd>{show(data.assigneeName ?? data.assigneeId)}</dd>
@@ -59,7 +63,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
       <dt>Resolution</dt><dd>{show(data.resolutionNote)}</dd><dt>Resolved at</dt><dd>{time(data.resolvedAt)}</dd></dl>
     <h4>Work history</h4>
     {logs.length === 0 ? <p>No work logs recorded.</p> : <ol>{logs.map((log, index) => <li key={show(log.logId) + ":" + index}>
-      {time(log.loggedAt)} — {show(log.status)} — {show(log.workNote)} ({show(log.spentMinutes)} minutes)
+      {typeof log.progressPercent === "number" && Number.isInteger(log.progressPercent) && log.progressPercent >= 0 && log.progressPercent <= 100 ? `${log.progressPercent}% ? ` : ""}{time(log.loggedAt)} — {show(log.status)} — {show(log.workNote)} ({show(log.spentMinutes)} minutes)
     </li>)}</ol>}
     <h4>Material usage</h4>
     {data.materialUsageAvailable !== true ? <p>Material usage is unavailable: current material/inventory access and source document integrity must both be verified.</p>

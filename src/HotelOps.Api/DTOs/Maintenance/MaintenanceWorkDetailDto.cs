@@ -10,6 +10,7 @@ public sealed class MaintenanceWorkDetailDto
     public bool CanVerify { get; set; }
     public MaintenanceReviewDto? SubmittedReview { get; set; }
     public bool CanLog { get; set; }
+    public bool ProgressPercentAvailable { get; set; }
     public bool CanHold { get; set; }
     public bool MaterialUsageAvailable { get; set; }
     public long MaintenanceWorkId { get; init; }

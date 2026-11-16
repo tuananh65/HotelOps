@@ -6,6 +6,8 @@ public sealed class CreateMaintenanceWorkLogRequest : MaintenanceActorRequest
 {
     [Required]
     public string WorkNote { get; init; } = string.Empty;
+    [Range(0, 100)]
+    public int? ProgressPercent { get; init; }
     [Range(0, int.MaxValue)]
     public int SpentMinutes { get; init; }
     public IReadOnlyList<MaintenanceMaterialUsageWrite>? MaterialUsages { get; init; }

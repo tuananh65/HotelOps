@@ -53,6 +53,8 @@ public sealed partial class MaintenanceWorkService
             var materials = request.MaterialUsages is { Count: > 0 } ? await PrepareUsages(work, incident, request.MaterialUsages, token) : [];
             log = AddWorkLog(work, TrustedActorId, note, request.SpentMinutes, now);
             await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, token);
+            if (request.ProgressPercent is int percent)
+                await MaintenanceProgressStore.WriteAsync(_dbContext, log.LogId, percent, token);
             if (materials.Count > 0) await SaveUsages(log, materials, incident, TrustedActorId, now, token);
             // Advance the owning native version for child writes without changing workflow state.
             await _dbContext.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.maintenance_works SET status=status WHERE maintenance_work_id={id}", token);
@@ -63,6 +65,7 @@ public sealed partial class MaintenanceWorkService
                 {
                     ["maintenance_work_id"] = log.MaintenanceWorkId,
                     ["work_note"] = log.WorkNote,
+                    ["progress_percent"] = request.ProgressPercent,
                     ["spent_minutes"] = log.SpentMinutes,
                     ["material_issue_id"] = log.MaterialIssueId,
                     ["status"] = log.Status,
@@ -78,6 +81,7 @@ public sealed partial class MaintenanceWorkService
         {
             ExecutionETag = result.ExecutionETag,
             LogId = log!.LogId,
+            ProgressPercent = request.ProgressPercent,
             MaintenanceWorkId = log.MaintenanceWorkId,
             WorkNote = log.WorkNote,
             SpentMinutes = log.SpentMinutes,

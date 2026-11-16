@@ -5,7 +5,7 @@ type Item = { id: number; name: string; note: string | null; authorId: number; u
 type Page = { incidentId: number; page: number; total: number; items: Item[]; version: string; canAdd: boolean;
   noteTotal: number; notes: { id: number; note: string | null; authorId: number; at: string }[] };
 const request = createHttpClient();
-export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, onBusyChange }: { incidentId: number;
+export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, onBusyChange, readOnly = false }: { incidentId: number; readOnly?: boolean;
   selectedIds?: number[]; onSelect?: (item: { id: number; name: string }, selected: boolean) => void;
   onBusyChange?: (busy: boolean) => void }) {
   const [page, setPage] = useState(1);
@@ -48,7 +48,7 @@ export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, 
   }, [incidentId, page, key]);
   const current = loaded?.key === key ? loaded : undefined;
   async function save() {
-    if (!current?.data?.canAdd || sending.current) return;
+    if (readOnly || !current?.data?.canAdd || sending.current) return;
     if ((!note.trim() && !files.length) || note.trim().length > 4000 || files.length > 5
       || files.some(f => f.size < 1 || f.size > 10 * 1024 * 1024 || !["image/jpeg", "image/png", "application/pdf"].includes(f.type))) {
       setMessage("Enter a note or up to five JPG, PNG or PDF files, at most 10 MiB each."); return;
@@ -95,7 +95,7 @@ export function IncidentEvidencePanel({ incidentId, selectedIds = [], onSelect, 
       <ul>{current.data.notes.map(n => <li key={n.id}>{n.note ?? "Files added"} — user {n.authorId}, {n.at}</li>)}</ul>
       <button type="button" disabled={busy || page <= 1} onClick={() => setPage(p => p - 1)}>Previous evidence</button>
       <span> Page {page} </span><button type="button" disabled={busy || page * 25 >= Math.max(current.data.total, current.data.noteTotal)} onClick={() => setPage(p => p + 1)}>Next evidence</button>
-      {current.data.canAdd && <fieldset disabled={busy}><legend>Add evidence</legend>
+      {!readOnly && current.data.canAdd && <fieldset disabled={busy}><legend>Add evidence</legend>
         <label>Note<textarea maxLength={4000} value={note} onChange={e => setNote(e.target.value)} /></label>
         <label>Files<input key={revision} type="file" multiple accept=".jpg,.jpeg,.png,.pdf" onChange={e => setFiles(Array.from(e.target.files ?? []))} /></label>
         <button type="button" onClick={() => void save()}>{busy ? "Saving…" : "Save evidence"}</button>
