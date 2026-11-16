@@ -123,7 +123,8 @@ internal static class MaterialCreateContract
             || actor.AccountStatus != "ACTIVE" || actor.EmploymentStatus != "ACTIVE") return false;
         if (!HotelOpsCookieTicket.TryRead(a.Http.User, out var ticket, out var sid) || ticket == null
             || sid != a.Actor.SessionId || ticket.UserId != a.Actor.UserId || ticket.IsRestricted) return false;
-        var session = await a.Http.RequestServices.GetRequiredService<ISqlSessionService>().ValidateSessionAsync(ticket, ct);
+        var session = await Dev2SessionValidation.ValidateAsync(db, ticket,
+            a.Http.RequestServices.GetRequiredService<TimeProvider>(), ct);
         if (!session.IsValid || session.Session?.SessionId != sid || session.Session.IsRestricted) throw new Dev2AccessDenied(401);
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         if (!(await MaterialCreationAccess.BranchesAsync(db, a.Actor.UserId, now, ct)).Any(b => b.BranchId == input.BranchId)) return false;

@@ -72,15 +72,8 @@ internal static partial class ReplenishmentWriteContract
         if (!users.TryGetValue(a.Actor.UserId, out var actor) || actor is not { DeletedAt: null, AccountStatus: "ACTIVE", EmploymentStatus: "ACTIVE" }) return false;
         if (!HotelOpsCookieTicket.TryRead(a.Http.User, out var ticket, out var sid) || ticket == null || ticket.IsRestricted
             || ticket.UserId != a.Actor.UserId || sid != a.Actor.SessionId) return false;
-        // Revalidation also runs with pending aggregate/audit entities. Session services
-        // require an untracked context; share the SAME connection/transaction, never flush
-        // or detach the business aggregate to satisfy that invariant.
-        await using var sessionDb = new HotelOpsDbContext(new DbContextOptionsBuilder<HotelOpsDbContext>()
-            .UseSqlServer(db.Database.GetDbConnection()).Options);
-        await sessionDb.Database.UseTransactionAsync(db.Database.CurrentTransaction!.GetDbTransaction(), ct);
-        var clock = a.Http.RequestServices.GetRequiredService<TimeProvider>();
-        var sessionService = new SqlSessionService(sessionDb, new SessionRevocationService(sessionDb), clock);
-        var session = await sessionService.ValidateSessionAsync(ticket, ct);
+        var session = await Dev2SessionValidation.ValidateAsync(db, ticket,
+            a.Http.RequestServices.GetRequiredService<TimeProvider>(), ct);
         if (!session.IsValid || session.Session?.SessionId != sid || session.Session.IsRestricted) throw new Dev2AccessDenied(401);
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var warehouse = await Warehouse(a, ct);

@@ -75,7 +75,8 @@ internal static class MaterialRequesterContract
             || actor.AccountStatus != "ACTIVE" || actor.EmploymentStatus != "ACTIVE") return false;
         if (!HotelOpsCookieTicket.TryRead(a.Http.User, out var ticket, out var sid) || ticket == null || ticket.IsRestricted
             || ticket.UserId != a.Actor.UserId || sid != a.Actor.SessionId) return false;
-        var session = await a.Http.RequestServices.GetRequiredService<ISqlSessionService>().ValidateSessionAsync(ticket, ct);
+        var session = await Dev2SessionValidation.ValidateAsync(db, ticket,
+            a.Http.RequestServices.GetRequiredService<TimeProvider>(), ct);
         if (!session.IsValid || session.Session?.SessionId != sid || session.Session.IsRestricted) throw new Dev2AccessDenied(401);
         var request = await db.MaterialRequests.AsNoTracking().SingleOrDefaultAsync(r => r.RequestId == id, ct);
         if (request == null || request.RequesterId != a.Actor.UserId || request.BranchId != hint.BranchId) return false;
