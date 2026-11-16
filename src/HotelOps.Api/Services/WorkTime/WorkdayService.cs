@@ -149,12 +149,14 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
     public Task<WorkdayResult> OwnShiftsAsync(long branchId, CancellationToken ct)
         => Execute(branchId, "SHIFT_VIEW", async actor =>
         {
+            if (!await WorkdayMembershipStore.InstalledAsync(db, ct)) return new(503, Code: "WORKDAY_MEMBERSHIP_UNAVAILABLE");
             var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(ct), DateTimeKind.Utc);
+            var departments = (await WorkdayMembershipStore.ReadAsync(db, actor.UserId, branchId, now, ct)).Select(d => d.DepartmentId).ToArray();
             var today = DateOnly.FromDateTime(TimeZoneInfo.ConvertTimeFromUtc(now, HotelTimezone));
             var shifts = await ScheduledWorkdayClaims.Unclaimed(db.ShiftAssignments.AsNoTracking(), db.Workdays.AsNoTracking()).Where(a => a.UserId == actor.UserId
                     && a.AssignmentStatus == "ASSIGNED" && a.AssignedAt <= now && a.Shift.BranchId == branchId
                     && a.Shift.Status == "PLANNED" && a.Shift.ShiftDate == today
-                    && a.Shift.ScheduledEndAt >= a.Shift.ScheduledStartAt
+                    && a.Shift.ScheduledEndAt > a.Shift.ScheduledStartAt && departments.Contains(a.Shift.DepartmentId)
                     && a.Shift.ShiftTemplate.BranchId == branchId && a.Shift.ShiftTemplate.IsActive
                     && a.Shift.Department.BranchId == branchId && a.Shift.Department.IsActive)
                 .OrderBy(a => a.Shift.ScheduledStartAt).ThenBy(a => a.ShiftAssignmentId)

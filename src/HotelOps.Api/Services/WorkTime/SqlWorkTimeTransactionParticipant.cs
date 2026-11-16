@@ -73,7 +73,7 @@ public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext 
             $"SELECT * FROM dbo.work_shifts WITH(UPDLOCK,HOLDLOCK) WHERE shift_id={assignment.ShiftId}")
             .AsNoTracking().SingleOrDefaultAsync(ct);
         if (shift is null || shift.BranchId != branchId || shift.Status != "PLANNED"
-            || shift.ScheduledEndAt < shift.ScheduledStartAt) throw Failure("TIME_STATE_CONFLICT");
+            || shift.ScheduledEndAt <= shift.ScheduledStartAt) throw Failure("TIME_STATE_CONFLICT");
         ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
         if (!await db.ShiftTemplates.FromSqlInterpolated(
                 $"SELECT * FROM dbo.shift_templates WITH(HOLDLOCK) WHERE shift_template_id={shift.ShiftTemplateId}")
@@ -87,6 +87,13 @@ public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext 
         if (!await ScheduledWorkdayClaims.Unclaimed(db.ShiftAssignments.AsNoTracking()
                 .Where(a => a.ShiftAssignmentId == shiftAssignmentId), db.Workdays.AsNoTracking()).AnyAsync(ct))
             throw Failure("TIME_ASSIGNMENT_ALREADY_RECORDED");
+        now = await NowAsync(ct);
+        ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
+        // Assignment history is not current employee membership. Use the same
+        // explicit scope as roster planning and unscheduled Start, under retained locks.
+        if (!await WorkdayMembershipStore.InstalledAsync(db, ct)) throw Failure("TIME_SOURCE_UNRESOLVED");
+        var memberships = await WorkdayMembershipStore.ReadAsync(db, actorUserId, branchId, now, ct);
+        if (!memberships.Any(d => d.DepartmentId == shift.DepartmentId)) throw Failure("TIME_MEMBERSHIP_REQUIRED");
         now = await NowAsync(ct);
         ScheduledWorkdayClaims.RequireCurrentHotelDate(shift.ShiftDate, now);
         var day = new Workday
