@@ -13,6 +13,15 @@ internal static class MaintenanceExecutionAccess
 
     internal static async Task<bool> AllowsAsync(HotelOpsDbContext db, long actor, long branch, long work, CancellationToken ct)
     {
+        if (!await GrantsAsync(db, actor, branch, ct)) return false;
+        var read = await MaintenanceReadAccess.ReadAsync(db, actor, branch, ct);
+        return await read.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == work
+            && w.AssigneeId == actor && w.IncidentId != null && !w.PreventiveMaintenanceRuns.Any(), ct);
+    }
+
+    // Used after a successful Decline only to revalidate grants, never to authorize source disclosure.
+    internal static async Task<bool> GrantsAsync(HotelOpsDbContext db, long actor, long branch, CancellationToken ct)
+    {
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var paths = await (from assignment in db.UserRoles.AsNoTracking()
             join grant in db.RolePermissions.AsNoTracking() on assignment.RoleId equals grant.RoleId
@@ -25,9 +34,6 @@ internal static class MaintenanceExecutionAccess
                 assignment.Branch != null && assignment.Branch.IsActive,
                 db.UserBranchAccesses.Any(a => a.UserId == actor && a.BranchId == branch && a.RevokedAt == null && a.GrantedAt <= now))))
             .ToArrayAsync(ct);
-        if (!paths.Any(p => Allows(p.Role, p.Path, branch, now))) return false;
-        var read = await MaintenanceReadAccess.ReadAsync(db, actor, branch, ct);
-        return await read.Apply(db.MaintenanceWorks.AsNoTracking()).AnyAsync(w => w.MaintenanceWorkId == work
-            && w.AssigneeId == actor && w.IncidentId != null && !w.PreventiveMaintenanceRuns.Any(), ct);
+        return paths.Any(p => Allows(p.Role, p.Path, branch, now));
     }
 }

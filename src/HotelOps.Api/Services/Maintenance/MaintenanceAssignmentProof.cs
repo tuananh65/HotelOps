@@ -38,19 +38,27 @@ internal static class MaintenanceAssignmentProof
         var work = await db.MaintenanceWorks.AsNoTracking().Include(w => w.Incident)
             .SingleAsync(w => w.MaintenanceWorkId == workId, ct);
         if (work.Status != "PENDING" || work.Incident is not { Status: "OPEN" } incident
-            || work.ActualStartAt != null || work.ResolvedAt != null
+            || work.ActualStartAt != null || work.ResolvedAt != null || work.ReviewedAt != null || work.ReviewedBy != null
+            || incident.ResolvedAt != null || incident.ClosedAt != null
+            || await db.MaintenanceWorkLogs.AsNoTracking().AnyAsync(l => l.MaintenanceWorkId == workId, ct)
             || await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.WorkItemKind == "MAINTENANCE" && i.WorkItemId == workId, ct))
             return "UNVERIFIED";
+        if (!await HasTriageAsync(db, incident, ct)) return "UNVERIFIED";
+        if (work.AssigneeId == null) return "PENDING_ASSIGNMENT";
+        return await MaintenanceExecutionAccess.AllowsAsync(db, work.AssigneeId.Value, incident.BranchId, workId, ct)
+            ? "ASSIGNED" : "UNVERIFIED";
+    }
+
+    internal static async Task<bool> HasTriageAsync(HotelOpsDbContext db, Incident incident, CancellationToken ct)
+    {
+        if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Owning transaction required.");
         var latest = await db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident.IncidentId && e.EventType == "TRIAGED")
             .OrderByDescending(e => e.OccurredAt).ThenByDescending(e => e.EventId).FirstOrDefaultAsync(ct);
-        if (latest == null) return "UNVERIFIED"; // Missing history is not proof of Pending Triage.
+        if (latest == null) return false;
         var id = incident.IncidentId.ToString(CultureInfo.InvariantCulture);
         var audits = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "incidents" && a.EntityId == id
             && a.OccurredAt == latest.OccurredAt && a.ActorUserId == latest.ActorId && a.BranchId == incident.BranchId).ToArrayAsync(ct);
         var sla = await IncidentSlaRead.ReadAsync(db, incident.IncidentId, ct);
-        if (audits.Count(a => MatchesTriage(a, incident, sla, latest)) != 1) return "UNVERIFIED";
-        if (work.AssigneeId == null) return "PENDING_ASSIGNMENT";
-        return await MaintenanceExecutionAccess.AllowsAsync(db, work.AssigneeId.Value, incident.BranchId, workId, ct)
-            ? "ASSIGNED" : "UNVERIFIED";
+        return audits.Count(a => MatchesTriage(a, incident, sla, latest)) == 1;
     }
 }

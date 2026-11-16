@@ -39,11 +39,11 @@ public sealed class IncidentReadAccessTests
     }
 
     [Fact]
-    public void IncidentReadContractsAreAdmittedAndNoIncidentMutationCanMatch()
+    public void IncidentReadContractsCannotMatchMutationAndTriageIsSeparate()
     {
         string[] reads = ["A004A-022", "A004A-023", "INCIDENT-CATEGORIES-READ", "INCIDENT-EVIDENCE-LIST", "INCIDENT-EVIDENCE-DOWNLOAD"];
         Assert.Equal(reads.Order(), Dev2ActionAdmissionRegistry.KnownActions
-            .Where(i => i.ControllerType == typeof(HotelOps.Api.Controllers.IncidentsController) && Dev2ActionContracts.Find(i) != null)
+            .Where(i => i.ControllerType == typeof(HotelOps.Api.Controllers.IncidentsController) && i.HttpMethod == "GET" && Dev2ActionContracts.Find(i) != null)
             .Select(i => i.DecisionId).Order());
         foreach (var identity in Dev2ActionAdmissionRegistry.KnownActions.Where(i => i.ControllerType == typeof(HotelOps.Api.Controllers.IncidentsController)))
         {
@@ -52,6 +52,12 @@ public sealed class IncidentReadAccessTests
             {
                 Assert.NotNull(contract); Assert.True(contract.IsComplete(identity)); Assert.True(contract.RequiresReadTransaction);
                 Assert.False(contract.MatchesServiceInvocation(null!, null!));
+            }
+            else if (identity.DecisionId == "A004A-020")
+            {
+                Assert.NotNull(contract);
+                Assert.True(contract.RequiresActionTransaction);
+                Assert.False(contract.RequiresReadTransaction);
             }
             else Assert.Null(contract);
         }

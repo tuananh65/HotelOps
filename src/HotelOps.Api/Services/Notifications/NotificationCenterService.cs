@@ -400,6 +400,18 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new(target);
         }
+        if(source is {NotificationType:MaintenanceDeclineSource.Kind,SourceType:MaintenanceDeclineSource.SourceType,SourceId:>0})
+        {
+            var returned=await MaintenanceDeclineSource.ReadAsync(db,source.SourceId.Value,ct);
+            if(returned==null||returned.ActorId!=source.CreatedBy||returned.At!=source.CreatedAt
+                ||!await MaintenanceDeclineSource.CanReadAsync(db,user,returned,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            if(!await MaintenanceDeclineSource.CanReadAsync(db,user,returned,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/operations/maintenance/{returned.WorkId}?action=A004A-036");
+        }
         if(source is {NotificationType:MaintenanceReturnSource.Kind,SourceType:MaintenanceReturnSource.SourceType,SourceId:>0})
         {
             var returned=await MaintenanceReturnSource.ReadAsync(db,source.SourceId.Value,ct);

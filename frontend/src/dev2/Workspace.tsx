@@ -1,3 +1,4 @@
+import { IncidentTriagePanel } from "./IncidentTriagePanel";
 import { useEffect, useRef, useState } from "react";
 import {
   Link,
@@ -175,7 +176,7 @@ function Screen({
   expired: () => void;
 }) {
   // Hold/Resume use versioned detail, never the unversioned generic form.
-  const available = operations.filter((x) => !["A004A-026", "A004A-027", "A004A-028", "A004A-029", "A004A-030", "A004A-031", "A004A-032"].includes(x.id) && x.module === module && (!readOnly || x.method === "GET")
+  const available = operations.filter((x) => !["A004A-020", "A004A-026", "A004A-027", "A004A-028", "A004A-029", "A004A-030", "A004A-031", "A004A-032"].includes(x.id) && x.module === module && (!readOnly || x.method === "GET")
     && (!enabledActions || enabledActions.includes(x.id)));
   const initial = available.find(
     (x) => x.id === (actionId ?? (recordId ? config.detail : config.list)),
@@ -663,6 +664,8 @@ function Screen({
         ? <ReplenishmentListView data={data} /> : operation.id === "A004A-053" && isObject(data)
         ? <ReplenishmentDetailView record={data} /> : operation.id === "A004A-037" && isObject(data)
         ? <MaterialListView data={data} /> : <DataView data={data} title={config.name} />)}
+      {operation.id === "A004A-023" && !readOnly && (!enabledActions || enabledActions.includes("A004A-020")) && data !== undefined && !denied && !sessionLost && isObject(data)
+        && <IncidentTriagePanel key={String(data.incidentId) + ":" + String(data.triageETag)} data={data} />}
       {module === "material-requests" && record.requestId != null && Array.isArray(record.cycles)
         && <MaterialHistoryView record={record} />}
       {operation.id === "A004A-023" && data !== undefined && !denied && !sessionLost && typeof record.incidentId === "number" && record.incidentId > 0

@@ -4,8 +4,7 @@ namespace HotelOps.Api.DTOs.Incidents;
 
 public sealed class TriageIncidentRequest
 {
-    // TODO: Replace this temporary integration field with trusted current-user context.
-    // ActorUserId is not proof of caller identity.
+    // Compatibility field; RequireEntry binds it to the current authenticated actor.
     public long ActorUserId { get; init; }
 
     [Required]
@@ -13,4 +12,14 @@ public sealed class TriageIncidentRequest
 
     [Required]
     public long? PriorityId { get; init; }
+
+    [Required, RegularExpression("^[0-9A-F]{16}$")]
+    public string? ExpectedSlaTargetVersion { get; init; }
+
+    [Required]
+    public string? InitialActionPlan { get; init; }
+
+    public DateTime? ResponseDeadlineAt { get; init; }
+    public DateTime? ResolutionDeadlineAt { get; init; }
+    public string? DeadlineChangeReason { get; init; }
 }

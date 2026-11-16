@@ -151,81 +151,59 @@ public sealed class IncidentService : IIncidentService
         Dev2ServiceAuthority.RequireEntry(_authorityHttp, "Incidents", ["TriageIncident"], request.ActorUserId, id, request);
         Validator.ValidateObject(request, new ValidationContext(request), validateAllProperties: true);
         await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
-
-        // Hold the target row's update lock through validation, change detection, and commit.
         var incident = await _dbContext.Incidents
-            .FromSqlInterpolated($"SELECT * FROM incidents WITH (UPDLOCK, HOLDLOCK) WHERE incident_id = {id}")
-            .AsTracking()
-            .SingleOrDefaultAsync(cancellationToken);
-        if (incident is null)
-        {
-            return null;
-        }
-
-        if (!await _dbContext.Users.AsNoTracking()
-            .AnyAsync(user => user.UserId == TrustedActorId, cancellationToken))
-            throw new ValidationException("ActorUserId does not exist.");
-        if (incident.Status is not ("OPEN" or "IN_PROGRESS"))
-            throw new ValidationException("Triage is allowed only for OPEN or IN_PROGRESS incidents.");
-
-        var severityChanged = incident.SeverityId != request.SeverityId;
-        var priorityChanged = incident.PriorityId != request.PriorityId;
-        if (severityChanged && !await _dbContext.ReferenceValues.AsNoTracking()
-            .AnyAsync(value => value.ReferenceId == request.SeverityId &&
-                value.GroupCode == "SEVERITY" && value.IsActive, cancellationToken))
-            throw new ValidationException("SeverityId must identify an active SEVERITY reference value.");
-        if (priorityChanged && !await _dbContext.ReferenceValues.AsNoTracking()
-            .AnyAsync(value => value.ReferenceId == request.PriorityId &&
-                value.GroupCode == "PRIORITY" && value.IsActive, cancellationToken))
-            throw new ValidationException("PriorityId must identify an active PRIORITY reference value.");
-
-        if (severityChanged || priorityChanged)
-        {
-            var occurredAt = DateTime.UtcNow;
-            var oldValues = JsonSerializer.Serialize(new
-            {
-                severity_id = incident.SeverityId,
-                priority_id = incident.PriorityId
-            });
-            var changedFields = new List<string>();
-            if (severityChanged)
-                changedFields.Add("severity_id");
-            if (priorityChanged)
-                changedFields.Add("priority_id");
-
-            incident.SeverityId = request.SeverityId!.Value;
-            incident.PriorityId = request.PriorityId!.Value;
-            _dbContext.IncidentEvents.Add(new IncidentEvent
-            {
-                IncidentId = incident.IncidentId,
-                EventType = "TRIAGED",
-                FromStatus = null,
-                ToStatus = null,
-                ActorId = TrustedActorId,
-                Note = null,
-                OccurredAt = occurredAt
-            });
-            _dbContext.AuditLogs.Add(new AuditLog
-            {
-                BranchId = incident.BranchId,
-                ActorUserId = TrustedActorId,
-                EntityType = "incidents",
-                EntityId = incident.IncidentId.ToString(CultureInfo.InvariantCulture),
-                Action = "UPDATE",
-                OldValues = oldValues,
-                NewValues = JsonSerializer.Serialize(new
-                {
-                    severity_id = incident.SeverityId,
-                    priority_id = incident.PriorityId
-                }),
-                ChangedFields = JsonSerializer.Serialize(changedFields),
-                OccurredAt = occurredAt
-            });
-            await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
-        }
-
-        var result = await GetIncidentAsync(id, cancellationToken)
-            ?? throw new InvalidOperationException("Triaged incident could not be read.");
+            .FromSqlInterpolated($"SELECT * FROM dbo.incidents WITH(UPDLOCK,HOLDLOCK) WHERE incident_id={id}")
+            .AsTracking().SingleOrDefaultAsync(cancellationToken);
+        if (incident == null) return null;
+        await _dbContext.Entry(incident).ReloadAsync(cancellationToken);
+        var currentTag = await IncidentTriageStore.TagAsync(_dbContext, id, cancellationToken) ?? throw new Dev2AccessDenied(503);
+        var expectedTag = _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString();
+        if (string.IsNullOrEmpty(expectedTag)) throw new Dev2AccessDenied(428);
+        if (expectedTag != currentTag) throw new Dev2AccessDenied(412);
+        if (incident.Status != "OPEN" || incident.ResolvedAt != null || incident.ClosedAt != null
+            || await _dbContext.IncidentEvents.AnyAsync(e => e.IncidentId == id && e.EventType == "TRIAGED", cancellationToken)
+            || await _dbContext.MaintenanceWorks.AnyAsync(w => w.IncidentId == id, cancellationToken)
+            || await _dbContext.IncidentEvents.CountAsync(e => e.IncidentId == id && e.EventType == "CREATED"
+                && e.ToStatus == "OPEN" && e.ActorId == incident.ReportedBy && e.OccurredAt == incident.ReportedAt, cancellationToken) != 1)
+            throw new ValidationException("Initial Triage requires a verified Pending Triage incident without assignment or execution history.");
+        if (request.SeverityId is not > 0 || request.PriorityId is not > 0 || incident.SeverityId != request.SeverityId
+            || !await _dbContext.ReferenceValues.AsNoTracking().AnyAsync(r => r.ReferenceId == request.SeverityId
+                && r.GroupCode == "SEVERITY" && r.IsActive, cancellationToken))
+            throw new ValidationException("Active severity and priority references are required.");
+        if (!await IncidentCategoryStore.InstalledAsync(_dbContext, cancellationToken)) throw new Dev2AccessDenied(503);
+        if (!await IncidentCategoryStore.Rows(_dbContext).AnyAsync(r => r.IncidentId == id && r.CategoryId != null, cancellationToken))
+            throw new ValidationException("Classify the Incident before Triage: category and severity are required.");
+        var actionPlan = request.InitialActionPlan?.Trim();
+        if (string.IsNullOrEmpty(actionPlan)) throw new ValidationException("Initial action plan is required.");
+        var existing = await IncidentSlaRead.ReadAsync(_dbContext, id, cancellationToken);
+        if (existing.UnavailableReason != "INCIDENT_SLA_NOT_RECORDED" || existing.ResponseDeadlineAt != null || existing.ResolutionDeadlineAt != null)
+            throw new ValidationException("Initial Triage cannot replace existing or unavailable SLA evidence.");
+        var target = await IncidentTriageStore.TargetAsync(_dbContext, request.PriorityId.Value, cancellationToken);
+        if (target.Version != request.ExpectedSlaTargetVersion) throw new Dev2AccessDenied(412);
+        var defaults = IncidentTriageStore.Calculate(incident.DiscoveredAt, target, new());
+        var deadlines = IncidentTriageStore.Calculate(incident.DiscoveredAt, target, request);
+        var now = await _dbContext.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(cancellationToken);
+        var before = JsonSerializer.Serialize(new { severity_id = incident.SeverityId, priority_id = incident.PriorityId,
+            response_deadline_at = (DateTime?)null, resolution_deadline_at = (DateTime?)null });
+        incident.SeverityId = request.SeverityId.Value;
+        incident.PriorityId = request.PriorityId.Value;
+        _dbContext.IncidentEvents.Add(new IncidentEvent { IncidentId = id, EventType = "TRIAGED", FromStatus = "OPEN", ToStatus = "OPEN",
+            ActorId = TrustedActorId, OccurredAt = now, Note = actionPlan });
+        _dbContext.AuditLogs.Add(new AuditLog { BranchId = incident.BranchId, ActorUserId = TrustedActorId,
+            EntityType = "incidents", EntityId = id.ToString(CultureInfo.InvariantCulture), Action = "UPDATE", OldValues = before,
+            NewValues = JsonSerializer.Serialize(new { severity_id = incident.SeverityId, priority_id = incident.PriorityId,
+                response_deadline_at = deadlines.Response, resolution_deadline_at = deadlines.Resolution,
+                discovered_at = incident.DiscoveredAt, sla_response_minutes = target.ResponseMinutes,
+                sla_resolution_minutes = target.ResolutionMinutes, sla_target_version = target.Version,
+                default_response_deadline_at = defaults.Response, default_resolution_deadline_at = defaults.Resolution,
+                initial_action_plan = actionPlan,
+                deadline_change_reason = deadlines.OverrideReason, workflow_status = "PENDING_ASSIGNMENT" }),
+            ChangedFields = JsonSerializer.Serialize(new[] { "severity_id", "priority_id", "response_deadline_at", "resolution_deadline_at" }), OccurredAt = now });
+        await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        await IncidentTriageStore.WriteAsync(_dbContext, id, deadlines, cancellationToken);
+        var result = await GetIncidentAsync(id, cancellationToken) ?? throw new InvalidOperationException("Triaged incident could not be read.");
+        result.Sla = await IncidentSlaRead.ReadAsync(_dbContext, id, cancellationToken);
+        result.TriageETag = await IncidentTriageStore.TagAsync(_dbContext, id, cancellationToken);
         await Dev2ServiceAuthority.CommitAsync(_dbContext, _authorityHttp, transaction, cancellationToken);
         return result;
     }

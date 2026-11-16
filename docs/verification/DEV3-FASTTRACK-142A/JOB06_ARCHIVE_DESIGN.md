@@ -37,3 +37,5 @@ Before concrete DDL: inventory dependencies, define identity/payload constraints
 ## Disposable verification gate
 
 Verify instance/database GUID, ownership and schema; use synthetic data. Test cutoff boundaries, exact copy, unreferenced purge, referenced skip, differing existing copy, duplicate retry, concurrent receipt insertion, archive/delete failure rollback, original-ID provenance and reopen guards after archival, finite expiry/holds, denied non-Administrator/foreign-branch access, redacted access audit, notification retry after retention, and cleanup fingerprints. Test UI/API scope if subsequently exposed. These are planned tests, not executed results.
+
+UC054 additive dependency (2026-11-16): MaintenanceDecline.sql defines immutable maintenance_decline_events with an audit_logs FK; scoped history and notification source require that provenance. Installer preview/outer rollback only, not persistently installed. Include this table in inbound-reference discovery and archive design; skip referenced audit rather than cascading/deleting receipts. No finite retention policy is invented or activated by UC054.

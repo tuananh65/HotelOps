@@ -1,6 +1,7 @@
 import { MaintenanceVerifyPanel } from "./MaintenanceVerifyPanel";
 import { IncidentEvidencePanel } from "./IncidentEvidencePanel";
 import { MaintenanceReturnPanel } from "./MaintenanceReturnPanel";
+import { MaintenanceDeclinePanel } from "./MaintenanceDeclinePanel";
 import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
@@ -36,6 +37,11 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
   const submitted = isObject(data.submittedReview) ? data.submittedReview : null;
   const usages = logs.flatMap(log => Array.isArray(log.materialUsages) ? log.materialUsages.filter(isObject) : []);
   return <section aria-label="Maintenance work detail">
+    {canStart && <MaintenanceDeclinePanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
+    {Array.isArray(data.declines) && data.declines.length > 0 && <section aria-label="Assignment decline history">
+      <h3>Assignment declines</h3><ul>{data.declines.filter(isObject).map(row => <li key={String(row.auditId)}>
+        {time(row.occurredAt)} ? Assignee {show(row.previousAssigneeId)}: {show(row.reason)}
+      </li>)}</ul></section>}
     {canVerify && <MaintenanceVerifyPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
     {submitted && <section aria-label="Submitted maintenance snapshot">

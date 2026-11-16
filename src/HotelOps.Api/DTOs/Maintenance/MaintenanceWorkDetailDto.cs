@@ -7,6 +7,8 @@ public sealed class MaintenanceWorkDetailDto
     public string? ExecutionETag { get; set; }
     public bool CanResume { get; set; }
     public bool CanStart { get; set; }
+    public bool CanDecline { get; set; }
+    public IReadOnlyList<HotelOps.Api.Services.Maintenance.MaintenanceDeclineHistory> Declines { get; set; } = [];
     public bool CanSubmit { get; set; }
     public bool CanReturn { get; set; }
     public bool CanVerify { get; set; }

@@ -2,7 +2,11 @@ namespace HotelOps.Api.DTOs.Incidents;
 
 public sealed class IncidentDetailDto
 {
+    public string? AssignmentWorkflow { get; set; }
     public IncidentSlaDto? Sla { get; set; }
+    public string? TriageETag { get; set; }
+    public bool CanTriage { get; set; }
+    public IReadOnlyList<IncidentTriageOptionDto> TriageOptions { get; set; } = [];
     public long IncidentId { get; init; }
     public string IncidentNo { get; init; } = string.Empty;
     public long BranchId { get; init; }
