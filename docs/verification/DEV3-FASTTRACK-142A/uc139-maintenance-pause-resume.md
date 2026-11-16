@@ -31,4 +31,14 @@ No persistent installation was performed. No shared/production database mutation
 
 ## Remaining work
 
-Install the guarded migration only in the authorized runtime environment, then verify Pause All -> End -> next Working workday -> Resume with real SQL session/CSRF and rollback/negative cases. Complete canonical Start/Hold/Submit/Return-re-execution and legacy interval reconciliation; preventive occurrence integration remains separate. UC139 cannot be promoted to COMPLETE_VERIFIED from builds, mocked browser tests or DDL checks alone.
+Install the guarded migration only in the authorized runtime environment, then verify Pause All -> End -> next Working workday -> Resume with real SQL session/CSRF and rollback/negative cases. Complete canonical Start/Submit/Return-re-execution and legacy interval reconciliation; preventive occurrence integration remains separate. UC139 cannot be promoted to COMPLETE_VERIFIED from builds, mocked browser tests or DDL checks alone.
+
+## Manual Hold increment, 2026-11-16
+
+The production contract now also admits HoldWork (A004A-027), with exact action/request binding and the same current session, execution/read grants, assignee and branch checks as Resume. Both mutations require native rowversion If-Match under source locks and return scoped detail without material disclosure. Hold requires the existing minimum ten-character trimmed reason, closes the work interval and updates state/audit in the owning transaction. Existing SLA and Incident physical status are preserved.
+
+Canonical detail now exposes Hold only when the server confirms execution eligibility and an owned open interval. The existing panel requires a reason and confirmation, obtains current CSRF and sends the original ETag once. Hold and Resume are excluded from the generic unversioned action form; their workspace capabilities remain independent.
+
+Direct verification for this increment: backend build PASS (zero warnings/errors); frontend TypeScript/production build PASS (existing React Router directive and bundle-size warnings); 11 focused backend tests PASS; two Hold/Resume mocked-browser tests PASS. The browser fixture initially omitted the session CSRF field and failed admission; the fixture was corrected without weakening the production decoder. Solution-level dotnet test exited zero without test discovery and is not counted as coverage. No SQL mutation or live HTTPS/API verification was performed in this increment.
+
+UC055 still requires the remaining progress/material workflow and acceptance verification; neither UC055 nor UC139 is promoted. The approved Rework ON_HOLD / physical IN_PROGRESS pair is already represented by ReworkEndOfShift.sql and the owning Hold/Resume services; this increment does not change that contract.

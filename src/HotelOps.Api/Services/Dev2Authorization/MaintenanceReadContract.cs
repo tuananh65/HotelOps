@@ -109,7 +109,11 @@ internal static class MaintenanceReadContract
             detail.ExecutionETag = await MaintenanceExecutionVersion.TagAsync(db, Id(a), ct);
             detail.CanResume = detail.Status == "ON_HOLD" && detail.ExecutionETag != null
                 && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
-            if (detail.CanResume) a.Http.Items[ResumeKey] = true;
+            detail.CanHold = detail.Status == "IN_PROGRESS" && detail.ExecutionETag != null
+                && await MaintenanceExecutionAccess.AllowsAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct)
+                && await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.UserId == a.Actor.UserId && i.BranchId == scope.Branch
+                    && i.WorkItemKind == "MAINTENANCE" && i.WorkItemId == Id(a) && i.ClosedAt == null, ct);
+            if (detail.CanResume || detail.CanHold) a.Http.Items[ResumeKey] = true;
             var usage = await MaintenanceUsageRead.ReadAsync(db, a.Actor.UserId, scope.Branch, Id(a), ct);
             a.Http.Items[UsageKey] = usage;
             detail.MaterialUsageAvailable = usage.Available;
