@@ -11,3 +11,13 @@ Validation: backend build PASS (zero warnings/errors), 18 existing readiness/sub
 Production Verify/Return admission remains closed. Remaining UC059 acceptance: approved Incident escalation persistence/closure, closure/return/asset notification intents and delivery, submitted result review UI with evidence/material authorization, Return-to-executor work interval lifecycle, complete production review authorization, and end-to-end/rollback/concurrency validation. No UC COMPLETE_VERIFIED claimed.
 
 Files: MaintenanceWorkService.RoomClosure.cs (new), MaintenanceWorkService.Workflow.cs, MaintenanceWorkService.Commands.cs, and this receipt.
+
+## Incident escalation storage and automatic closure
+
+UC057 explicitly requires one Open escalation per Incident, automatically closed when the Incident is Closed or Cancelled. Added a disposable-only additive installer and internal closure participant. Storage retains opening event/time/reason/requested support, and closure event/time. Composite event-source foreign keys prevent linking a closure event from another Incident; no cascade deletes or EF entity edits. A filtered unique index prevents two Open escalations. Existing storage is rejected for comparison, never overwritten.
+
+Maintenance Verify/Cancel now require installed escalation capability before performing the workflow. After the actual Incident status event is saved, the participant verifies persisted event actor, branch, Incident status, event type and timestamp under the caller SERIALIZABLE transaction, then closes Open escalations. Before/after audits use that same transaction and persistence revalidation; any missing capability or failure rolls back closure. Return does not close escalation. No public Escalate/Verify/Cancel admission or grants are opened by this change.
+
+Direct evidence: disposable identity rechecked; installer ApplyChanges=0 succeeded and table, source unique key and marker absence were subsequently verified as ROLLBACK_CONFIRMED. Incorrect zero GUID rejected with SQL 51845 before mutation. No persistent schema/data change. Backend build PASS (zero warnings/errors); 39 existing Maintenance/readiness tests PASS. Solution-level test exited zero without discovery. These tests do not execute the new DML participant, its event proof, same-Incident foreign keys with synthetic rows, concurrency, or full API rollback; those remain NOT_RUN. No complete UC claim.
+
+Additional files: IncidentEscalationClosure.cs and scripts/verification/CanonicalDatabase/IncidentEscalation.sql; MaintenanceWorkService.Commands.cs and this receipt updated. Remaining: escalation creation eligibility/authorization and acknowledgment notification, UC059 closure/return notifications, reviewer UI/admission and runtime validation.

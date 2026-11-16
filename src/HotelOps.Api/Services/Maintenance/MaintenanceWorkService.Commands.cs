@@ -42,6 +42,9 @@ public sealed partial class MaintenanceWorkService
             throw new ValidationException("This action requires a corrective work linked to an incident.");
 
         await using var transaction = await Dev2ServiceAuthority.BeginTransactionAsync(_dbContext, _authorityHttp, cancellationToken);
+        if (request is VerifyMaintenanceWorkRequest or CancelMaintenanceWorkRequest
+            && !await HotelOps.Api.Services.Incidents.IncidentEscalationClosure.InstalledAsync(_dbContext, cancellationToken))
+            throw new Dev2AccessDenied(503);
         if (request is SubmitMaintenanceResultRequest)
             await LockResolutionMaterialsAsync(id, cancellationToken);
         HotelOps.Api.Services.WorkTime.SqlWorkTimeTransactionParticipant? workTime = null;
@@ -117,9 +120,10 @@ public sealed partial class MaintenanceWorkService
         }
         AddAudit("maintenance_works", id, incident.BranchId, TrustedActorId,
             now, beforeWork, afterWork);
+        IncidentEvent? transitionEvent = null;
         if (incident.Status != previousStatus)
         {
-            _dbContext.IncidentEvents.Add(new IncidentEvent
+            _dbContext.IncidentEvents.Add(transitionEvent = new IncidentEvent
             {
                 IncidentId = incident.IncidentId,
                 EventType = "STATUS_CHANGED",
@@ -135,6 +139,23 @@ public sealed partial class MaintenanceWorkService
 
         if (_dbContext.ChangeTracker.HasChanges())
             await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        if (request is VerifyMaintenanceWorkRequest or CancelMaintenanceWorkRequest)
+        {
+            if (transitionEvent == null) throw new Dev2AccessDenied(409);
+            await Dev2ServiceAuthority.RevalidateAsync(_dbContext, _authorityHttp, Dev2AuthorizationPhase.BeforePersistence, cancellationToken);
+            var closed = await HotelOps.Api.Services.Incidents.IncidentEscalationClosure.CloseAsync(_dbContext,
+                incident.IncidentId, incident.BranchId, TrustedActorId, transitionEvent.EventId, now, cancellationToken);
+            foreach (var escalation in closed)
+            {
+                var old = new Dictionary<string, object?> { ["incident_id"] = incident.IncidentId,
+                    ["state"] = "OPEN", ["opened_event_id"] = escalation.OpenedEventId, ["opened_at"] = escalation.OpenedAt,
+                    ["closed_event_id"] = null, ["closed_at"] = null };
+                var updated = new Dictionary<string, object?>(old) { ["state"] = "CLOSED",
+                    ["closed_event_id"] = transitionEvent.EventId, ["closed_at"] = now };
+                AddAudit("incident_escalations", escalation.EscalationId, incident.BranchId, TrustedActorId, now, old, updated);
+            }
+            if (closed.Length > 0) await Dev2ServiceAuthority.SaveChangesAsync(_dbContext, _authorityHttp, cancellationToken);
+        }
         var result = request is StartMaintenanceWorkRequest or ResumeMaintenanceWorkRequest or HoldMaintenanceWorkRequest or SubmitMaintenanceResultRequest or CreateMaintenanceWorkLogRequest or VerifyMaintenanceWorkRequest or ReturnMaintenanceWorkRequest
             ? await DetailAsync((await MaintenanceReadAccess.ReadAsync(_dbContext, TrustedActorId, incident.BranchId, cancellationToken))
                 .Apply(_dbContext.MaintenanceWorks.AsNoTracking()), id, cancellationToken)
