@@ -6,7 +6,7 @@ import { positiveId } from "./model";
  * Host must derive this snapshot from its real session and branch-scoped
  * CHECKLIST_MANAGE decision. Change sessionKey on logout/login, principal change
  * or authorization refresh (even when the same user signs in again).
- * This candidate is deliberately not registered in main.tsx.
+ * The canonical host admits this component only after a scoped API read succeeds.
  */
 export interface ChecklistHostContext {
   authorization: "unresolved" | "denied" | "granted";

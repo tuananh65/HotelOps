@@ -282,6 +282,7 @@ export function SharedAuthHost({
           <Protected>
             <Link to="/profile">Profile</Link>
             {(inspectionExecutionEnabled || notificationsEnabled) && <Link to="/inspection-history">Inspection history</Link>}
+            {checklistEnabled && <Link to="/inspections/checklists">Inspection checklists</Link>}
             {usersReadEnabled && <Link to="/users">Users</Link>}
             {structureReadEnabled && <Link to="/hotel">Structure</Link>}
             {auditReadEnabled && <Link to="/audit">Audit history</Link>}

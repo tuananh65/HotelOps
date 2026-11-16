@@ -85,7 +85,6 @@ for (const state of ["ANONYMOUS", "EXPIRED_INVALID", "RESTRICTED"])
     await p.close();
   });
 for (const query of [
-  "",
   "?branchId=0",
   "?branchId=01",
   "?branchId=7&branchId=8",
@@ -98,6 +97,20 @@ for (const query of [
     assert.deepEqual(await p.evaluate(() => window.calls), []);
     await p.close();
   });
+
+test("branch selector requires explicit valid branch before admission", async () => {
+  const p = await open({}, "/inspections/checklists");
+  await p.getByRole("form", { name: "Select checklist branch" }).waitFor();
+  assert.deepEqual(await p.evaluate(() => window.calls), []);
+  await p.getByLabel("Branch ID", { exact: true }).fill("0");
+  await p.getByRole("button", { name: "Load checklists" }).click();
+  await p.getByText("Enter a valid branch ID.").waitFor();
+  assert.deepEqual(await p.evaluate(() => window.calls), []);
+  await p.getByLabel("Branch ID", { exact: true }).fill("7");
+  await p.getByRole("button", { name: "Load checklists" }).click();
+  await p.getByText("BRANCH-7", { exact: true }).waitFor();
+  await p.close();
+});
 test("direct open and simulated reload require fresh session and server collection admission", async () => {
   const p = await open();
   await p.getByText("BRANCH-7", { exact: true }).waitFor();

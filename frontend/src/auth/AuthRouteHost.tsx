@@ -13,6 +13,7 @@ export function AuthRouteHost() {
       dashboardEnabled
       notificationsEnabled
       inspectionExecutionEnabled
+      checklistEnabled
       operationalTasksEnabled
       internalRequestsEnabled
       incidentReadEnabled

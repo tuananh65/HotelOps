@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { ChecklistRoute } from "../features/inspectionChecklists/ChecklistRoute";
 import {
@@ -30,7 +30,7 @@ export function checklistBranch(search: string): number | null {
   return Number.isSafeInteger(id) ? id : null;
 }
 
-/** Isolated composition: existing main.tsx keeps the gate OFF; no URL/environment override. */
+/** Canonical host opts in; branch API admission remains mandatory. */
 export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
   const { state } = useAuth();
   const { search } = useLocation();
@@ -48,6 +48,7 @@ export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
     return <Navigate replace to="/change-password" />;
   if (state.status !== "AUTHENTICATED" || !state.session)
     return <Navigate replace to="/login" />;
+  if (!search) return <ChecklistBranchSelection />;
   const branch = checklistBranch(search);
   if (branch === null)
     return <p role="alert">Invalid checklist branch context.</p>;
@@ -61,6 +62,23 @@ export function ChecklistAuthRoute({ enabled = false }: { enabled?: boolean }) {
       principalId={state.session.user.id}
     />
   );
+}
+
+function ChecklistBranchSelection() {
+  const navigate = useNavigate();
+  const [branch, setBranch] = useState("");
+  const [error, setError] = useState("");
+  return <form aria-label="Select checklist branch" onSubmit={event => {
+    event.preventDefault();
+    const id = checklistBranch(`?branchId=${encodeURIComponent(branch)}`);
+    if (id === null) { setError("Enter a valid branch ID."); return; }
+    navigate(`/inspections/checklists?branchId=${id}`);
+  }}>
+    <h1>Inspection checklists</h1>
+    <label>Branch ID<input inputMode="numeric" value={branch} onChange={event => setBranch(event.target.value)} /></label>
+    <button>Load checklists</button>
+    {error && <p role="alert">{error}</p>}
+  </form>;
 }
 
 function AdmittedChecklist({
