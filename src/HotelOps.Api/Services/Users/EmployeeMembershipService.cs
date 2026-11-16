@@ -63,4 +63,42 @@ public sealed class EmployeeMembershipService(HotelOpsDbContext db,ICurrentUserA
             NewValues=JsonSerializer.Serialize(new{operation="ADD_EMPLOYEE_DEPARTMENT",branchId=branch,departmentId=input.DepartmentId,grantedAt=now,reason,revokedSessions=revoked}),ChangedFields="[\"employee_department_memberships\"]"});
         await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();await Gate(ticket,sid,target,branch,ct);await tx.CommitAsync(ct);
     }
+    public async Task<IReadOnlyList<EmployeeMembershipDependency>> RemoveAsync(SessionReference ticket,long sid,long target,long branch,
+        byte[] version,EmployeeMembershipInput input,CancellationToken ct)
+    {
+        var reason=input.Reason?.Trim();
+        if(target<=0||branch<=0||input.DepartmentId<=0||version.Length!=8||string.IsNullOrWhiteSpace(reason)
+            ||reason.Length<10||reason.Length>250||reason.Any(char.IsControl))throw new InternalRequestReadException(400,"INVALID_MEMBERSHIP_INPUT");
+        await using var tx=await db.Database.BeginTransactionAsync(IsolationLevel.Serializable,ct);await Begin(ticket,sid,target,branch,ct);
+        var user=await db.Users.AsNoTracking().SingleAsync(u=>u.UserId==target,ct);
+        if(!user.RowVersion.AsSpan().SequenceEqual(version))throw new InternalRequestReadException(412,"USER_CHANGED");
+        // Primary-department transfer has its own responsibility workflow; do not leave legacy consumers pointing at a removed membership.
+        if(user.DepartmentId==input.DepartmentId)return [new("PRIMARY_DEPARTMENT_TRANSFER_REQUIRED",1)];
+        var membership=await db.Database.SqlQuery<EmployeeMembershipRow>($"""
+            SELECT m.department_id AS DepartmentId,d.department_name AS Name,m.granted_at AS GrantedAt,
+                m.revoked_at AS RevokedAt,m.provenance AS Provenance
+            FROM dbo.employee_department_memberships m WITH(UPDLOCK,HOLDLOCK)
+            JOIN dbo.departments d ON d.department_id=m.department_id AND d.branch_id=m.branch_id
+            WHERE m.user_id={target} AND m.branch_id={branch} AND m.department_id={input.DepartmentId}
+            """).SingleOrDefaultAsync(ct);
+        if(membership==null||membership.RevokedAt!=null)throw new InternalRequestReadException(409,"ACTIVE_MEMBERSHIP_REQUIRED");
+        var now=DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct),DateTimeKind.Utc);
+        if(membership.GrantedAt>now)throw new InternalRequestReadException(409,"MEMBERSHIP_TIME_CONFLICT");
+        if(!(await WorkdayMembershipStore.ReadAsync(db,target,branch,now,ct)).Any(d=>d.DepartmentId!=input.DepartmentId))
+            return [new("BRANCH_REQUIRES_DEPARTMENT_MEMBERSHIP",1)];
+        var dependencies=await EmployeeMembershipDependencies.ReadAsync(db,target,branch,input.DepartmentId,now,ct);
+        if(dependencies.Count!=0)return dependencies;
+        if(await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.employee_department_memberships SET revoked_at={now} WHERE user_id={target} AND branch_id={branch} AND department_id={input.DepartmentId} AND revoked_at IS NULL AND granted_at<={now}",ct)!=1)
+            throw new InternalRequestReadException(409,"MEMBERSHIP_CHANGED");
+        if(await db.Users.Where(u=>u.UserId==target&&u.RowVersion==version).ExecuteUpdateAsync(s=>s.SetProperty(u=>u.UpdatedAt,now),ct)!=1)
+            throw new InternalRequestReadException(412,"USER_CHANGED");
+        var revoked=await new SessionRevocationService(db).RevokeAllAsync(target,now,ct);
+        db.AuditLogs.Add(new AuditLog{ActorUserId=ticket.UserId,BranchId=branch,EntityType="users",EntityId=target.ToString(CultureInfo.InvariantCulture),Action="UPDATE",OccurredAt=now,
+            OldValues=JsonSerializer.Serialize(membership),NewValues=JsonSerializer.Serialize(new{operation="REMOVE_EMPLOYEE_DEPARTMENT",branchId=branch,
+                departmentId=input.DepartmentId,revokedAt=now,reason,revokedSessions=revoked}),ChangedFields="[\"employee_department_memberships.revoked_at\"]"});
+        await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();await Gate(ticket,sid,target,branch,ct);
+        dependencies=await EmployeeMembershipDependencies.ReadAsync(db,target,branch,input.DepartmentId,now,ct);
+        if(dependencies.Count!=0)return dependencies; // Disposing the uncommitted transaction restores membership, sessions and audit.
+        await tx.CommitAsync(ct);return [];
+    }
 }

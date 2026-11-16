@@ -19,10 +19,21 @@ public sealed class EmployeeMembershipController(EmployeeMembershipService servi
     {var(t,s)=Identity();return service.ReadAsync(t,s,userId,branchId,ct);}
     [HttpPost] public async Task<IActionResult> Add(long userId,long branchId,EmployeeMembershipInput input,CancellationToken ct)
     {
-        var(t,s)=Identity();var tags=Request.Headers.IfMatch;
+        var(t,s)=Identity();await service.AddAsync(t,s,userId,branchId,Version(),input,ct);return NoContent();
+    }
+    [HttpPost("remove")] public async Task<IActionResult> Remove(long userId,long branchId,EmployeeMembershipInput input,CancellationToken ct)
+    {
+        var(t,s)=Identity();var dependencies=await service.RemoveAsync(t,s,userId,branchId,Version(),input,ct);
+        if(dependencies.Count==0)return NoContent();
+        var problem=new ProblemDetails{Status=409,Title="MEMBERSHIP_DEPENDENCIES",Detail="Resolve the current responsibilities before removing membership."};
+        problem.Extensions["dependencies"]=dependencies;return Conflict(problem);
+    }
+    private byte[] Version()
+    {
+        var tags=Request.Headers.IfMatch;
         if(tags.Count!=1||tags[0] is not {Length:14} tag||tag[0]!='"'||tag[^1]!='"')throw new InternalRequestReadException(428,"IF_MATCH_REQUIRED");
         byte[] version;try{version=Convert.FromBase64String(tag[1..^1]);}catch(FormatException){throw new InternalRequestReadException(400,"INVALID_IF_MATCH");}
         if(version.Length!=8||Convert.ToBase64String(version)!=tag[1..^1])throw new InternalRequestReadException(400,"INVALID_IF_MATCH");
-        await service.AddAsync(t,s,userId,branchId,version,input,ct);return NoContent();
+        return version;
     }
 }
