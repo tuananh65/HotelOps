@@ -103,8 +103,8 @@ public sealed partial class ProvisionalCleaningDelivery
 {
     private sealed class ClosureSourceChangedException : Exception;
 
-    internal async Task<string> DeliverClosureOnlyAsync(CancellationToken ct)
-        => await candidate.ClosureAvailableAsync(ct) ? await DeliverClosureOneAsync(ct, null) : "DISABLED";
+    internal async Task<string> DeliverClosureOnlyAsync(CancellationToken ct,long? intentId=null)
+        => await candidate.ClosureAvailableAsync(ct) ? await DeliverClosureOneAsync(ct, null,intentId) : "DISABLED";
 
     private sealed class ClosureIntent
     {
@@ -115,7 +115,7 @@ public sealed partial class ProvisionalCleaningDelivery
         public long ActorId { get; set; }
         public string EventName { get; set; } = "";
     }
-    private async Task<string> DeliverClosureOneAsync(CancellationToken ct, Guid? publication)
+    private async Task<string> DeliverClosureOneAsync(CancellationToken ct, Guid? publication,long? intentId=null)
     {
         var selected = await db.Database.SqlQuery<ClosureIntent>($"""
             SELECT TOP(1) i.intent_id AS Id,i.user_id AS UserId,p.actor_user_id AS ActorId,p.event_type AS EventName,
@@ -124,6 +124,7 @@ public sealed partial class ProvisionalCleaningDelivery
             FROM dbo.notification_delivery_intents i JOIN dbo.notification_publications p ON p.publication_id=i.publication_id
             WHERE i.status='PENDING' AND i.delivery_channel='IN_APP' AND i.next_attempt_at<=SYSUTCDATETIME()
             AND p.event_type IN('CLEANING_BLOCKER_REPORTED','CLEANING_TASK_COMPLETED')
+            AND ({intentId} IS NULL OR i.intent_id={intentId})
             AND ({publication} IS NULL OR p.publication_id={publication}) ORDER BY i.intent_id
             """).SingleOrDefaultAsync(ct);
         if (selected == null) return "EMPTY";

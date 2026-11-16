@@ -22,10 +22,10 @@ public sealed partial class ProvisionalCleaningDelivery(HotelOpsDbContext db, Pr
         return await DeliverAssignmentAsync(ct,stopAfterDurableClaim,selectedPublication);
     }
 
-    internal async Task<string> DeliverAssignmentOnlyAsync(CancellationToken ct)
-        =>await candidate.AvailableAsync(ct)?await DeliverAssignmentAsync(ct):"DISABLED";
+    internal async Task<string> DeliverAssignmentOnlyAsync(CancellationToken ct,long? intentId=null)
+        =>await candidate.AvailableAsync(ct)?await DeliverAssignmentAsync(ct,selectedIntent:intentId):"DISABLED";
 
-    private async Task<string> DeliverAssignmentAsync(CancellationToken ct,bool stopAfterDurableClaim=false,Guid? selectedPublication=null)
+    private async Task<string> DeliverAssignmentAsync(CancellationToken ct,bool stopAfterDurableClaim=false,Guid? selectedPublication=null,long? selectedIntent=null)
     {
         if (!await candidate.AvailableAsync(ct)) throw new InvalidOperationException("CANDIDATE_DISABLED");
         var now = clock.GetUtcNow().UtcDateTime; long id; long recipient; Guid claim = Guid.NewGuid();
@@ -33,7 +33,7 @@ public sealed partial class ProvisionalCleaningDelivery(HotelOpsDbContext db, Pr
         {
             var query = selectedPublication is { } selected
                 ? db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) i.* FROM dbo.notification_delivery_intents i WITH(UPDLOCK,READPAST,ROWLOCK) WHERE i.publication_id={selected} AND i.status='PENDING' AND i.next_attempt_at<={now} AND (i.claimed_until IS NULL OR i.claimed_until<{now}) AND EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.publication_id=i.publication_id AND p.event_type='CLEANING_TASK_ASSIGNED') ORDER BY i.intent_id")
-                : db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) i.* FROM dbo.notification_delivery_intents i WITH(UPDLOCK,READPAST,ROWLOCK) WHERE i.status='PENDING' AND i.next_attempt_at<={now} AND (i.claimed_until IS NULL OR i.claimed_until<{now}) AND EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.publication_id=i.publication_id AND p.event_type='CLEANING_TASK_ASSIGNED') ORDER BY i.intent_id");
+                : db.CandidateIntents.FromSqlInterpolated($"SELECT TOP(1) i.* FROM dbo.notification_delivery_intents i WITH(UPDLOCK,READPAST,ROWLOCK) WHERE ({selectedIntent} IS NULL OR i.intent_id={selectedIntent}) AND i.status='PENDING' AND i.next_attempt_at<={now} AND (i.claimed_until IS NULL OR i.claimed_until<{now}) AND EXISTS(SELECT 1 FROM dbo.notification_publications p WHERE p.publication_id=i.publication_id AND p.event_type='CLEANING_TASK_ASSIGNED') ORDER BY i.intent_id");
             var intent = await query.SingleOrDefaultAsync(ct);
             if (intent == null) return "EMPTY";
             id = intent.IntentId; recipient = intent.UserId; intent.ClaimId = claim; intent.ClaimedUntil = now.AddSeconds(30); intent.AttemptCount++;

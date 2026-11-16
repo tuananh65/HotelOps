@@ -15,13 +15,14 @@ public sealed partial class ProvisionalCleaningDelivery
         public Guid Publication { get; set; }
     }
 
-    internal async Task<string> DeliverCancellationOnlyAsync(CancellationToken ct)
+    internal async Task<string> DeliverCancellationOnlyAsync(CancellationToken ct,long? intentId=null)
     {
         if (!await candidate.CancellationAvailableAsync(ct)) return "DISABLED";
         var selected = await db.Database.SqlQuery<CancellationIntent>($"""
             SELECT TOP(1) i.intent_id AS Id,i.user_id AS [User],i.publication_id AS Publication
             FROM dbo.notification_delivery_intents i JOIN dbo.notification_publications p ON p.publication_id=i.publication_id
             WHERE p.event_type='CLEANING_TASK_CANCELLED' AND i.status='PENDING'
+              AND ({intentId} IS NULL OR i.intent_id={intentId})
               AND i.delivery_channel='IN_APP' AND i.next_attempt_at<=SYSUTCDATETIME() ORDER BY i.intent_id
             """).SingleOrDefaultAsync(ct);
         if (selected == null) return "EMPTY";

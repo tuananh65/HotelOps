@@ -17,6 +17,7 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
     ILogger<CleaningClosureNotificationWorker> logger) : BackgroundService
 {
     private long reassignmentCursor;
+    private readonly Dictionary<CleaningDeliveryQueue,long> cursors = new();
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
         if (!options.Value.Enabled && !options.Value.CancellationEnabled && !options.Value.AssignmentEnabled) return;
@@ -37,18 +38,7 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
     {
         if(options.Value.AssignmentEnabled)
         {
-            try
-            {
-                for(var attempt=0;attempt<100;attempt++)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    await using var scope=scopes.CreateAsyncScope();
-                    var result=await scope.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>().DeliverAssignmentOnlyAsync(ct);
-                    if(result is "EMPTY" or "DISABLED")break;
-                }
-            }
-            catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
-            catch(Exception error){logger.LogWarning("Cleaning assignment delivery retained after {ErrorType}",error.GetType().Name);}
+            await DrainIndependentlyAsync(CleaningDeliveryQueue.Assignment,ct);
             try
             {
                 ProvisionalCleaningReassignmentDelivery.PendingIntent[] pending;
@@ -72,33 +62,47 @@ internal sealed class CleaningClosureNotificationWorker(IServiceScopeFactory sco
             catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
             catch(Exception error){reassignmentCursor=0;logger.LogWarning("Cleaning reassignment discovery retained after {ErrorType}",error.GetType().Name);}
         }
-        if (options.Value.Enabled) await DrainIndependentlyAsync(false, ct);
-        if (options.Value.CancellationEnabled) await DrainIndependentlyAsync(true, ct);
+        if (options.Value.Enabled) await DrainIndependentlyAsync(CleaningDeliveryQueue.Closure, ct);
+        if (options.Value.CancellationEnabled) await DrainIndependentlyAsync(CleaningDeliveryQueue.Cancellation, ct);
     }
 
-    private async Task DrainIndependentlyAsync(bool cancellation, CancellationToken ct)
+    private async Task DrainIndependentlyAsync(CleaningDeliveryQueue queue, CancellationToken ct)
     {
-        try { await DrainKindAsync(cancellation, ct); }
+        try { await DrainKindAsync(queue, ct); }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception error)
         {
-            // Retain durable intents for retry without starving the other workflow.
+            cursors[queue]=0;
             logger.LogWarning("Cleaning {Workflow} delivery retained after {ErrorType}",
-                cancellation ? "cancellation" : "closure", error.GetType().Name);
+                queue, error.GetType().Name);
         }
     }
 
-    private async Task DrainKindAsync(bool cancellation, CancellationToken ct)
+    private async Task DrainKindAsync(CleaningDeliveryQueue queue, CancellationToken ct)
     {
-        for (var attempt = 0; attempt < 100; attempt++)
+        long[] pending;
+        await using(var discovery=scopes.CreateAsyncScope())
+            pending=await discovery.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>()
+                .PendingAsync(queue,cursors.GetValueOrDefault(queue),ct);
+        foreach(var id in pending)
         {
             ct.ThrowIfCancellationRequested();
-            // A failed command/ambiguous commit must not poison the next intent's context.
-            await using var scope = scopes.CreateAsyncScope();
-            var delivery = scope.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>();
-            var result = cancellation ? await delivery.DeliverCancellationOnlyAsync(ct)
-                : await delivery.DeliverClosureOnlyAsync(ct);
-            if (result is "EMPTY" or "DISABLED") break;
+            try
+            {
+                // Retain failed intents, but continue this page with independent transaction contexts.
+                await using var scope=scopes.CreateAsyncScope();
+                var delivery=scope.ServiceProvider.GetRequiredService<ProvisionalCleaningDelivery>();
+                _=queue switch
+                {
+                    CleaningDeliveryQueue.Assignment=>await delivery.DeliverAssignmentOnlyAsync(ct,id),
+                    CleaningDeliveryQueue.Closure=>await delivery.DeliverClosureOnlyAsync(ct,id),
+                    CleaningDeliveryQueue.Cancellation=>await delivery.DeliverCancellationOnlyAsync(ct,id),
+                    _=>throw new InvalidOperationException("Unknown cleaning delivery queue.")
+                };
+            }
+            catch(OperationCanceledException) when(ct.IsCancellationRequested){throw;}
+            catch(Exception error){logger.LogWarning("Cleaning {Workflow} intent {IntentId} retained after {ErrorType}",queue,id,error.GetType().Name);}
         }
+        cursors[queue]=pending.Length==100?pending[^1]:0;
     }
 }
