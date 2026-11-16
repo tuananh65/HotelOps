@@ -13,7 +13,7 @@ namespace HotelOps.Api.Services.PreventiveMaintenance;
 public sealed record PreventiveOccurrenceView(long RunId,long ScheduleId,string Title,string Instruction,
     PreventiveCheckItem[] CheckItems,long? AssetId,long? RoomId,long? AreaId,long? AssigneeId,string Status,
     DateTime DueAt,DateTime? PerformedAt,string? Result,string? Note,string Version,bool CanAssign,bool CanCancel,bool CanStart,
-    bool CanComplete,PreventiveCheckResult[]? Results);
+    bool CanComplete,PreventiveCheckResult[]? Results,bool IsOverdue=false);
 
 public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db,ISqlSessionService sessions,ICurrentUserAccessor current)
 {
@@ -58,8 +58,10 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         await tx.CommitAsync(ct);return result;
     }
     public async Task<IReadOnlyList<PreventiveOccurrenceView>> ReadAsync(SessionReference ticket,long sid,long branch,
-        long? id,long afterId,CancellationToken ct,bool mine=false,string? status=null)
+        long? id,long afterId,CancellationToken ct,bool mine=false,string? status=null,DateTimeOffset? dueFrom=null,DateTimeOffset? dueTo=null,bool? overdue=null)
     {
+        if(dueFrom>dueTo)throw new InternalRequestReadException(400,"INVALID_DUE_RANGE");
+        var fromUtc=dueFrom?.UtcDateTime;var toUtc=dueTo?.UtcDateTime;
         if(branch<=0||id is <=0||afterId<0)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_PAGE");
         if(status is not (null or "OPEN" or "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS" or "COMPLETED" or "CANCELLED"))
             throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_STATUS");
@@ -69,6 +71,7 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         var scope=await AccessAsync(ticket,sid,branch,ct);
         if(!await PreventiveOccurrenceGeneration.InstalledAsync(db,ct))
             throw new InternalRequestReadException(503,"PREVENTIVE_OCCURRENCE_STORAGE_UNAVAILABLE");
+        var evaluatedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var rows=await db.Database.SqlQuery<Row>($"""
             SELECT TOP(50) r.run_id AS RunId,r.schedule_id AS ScheduleId,d.definition_json AS Definition,
               d.assignee_id AS AssigneeId,d.workflow_status AS Status,r.planned_at AS DueAt,r.performed_at AS PerformedAt,
@@ -80,6 +83,10 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
             WHERE d.branch_id={branch} AND ({scope.Lead}=1 OR ({scope.Staff}=1 AND d.assignee_id={ticket.UserId}))
               AND r.run_id>{afterId} AND ({id} IS NULL OR r.run_id={id})
               AND ({mine}=0 OR d.assignee_id={ticket.UserId})
+              AND ({fromUtc} IS NULL OR r.planned_at>={fromUtc}) AND ({toUtc} IS NULL OR r.planned_at<={toUtc})
+              AND ({overdue} IS NULL
+                OR ({overdue}=1 AND r.planned_at<{evaluatedAt} AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS'))
+                OR ({overdue}=0 AND (r.planned_at>={evaluatedAt} OR d.workflow_status IN('COMPLETED','CANCELLED'))))
               AND ({status} IS NULL OR d.workflow_status={status}
                 OR ({status}='OPEN' AND d.workflow_status IN('PENDING_ASSIGNMENT','ASSIGNED','IN_PROGRESS')))
               AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
@@ -135,7 +142,8 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
                 DateTime.SpecifyKind(row.DueAt,DateTimeKind.Utc),row.PerformedAt is {} performed?DateTime.SpecifyKind(performed,DateTimeKind.Utc):null,
                 row.Result,row.Note,'"'+row.Version+'"',canAssign&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",
                 canCancel&&row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED",canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="ASSIGNED",
-                completionInstalled&&canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="IN_PROGRESS",savedResults));
+                completionInstalled&&canExecute&&row.AssigneeId==ticket.UserId&&row.Status=="IN_PROGRESS",savedResults,
+                row.DueAt<evaluatedAt && row.Status is "PENDING_ASSIGNMENT" or "ASSIGNED" or "IN_PROGRESS"));
         }
         var finalScope=await AccessAsync(ticket,sid,branch,ct);
         if(result.Any(r=>!finalScope.Lead&&(!finalScope.Staff||r.AssigneeId!=ticket.UserId)))

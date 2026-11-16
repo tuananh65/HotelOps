@@ -5,7 +5,7 @@ import { isObject } from "../auth/http";
 import { Link } from "react-router-dom";
 
 type Occurrence = { runId: number; scheduleId: number; title: string; instruction: string; status: string;
-  dueAt: string; performedAt: string | null; result: string | null; note: string | null; assigneeId: number | null;
+  dueAt: string; isOverdue: boolean; performedAt: string | null; result: string | null; note: string | null; assigneeId: number | null;
   assetId: number | null; roomId: number | null; areaId: number | null; version: string; canAssign: boolean; canCancel: boolean; canStart: boolean; canComplete: boolean;
   results: { key: string; passed: boolean; note: string | null }[] | null;
   checkItems: { key: string; description: string; required: boolean }[] };
@@ -34,6 +34,8 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   const [busy,setBusy] = useState(false), sending = useRef(false);
   const [assignees,setAssignees] = useState<Record<number,string>>({}), [reasons,setReasons] = useState<Record<number,string>>({});
   const [uncertain,setUncertain] = useState(false);
+  const [dueFrom,setDueFrom] = useState(""), [dueTo,setDueTo] = useState(""), [overdue,setOverdue] = useState("");
+  const clearResults = () => { setRows([]); setHistory({}); setEvidence({}); };
   const [mine,setMine] = useState(true), [status,setStatus] = useState("OPEN");
   const [outcomes,setOutcomes] = useState<Record<string,string>>({}), [checkNotes,setCheckNotes] = useState<Record<string,string>>({});
   const [notes,setNotes] = useState<Record<number,string>>({});
@@ -111,7 +113,11 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
     const abort = new AbortController(); controller.current = abort;
     sending.current = true; setBusy(true); setMessage(""); setHistory({}); setEvidence({});
     try {
-      const response = await fetch(runId != null ? `/api/branches/${branchId}/preventive-occurrences/${runId}` : `/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}&mine=${mine}${status ? `&status=${encodeURIComponent(status)}` : ""}`,
+      const filters = new URLSearchParams();
+      if(dueFrom) filters.set("dueFrom",new Date(dueFrom + "+07:00").toISOString());
+      if(dueTo) filters.set("dueTo",new Date(dueTo + "+07:00").toISOString());
+      if(overdue) filters.set("overdue",overdue);
+      const response = await fetch(runId != null ? `/api/branches/${branchId}/preventive-occurrences/${runId}` : `/api/branches/${branchId}/preventive-occurrences?afterId=${more ? rows.at(-1)?.runId ?? 0 : 0}&mine=${mine}${status ? `&status=${encodeURIComponent(status)}` : ""}&${filters.toString()}`,
         { credentials: "same-origin", cache: "no-store", redirect: "error", signal: abort.signal });
       if (!response.ok) throw Error(`Occurrences unavailable (${response.status}). Check current access and configuration.`);
       const payload: unknown = await response.json();
@@ -128,13 +134,17 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       <label>Status<select value={status} onChange={e=>{setStatus(e.target.value);setRows([]);setHistory({});setEvidence({});}}>
         <option value="OPEN">Open work</option><option value="">All statuses</option><option value="PENDING_ASSIGNMENT">Pending assignment</option>
         <option value="ASSIGNED">Assigned</option><option value="IN_PROGRESS">In progress</option><option value="COMPLETED">Completed</option><option value="CANCELLED">Cancelled</option>
-      </select></label><p>Branch results remain limited by your current permissions.</p>
+      </select></label>
+      <label>Due from (UTC+7)<input type="datetime-local" value={dueFrom} onChange={e=>{setDueFrom(e.target.value);clearResults();}} /></label>
+      <label>Due to (UTC+7)<input type="datetime-local" value={dueTo} onChange={e=>{setDueTo(e.target.value);clearResults();}} /></label>
+      <label>Overdue<select value={overdue} onChange={e=>{setOverdue(e.target.value);clearResults();}}><option value="">All</option><option value="true">Overdue</option><option value="false">Not overdue</option></select></label>
+      <p>Branch results remain limited by your current permissions.</p>
     </fieldset>}
     <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
     {runId == null && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
     {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
-      <p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeId ?? "Pending assignment"}.</p>
+      <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeId ?? "Pending assignment"}.</p>
       <button disabled={busy} onClick={() => void loadHistory(r.runId)}>Load previous occurrences and linked incidents</button>
       {history[r.runId] && <section aria-label={`History of occurrence ${r.runId}`}>
         <h3>Previous occurrences in your current scope</h3>
