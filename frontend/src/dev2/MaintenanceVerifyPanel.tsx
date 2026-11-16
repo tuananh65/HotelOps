@@ -3,7 +3,7 @@ import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-export function MaintenanceVerifyPanel({ data }: { data: Values }) {
+export function MaintenanceVerifyPanel({ data, onCommitted }: { data: Values; onCommitted?: (message: string) => void }) {
   const { state } = useAuth(), session = state.session;
   const [bound] = useState(session), current = useRef(session); current.current = session;
   const [note, setNote] = useState(""), [review, setReview] = useState(false);
@@ -39,7 +39,11 @@ export function MaintenanceVerifyPanel({ data }: { data: Values }) {
       if (!isObject(result) || result.maintenanceWorkId !== id || result.assigneeId !== owner || result.status !== "CLOSED"
         || typeof result.executionETag !== "string" || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag)
         throw Error("Closure response could not be confirmed. Reload to check current state.");
-      if (!abort.signal.aborted && current.current === session) setMessage("Work and Incident closed. Room readiness is recalculated; a released Incident block does not mean the room is Ready. Reload the work detail.");
+      if (!abort.signal.aborted && current.current === session) {
+        const notice = "Work and Incident closed. Room readiness is recalculated; a released Incident block does not mean the room is Ready.";
+        setMessage(notice);
+        onCommitted?.(notice);
+      }
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Closure not confirmed. Reload.");
     } finally { if (!abort.signal.aborted) { setBusy(false); setReview(false); sending.current = false; } }

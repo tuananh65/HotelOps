@@ -19,7 +19,7 @@ const time = (v: unknown) => {
   return Number.isNaN(date.getTime()) ? "Unavailable" : date.toLocaleString();
 };
 
-export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false, canReturn = false, canVerify = false }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean; canReturn?: boolean; canVerify?: boolean }) {
+export function MaintenanceReadView({ data, detail, canDetail, canResume = false, canStart = false, canHold = false, canSubmit = false, canLog = false, canMaterials = false, canReturn = false, canVerify = false, onCommitted }: { data: Values; detail: boolean; canDetail: boolean; canResume?: boolean; canStart?: boolean; canHold?: boolean; canSubmit?: boolean; canLog?: boolean; canMaterials?: boolean; canReturn?: boolean; canVerify?: boolean; onCommitted?: (message: string) => void }) {
   if (!detail) {
     const rows = Array.isArray(data.items) ? data.items.filter(isObject) : [];
     return <section aria-label="Maintenance work results">
@@ -47,8 +47,8 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
       <h3>Assignment declines</h3><ul>{data.declines.filter(isObject).map(row => <li key={String(row.auditId)}>
         {time(row.occurredAt)} ? Assignee {show(row.previousAssigneeId)}: {show(row.reason)}
       </li>)}</ul></section>}
-    {canVerify && <MaintenanceVerifyPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
-    {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
+    {canVerify && <MaintenanceVerifyPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
+    {canReturn && <MaintenanceReturnPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
     {submitted && <section aria-label="Submitted maintenance snapshot">
       <h3>Submitted result</h3>
       <p>Submission #{show(submitted.submissionAuditId)} at {time(submitted.submittedAtUtc)}.</p>
@@ -60,7 +60,7 @@ export function MaintenanceReadView({ data, detail, canDetail, canResume = false
           <li key={id}><a href={`/api/incidents/${data.incidentId}/evidence/${id}`}>Result evidence {id}</a></li>)}</ul>}
     </section>}
     {canLog && <MaintenanceProgressPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} allowMaterials={canMaterials} />}
-    {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} />}
+    {canSubmit && <MaintenanceSubmissionPanel key={String(data.maintenanceWorkId) + ":" + String(data.executionETag)} data={data} onCommitted={onCommitted} />}
     {typeof data.incidentId === "number" && Number.isSafeInteger(data.incidentId) && data.incidentId > 0
       && !(canSubmit && data.canSubmit === true) &&
       <IncidentEvidencePanel key={data.incidentId} incidentId={data.incidentId} readOnly />}

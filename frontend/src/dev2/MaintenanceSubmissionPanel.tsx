@@ -4,7 +4,7 @@ import { isObject } from "../auth/http";
 import { IncidentEvidencePanel } from "./IncidentEvidencePanel";
 import type { Values } from "./contracts";
 
-export function MaintenanceSubmissionPanel({ data }: { data: Values }) {
+export function MaintenanceSubmissionPanel({ data, onCommitted }: { data: Values; onCommitted?: (message: string) => void }) {
   const { state } = useAuth();
   const session = state.session;
   const [bound] = useState(session);
@@ -47,7 +47,11 @@ export function MaintenanceSubmissionPanel({ data }: { data: Values }) {
         || !/^"[0-9A-F]{16}"$/.test(result.executionETag) || result.executionETag === tag
         || typeof result.resolvedAt !== "string" || !Number.isFinite(Date.parse(result.resolvedAt)))
         throw Error("Submission response could not be confirmed. Reload to check current state.");
-      if (!abort.signal.aborted && current.current === session) setMessage("Result submitted for verification. Reload the work detail.");
+      if (!abort.signal.aborted && current.current === session) {
+        const notice = "Result submitted for verification. The work interval is closed.";
+        setMessage(notice);
+        onCommitted?.(notice);
+      }
     } catch (error) {
       if (!abort.signal.aborted && current.current === session) setMessage(error instanceof Error ? error.message : "Submission not confirmed. Reload.");
     } finally {

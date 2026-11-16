@@ -216,6 +216,7 @@ function Screen({
   const [incidentFiles, setIncidentFiles] = useState<File[]>([]);
   const [data, setData] = useState<unknown>();
   const [message, setMessage] = useState("");
+  const [maintenanceCommitNotice, setMaintenanceCommitNotice] = useState("");
   const [busy, setBusy] = useState(false);
   const [denied, setDenied] = useState(false);
   const [sessionLost, setSessionLost] = useState(false);
@@ -514,6 +515,7 @@ function Screen({
         <Link to="/profile">Profile</Link>
         <Link to="/dashboard">Workspace home</Link>
       </header>
+      {maintenanceCommitNotice && <p role="status">{maintenanceCommitNotice}</p>}
       {context.occurrenceId != null && <p role="status">Reporting a failed check from occurrence #{String(context.occurrenceId)}. Keep the original target. After saving, reload the occurrence before continuing.</p>}
       {context.internalRequestId != null && actionId === config.create && !available.some(op => op.id === actionId) && <p role="status">
         Creating this linked work is unavailable with the current access. No linked work has been created.{" "}
@@ -686,7 +688,7 @@ function Screen({
         </p>
       )}
       {data !== undefined && (["A004A-035", "A004A-036"].includes(operation.id) && isObject(data)
-        ? <MaintenanceReadView data={data} detail={operation.id === "A004A-036"} canDetail={available.some(op => op.id === "A004A-036")} canVerify={!readOnly && (!enabledActions || enabledActions.includes("A004A-031"))} canReturn={!readOnly && (!enabledActions || enabledActions.includes("A004A-032"))} canLog={!readOnly && (!enabledActions || enabledActions.includes("A004A-029"))} canMaterials={!enabledActions || enabledActions.includes("A004A-034")} canSubmit={!readOnly && (!enabledActions || enabledActions.includes("A004A-030"))} canStart={!readOnly && (!enabledActions || enabledActions.includes("A004A-026"))} canResume={!readOnly && (!enabledActions || enabledActions.includes("A004A-028"))} canHold={!readOnly && (!enabledActions || enabledActions.includes("A004A-027"))} />
+        ? <MaintenanceReadView onCommitted={notice => { setData(undefined); setRecord({}); setDenied(false); setMaintenanceCommitNotice(notice); setRevision(v => v + 1); }} data={data} detail={operation.id === "A004A-036"} canDetail={available.some(op => op.id === "A004A-036")} canVerify={!readOnly && (!enabledActions || enabledActions.includes("A004A-031"))} canReturn={!readOnly && (!enabledActions || enabledActions.includes("A004A-032"))} canLog={!readOnly && (!enabledActions || enabledActions.includes("A004A-029"))} canMaterials={!enabledActions || enabledActions.includes("A004A-034")} canSubmit={!readOnly && (!enabledActions || enabledActions.includes("A004A-030"))} canStart={!readOnly && (!enabledActions || enabledActions.includes("A004A-026"))} canResume={!readOnly && (!enabledActions || enabledActions.includes("A004A-028"))} canHold={!readOnly && (!enabledActions || enabledActions.includes("A004A-027"))} />
         : operation.id === "A004A-022" && isObject(data)
         ? <IncidentListView data={data} canDetail={available.some(op => op.id === "A004A-023")} />
         : operation.id === "A004A-040" && isObject(data)
