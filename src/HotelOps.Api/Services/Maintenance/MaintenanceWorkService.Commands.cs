@@ -103,6 +103,15 @@ public sealed partial class MaintenanceWorkService
             if (request is StartMaintenanceWorkRequest) work.ActualStartAt = now;
         }
         var afterWork = WorkSnapshot(work);
+        if (request is ReturnMaintenanceWorkRequest returned)
+        {
+            beforeWork["notification_kind"] = null;
+            beforeWork["notification_version"] = null;
+            beforeWork["return_reason"] = null;
+            afterWork["notification_kind"] = "MAINTENANCE_RETURNED";
+            afterWork["notification_version"] = 1;
+            afterWork["return_reason"] = returned.Reason.Trim();
+        }
         if (request is SubmitMaintenanceResultRequest resultInput)
         {
             beforeWork["submitted_diagnosis"] = null;
