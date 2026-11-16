@@ -1,4 +1,5 @@
 using HotelOps.Api.Data;
+using HotelOps.Api.Services.OperationalTasks;
 using HotelOps.Api.DTOs.HotelStructure;
 using Microsoft.EntityFrameworkCore;
 
@@ -31,13 +32,19 @@ internal static class StructureDeactivationDependencies
              (x.AssetId != null && assetIds.Contains(x.AssetId.Value)))).Select(x => x.IncidentId);
         await Add("OPEN_INCIDENT", db.Incidents.AsNoTracking().Where(x => incidentIds.Contains(x.IncidentId)
             && x.Status != "CLOSED" && x.Status != "CANCELLED").Select(x => x.IncidentId));
-        // No current OperationalTask writer proves COMPLETED has no remaining verification/rework.
-        // V1 therefore permits only CANCELLED history; COMPLETED remains an explicit dependency.
+        // Completed history is nonblocking only with current immutable verification proof.
         var tasks = db.OperationalTasks.AsNoTracking().Where(x => x.BranchId == branchId
             && ((x.RoomId != null && roomIds.Contains(x.RoomId.Value)) || (x.AreaId != null && areaIds.Contains(x.AreaId.Value)))
             && x.Status != "CANCELLED");
         await Add("OPEN_OPERATIONAL_TASK", tasks.Where(x => x.Status != "COMPLETED").Select(x => x.TaskId));
-        await Add("TASK_COMPLETION_CONTRACT_UNRESOLVED", tasks.Where(x => x.Status == "COMPLETED").Select(x => x.TaskId));
+        var completed=tasks.Where(x=>x.Status=="COMPLETED");
+        if(await TaskVerificationStore.InstalledAsync(db,ct))
+        {
+            var now=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            var provenClosed=TaskVerificationStore.ProvenClosedTaskIds(db,now);
+            completed=completed.Where(x=>!provenClosed.Contains(x.TaskId));
+        }
+        await Add("TASK_COMPLETION_CONTRACT_UNRESOLVED",completed.Select(x=>x.TaskId));
         await Add("OPEN_MAINTENANCE_WORK", db.MaintenanceWorks.AsNoTracking().Where(x => x.IncidentId != null
             && incidentIds.Contains(x.IncidentId.Value) && x.Status != "CLOSED" && x.Status != "CANCELLED").Select(x => x.MaintenanceWorkId));
         return result;

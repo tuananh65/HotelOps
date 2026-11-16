@@ -55,6 +55,22 @@ internal static class TaskVerificationStore
           AND (t.area_id IS NULL OR EXISTS(SELECT 1 FROM dbo.areas r WHERE r.area_id=t.area_id AND r.branch_id=t.branch_id))
         """);
 
+    // Structural dependency checks require current closure proof, not a legacy COMPLETED label.
+    // Caller must validate InstalledAsync and retain its transaction until the structure mutation commits.
+    internal static IQueryable<long> ProvenClosedTaskIds(HotelOpsDbContext db,DateTime now)
+    {
+        var closed=TaskWorkflowRead.Query(db,now).Where(w=>w.State=="CLOSED").Select(w=>w.TaskId);
+        var accepted=Query(db).Where(v=>v.Decision=="ACCEPT"
+            && db.OperationalTasks.Any(t=>t.TaskId==v.TaskId && t.Status=="COMPLETED" && t.CompletedAt==v.DecidedAt)
+            && db.OperationalTaskAssignments.Any(a=>a.AssignmentId==v.AssignmentId
+                && a.AssignmentStatus=="COMPLETED" && a.EndedAt==v.DecidedAt));
+        return accepted.Where(v=>closed.Contains(v.TaskId)
+            && accepted.Count(other=>other.TaskId==v.TaskId)==1
+            && !db.OperationalTaskAssignments.Any(a=>a.TaskId==v.TaskId && (a.AssignmentStatus=="ACTIVE" || a.EndedAt==null))
+            && !db.WorkIntervals.Any(i=>i.WorkItemKind=="TASK" && i.WorkItemId==v.TaskId && i.ClosedAt==null))
+            .Select(v=>v.TaskId);
+    }
+
     internal static IQueryable<long> ClosedTaskIds(HotelOpsDbContext db,long user)=>
         Query(db).Where(v=>v.SubmittedBy==user&&v.Decision=="ACCEPT"
             && db.OperationalTasks.Any(t=>t.TaskId==v.TaskId&&t.Status=="COMPLETED"&&t.CompletedAt==v.DecidedAt)
