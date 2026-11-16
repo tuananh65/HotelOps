@@ -7,6 +7,7 @@ namespace HotelOps.Api.DTOs.WorkTime;
 public sealed class StartWorkdayRequest
 {
     [Range(1, long.MaxValue)] public long? ShiftAssignmentId { get; init; }
+    [Range(1, long.MaxValue)] public long? DepartmentId { get; init; }
     [StringLength(1000)] public string? Reason { get; init; }
 }
 

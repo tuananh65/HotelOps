@@ -496,6 +496,21 @@ test("null assignment never enables unscheduled Start",async()=>{
  assert.equal((await api.start(1,null,()=>true)).outcome,'NOT_DISPATCHED');assert.equal(calls,0);
 });
 
+test("explicit unscheduled Start binds verified department and required reason",async()=>{
+ const calls=[];const api=createScheduledWorkdayApi(async(u,o)=>{calls.push([u,o]);return u.endsWith('/csrf')?csrf():response({...body(),shiftAssignmentId:null,isUnscheduled:true},201);},true);
+ const result=await api.startUnscheduled(1,12,'Cover absence',()=>true);
+ assert.equal(result.outcome,'CONFIRMED');
+ assert.deepEqual(JSON.parse(calls[1][1].body),{shiftAssignmentId:null,departmentId:12,reason:'Cover absence'});
+});
+test("unscheduled Start rejects empty reason without dispatch",async()=>{
+ let calls=0;const api=createScheduledWorkdayApi(async()=>{calls++;throw Error();},true);
+ assert.equal((await api.startUnscheduled(1,12,'  ',()=>true)).outcome,'NOT_DISPATCHED');assert.equal(calls,0);
+});
+test("unscheduled Start cannot confirm a different returned department",async()=>{
+ const api=createScheduledWorkdayApi(async u=>u.endsWith('/csrf')?csrf():response({...body(),shiftAssignmentId:null,isUnscheduled:true,departmentId:99},201),true);
+ assert.equal((await api.startUnscheduled(1,12,'Cover absence',()=>true)).outcome,'OUTCOME_UNKNOWN');
+});
+
 test("Pause All uses the authenticated End boundary with the reviewed workday version", async () => {
  const calls=[];
  const api=createScheduledWorkdayApi(async(u,o)=>{calls.push([u,o]);return u.endsWith('/csrf')?csrf():response(body(true));},true);

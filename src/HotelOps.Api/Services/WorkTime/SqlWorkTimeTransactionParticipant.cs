@@ -19,7 +19,7 @@ public sealed class WorkTimeContractException(string code) : Exception(code)
 /// same scoped context/transaction and source authorization/locks. No method commits.
 /// Workday HTTP permissions, unscheduled notifications and Pause All are not implemented here.
 /// </summary>
-public sealed class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IWorkTimeTransactionParticipant
+public sealed partial class SqlWorkTimeTransactionParticipant(HotelOpsDbContext db) : IWorkTimeTransactionParticipant
 {
     private Guid? lockedTransaction;
     private long[] lockedIds = [];

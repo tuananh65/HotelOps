@@ -63,7 +63,6 @@ export function decodeScheduledResponse(
   const day = decodeWorkday({ ...x, openInterval: null }, branch);
   if (
     !day ||
-    (expected.status === "WORKING" && expected.assignmentId === null) ||
     x.isUnscheduled !== (expected.assignmentId === null) ||
     x.shiftAssignmentId !== expected.assignmentId ||
     (x.shiftAssignmentId !== null && !safeId(x.shiftAssignmentId)) ||

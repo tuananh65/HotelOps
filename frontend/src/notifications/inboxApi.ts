@@ -164,6 +164,7 @@ export async function resolveInboxSource(
       data.path,
     ) ??
     /^\/internal-requests\?requestId=([1-9][0-9]*)$/.exec(data.path) ??
+    /^\/workday\?branchId=([1-9][0-9]*)&unscheduledId=([1-9][0-9]*)$/.exec(data.path) ??
     /^\/operational-tasks\?branchId=([1-9][0-9]*)&taskId=([1-9][0-9]*)$/.exec(
       data.path,
     );

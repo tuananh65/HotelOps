@@ -12,6 +12,14 @@ namespace HotelOps.Api.Controllers;
 [ResponseCache(NoStore = true, Location = ResponseCacheLocation.None)]
 public sealed class WorkdayReadsController(WorkdayService service) : ControllerBase
 {
+    [HttpGet("own-departments")]
+    public Task<IActionResult> OwnDepartments(long branchId, CancellationToken ct)
+        => Execute(() => service.OwnDepartmentsAsync(branchId, ct));
+
+    [HttpGet("{workdayId:long}/unscheduled-summary")]
+    public Task<IActionResult> UnscheduledSummary(long branchId, long workdayId, CancellationToken ct)
+        => Execute(() => service.UnscheduledSummaryAsync(branchId, workdayId, ct));
+
     [HttpGet("own-shifts")]
     public Task<IActionResult> OwnShifts(long branchId, CancellationToken ct)
         => Execute(() => service.OwnShiftsAsync(branchId, ct));

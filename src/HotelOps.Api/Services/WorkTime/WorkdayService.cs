@@ -26,11 +26,13 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
         {
             if (request.ShiftAssignmentId is null)
             {
-                if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 1000)
+                if (string.IsNullOrWhiteSpace(request.Reason) || request.Reason.Length > 1000 || request.Reason.Contains('\0'))
                     return new(400, Code: "UNSCHEDULED_REASON_REQUIRED");
-                return new(503, Code: "UNSCHEDULED_NOTIFICATION_UNAVAILABLE");
+                var unscheduled = await participant.StartUnscheduledWorkdayAsync(actor.UserId, branchId,
+                    request.DepartmentId, request.Reason, ct);
+                return new(201, Response(unscheduled));
             }
-            if (request.ShiftAssignmentId <= 0 || !string.IsNullOrWhiteSpace(request.Reason))
+            if (request.ShiftAssignmentId <= 0 || request.DepartmentId != null || !string.IsNullOrWhiteSpace(request.Reason))
                 return new(400, Code: "INVALID_SCHEDULED_START");
             var assignmentId = request.ShiftAssignmentId.Value;
             var allowed = await Authorize("ATTENDANCE_RECORD", new("shift_assignment", assignmentId), ct);
@@ -124,8 +126,29 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                 s.DepartmentId, s.ShiftDate, Utc(s.ScheduledStartAt), Utc(s.ScheduledEndAt))).ToArray());
         }, ct);
 
+    public Task<WorkdayResult> OwnDepartmentsAsync(long branchId, CancellationToken ct)
+        => Execute(branchId, "ATTENDANCE_RECORD", async actor =>
+        {
+            if (!await WorkdayMembershipStore.InstalledAsync(db, ct)) return new(503, Code: "WORKDAY_MEMBERSHIP_UNAVAILABLE");
+            var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            return new(200, await WorkdayMembershipStore.ReadAsync(db, actor.UserId, branchId, now, ct));
+        }, ct);
+
+    public Task<WorkdayResult> UnscheduledSummaryAsync(long branchId, long id, CancellationToken ct)
+        => Execute(branchId, "WORKLOAD_VIEW", async _ =>
+        {
+            var day = await db.Workdays.AsNoTracking().SingleAsync(d => d.WorkdayId == id && d.BranchId == branchId, ct);
+            return new(200, new { Workday = Response(day), EmployeeId = day.UserId, Reason = day.UnscheduledReason });
+        }, ct, async actor =>
+        {
+            var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
+            return await UnscheduledWorkdayAccess.CanReadAsync(db, actor.UserId, branchId, id, now, ct)
+                ? null : new WorkdayResult(403, Code: "WORKDAY_FORBIDDEN");
+        });
+
     private async Task<WorkdayResult> Execute(long branchId, string permission,
-        Func<CurrentUserInfo, Task<WorkdayResult>> action, CancellationToken ct)
+        Func<CurrentUserInfo, Task<WorkdayResult>> action, CancellationToken ct,
+        Func<CurrentUserInfo, Task<WorkdayResult?>>? featureAuthorization = null)
     {
         if (!current.TryGetCurrentUser(out var actor) || actor.UserId <= 0 || actor.SessionId <= 0)
             return new(401, Code: "SESSION_INVALID");
@@ -148,7 +171,9 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             if (!await db.Users.AsNoTracking().AnyAsync(u => u.UserId == actor.UserId
                     && u.AccountStatus == "ACTIVE" && u.EmploymentStatus == "ACTIVE" && u.DeletedAt == null, ct))
                 return new(403, Code: "TIME_ACTOR_INVALID");
-            var denied = await Authorize(permission, new("workday_self_branch", branchId), ct);
+            var denied = featureAuthorization is null
+                ? await Authorize(permission, new("workday_self_branch", branchId), ct)
+                : await featureAuthorization(actor);
             if (denied is not null) return denied;
             var result = await action(actor);
             if (result.Status is >= 200 and < 300)
@@ -158,6 +183,10 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
                 if (!finalSession.IsValid || finalSession.Session?.SessionId != actor.SessionId
                     || finalSession.Session.UserId != actor.UserId || finalSession.Session.IsRestricted)
                     return new(401, Code: "SESSION_INVALID");
+                var finalDenied = featureAuthorization is null
+                    ? await Authorize(permission, new("workday_self_branch", branchId), ct)
+                    : await featureAuthorization(actor);
+                if (finalDenied is not null) return finalDenied;
                 await tx.CommitAsync(ct);
             }
             return result;

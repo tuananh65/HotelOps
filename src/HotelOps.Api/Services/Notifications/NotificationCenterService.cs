@@ -366,6 +366,20 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             await tx.CommitAsync(ct);return new($"/operational-tasks?branchId={stopped.BranchId}&taskId={stopped.TaskId}");
         }
+        if(source is {NotificationType:"WORKDAY_UNSCHEDULED",SourceType:"UNSCHEDULED_WORKDAY",SourceId:>0})
+        {
+            if(!await WorkTime.WorkdayMembershipStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            var day=await db.Workdays.AsNoTracking().SingleOrDefaultAsync(d=>d.WorkdayId==source.SourceId&&d.IsUnscheduled,ct);
+            if(day==null||day.UserId!=source.CreatedBy||day.StartedAt!=source.CreatedAt
+                ||!await db.Database.SqlQuery<int>($"SELECT 1 AS Value FROM dbo.unscheduled_workday_notifications WHERE workday_id={day.WorkdayId} AND notification_id={id} AND status='DELIVERED'").AnyAsync(ct)
+                ||!await WorkTime.UnscheduledWorkdayAccess.CanReadAsync(db,user,day.BranchId,day.WorkdayId,now,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await RevalidateSessionAsync(user,ct);
+            if(!await WorkTime.UnscheduledWorkdayAccess.CanReadAsync(db,user,day.BranchId,day.WorkdayId,clock.GetUtcNow().UtcDateTime,ct))
+                throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
+            await tx.CommitAsync(ct);
+            return new($"/workday?branchId={day.BranchId}&unscheduledId={day.WorkdayId}");
+        }
         if(source is {NotificationType:"TASK_PLANNED" or "TASK_CANCELLED",SourceType:"TASK_PLAN",SourceId:>0})
         {
             if(!await TaskPlanningStore.InstalledAsync(db,ct))throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");

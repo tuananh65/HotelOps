@@ -31,12 +31,14 @@ export function createScheduledWorkdayApi(
     current: () => boolean,
     signal?: AbortSignal,
     pauseAll = false,
+    unscheduled?: { departmentId: number; reason: string },
   ): Promise<ScheduledResult> {
     if (!dispatchEnabled)
       return { outcome: "NOT_DISPATCHED", error: { reason: "DISABLED" } };
     if (
       !safeId(branch) ||
-      (assignmentId === null ? workdayId === undefined : !safeId(assignmentId)) ||
+      (assignmentId === null ? workdayId === undefined && !unscheduled : !safeId(assignmentId)) ||
+      (unscheduled !== undefined && (workdayId !== undefined || assignmentId !== null || !safeId(unscheduled.departmentId) || !unscheduled.reason.trim() || unscheduled.reason.length > 1000 || unscheduled.reason.includes("\0"))) ||
       (workdayId !== undefined &&
         (!safeId(workdayId) || !strongWorkdayTag(etag))) ||
       signal?.aborted ||
@@ -105,7 +107,7 @@ export function createScheduledWorkdayApi(
           headers,
           body: JSON.stringify(
             workdayId === undefined
-              ? { shiftAssignmentId: assignmentId }
+              ? (unscheduled ? { shiftAssignmentId: null, ...unscheduled } : { shiftAssignmentId: assignmentId })
               : { pauseAll },
           ),
         },
@@ -148,7 +150,7 @@ export function createScheduledWorkdayApi(
         },
         r.headers.get("ETag"),
       );
-      return data
+      return data && (!unscheduled || data.departmentId === unscheduled.departmentId)
         ? { outcome: "CONFIRMED", data }
         : { outcome: "OUTCOME_UNKNOWN", error: { reason: "INVALID_RESPONSE" } };
     } catch {
@@ -159,6 +161,8 @@ export function createScheduledWorkdayApi(
     }
   }
   return {
+    startUnscheduled: (branch: number, departmentId: number, reason: string, current: () => boolean, signal?: AbortSignal) =>
+      mutate(branch, null, undefined, undefined, current, signal, false, { departmentId, reason }),
     start: (
       branch: number,
       assignmentId: number,

@@ -8,6 +8,7 @@ import {
   type ScheduledWorkdayResponse,
 } from "./scheduledContracts";
 import { safeId, type OwnShift, type OwnWorkday } from "./contracts";
+import { UnscheduledStartForm } from "./UnscheduledStartForm";
 const keys = new WeakMap<object, number>();
 let generation = 0;
 function key(x: object) {
@@ -271,7 +272,7 @@ function Bound({
     );
   return (
     <main>
-      <h1>Scheduled workday</h1>
+      <h1>Workday</h1>
       <p>
         Branch {branchId}. Server confirms access and assignment eligibility.
       </p>
@@ -300,6 +301,12 @@ function Bound({
           </p>
         </section>
       )}
+      {dispatchEnabled && <UnscheduledStartForm branchId={branchId} current={current}
+        disabled={day!==null||pending||locked} invalidate={invalidateSession}
+        onBusy={value=>{busy.current=value;setPending(value);}}
+        onUnknown={()=>{uncertain.current=true;setLocked(true);}}
+        onStarted={value=>{setReceipt(value);setDay(undefined);setPending(false);setRefresh(n=>n+1);}}
+      />}
       <section aria-label="Assigned shifts">
         <h2>Assigned shifts</h2>
         {shiftError ? (

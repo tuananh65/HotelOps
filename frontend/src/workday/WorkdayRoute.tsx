@@ -1,17 +1,22 @@
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { ScheduledWorkdayPanel } from "./ScheduledWorkdayPanel";
 import { WorkdayReadPanel } from "./WorkdayReadPanel";
 import { safeId } from "./contracts";
+import { UnscheduledWorkdaySummary } from "./UnscheduledWorkdaySummary";
 
 function BranchSelection({ scheduled }: { scheduled: boolean }) {
+  const [query] = useSearchParams();
+  const noticeBranch = Number(query.get("branchId")), noticeId = Number(query.get("unscheduledId"));
   const [draft, setDraft] = useState("");
   const [branch, setBranch] = useState<number | null>(null);
   const [invalid, setInvalid] = useState(false);
   return (
     <main>
       <h1>Workday</h1>
+      {!scheduled && safeId(noticeBranch) && safeId(noticeId) &&
+        <UnscheduledWorkdaySummary key={`${noticeBranch}:${noticeId}`} branchId={noticeBranch} workdayId={noticeId}/>}
       <form
         onSubmit={(event) => {
           event.preventDefault();
