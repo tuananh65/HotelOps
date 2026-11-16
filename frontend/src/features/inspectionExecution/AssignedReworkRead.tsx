@@ -49,13 +49,14 @@ export function AssignedReworkRead() {
     void readRework(branch, id, abort.signal)
       .then((data) => {
         if (
-          !["READ_ONLY", "ACCEPT_START", "SUBMIT_REWORK"].includes(
+          !["READ_ONLY", "ACCEPT_START", "RESUME_REWORK", "SUBMIT_REWORK"].includes(
             data.capability,
           ) ||
           ![
             "PENDING_ACCEPTANCE",
             "ACCEPTED",
             "IN_PROGRESS",
+            "ON_HOLD",
             "PENDING_REINSPECTION",
             "COMPLETED",
             "FAILED",
@@ -100,12 +101,13 @@ export function AssignedReworkRead() {
       !data ||
       currentOwner.current !== owner ||
       data.capability !==
-        (action === "complete" ? "SUBMIT_REWORK" : "ACCEPT_START") ||
+        (action === "complete" ? "SUBMIT_REWORK"
+          : action === "start" && data.state === "ON_HOLD" ? "RESUME_REWORK" : "ACCEPT_START") ||
       data.state !==
         (action === "accept"
           ? "PENDING_ACCEPTANCE"
           : action === "start"
-            ? "ACCEPTED"
+            ? (data.capability === "RESUME_REWORK" ? "ON_HOLD" : "ACCEPTED")
             : "IN_PROGRESS") ||
       (action === "complete" && !command)
     )
@@ -120,7 +122,8 @@ export function AssignedReworkRead() {
         data.sourceETag,
         crypto.randomUUID(),
         command || {
-          note: action === "accept" ? "Accepted rework" : "Started rework",
+          note: action === "accept" ? "Accepted rework"
+            : data.state === "ON_HOLD" ? "Resumed rework after end of shift" : "Started rework",
         },
         {
           signal: scope.signal,
@@ -232,6 +235,15 @@ export function AssignedReworkRead() {
               <button disabled={busy} onClick={() => void execute("start")}>
                 Start rework
               </button>
+            )}
+          {visible.data.capability === "RESUME_REWORK" &&
+            visible.data.state === "ON_HOLD" && (
+              <>
+                <p>Paused at end of shift. Start a working workday before resuming.</p>
+                <button disabled={busy} onClick={() => void execute("start")}>
+                  Resume rework
+                </button>
+              </>
             )}
           {visible.data.capability === "READ_ONLY" && !visible.data.conclusion && (
             <p>

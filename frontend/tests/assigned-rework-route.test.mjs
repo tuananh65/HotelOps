@@ -118,7 +118,8 @@ async function scenario(run, writable = false) {
       assert.equal(request.headers()["if-match"], source.sourceETag);
       assert.equal(
         request.postDataJSON().note,
-        action === "accept" ? "Accepted rework" : "Started rework",
+        action === "accept" ? "Accepted rework"
+          : state.data.state === "ON_HOLD" ? "Resumed rework after end of shift" : "Started rework",
       );
       state.data = {
         ...state.data,
@@ -162,6 +163,21 @@ async function scenario(run, writable = false) {
     await page.close();
   }
 }
+
+test("end-of-shift hold resumes only with the server capability", async () => {
+  await scenario(async (page, state) => {
+    await page.getByText("PRIVATE-DEFECT", { exact: true }).waitFor();
+    state.data = { ...source, state: "ON_HOLD", capability: "READ_ONLY" };
+    await page.getByRole("button", { name: "Refresh rework" }).click();
+    await page.getByText("Rework #12: on hold.", { exact: true }).waitFor();
+    assert.equal(await page.getByRole("button", { name: "Resume rework", exact: true }).count(), 0);
+    state.data.capability = "RESUME_REWORK";
+    await page.getByRole("button", { name: "Refresh rework" }).click();
+    await page.getByRole("button", { name: "Resume rework", exact: true }).click();
+    await page.getByText("Rework #12: in progress.", { exact: true }).waitFor();
+    assert.deepEqual(state.calls.filter(c => c.method === "POST").map(c => c.path), ["/api/branches/3/reworks/12/start"]);
+  }, true);
+});
 
 test("canonical receive workflow accepts and starts using current CSRF and committed receipts", async () => {
   await scenario(async (page, state) => {

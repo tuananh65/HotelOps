@@ -33,6 +33,18 @@ Effective room readiness treats held/accepted Rework as outstanding. No room is 
 - Read-only disposable identity verified, followed by two Rework migration installations in an outer rollback transaction: PASS. Two trusted FKs and enabled immutable trigger verified. A temporary table using the installed CHECK accepted ON_HOLD/IN_PROGRESS and rejected ON_HOLD/COMPLETED. Rollback restored the exact original CHECK and removed receipt store/markers. Local transcript script: artifacts/uc139-rework-end-of-shift/migration-rollback.sql (ignored artifact).
 - Cleaning migration previously ran twice with outer rollback, trusted FK/trigger metadata and removal checks: PASS. These DDL checks do not prove receipt DML immutability or application transaction behavior.
 
+## Rework Resume UI correction — 2026-11-16
+
+The existing backend exposes ON_HOLD with RESUME_REWORK only for a revision-bound end-of-shift receipt. The canonical AssignedReworkRead screen previously rejected both values. It now displays the held task and offers Resume only for that exact capability/state pair, using the existing Start endpoint, current CSRF, ETag, idempotency key and session-bound request. READ_ONLY holds cannot Resume; submission remains limited to IN_PROGRESS. No generated entities or database were changed by this correction.
+
+Direct validation: frontend production build (including TypeScript) PASS; assigned-rework-route browser suite 6/6 PASS, including held read-only denial and authorized Resume through the Start route. Browser HTTP responses are mocked, not live SQL/HTTPS evidence. Existing Vite React Router directive and large-chunk warnings remain. UC139 is not promoted to COMPLETE_VERIFIED by this change.
+
 ## Remaining UC139 acceptance
+
+Current-source correction: Maintenance now participates through MaintenanceEndOfShift and the MAINTENANCE interval bridge; the historical paragraph below describes the earlier implementation. Live full-workflow acceptance is still pending.
+
+End Workday additionally rejects physically IN_PROGRESS Rework when its canonical workflow is running, missing or unknown, even if a legacy source has no open interval. ON_HOLD and PENDING_REINSPECTION remain valid stopped workflow states; no physical status is changed. The check runs under the existing serializable workday transaction and user/time locks, across branches. A missing workflow column fails closed. This correction does not fabricate or close an interval for legacy data.
+
+Validation of this boundary increment: backend solution build PASS (zero warnings/errors); 39 existing ReworkLifecycleTests/WorkdayControllerAdmissionTests PASS. Solution test command exited zero without discovering tests. These tests do not exercise the new SQL query; live SQL/HTTPS rollback and legacy-data reconciliation remain pending. No database mutation was performed.
 
 Actual UI -> HTTPS -> SQL Hold/Resume, stale versions, revoked permissions, concurrent ownership/authority changes, receipt retry and rollback behavior require runtime QA. Incident/Maintenance does not yet participate in the work_intervals bridge (the participant supports CLEANING/REWORK/TASK); its existing Hold/Resume only changes maintenance state and work logs. End now explicitly denies while the employee owns IN_PROGRESS Maintenance, even when there is no work interval, with PAUSE_ALL_MAINTENANCE_BRIDGE_REQUIRED. This serializable read prevents an empty interval list being mistaken for stopped Maintenance. The remaining Incident bridge and full UC139 runtime acceptance are the next implementation/verification work.

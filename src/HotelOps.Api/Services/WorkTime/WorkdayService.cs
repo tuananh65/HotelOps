@@ -112,6 +112,10 @@ public sealed class WorkdayService(HotelOpsDbContext db, ICurrentUserAccessor cu
             if (await db.MaintenanceWorks.AsNoTracking().AnyAsync(w => w.AssigneeId == actor.UserId
                     && w.Status == "IN_PROGRESS", ct))
                 return new(503, Code: "PAUSE_ALL_MAINTENANCE_RECONCILIATION_REQUIRED");
+            if (await db.CleaningReworks.AsNoTracking().AnyAsync(w => w.AssigneeUserId == actor.UserId
+                    && w.Status == "IN_PROGRESS", ct)
+                && !await ReworkWorkdayBoundary.IsStoppedAsync(db, actor.UserId, ct))
+                return new(503, Code: "PAUSE_ALL_REWORK_RECONCILIATION_REQUIRED");
             var day = await participant.EndWorkdayAsync(actor.UserId, branchId, workdayId, expectedVersion, ct);
             return new(200, Response(day));
         }, ct);
