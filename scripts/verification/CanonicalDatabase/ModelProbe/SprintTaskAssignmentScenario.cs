@@ -98,9 +98,11 @@ internal static class SprintTaskAssignmentScenario
         Check((await Send(nextHttp,HttpMethod.Post,Root(working)+"/accept",tag:snap.Tag)).Status==200,"reassigned executor must Accept again");
         var day=new Workday{UserId=next.UserId,BranchId=branch,DepartmentId=department,WorkDate=DateOnly.FromDateTime(DateTime.UtcNow.AddHours(7)),IsUnscheduled=true,UnscheduledReason="Synthetic assignment trial",Status="WORKING",StartedAt=DateTime.UtcNow.AddMinutes(-2)};
         db.Workdays.Add(day);await db.SaveChangesAsync(ct);db.ChangeTracker.Clear();
-        Check((await Send(nextHttp,HttpMethod.Post,Root(working)+"/start",tag:await Tag(working))).Status==200,"new executor Start opens separate interval");
+        await SprintTaskExecutionUserLock.RunAsync(db,nextHttp,next.UserId,working,Root(working)+"/start",await Tag(working),checks,ct);
         var pauseReason=await db.ReferenceValues.Where(r=>r.GroupCode=="TASK_PAUSE_REASON"&&r.ValueCode=="OTHER"&&r.IsActive).Select(r=>r.ReferenceId).SingleAsync(ct);
         Check((await Send(nextHttp,HttpMethod.Post,Root(working)+"/pause",new{reasonId=pauseReason,note="Synthetic pause before reassignment"},await Tag(working))).Status==200,"new executor pauses with approved reason");
+        await SprintTaskExecutionUserLock.RunAsync(db,nextHttp,next.UserId,working,Root(working)+"/resume",await Tag(working),checks,ct);
+        Check((await Send(nextHttp,HttpMethod.Post,Root(working)+"/pause",new{reasonId=pauseReason,note="Synthetic pause after concurrency verification"},await Tag(working))).Status==200,"executor pauses again before reassignment");
         Check((await Send(managerHttp,HttpMethod.Post,Root(working)+"/assignment",new{assigneeId=actor,reason="Resume by original executor"},await Tag(working))).Status==200,"Paused reassign returns Assigned without opening time");
         Check(!await db.WorkIntervals.AnyAsync(i=>i.WorkItemId==working&&i.WorkItemKind=="TASK"&&i.ClosedAt==null,ct),"paused reassignment opens no interval");
         var lastAudit=await db.AuditLogs.AsNoTracking().Where(a=>a.EntityType=="operational_tasks"&&a.EntityId==working.ToString()&&a.NewValues!.Contains("\"operation\":\"ASSIGN\"")).OrderByDescending(a=>a.AuditId).FirstAsync(ct);
