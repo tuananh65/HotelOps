@@ -62,7 +62,7 @@ public sealed partial class RoomTypeCreationService
             var history = await db.CleaningTasks.AnyAsync(x => x.RoomId == room.RoomId, token);
             var pointers = await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={room.RoomId}").ToArrayAsync(token);
             if (history && pointers.Length != 1) return new(RoomTypeBatchStatus.Inactive);
-            var now = clock.GetUtcNow().UtcDateTime;
+            var now = DateTime.SpecifyKind(await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS [Value]").SingleAsync(token), DateTimeKind.Utc);
             if (input.DueAt <= now) return new(RoomTypeBatchStatus.InvalidReference);
             var task = new CleaningTask
             {
@@ -80,7 +80,8 @@ public sealed partial class RoomTypeCreationService
             await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.cleaning_tasks SET workflow_status='PENDING_ASSIGNMENT' WHERE cleaning_task_id={task.CleaningTaskId}", token);
             if (pointers.Length == 0) await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_cleaning_cycle_state(room_id,cleaning_task_id) VALUES({room.RoomId},{task.CleaningTaskId})", token);
             else await db.Database.ExecuteSqlInterpolatedAsync($"UPDATE dbo.room_cleaning_cycle_state SET cleaning_task_id={task.CleaningTaskId} WHERE room_id={room.RoomId}", token);
-            var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == room.RoomId && x.ReleasedAt == null, token);
+            var blocked = await db.RoomBlocks.AsNoTracking().AnyAsync(x => x.RoomId == room.RoomId
+                && x.BlockedAt <= now && (x.ReleasedAt == null || x.ReleasedAt > now), token);
             await db.Database.ExecuteSqlInterpolatedAsync($"INSERT dbo.room_readiness_events(room_id,cleaning_task_id,readiness,has_effective_block,actor_user_id,occurred_at) VALUES({room.RoomId},{task.CleaningTaskId},'PENDING_CLEANING',{blocked},{actor},{now})", token);
             var dto = new CreatedCleaningTask(task.CleaningTaskId, branch, room.RoomId, task.TaskNo, "PENDING_ASSIGNMENT", "PENDING_CLEANING", blocked);
             await BatchAuditAsync(actor, branch, "cleaning_tasks", task.CleaningTaskId, null, dto, ["create", "currentCycle", "readinessEvent"], token);

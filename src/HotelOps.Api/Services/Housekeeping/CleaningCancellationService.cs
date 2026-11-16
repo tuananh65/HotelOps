@@ -60,7 +60,8 @@ public sealed partial class RoomTypeCreationService
             || await db.CleaningReworks.AsNoTracking().AnyAsync(r => r.CleaningTaskId == row.CleaningTaskId, ct)) return "INSPECTION_REWORK_SOURCE_REQUIRED";
         if (!restoration)
         {
-            if (await db.RoomBlocks.AsNoTracking().AnyAsync(b => b.RoomId == row.RoomId && (b.ReleasedAt == null || b.ReleasedAt > now), ct)) return "ROOM_BLOCK_SOURCE_CONFLICT";
+            if (await db.RoomBlocks.AsNoTracking().AnyAsync(b => b.RoomId == row.RoomId
+                && b.BlockedAt <= now && (b.ReleasedAt == null || b.ReleasedAt > now), ct)) return "ROOM_BLOCK_SOURCE_CONFLICT";
             if (await db.Database.SqlQuery<int>($"SELECT COUNT(*) AS [Value] FROM dbo.cleaning_tasks WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId} AND cleaning_task_id<>{row.CleaningTaskId} AND (workflow_status IS NULL OR workflow_status<>'CANCELLED' OR status<>'CANCELLED')").SingleAsync(ct) != 0)
                 return "PREVIOUS_CYCLE_READINESS_CONTRACT_REQUIRED";
             if (await db.CleaningTasks.AsNoTracking().AnyAsync(t => t.RoomId == row.RoomId && t.CleaningTaskId != row.CleaningTaskId
