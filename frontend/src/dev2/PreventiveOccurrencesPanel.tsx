@@ -34,6 +34,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
   const [busy,setBusy] = useState(false), sending = useRef(false);
   const [assignees,setAssignees] = useState<Record<number,string>>({}), [reasons,setReasons] = useState<Record<number,string>>({});
   const [uncertain,setUncertain] = useState(false);
+  const [hasMore,setHasMore] = useState(false);
   const [dueFrom,setDueFrom] = useState(""), [dueTo,setDueTo] = useState(""), [overdue,setOverdue] = useState("");
   const clearResults = () => { setRows([]); setHistory({}); setEvidence({}); };
   const [mine,setMine] = useState(true), [status,setStatus] = useState("OPEN");
@@ -123,7 +124,7 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       const payload: unknown = await response.json();
       const raw = runId != null ? [payload] : payload;
       if (!Array.isArray(raw) || !raw.every(valid)) throw Error("Occurrence details could not be confirmed.");
-      if (!abort.signal.aborted && current.current === owner) { setRows(more ? [...rows,...raw] : raw); if (!raw.length) setMessage("No further occurrences in your current scope."); }
+      if (!abort.signal.aborted && current.current === owner) { setRows(more ? [...rows,...raw] : raw); setHasMore(runId == null && raw.length === 50); if (!raw.length) setMessage("No further occurrences in your current scope."); }
     } catch (e) { if (!abort.signal.aborted && current.current === owner) { setRows([]); setMessage(String(e)); } }
     finally { sending.current = false; if (!abort.signal.aborted && current.current === owner) setBusy(false); }
   }
@@ -138,10 +139,10 @@ export function PreventiveOccurrencesPanel({ branchId, runId }: { branchId: numb
       <label>Due from (UTC+7)<input type="datetime-local" value={dueFrom} onChange={e=>{setDueFrom(e.target.value);clearResults();}} /></label>
       <label>Due to (UTC+7)<input type="datetime-local" value={dueTo} onChange={e=>{setDueTo(e.target.value);clearResults();}} /></label>
       <label>Overdue<select value={overdue} onChange={e=>{setOverdue(e.target.value);clearResults();}}><option value="">All</option><option value="true">Overdue</option><option value="false">Not overdue</option></select></label>
-      <p>Branch results remain limited by your current permissions.</p>
+      <p>Earliest due occurrences first. Branch results remain limited by your current permissions.</p>
     </fieldset>}
     <button disabled={busy} onClick={() => void load()}>{runId != null ? `Open occurrence #${runId}` : "Load occurrences"}</button>
-    {runId == null && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
+    {runId == null && hasMore && !!rows.length && <button disabled={busy} onClick={() => void load(true)}>Load more occurrences</button>}
     {message && <p role="status">{message}</p>}
     {rows.map(r => <details key={r.runId} open={runId != null || undefined}><summary>{r.title} — {r.status} — {new Date(r.dueAt).toLocaleString()}</summary>
       <p>{r.isOverdue ? "Overdue" : "Not overdue"}</p><p>{r.instruction}</p><p>Occurrence #{r.runId}; schedule #{r.scheduleId}; assignee {r.assigneeId ?? "Pending assignment"}.</p>

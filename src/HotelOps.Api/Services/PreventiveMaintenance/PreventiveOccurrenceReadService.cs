@@ -71,6 +71,15 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
         var scope=await AccessAsync(ticket,sid,branch,ct);
         if(!await PreventiveOccurrenceGeneration.InstalledAsync(db,ct))
             throw new InternalRequestReadException(503,"PREVENTIVE_OCCURRENCE_STORAGE_UNAVAILABLE");
+        // Resolve the cursor through the same source authorization and snapshot checks.
+        // Its business due date, not its allocation ID, determines the next page.
+        DateTime? afterDue=null;
+        if(afterId>0)
+        {
+            if(id!=null)throw new InternalRequestReadException(400,"INVALID_OCCURRENCE_PAGE");
+            var cursor=(await ReadAsync(ticket,sid,branch,afterId,0,ct)).Single();
+            afterDue=cursor.DueAt;
+        }
         var evaluatedAt=await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         var rows=await db.Database.SqlQuery<Row>($"""
             SELECT TOP(50) r.run_id AS RunId,r.schedule_id AS ScheduleId,d.definition_json AS Definition,
@@ -81,7 +90,8 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
             JOIN dbo.preventive_maintenance_runs r ON r.run_id=d.run_id
             JOIN dbo.preventive_maintenance_schedules s ON s.schedule_id=r.schedule_id
             WHERE d.branch_id={branch} AND ({scope.Lead}=1 OR ({scope.Staff}=1 AND d.assignee_id={ticket.UserId}))
-              AND r.run_id>{afterId} AND ({id} IS NULL OR r.run_id={id})
+              AND ({afterId}=0 OR r.planned_at>{afterDue} OR (r.planned_at={afterDue} AND r.run_id>{afterId}))
+              AND ({id} IS NULL OR r.run_id={id})
               AND ({mine}=0 OR d.assignee_id={ticket.UserId})
               AND ({fromUtc} IS NULL OR r.planned_at>={fromUtc}) AND ({toUtc} IS NULL OR r.planned_at<={toUtc})
               AND ({overdue} IS NULL
@@ -95,7 +105,7 @@ public sealed partial class PreventiveOccurrenceReadService(HotelOpsDbContext db
                     AND EXISTS(SELECT 1 FROM dbo.rooms a WHERE a.room_id=s.room_id AND a.branch_id={branch}))
                 OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL
                     AND EXISTS(SELECT 1 FROM dbo.areas a WHERE a.area_id=s.area_id AND a.branch_id={branch})))
-            ORDER BY r.run_id
+            ORDER BY r.planned_at,r.run_id
             """).ToArrayAsync(ct);
         var result=new List<PreventiveOccurrenceView>();
         var canAssign=scope.Lead&&await PreventiveOccurrenceManagementService.AllowedAsync(db,ticket.UserId,branch,"MAINTENANCE_ASSIGN",ct);
