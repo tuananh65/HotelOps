@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using HotelOps.Api.DTOs.Maintenance;
+using HotelOps.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Maintenance;
@@ -7,6 +8,11 @@ namespace HotelOps.Api.Services.Maintenance;
 public sealed partial class MaintenanceWorkService
 {
     public async Task<MaintenancePagedResponse> GetWorksAsync(MaintenanceQueryRequest request, CancellationToken cancellationToken)
+    {
+        return await ListAsync(_dbContext.MaintenanceWorks.AsNoTracking(), request, cancellationToken);
+    }
+
+    internal static async Task<MaintenancePagedResponse> ListAsync(IQueryable<MaintenanceWork> query, MaintenanceQueryRequest request, CancellationToken cancellationToken)
     {
         if (request.Page <= 0)
             throw new ValidationException("Page must be greater than zero.");
@@ -19,7 +25,13 @@ public sealed partial class MaintenanceWorkService
         if (!string.IsNullOrEmpty(status) && !IsWorkStatus(status))
             throw new ValidationException("Unknown maintenance status.");
 
-        var query = _dbContext.MaintenanceWorks.AsNoTracking();
+        var keyword = request.Keyword?.Trim();
+        if (keyword?.Length > 200) throw new ValidationException("Keyword must not exceed 200 characters.");
+        if (!string.IsNullOrEmpty(keyword)) query = query.Where(w => w.WorkNo.Contains(keyword) || w.Title.Contains(keyword));
+        var source = request.Source?.Trim().ToUpperInvariant();
+        if (!string.IsNullOrEmpty(source) && source is not ("INCIDENT" or "PREVENTIVE")) throw new ValidationException("Unknown maintenance source.");
+        if (source == "INCIDENT") query = query.Where(w => w.IncidentId != null);
+        if (source == "PREVENTIVE") query = query.Where(w => w.IncidentId == null && w.PreventiveMaintenanceRuns.Any());
         if (request.IncidentId is long incidentId)
             query = query.Where(work => work.IncidentId == incidentId);
         if (request.AssigneeId is long assigneeId)
@@ -39,6 +51,7 @@ public sealed partial class MaintenanceWorkService
             {
                 MaintenanceWorkId = work.MaintenanceWorkId,
                 WorkNo = work.WorkNo,
+                Source = work.IncidentId != null ? "INCIDENT" : work.PreventiveMaintenanceRuns.Any() ? "PREVENTIVE" : null,
                 IncidentId = work.IncidentId,
                 AssigneeId = work.AssigneeId,
                 DepartmentId = work.DepartmentId,

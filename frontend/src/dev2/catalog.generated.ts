@@ -1197,10 +1197,13 @@ export const operations: Operation[] = [
     expectedStatus: 200,
     dto: "MaintenanceQueryRequest",
     fields: [
+      { name: "branchId", type: "long?", optional: false },
+      { name: "keyword", type: "string?", optional: true },
+      { name: "source", type: "string?", optional: true },
       {
         name: "incidentId",
         type: "long?",
-        optional: false,
+        optional: true,
       },
       {
         name: "assigneeId",

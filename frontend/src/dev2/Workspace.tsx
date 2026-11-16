@@ -704,7 +704,7 @@ function Screen({
       {!readOnly && record.incidentId != null && (
         <p>
           <Link
-            to={`/operations/maintenance?action=A004A-035&incidentId=${record.incidentId}`}
+            to={`/operations/maintenance?action=A004A-035&incidentId=${record.incidentId}${record.branchId ? "&branchId=" + record.branchId : ""}`}
           >
             Browse related maintenance works
           </Link>{" "}
