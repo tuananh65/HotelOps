@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { isObject } from "../auth/http";
 import type { Values } from "./contracts";
 
-type Event = { key: string; title: string; at: unknown; actor: unknown; note?: unknown; lines?: Values[]; fulfillment?: unknown };
+type Event = { key: string; title: string; at: unknown; actor: unknown; note?: unknown; lines?: Values[]; fulfillment?: unknown; returnLines?: Values[] };
 const rows = (v: unknown): Values[] => Array.isArray(v) ? v.filter(isObject) : [];
 const stamp = (v: unknown) => typeof v === "string" && Number.isFinite(Date.parse(v)) ? Date.parse(v) : null;
 
@@ -17,6 +17,16 @@ export function MaterialHistoryView({ record }: { record: Values }) {
   for (const batch of rows(record.fulfillments)) events.push({ key: `issue-${batch.fulfillmentId}`,
     title: `Issue ${batch.fulfillmentNo} (${batch.status})`, at: batch.fulfilledAt, actor: batch.fulfilledBy,
     fulfillment: batch.fulfillmentId, lines: rows(batch.lines) });
+  const returns = new Map<unknown, Values[]>();
+  for (const line of rows(record.returns)) returns.set(line.documentId, [...(returns.get(line.documentId) ?? []), line]);
+  for (const [id, lines] of returns) {
+    const receipt = lines[0];
+    events.push({ key: `return-created-${id}`, title: `Return ${receipt.documentNo} created (${receipt.status})`,
+      at: receipt.createdAt, actor: null });
+    if (receipt.postedAt != null || receipt.status === "POSTED" || receipt.status === "REVERSED")
+      events.push({ key: `return-posted-${id}`, title: `Return ${receipt.documentNo} posting (${receipt.status})`,
+        at: receipt.postedAt, actor: receipt.postedBy, returnLines: lines });
+  }
   if (record.remainderClosedAt != null) events.push({ key: "remainder", title: "Unissued remainder closed",
     at: record.remainderClosedAt, actor: record.remainderClosedBy, note: record.remainderCloseReason });
   events.sort((a, b) => (stamp(a.at) ?? Infinity) - (stamp(b.at) ?? Infinity) || a.key.localeCompare(b.key));
@@ -28,6 +38,11 @@ export function MaterialHistoryView({ record }: { record: Values }) {
       {stamp(event.at) == null ? <span>Timestamp unavailable</span> : <time dateTime={String(event.at)}>{new Date(String(event.at)).toISOString()}</time>}
       {event.actor != null && <span> · User {String(event.actor)}</span>}
       {event.note != null && <p>{String(event.note)}</p>}
+      {event.returnLines && <ul>{event.returnLines.map(line => <li key={String(line.returnLineId ?? line.originalIssueLineId)}>
+        {String(line.itemName ?? line.itemId ?? "Material unavailable")}: recorded quantity {String(line.actualQty ?? "N/A")},
+        damaged {String(line.damagedQty ?? "N/A")} {String(line.unitName ?? "Unit unavailable")};
+        original issue line {String(line.originalIssueLineId)}.
+      </li>)}</ul>}
       {event.lines && event.lines.length > 0 && <ul>{event.lines.map((line, index) => <li key={`${line.requestLineId}:${index}`}>
         Material {String(line.itemId)}, unit {String(line.uomId)}: {event.fulfillment != null
           ? `issued ${line.issuedQty}` : `requested ${line.requestedQty}; approved ${line.approvedQty ?? "not recorded"}`}
@@ -43,6 +58,7 @@ export function MaterialHistoryView({ record }: { record: Values }) {
       currently open to fulfill {String(line.openFulfillableQty)}.
     </li>)}</ul>
     <h3>Return documents</h3>
+    <p>Return quantities describe their source documents. Draft, cancelled or reversed returns do not imply available stock or reduce the request's historical issued quantity.</p>
     {rows(record.returns).length ? <ul>{rows(record.returns).map((receipt, index) => <li key={`${receipt.documentId}:${receipt.originalIssueLineId}:${index}`}>
       {String(receipt.documentNo)} — {String(receipt.status)}; original issue line {String(receipt.originalIssueLineId)}.
     </li>)}</ul> : <p>No linked return documents recorded.</p>}

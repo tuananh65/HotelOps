@@ -24,7 +24,10 @@ public sealed record MaterialFulfillmentLineDto(long FulfillmentLineId, long Req
 public sealed record MaterialFulfillmentDto(long FulfillmentId, string FulfillmentNo, long RequestId, long WarehouseId,
     long FulfilledBy, long? ReceivedBy, string Status, DateTime? FulfilledAt, DateTime? ReceivedAt, long? StockDocumentId,
     string? StockDocumentNo, IReadOnlyList<MaterialFulfillmentLineDto> Lines);
-public sealed record MaterialReturnDto(long DocumentId, string DocumentNo, string Status, long OriginalIssueLineId);
+public sealed record MaterialReturnDto(long DocumentId, string DocumentNo, string Status, long OriginalIssueLineId,
+    long? ReturnLineId = null, long? ItemId = null, string? ItemName = null, string? UnitName = null,
+    decimal? ActualQty = null, decimal? DamagedQty = null, DateTime? CreatedAt = null,
+    DateTime? PostedAt = null, long? PostedBy = null);
 public sealed record MaterialRequestDto(long RequestId, string RequestNo, string RawStatus, bool IsNewWorkflow, bool MutationEligible,
     string? MutationRestriction, string RowVersion, long BranchId, long DepartmentId, long RequesterId, long? SourceWarehouseId,
     string Purpose, DateTime? NeededAt, long? PriorityId, long? ReceivingRoomId, long? ReceivingAreaId, long? IncidentId,

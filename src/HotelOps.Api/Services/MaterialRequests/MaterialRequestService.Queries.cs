@@ -51,7 +51,11 @@ public sealed partial class MaterialRequestService
         // a request-line mapping from ItemId or line order.
         var issueDocuments = batches.Where(x => x.StockDocumentId != null).Select(x => x.StockDocumentId!.Value).ToArray();
         var returns = issueDocuments.Length == 0 ? [] : await db.StockReturnLineDetails.AsNoTracking().Where(x => issueDocuments.Contains(x.OriginalIssueLine.DocumentId) && x.OriginalIssueLine.Document.DocumentType == "ISSUE")
-            .Select(x => new MaterialReturnDto(x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo, x.StockDocumentLine.Document.Status, x.OriginalIssueLineId)).Distinct().ToListAsync(ct);
+            .Select(x => new MaterialReturnDto(x.StockDocumentLine.DocumentId, x.StockDocumentLine.Document.DocumentNo,
+                x.StockDocumentLine.Document.Status, x.OriginalIssueLineId, x.StockDocumentLineId,
+                x.StockDocumentLine.ItemId, x.StockDocumentLine.Item.ItemName, x.StockDocumentLine.Uom.UomName,
+                x.StockDocumentLine.ActualQty, x.DamagedQty, x.StockDocumentLine.Document.CreatedAt,
+                x.StockDocumentLine.Document.PostedAt, x.StockDocumentLine.Document.PostedBy)).ToListAsync(ct);
         var isNew = await NewWorkflow(r, ct); var eligible = isNew && r.Status is "DRAFT" or "PENDING_APPROVAL" or "NEEDS_INFORMATION" or "APPROVED" or "PARTIALLY_ISSUED";
         return new(r.RequestId, r.RequestNo, r.Status, isNew, eligible, eligible ? null : isNew ? "Terminal workflow state." : "Legacy workflow: mutation reconciliation unavailable.", Convert.ToBase64String(r.RowVersion),
             r.BranchId, r.DepartmentId, r.RequesterId, r.SourceWarehouseId, r.Purpose, Utc(r.NeededAt), r.PriorityId, r.ReceivingRoomId, r.ReceivingAreaId, r.IncidentId,
@@ -60,7 +64,8 @@ public sealed partial class MaterialRequestService
                 x.IsActive && r.Status is "APPROVED" or "PARTIALLY_ISSUED" ? (x.ApprovedQty ?? 0) - x.FulfilledQty : 0, x.IsActive, x.Note, x.Item.ItemName, x.Uom.UomName)).ToArray(),
             cycles.Select(x => new MaterialCycleDto(x.ApprovalCycleId, x.RevisionNo, x.SubmittedBy, x.AssignedApproverId, x.Status, Utc(x.SubmittedAt), Utc(x.ResolvedAt),
                 x.MaterialRequestApprovalLineSnapshots.OrderBy(l => l.LineNo).Select(l => new MaterialCycleLineDto(l.RequestLineId, l.LineNo, l.ItemId, l.UomId, l.RequestedQty, l.ApprovedQty, l.Note)).ToArray())).ToArray(),
-            decisions.Select(x => x with { DecidedAt = Utc(x.DecidedAt) }).ToArray(), batches, returns);
+            decisions.Select(x => x with { DecidedAt = Utc(x.DecidedAt) }).ToArray(), batches,
+            returns.Select(x => x with { CreatedAt = Utc(x.CreatedAt), PostedAt = Utc(x.PostedAt) }).ToArray());
     }
     public async Task<IReadOnlyList<MaterialFulfillmentDto>?> Fulfillments(long id, CancellationToken ct)
     {
