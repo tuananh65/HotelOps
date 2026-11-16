@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { ApiError } from "../../api/dev1/client";
+import { Link } from "react-router-dom";
 import {
   cancelCleaning,
   cancellationCommand,
@@ -98,7 +99,14 @@ export default function CleaningCancellationPanel({
       <h2>Hủy công việc vệ sinh</h2>
       {message && <p role="status">{message}</p>}
       {options?.capability === "UNAVAILABLE" && (
-        <p>Chưa đủ điều kiện hủy công việc.</p>
+        options.blocker === "TASK_ALREADY_STARTED" || options.blocker === "TASK_HAS_EXECUTION_HISTORY" ? (
+          <p role="status">
+            Công việc đã bắt đầu hoặc có lịch sử thực hiện nên không thể hủy. Bạn có thể xem phương án phân công lại.{" "}
+            <Link to={`/cleaning/tasks/${encodeURIComponent(task)}?branchId=${encodeURIComponent(branch)}&execution=1`}>
+              Phân công lại
+            </Link>
+          </p>
+        ) : <p>Chưa đủ điều kiện hủy công việc.</p>
       )}
       {options?.capability === "PROVISIONAL_V1" && !done && (
         <>

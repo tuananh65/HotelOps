@@ -49,6 +49,7 @@ public sealed partial class RoomTypeCreationService
         var now = clock.GetUtcNow().UtcDateTime;
         var assignments = await db.CleaningAssignments.AsNoTracking().Where(a => a.CleaningTaskId == row.CleaningTaskId
             && a.AssignmentStatus == "ACTIVE" && a.EndedAt == null).Take(2).ToArrayAsync(ct);
+        if (row.ActualStartAt != null) return "TASK_ALREADY_STARTED";
         if (!CleaningCancellationRules.CanCancel(state, row.Status, row.ActualStartAt, row.ActualEndAt, assignments.Length)
             || assignments.Any(a => a.AssignedAt > now)) return "TASK_NOT_CANCELLABLE";
         var pointer = await db.Database.SqlQuery<long>($"SELECT cleaning_task_id AS [Value] FROM dbo.room_cleaning_cycle_state WITH(UPDLOCK,HOLDLOCK) WHERE room_id={row.RoomId}").SingleOrDefaultAsync(ct);
