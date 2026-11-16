@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace HotelOps.Api.Services.Maintenance;
 
-public sealed record MaintenanceTechnicianOption(long UserId,string Name,int OpenIncidents,int OpenOccurrences);
+public sealed record MaintenanceTechnicianOption(long UserId,string Name,int? OpenIncidents,int? OpenOccurrences);
 public sealed record MaintenanceAssignmentContext(long IncidentId,string IncidentVersion,long? WorkId,string? WorkVersion,long? AssigneeId,
     IReadOnlyList<MaintenanceTechnicianOption> Technicians);
 
@@ -33,14 +33,36 @@ public sealed partial class MaintenanceAssignmentService
             .Select(r=>new {r.UserId,r.User.FullName}).Distinct().OrderBy(r=>r.FullName).ThenBy(r=>r.UserId).ToArrayAsync(ct);
         var scope=await MaintenanceReadAccess.ReadAsync(db,ticket.UserId,incident.BranchId,ct);
         var population=scope.Apply(db.MaintenanceWorks.AsNoTracking()).Where(w=>w.Status!="CLOSED" && w.Status!="CANCELLED");
+        var occurrenceStorage=await PreventiveMaintenance.PreventiveOccurrenceGeneration.InstalledAsync(db,ct);
         var options=new List<MaintenanceTechnicianOption>();
         foreach(var candidate in candidates)
         {
             try{await MaintenanceAssignmentEligibility.RequireAsync(db,candidate.UserId,incident.BranchId,work?.MaintenanceWorkId ?? 0,ct);}
             catch(ValidationException){continue;}
             var assigned=population.Where(w=>w.AssigneeId==candidate.UserId);
-            options.Add(new(candidate.UserId,candidate.FullName,await assigned.CountAsync(w=>w.IncidentId!=null && w.Incident!.Status!="CLOSED" && w.Incident.Status!="CANCELLED",ct),
-                await assigned.CountAsync(w=>w.IncidentId==null && w.Status!="COMPLETED" && w.PreventiveMaintenanceRuns.Any(r=>r.PerformedAt==null),ct)));
+            var visible=scope.Lead || scope.Staff && candidate.UserId==ticket.UserId;
+            int? openIncidents=visible?await assigned.CountAsync(w=>w.IncidentId!=null && w.Incident!.Status!="CLOSED" && w.Incident.Status!="CANCELLED",ct):null;
+            int? openOccurrences=null;
+            if(visible && occurrenceStorage)
+            {
+                var current=await db.Database.SqlQuery<int>($"""
+                    SELECT COUNT(*) AS Value FROM dbo.preventive_occurrence_details d
+                    JOIN dbo.preventive_maintenance_runs r ON r.run_id=d.run_id
+                    JOIN dbo.preventive_maintenance_schedules s ON s.schedule_id=r.schedule_id
+                    WHERE d.branch_id={incident.BranchId} AND d.assignee_id={candidate.UserId}
+                      AND d.workflow_status IN('ASSIGNED','IN_PROGRESS') AND r.performed_at IS NULL
+                      AND r.maintenance_work_id IS NULL
+                      AND ((s.asset_id IS NOT NULL AND s.room_id IS NULL AND s.area_id IS NULL
+                            AND EXISTS(SELECT 1 FROM dbo.assets t WHERE t.asset_id=s.asset_id AND t.branch_id={incident.BranchId}))
+                        OR (s.room_id IS NOT NULL AND s.asset_id IS NULL AND s.area_id IS NULL
+                            AND EXISTS(SELECT 1 FROM dbo.rooms t WHERE t.room_id=s.room_id AND t.branch_id={incident.BranchId}))
+                        OR (s.area_id IS NOT NULL AND s.asset_id IS NULL AND s.room_id IS NULL
+                            AND EXISTS(SELECT 1 FROM dbo.areas t WHERE t.area_id=s.area_id AND t.branch_id={incident.BranchId})))
+                    """).SingleAsync(ct);
+                var legacy=await assigned.CountAsync(w=>w.IncidentId==null && w.Status!="COMPLETED" && w.PreventiveMaintenanceRuns.Any(r=>r.PerformedAt==null),ct);
+                openOccurrences=checked(current+legacy);
+            }
+            options.Add(new(candidate.UserId,candidate.FullName,openIncidents,openOccurrences));
         }
         var tag=await IncidentTriageStore.TagAsync(db,id,ct) ?? throw new InternalRequestReadException(503,"VERSION_UNAVAILABLE");
         var workTag=work==null?null:await MaintenanceExecutionVersion.TagAsync(db,work.MaintenanceWorkId,ct);

@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../auth/AuthProvider";
 import { isObject } from "../auth/http";
 
-type Technician = { userId: number; name: string; openIncidents: number; openOccurrences: number };
+type Technician = { userId: number; name: string; openIncidents: number | null; openOccurrences: number | null };
 type Context = { incidentId: number; incidentVersion: string; workId: number | null; workVersion: string | null; assigneeId: number | null; technicians: Technician[] };
 const positive = (v: unknown): v is number => typeof v === "number" && Number.isSafeInteger(v) && v > 0;
 const version = (v: unknown): v is string => typeof v === "string" && /^"[0-9A-F]{16}"$/.test(v);
@@ -28,8 +28,8 @@ export function MaintenanceAssignmentPanel({ incidentId }: { incidentId: number 
       if (!isObject(r) || r.incidentId !== incidentId || !version(r.incidentVersion)
         || !(r.workId === null && r.workVersion === null || positive(r.workId) && version(r.workVersion))
         || !Array.isArray(r.technicians) || !r.technicians.every(t => isObject(t) && positive(t.userId) && typeof t.name === "string"
-          && typeof t.openIncidents === "number" && Number.isSafeInteger(t.openIncidents) && t.openIncidents >= 0
-          && typeof t.openOccurrences === "number" && Number.isSafeInteger(t.openOccurrences) && t.openOccurrences >= 0)) throw Error("Invalid assignment context.");
+          && (t.openIncidents === null || typeof t.openIncidents === "number" && Number.isSafeInteger(t.openIncidents) && t.openIncidents >= 0)
+          && (t.openOccurrences === null || typeof t.openOccurrences === "number" && Number.isSafeInteger(t.openOccurrences) && t.openOccurrences >= 0))) throw Error("Invalid assignment context.");
       if (!controller.signal.aborted && current.current === owner) setContext({ owner, value: r as Context });
     } catch (e) { if (!controller.signal.aborted && current.current === owner) setMessage(e instanceof Error ? e.message : "Assignment unavailable."); }
     finally { if (!controller.signal.aborted) { sending.current = false; setBusy(false); } }
@@ -71,7 +71,7 @@ export function MaintenanceAssignmentPanel({ incidentId }: { incidentId: number 
       {data.technicians.length === 0 && <p>No eligible technician. Check grants and independent reviewer availability.</p>}
       <label>Technician<select aria-label="Technician" disabled={busy || review || attempted} value={selected} onChange={e => setSelected(e.target.value)}>
         <option value="">Choose technician</option>{data.technicians.map(t => <option key={t.userId} value={t.userId} disabled={t.userId === data.assigneeId}>
-          {t.name} — {t.openIncidents} open incidents, {t.openOccurrences} open occurrences</option>)}</select></label>
+          {t.name} — {t.openIncidents ?? "N/A"} open incidents, {t.openOccurrences ?? "N/A"} open occurrences</option>)}</select></label>
       <label>Instructions<textarea disabled={busy || review || attempted} value={instructions} onChange={e => setInstructions(e.target.value)} /></label>
       <label>Planned end (Asia/Ho_Chi_Minh, UTC+7)<input type="datetime-local" step="1" disabled={busy || review || attempted} value={end} onChange={e => setEnd(e.target.value)} /></label>
       {review ? <><p>Assign to {candidate?.name}, planned end {planned && new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Ho_Chi_Minh", dateStyle: "short", timeStyle: "medium" }).format(new Date(planned))} (UTC+7)? Existing SLA deadlines remain unchanged.</p>
