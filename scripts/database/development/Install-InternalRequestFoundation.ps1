@@ -17,7 +17,10 @@ $reviewed=@(
     @{Path='scripts/verification/CanonicalDatabase/InternalRequestRouteIsolated.sql';Hash='15CFC7F3FD147610183C34CD54B30E3870A8888C07FA15D12CB8DEAB7FFE6214'},
     @{Path='scripts/verification/CanonicalDatabase/InternalRequestWithdrawalIsolated.sql';Hash='7081D8698256B493DF75F262BB3F8E99AACC162E76F65A89CEC862E1E512AE7D'},
     @{Path='scripts/verification/CanonicalDatabase/InternalRequestHandoverIsolated.sql';Hash='BDD1CF8FB77932EFD5606846782C5F558C131A09412ED37FBD51C04943822D42'},
-    @{Path='scripts/verification/CanonicalDatabase/InternalRequestEscalationIsolated.sql';Hash='C078D70DE34272883B46A198C1844FF49CA4CFFB5CB4A375841699C2F187F344'}
+    @{Path='scripts/verification/CanonicalDatabase/InternalRequestEscalationIsolated.sql';Hash='C078D70DE34272883B46A198C1844FF49CA4CFFB5CB4A375841699C2F187F344'},
+    @{Path='scripts/verification/CanonicalDatabase/InternalRequestTaskLinksIsolated.sql';Hash='A2E287E262E8C8865DC6491E416C88A4DBBBCAFD3F4561F7F55745C7A1A4F7DA'},
+    @{Path='scripts/verification/CanonicalDatabase/InternalRequestCleaningLinksIsolated.sql';Hash='2D78938DFB99BAAC7896C0F679FB3B172AA3DD5897025FF58271AD25B20EE88F'},
+    @{Path='scripts/verification/CanonicalDatabase/InternalRequestIncidentLinksIsolated.sql';Hash='AB643927BE658DB394C7AD5338A8B2AA3C3992261D863D702AD8DDB926C1FCC1'}
 )
 $packages=@()
 foreach($item in $reviewed){
