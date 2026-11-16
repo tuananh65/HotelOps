@@ -72,5 +72,49 @@ Read-only recovery inspection also confirms legacy material status CHECK values
 (SUBMITTED/RETURNED/PARTIALLY_FULFILLED/COMPLETED) differ from current source and
 approval cycle/snapshot storage is absent. Thirteen requests, twelve approvals and
 fourteen lines were preserved. Do not relabel them or invent cycle/issue receipts.
-An additive lifecycle migration and explicit legacy reconciliation are still needed
-before this recovery database can exercise the approved terminal completion paths.
+The additive lifecycle migration below resolves the storage gap. Explicit legacy
+reconciliation and workflow acceptance are still needed; installation alone does not
+prove that existing requests meet the approved terminal completion paths.
+
+## Material link workflow and recovery compatibility
+
+UC118 Link Existing Material is now connected from the canonical history panel to
+the HTTPS API and transactional link/audit writer. Source must be Accepted/In Progress,
+readable with IR_VIEW, and manageable through current exact receiving-department
+DEPT_MANAGER/IR_PROCESS authority. Each target separately requires MR_VIEW and matching
+branch provenance. Candidates use the current source's open states only; legacy
+SUBMITTED/RETURNED/PARTIALLY_FULFILLED are not silently remapped. Selection of mandatory
+or optional is explicit. Strong If-Match, duplicate/state recheck, current session,
+final source/target reauthorization, existing CSRF and Serializable transaction remain.
+The target material request is not mutated, fulfilled or approved. After confirmed
+save the UI refreshes history/links and completion eligibility. No automatic retry.
+
+`MaterialLifecycleRecovery.sql` adds the columns, approval-cycle/snapshot tables,
+restrictive FKs and unique indexes already mapped by the Database First source. The
+status CHECK is replaced atomically to retain every legacy value while admitting the
+current source values. No legacy row is relabeled; no cycle, decision or posted-issue
+correlation is inferred. No EF entities/mappings or role grants changed.
+
+The first rollback probe failed on sqlcmd's QUOTED_IDENTIFIER setting; the transaction
+rolled back. Explicit filtered-index SET options fixed it. The final script passed
+default rollback with independent absence checks, then installed/replayed successfully
+on the same identity-guarded disposable recovery clone. All 13 new FKs are checked for
+exact endpoints, trust and no cascading action; column types and unique index keys
+are validated on replay. Final script SHA256:
+`064BD516A21FE36DAC2164E511C4A0C6F64FC910A8A42507AF3AE3D098297CCB`.
+
+Original business-field SHA256 fingerprints were identical before/after installation:
+
+| Table | SHA256 |
+| --- | --- |
+| material_requests | 0EA3D340A5F3133497217CD08F96F1E569BC4B358F86E8EFE8DF533B2040366B |
+| material_request_lines | 15774A5BFC22DBC7DC2A4B2312CADC71E819C76237D9E4A5A596ACEB81337EA3 |
+| material_request_approvals | 2453CF7F1DEBACC116DD4B7CF1C65ADC47CD8C0420D59D2E82E98F322495604F |
+| material_fulfillment_lines | D8964FDB02547F7541857DFC46CABD144154F9A9B402F142DB533795268FB15E |
+
+The 12 legacy decisions still have NULL cycle binding; new cycles/snapshots are empty.
+13 request statuses remain 7 APPROVED, 3 COMPLETED, 1 DRAFT, 1 REJECTED, 1 SUBMITTED.
+Backend build PASS 0 warnings/errors; TypeScript/Vite build PASS with the existing
+directive/chunk warnings. Business tests/API/browser NOT RUN per instruction. No
+whole-UC completion claim; current runtime still needs other FE13 capabilities and
+approved grants, and legacy proof gaps continue to fail closed.

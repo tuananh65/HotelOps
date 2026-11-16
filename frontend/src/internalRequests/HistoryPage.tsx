@@ -358,7 +358,7 @@ export function InternalRequestHistoryPage() {
           <InternalRequestTaskLinksPanel key={visible.timeline.requestId} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Task linked.")} />
           <InternalRequestCleaningLinksPanel key={`cleaning:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Cleaning task linked.")} />
           <InternalRequestIncidentLinksPanel key={`incidents:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Incident linked.")} />
-          <InternalRequestMaterialLinksPanel key={`materials:${visible.timeline.requestId}`} id={visible.timeline.requestId} />
+          <InternalRequestMaterialLinksPanel key={`materials:${visible.timeline.requestId}`} id={visible.timeline.requestId} onLinked={() => refreshWork(visible.timeline!.requestId, "MSG08: Material request linked.")} />
           <h3>Events</h3>
           {visible.timeline.events.length === 0 && (
             <p>No events on this page.</p>
