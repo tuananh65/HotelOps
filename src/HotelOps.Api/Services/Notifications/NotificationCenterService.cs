@@ -417,7 +417,7 @@ public sealed partial class NotificationCenterService(HotelOpsDbContext db,ICurr
         }
         if(source is {NotificationType:MaintenanceClosureSource.Kind,SourceType:MaintenanceClosureSource.SourceType,SourceId:>0})
         {
-            var closure=await MaintenanceClosureSource.ReadAsync(db,source.SourceId.Value,ct);
+            var closure=await MaintenanceClosureSource.ReadHistoricalAsync(db,source.SourceId.Value,ct);
             if(closure==null||closure.ActorId!=source.CreatedBy||closure.At!=source.CreatedAt)
                 throw new InsightException(404,"SOURCE_UNAVAILABLE","Notification source is unavailable.");
             var target=await MaintenanceClosureSource.TargetAsync(db,user,closure,ct);

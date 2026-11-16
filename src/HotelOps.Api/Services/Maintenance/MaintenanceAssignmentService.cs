@@ -50,8 +50,10 @@ public sealed partial class MaintenanceAssignmentService(HotelOpsDbContext db, I
         if(version!=tag) throw new InternalRequestReadException(412,"INCIDENT_CHANGED");
         if(await IncidentAssignmentWorkflow.ReadAsync(db,incident,ct) is not ("ASSIGNED" or "PENDING_ASSIGNMENT"))
             throw new InternalRequestReadException(409,"TRIAGED_UNSTARTED_INCIDENT_REQUIRED");
+        var cycle=await IncidentReopenStore.ReadAsync(db,id,ct);
+        var cycleStart=cycle?.ReopenedAt ?? DateTime.MinValue;
         var works=await db.MaintenanceWorks.FromSqlInterpolated($"SELECT * FROM dbo.maintenance_works WITH(UPDLOCK,HOLDLOCK) WHERE incident_id={id}")
-            .AsTracking().ToArrayAsync(ct);
+            .Where(w=>w.CreatedAt>=cycleStart).AsTracking().ToArrayAsync(ct);
         if(works.Length>1) throw new InternalRequestReadException(409,"AMBIGUOUS_MAINTENANCE_WORK");
         var work=works.SingleOrDefault();
         if(work==null && input.WorkVersion!=null || work!=null && input.WorkVersion!=await MaintenanceExecutionVersion.TagAsync(db,work.MaintenanceWorkId,ct))

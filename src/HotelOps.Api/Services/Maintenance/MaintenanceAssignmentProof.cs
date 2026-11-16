@@ -44,6 +44,8 @@ internal static class MaintenanceAssignmentProof
             || await db.WorkIntervals.AsNoTracking().AnyAsync(i => i.WorkItemKind == "MAINTENANCE" && i.WorkItemId == workId, ct))
             return "UNVERIFIED";
         if (!await HasTriageAsync(db, incident, ct)) return "UNVERIFIED";
+        var cycle = await IncidentReopenStore.ReadAsync(db, incident.IncidentId, ct);
+        if (cycle != null && work.CreatedAt < cycle.ReopenedAt) return "UNVERIFIED";
         if (work.AssigneeId == null) return "PENDING_ASSIGNMENT";
         return await MaintenanceExecutionAccess.AllowsAsync(db, work.AssigneeId.Value, incident.BranchId, workId, ct)
             ? "ASSIGNED" : "UNVERIFIED";
@@ -52,13 +54,29 @@ internal static class MaintenanceAssignmentProof
     internal static async Task<bool> HasTriageAsync(HotelOpsDbContext db, Incident incident, CancellationToken ct)
     {
         if (db.Database.CurrentTransaction == null) throw new InvalidOperationException("Owning transaction required.");
-        var latest = await db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident.IncidentId && e.EventType == "TRIAGED")
+        var cycle = await IncidentReopenStore.ReadAsync(db, incident.IncidentId, ct);
+        var cycleEvent = cycle?.EventId ?? 0;
+        var latest = await db.IncidentEvents.AsNoTracking().Where(e => e.IncidentId == incident.IncidentId && e.EventType == "TRIAGED" && e.EventId > cycleEvent)
             .OrderByDescending(e => e.OccurredAt).ThenByDescending(e => e.EventId).FirstOrDefaultAsync(ct);
         if (latest == null) return false;
         var id = incident.IncidentId.ToString(CultureInfo.InvariantCulture);
         var audits = await db.AuditLogs.AsNoTracking().Where(a => a.EntityType == "incidents" && a.EntityId == id
             && a.OccurredAt == latest.OccurredAt && a.ActorUserId == latest.ActorId && a.BranchId == incident.BranchId).ToArrayAsync(ct);
         var sla = await IncidentSlaRead.ReadAsync(db, incident.IncidentId, ct);
-        return audits.Count(a => MatchesTriage(a, incident, sla, latest)) == 1;
+        if (cycle != null && (latest.OccurredAt < cycle.ReopenedAt || sla.ResponseDeadlineAt < cycle.DiscoveredAt
+            || sla.ResolutionDeadlineAt < cycle.DiscoveredAt)) return false;
+        return audits.Count(a => MatchesTriage(a, incident, sla, latest) && (cycle == null || MatchesCycle(a, cycle))) == 1;
+    }
+
+    private static bool MatchesCycle(AuditLog audit, IncidentReopenStore.Boundary cycle)
+    {
+        try
+        {
+            using var json = JsonDocument.Parse(audit.NewValues ?? "null");
+            return json.RootElement.GetProperty("reopen_event_id").GetInt64() == cycle.EventId
+                && json.RootElement.GetProperty("cycle_discovered_at").GetDateTime() == cycle.DiscoveredAt;
+        }
+        catch (Exception error) when (error is JsonException or InvalidOperationException or KeyNotFoundException or FormatException or OverflowException)
+        { return false; }
     }
 }

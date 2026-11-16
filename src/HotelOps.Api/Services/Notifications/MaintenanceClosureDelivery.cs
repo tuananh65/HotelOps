@@ -37,7 +37,7 @@ internal sealed class MaintenanceClosureDelivery(HotelOpsDbContext db, TimeProvi
             EXEC @result=sys.sp_getapplock @Resource={resource},@LockMode='Exclusive',@LockOwner='Transaction',@LockTimeout=15000;
             IF @result<0 THROW 51843,'Maintenance notification lock unavailable.',1;
             """, ct);
-        var source = await MaintenanceClosureSource.ReadAsync(db, id, ct);
+        var source = await MaintenanceClosureSource.ReadHistoricalAsync(db, id, ct);
         if (source == null || source != sourceHint) return "SOURCE_DENIED";
         var now = await db.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(ct);
         if (!NotificationRetention.At(now, retention.Value).Contains(source.At)) return "EVENT_OUTSIDE_RETENTION";
@@ -72,7 +72,7 @@ internal sealed class MaintenanceClosureDelivery(HotelOpsDbContext db, TimeProvi
         await db.SaveChangesAsync(ct);
         foreach (var user in eligible)
             if (!await MaintenanceClosureSource.CanReadAsync(db, user, source, ct)) return "RECIPIENT_CHANGED";
-        if (await MaintenanceClosureSource.ReadAsync(db, id, ct) != source) return "SOURCE_CHANGED";
+        if (await MaintenanceClosureSource.ReadHistoricalAsync(db, id, ct) != source) return "SOURCE_CHANGED";
         await tx.CommitAsync(ct); db.ChangeTracker.Clear();
         return "DELIVERED";
     }

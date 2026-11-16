@@ -156,13 +156,11 @@ internal static class IncidentReadContract
                     && await MaintenanceAssignmentAccess.AllowsAsync(db,a.Actor.UserId,result.BranchId,result.IncidentId,ct);
                 if(result.CanAssign) a.Http.Items[AssignmentKey]=true;
                 if (result.TriageETag != null && result.AssignmentWorkflow == "PENDING_TRIAGE" && result.CategoryId != null && result.SeverityId is > 0
-                    && result.Events.Count(e => e.EventType == "CREATED" && e.ToStatus == "OPEN" && e.ActorId == result.ReportedBy && e.OccurredAt == result.ReportedAt) == 1
-                    && !result.Events.Any(e => e.EventType == "TRIAGED")
-                    && !await db.MaintenanceWorks.AnyAsync(w => w.IncidentId == result.IncidentId, ct)
                     && result.Sla.UnavailableReason == "INCIDENT_SLA_NOT_RECORDED" && result.Sla.ResponseDeadlineAt == null && result.Sla.ResolutionDeadlineAt == null
                     && await IncidentTriageAccess.AllowsAsync(db, a.Actor.UserId, result.BranchId, result.IncidentId, ct))
                 {
-                    result.TriageOptions = await IncidentTriageStore.OptionsAsync(db, result.DiscoveredAt, ct);
+                    var cycle = await IncidentReopenStore.ReadAsync(db, result.IncidentId, ct);
+                    result.TriageOptions = await IncidentTriageStore.OptionsAsync(db, cycle?.DiscoveredAt ?? result.DiscoveredAt, ct);
                     result.CanTriage = result.TriageOptions.Count > 0;
                     a.Http.Items[TriageOptionsKey] = true;
                 }

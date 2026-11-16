@@ -25,7 +25,9 @@ public sealed partial class MaintenanceAssignmentService
         await AuthorizeAsync(ticket.UserId,incident,ct);
         if(await IncidentAssignmentWorkflow.ReadAsync(db,incident,ct) is not ("PENDING_ASSIGNMENT" or "ASSIGNED"))
             throw new InternalRequestReadException(409,"TRIAGED_UNSTARTED_INCIDENT_REQUIRED");
-        var work=await db.MaintenanceWorks.AsNoTracking().SingleOrDefaultAsync(w=>w.IncidentId==id,ct);
+        var cycle=await IncidentReopenStore.ReadAsync(db,id,ct);
+        var cycleStart=cycle?.ReopenedAt ?? DateTime.MinValue;
+        var work=await db.MaintenanceWorks.AsNoTracking().SingleOrDefaultAsync(w=>w.IncidentId==id && w.CreatedAt>=cycleStart,ct);
         var candidates=await db.UserRoles.AsNoTracking().Where(r=>r.BranchId==incident.BranchId
             && (r.Role.RoleCode=="MAINTENANCE_STAFF" || r.Role.RoleCode=="MAINTENANCE_LEAD"))
             .Select(r=>new {r.UserId,r.User.FullName}).Distinct().OrderBy(r=>r.FullName).ThenBy(r=>r.UserId).ToArrayAsync(ct);

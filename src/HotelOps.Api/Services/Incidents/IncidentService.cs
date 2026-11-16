@@ -160,12 +160,10 @@ public sealed class IncidentService : IIncidentService
         var expectedTag = _authorityHttp?.HttpContext?.Request.Headers.IfMatch.ToString();
         if (string.IsNullOrEmpty(expectedTag)) throw new Dev2AccessDenied(428);
         if (expectedTag != currentTag) throw new Dev2AccessDenied(412);
-        if (incident.Status != "OPEN" || incident.ResolvedAt != null || incident.ClosedAt != null
-            || await _dbContext.IncidentEvents.AnyAsync(e => e.IncidentId == id && e.EventType == "TRIAGED", cancellationToken)
-            || await _dbContext.MaintenanceWorks.AnyAsync(w => w.IncidentId == id, cancellationToken)
-            || await _dbContext.IncidentEvents.CountAsync(e => e.IncidentId == id && e.EventType == "CREATED"
-                && e.ToStatus == "OPEN" && e.ActorId == incident.ReportedBy && e.OccurredAt == incident.ReportedAt, cancellationToken) != 1)
-            throw new ValidationException("Initial Triage requires a verified Pending Triage incident without assignment or execution history.");
+        if (await IncidentAssignmentWorkflow.ReadAsync(_dbContext, incident, cancellationToken) != "PENDING_TRIAGE")
+            throw new ValidationException("Triage requires verified Pending Triage without assignment or execution in the current cycle.");
+        var cycle = await IncidentReopenStore.ReadAsync(_dbContext, id, cancellationToken);
+        var cycleDiscovery = cycle?.DiscoveredAt ?? incident.DiscoveredAt;
         if (request.SeverityId is not > 0 || request.PriorityId is not > 0 || incident.SeverityId != request.SeverityId
             || !await _dbContext.ReferenceValues.AsNoTracking().AnyAsync(r => r.ReferenceId == request.SeverityId
                 && r.GroupCode == "SEVERITY" && r.IsActive, cancellationToken))
@@ -180,8 +178,8 @@ public sealed class IncidentService : IIncidentService
             throw new ValidationException("Initial Triage cannot replace existing or unavailable SLA evidence.");
         var target = await IncidentTriageStore.TargetAsync(_dbContext, request.PriorityId.Value, cancellationToken);
         if (target.Version != request.ExpectedSlaTargetVersion) throw new Dev2AccessDenied(412);
-        var defaults = IncidentTriageStore.Calculate(incident.DiscoveredAt, target, new());
-        var deadlines = IncidentTriageStore.Calculate(incident.DiscoveredAt, target, request);
+        var defaults = IncidentTriageStore.Calculate(cycleDiscovery, target, new());
+        var deadlines = IncidentTriageStore.Calculate(cycleDiscovery, target, request);
         var now = await _dbContext.Database.SqlQuery<DateTime>($"SELECT SYSUTCDATETIME() AS Value").SingleAsync(cancellationToken);
         var before = JsonSerializer.Serialize(new { severity_id = incident.SeverityId, priority_id = incident.PriorityId,
             response_deadline_at = (DateTime?)null, resolution_deadline_at = (DateTime?)null });
@@ -193,7 +191,8 @@ public sealed class IncidentService : IIncidentService
             EntityType = "incidents", EntityId = id.ToString(CultureInfo.InvariantCulture), Action = "UPDATE", OldValues = before,
             NewValues = JsonSerializer.Serialize(new { severity_id = incident.SeverityId, priority_id = incident.PriorityId,
                 response_deadline_at = deadlines.Response, resolution_deadline_at = deadlines.Resolution,
-                discovered_at = incident.DiscoveredAt, sla_response_minutes = target.ResponseMinutes,
+                discovered_at = incident.DiscoveredAt, cycle_discovered_at = cycleDiscovery, reopen_event_id = cycle?.EventId,
+                sla_response_minutes = target.ResponseMinutes,
                 sla_resolution_minutes = target.ResolutionMinutes, sla_target_version = target.Version,
                 default_response_deadline_at = defaults.Response, default_resolution_deadline_at = defaults.Resolution,
                 initial_action_plan = actionPlan,
